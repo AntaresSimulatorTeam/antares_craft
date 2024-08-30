@@ -25,13 +25,11 @@ jobs:
           pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Check formatting
-        uses: ruff-actions/ruff@v1
-        with:
-          options: ruff format --check src tests
+        run: ruff format --check src tests
 
       - name: Check typing
         run: |
-          python -m mypy
+          python -m mypyf
 
       - name: Test
         run: |
