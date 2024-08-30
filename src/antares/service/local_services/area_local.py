@@ -1,6 +1,6 @@
-import configparser
 import logging
 import os
+from configparser import ConfigParser
 from typing import Optional, Dict, List, Any
 
 import pandas as pd
@@ -18,18 +18,24 @@ from antares.service.base_services import (
     BaseThermalService,
     BaseRenewableService,
 )
-from antares.tools.contents_tool import extract_content
 from antares.tools.ini_tool import IniFileTypes, IniFile
 
-AREA_CONTENTS = "area_contents.json"
 
-
-def _sets_ini_content() -> str:
+def _sets_ini_content() -> ConfigParser:
     """
     Returns: sets.ini contents with default values
     """
-    sets_ini_content = extract_content("sets_content", AREA_CONTENTS)
-    return sets_ini_content
+    sets_ini = ConfigParser()
+    sets_ini_dict = {
+        "all areas": {
+            "caption": "All areas",
+            "comments": "Spatial aggregates on all areas",
+            "output": "false",
+            "apply-filter": "add-all",
+        }
+    }
+    sets_ini.read_dict(sets_ini_dict)
+    return sets_ini
 
 
 class AreaLocalService(BaseAreaService):
@@ -167,7 +173,6 @@ class AreaLocalService(BaseAreaService):
         os.makedirs(new_area_directory, exist_ok=True)
 
         list_path = areas_directory / "list.txt"
-        sets_path = areas_directory / "sets.ini"
 
         area_to_add = f"{area_name}\n"
         try:
@@ -187,8 +192,8 @@ class AreaLocalService(BaseAreaService):
             # TODO: Handle districts in sets.ini later
             sets_ini_content = _sets_ini_content()
 
-            with open(sets_path, "w") as sets_ini:
-                sets_ini.write(sets_ini_content)
+            with (self.config.study_path / IniFileTypes.AREAS_SETS_INI.value).open("w") as sets_ini:
+                sets_ini_content.write(sets_ini)
 
             local_properties = AreaPropertiesLocal(properties) if properties else AreaPropertiesLocal()
 
@@ -196,7 +201,7 @@ class AreaLocalService(BaseAreaService):
             adequacy_patch_ini.add_section(local_properties.adequacy_patch_mode())
             adequacy_patch_ini.write_ini_file()
 
-            optimization_ini = configparser.ConfigParser()
+            optimization_ini = ConfigParser()
             optimization_ini.read_dict(local_properties.model_dump(by_alias=True, exclude_none=True))
 
             with open(new_area_directory / "optimization.ini", "w") as optimization_ini_file:
@@ -216,7 +221,7 @@ class AreaLocalService(BaseAreaService):
             areas_ini.write_ini_file()
 
             local_ui = AreaUiLocal(ui) if ui else AreaUiLocal()
-            ui_ini = configparser.ConfigParser()
+            ui_ini = ConfigParser()
             ui_ini.read_dict(local_ui.model_dump(exclude_none=True))
             with open(new_area_directory / "ui.ini", "w") as ui_ini_file:
                 ui_ini.write(ui_ini_file)

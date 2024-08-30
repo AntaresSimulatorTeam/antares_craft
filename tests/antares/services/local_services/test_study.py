@@ -132,6 +132,7 @@ caption = All areas
 comments = Spatial aggregates on all areas
 output = false
 apply-filter = add-all
+
 """
 
         # When
