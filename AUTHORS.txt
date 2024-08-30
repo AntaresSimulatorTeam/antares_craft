@@ -1,0 +1,8 @@
+Github identifiers of authors, in alphabetical order:
+
+berthetclement
+killian-scalian
+MartinBelthle
+Sigurd-Borge
+sylvlecl
+vargastat

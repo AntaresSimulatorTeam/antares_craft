@@ -1,0 +1,631 @@
+from configparser import ConfigParser
+
+from antares.model.hydro import Hydro
+from antares.model.renewable import (
+    RenewableClusterProperties,
+    RenewableCluster,
+    RenewableClusterGroup,
+    TimeSeriesInterpretation,
+    RenewableClusterPropertiesLocal,
+)
+from antares.model.st_storage import STStorage, STStoragePropertiesLocal, STStorageProperties, STStorageGroup
+from antares.model.thermal import (
+    ThermalCluster,
+    ThermalClusterProperties,
+    ThermalClusterGroup,
+    LocalTSGenerationBehavior,
+    LawOption,
+    ThermalCostGeneration,
+    ThermalClusterPropertiesLocal,
+)
+from antares.tools.ini_tool import IniFileTypes, IniFile
+
+
+class TestCreateThermalCluster:
+    def test_can_be_created(self, local_study_w_areas):
+        # Given
+        thermal_name = "test_thermal_cluster"
+
+        # When
+        created_thermal = local_study_w_areas.get_areas()["fr"].create_thermal_cluster(thermal_name)
+        assert isinstance(created_thermal, ThermalCluster)
+
+    def test_has_default_properties(self, local_study_w_thermal):
+        assert (
+            local_study_w_thermal.get_areas()["fr"]
+            .get_thermals()["test thermal cluster"]
+            .properties.model_dump(exclude_none=True)
+        )
+
+    def test_has_correct_default_properties(self, local_study_w_thermal, default_thermal_cluster_properties):
+        # Given
+        expected_thermal_cluster_properties = default_thermal_cluster_properties
+
+        # When
+        actual_thermal_cluster_properties = (
+            local_study_w_thermal.get_areas()["fr"].get_thermals()["test thermal cluster"].properties
+        )
+
+        assert expected_thermal_cluster_properties == actual_thermal_cluster_properties
+
+    def test_required_ini_files_exist(self, tmp_path, local_study_w_thermal):
+        # Given
+        expected_list_ini_path = (
+            local_study_w_thermal.service.config.study_path / IniFileTypes.THERMAL_LIST_INI.value.format(area_name="fr")
+        )
+        expected_areas_ini_path = local_study_w_thermal.service.config.study_path / IniFileTypes.THERMAL_AREAS_INI.value
+
+        # Then
+        assert expected_list_ini_path.is_file()
+        assert expected_areas_ini_path.is_file()
+
+    def test_list_ini_has_default_properties(self, tmp_path, local_study_w_thermal, actual_thermal_list_ini):
+        # Given
+        expected_list_ini_contents = """[test thermal cluster]
+group = Other 1
+name = test thermal cluster
+enabled = True
+unitcount = 1
+nominalcapacity = 0.000000
+gen-ts = use global
+min-stable-power = 0.000000
+min-up-time = 1
+min-down-time = 1
+must-run = False
+spinning = 0.000000
+volatility.forced = 0.000000
+volatility.planned = 0.000000
+law.forced = uniform
+law.planned = uniform
+marginal-cost = 0.000000
+spread-cost = 0.000000
+fixed-cost = 0.000000
+startup-cost = 0.000000
+market-bid-cost = 0.000000
+co2 = 0.000000
+nh3 = 0.000000
+so2 = 0.000000
+nox = 0.000000
+pm2_5 = 0.000000
+pm5 = 0.000000
+pm10 = 0.000000
+nmvoc = 0.000000
+op1 = 0.000000
+op2 = 0.000000
+op3 = 0.000000
+op4 = 0.000000
+op5 = 0.000000
+costgeneration = SetManually
+efficiency = 100.000000
+variableomcost = 0.000000
+
+"""
+        expected_list_ini = ConfigParser()
+        expected_list_ini.read_string(expected_list_ini_contents)
+        with actual_thermal_list_ini.ini_path.open("r") as actual_list_ini_file:
+            actual_list_ini_contents = actual_list_ini_file.read()
+
+        # Then
+        assert actual_thermal_list_ini.parsed_ini.sections() == expected_list_ini.sections()
+        assert actual_list_ini_contents == expected_list_ini_contents
+        assert actual_thermal_list_ini.parsed_ini == expected_list_ini
+
+    def test_list_ini_has_custom_properties(self, tmp_path, local_study_w_areas, actual_thermal_list_ini):
+        # Given
+        expected_list_ini_contents = """[test thermal cluster]
+group = Nuclear
+name = test thermal cluster
+enabled = False
+unitcount = 12
+nominalcapacity = 3.900000
+gen-ts = force no generation
+min-stable-power = 3.100000
+min-up-time = 3
+min-down-time = 2
+must-run = True
+spinning = 2.300000
+volatility.forced = 3.500000
+volatility.planned = 3.700000
+law.forced = geometric
+law.planned = geometric
+marginal-cost = 2.900000
+spread-cost = 4.200000
+fixed-cost = 3.600000
+startup-cost = 0.700000
+market-bid-cost = 0.800000
+co2 = 1.000000
+nh3 = 2.000000
+so2 = 3.000000
+nox = 4.000000
+pm2_5 = 5.000000
+pm5 = 6.000000
+pm10 = 7.000000
+nmvoc = 8.000000
+op1 = 9.000000
+op2 = 10.000000
+op3 = 11.000000
+op4 = 12.000000
+op5 = 13.000000
+costgeneration = useCostTimeseries
+efficiency = 123.400000
+variableomcost = 5.000000
+
+"""
+        expected_list_ini = ConfigParser()
+        expected_list_ini.read_string(expected_list_ini_contents)
+        thermal_cluster_properties = ThermalClusterProperties(
+            group=ThermalClusterGroup.NUCLEAR,
+            enabled=False,
+            unit_count=12,
+            nominal_capacity=3.9,
+            gen_ts=LocalTSGenerationBehavior.FORCE_NO_GENERATION,
+            min_stable_power=3.1,
+            min_up_time=3,
+            min_down_time=2,
+            must_run=True,
+            spinning=2.3,
+            volatility_forced=3.5,
+            volatility_planned=3.7,
+            law_forced=LawOption.GEOMETRIC,
+            law_planned=LawOption.GEOMETRIC,
+            marginal_cost=2.9,
+            spread_cost=4.2,
+            fixed_cost=3.6,
+            startup_cost=0.7,
+            market_bid_cost=0.8,
+            co2=1.0,
+            nh3=2.0,
+            so2=3.0,
+            nox=4.0,
+            pm2_5=5.0,
+            pm5=6.0,
+            pm10=7.0,
+            nmvoc=8.0,
+            op1=9.0,
+            op2=10.0,
+            op3=11.0,
+            op4=12.0,
+            op5=13.0,
+            cost_generation=ThermalCostGeneration.USE_COST_TIME_SERIES,
+            efficiency=123.4,
+            variable_o_m_cost=5.0,
+        )
+
+        # When
+        local_study_w_areas.get_areas()["fr"].create_thermal_cluster("test thermal cluster", thermal_cluster_properties)
+
+        actual_thermal_list_ini.update_from_ini_file()
+        with actual_thermal_list_ini.ini_path.open("r") as actual_list_ini_file:
+            actual_list_ini_contents = actual_list_ini_file.read()
+
+        # Then
+        assert actual_thermal_list_ini.parsed_ini.sections() == expected_list_ini.sections()
+        assert actual_list_ini_contents == expected_list_ini_contents
+        assert actual_thermal_list_ini.parsed_ini == expected_list_ini
+
+    def test_list_ini_has_multiple_clusters(
+        self, local_study_w_thermal, actual_thermal_list_ini, default_thermal_cluster_properties
+    ):
+        # Given
+        local_study_w_thermal.get_areas()["fr"].create_thermal_cluster("test thermal cluster two")
+        expected_list_ini_dict = ThermalClusterPropertiesLocal(
+            thermal_name="test thermal cluster", thermal_cluster_properties=default_thermal_cluster_properties
+        ).list_ini_fields
+        expected_list_ini_dict.update(
+            ThermalClusterPropertiesLocal(
+                thermal_name="test thermal cluster two", thermal_cluster_properties=default_thermal_cluster_properties
+            ).list_ini_fields
+        )
+
+        expected_list_ini = ConfigParser()
+        expected_list_ini.read_dict(expected_list_ini_dict)
+
+        # When
+        actual_thermal_list_ini.update_from_ini_file()
+
+        # Then
+        assert actual_thermal_list_ini.parsed_ini.sections() == expected_list_ini.sections()
+        assert actual_thermal_list_ini.parsed_ini == expected_list_ini
+
+    def test_clusters_are_alphabetical_in_list_ini(
+        self, local_study_w_thermal, actual_thermal_list_ini, default_thermal_cluster_properties
+    ):
+        # Given
+        first_cluster_alphabetically = "a is before b and t"
+        second_cluster_alphabetically = "b is after a"
+
+        expected_list_ini_dict = ThermalClusterPropertiesLocal(
+            thermal_name=first_cluster_alphabetically, thermal_cluster_properties=default_thermal_cluster_properties
+        ).list_ini_fields
+        expected_list_ini_dict.update(
+            ThermalClusterPropertiesLocal(
+                thermal_name=second_cluster_alphabetically,
+                thermal_cluster_properties=default_thermal_cluster_properties,
+            ).list_ini_fields
+        )
+        expected_list_ini_dict.update(
+            ThermalClusterPropertiesLocal(
+                thermal_name="test thermal cluster", thermal_cluster_properties=default_thermal_cluster_properties
+            ).list_ini_fields
+        )
+        expected_list_ini = ConfigParser()
+        expected_list_ini.read_dict(expected_list_ini_dict)
+
+        # When
+        local_study_w_thermal.get_areas()["fr"].create_thermal_cluster(second_cluster_alphabetically)
+        local_study_w_thermal.get_areas()["fr"].create_thermal_cluster(first_cluster_alphabetically)
+        actual_thermal_list_ini.update_from_ini_file()
+
+        # Then
+        assert actual_thermal_list_ini.ini_dict.keys() == expected_list_ini_dict.keys()
+        assert actual_thermal_list_ini.parsed_ini.sections() == expected_list_ini.sections()
+        assert actual_thermal_list_ini.parsed_ini == expected_list_ini
+
+
+class TestCreateRenewablesCluster:
+    def test_can_create_renewables_cluster(self, local_study_w_thermal):
+        # When
+        renewable_cluster_name = "renewable cluster"
+        local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
+            renewable_cluster_name, RenewableClusterProperties(), None
+        )
+
+        # Then
+        assert local_study_w_thermal.get_areas()["fr"].get_renewables()
+        assert isinstance(
+            local_study_w_thermal.get_areas()["fr"].get_renewables()[renewable_cluster_name], RenewableCluster
+        )
+
+    def test_renewable_cluster_has_properties(self, local_study_with_renewable):
+        assert (
+            local_study_with_renewable.get_areas()["fr"]
+            .get_renewables()["renewable cluster"]
+            .properties.model_dump(exclude_none=True)
+        )
+
+    def test_renewable_cluster_has_correct_default_properties(
+        self, local_study_with_renewable, default_renewable_cluster_properties
+    ):
+        assert (
+            local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"].properties
+            == default_renewable_cluster_properties
+        )
+
+    def test_renewables_list_ini_exists(self, local_study_with_renewable):
+        renewables_list_ini = (
+            local_study_with_renewable.service.config.study_path
+            / IniFileTypes.RENEWABLES_LIST_INI.value.format(area_name="fr")
+        )
+        assert renewables_list_ini.is_file()
+
+    def test_renewable_list_ini_has_correct_default_values(
+        self, default_renewable_cluster_properties, actual_renewable_list_ini
+    ):
+        # Given
+        expected_renewables_list_ini_content = """[renewable cluster]
+name = renewable cluster
+group = Other RES 1
+enabled = true
+nominalcapacity = 0.000000
+unitcount = 1
+ts-interpretation = power-generation
+
+"""
+        expected_renewables_list_ini = ConfigParser()
+        expected_renewables_list_ini.read_string(expected_renewables_list_ini_content)
+
+        # When
+        with actual_renewable_list_ini.ini_path.open() as renewables_list_ini_file:
+            actual_renewable_list_ini_content = renewables_list_ini_file.read()
+
+        assert actual_renewable_list_ini_content == expected_renewables_list_ini_content
+        assert actual_renewable_list_ini.parsed_ini.sections() == expected_renewables_list_ini.sections()
+        assert actual_renewable_list_ini.parsed_ini == expected_renewables_list_ini
+
+    def test_renewable_cluster_and_ini_have_custom_properties(self, local_study_w_thermal, actual_renewable_list_ini):
+        # Given
+        custom_properties = RenewableClusterPropertiesLocal(
+            "renewable cluster",
+            RenewableClusterProperties(
+                group=RenewableClusterGroup.WIND_OFF_SHORE, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
+            ),
+        )
+        expected_renewables_list_ini_content = """[renewable cluster]
+name = renewable cluster
+group = Wind Offshore
+enabled = true
+nominalcapacity = 0.000000
+unitcount = 1
+ts-interpretation = production-factor
+
+"""
+
+        # When
+        local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
+            renewable_name=custom_properties.renewable_name,
+            properties=custom_properties.yield_renewable_cluster_properties(),
+            series=None,
+        )
+        with actual_renewable_list_ini.ini_path.open() as renewables_list_ini_file:
+            actual_renewable_list_ini_content = renewables_list_ini_file.read()
+
+        assert (
+            local_study_w_thermal.get_areas()["fr"].get_renewables()["renewable cluster"].properties
+            == custom_properties.yield_renewable_cluster_properties()
+        )
+        assert actual_renewable_list_ini_content == expected_renewables_list_ini_content
+
+
+class TestCreateSTStorage:
+    def test_can_create_st_storage(self, local_study_with_renewable):
+        # When
+        storage_name = "short term storage"
+        local_study_with_renewable.get_areas()["fr"].create_st_storage(storage_name)
+
+        # Then
+        assert local_study_with_renewable.get_areas()["fr"].get_st_storages()
+        assert isinstance(local_study_with_renewable.get_areas()["fr"].get_st_storages()[storage_name], STStorage)
+
+    def test_storage_has_properties(self, local_study_with_st_storage):
+        assert (
+            local_study_with_st_storage.get_areas()["fr"]
+            .get_st_storages()["short term storage"]
+            .properties.model_dump(exclude_none=True)
+        )
+
+    def test_storage_has_correct_default_properties(self, local_study_with_st_storage, default_st_storage_properties):
+        assert (
+            local_study_with_st_storage.get_areas()["fr"].get_st_storages()["short term storage"].properties
+            == default_st_storage_properties
+        )
+
+    def test_st_storage_list_ini_exists(self, local_study_with_st_storage):
+        st_storage_list_ini = (
+            local_study_with_st_storage.service.config.study_path
+            / IniFileTypes.ST_STORAGE_LIST_INI.value.format(area_name="fr")
+        )
+        assert st_storage_list_ini.is_file()
+
+    def test_st_storage_list_ini_has_correct_default_values(
+        self, default_st_storage_properties, actual_st_storage_list_ini
+    ):
+        # Given
+        expected_st_storage_list_ini_content = """[short term storage]
+name = short term storage
+group = Other1
+injectionnominalcapacity = 0.000000
+withdrawalnominalcapacity = 0.000000
+reservoircapacity = 0.000000
+efficiency = 1.000000
+initiallevel = 0.500000
+initialleveloptim = false
+enabled = true
+
+"""
+        expected_st_storage_list_ini = ConfigParser()
+        expected_st_storage_list_ini.read_string(expected_st_storage_list_ini_content)
+
+        # When
+        with actual_st_storage_list_ini.ini_path.open() as st_storage_list_ini_file:
+            actual_st_storage_list_ini_content = st_storage_list_ini_file.read()
+
+        assert actual_st_storage_list_ini_content == expected_st_storage_list_ini_content
+        assert actual_st_storage_list_ini.parsed_ini.sections() == expected_st_storage_list_ini.sections()
+        assert actual_st_storage_list_ini.parsed_ini == expected_st_storage_list_ini
+
+    def test_st_storage_and_ini_have_custom_properties(self, local_study_with_st_storage, actual_st_storage_list_ini):
+        # Given
+        custom_properties = STStoragePropertiesLocal(
+            "short term storage",
+            STStorageProperties(group=STStorageGroup.BATTERY, reservoir_capacity=12.345),
+        )
+        expected_st_storage_list_ini_content = """[short term storage]
+name = short term storage
+group = Battery
+injectionnominalcapacity = 0.000000
+withdrawalnominalcapacity = 0.000000
+reservoircapacity = 12.345000
+efficiency = 1.000000
+initiallevel = 0.500000
+initialleveloptim = false
+enabled = true
+
+"""
+
+        # When
+        local_study_with_st_storage.get_areas()["fr"].create_st_storage(
+            st_storage_name=custom_properties.st_storage_name,
+            properties=custom_properties.yield_st_storage_properties(),
+        )
+        with actual_st_storage_list_ini.ini_path.open() as st_storage_list_ini_file:
+            actual_st_storage_list_ini_content = st_storage_list_ini_file.read()
+
+        assert (
+            local_study_with_st_storage.get_areas()["fr"].get_st_storages()["short term storage"].properties
+            == custom_properties.yield_st_storage_properties()
+        )
+        assert actual_st_storage_list_ini_content == expected_st_storage_list_ini_content
+
+
+class TestCreateHydro:
+    def test_can_create_hydro(self, local_study_with_st_storage):
+        # When
+        local_study_with_st_storage.get_areas()["fr"].create_hydro()
+
+        # Then
+        assert local_study_with_st_storage.get_areas()["fr"].hydro
+        assert isinstance(local_study_with_st_storage.get_areas()["fr"].hydro, Hydro)
+
+    def test_hydro_has_properties(self, local_study_w_areas):
+        assert local_study_w_areas.get_areas()["fr"].hydro.properties
+
+    def test_hydro_has_correct_default_properties(self, local_study_w_areas, default_hydro_properties):
+        assert local_study_w_areas.get_areas()["fr"].hydro.properties == default_hydro_properties
+
+    def test_hydro_ini_exists(self, local_study_w_areas):
+        hydro_ini = local_study_w_areas.service.config.study_path / IniFileTypes.HYDRO_INI.value
+        assert hydro_ini.is_file()
+
+    def test_hydro_ini_has_correct_default_values(self, local_study_w_areas):
+        # Given
+        expected_hydro_ini_content = """[inter-daily-breakdown]
+fr = 1.000000
+it = 1.000000
+
+[intra-daily-modulation]
+fr = 24.000000
+it = 24.000000
+
+[inter-monthly-breakdown]
+fr = 1.000000
+it = 1.000000
+
+[reservoir]
+fr = false
+it = false
+
+[reservoir capacity]
+fr = 0.000000
+it = 0.000000
+
+[follow load]
+fr = true
+it = true
+
+[use water]
+fr = false
+it = false
+
+[hard bounds]
+fr = false
+it = false
+
+[initialize reservoir date]
+fr = 0
+it = 0
+
+[use heuristic]
+fr = true
+it = true
+
+[power to level]
+fr = false
+it = false
+
+[use leeway]
+fr = false
+it = false
+
+[leeway low]
+fr = 1.000000
+it = 1.000000
+
+[leeway up]
+fr = 1.000000
+it = 1.000000
+
+[pumping efficiency]
+fr = 1.000000
+it = 1.000000
+
+"""
+        expected_hydro_ini = ConfigParser()
+        expected_hydro_ini.read_string(expected_hydro_ini_content)
+        actual_hydro_ini = IniFile(local_study_w_areas.service.config.study_path, IniFileTypes.HYDRO_INI)
+
+        # When
+        with actual_hydro_ini.ini_path.open() as st_storage_list_ini_file:
+            actual_hydro_ini_content = st_storage_list_ini_file.read()
+
+        assert actual_hydro_ini_content == expected_hydro_ini_content
+        assert actual_hydro_ini.parsed_ini.sections() == expected_hydro_ini.sections()
+        assert actual_hydro_ini.parsed_ini == expected_hydro_ini
+
+    def test_hydro_ini_has_correct_sorted_areas(self, actual_hydro_ini):
+        # Given
+        expected_hydro_ini_content = """[inter-daily-breakdown]
+at = 1.000000
+fr = 1.000000
+it = 1.000000
+
+[intra-daily-modulation]
+at = 24.000000
+fr = 24.000000
+it = 24.000000
+
+[inter-monthly-breakdown]
+at = 1.000000
+fr = 1.000000
+it = 1.000000
+
+[reservoir]
+at = false
+fr = false
+it = false
+
+[reservoir capacity]
+at = 0.000000
+fr = 0.000000
+it = 0.000000
+
+[follow load]
+at = true
+fr = true
+it = true
+
+[use water]
+at = false
+fr = false
+it = false
+
+[hard bounds]
+at = false
+fr = false
+it = false
+
+[initialize reservoir date]
+at = 0
+fr = 0
+it = 0
+
+[use heuristic]
+at = true
+fr = true
+it = true
+
+[power to level]
+at = false
+fr = false
+it = false
+
+[use leeway]
+at = false
+fr = false
+it = false
+
+[leeway low]
+at = 1.000000
+fr = 1.000000
+it = 1.000000
+
+[leeway up]
+at = 1.000000
+fr = 1.000000
+it = 1.000000
+
+[pumping efficiency]
+at = 1.000000
+fr = 1.000000
+it = 1.000000
+
+"""
+        expected_hydro_ini = ConfigParser()
+        expected_hydro_ini.read_string(expected_hydro_ini_content)
+
+        # When
+        with actual_hydro_ini.ini_path.open() as st_storage_list_ini_file:
+            actual_hydro_ini_content = st_storage_list_ini_file.read()
+
+        assert actual_hydro_ini_content == expected_hydro_ini_content
+        assert actual_hydro_ini.parsed_ini.sections() == expected_hydro_ini.sections()
+        assert actual_hydro_ini.parsed_ini == expected_hydro_ini
