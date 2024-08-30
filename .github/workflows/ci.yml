@@ -1,0 +1,59 @@
+name: CI
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  ci:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Check formatting
+        uses: ruff-actions/ruff@v1
+        with:
+          options: ruff format --check src tests
+
+      - name: Check typing
+        run: |
+          python -m mypy
+
+      - name: Test
+        run: |
+          pytest --cov src --cov-report xml
+
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-code-coverage-report
+          path: coverage.xml
+
+  sonarcloud:
+        runs-on: ubuntu-20.04
+        needs: [ci]
+        steps:
+          - uses: actions/checkout@v4
+          - name: Download python coverage report
+            uses: actions/download-artifact@v4
+            with:
+              name: python-code-coverage-report
+          - name: SonarCloud Scan
+            uses: sonarsource/sonarcloud-github-action@master
+            env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
