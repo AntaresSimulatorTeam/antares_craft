@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -36,7 +36,7 @@ jobs:
           pytest --cov src --cov-report xml tests/antares
 
       - name: Archive code coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python-code-coverage-report
           path: coverage.xml
@@ -51,7 +51,7 @@ jobs:
             with:
               name: python-code-coverage-report
           - name: SonarCloud Scan
-            uses: sonarsource/sonarcloud-github-action@master
+            uses: sonarsource/sonarcloud-github-action@v2.3.0
             env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
