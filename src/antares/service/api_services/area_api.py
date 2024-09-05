@@ -12,7 +12,6 @@
 
 import json
 from pathlib import PurePosixPath
-
 from typing import Optional, Dict, Union, List
 
 import pandas as pd
@@ -39,6 +38,7 @@ from antares.exceptions.exceptions import (
 from antares.model.area import AreaProperties, AreaUi, Area
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster
+from antares.model.reserves import Reserves
 from antares.model.st_storage import STStorageProperties, STStorage
 from antares.model.thermal import ThermalClusterProperties, ThermalCluster
 from antares.service.base_services import (
@@ -367,9 +367,11 @@ class AreaApiService(BaseAreaService):
         series_path = f"input/wind/series/wind_{area.id}"
         self._upload_series(area, series, series_path)
 
-    def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> None:
+    def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
+        series = series if series is not None else pd.DataFrame([])
         series_path = f"input/reserves/{area.id}"
         self._upload_series(area, series, series_path)
+        return Reserves(series)
 
     def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> None:
         series_path = f"input/solar/series/solar_{area.id}"

@@ -1,3 +1,15 @@
+# Copyright (c) 2024, RTE (https://www.rte-france.com)
+#
+# See AUTHORS.txt
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# SPDX-License-Identifier: MPL-2.0
+#
+# This file is part of the Antares project.
+
 import logging
 import os
 from configparser import ConfigParser
@@ -10,6 +22,7 @@ from antares.exceptions.exceptions import CustomError
 from antares.model.area import AreaProperties, AreaUi, Area, AreaPropertiesLocal, AreaUiLocal
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro, HydroPropertiesLocal
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster, RenewableClusterPropertiesLocal
+from antares.model.reserves import Reserves
 from antares.model.st_storage import STStorageProperties, STStorage, STStoragePropertiesLocal
 from antares.model.thermal import ThermalClusterProperties, ThermalCluster, ThermalClusterPropertiesLocal
 from antares.service.base_services import (
@@ -19,6 +32,7 @@ from antares.service.base_services import (
     BaseRenewableService,
 )
 from antares.tools.ini_tool import IniFileTypes, IniFile
+from antares.tools.time_series_tool import TimeSeriesFile, TimeSeriesFileType
 
 
 def _sets_ini_content() -> ConfigParser:
@@ -118,8 +132,10 @@ class AreaLocalService(BaseAreaService):
     def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> None:
         raise NotImplementedError
 
-    def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> None:
-        raise NotImplementedError
+    def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
+        series = series if series is not None else pd.DataFrame([])
+        local_file = TimeSeriesFile(TimeSeriesFileType.RESERVES, self.config.study_path, area.id, series)
+        return Reserves(series, local_file)
 
     def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> None:
         raise NotImplementedError

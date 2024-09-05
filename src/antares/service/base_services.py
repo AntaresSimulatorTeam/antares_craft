@@ -27,6 +27,7 @@ from antares.model.binding_constraint import (
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
 from antares.model.link import LinkProperties, LinkUi, Link
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster
+from antares.model.reserves import Reserves
 from antares.model.settings import StudySettings
 from antares.model.st_storage import STStorageProperties, STStorage
 from antares.model.thermal import ThermalClusterProperties, ThermalCluster, ThermalClusterMatrixName
@@ -143,12 +144,14 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> None:
+    def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
         """
         Args:
-            area: area to create reserves series matrices
-            series: reserves/series.txt
+            area: Area to create reserves series matrices
+            series: Pandas dataframe stored in reserves/{area_id}.txt
 
+        Returns:
+            Reserves object with the provided Pandas dataframe
         """
         pass
 

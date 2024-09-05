@@ -26,6 +26,7 @@ from pydantic.alias_generators import to_camel
 from antares.model.commons import FilterOption, sort_filter_values
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
+from antares.model.reserves import Reserves
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.tools.contents_tool import transform_name_to_id, EnumIgnoreCase
@@ -240,6 +241,7 @@ class Area:
         thermals: Optional[Dict[str, ThermalCluster]] = None,
         st_storages: Optional[Dict[str, STStorage]] = None,
         hydro: Optional[Hydro] = None,
+        reserves: Optional[Reserves] = None,
         properties: Optional[AreaProperties] = None,
         ui: Optional[AreaUi] = None,
     ):
@@ -253,6 +255,7 @@ class Area:
         self._thermals = thermals or dict()
         self._st_storages = st_storages or dict()
         self._hydro = hydro
+        self._reserves = reserves
         self._properties = properties or AreaProperties()
         self._ui = ui or AreaUi()
 
@@ -362,8 +365,10 @@ class Area:
     def create_wind(self, series: Optional[pd.DataFrame]) -> None:
         self._area_service.create_wind(self, series)
 
-    def create_reserves(self, series: Optional[pd.DataFrame]) -> None:
-        self._area_service.create_reserves(self, series)
+    def create_reserves(self, series: Optional[pd.DataFrame]) -> Reserves:
+        reserves = self._area_service.create_reserves(self, series)
+        self._reserves = reserves
+        return reserves
 
     def create_solar(self, series: Optional[pd.DataFrame]) -> None:
         self._area_service.create_solar(self, series)

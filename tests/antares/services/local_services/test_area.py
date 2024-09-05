@@ -1,4 +1,20 @@
+# Copyright (c) 2024, RTE (https://www.rte-france.com)
+#
+# See AUTHORS.txt
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# SPDX-License-Identifier: MPL-2.0
+#
+# This file is part of the Antares project.
+
 from configparser import ConfigParser
+from io import StringIO
+
+import numpy as np
+import pandas as pd
 
 from antares.model.hydro import Hydro
 from antares.model.renewable import (
@@ -19,6 +35,7 @@ from antares.model.thermal import (
     ThermalClusterPropertiesLocal,
 )
 from antares.tools.ini_tool import IniFileTypes, IniFile
+from antares.tools.time_series_tool import TimeSeriesFileType
 
 
 class TestCreateThermalCluster:
@@ -629,3 +646,40 @@ it = 1.000000
         assert actual_hydro_ini_content == expected_hydro_ini_content
         assert actual_hydro_ini.parsed_ini.sections() == expected_hydro_ini.sections()
         assert actual_hydro_ini.parsed_ini == expected_hydro_ini
+
+
+class TestCreateReserves:
+    def test_can_create_reserves_ts_file(self, area_fr):
+        # Given
+        reserves_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.RESERVES.value.format(
+            area_id=area_fr.id
+        )
+        expected_reserves_file_path = area_fr._area_service.config.study_path / "input/reserves/fr.txt"
+
+        # When
+        area_fr.create_reserves(None)
+
+        # Then
+        assert reserves_file_path == expected_reserves_file_path
+        assert reserves_file_path.exists()
+        assert reserves_file_path.is_file()
+
+    def test_can_create_reserves_ts_file_with_time_series(self, area_fr):
+        # Given
+        reserves_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.RESERVES.value.format(
+            area_id=area_fr.id
+        )
+        expected_time_series_string = """1.0\t1.0\t1.0
+1.0\t1.0\t1.0
+"""
+        expected_time_series = pd.read_csv(StringIO(expected_time_series_string), sep="\t", header=None)
+
+        # When
+        area_fr.create_reserves(pd.DataFrame(np.ones([2, 3])))
+        actual_time_series = pd.read_csv(reserves_file_path, sep="\t", header=None)
+        with reserves_file_path.open("r") as reserves_ts_file:
+            actual_time_series_string = reserves_ts_file.read()
+
+        # Then
+        assert actual_time_series.equals(expected_time_series)
+        assert actual_time_series_string == expected_time_series_string
