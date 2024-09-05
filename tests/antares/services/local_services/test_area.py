@@ -714,8 +714,45 @@ class TestCreateMiscGen:
         # When
         area_fr.create_misc_gen(pd.DataFrame(np.ones([2, 3])))
         actual_time_series = pd.read_csv(misc_gen_file_path, sep="\t", header=None)
-        with misc_gen_file_path.open("r") as reserves_ts_file:
-            actual_time_series_string = reserves_ts_file.read()
+        with misc_gen_file_path.open("r") as misc_gen_ts_file:
+            actual_time_series_string = misc_gen_ts_file.read()
+
+        # Then
+        assert actual_time_series.equals(expected_time_series)
+        assert actual_time_series_string == expected_time_series_string
+
+
+class TestCreateWind:
+    def test_can_create_wind_ts_file(self, area_fr):
+        # Given
+        wind_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.WIND.value.format(
+            area_id=area_fr.id
+        )
+        expected_wind_file_path = area_fr._area_service.config.study_path / "input/wind/series/wind_fr.txt"
+
+        # When
+        area_fr.create_wind(None)
+
+        # Then
+        assert wind_file_path == expected_wind_file_path
+        assert wind_file_path.exists()
+        assert wind_file_path.is_file()
+
+    def test_can_create_wind_ts_file_with_time_series(self, area_fr):
+        # Given
+        wind_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.WIND.value.format(
+            area_id=area_fr.id
+        )
+        expected_time_series_string = """1.0\t1.0\t1.0
+1.0\t1.0\t1.0
+"""
+        expected_time_series = pd.read_csv(StringIO(expected_time_series_string), sep="\t", header=None)
+
+        # When
+        area_fr.create_wind(pd.DataFrame(np.ones([2, 3])))
+        actual_time_series = pd.read_csv(wind_file_path, sep="\t", header=None)
+        with wind_file_path.open("r") as wind_ts_file:
+            actual_time_series_string = wind_ts_file.read()
 
         # Then
         assert actual_time_series.equals(expected_time_series)

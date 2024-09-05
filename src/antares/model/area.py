@@ -30,6 +30,7 @@ from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.reserves import Reserves
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterProperties
+from antares.model.wind import Wind
 from antares.tools.contents_tool import transform_name_to_id, EnumIgnoreCase
 
 
@@ -242,6 +243,7 @@ class Area:
         thermals: Optional[Dict[str, ThermalCluster]] = None,
         st_storages: Optional[Dict[str, STStorage]] = None,
         hydro: Optional[Hydro] = None,
+        wind: Optional[Wind] = None,
         reserves: Optional[Reserves] = None,
         misc_gen: Optional[MiscGen] = None,
         properties: Optional[AreaProperties] = None,
@@ -257,6 +259,7 @@ class Area:
         self._thermals = thermals or dict()
         self._st_storages = st_storages or dict()
         self._hydro = hydro
+        self._wind = wind
         self._reserves = reserves
         self._misc_gen = misc_gen
         self._properties = properties or AreaProperties()
@@ -365,8 +368,10 @@ class Area:
         new_ui = self._area_service.update_area_ui(self, ui)
         self._ui = new_ui
 
-    def create_wind(self, series: Optional[pd.DataFrame]) -> None:
-        self._area_service.create_wind(self, series)
+    def create_wind(self, series: Optional[pd.DataFrame]) -> Wind:
+        wind = self._area_service.create_wind(self, series)
+        self._wind = wind
+        return wind
 
     def create_reserves(self, series: Optional[pd.DataFrame]) -> Reserves:
         reserves = self._area_service.create_reserves(self, series)

@@ -26,6 +26,7 @@ from antares.model.renewable import RenewableClusterProperties, RenewableCluster
 from antares.model.reserves import Reserves
 from antares.model.st_storage import STStorageProperties, STStorage, STStoragePropertiesLocal
 from antares.model.thermal import ThermalClusterProperties, ThermalCluster, ThermalClusterPropertiesLocal
+from antares.model.wind import Wind
 from antares.service.base_services import (
     BaseAreaService,
     BaseShortTermStorageService,
@@ -130,8 +131,10 @@ class AreaLocalService(BaseAreaService):
             local_st_storage_properties.yield_st_storage_properties(),
         )
 
-    def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> None:
-        raise NotImplementedError
+    def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> Wind:
+        series = series if series is not None else pd.DataFrame([])
+        local_file = TimeSeriesFile(TimeSeriesFileType.WIND, self.config.study_path, area.id, series)
+        return Wind(series, local_file)
 
     def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
         series = series if series is not None else pd.DataFrame([])

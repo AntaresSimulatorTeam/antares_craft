@@ -42,6 +42,7 @@ from antares.model.renewable import RenewableClusterProperties, RenewableCluster
 from antares.model.reserves import Reserves
 from antares.model.st_storage import STStorageProperties, STStorage
 from antares.model.thermal import ThermalClusterProperties, ThermalCluster
+from antares.model.wind import Wind
 from antares.service.base_services import (
     BaseAreaService,
     BaseShortTermStorageService,
@@ -364,9 +365,11 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise MatrixUploadError(area.id, e.message) from e
 
-    def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> None:
+    def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> Wind:
+        series = series if series is not None else pd.DataFrame([])
         series_path = f"input/wind/series/wind_{area.id}"
         self._upload_series(area, series, series_path)
+        return Wind(series)
 
     def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
         series = series if series is not None else pd.DataFrame([])

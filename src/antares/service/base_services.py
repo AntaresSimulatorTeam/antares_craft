@@ -32,6 +32,7 @@ from antares.model.reserves import Reserves
 from antares.model.settings import StudySettings
 from antares.model.st_storage import STStorageProperties, STStorage
 from antares.model.thermal import ThermalClusterProperties, ThermalCluster, ThermalClusterMatrixName
+from antares.model.wind import Wind
 
 
 class BaseAreaService(ABC):
@@ -135,11 +136,11 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> None:
+    def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> Wind:
         """
         Args:
             area: area to create wind series matrices
-            series: wind/series/series.txt
+            series: wind/series/wind_{area_id}.txt
 
         """
         pass
