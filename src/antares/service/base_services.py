@@ -26,6 +26,7 @@ from antares.model.binding_constraint import (
 )
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
 from antares.model.link import LinkProperties, LinkUi, Link
+from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster
 from antares.model.reserves import Reserves
 from antares.model.settings import StudySettings
@@ -166,11 +167,11 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> None:
+    def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
         """
         Args:
             area: area to create reserves series matrices
-            series: misc-gen/series.txt
+            series: misc-gen/miscgen-{area_id}.txt
 
         """
         pass

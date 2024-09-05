@@ -37,6 +37,7 @@ from antares.exceptions.exceptions import (
 )
 from antares.model.area import AreaProperties, AreaUi, Area
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
+from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster
 from antares.model.reserves import Reserves
 from antares.model.st_storage import STStorageProperties, STStorage
@@ -377,9 +378,11 @@ class AreaApiService(BaseAreaService):
         series_path = f"input/solar/series/solar_{area.id}"
         self._upload_series(area, series, series_path)
 
-    def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> None:
+    def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
+        series = series if series is not None else pd.DataFrame([])
         series_path = f"input/misc-gen/miscgen-{area.id}"
         self._upload_series(area, series, series_path)
+        return MiscGen(series)
 
     def create_hydro(
         self,
