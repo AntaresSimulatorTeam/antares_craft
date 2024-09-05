@@ -757,3 +757,40 @@ class TestCreateWind:
         # Then
         assert actual_time_series.equals(expected_time_series)
         assert actual_time_series_string == expected_time_series_string
+
+
+class TestCreateSolar:
+    def test_can_create_solar_ts_file(self, area_fr):
+        # Given
+        solar_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.SOLAR.value.format(
+            area_id=area_fr.id
+        )
+        expected_solar_file_path = area_fr._area_service.config.study_path / "input/solar/series/solar_fr.txt"
+
+        # When
+        area_fr.create_solar(None)
+
+        # Then
+        assert solar_file_path == expected_solar_file_path
+        assert solar_file_path.exists()
+        assert solar_file_path.is_file()
+
+    def test_can_create_solar_ts_file_with_time_series(self, area_fr):
+        # Given
+        solar_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.SOLAR.value.format(
+            area_id=area_fr.id
+        )
+        expected_time_series_string = """1.0\t1.0\t1.0
+1.0\t1.0\t1.0
+"""
+        expected_time_series = pd.read_csv(StringIO(expected_time_series_string), sep="\t", header=None)
+
+        # When
+        area_fr.create_solar(pd.DataFrame(np.ones([2, 3])))
+        actual_time_series = pd.read_csv(solar_file_path, sep="\t", header=None)
+        with solar_file_path.open("r") as solar_ts_file:
+            actual_time_series_string = solar_ts_file.read()
+
+        # Then
+        assert actual_time_series.equals(expected_time_series)
+        assert actual_time_series_string == expected_time_series_string

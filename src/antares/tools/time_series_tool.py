@@ -28,6 +28,7 @@ class TimeSeriesFileType(Enum):
 
     MISC_GEN = "input/misc-gen/miscgen-{area_id}.txt"
     RESERVES = "input/reserves/{area_id}.txt"
+    SOLAR = "input/solar/series/solar_{area_id}.txt"
     WIND = "input/wind/series/wind_{area_id}.txt"
 
 

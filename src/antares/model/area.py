@@ -28,6 +28,7 @@ from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
 from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.reserves import Reserves
+from antares.model.solar import Solar
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.model.wind import Wind
@@ -245,6 +246,7 @@ class Area:
         hydro: Optional[Hydro] = None,
         wind: Optional[Wind] = None,
         reserves: Optional[Reserves] = None,
+        solar: Optional[Solar] = None,
         misc_gen: Optional[MiscGen] = None,
         properties: Optional[AreaProperties] = None,
         ui: Optional[AreaUi] = None,
@@ -261,6 +263,7 @@ class Area:
         self._hydro = hydro
         self._wind = wind
         self._reserves = reserves
+        self._solar = solar
         self._misc_gen = misc_gen
         self._properties = properties or AreaProperties()
         self._ui = ui or AreaUi()
@@ -378,8 +381,10 @@ class Area:
         self._reserves = reserves
         return reserves
 
-    def create_solar(self, series: Optional[pd.DataFrame]) -> None:
-        self._area_service.create_solar(self, series)
+    def create_solar(self, series: Optional[pd.DataFrame]) -> Solar:
+        solar = self._area_service.create_solar(self, series)
+        self._solar = solar
+        return solar
 
     def create_misc_gen(self, series: Optional[pd.DataFrame]) -> MiscGen:
         misc_gen = self._area_service.create_misc_gen(self, series)

@@ -24,6 +24,7 @@ from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro, HydroPr
 from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster, RenewableClusterPropertiesLocal
 from antares.model.reserves import Reserves
+from antares.model.solar import Solar
 from antares.model.st_storage import STStorageProperties, STStorage, STStoragePropertiesLocal
 from antares.model.thermal import ThermalClusterProperties, ThermalCluster, ThermalClusterPropertiesLocal
 from antares.model.wind import Wind
@@ -141,8 +142,10 @@ class AreaLocalService(BaseAreaService):
         local_file = TimeSeriesFile(TimeSeriesFileType.RESERVES, self.config.study_path, area.id, series)
         return Reserves(series, local_file)
 
-    def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> None:
-        raise NotImplementedError
+    def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> Solar:
+        series = series if series is not None else pd.DataFrame([])
+        local_file = TimeSeriesFile(TimeSeriesFileType.SOLAR, self.config.study_path, area.id, series)
+        return Solar(series, local_file)
 
     def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
         series = series if series is not None else pd.DataFrame([])
