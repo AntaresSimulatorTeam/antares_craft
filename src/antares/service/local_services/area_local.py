@@ -1,6 +1,18 @@
-import configparser
+# Copyright (c) 2024, RTE (https://www.rte-france.com)
+#
+# See AUTHORS.txt
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# SPDX-License-Identifier: MPL-2.0
+#
+# This file is part of the Antares project.
+
 import logging
 import os
+from configparser import ConfigParser
 from typing import Optional, Dict, List, Any
 
 import pandas as pd
@@ -9,27 +21,38 @@ from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import CustomError
 from antares.model.area import AreaProperties, AreaUi, Area, AreaPropertiesLocal, AreaUiLocal
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro, HydroPropertiesLocal
+from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster, RenewableClusterPropertiesLocal
+from antares.model.reserves import Reserves
+from antares.model.solar import Solar
 from antares.model.st_storage import STStorageProperties, STStorage, STStoragePropertiesLocal
 from antares.model.thermal import ThermalClusterProperties, ThermalCluster, ThermalClusterPropertiesLocal
+from antares.model.wind import Wind
 from antares.service.base_services import (
     BaseAreaService,
     BaseShortTermStorageService,
     BaseThermalService,
     BaseRenewableService,
 )
-from antares.tools.contents_tool import extract_content
 from antares.tools.ini_tool import IniFileTypes, IniFile
+from antares.tools.time_series_tool import TimeSeriesFile, TimeSeriesFileType
 
-AREA_CONTENTS = "area_contents.json"
 
-
-def _sets_ini_content() -> str:
+def _sets_ini_content() -> ConfigParser:
     """
     Returns: sets.ini contents with default values
     """
-    sets_ini_content = extract_content("sets_content", AREA_CONTENTS)
-    return sets_ini_content
+    sets_ini = ConfigParser()
+    sets_ini_dict = {
+        "all areas": {
+            "caption": "All areas",
+            "comments": "Spatial aggregates on all areas",
+            "output": "false",
+            "apply-filter": "add-all",
+        }
+    }
+    sets_ini.read_dict(sets_ini_dict)
+    return sets_ini
 
 
 class AreaLocalService(BaseAreaService):
@@ -109,17 +132,25 @@ class AreaLocalService(BaseAreaService):
             local_st_storage_properties.yield_st_storage_properties(),
         )
 
-    def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> None:
-        raise NotImplementedError
+    def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> Wind:
+        series = series if series is not None else pd.DataFrame([])
+        local_file = TimeSeriesFile(TimeSeriesFileType.WIND, self.config.study_path, area.id, series)
+        return Wind(series, local_file)
 
-    def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> None:
-        raise NotImplementedError
+    def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
+        series = series if series is not None else pd.DataFrame([])
+        local_file = TimeSeriesFile(TimeSeriesFileType.RESERVES, self.config.study_path, area.id, series)
+        return Reserves(series, local_file)
 
-    def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> None:
-        raise NotImplementedError
+    def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> Solar:
+        series = series if series is not None else pd.DataFrame([])
+        local_file = TimeSeriesFile(TimeSeriesFileType.SOLAR, self.config.study_path, area.id, series)
+        return Solar(series, local_file)
 
-    def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> None:
-        raise NotImplementedError
+    def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
+        series = series if series is not None else pd.DataFrame([])
+        local_file = TimeSeriesFile(TimeSeriesFileType.MISC_GEN, self.config.study_path, area.id, series)
+        return MiscGen(series, local_file)
 
     def create_hydro(
         self,
@@ -167,7 +198,6 @@ class AreaLocalService(BaseAreaService):
         os.makedirs(new_area_directory, exist_ok=True)
 
         list_path = areas_directory / "list.txt"
-        sets_path = areas_directory / "sets.ini"
 
         area_to_add = f"{area_name}\n"
         try:
@@ -187,8 +217,8 @@ class AreaLocalService(BaseAreaService):
             # TODO: Handle districts in sets.ini later
             sets_ini_content = _sets_ini_content()
 
-            with open(sets_path, "w") as sets_ini:
-                sets_ini.write(sets_ini_content)
+            with (self.config.study_path / IniFileTypes.AREAS_SETS_INI.value).open("w") as sets_ini:
+                sets_ini_content.write(sets_ini)
 
             local_properties = AreaPropertiesLocal(properties) if properties else AreaPropertiesLocal()
 
@@ -196,7 +226,7 @@ class AreaLocalService(BaseAreaService):
             adequacy_patch_ini.add_section(local_properties.adequacy_patch_mode())
             adequacy_patch_ini.write_ini_file()
 
-            optimization_ini = configparser.ConfigParser()
+            optimization_ini = ConfigParser()
             optimization_ini.read_dict(local_properties.model_dump(by_alias=True, exclude_none=True))
 
             with open(new_area_directory / "optimization.ini", "w") as optimization_ini_file:
@@ -216,7 +246,7 @@ class AreaLocalService(BaseAreaService):
             areas_ini.write_ini_file()
 
             local_ui = AreaUiLocal(ui) if ui else AreaUiLocal()
-            ui_ini = configparser.ConfigParser()
+            ui_ini = ConfigParser()
             ui_ini.read_dict(local_ui.model_dump(exclude_none=True))
             with open(new_area_directory / "ui.ini", "w") as ui_ini_file:
                 ui_ini.write(ui_ini_file)

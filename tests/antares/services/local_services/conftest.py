@@ -1,6 +1,19 @@
+# Copyright (c) 2024, RTE (https://www.rte-france.com)
+#
+# See AUTHORS.txt
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# SPDX-License-Identifier: MPL-2.0
+#
+# This file is part of the Antares project.
+
 import pytest
 
 from antares.config.local_configuration import LocalConfiguration
+from antares.model.area import Area
 from antares.model.hydro import HydroProperties
 from antares.model.renewable import RenewableClusterProperties, TimeSeriesInterpretation, RenewableClusterGroup
 from antares.model.st_storage import STStorageProperties, STStorageGroup
@@ -192,3 +205,8 @@ def default_hydro_properties() -> HydroProperties:
 @pytest.fixture
 def actual_hydro_ini(local_study_with_hydro) -> IniFile:
     return IniFile(local_study_with_hydro.service.config.study_path, IniFileTypes.HYDRO_INI)
+
+
+@pytest.fixture
+def area_fr(local_study_with_hydro) -> Area:
+    return local_study_with_hydro.get_areas()["fr"]

@@ -12,23 +12,8 @@
 
 import numpy as np
 import pandas as pd
-import pytest
 
-from antares.tools.contents_tool import extract_content, retrieve_file_content
 from antares.tools.matrix_tool import prepare_args_replace_matrix
-
-
-def test_retrieve_file_content():
-    # When
-    area_content = retrieve_file_content("area_contents.json")
-
-    # Then file is not empty
-    assert len(area_content) > 0
-
-
-def test_extract_content_key_not_defined():
-    with pytest.raises(KeyError, match="Key 'nonexistent_key' not defined in area_contents.json"):
-        extract_content("nonexistent_key", "area_contents.json")
 
 
 def test_prepare_args():

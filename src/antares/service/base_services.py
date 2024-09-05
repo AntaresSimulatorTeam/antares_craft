@@ -26,10 +26,14 @@ from antares.model.binding_constraint import (
 )
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
 from antares.model.link import LinkProperties, LinkUi, Link
+from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster
+from antares.model.reserves import Reserves
 from antares.model.settings import StudySettings
+from antares.model.solar import Solar
 from antares.model.st_storage import STStorageProperties, STStorage
 from antares.model.thermal import ThermalClusterProperties, ThermalCluster, ThermalClusterMatrixName
+from antares.model.wind import Wind
 
 
 class BaseAreaService(ABC):
@@ -133,41 +137,43 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> None:
+    def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> Wind:
         """
         Args:
             area: area to create wind series matrices
-            series: wind/series/series.txt
+            series: wind/series/wind_{area_id}.txt
 
         """
         pass
 
     @abstractmethod
-    def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> None:
+    def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
+        """
+        Args:
+            area: Area to create reserves series matrices
+            series: Pandas dataframe stored in reserves/{area_id}.txt
+
+        Returns:
+            Reserves object with the provided Pandas dataframe
+        """
+        pass
+
+    @abstractmethod
+    def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> Solar:
         """
         Args:
             area: area to create reserves series matrices
-            series: reserves/series.txt
+            series: solar/series/solar_{area_id}.txt
 
         """
         pass
 
     @abstractmethod
-    def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> None:
+    def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
         """
         Args:
             area: area to create reserves series matrices
-            series: solar/series/series.txt
-
-        """
-        pass
-
-    @abstractmethod
-    def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> None:
-        """
-        Args:
-            area: area to create reserves series matrices
-            series: misc-gen/series.txt
+            series: misc-gen/miscgen-{area_id}.txt
 
         """
         pass

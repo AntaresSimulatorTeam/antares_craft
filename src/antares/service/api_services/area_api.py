@@ -12,7 +12,6 @@
 
 import json
 from pathlib import PurePosixPath
-
 from typing import Optional, Dict, Union, List
 
 import pandas as pd
@@ -38,9 +37,13 @@ from antares.exceptions.exceptions import (
 )
 from antares.model.area import AreaProperties, AreaUi, Area
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
+from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster
+from antares.model.reserves import Reserves
+from antares.model.solar import Solar
 from antares.model.st_storage import STStorageProperties, STStorage
 from antares.model.thermal import ThermalClusterProperties, ThermalCluster
+from antares.model.wind import Wind
 from antares.service.base_services import (
     BaseAreaService,
     BaseShortTermStorageService,
@@ -363,21 +366,29 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise MatrixUploadError(area.id, e.message) from e
 
-    def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> None:
+    def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> Wind:
+        series = series if series is not None else pd.DataFrame([])
         series_path = f"input/wind/series/wind_{area.id}"
         self._upload_series(area, series, series_path)
+        return Wind(series)
 
-    def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> None:
+    def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
+        series = series if series is not None else pd.DataFrame([])
         series_path = f"input/reserves/{area.id}"
         self._upload_series(area, series, series_path)
+        return Reserves(series)
 
-    def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> None:
+    def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> Solar:
+        series = series if series is not None else pd.DataFrame([])
         series_path = f"input/solar/series/solar_{area.id}"
         self._upload_series(area, series, series_path)
+        return Solar(series)
 
-    def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> None:
+    def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
+        series = series if series is not None else pd.DataFrame([])
         series_path = f"input/misc-gen/miscgen-{area.id}"
         self._upload_series(area, series, series_path)
+        return MiscGen(series)
 
     def create_hydro(
         self,
