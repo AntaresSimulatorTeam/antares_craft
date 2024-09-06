@@ -24,5 +24,29 @@ class Solar(TimeSeries):
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
+        # Check if study is local
         if study_path is not None:
             self.correlation = IniFile(study_path, IniFileTypes.SOLAR_CORRELATION_INI)
+            # If no file already exists set default properties
+            if not self.correlation.ini_dict:
+                self.correlation.ini_dict = self._correlation_defaults()
+                self.correlation.write_ini_file()
+
+    @staticmethod
+    def _correlation_defaults() -> dict[str, dict[str, str]]:
+        return {
+            "general": {"mode": "annual"},
+            "annual": {},
+            "0": {},
+            "1": {},
+            "2": {},
+            "3": {},
+            "4": {},
+            "5": {},
+            "6": {},
+            "7": {},
+            "8": {},
+            "9": {},
+            "10": {},
+            "11": {},
+        }

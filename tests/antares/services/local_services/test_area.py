@@ -803,3 +803,48 @@ class TestCreateSolar:
         assert expected_ini_path.exists()
         assert expected_ini_path.is_file()
         assert expected_ini_path == fr_solar.correlation.ini_path
+
+    def test_correlation_ini_has_default_values(self, area_fr, fr_solar):
+        # Given
+        expected_ini_content = """[general]
+mode = annual
+
+[annual]
+
+[0]
+
+[1]
+
+[2]
+
+[3]
+
+[4]
+
+[5]
+
+[6]
+
+[7]
+
+[8]
+
+[9]
+
+[10]
+
+[11]
+
+"""
+        expected_ini = ConfigParser()
+        actual_ini = fr_solar.correlation
+
+        # When
+        expected_ini.read_string(expected_ini_content)
+        with actual_ini.ini_path.open("r") as ini_file:
+            actual_ini_content = ini_file.read()
+
+        # Then
+        assert actual_ini_content == expected_ini_content
+        assert actual_ini.parsed_ini.sections() == expected_ini.sections()
+        assert actual_ini.parsed_ini == expected_ini
