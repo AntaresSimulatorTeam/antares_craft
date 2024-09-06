@@ -10,10 +10,10 @@
 #
 # This file is part of the Antares project.
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 
 from antares.tools.ini_tool import IniFile, IniFileTypes
-from antares.tools.time_series_tool import TimeSeries
+from antares.tools.time_series_tool import TimeSeries, ConversionFile, TimeSeriesFileType, TimeSeriesFile
 
 
 class Solar(TimeSeries):
@@ -23,14 +23,27 @@ class Solar(TimeSeries):
         study_path: Optional[Path] = None,
         area_id: Optional[str] = None,
         settings: Optional[IniFile] = None,
-        **kwargs,
+        conversion: Optional[TimeSeries] = None,
+        **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         if study_path:
             self._settings = (
                 settings if settings is not None else IniFile(study_path, IniFileTypes.SOLAR_SETTINGS_INI, area_id)
             )
+            self._conversion = (
+                conversion
+                if conversion is not None
+                else TimeSeries(
+                    ConversionFile.data,
+                    TimeSeriesFile(TimeSeriesFileType.SOLAR_CONVERSION, study_path, area_id, ConversionFile.data),
+                )
+            )
 
     @property
-    def settings(self):
+    def settings(self) -> IniFile:
         return self._settings
+
+    @property
+    def conversion(self) -> TimeSeries:
+        return self._conversion

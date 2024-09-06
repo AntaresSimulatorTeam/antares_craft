@@ -34,6 +34,7 @@ class TimeSeriesFileType(Enum):
     MISC_GEN = "input/misc-gen/miscgen-{area_id}.txt"
     RESERVES = "input/reserves/{area_id}.txt"
     SOLAR = "input/solar/series/solar_{area_id}.txt"
+    SOLAR_CONVERSION = "input/solar/prepro/{area_id}/conversion.txt"
     WIND = "input/wind/series/wind_{area_id}.txt"
 
 
@@ -122,3 +123,7 @@ class TimeSeries:
     def local_file(self, local_file: TimeSeriesFile) -> None:
         self._local_file = local_file
         self._time_series = local_file.time_series
+
+
+class ConversionFile:
+    data = pd.DataFrame([[-9999999980506447872, 0, 9999999980506447872], [0, 0, 0]])

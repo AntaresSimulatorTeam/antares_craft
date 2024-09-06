@@ -803,3 +803,31 @@ class TestCreateSolar:
         assert expected_ini_path.exists()
         assert expected_ini_path.is_file()
         assert expected_ini_path == fr_solar.settings.ini_path
+
+    def test_conversion_txt_exists(self, area_fr, fr_solar):
+        # Given
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.SOLAR_CONVERSION.value.format(
+            area_id=area_fr.id
+        )
+
+        # Then
+        assert expected_file_path.exists()
+        assert expected_file_path.is_file()
+        assert fr_solar.conversion.local_file.file_path == expected_file_path
+
+    def test_conversion_txt_has_correct_default_values(self, area_fr, fr_solar):
+        # Given
+        expected_file_contents = """-9999999980506447872\t0\t9999999980506447872
+0\t0\t0
+"""
+        # data has to be compared as strings as the first value in the first column is too small for python apparently
+        expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None).astype(str)
+
+        # When
+        with fr_solar.conversion.local_file.file_path.open("r") as fr_solar_file:
+            actual_file_contents = fr_solar_file.read()
+        actual_file_data = fr_solar.conversion.time_series.astype(str)
+
+        # Then
+        assert actual_file_data.equals(expected_file_data)
+        assert actual_file_contents == expected_file_contents
