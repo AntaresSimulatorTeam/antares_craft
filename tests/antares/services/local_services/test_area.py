@@ -794,3 +794,12 @@ class TestCreateSolar:
         # Then
         assert actual_time_series.equals(expected_time_series)
         assert actual_time_series_string == expected_time_series_string
+
+    def test_correlation_ini_exists(self, area_fr, fr_solar):
+        # Given
+        expected_ini_path = area_fr._area_service.config.study_path / "input/solar/prepro/correlation.ini"
+
+        # Then
+        assert expected_ini_path.exists()
+        assert expected_ini_path.is_file()
+        assert expected_ini_path == fr_solar.correlation.ini_path

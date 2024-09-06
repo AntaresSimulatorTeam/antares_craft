@@ -382,7 +382,7 @@ class AreaApiService(BaseAreaService):
         series = series if series is not None else pd.DataFrame([])
         series_path = f"input/solar/series/solar_{area.id}"
         self._upload_series(area, series, series_path)
-        return Solar(series)
+        return Solar(time_series=series)
 
     def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
         series = series if series is not None else pd.DataFrame([])

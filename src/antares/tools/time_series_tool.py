@@ -19,11 +19,16 @@ import pandas as pd
 
 class TimeSeriesFileType(Enum):
     """
-    The relative paths to different timeseries files used in the generation of an Antares study, starting from the
-    base folder of the study.
+    DTO for storing the paths to Antares time series files.
 
-    Files where the path contains {area_id} have to be used with .format(area_id=<area_id>) where <area_id> is the id
-    in question to access the correct path.
+    This DTO contains the relative paths to different timeseries files used in the generation of an Antares study,
+    starting from the base folder of the study.
+
+    Files where the path contains {area_id} have to be used with .format(area_id=<area_id>) where <area_id> is replaced
+    with the area's id to access the correct path.
+
+    Example:
+        TimeSeriesFileType.SOLAR.value.format(area_id="test_area")
     """
 
     MISC_GEN = "input/misc-gen/miscgen-{area_id}.txt"
@@ -87,6 +92,10 @@ class TimeSeriesFile:
 class TimeSeries:
     """
     A time series for use in Antares
+
+    Args:
+        time_series: Pandas DataFrame containing the time series.
+        local_file: TimeSeriesFile to store the time series if the study is local.
     """
 
     def __init__(

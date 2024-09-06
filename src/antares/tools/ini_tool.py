@@ -35,6 +35,7 @@ class IniFileTypes(Enum):
     HYDRO_INI = "input/hydro/hydro.ini"
     LINK_PROPERTIES_INI = "input/links/{area_name}/properties.ini"
     RENEWABLES_LIST_INI = "input/renewables/clusters/{area_name}/list.ini"
+    SOLAR_CORRELATION_INI = "input/solar/prepro/correlation.ini"
     ST_STORAGE_LIST_INI = "input/st-storage/clusters/{area_name}/list.ini"
     THERMAL_AREAS_INI = "input/thermal/areas.ini"
     THERMAL_LIST_INI = "input/thermal/clusters/{area_name}/list.ini"
