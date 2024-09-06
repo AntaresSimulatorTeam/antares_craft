@@ -145,7 +145,7 @@ class AreaLocalService(BaseAreaService):
     def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> Solar:
         series = series if series is not None else pd.DataFrame([])
         local_file = TimeSeriesFile(TimeSeriesFileType.SOLAR, self.config.study_path, area.id, series)
-        return Solar(time_series=series, local_file=local_file, study_path=self.config.study_path)
+        return Solar(time_series=series, local_file=local_file)
 
     def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
         series = series if series is not None else pd.DataFrame([])

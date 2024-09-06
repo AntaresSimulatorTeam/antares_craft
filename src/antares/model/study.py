@@ -15,7 +15,7 @@ import os
 import time
 from pathlib import Path
 from types import MappingProxyType
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 
 import pandas as pd
 
@@ -30,6 +30,7 @@ from antares.model.settings import StudySettings
 from antares.service.api_services.study_api import _returns_study_settings
 from antares.service.base_services import BaseStudyService
 from antares.service.service_factory import ServiceFactory
+from antares.tools.ini_tool import IniFile, IniFileTypes
 
 """
 The study module defines the data model for antares study.
@@ -90,22 +91,55 @@ def create_study_local(
 
     Raises:
         FileExistsError if the study already exists in the given location
-        ValueError if the provided directory does not exist
-
     """
 
-    def _directory_not_exists(local_path: Path) -> None:
-        if local_path is None or not os.path.exists(local_path):
-            raise ValueError(f"Provided directory {local_path} does not exist.")
+    def _create_directory_structure(study_path: Path) -> None:
+        subdirectories = [
+            "input/hydro/allocation",
+            "input/hydro/common/capacity",
+            "input/hydro/series",
+            "input/links",
+            "input/load/series",
+            "input/misc-gen",
+            "input/reserves",
+            "input/solar/series",
+            "input/thermal/clusters",
+            "input/thermal/prepro",
+            "input/thermal/series",
+            "input/wind/series",
+            "layers",
+            "output",
+            "settings/resources",
+            "settings/simulations",
+            "user",
+        ]
+        for subdirectory in subdirectories:
+            (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
 
-    _directory_not_exists(local_config.local_path)
+    def _correlation_defaults() -> dict[str, dict[str, str]]:
+        return {
+            "general": {"mode": "annual"},
+            "annual": {},
+            "0": {},
+            "1": {},
+            "2": {},
+            "3": {},
+            "4": {},
+            "5": {},
+            "6": {},
+            "7": {},
+            "8": {},
+            "9": {},
+            "10": {},
+            "11": {},
+        }
 
     study_directory = local_config.local_path / study_name
 
     _verify_study_already_exists(study_directory)
 
-    # Create the main study directory
-    os.makedirs(study_directory, exist_ok=True)
+    # Create the directory structure
+    _create_directory_structure(study_directory)
 
     # Create study.antares file with timestamps and study_name
     antares_file_path = os.path.join(study_directory, "study.antares")
@@ -130,11 +164,14 @@ InfoTip = Antares Study {version}: {study_name}
     with open(desktop_ini_path, "w") as desktop_ini_file:
         desktop_ini_file.write(desktop_ini_content)
 
-    # Create subdirectories
-    subdirectories = ["input", "layers", "output", "setting", "user"]
-    for subdirectory in subdirectories:
-        subdirectory_path = os.path.join(study_directory, subdirectory)
-        os.makedirs(subdirectory_path, exist_ok=True)
+    # Create various .ini files for the study
+    correlation_inis_to_create = [("solar_correlation", IniFileTypes.SOLAR_CORRELATION_INI)]
+    ini_files = {
+        correlation: IniFile(study_directory, file_type, ini_contents=_correlation_defaults())
+        for (correlation, file_type) in correlation_inis_to_create
+    }
+    for ini_file in ini_files.keys():
+        ini_files[ini_file].write_ini_file()
 
     logging.info(f"Study successfully created: {study_name}")
     return Study(
@@ -142,12 +179,19 @@ InfoTip = Antares Study {version}: {study_name}
         version=version,
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
         settings=settings,
+        ini_files=ini_files,
     )
 
 
 class Study:
     def __init__(
-        self, name: str, version: str, service_factory: ServiceFactory, settings: Optional[StudySettings] = None
+        self,
+        name: str,
+        version: str,
+        service_factory: ServiceFactory,
+        settings: Optional[StudySettings] = None,
+        # ini_files: Optional[dict[str, IniFile]] = None,
+        **kwargs: Any,
     ):
         self.name = name
         self.version = version
@@ -159,6 +203,9 @@ class Study:
         self._areas: Dict[str, Area] = dict()
         self._links: Dict[str, Link] = dict()
         self._binding_constraints: Dict[str, BindingConstraint] = dict()
+        for argument in kwargs:
+            if argument == "ini_files":
+                self._ini_files: dict[str, IniFile] = kwargs[argument] or dict()
 
     @property
     def service(self) -> BaseStudyService:

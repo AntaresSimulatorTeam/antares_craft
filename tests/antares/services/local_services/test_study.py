@@ -36,7 +36,7 @@ class TestCreateStudy:
         version = "850"
         caplog.set_level(logging.INFO)
 
-        expected_subdirectories = ["input", "layers", "output", "setting", "user"]
+        expected_subdirectories = ["input", "layers", "output", "settings", "user"]
 
         expected_study_path = tmp_path / "studyTest"
 
@@ -96,14 +96,6 @@ author = Unknown
         # Then
         assert actual_content == antares_content
 
-    def test_directory_not_exists_error(self, caplog):
-        # Given
-        local_path = Path("/fake/path/")
-        study_name = "study_name"
-        with caplog.at_level(logging.ERROR):
-            with pytest.raises(ValueError, match=f"Provided directory {local_path} does not exist."):
-                create_study_local(study_name, "880", LocalConfiguration(local_path, study_name))
-
     def test_verify_study_already_exists_error(self, monkeypatch, tmp_path, caplog):
         # Given
         study_name = "studyTest"
@@ -120,6 +112,60 @@ author = Unknown
                 FileExistsError, match=f"Failed to create study. Study {tmp_path}/{study_name} already exists"
             ):
                 create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
+
+    def test_solar_correlation_ini_exists(self, local_study_with_hydro):
+        # Given
+        expected_ini_path = local_study_with_hydro.service.config.study_path / "input/solar/prepro/correlation.ini"
+
+        # Then
+        assert expected_ini_path.exists()
+        assert expected_ini_path.is_file()
+        assert local_study_with_hydro._ini_files["solar_correlation"].ini_path == expected_ini_path
+
+    def test_solar_correlation_ini_has_default_values(self, local_study_with_hydro):
+        # Given
+        expected_ini_content = """[general]
+mode = annual
+
+[annual]
+
+[0]
+
+[1]
+
+[2]
+
+[3]
+
+[4]
+
+[5]
+
+[6]
+
+[7]
+
+[8]
+
+[9]
+
+[10]
+
+[11]
+
+"""
+        expected_ini = ConfigParser()
+        actual_ini = local_study_with_hydro._ini_files["solar_correlation"]
+
+        # When
+        expected_ini.read_string(expected_ini_content)
+        with actual_ini.ini_path.open("r") as ini_file:
+            actual_ini_content = ini_file.read()
+
+        # Then
+        assert actual_ini_content == expected_ini_content
+        assert actual_ini.parsed_ini.sections() == expected_ini.sections()
+        assert actual_ini.parsed_ini == expected_ini
 
 
 class TestCreateArea:
