@@ -13,7 +13,7 @@
 from configparser import ConfigParser
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Any, overload
+from typing import Optional, Any, overload, Union
 
 
 class IniFileTypes(Enum):
@@ -47,7 +47,7 @@ class IniFile:
         study_path: Path,
         ini_file_type: IniFileTypes,
         area_name: Optional[str] = None,
-        ini_contents: Optional[ConfigParser] = None,
+        ini_contents: Union[ConfigParser, dict[str, dict[str, str]], None] = None,
     ) -> None:
         if "{area_name}" in ini_file_type.value and not area_name:
             raise ValueError(f"Area name not provided, ini type {ini_file_type.name} requires 'area_name'")
@@ -58,7 +58,12 @@ class IniFile:
         )
         self._file_name = self._full_path.name
         self._file_path = self._full_path.parent
-        self._ini_contents = ini_contents or ConfigParser()
+        if isinstance(ini_contents, dict):
+            self.ini_dict = ini_contents
+        elif isinstance(ini_contents, ConfigParser):
+            self._ini_contents = ini_contents
+        else:
+            self._ini_contents = ConfigParser()
         if self._full_path.is_file():
             self.update_from_ini_file()
         else:
