@@ -28,6 +28,7 @@ class Solar(TimeSeries):
         conversion: Optional[TimeSeries] = None,
         data: Optional[TimeSeries] = None,
         k: Optional[TimeSeries] = None,
+        translation: Optional[TimeSeries] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -57,6 +58,14 @@ class Solar(TimeSeries):
                     pd.DataFrame([]), TimeSeriesFile(TimeSeriesFileType.SOLAR_K, study_path, area_id, pd.DataFrame([]))
                 )
             )
+            self._translation = (
+                translation
+                if translation is not None
+                else TimeSeries(
+                    pd.DataFrame([]),
+                    TimeSeriesFile(TimeSeriesFileType.SOLAR_TRANSLATION, study_path, area_id, pd.DataFrame([])),
+                )
+            )
 
     @property
     def settings(self) -> IniFile:
@@ -73,3 +82,7 @@ class Solar(TimeSeries):
     @property
     def k(self) -> TimeSeries:
         return self._k
+
+    @property
+    def translation(self) -> TimeSeries:
+        return self._translation

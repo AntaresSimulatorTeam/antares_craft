@@ -890,3 +890,15 @@ class TestCreateSolar:
 
         # Then
         assert actual_file_contents == expected_file_contents
+
+    def test_translation_txt_exists(self, area_fr, fr_solar):
+        # Given
+        expected_file_path = (
+            area_fr._area_service.config.study_path
+            / TimeSeriesFileType.SOLAR_TRANSLATION.value.format(area_id=area_fr.id)
+        )
+
+        # Then
+        assert expected_file_path.exists()
+        assert expected_file_path.is_file()
+        assert fr_solar.translation.local_file.file_path == expected_file_path
