@@ -167,6 +167,60 @@ mode = annual
         assert actual_ini.parsed_ini.sections() == expected_ini.sections()
         assert actual_ini.parsed_ini == expected_ini
 
+    def test_wind_correlation_ini_exists(self, local_study_with_hydro):
+        # Given
+        expected_ini_path = local_study_with_hydro.service.config.study_path / "input/wind/prepro/correlation.ini"
+
+        # Then
+        assert expected_ini_path.exists()
+        assert expected_ini_path.is_file()
+        assert local_study_with_hydro._ini_files["wind_correlation"].ini_path == expected_ini_path
+
+    def test_wind_correlation_ini_has_default_values(self, local_study_with_hydro):
+        # Given
+        expected_ini_content = """[general]
+mode = annual
+
+[annual]
+
+[0]
+
+[1]
+
+[2]
+
+[3]
+
+[4]
+
+[5]
+
+[6]
+
+[7]
+
+[8]
+
+[9]
+
+[10]
+
+[11]
+
+"""
+        expected_ini = ConfigParser()
+        actual_ini = local_study_with_hydro._ini_files["wind_correlation"]
+
+        # When
+        expected_ini.read_string(expected_ini_content)
+        with actual_ini.ini_path.open("r") as ini_file:
+            actual_ini_content = ini_file.read()
+
+        # Then
+        assert actual_ini_content == expected_ini_content
+        assert actual_ini.parsed_ini.sections() == expected_ini.sections()
+        assert actual_ini.parsed_ini == expected_ini
+
 
 class TestCreateArea:
     def test_areas_sets_ini_content(self, tmp_path, local_study):

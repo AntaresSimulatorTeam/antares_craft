@@ -135,7 +135,7 @@ class AreaLocalService(BaseAreaService):
     def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> Wind:
         series = series if series is not None else pd.DataFrame([])
         local_file = TimeSeriesFile(TimeSeriesFileType.WIND, self.config.study_path, area.id, series)
-        return Wind(series, local_file)
+        return Wind(time_series=series, local_file=local_file, study_path=self.config.study_path, area_id=area.id)
 
     def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
         series = series if series is not None else pd.DataFrame([])

@@ -40,6 +40,10 @@ class TimeSeriesFileType(Enum):
     SOLAR_K = "input/solar/prepro/{area_id}/k.txt"
     SOLAR_TRANSLATION = "input/solar/prepro/{area_id}/translation.txt"
     WIND = "input/wind/series/wind_{area_id}.txt"
+    WIND_CONVERSION = "input/wind/prepro/{area_id}/conversion.txt"
+    WIND_DATA = "input/wind/prepro/{area_id}/data.txt"
+    WIND_K = "input/wind/prepro/{area_id}/k.txt"
+    WIND_TRANSLATION = "input/wind/prepro/{area_id}/translation.txt"
 
 
 class TimeSeriesFile:

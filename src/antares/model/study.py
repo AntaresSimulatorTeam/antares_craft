@@ -165,7 +165,10 @@ InfoTip = Antares Study {version}: {study_name}
         desktop_ini_file.write(desktop_ini_content)
 
     # Create various .ini files for the study
-    correlation_inis_to_create = [("solar_correlation", IniFileTypes.SOLAR_CORRELATION_INI)]
+    correlation_inis_to_create = [
+        ("solar_correlation", IniFileTypes.SOLAR_CORRELATION_INI),
+        ("wind_correlation", IniFileTypes.WIND_CORRELATION_INI),
+    ]
     ini_files = {
         correlation: IniFile(study_directory, file_type, ini_contents=_correlation_defaults())
         for (correlation, file_type) in correlation_inis_to_create

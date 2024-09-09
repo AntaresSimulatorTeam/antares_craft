@@ -26,6 +26,7 @@ from antares.model.thermal import (
     LawOption,
     ThermalCostGeneration,
 )
+from antares.model.wind import Wind
 from antares.tools.ini_tool import IniFile, IniFileTypes
 
 
@@ -216,3 +217,8 @@ def area_fr(local_study_with_hydro) -> Area:
 @pytest.fixture
 def fr_solar(area_fr) -> Solar:
     return area_fr.create_solar(None)
+
+
+@pytest.fixture
+def fr_wind(area_fr) -> Wind:
+    return area_fr.create_wind(None)

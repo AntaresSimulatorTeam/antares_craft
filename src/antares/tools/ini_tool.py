@@ -40,6 +40,8 @@ class IniFileTypes(Enum):
     ST_STORAGE_LIST_INI = "input/st-storage/clusters/{area_name}/list.ini"
     THERMAL_AREAS_INI = "input/thermal/areas.ini"
     THERMAL_LIST_INI = "input/thermal/clusters/{area_name}/list.ini"
+    WIND_CORRELATION_INI = "input/wind/prepro/correlation.ini"
+    WIND_SETTINGS_INI = "input/wind/prepro/{area_name}/settings.ini"
 
 
 class IniFile:

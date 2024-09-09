@@ -370,7 +370,7 @@ class AreaApiService(BaseAreaService):
         series = series if series is not None else pd.DataFrame([])
         series_path = f"input/wind/series/wind_{area.id}"
         self._upload_series(area, series, series_path)
-        return Wind(series)
+        return Wind(time_series=series)
 
     def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
         series = series if series is not None else pd.DataFrame([])
