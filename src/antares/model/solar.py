@@ -10,79 +10,31 @@
 #
 # This file is part of the Antares project.
 from pathlib import Path
-from typing import Optional, Any
+from typing import Optional
 
 import pandas as pd
 
-from antares.tools.ini_tool import IniFile, IniFileTypes
-from antares.tools.time_series_tool import TimeSeries, ConversionFile, TimeSeriesFileType, TimeSeriesFile, DataFile
+from antares.tools.prepro_folder import PreproFolder
+from antares.tools.time_series_tool import TimeSeries, TimeSeriesFile
 
 
-class Solar(TimeSeries):
+class Solar:
     def __init__(
         self,
-        *,
+        time_series: pd.DataFrame = pd.DataFrame([]),
+        local_file: Optional[TimeSeriesFile] = None,
         study_path: Optional[Path] = None,
         area_id: Optional[str] = None,
-        settings: Optional[IniFile] = None,
-        conversion: Optional[TimeSeries] = None,
-        data: Optional[TimeSeries] = None,
-        k: Optional[TimeSeries] = None,
-        translation: Optional[TimeSeries] = None,
-        **kwargs: Any,
     ) -> None:
-        super().__init__(**kwargs)
-        if study_path:
-            self._settings = (
-                settings if settings is not None else IniFile(study_path, IniFileTypes.SOLAR_SETTINGS_INI, area_id)
-            )
-            self._conversion = (
-                conversion
-                if conversion is not None
-                else TimeSeries(
-                    ConversionFile().data,
-                    TimeSeriesFile(TimeSeriesFileType.SOLAR_CONVERSION, study_path, area_id, ConversionFile().data),
-                )
-            )
-            self._data = (
-                data
-                if data is not None
-                else TimeSeries(
-                    DataFile().data, TimeSeriesFile(TimeSeriesFileType.SOLAR_DATA, study_path, area_id, DataFile().data)
-                )
-            )
-            self._k = (
-                k
-                if k is not None
-                else TimeSeries(
-                    pd.DataFrame([]), TimeSeriesFile(TimeSeriesFileType.SOLAR_K, study_path, area_id, pd.DataFrame([]))
-                )
-            )
-            self._translation = (
-                translation
-                if translation is not None
-                else TimeSeries(
-                    pd.DataFrame([]),
-                    TimeSeriesFile(TimeSeriesFileType.SOLAR_TRANSLATION, study_path, area_id, pd.DataFrame([])),
-                )
-            )
+        self._time_series = TimeSeries(time_series, local_file)
+        self._prepro = (
+            PreproFolder(folder="solar", study_path=study_path, area_id=area_id) if study_path and area_id else None
+        )
 
     @property
-    def settings(self) -> IniFile:
-        return self._settings
+    def time_series(self) -> TimeSeries:
+        return self._time_series
 
     @property
-    def conversion(self) -> TimeSeries:
-        return self._conversion
-
-    @property
-    def data(self) -> TimeSeries:
-        return self._data
-
-    @property
-    def k(self) -> TimeSeries:
-        return self._k
-
-    @property
-    def translation(self) -> TimeSeries:
-        return self._translation
+    def prepro(self) -> Optional[PreproFolder]:
+        return self._prepro

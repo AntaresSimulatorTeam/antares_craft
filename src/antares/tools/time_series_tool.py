@@ -14,7 +14,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
-import numpy as np
 import pandas as pd
 
 
@@ -131,19 +130,3 @@ class TimeSeries:
     def local_file(self, local_file: TimeSeriesFile) -> None:
         self._local_file = local_file
         self._time_series = local_file.time_series
-
-
-class ConversionFile:
-    def __init__(self) -> None:
-        self.data = pd.DataFrame([[-9999999980506447872, 0, 9999999980506447872], [0, 0, 0]])
-
-
-class DataFile:
-    def __init__(self) -> None:
-        default_data = pd.DataFrame(np.ones([12, 6]))
-        default_data[2] = 0
-        self._data = default_data.astype(int)
-
-    @property
-    def data(self) -> pd.DataFrame:
-        return self._data

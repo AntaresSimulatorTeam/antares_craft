@@ -765,7 +765,7 @@ class TestCreateWind:
         # Then
         assert expected_ini_path.exists()
         assert expected_ini_path.is_file()
-        assert expected_ini_path == fr_wind.settings.ini_path
+        assert expected_ini_path == fr_wind.prepro.settings.ini_path
 
     def test_conversion_txt_exists(self, area_fr, fr_wind):
         # Given
@@ -776,7 +776,7 @@ class TestCreateWind:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_wind.conversion.local_file.file_path == expected_file_path
+        assert fr_wind.prepro.conversion.local_file.file_path == expected_file_path
 
     def test_conversion_txt_has_correct_default_values(self, area_fr, fr_wind):
         # Given
@@ -787,9 +787,9 @@ class TestCreateWind:
         expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None).astype(str)
 
         # When
-        with fr_wind.conversion.local_file.file_path.open("r") as fr_wind_file:
+        with fr_wind.prepro.conversion.local_file.file_path.open("r") as fr_wind_file:
             actual_file_contents = fr_wind_file.read()
-        actual_file_data = fr_wind.conversion.time_series.astype(str)
+        actual_file_data = fr_wind.prepro.conversion.time_series.astype(str)
 
         # Then
         assert actual_file_data.equals(expected_file_data)
@@ -804,7 +804,7 @@ class TestCreateWind:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_wind.data.local_file.file_path == expected_file_path
+        assert fr_wind.prepro.data.local_file.file_path == expected_file_path
 
     def test_data_txt_has_correct_default_values(self, area_fr, fr_wind):
         # Given
@@ -824,9 +824,9 @@ class TestCreateWind:
         expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None)
 
         # When
-        with fr_wind.data.local_file.file_path.open("r") as fr_wind_file:
+        with fr_wind.prepro.data.local_file.file_path.open("r") as fr_wind_file:
             actual_file_contents = fr_wind_file.read()
-        actual_file_data = fr_wind.data.time_series
+        actual_file_data = fr_wind.prepro.data.time_series
 
         # Then
         assert actual_file_data.equals(expected_file_data)
@@ -841,14 +841,14 @@ class TestCreateWind:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_wind.k.local_file.file_path == expected_file_path
+        assert fr_wind.prepro.k.local_file.file_path == expected_file_path
 
     def test_k_txt_is_empty_by_default(self, area_fr, fr_wind):
         # Given
         expected_file_contents = """"""
 
         # When
-        with fr_wind.k.local_file.file_path.open("r") as fr_wind_file:
+        with fr_wind.prepro.k.local_file.file_path.open("r") as fr_wind_file:
             actual_file_contents = fr_wind_file.read()
 
         # Then
@@ -863,14 +863,14 @@ class TestCreateWind:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_wind.translation.local_file.file_path == expected_file_path
+        assert fr_wind.prepro.translation.local_file.file_path == expected_file_path
 
     def test_translation_txt_is_empty_by_default(self, area_fr, fr_wind):
         # Given
         expected_file_contents = """"""
 
         # When
-        with fr_wind.translation.local_file.file_path.open("r") as fr_wind_file:
+        with fr_wind.prepro.translation.local_file.file_path.open("r") as fr_wind_file:
             actual_file_contents = fr_wind_file.read()
 
         # Then
@@ -920,7 +920,7 @@ class TestCreateSolar:
         # Then
         assert expected_ini_path.exists()
         assert expected_ini_path.is_file()
-        assert expected_ini_path == fr_solar.settings.ini_path
+        assert expected_ini_path == fr_solar.prepro.settings.ini_path
 
     def test_conversion_txt_exists(self, area_fr, fr_solar):
         # Given
@@ -931,7 +931,7 @@ class TestCreateSolar:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_solar.conversion.local_file.file_path == expected_file_path
+        assert fr_solar.prepro.conversion.local_file.file_path == expected_file_path
 
     def test_conversion_txt_has_correct_default_values(self, area_fr, fr_solar):
         # Given
@@ -942,9 +942,9 @@ class TestCreateSolar:
         expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None).astype(str)
 
         # When
-        with fr_solar.conversion.local_file.file_path.open("r") as fr_solar_file:
+        with fr_solar.prepro.conversion.local_file.file_path.open("r") as fr_solar_file:
             actual_file_contents = fr_solar_file.read()
-        actual_file_data = fr_solar.conversion.time_series.astype(str)
+        actual_file_data = fr_solar.prepro.conversion.time_series.astype(str)
 
         # Then
         assert actual_file_data.equals(expected_file_data)
@@ -959,7 +959,7 @@ class TestCreateSolar:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_solar.data.local_file.file_path == expected_file_path
+        assert fr_solar.prepro.data.local_file.file_path == expected_file_path
 
     def test_data_txt_has_correct_default_values(self, area_fr, fr_solar):
         # Given
@@ -979,9 +979,9 @@ class TestCreateSolar:
         expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None)
 
         # When
-        with fr_solar.data.local_file.file_path.open("r") as fr_solar_file:
+        with fr_solar.prepro.data.local_file.file_path.open("r") as fr_solar_file:
             actual_file_contents = fr_solar_file.read()
-        actual_file_data = fr_solar.data.time_series
+        actual_file_data = fr_solar.prepro.data.time_series
 
         # Then
         assert actual_file_data.equals(expected_file_data)
@@ -996,14 +996,14 @@ class TestCreateSolar:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_solar.k.local_file.file_path == expected_file_path
+        assert fr_solar.prepro.k.local_file.file_path == expected_file_path
 
     def test_k_txt_is_empty_by_default(self, area_fr, fr_solar):
         # Given
         expected_file_contents = """"""
 
         # When
-        with fr_solar.k.local_file.file_path.open("r") as fr_solar_file:
+        with fr_solar.prepro.k.local_file.file_path.open("r") as fr_solar_file:
             actual_file_contents = fr_solar_file.read()
 
         # Then
@@ -1019,14 +1019,14 @@ class TestCreateSolar:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_solar.translation.local_file.file_path == expected_file_path
+        assert fr_solar.prepro.translation.local_file.file_path == expected_file_path
 
     def test_translation_txt_is_empty_by_default(self, area_fr, fr_solar):
         # Given
         expected_file_contents = """"""
 
         # When
-        with fr_solar.translation.local_file.file_path.open("r") as fr_solar_file:
+        with fr_solar.prepro.translation.local_file.file_path.open("r") as fr_solar_file:
             actual_file_contents = fr_solar_file.read()
 
         # Then
