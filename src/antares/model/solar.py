@@ -12,6 +12,8 @@
 from pathlib import Path
 from typing import Optional, Any
 
+import pandas as pd
+
 from antares.tools.ini_tool import IniFile, IniFileTypes
 from antares.tools.time_series_tool import TimeSeries, ConversionFile, TimeSeriesFileType, TimeSeriesFile
 
@@ -24,6 +26,7 @@ class Solar(TimeSeries):
         area_id: Optional[str] = None,
         settings: Optional[IniFile] = None,
         conversion: Optional[TimeSeries] = None,
+        data: Optional[TimeSeries] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -39,6 +42,11 @@ class Solar(TimeSeries):
                     TimeSeriesFile(TimeSeriesFileType.SOLAR_CONVERSION, study_path, area_id, ConversionFile.data),
                 )
             )
+            self._data = (
+                data
+                if data is not None
+                else TimeSeries(pd.DataFrame([]), TimeSeriesFile(TimeSeriesFileType.SOLAR_DATA, study_path, area_id))
+            )
 
     @property
     def settings(self) -> IniFile:
@@ -47,3 +55,7 @@ class Solar(TimeSeries):
     @property
     def conversion(self) -> TimeSeries:
         return self._conversion
+
+    @property
+    def data(self) -> TimeSeries:
+        return self._data

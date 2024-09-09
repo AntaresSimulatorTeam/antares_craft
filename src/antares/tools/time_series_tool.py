@@ -35,6 +35,7 @@ class TimeSeriesFileType(Enum):
     RESERVES = "input/reserves/{area_id}.txt"
     SOLAR = "input/solar/series/solar_{area_id}.txt"
     SOLAR_CONVERSION = "input/solar/prepro/{area_id}/conversion.txt"
+    SOLAR_DATA = "input/solar/prepro/{area_id}/data.txt"
     WIND = "input/wind/series/wind_{area_id}.txt"
 
 
