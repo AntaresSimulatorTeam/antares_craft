@@ -902,3 +902,14 @@ class TestCreateSolar:
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
         assert fr_solar.translation.local_file.file_path == expected_file_path
+
+    def test_translation_txt_is_empty_by_default(self, area_fr, fr_solar):
+        # Given
+        expected_file_contents = """"""
+
+        # When
+        with fr_solar.translation.local_file.file_path.open("r") as fr_solar_file:
+            actual_file_contents = fr_solar_file.read()
+
+        # Then
+        assert actual_file_contents == expected_file_contents
