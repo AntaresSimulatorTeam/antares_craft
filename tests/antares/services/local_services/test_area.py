@@ -842,3 +842,29 @@ class TestCreateSolar:
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
         assert fr_solar.data.local_file.file_path == expected_file_path
+
+    def test_data_txt_has_correct_default_values(self, area_fr, fr_solar):
+        # Given
+        expected_file_contents = """1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+"""
+        expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None)
+
+        # When
+        with fr_solar.data.local_file.file_path.open("r") as fr_solar_file:
+            actual_file_contents = fr_solar_file.read()
+        actual_file_data = fr_solar.data.time_series
+
+        # Then
+        assert actual_file_data.equals(expected_file_data)
+        assert actual_file_contents == expected_file_contents
