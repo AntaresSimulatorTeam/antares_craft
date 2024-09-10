@@ -13,7 +13,7 @@
 from configparser import ConfigParser
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Any, overload
+from typing import Optional, Any, overload, Union
 
 
 class IniFileTypes(Enum):
@@ -34,10 +34,16 @@ class IniFileTypes(Enum):
     AREA_ADEQUACY_PATCH_INI = "input/areas/{area_name}/adequacy_patch.ini"
     HYDRO_INI = "input/hydro/hydro.ini"
     LINK_PROPERTIES_INI = "input/links/{area_name}/properties.ini"
+    LOAD_CORRELATION_INI = "input/load/prepro/correlation.ini"
+    LOAD_SETTINGS_INI = "input/load/prepro/{area_name}/settings.ini"
     RENEWABLES_LIST_INI = "input/renewables/clusters/{area_name}/list.ini"
+    SOLAR_CORRELATION_INI = "input/solar/prepro/correlation.ini"
+    SOLAR_SETTINGS_INI = "input/solar/prepro/{area_name}/settings.ini"
     ST_STORAGE_LIST_INI = "input/st-storage/clusters/{area_name}/list.ini"
     THERMAL_AREAS_INI = "input/thermal/areas.ini"
     THERMAL_LIST_INI = "input/thermal/clusters/{area_name}/list.ini"
+    WIND_CORRELATION_INI = "input/wind/prepro/correlation.ini"
+    WIND_SETTINGS_INI = "input/wind/prepro/{area_name}/settings.ini"
 
 
 class IniFile:
@@ -46,7 +52,7 @@ class IniFile:
         study_path: Path,
         ini_file_type: IniFileTypes,
         area_name: Optional[str] = None,
-        ini_contents: Optional[ConfigParser] = None,
+        ini_contents: Union[ConfigParser, dict[str, dict[str, str]], None] = None,
     ) -> None:
         if "{area_name}" in ini_file_type.value and not area_name:
             raise ValueError(f"Area name not provided, ini type {ini_file_type.name} requires 'area_name'")
@@ -57,7 +63,12 @@ class IniFile:
         )
         self._file_name = self._full_path.name
         self._file_path = self._full_path.parent
-        self._ini_contents = ini_contents or ConfigParser()
+        if isinstance(ini_contents, dict):
+            self.ini_dict = ini_contents
+        elif isinstance(ini_contents, ConfigParser):
+            self._ini_contents = ini_contents
+        else:
+            self._ini_contents = ConfigParser()
         if self._full_path.is_file():
             self.update_from_ini_file()
         else:

@@ -15,7 +15,9 @@ import pytest
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.area import Area
 from antares.model.hydro import HydroProperties
+from antares.model.load import Load
 from antares.model.renewable import RenewableClusterProperties, TimeSeriesInterpretation, RenewableClusterGroup
+from antares.model.solar import Solar
 from antares.model.st_storage import STStorageProperties, STStorageGroup
 from antares.model.study import Study, create_study_local
 from antares.model.thermal import (
@@ -25,6 +27,7 @@ from antares.model.thermal import (
     LawOption,
     ThermalCostGeneration,
 )
+from antares.model.wind import Wind
 from antares.tools.ini_tool import IniFile, IniFileTypes
 
 
@@ -210,3 +213,18 @@ def actual_hydro_ini(local_study_with_hydro) -> IniFile:
 @pytest.fixture
 def area_fr(local_study_with_hydro) -> Area:
     return local_study_with_hydro.get_areas()["fr"]
+
+
+@pytest.fixture
+def fr_solar(area_fr) -> Solar:
+    return area_fr.create_solar(None)
+
+
+@pytest.fixture
+def fr_wind(area_fr) -> Wind:
+    return area_fr.create_wind(None)
+
+
+@pytest.fixture
+def fr_load(area_fr) -> Load:
+    return area_fr.create_load(None)

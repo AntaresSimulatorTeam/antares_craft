@@ -19,17 +19,35 @@ import pandas as pd
 
 class TimeSeriesFileType(Enum):
     """
-    The relative paths to different timeseries files used in the generation of an Antares study, starting from the
-    base folder of the study.
+    DTO for storing the paths to Antares time series files.
 
-    Files where the path contains {area_id} have to be used with .format(area_id=<area_id>) where <area_id> is the id
-    in question to access the correct path.
+    This DTO contains the relative paths to different timeseries files used in the generation of an Antares study,
+    starting from the base folder of the study.
+
+    Files where the path contains {area_id} have to be used with .format(area_id=<area_id>) where <area_id> is replaced
+    with the area's id to access the correct path.
+
+    Example:
+        TimeSeriesFileType.SOLAR.value.format(area_id="test_area")
     """
 
+    LOAD = "input/load/series/load_{area_id}.txt"
+    LOAD_CONVERSION = "input/load/prepro/{area_id}/conversion.txt"
+    LOAD_DATA = "input/load/prepro/{area_id}/data.txt"
+    LOAD_K = "input/load/prepro/{area_id}/k.txt"
+    LOAD_TRANSLATION = "input/load/prepro/{area_id}/translation.txt"
     MISC_GEN = "input/misc-gen/miscgen-{area_id}.txt"
     RESERVES = "input/reserves/{area_id}.txt"
     SOLAR = "input/solar/series/solar_{area_id}.txt"
+    SOLAR_CONVERSION = "input/solar/prepro/{area_id}/conversion.txt"
+    SOLAR_DATA = "input/solar/prepro/{area_id}/data.txt"
+    SOLAR_K = "input/solar/prepro/{area_id}/k.txt"
+    SOLAR_TRANSLATION = "input/solar/prepro/{area_id}/translation.txt"
     WIND = "input/wind/series/wind_{area_id}.txt"
+    WIND_CONVERSION = "input/wind/prepro/{area_id}/conversion.txt"
+    WIND_DATA = "input/wind/prepro/{area_id}/data.txt"
+    WIND_K = "input/wind/prepro/{area_id}/k.txt"
+    WIND_TRANSLATION = "input/wind/prepro/{area_id}/translation.txt"
 
 
 class TimeSeriesFile:
@@ -87,6 +105,10 @@ class TimeSeriesFile:
 class TimeSeries:
     """
     A time series for use in Antares
+
+    Args:
+        time_series: Pandas DataFrame containing the time series.
+        local_file: TimeSeriesFile to store the time series if the study is local.
     """
 
     def __init__(

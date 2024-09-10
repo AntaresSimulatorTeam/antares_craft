@@ -25,6 +25,7 @@ from pydantic.alias_generators import to_camel
 
 from antares.model.commons import FilterOption, sort_filter_values
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
+from antares.model.load import Load
 from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.reserves import Reserves
@@ -242,6 +243,7 @@ class Area:
         *,
         renewables: Optional[Dict[str, RenewableCluster]] = None,
         thermals: Optional[Dict[str, ThermalCluster]] = None,
+        load: Optional[Load] = None,
         st_storages: Optional[Dict[str, STStorage]] = None,
         hydro: Optional[Hydro] = None,
         wind: Optional[Wind] = None,
@@ -259,6 +261,7 @@ class Area:
         self._renewable_service = renewable_service
         self._renewables = renewables or dict()
         self._thermals = thermals or dict()
+        self._load = load
         self._st_storages = st_storages or dict()
         self._hydro = hydro
         self._wind = wind
@@ -326,6 +329,11 @@ class Area:
         renewable = self._area_service.create_renewable_cluster(self.id, renewable_name, properties, series)
         self._renewables[renewable.id] = renewable
         return renewable
+
+    def create_load(self, series: Optional[pd.DataFrame]) -> Load:
+        load = self._area_service.create_load(self, series)
+        self._load = load
+        return load
 
     def create_st_storage(self, st_storage_name: str, properties: Optional[STStorageProperties] = None) -> STStorage:
         storage = self._area_service.create_st_storage(self.id, st_storage_name, properties)

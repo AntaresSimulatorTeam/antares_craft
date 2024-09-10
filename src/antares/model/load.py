@@ -18,7 +18,7 @@ from antares.tools.prepro_folder import PreproFolder
 from antares.tools.time_series_tool import TimeSeries, TimeSeriesFile
 
 
-class Wind:
+class Load:
     def __init__(
         self,
         time_series: pd.DataFrame = pd.DataFrame([]),
@@ -28,7 +28,7 @@ class Wind:
     ) -> None:
         self._time_series = TimeSeries(time_series, local_file)
         self._prepro = (
-            PreproFolder(folder="wind", study_path=study_path, area_id=area_id) if study_path and area_id else None
+            PreproFolder(folder="load", study_path=study_path, area_id=area_id) if study_path and area_id else None
         )
 
     @property

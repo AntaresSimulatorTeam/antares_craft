@@ -37,6 +37,7 @@ from antares.exceptions.exceptions import (
 )
 from antares.model.area import AreaProperties, AreaUi, Area
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
+from antares.model.load import Load
 from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster
 from antares.model.reserves import Reserves
@@ -323,6 +324,9 @@ class AreaApiService(BaseAreaService):
 
         return RenewableCluster(self.renewable_service, area_id, name, properties)
 
+    def create_load(self, area: Area, series: Optional[pd.DataFrame]) -> Load:
+        raise NotImplementedError
+
     def create_st_storage(
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
@@ -370,7 +374,7 @@ class AreaApiService(BaseAreaService):
         series = series if series is not None else pd.DataFrame([])
         series_path = f"input/wind/series/wind_{area.id}"
         self._upload_series(area, series, series_path)
-        return Wind(series)
+        return Wind(time_series=series)
 
     def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
         series = series if series is not None else pd.DataFrame([])
@@ -382,7 +386,7 @@ class AreaApiService(BaseAreaService):
         series = series if series is not None else pd.DataFrame([])
         series_path = f"input/solar/series/solar_{area.id}"
         self._upload_series(area, series, series_path)
-        return Solar(series)
+        return Solar(time_series=series)
 
     def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
         series = series if series is not None else pd.DataFrame([])
