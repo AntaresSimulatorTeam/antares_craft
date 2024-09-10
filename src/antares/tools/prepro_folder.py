@@ -24,6 +24,12 @@ class PreproFolder:
             data = TimeSeriesFileType.WIND_DATA
             k = TimeSeriesFileType.WIND_K
             translation = TimeSeriesFileType.WIND_TRANSLATION
+        elif folder == "load":
+            settings = IniFileTypes.LOAD_SETTINGS_INI
+            conversion = TimeSeriesFileType.LOAD_CONVERSION
+            data = TimeSeriesFileType.LOAD_DATA
+            k = TimeSeriesFileType.LOAD_K
+            translation = TimeSeriesFileType.LOAD_TRANSLATION
 
         self._settings = IniFile(study_path, settings, area_id)
         self._conversion = TimeSeries(

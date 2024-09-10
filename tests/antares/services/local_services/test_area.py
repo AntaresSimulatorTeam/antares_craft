@@ -1031,3 +1031,158 @@ class TestCreateSolar:
 
         # Then
         assert actual_file_contents == expected_file_contents
+
+
+class TestCreateLoad:
+    def test_can_create_load_ts_file(self, area_fr):
+        # Given
+        load_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD.value.format(
+            area_id=area_fr.id
+        )
+        expected_load_file_path = area_fr._area_service.config.study_path / "input/load/series/load_fr.txt"
+
+        # When
+        area_fr.create_load(None)
+
+        # Then
+        assert load_file_path == expected_load_file_path
+        assert load_file_path.exists()
+        assert load_file_path.is_file()
+
+    def test_can_create_load_ts_file_with_time_series(self, area_fr):
+        # Given
+        load_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD.value.format(
+            area_id=area_fr.id
+        )
+        expected_time_series_string = """1.0\t1.0\t1.0
+1.0\t1.0\t1.0
+"""
+        expected_time_series = pd.read_csv(StringIO(expected_time_series_string), sep="\t", header=None)
+
+        # When
+        area_fr.create_load(pd.DataFrame(np.ones([2, 3])))
+        actual_time_series = pd.read_csv(load_file_path, sep="\t", header=None)
+        with load_file_path.open("r") as load_ts_file:
+            actual_time_series_string = load_ts_file.read()
+
+        # Then
+        assert actual_time_series.equals(expected_time_series)
+        assert actual_time_series_string == expected_time_series_string
+
+    def test_settings_ini_exists(self, area_fr, fr_load):
+        # Given
+        expected_ini_path = area_fr._area_service.config.study_path / "input/load/prepro/fr/settings.ini"
+
+        # Then
+        assert expected_ini_path.exists()
+        assert expected_ini_path.is_file()
+        assert expected_ini_path == fr_load.prepro.settings.ini_path
+
+    def test_conversion_txt_exists(self, area_fr, fr_load):
+        # Given
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD_CONVERSION.value.format(
+            area_id=area_fr.id
+        )
+
+        # Then
+        assert expected_file_path.exists()
+        assert expected_file_path.is_file()
+        assert fr_load.prepro.conversion.local_file.file_path == expected_file_path
+
+    def test_conversion_txt_has_correct_default_values(self, area_fr, fr_load):
+        # Given
+        expected_file_contents = """-9999999980506447872\t0\t9999999980506447872
+0\t0\t0
+"""
+        # data has to be compared as strings as the first value in the first column is too small for python apparently
+        expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None).astype(str)
+
+        # When
+        with fr_load.prepro.conversion.local_file.file_path.open("r") as fr_load_file:
+            actual_file_contents = fr_load_file.read()
+        actual_file_data = fr_load.prepro.conversion.time_series.astype(str)
+
+        # Then
+        assert actual_file_data.equals(expected_file_data)
+        assert actual_file_contents == expected_file_contents
+
+    def test_data_txt_exists(self, area_fr, fr_load):
+        # Given
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD_DATA.value.format(
+            area_id=area_fr.id
+        )
+
+        # Then
+        assert expected_file_path.exists()
+        assert expected_file_path.is_file()
+        assert fr_load.prepro.data.local_file.file_path == expected_file_path
+
+    def test_data_txt_has_correct_default_values(self, area_fr, fr_load):
+        # Given
+        expected_file_contents = """1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+1\t1\t0\t1\t1\t1
+"""
+        expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None)
+
+        # When
+        with fr_load.prepro.data.local_file.file_path.open("r") as fr_load_file:
+            actual_file_contents = fr_load_file.read()
+        actual_file_data = fr_load.prepro.data.time_series
+
+        # Then
+        assert actual_file_data.equals(expected_file_data)
+        assert actual_file_contents == expected_file_contents
+
+    def test_k_txt_exists(self, area_fr, fr_load):
+        # Given
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD_K.value.format(
+            area_id=area_fr.id
+        )
+
+        # Then
+        assert expected_file_path.exists()
+        assert expected_file_path.is_file()
+        assert fr_load.prepro.k.local_file.file_path == expected_file_path
+
+    def test_k_txt_is_empty_by_default(self, area_fr, fr_load):
+        # Given
+        expected_file_contents = """"""
+
+        # When
+        with fr_load.prepro.k.local_file.file_path.open("r") as fr_load_file:
+            actual_file_contents = fr_load_file.read()
+
+        # Then
+        assert actual_file_contents == expected_file_contents
+
+    def test_translation_txt_exists(self, area_fr, fr_load):
+        # Given
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD_TRANSLATION.value.format(
+            area_id=area_fr.id
+        )
+
+        # Then
+        assert expected_file_path.exists()
+        assert expected_file_path.is_file()
+        assert fr_load.prepro.translation.local_file.file_path == expected_file_path
+
+    def test_translation_txt_is_empty_by_default(self, area_fr, fr_load):
+        # Given
+        expected_file_contents = """"""
+
+        # When
+        with fr_load.prepro.translation.local_file.file_path.open("r") as fr_load_file:
+            actual_file_contents = fr_load_file.read()
+
+        # Then
+        assert actual_file_contents == expected_file_contents

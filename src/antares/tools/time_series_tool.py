@@ -31,6 +31,11 @@ class TimeSeriesFileType(Enum):
         TimeSeriesFileType.SOLAR.value.format(area_id="test_area")
     """
 
+    LOAD = "input/load/series/load_{area_id}.txt"
+    LOAD_CONVERSION = "input/load/prepro/{area_id}/conversion.txt"
+    LOAD_DATA = "input/load/prepro/{area_id}/data.txt"
+    LOAD_K = "input/load/prepro/{area_id}/k.txt"
+    LOAD_TRANSLATION = "input/load/prepro/{area_id}/translation.txt"
     MISC_GEN = "input/misc-gen/miscgen-{area_id}.txt"
     RESERVES = "input/reserves/{area_id}.txt"
     SOLAR = "input/solar/series/solar_{area_id}.txt"

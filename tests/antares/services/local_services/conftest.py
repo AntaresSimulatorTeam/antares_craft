@@ -15,6 +15,7 @@ import pytest
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.area import Area
 from antares.model.hydro import HydroProperties
+from antares.model.load import Load
 from antares.model.renewable import RenewableClusterProperties, TimeSeriesInterpretation, RenewableClusterGroup
 from antares.model.solar import Solar
 from antares.model.st_storage import STStorageProperties, STStorageGroup
@@ -222,3 +223,8 @@ def fr_solar(area_fr) -> Solar:
 @pytest.fixture
 def fr_wind(area_fr) -> Wind:
     return area_fr.create_wind(None)
+
+
+@pytest.fixture
+def fr_load(area_fr) -> Load:
+    return area_fr.create_load(None)

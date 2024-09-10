@@ -168,6 +168,7 @@ InfoTip = Antares Study {version}: {study_name}
     correlation_inis_to_create = [
         ("solar_correlation", IniFileTypes.SOLAR_CORRELATION_INI),
         ("wind_correlation", IniFileTypes.WIND_CORRELATION_INI),
+        ("load_correlation", IniFileTypes.LOAD_CORRELATION_INI),
     ]
     ini_files = {
         correlation: IniFile(study_directory, file_type, ini_contents=_correlation_defaults())

@@ -37,6 +37,7 @@ from antares.exceptions.exceptions import (
 )
 from antares.model.area import AreaProperties, AreaUi, Area
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
+from antares.model.load import Load
 from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster
 from antares.model.reserves import Reserves
@@ -322,6 +323,9 @@ class AreaApiService(BaseAreaService):
             raise RenewableCreationError(renewable_name, area_id, e.message) from e
 
         return RenewableCluster(self.renewable_service, area_id, name, properties)
+
+    def create_load(self, area: Area, series: Optional[pd.DataFrame]) -> Load:
+        raise NotImplementedError
 
     def create_st_storage(
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None

@@ -21,6 +21,7 @@ from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import CustomError
 from antares.model.area import AreaProperties, AreaUi, Area, AreaPropertiesLocal, AreaUiLocal
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro, HydroPropertiesLocal
+from antares.model.load import Load
 from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster, RenewableClusterPropertiesLocal
 from antares.model.reserves import Reserves
@@ -115,6 +116,11 @@ class AreaLocalService(BaseAreaService):
         return RenewableCluster(
             self.renewable_service, area_id, renewable_name, local_properties.yield_renewable_cluster_properties()
         )
+
+    def create_load(self, area: Area, series: Optional[pd.DataFrame]) -> Load:
+        series = series if series is not None else pd.DataFrame([])
+        local_file = TimeSeriesFile(TimeSeriesFileType.LOAD, self.config.study_path, area.id, series)
+        return Load(time_series=series, local_file=local_file, study_path=self.config.study_path, area_id=area.id)
 
     def create_st_storage(
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None

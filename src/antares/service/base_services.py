@@ -26,6 +26,7 @@ from antares.model.binding_constraint import (
 )
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
 from antares.model.link import LinkProperties, LinkUi, Link
+from antares.model.load import Load
 from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster
 from antares.model.reserves import Reserves
@@ -117,6 +118,16 @@ class BaseAreaService(ABC):
 
         Returns:
             The created renewable cluster
+        """
+        pass
+
+    @abstractmethod
+    def create_load(self, area: Area, series: Optional[pd.DataFrame]) -> Load:
+        """
+        Args:
+            area: area to create load series matrices
+            series: load/series/load_{area_id}.txt
+
         """
         pass
 

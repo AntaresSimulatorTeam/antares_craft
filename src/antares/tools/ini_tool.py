@@ -34,6 +34,8 @@ class IniFileTypes(Enum):
     AREA_ADEQUACY_PATCH_INI = "input/areas/{area_name}/adequacy_patch.ini"
     HYDRO_INI = "input/hydro/hydro.ini"
     LINK_PROPERTIES_INI = "input/links/{area_name}/properties.ini"
+    LOAD_CORRELATION_INI = "input/load/prepro/correlation.ini"
+    LOAD_SETTINGS_INI = "input/load/prepro/{area_name}/settings.ini"
     RENEWABLES_LIST_INI = "input/renewables/clusters/{area_name}/list.ini"
     SOLAR_CORRELATION_INI = "input/solar/prepro/correlation.ini"
     SOLAR_SETTINGS_INI = "input/solar/prepro/{area_name}/settings.ini"
