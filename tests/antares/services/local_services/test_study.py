@@ -21,6 +21,7 @@ import pytest
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import CustomError, LinkCreationError
 from antares.model.area import AreaProperties, AreaUi, AreaUiLocal, AreaPropertiesLocal, Area
+from antares.model.binding_constraint import BindingConstraint
 from antares.model.commons import FilterOption
 from antares.model.hydro import Hydro
 from antares.model.link import (
@@ -1074,3 +1075,13 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         assert actual_properties == LinkPropertiesLocal.model_validate(created_properties).yield_link_properties()
         created_ui = expected_ui.model_dump(mode="json", exclude_none=True)
         assert actual_ui == LinkUiLocal.model_validate(created_ui).yield_link_ui()
+
+
+class TestCreateBindingconstraint:
+    def test_can_be_created(self, local_study_with_hydro):
+        # When
+        binding_constraint_name = "test constraint"
+        binding_constraint = local_study_with_hydro.create_binding_constraint(name=binding_constraint_name)
+
+        # Then
+        assert isinstance(binding_constraint, BindingConstraint)

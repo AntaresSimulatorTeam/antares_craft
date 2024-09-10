@@ -39,7 +39,12 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         equal_term_matrix: Optional[pd.DataFrame] = None,
         greater_term_matrix: Optional[pd.DataFrame] = None,
     ) -> BindingConstraint:
-        raise NotImplementedError
+        return BindingConstraint(
+            name=name,
+            binding_constraint_service=self,
+            properties=properties,
+            terms=terms,
+        )
 
     def add_constraint_terms(self, constraint: BindingConstraint, terms: List[ConstraintTerm]) -> List[ConstraintTerm]:
         raise NotImplementedError
