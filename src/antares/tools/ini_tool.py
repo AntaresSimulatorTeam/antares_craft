@@ -32,6 +32,7 @@ class IniFileTypes(Enum):
     AREA_OPTIMIZATION_INI = "input/areas/{area_name}/optimization.ini"
     AREA_UI_INI = "input/areas/{area_name}/ui.ini"
     AREA_ADEQUACY_PATCH_INI = "input/areas/{area_name}/adequacy_patch.ini"
+    BINDING_CONSTRAINTS_INI = "input/bindingconstraints/bindingconstraints.ini"
     HYDRO_INI = "input/hydro/hydro.ini"
     LINK_PROPERTIES_INI = "input/links/{area_name}/properties.ini"
     LOAD_CORRELATION_INI = "input/load/prepro/correlation.ini"

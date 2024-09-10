@@ -1085,3 +1085,10 @@ class TestCreateBindingconstraint:
 
         # Then
         assert isinstance(binding_constraint, BindingConstraint)
+
+    def test_constraints_have_default_properties(self, local_study_with_constraint):
+        # Given
+        constraint = local_study_with_constraint.get_binding_constraints()["test constraint"]
+
+        # Then
+        assert constraint.properties.model_dump(exclude_none=True)

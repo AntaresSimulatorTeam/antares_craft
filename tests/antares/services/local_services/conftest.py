@@ -228,3 +228,9 @@ def fr_wind(area_fr) -> Wind:
 @pytest.fixture
 def fr_load(area_fr) -> Load:
     return area_fr.create_load(None)
+
+
+@pytest.fixture
+def local_study_with_constraint(local_study_with_hydro) -> Study:
+    local_study_with_hydro.create_binding_constraint(name="test constraint")
+    return local_study_with_hydro
