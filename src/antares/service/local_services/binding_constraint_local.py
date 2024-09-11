@@ -21,8 +21,8 @@ from antares.model.binding_constraint import (
     ConstraintTerm,
     BindingConstraint,
     ConstraintMatrixName,
-    BindingConstraintOperator,
     BindingConstraintFrequency,
+    BindingConstraintOperator,
 )
 from antares.service.base_services import BaseBindingConstraintService
 from antares.tools.ini_tool import IniFile, IniFileTypes
