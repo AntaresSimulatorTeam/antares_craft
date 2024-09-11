@@ -1092,3 +1092,6 @@ class TestCreateBindingconstraint:
 
         # Then
         assert constraint.properties.model_dump(exclude_none=True)
+
+    def test_constraints_have_correct_default_properties(self, test_constraint, default_constraint_properties):
+        assert test_constraint.properties == default_constraint_properties

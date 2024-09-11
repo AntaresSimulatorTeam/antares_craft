@@ -14,6 +14,12 @@ import pytest
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.area import Area
+from antares.model.binding_constraint import (
+    BindingConstraint,
+    BindingConstraintProperties,
+    BindingConstraintFrequency,
+    BindingConstraintOperator,
+)
 from antares.model.hydro import HydroProperties
 from antares.model.load import Load
 from antares.model.renewable import RenewableClusterProperties, TimeSeriesInterpretation, RenewableClusterGroup
@@ -234,3 +240,21 @@ def fr_load(area_fr) -> Load:
 def local_study_with_constraint(local_study_with_hydro) -> Study:
     local_study_with_hydro.create_binding_constraint(name="test constraint")
     return local_study_with_hydro
+
+
+@pytest.fixture
+def test_constraint(local_study_with_constraint) -> BindingConstraint:
+    return local_study_with_constraint.get_binding_constraints()["test constraint"]
+
+
+@pytest.fixture
+def default_constraint_properties() -> BindingConstraintProperties:
+    return BindingConstraintProperties(
+        enabled=True,
+        time_step=BindingConstraintFrequency.HOURLY,
+        operator=BindingConstraintOperator.LESS,
+        comments=None,
+        filter_year_by_year="hourly",
+        filter_synthesis="hourly",
+        group=None,
+    )
