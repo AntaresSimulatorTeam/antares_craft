@@ -1095,3 +1095,13 @@ class TestCreateBindingconstraint:
 
     def test_constraints_have_correct_default_properties(self, test_constraint, default_constraint_properties):
         assert test_constraint.properties == default_constraint_properties
+
+    def test_creating_constraints_creates_ini(self, local_study_with_constraint):
+        # Given
+        expected_ini_file_path = (
+            local_study_with_constraint.service.config.study_path / "input/bindingconstraints/bindingconstraints.ini"
+        )
+
+        # Then
+        assert expected_ini_file_path.exists()
+        assert expected_ini_file_path.is_file()

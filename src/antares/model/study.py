@@ -29,6 +29,7 @@ from antares.model.link import Link, LinkUi, LinkProperties
 from antares.model.settings import StudySettings
 from antares.service.api_services.study_api import _returns_study_settings
 from antares.service.base_services import BaseStudyService
+from antares.service.local_services.study_local import StudyLocalService
 from antares.service.service_factory import ServiceFactory
 from antares.tools.ini_tool import IniFile, IniFileTypes
 
@@ -269,6 +270,9 @@ class Study:
             name, properties, terms, less_term_matrix, equal_term_matrix, greater_term_matrix
         )
         self._binding_constraints[constraint.id] = constraint
+        if isinstance(self.service, StudyLocalService):
+            binding_constraints_ini = IniFile(self.service.config.study_path, IniFileTypes.BINDING_CONSTRAINTS_INI)
+            binding_constraints_ini.write_ini_file()
         return constraint
 
     def update_settings(self, settings: StudySettings) -> None:
