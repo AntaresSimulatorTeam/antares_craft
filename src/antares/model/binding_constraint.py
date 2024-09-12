@@ -14,10 +14,11 @@ from enum import Enum
 from typing import Optional, Union, List, Any, Dict
 
 import pandas as pd
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, computed_field
 from pydantic.alias_generators import to_camel
 
 from antares.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
+from antares.tools.ini_tool import check_if_none
 
 DEFAULT_GROUP = "default"
 
@@ -94,6 +95,65 @@ class BindingConstraintProperties(BaseModel, extra="forbid", populate_by_name=Tr
     group: Optional[str] = None
 
 
+class BindingConstraintPropertiesLocal(BaseModel):
+    """
+    Used to create the entries for the bindingconstraints.ini file
+
+    Args:
+        constraint_name: The constraint name
+        constraint_id: The constraint id
+        properties (BindingConstraintProperties): The BindingConstraintProperties  to set
+    """
+
+    def __init__(
+        self,
+        constraint_name: str,
+        constraint_id: str,
+        properties: Optional[BindingConstraintProperties] = None,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(**kwargs)
+        properties = properties if properties is not None else BindingConstraintProperties()
+        self._constraint_name = constraint_name
+        self._constraint_id = constraint_id
+        self._enabled = check_if_none(properties.enabled, True)
+        self._time_step = check_if_none(properties.time_step, BindingConstraintFrequency.HOURLY)
+        self._operator = check_if_none(properties.operator, BindingConstraintOperator.LESS)
+        self._comments = properties.comments
+        self._filter_year_by_year = check_if_none(properties.filter_year_by_year, "hourly")
+        self._filter_synthesis = check_if_none(properties.filter_synthesis, "hourly")
+        self._group = properties.group
+
+    @computed_field  # type: ignore[misc]
+    @property
+    def list_ini_fields(self) -> dict[str, str]:
+        ini_dict = {
+            "name": self._constraint_name,
+            "id": self._constraint_id,
+            "enabled": f"{self._enabled}".lower(),
+            "type": self._time_step.value,
+            "operator": self._operator.value,
+            "comments": self._comments,
+            "filter-year-by-year": self._filter_year_by_year,
+            "filter-synthesis": self._filter_synthesis,
+            "group": self._group,
+        }
+        return {key: value for key, value in ini_dict.items() if value is not None}
+
+    @computed_field  # type: ignore[misc]
+    @property
+    def yield_binding_constraint_properties(self) -> BindingConstraintProperties:
+        return BindingConstraintProperties(
+            enabled=self._enabled,
+            time_step=self._time_step,
+            operator=self._operator,
+            comments=self._comments,
+            filter_year_by_year=self._filter_year_by_year,
+            filter_synthesis=self._filter_synthesis,
+            group=self._group,
+        )
+
+
 class BindingConstraint:
     def __init__(  # type: ignore # TODO: Find a way to avoid circular imports
         self,
@@ -107,6 +167,9 @@ class BindingConstraint:
         self._id = transform_name_to_id(name)
         self._properties = properties or BindingConstraintProperties()
         self._terms = {term.id: term for term in terms} if terms else {}
+        self._local_properties = BindingConstraintPropertiesLocal(
+            constraint_name=self._name, constraint_id=self._id, properties=properties
+        )
 
     @property
     def name(self) -> str:
@@ -119,6 +182,14 @@ class BindingConstraint:
     @property
     def properties(self) -> BindingConstraintProperties:
         return self._properties
+
+    @properties.setter
+    def properties(self, new_properties: BindingConstraintProperties) -> None:
+        self._properties = new_properties
+
+    @property
+    def local_properties(self) -> BindingConstraintPropertiesLocal:
+        return self._local_properties
 
     def get_terms(self) -> Dict[str, ConstraintTerm]:
         return self._terms

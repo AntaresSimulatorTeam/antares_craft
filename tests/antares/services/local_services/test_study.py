@@ -21,7 +21,12 @@ import pytest
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import CustomError, LinkCreationError
 from antares.model.area import AreaProperties, AreaUi, AreaUiLocal, AreaPropertiesLocal, Area
-from antares.model.binding_constraint import BindingConstraint
+from antares.model.binding_constraint import (
+    BindingConstraint,
+    BindingConstraintProperties,
+    BindingConstraintFrequency,
+    BindingConstraintOperator,
+)
 from antares.model.commons import FilterOption
 from antares.model.hydro import Hydro
 from antares.model.link import (
@@ -40,6 +45,7 @@ from antares.service.local_services.link_local import LinkLocalService
 from antares.service.local_services.renewable_local import RenewableLocalService
 from antares.service.local_services.st_storage_local import ShortTermStorageLocalService
 from antares.service.local_services.thermal_local import ThermalLocalService
+from antares.tools.ini_tool import IniFileTypes
 
 
 class TestCreateStudy:
@@ -1105,3 +1111,75 @@ class TestCreateBindingconstraint:
         # Then
         assert expected_ini_file_path.exists()
         assert expected_ini_file_path.is_file()
+
+    def test_constraints_ini_have_correct_default_content(
+        self, local_study_with_constraint, test_constraint, default_constraint_properties
+    ):
+        # Given
+        expected_ini_contents = """[0]
+name = test constraint
+id = test constraint
+enabled = true
+type = hourly
+operator = less
+filter-year-by-year = hourly
+filter-synthesis = hourly
+
+"""
+
+        # When
+        actual_ini_path = (
+            local_study_with_constraint.service.config.study_path / IniFileTypes.BINDING_CONSTRAINTS_INI.value
+        )
+        with actual_ini_path.open("r") as file:
+            actual_ini_content = file.read()
+
+        # Then
+        assert default_constraint_properties == test_constraint.properties
+        assert actual_ini_content == expected_ini_contents
+
+    def test_constraints_and_ini_have_custom_properties(self, local_study_with_constraint):
+        # Given
+        custom_constraint_properties = BindingConstraintProperties(
+            enabled=False,
+            time_step=BindingConstraintFrequency.WEEKLY,
+            operator=BindingConstraintOperator.BOTH,
+            comments="test comment",
+            filter_year_by_year="yearly",
+            filter_synthesis="monthly",
+            group="test group",
+        )
+        expected_ini_content = """[0]
+name = test constraint
+id = test constraint
+enabled = true
+type = hourly
+operator = less
+filter-year-by-year = hourly
+filter-synthesis = hourly
+
+[1]
+name = test constraint two
+id = test constraint two
+enabled = false
+type = weekly
+operator = both
+comments = test comment
+filter-year-by-year = yearly
+filter-synthesis = monthly
+group = test group
+
+"""
+
+        # When
+        local_study_with_constraint.create_binding_constraint(
+            name="test constraint two", properties=custom_constraint_properties
+        )
+        actual_file_path = (
+            local_study_with_constraint.service.config.study_path / IniFileTypes.BINDING_CONSTRAINTS_INI.value
+        )
+        with actual_file_path.open("r") as file:
+            actual_ini_content = file.read()
+
+        # Then
+        assert actual_ini_content == expected_ini_content

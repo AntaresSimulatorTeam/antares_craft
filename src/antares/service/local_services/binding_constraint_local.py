@@ -20,8 +20,6 @@ from antares.model.binding_constraint import (
     ConstraintTerm,
     BindingConstraint,
     ConstraintMatrixName,
-    BindingConstraintFrequency,
-    BindingConstraintOperator,
 )
 from antares.service.base_services import BaseBindingConstraintService
 
@@ -41,19 +39,6 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         equal_term_matrix: Optional[pd.DataFrame] = None,
         greater_term_matrix: Optional[pd.DataFrame] = None,
     ) -> BindingConstraint:
-        properties = (
-            properties
-            if properties is not None
-            else BindingConstraintProperties(
-                enabled=True,
-                time_step=BindingConstraintFrequency.HOURLY,
-                operator=BindingConstraintOperator.LESS,
-                comments=None,
-                filter_year_by_year="hourly",
-                filter_synthesis="hourly",
-                group=None,
-            )
-        )
         return BindingConstraint(
             name=name,
             binding_constraint_service=self,
