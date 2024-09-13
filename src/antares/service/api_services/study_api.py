@@ -35,7 +35,11 @@ from antares.service.base_services import BaseStudyService
 
 
 def _returns_study_settings(
-    base_url: str, study_id: str, wrapper: RequestWrapper, update: bool, settings: Optional[StudySettings]
+    base_url: str,
+    study_id: str,
+    wrapper: RequestWrapper,
+    update: bool,
+    settings: Optional[StudySettings],
 ) -> Optional[StudySettings]:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
     mapping = {
@@ -48,7 +52,9 @@ def _returns_study_settings(
         "playlist": ("playlist", None),
     }
     if settings:
-        json_settings = json.loads(settings.model_dump_json(by_alias=True, exclude_none=True))
+        json_settings = json.loads(
+            settings.model_dump_json(by_alias=True, exclude_none=True)
+        )
         if not json_settings and update:
             return None
 
@@ -88,7 +94,9 @@ class StudyApiService(BaseStudyService):
 
     def update_study_settings(self, settings: StudySettings) -> Optional[StudySettings]:
         try:
-            new_settings = _returns_study_settings(self._base_url, self.study_id, self._wrapper, True, settings)
+            new_settings = _returns_study_settings(
+                self._base_url, self.study_id, self._wrapper, True, settings
+            )
         except APIError as e:
             raise StudySettingsUpdateError(self.study_id, e.message) from e
         return new_settings

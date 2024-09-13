@@ -42,7 +42,9 @@ class STStorageMatrixName(Enum):
     INFLOWS = "inflows"
 
 
-class STStorageProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+class STStorageProperties(
+    BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel
+):
     """
     Properties of a short-term storage system read from the configuration files.
 
@@ -71,12 +73,20 @@ class STStoragePropertiesLocal(BaseModel):
         st_storage_properties = st_storage_properties or STStorageProperties()
         self._st_storage_name = st_storage_name
         self._group = check_if_none(st_storage_properties.group, STStorageGroup.OTHER1)
-        self._injection_nominal_capacity = check_if_none(st_storage_properties.injection_nominal_capacity, 0)
-        self._withdrawal_nominal_capacity = check_if_none(st_storage_properties.withdrawal_nominal_capacity, 0)
-        self._reservoir_capacity = check_if_none(st_storage_properties.reservoir_capacity, 0)
+        self._injection_nominal_capacity = check_if_none(
+            st_storage_properties.injection_nominal_capacity, 0
+        )
+        self._withdrawal_nominal_capacity = check_if_none(
+            st_storage_properties.withdrawal_nominal_capacity, 0
+        )
+        self._reservoir_capacity = check_if_none(
+            st_storage_properties.reservoir_capacity, 0
+        )
         self._efficiency = check_if_none(st_storage_properties.efficiency, 1)
         self._initial_level = check_if_none(st_storage_properties.initial_level, 0.5)
-        self._initial_level_optim = check_if_none(st_storage_properties.initial_level_optim, False)
+        self._initial_level_optim = check_if_none(
+            st_storage_properties.initial_level_optim, False
+        )
         self._enabled = check_if_none(st_storage_properties.enabled, True)
 
     @property
@@ -140,23 +150,35 @@ class STStorage:
         return self._properties
 
     def update_properties(self, properties: STStorageProperties) -> None:
-        new_properties = self._storage_service.update_st_storage_properties(self, properties)
+        new_properties = self._storage_service.update_st_storage_properties(
+            self, properties
+        )
         self._properties = new_properties
 
     def get_pmax_injection(self) -> pd.DataFrame:
-        return self._storage_service.get_storage_matrix(self, STStorageMatrixName.PMAX_INJECTION)
+        return self._storage_service.get_storage_matrix(
+            self, STStorageMatrixName.PMAX_INJECTION
+        )
 
     def get_pmax_withdrawal(self) -> pd.DataFrame:
-        return self._storage_service.get_storage_matrix(self, STStorageMatrixName.PMAX_WITHDRAWAL)
+        return self._storage_service.get_storage_matrix(
+            self, STStorageMatrixName.PMAX_WITHDRAWAL
+        )
 
     def get_lower_rule_curve(self) -> pd.DataFrame:
-        return self._storage_service.get_storage_matrix(self, STStorageMatrixName.LOWER_CURVE_RULE)
+        return self._storage_service.get_storage_matrix(
+            self, STStorageMatrixName.LOWER_CURVE_RULE
+        )
 
     def get_upper_rule_curve(self) -> pd.DataFrame:
-        return self._storage_service.get_storage_matrix(self, STStorageMatrixName.UPPER_RULE_CURVE)
+        return self._storage_service.get_storage_matrix(
+            self, STStorageMatrixName.UPPER_RULE_CURVE
+        )
 
     def get_storage_inflows(self) -> pd.DataFrame:
-        return self._storage_service.get_storage_matrix(self, STStorageMatrixName.INFLOWS)
+        return self._storage_service.get_storage_matrix(
+            self, STStorageMatrixName.INFLOWS
+        )
 
     def upload_pmax_injection(self, p_max_injection_matrix: pd.DataFrame) -> None:
         return self._storage_service.upload_storage_matrix(
@@ -179,4 +201,6 @@ class STStorage:
         )
 
     def upload_storage_inflows(self, inflows_matrix: pd.DataFrame) -> None:
-        return self._storage_service.upload_storage_matrix(self, STStorageMatrixName.INFLOWS, inflows_matrix)
+        return self._storage_service.upload_storage_matrix(
+            self, STStorageMatrixName.INFLOWS, inflows_matrix
+        )

@@ -84,7 +84,9 @@ class ConstraintTerm(TermOperators):
         return ".".join((data.area.lower(), data.cluster.lower()))
 
 
-class BindingConstraintProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+class BindingConstraintProperties(
+    BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel
+):
     enabled: Optional[bool] = None
     time_step: Optional[BindingConstraintFrequency] = None
     operator: Optional[BindingConstraintOperator] = None
@@ -129,27 +131,45 @@ class BindingConstraint:
             self._terms[term.id] = term
 
     def delete_term(self, term: ConstraintTerm) -> None:
-        self._binding_constraint_service.delete_binding_constraint_term(self.id, term.id)
+        self._binding_constraint_service.delete_binding_constraint_term(
+            self.id, term.id
+        )
         self._terms.pop(term.id)
 
     def update_properties(self, properties: BindingConstraintProperties) -> None:
-        new_properties = self._binding_constraint_service.update_binding_constraint_properties(self, properties)
+        new_properties = (
+            self._binding_constraint_service.update_binding_constraint_properties(
+                self, properties
+            )
+        )
         self._properties = new_properties
 
     def get_less_term_matrix(self) -> pd.DataFrame:
-        return self._binding_constraint_service.get_constraint_matrix(self, ConstraintMatrixName.LESS_TERM)
+        return self._binding_constraint_service.get_constraint_matrix(
+            self, ConstraintMatrixName.LESS_TERM
+        )
 
     def get_equal_term_matrix(self) -> pd.DataFrame:
-        return self._binding_constraint_service.get_constraint_matrix(self, ConstraintMatrixName.EQUAL_TERM)
+        return self._binding_constraint_service.get_constraint_matrix(
+            self, ConstraintMatrixName.EQUAL_TERM
+        )
 
     def get_greater_term_matrix(self) -> pd.DataFrame:
-        return self._binding_constraint_service.get_constraint_matrix(self, ConstraintMatrixName.GREATER_TERM)
+        return self._binding_constraint_service.get_constraint_matrix(
+            self, ConstraintMatrixName.GREATER_TERM
+        )
 
     def update_less_term_matrix(self, matrix: pd.DataFrame) -> None:
-        self._binding_constraint_service.update_constraint_matrix(self, ConstraintMatrixName.LESS_TERM, matrix)
+        self._binding_constraint_service.update_constraint_matrix(
+            self, ConstraintMatrixName.LESS_TERM, matrix
+        )
 
     def update_equal_term_matrix(self, matrix: pd.DataFrame) -> None:
-        self._binding_constraint_service.update_constraint_matrix(self, ConstraintMatrixName.EQUAL_TERM, matrix)
+        self._binding_constraint_service.update_constraint_matrix(
+            self, ConstraintMatrixName.EQUAL_TERM, matrix
+        )
 
     def update_greater_term_matrix(self, matrix: pd.DataFrame) -> None:
-        self._binding_constraint_service.update_constraint_matrix(self, ConstraintMatrixName.GREATER_TERM, matrix)
+        self._binding_constraint_service.update_constraint_matrix(
+            self, ConstraintMatrixName.GREATER_TERM, matrix
+        )

@@ -39,7 +39,9 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
     ) -> STStorageProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{st_storage.area_id}/storages/{st_storage.id}"
         try:
-            body = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+            body = json.loads(
+                properties.model_dump_json(by_alias=True, exclude_none=True)
+            )
             if not body:
                 return st_storage.properties
 
@@ -50,11 +52,15 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
             new_properties = STStorageProperties.model_validate(json_response)
 
         except APIError as e:
-            raise STStoragePropertiesUpdateError(st_storage.id, st_storage.area_id, e.message) from e
+            raise STStoragePropertiesUpdateError(
+                st_storage.id, st_storage.area_id, e.message
+            ) from e
 
         return new_properties
 
-    def upload_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:
+    def upload_storage_matrix(
+        self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame
+    ) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{storage.area_id}/storages/{storage.id}/series/{ts_name.value}"
         try:
             body = {
@@ -64,14 +70,22 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
             }
             self._wrapper.put(url, json=body)
         except APIError as e:
-            raise STStorageMatrixUploadError(storage.area_id, storage.id, ts_name.value, e.message) from e
+            raise STStorageMatrixUploadError(
+                storage.area_id, storage.id, ts_name.value, e.message
+            ) from e
 
-    def get_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName) -> pd.DataFrame:
+    def get_storage_matrix(
+        self, storage: STStorage, ts_name: STStorageMatrixName
+    ) -> pd.DataFrame:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{storage.area_id}/storages/{storage.id}/series/{ts_name.value}"
         try:
             response = self._wrapper.get(url)
             json_df = response.json()
-            dataframe = pd.DataFrame(data=json_df["data"], index=json_df["index"], columns=json_df["columns"])
+            dataframe = pd.DataFrame(
+                data=json_df["data"], index=json_df["index"], columns=json_df["columns"]
+            )
         except APIError as e:
-            raise STStorageMatrixDownloadError(storage.area_id, storage.id, ts_name.value, e.message) from e
+            raise STStorageMatrixDownloadError(
+                storage.area_id, storage.id, ts_name.value, e.message
+            ) from e
         return dataframe

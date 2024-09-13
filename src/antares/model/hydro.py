@@ -32,7 +32,9 @@ class HydroMatrixName(Enum):
     COMMON_CREDIT_MODULATIONS = "creditmodulations"
 
 
-class HydroProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+class HydroProperties(
+    BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel
+):
     """
     Properties of hydro system read from the configuration files.
 
@@ -66,15 +68,23 @@ class HydroPropertiesLocal(BaseModel):
         super().__init__(**kwargs)
         self._area_id = area_id
         hydro_properties = hydro_properties or HydroProperties()
-        self._inter_daily_breakdown = check_if_none(hydro_properties.inter_daily_breakdown, 1)
-        self._intra_daily_modulation = check_if_none(hydro_properties.intra_daily_modulation, 24)
-        self._inter_monthly_breakdown = check_if_none(hydro_properties.inter_monthly_breakdown, 1)
+        self._inter_daily_breakdown = check_if_none(
+            hydro_properties.inter_daily_breakdown, 1
+        )
+        self._intra_daily_modulation = check_if_none(
+            hydro_properties.intra_daily_modulation, 24
+        )
+        self._inter_monthly_breakdown = check_if_none(
+            hydro_properties.inter_monthly_breakdown, 1
+        )
         self._reservoir = check_if_none(hydro_properties.reservoir, False)
         self._reservoir_capacity = check_if_none(hydro_properties.reservoir_capacity, 0)
         self._follow_load = check_if_none(hydro_properties.follow_load, True)
         self._use_water = check_if_none(hydro_properties.use_water, False)
         self._hard_bounds = check_if_none(hydro_properties.hard_bounds, False)
-        self._initialize_reservoir_date = check_if_none(hydro_properties.initialize_reservoir_date, 0)
+        self._initialize_reservoir_date = check_if_none(
+            hydro_properties.initialize_reservoir_date, 0
+        )
         self._use_heuristic = check_if_none(hydro_properties.use_heuristic, True)
         self._power_to_level = check_if_none(hydro_properties.power_to_level, False)
         self._use_leeway = check_if_none(hydro_properties.use_leeway, False)
@@ -86,21 +96,33 @@ class HydroPropertiesLocal(BaseModel):
     @property
     def hydro_ini_fields(self) -> dict[str, dict[str, str]]:
         return {
-            "inter-daily-breakdown": {f"{self._area_id}": f"{self._inter_daily_breakdown:.6f}"},
-            "intra-daily-modulation": {f"{self._area_id}": f"{self._intra_daily_modulation:.6f}"},
-            "inter-monthly-breakdown": {f"{self._area_id}": f"{self._inter_monthly_breakdown:.6f}"},
+            "inter-daily-breakdown": {
+                f"{self._area_id}": f"{self._inter_daily_breakdown:.6f}"
+            },
+            "intra-daily-modulation": {
+                f"{self._area_id}": f"{self._intra_daily_modulation:.6f}"
+            },
+            "inter-monthly-breakdown": {
+                f"{self._area_id}": f"{self._inter_monthly_breakdown:.6f}"
+            },
             "reservoir": {f"{self._area_id}": f"{self._reservoir}".lower()},
-            "reservoir capacity": {f"{self._area_id}": f"{self._reservoir_capacity:.6f}"},
+            "reservoir capacity": {
+                f"{self._area_id}": f"{self._reservoir_capacity:.6f}"
+            },
             "follow load": {f"{self._area_id}": f"{self._follow_load}".lower()},
             "use water": {f"{self._area_id}": f"{self._use_water}".lower()},
             "hard bounds": {f"{self._area_id}": f"{self._hard_bounds}".lower()},
-            "initialize reservoir date": {f"{self._area_id}": f"{self._initialize_reservoir_date}"},
+            "initialize reservoir date": {
+                f"{self._area_id}": f"{self._initialize_reservoir_date}"
+            },
             "use heuristic": {f"{self._area_id}": f"{self._use_heuristic}".lower()},
             "power to level": {f"{self._area_id}": f"{self._power_to_level}".lower()},
             "use leeway": {f"{self._area_id}": f"{self._use_leeway}".lower()},
             "leeway low": {f"{self._area_id}": f"{self._leeway_low:.6f}"},
             "leeway up": {f"{self._area_id}": f"{self._leeway_up:.6f}"},
-            "pumping efficiency": {f"{self._area_id}": f"{self._pumping_efficiency:.6f}"},
+            "pumping efficiency": {
+                f"{self._area_id}": f"{self._pumping_efficiency:.6f}"
+            },
         }
 
     def yield_hydro_properties(self) -> HydroProperties:

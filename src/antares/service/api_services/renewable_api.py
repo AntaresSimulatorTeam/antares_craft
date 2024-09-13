@@ -17,7 +17,11 @@ import pandas as pd
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
-from antares.exceptions.exceptions import APIError, RenewablePropertiesUpdateError, RenewableMatrixDownloadError
+from antares.exceptions.exceptions import (
+    APIError,
+    RenewablePropertiesUpdateError,
+    RenewableMatrixDownloadError,
+)
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.service.api_services.utils import get_matrix
 from antares.service.base_services import BaseRenewableService
@@ -32,11 +36,15 @@ class RenewableApiService(BaseRenewableService):
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
     def update_renewable_properties(
-        self, renewable_cluster: RenewableCluster, properties: RenewableClusterProperties
+        self,
+        renewable_cluster: RenewableCluster,
+        properties: RenewableClusterProperties,
     ) -> RenewableClusterProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{renewable_cluster.area_id}/clusters/renewable/{renewable_cluster.id}"
         try:
-            body = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+            body = json.loads(
+                properties.model_dump_json(by_alias=True, exclude_none=True)
+            )
             if not body:
                 return renewable_cluster.properties
 
@@ -47,7 +55,9 @@ class RenewableApiService(BaseRenewableService):
             new_properties = RenewableClusterProperties.model_validate(json_response)
 
         except APIError as e:
-            raise RenewablePropertiesUpdateError(renewable_cluster.id, renewable_cluster.area_id, e.message) from e
+            raise RenewablePropertiesUpdateError(
+                renewable_cluster.id, renewable_cluster.area_id, e.message
+            ) from e
 
         return new_properties
 
@@ -61,6 +71,11 @@ class RenewableApiService(BaseRenewableService):
                 / f"{renewable.name}"
                 / "series"
             )
-            return get_matrix(f"{self._base_url}/studies/{self.study_id}/raw?path={path}", self._wrapper)
+            return get_matrix(
+                f"{self._base_url}/studies/{self.study_id}/raw?path={path}",
+                self._wrapper,
+            )
         except APIError as e:
-            raise RenewableMatrixDownloadError(renewable.area_id, renewable.name, e.message) from e
+            raise RenewableMatrixDownloadError(
+                renewable.area_id, renewable.name, e.message
+            ) from e

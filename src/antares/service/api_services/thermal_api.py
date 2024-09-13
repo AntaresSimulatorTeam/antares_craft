@@ -17,8 +17,16 @@ import pandas as pd
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
-from antares.exceptions.exceptions import APIError, ThermalPropertiesUpdateError, ThermalMatrixDownloadError
-from antares.model.thermal import ThermalCluster, ThermalClusterProperties, ThermalClusterMatrixName
+from antares.exceptions.exceptions import (
+    APIError,
+    ThermalPropertiesUpdateError,
+    ThermalMatrixDownloadError,
+)
+from antares.model.thermal import (
+    ThermalCluster,
+    ThermalClusterProperties,
+    ThermalClusterMatrixName,
+)
 from antares.service.api_services.utils import get_matrix
 from antares.service.base_services import BaseThermalService
 
@@ -36,7 +44,9 @@ class ThermalApiService(BaseThermalService):
     ) -> ThermalClusterProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{thermal_cluster.area_id}/clusters/thermal/{thermal_cluster.id}"
         try:
-            body = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+            body = json.loads(
+                properties.model_dump_json(by_alias=True, exclude_none=True)
+            )
             if not body:
                 return thermal_cluster.properties
 
@@ -47,11 +57,15 @@ class ThermalApiService(BaseThermalService):
             new_properties = ThermalClusterProperties.model_validate(json_response)
 
         except APIError as e:
-            raise ThermalPropertiesUpdateError(thermal_cluster.id, thermal_cluster.area_id, e.message) from e
+            raise ThermalPropertiesUpdateError(
+                thermal_cluster.id, thermal_cluster.area_id, e.message
+            ) from e
 
         return new_properties
 
-    def get_thermal_matrix(self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName) -> pd.DataFrame:
+    def get_thermal_matrix(
+        self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName
+    ) -> pd.DataFrame:
         try:
             keyword = "series" if "SERIES" in ts_name.name else "prepro"
             path = (
@@ -62,7 +76,10 @@ class ThermalApiService(BaseThermalService):
                 / f"{thermal_cluster.name.lower()}"
                 / ts_name.value
             )
-            return get_matrix(f"{self._base_url}/studies/{self.study_id}/raw?path={path}", self._wrapper)
+            return get_matrix(
+                f"{self._base_url}/studies/{self.study_id}/raw?path={path}",
+                self._wrapper,
+            )
         except APIError as e:
             raise ThermalMatrixDownloadError(
                 thermal_cluster.area_id, thermal_cluster.name, ts_name.value, e.message

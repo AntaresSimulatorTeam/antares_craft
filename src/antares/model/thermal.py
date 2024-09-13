@@ -115,30 +115,49 @@ class ThermalClusterPropertiesLocal(BaseModel):
         **kwargs: Optional[Any],
     ):
         super().__init__(**kwargs)
-        thermal_cluster_properties = thermal_cluster_properties or ThermalClusterProperties()
+        thermal_cluster_properties = (
+            thermal_cluster_properties or ThermalClusterProperties()
+        )
         self._thermal_name = thermal_name
         self._enabled = check_if_none(thermal_cluster_properties.enabled, True)
         self._unit_count = check_if_none(thermal_cluster_properties.unit_count, 1)
-        self._nominal_capacity = check_if_none(thermal_cluster_properties.nominal_capacity, 0)
+        self._nominal_capacity = check_if_none(
+            thermal_cluster_properties.nominal_capacity, 0
+        )
         self._group = (
             # The value OTHER1 matches AntaresWeb if a cluster is created via API without providing a group
-            thermal_cluster_properties.group or ThermalClusterGroup.OTHER1
+            thermal_cluster_properties.group
+            or ThermalClusterGroup.OTHER1
         )
-        self._gen_ts = check_if_none(thermal_cluster_properties.gen_ts, LocalTSGenerationBehavior.USE_GLOBAL)
-        self._min_stable_power = check_if_none(thermal_cluster_properties.min_stable_power, 0)
+        self._gen_ts = check_if_none(
+            thermal_cluster_properties.gen_ts, LocalTSGenerationBehavior.USE_GLOBAL
+        )
+        self._min_stable_power = check_if_none(
+            thermal_cluster_properties.min_stable_power, 0
+        )
         self._min_up_time = check_if_none(thermal_cluster_properties.min_up_time, 1)
         self._min_down_time = check_if_none(thermal_cluster_properties.min_down_time, 1)
         self._must_run = check_if_none(thermal_cluster_properties.must_run, False)
         self._spinning = check_if_none(thermal_cluster_properties.spinning, 0)
-        self._volatility_forced = check_if_none(thermal_cluster_properties.volatility_forced, 0)
-        self._volatility_planned = check_if_none(thermal_cluster_properties.volatility_planned, 0)
-        self._law_forced = check_if_none(thermal_cluster_properties.law_forced, LawOption.UNIFORM)
-        self._law_planned = check_if_none(thermal_cluster_properties.law_planned, LawOption.UNIFORM)
+        self._volatility_forced = check_if_none(
+            thermal_cluster_properties.volatility_forced, 0
+        )
+        self._volatility_planned = check_if_none(
+            thermal_cluster_properties.volatility_planned, 0
+        )
+        self._law_forced = check_if_none(
+            thermal_cluster_properties.law_forced, LawOption.UNIFORM
+        )
+        self._law_planned = check_if_none(
+            thermal_cluster_properties.law_planned, LawOption.UNIFORM
+        )
         self._marginal_cost = check_if_none(thermal_cluster_properties.marginal_cost, 0)
         self._spread_cost = check_if_none(thermal_cluster_properties.spread_cost, 0)
         self._fixed_cost = check_if_none(thermal_cluster_properties.fixed_cost, 0)
         self._startup_cost = check_if_none(thermal_cluster_properties.startup_cost, 0)
-        self._market_bid_cost = check_if_none(thermal_cluster_properties.market_bid_cost, 0)
+        self._market_bid_cost = check_if_none(
+            thermal_cluster_properties.market_bid_cost, 0
+        )
         self._co2 = check_if_none(thermal_cluster_properties.co2, 0)
         self._nh3 = check_if_none(thermal_cluster_properties.nh3, 0)
         self._so2 = check_if_none(thermal_cluster_properties.so2, 0)
@@ -153,10 +172,13 @@ class ThermalClusterPropertiesLocal(BaseModel):
         self._op4 = check_if_none(thermal_cluster_properties.op4, 0)
         self._op5 = check_if_none(thermal_cluster_properties.op5, 0)
         self._cost_generation = check_if_none(
-            thermal_cluster_properties.cost_generation, ThermalCostGeneration.SET_MANUALLY
+            thermal_cluster_properties.cost_generation,
+            ThermalCostGeneration.SET_MANUALLY,
         )
         self._efficiency = check_if_none(thermal_cluster_properties.efficiency, 100)
-        self._variable_o_m_cost = check_if_none(thermal_cluster_properties.variable_o_m_cost, 0)
+        self._variable_o_m_cost = check_if_none(
+            thermal_cluster_properties.variable_o_m_cost, 0
+        )
 
     @computed_field  # type: ignore[misc]
     @property
@@ -277,20 +299,32 @@ class ThermalCluster:
         return self._properties
 
     def update_properties(self, properties: ThermalClusterProperties) -> None:
-        new_properties = self._thermal_service.update_thermal_properties(self, properties)
+        new_properties = self._thermal_service.update_thermal_properties(
+            self, properties
+        )
         self._properties = new_properties
 
     def get_prepro_data_matrix(self) -> pd.DataFrame:
-        return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.PREPRO_DATA)
+        return self._thermal_service.get_thermal_matrix(
+            self, ThermalClusterMatrixName.PREPRO_DATA
+        )
 
     def get_prepro_modulation_matrix(self) -> pd.DataFrame:
-        return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.PREPRO_MODULATION)
+        return self._thermal_service.get_thermal_matrix(
+            self, ThermalClusterMatrixName.PREPRO_MODULATION
+        )
 
     def get_series_matrix(self) -> pd.DataFrame:
-        return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES)
+        return self._thermal_service.get_thermal_matrix(
+            self, ThermalClusterMatrixName.SERIES
+        )
 
     def get_co2_cost_matrix(self) -> pd.DataFrame:
-        return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_CO2_COST)
+        return self._thermal_service.get_thermal_matrix(
+            self, ThermalClusterMatrixName.SERIES_CO2_COST
+        )
 
     def get_fuel_cost_matrix(self) -> pd.DataFrame:
-        return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_FUEL_COST)
+        return self._thermal_service.get_thermal_matrix(
+            self, ThermalClusterMatrixName.SERIES_FUEL_COST
+        )

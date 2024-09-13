@@ -24,7 +24,11 @@ from antares.api_conf.request_wrapper import RequestWrapper
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import APIError, StudyCreationError
 from antares.model.area import Area, AreaProperties, AreaUi
-from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
+from antares.model.binding_constraint import (
+    BindingConstraint,
+    BindingConstraintProperties,
+    ConstraintTerm,
+)
 from antares.model.link import Link, LinkUi, LinkProperties
 from antares.model.settings import StudySettings
 from antares.service.api_services.study_api import _returns_study_settings
@@ -41,7 +45,10 @@ _study_path if stored in a disk
 
 
 def create_study_api(
-    study_name: str, version: str, api_config: APIconf, settings: Optional[StudySettings] = None
+    study_name: str,
+    version: str,
+    api_config: APIconf,
+    settings: Optional[StudySettings] = None,
 ) -> "Study":
     """
     Args:
@@ -65,11 +72,15 @@ def create_study_api(
         response = wrapper.post(url)
         study_id = response.json()
 
-        study_settings = _returns_study_settings(base_url, study_id, wrapper, False, settings)
+        study_settings = _returns_study_settings(
+            base_url, study_id, wrapper, False, settings
+        )
 
     except APIError as e:
         raise StudyCreationError(study_name, e.message) from e
-    return Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
+    return Study(
+        study_name, version, ServiceFactory(api_config, study_id), study_settings
+    )
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:
@@ -86,8 +97,12 @@ def _directories_can_be_read(local_path: Path) -> None:
         except PermissionError:
             raise PermissionError(f"Some content cannot be accessed in {local_path}")
 
+
 def create_study_local(
-    study_name: str, version: str, local_config: LocalConfiguration, settings: Optional[StudySettings] = None
+    study_name: str,
+    version: str,
+    local_config: LocalConfiguration,
+    settings: Optional[StudySettings] = None,
 ) -> "Study":
     """
     Create a directory structure for the study with empty files.
@@ -156,7 +171,8 @@ InfoTip = Antares Study {version}: {study_name}
 
 
 def read_study_local(
-    study_name: str, version: str, local_config: LocalConfiguration) -> "Study":
+    study_name: str, version: str, local_config: LocalConfiguration
+) -> "Study":
     """
     Create a directory structure for the study with empty files.
     Args:
@@ -169,6 +185,7 @@ def read_study_local(
         ValueError if the provided directory does not exist
 
     """
+
     def _directory_not_exists(local_path: Path) -> None:
         if local_path is None or not os.path.exists(local_path):
             raise ValueError(f"Provided directory {local_path} does not exist.")
@@ -187,7 +204,12 @@ def read_study_local(
 
 class Study:
     def __init__(
-        self, name: str, version: str, service_factory, settings: Optional[StudySettings] = None, mode: str = "create"
+        self,
+        name: str,
+        version: str,
+        service_factory,
+        settings: Optional[StudySettings] = None,
+        mode: str = "create",
     ):
         self.name = name
         self.version = version
@@ -195,7 +217,9 @@ class Study:
             self._study_service = service_factory.create_study_service()
             self._area_service = service_factory.create_area_service()
             self._link_service = service_factory.create_link_service()
-            self._binding_constraints_service = service_factory.create_binding_constraints_service()
+            self._binding_constraints_service = (
+                service_factory.create_binding_constraints_service()
+            )
             self._settings = settings or StudySettings()
             self._areas: Dict[str, Area] = dict()
             self._links: Dict[str, Link] = dict()
@@ -206,7 +230,6 @@ class Study:
             self._link_service = service_factory.create_link_service()
             self._areas: Dict[str, Area] = dict()
             self._links: Dict[str, Link] = dict()
-
 
     @property
     def service(self) -> BaseStudyService:
@@ -225,7 +248,11 @@ class Study:
         return MappingProxyType(self._binding_constraints)
 
     def create_area(
-        self, area_name: str, *, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
+        self,
+        area_name: str,
+        *,
+        properties: Optional[AreaProperties] = None,
+        ui: Optional[AreaUi] = None,
     ) -> Area:
         area = self._area_service.create_area(area_name, properties, ui)
         self._areas[area.id] = area
@@ -244,7 +271,9 @@ class Study:
         ui: Optional[LinkUi] = None,
         existing_areas: Optional[MappingProxyType[str, Area]] = None,
     ) -> Link:
-        link = self._link_service.create_link(area_from, area_to, properties, ui, existing_areas)
+        link = self._link_service.create_link(
+            area_from, area_to, properties, ui, existing_areas
+        )
         self._links[link.name] = link
         return link
 
@@ -263,7 +292,12 @@ class Study:
         greater_term_matrix: Optional[pd.DataFrame] = None,
     ) -> BindingConstraint:
         constraint = self._binding_constraints_service.create_binding_constraint(
-            name, properties, terms, less_term_matrix, equal_term_matrix, greater_term_matrix
+            name,
+            properties,
+            terms,
+            less_term_matrix,
+            equal_term_matrix,
+            greater_term_matrix,
         )
         self._binding_constraints[constraint.id] = constraint
         return constraint

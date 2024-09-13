@@ -80,14 +80,18 @@ class LinkDeletionError(Exception):
 
 class ThermalCreationError(Exception):
     def __init__(self, thermal_name: str, area_id: str, message: str) -> None:
-        self.message = f"Could not create the thermal cluster {thermal_name} inside area {area_id}: " + message
+        self.message = (
+            f"Could not create the thermal cluster {thermal_name} inside area {area_id}: "
+            + message
+        )
         super().__init__(self.message)
 
 
 class ThermalPropertiesUpdateError(Exception):
     def __init__(self, thermal_name: str, area_id: str, message: str) -> None:
         self.message = (
-            f"Could not update properties for thermal cluster {thermal_name} inside area {area_id}: " + message
+            f"Could not update properties for thermal cluster {thermal_name} inside area {area_id}: "
+            + message
         )
         super().__init__(self.message)
 
@@ -109,14 +113,18 @@ class HydroCreationError(Exception):
 
 class RenewableCreationError(Exception):
     def __init__(self, renewable_name: str, area_id: str, message: str) -> None:
-        self.message = f"Could not create the renewable cluster {renewable_name} inside area {area_id}: " + message
+        self.message = (
+            f"Could not create the renewable cluster {renewable_name} inside area {area_id}: "
+            + message
+        )
         super().__init__(self.message)
 
 
 class RenewablePropertiesUpdateError(Exception):
     def __init__(self, renewable_name: str, area_id: str, message: str) -> None:
         self.message = (
-            f"Could not update properties for renewable cluster {renewable_name} inside area {area_id}: " + message
+            f"Could not update properties for renewable cluster {renewable_name} inside area {area_id}: "
+            + message
         )
         super().__init__(self.message)
 
@@ -132,30 +140,40 @@ class RenewableDeletionError(Exception):
 
 class STStorageCreationError(Exception):
     def __init__(self, st_storage_name: str, area_id: str, message: str) -> None:
-        self.message = f"Could not create the short term storage {st_storage_name} inside area {area_id}: " + message
+        self.message = (
+            f"Could not create the short term storage {st_storage_name} inside area {area_id}: "
+            + message
+        )
         super().__init__(self.message)
 
 
 class STStoragePropertiesUpdateError(Exception):
     def __init__(self, st_storage_name: str, area_id: str, message: str) -> None:
         self.message = (
-            f"Could not update properties for short term storage {st_storage_name} inside area {area_id}: " + message
+            f"Could not update properties for short term storage {st_storage_name} inside area {area_id}: "
+            + message
         )
         super().__init__(self.message)
 
 
 class STStorageMatrixDownloadError(Exception):
-    def __init__(self, area_name: str, storage_name: str, matrix_name: str, message: str) -> None:
+    def __init__(
+        self, area_name: str, storage_name: str, matrix_name: str, message: str
+    ) -> None:
         self.message = (
-            f"Could not download {matrix_name} matrix for storage {storage_name} inside area {area_name}: " + message
+            f"Could not download {matrix_name} matrix for storage {storage_name} inside area {area_name}: "
+            + message
         )
         super().__init__(self.message)
 
 
 class STStorageMatrixUploadError(Exception):
-    def __init__(self, area_name: str, storage_name: str, matrix_name: str, message: str) -> None:
+    def __init__(
+        self, area_name: str, storage_name: str, matrix_name: str, message: str
+    ) -> None:
         self.message = (
-            f"Could not upload {matrix_name} matrix for storage {storage_name} inside area {area_name}: " + message
+            f"Could not upload {matrix_name} matrix for storage {storage_name} inside area {area_name}: "
+            + message
         )
         super().__init__(self.message)
 
@@ -171,30 +189,43 @@ class STStorageDeletionError(Exception):
 
 class BindingConstraintCreationError(Exception):
     def __init__(self, constraint_name: str, message: str) -> None:
-        self.message = f"Could not create the binding constraint {constraint_name}: " + message
+        self.message = (
+            f"Could not create the binding constraint {constraint_name}: " + message
+        )
         super().__init__(self.message)
 
 
 class ConstraintPropertiesUpdateError(Exception):
     def __init__(self, constraint_name: str, message: str) -> None:
-        self.message = f"Could not update properties for binding constraint {constraint_name}: " + message
+        self.message = (
+            f"Could not update properties for binding constraint {constraint_name}: "
+            + message
+        )
         super().__init__(self.message)
 
 
 class ConstraintMatrixUpdateError(Exception):
     def __init__(self, constraint_name: str, matrix_name: str, message: str) -> None:
-        self.message = f"Could not update matrix {matrix_name} for binding constraint {constraint_name}: " + message
+        self.message = (
+            f"Could not update matrix {matrix_name} for binding constraint {constraint_name}: "
+            + message
+        )
         super().__init__(self.message)
 
 
 class ConstraintMatrixDownloadError(Exception):
     def __init__(self, constraint_name: str, matrix_name: str, message: str) -> None:
-        self.message = f"Could not download matrix {matrix_name} for binding constraint {constraint_name}: " + message
+        self.message = (
+            f"Could not download matrix {matrix_name} for binding constraint {constraint_name}: "
+            + message
+        )
         super().__init__(self.message)
 
 
 class ConstraintTermAdditionError(Exception):
-    def __init__(self, constraint_name: str, terms_ids: List[str], message: str) -> None:
+    def __init__(
+        self, constraint_name: str, terms_ids: List[str], message: str
+    ) -> None:
         self.message = (
             f"Could not add the following constraint terms: {', '.join(terms_ids)} inside constraint {constraint_name}: "
             + message
@@ -204,13 +235,18 @@ class ConstraintTermAdditionError(Exception):
 
 class BindingConstraintDeletionError(Exception):
     def __init__(self, constraint_name: str, message: str) -> None:
-        self.message = f"Could not delete the binding constraint {constraint_name}: " + message
+        self.message = (
+            f"Could not delete the binding constraint {constraint_name}: " + message
+        )
         super().__init__(self.message)
 
 
 class ConstraintTermDeletionError(Exception):
     def __init__(self, constraint_id: str, term_id: str, message: str) -> None:
-        self.message = f"Could not delete the term {term_id} of the binding constraint {constraint_id}: " + message
+        self.message = (
+            f"Could not delete the term {term_id} of the binding constraint {constraint_id}: "
+            + message
+        )
         super().__init__(self.message)
 
 
@@ -240,21 +276,29 @@ class LoadMatrixUploadError(Exception):
 
 class LoadMatrixDownloadError(Exception):
     def __init__(self, area_name: str, message: str) -> None:
-        self.message = f"Could not download load matrix for area {area_name}: " + message
+        self.message = (
+            f"Could not download load matrix for area {area_name}: " + message
+        )
         super().__init__(self.message)
 
 
 class ThermalMatrixDownloadError(Exception):
-    def __init__(self, area_name: str, cluster_name: str, matrix_name: str, message: str) -> None:
+    def __init__(
+        self, area_name: str, cluster_name: str, matrix_name: str, message: str
+    ) -> None:
         self.message = (
-            f"Could not download {matrix_name} for cluster {cluster_name} inside area {area_name}: " + message
+            f"Could not download {matrix_name} for cluster {cluster_name} inside area {area_name}: "
+            + message
         )
         super().__init__(self.message)
 
 
 class RenewableMatrixDownloadError(Exception):
     def __init__(self, area_name: str, renewable_name: str, message: str) -> None:
-        self.message = f"Could not download matrix for cluster {renewable_name} inside area {area_name}: " + message
+        self.message = (
+            f"Could not download matrix for cluster {renewable_name} inside area {area_name}: "
+            + message
+        )
         super().__init__(self.message)
 
 
@@ -272,5 +316,9 @@ class CustomError(Exception):
 
 class ConfigurationError(Exception):
     def __init__(self, message: str = "Error") -> None:
-        self.message = "Unsupported configuration type" + f" {message}" if message != "Error" else ""
+        self.message = (
+            "Unsupported configuration type" + f" {message}"
+            if message != "Error"
+            else ""
+        )
         super().__init__(self.message)

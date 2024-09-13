@@ -6,7 +6,9 @@ from antares.service.base_services import BaseShortTermStorageService
 
 
 class ShortTermStorageLocalService(BaseShortTermStorageService):
-    def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
+    def __init__(
+        self, config: LocalConfiguration, study_name: str, **kwargs: Any
+    ) -> None:
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name

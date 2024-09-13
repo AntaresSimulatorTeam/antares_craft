@@ -25,7 +25,9 @@ class PriceTakingOrder(Enum):
 class AdequacyPatchProperties(BaseModel, alias_generator=to_camel):
     # version 830
     enable_adequacy_patch: Optional[bool] = None
-    ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch: Optional[bool] = None
+    ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch: Optional[bool] = (
+        None
+    )
     ntc_between_physical_areas_out_adequacy_patch: Optional[bool] = None
     # version 850
     price_taking_order: Optional[PriceTakingOrder] = None

@@ -75,7 +75,9 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         try:
             body = {"name": name}
             if properties:
-                camel_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+                camel_properties = json.loads(
+                    properties.model_dump_json(by_alias=True, exclude_none=True)
+                )
                 body = {**body, **camel_properties}
             for matrix, matrix_name in zip(
                 [less_term_matrix, equal_term_matrix, greater_term_matrix],
@@ -88,7 +90,9 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             bc_id = created_properties["id"]
             for key in ["terms", "id", "name"]:
                 del created_properties[key]
-            bc_properties = BindingConstraintProperties.model_validate(created_properties)
+            bc_properties = BindingConstraintProperties.model_validate(
+                created_properties
+            )
             bc_terms: List[ConstraintTerm] = []
 
             if terms:
@@ -99,7 +103,9 @@ class BindingConstraintApiService(BaseBindingConstraintService):
                 url = f"{base_url}/{bc_id}"
                 response = self._wrapper.get(url)
                 created_terms = response.json()["terms"]
-                bc_terms = [ConstraintTerm.model_validate(term) for term in created_terms]
+                bc_terms = [
+                    ConstraintTerm.model_validate(term) for term in created_terms
+                ]
 
         except APIError as e:
             raise BindingConstraintCreationError(name, e.message) from e
@@ -114,11 +120,15 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise ConstraintTermDeletionError(constraint_id, term_id, e.message) from e
 
     def update_binding_constraint_properties(
-        self, binding_constraint: BindingConstraint, properties: BindingConstraintProperties
+        self,
+        binding_constraint: BindingConstraint,
+        properties: BindingConstraintProperties,
     ) -> BindingConstraintProperties:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{binding_constraint.id}"
         try:
-            body = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+            body = json.loads(
+                properties.model_dump_json(by_alias=True, exclude_none=True)
+            )
             if not body:
                 return binding_constraint.properties
 
@@ -129,19 +139,35 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             new_properties = BindingConstraintProperties.model_validate(json_response)
 
         except APIError as e:
-            raise ConstraintPropertiesUpdateError(binding_constraint.id, e.message) from e
+            raise ConstraintPropertiesUpdateError(
+                binding_constraint.id, e.message
+            ) from e
 
         return new_properties
 
-    def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
+    def get_constraint_matrix(
+        self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName
+    ) -> pd.DataFrame:
         try:
-            path = PurePosixPath("input") / "bindingconstraints" / f"{constraint.id}_{matrix_name.value}"
-            return get_matrix(f"{self._base_url}/studies/{self.study_id}/raw?path={path}", self._wrapper)
+            path = (
+                PurePosixPath("input")
+                / "bindingconstraints"
+                / f"{constraint.id}_{matrix_name.value}"
+            )
+            return get_matrix(
+                f"{self._base_url}/studies/{self.study_id}/raw?path={path}",
+                self._wrapper,
+            )
         except APIError as e:
-            raise ConstraintMatrixDownloadError(constraint.id, matrix_name.value, e.message) from e
+            raise ConstraintMatrixDownloadError(
+                constraint.id, matrix_name.value, e.message
+            ) from e
 
     def update_constraint_matrix(
-        self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName, matrix: pd.DataFrame
+        self,
+        constraint: BindingConstraint,
+        matrix_name: ConstraintMatrixName,
+        matrix: pd.DataFrame,
     ) -> None:
         mapping = {
             ConstraintMatrixName.LESS_TERM: "lessTermMatrix",
@@ -153,19 +179,31 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             body = {mapping[matrix_name]: matrix.to_numpy().tolist()}
             self._wrapper.put(url, json=body)
         except APIError as e:
-            raise ConstraintMatrixUpdateError(constraint.id, matrix_name.value, e.message) from e
+            raise ConstraintMatrixUpdateError(
+                constraint.id, matrix_name.value, e.message
+            ) from e
 
-    def add_constraint_terms(self, constraint: BindingConstraint, terms: List[ConstraintTerm]) -> List[ConstraintTerm]:
+    def add_constraint_terms(
+        self, constraint: BindingConstraint, terms: List[ConstraintTerm]
+    ) -> List[ConstraintTerm]:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint.id}"
         try:
             json_terms = [term.model_dump() for term in terms]
             self._wrapper.post(f"{url}/terms", json=json_terms)
             response = self._wrapper.get(url)
             all_terms = response.json()["terms"]
-            validated_terms = [ConstraintTerm.model_validate(term) for term in all_terms]
-            new_terms = [term for term in validated_terms if term.id not in constraint.get_terms()]
+            validated_terms = [
+                ConstraintTerm.model_validate(term) for term in all_terms
+            ]
+            new_terms = [
+                term
+                for term in validated_terms
+                if term.id not in constraint.get_terms()
+            ]
 
         except APIError as e:
-            raise ConstraintTermAdditionError(constraint.id, [term.id for term in terms], e.message) from e
+            raise ConstraintTermAdditionError(
+                constraint.id, [term.id for term in terms], e.message
+            ) from e
 
         return new_terms

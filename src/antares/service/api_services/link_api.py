@@ -74,9 +74,15 @@ class LinkApiService(BaseLinkService):
             # TODO update to use check_if_none or similar
             if properties or ui:
                 link_properties = json.loads(
-                    check_if_none(properties, LinkProperties()).model_dump_json(by_alias=True, exclude_none=True)
+                    check_if_none(properties, LinkProperties()).model_dump_json(
+                        by_alias=True, exclude_none=True
+                    )
                 )
-                link_ui = json.loads(check_if_none(ui, LinkUi()).model_dump_json(by_alias=True, exclude_none=True))
+                link_ui = json.loads(
+                    check_if_none(ui, LinkUi()).model_dump_json(
+                        by_alias=True, exclude_none=True
+                    )
+                )
                 body = {**link_properties, **link_ui}
                 if body:
                     json_file = _join_filter_values_for_json(json_file, body)
@@ -109,12 +115,16 @@ class LinkApiService(BaseLinkService):
         except APIError as e:
             raise LinkDeletionError(link.name, e.message) from e
 
-    def update_link_properties(self, link: Link, properties: LinkProperties) -> LinkProperties:
+    def update_link_properties(
+        self, link: Link, properties: LinkProperties
+    ) -> LinkProperties:
         # todo: change this code when AntaresWeb will have a real endpoint
         area1_id, area2_id = sorted([link.area_from.id, link.area_to.id])
         raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path=input/links/{area1_id}/properties/{area2_id}"
         try:
-            new_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+            new_properties = json.loads(
+                properties.model_dump_json(by_alias=True, exclude_none=True)
+            )
             if not new_properties:
                 return link.properties
 

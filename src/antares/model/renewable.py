@@ -74,13 +74,19 @@ class RenewableClusterPropertiesLocal(
         **kwargs: Optional[Any],
     ):
         super().__init__(**kwargs)
-        renewable_cluster_properties = renewable_cluster_properties or RenewableClusterProperties()
+        renewable_cluster_properties = (
+            renewable_cluster_properties or RenewableClusterProperties()
+        )
         self._renewable_name = renewable_name
         self._enabled = (
-            renewable_cluster_properties.enabled if renewable_cluster_properties.enabled is not None else True
+            renewable_cluster_properties.enabled
+            if renewable_cluster_properties.enabled is not None
+            else True
         )
         self._unit_count = (
-            renewable_cluster_properties.unit_count if renewable_cluster_properties.unit_count is not None else 1
+            renewable_cluster_properties.unit_count
+            if renewable_cluster_properties.unit_count is not None
+            else 1
         )
         self._nominal_capacity = (
             renewable_cluster_properties.nominal_capacity
@@ -89,7 +95,8 @@ class RenewableClusterPropertiesLocal(
         )
         self._group = renewable_cluster_properties.group or RenewableClusterGroup.OTHER1
         self._ts_interpretation = (
-            renewable_cluster_properties.ts_interpretation or TimeSeriesInterpretation.POWER_GENERATION
+            renewable_cluster_properties.ts_interpretation
+            or TimeSeriesInterpretation.POWER_GENERATION
         )
 
     @property
@@ -153,7 +160,9 @@ class RenewableCluster:
         return self._properties
 
     def update_properties(self, properties: RenewableClusterProperties) -> None:
-        new_properties = self._renewable_service.update_renewable_properties(self, properties)
+        new_properties = self._renewable_service.update_renewable_properties(
+            self, properties
+        )
         self._properties = new_properties
 
     def get_renewable_matrix(self) -> pd.DataFrame:

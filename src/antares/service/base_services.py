@@ -32,13 +32,19 @@ from antares.model.reserves import Reserves
 from antares.model.settings import StudySettings
 from antares.model.solar import Solar
 from antares.model.st_storage import STStorageProperties, STStorage
-from antares.model.thermal import ThermalClusterProperties, ThermalCluster, ThermalClusterMatrixName
+from antares.model.thermal import (
+    ThermalClusterProperties,
+    ThermalCluster,
+    ThermalClusterMatrixName,
+)
 from antares.model.wind import Wind
 
 
 class BaseAreaService(ABC):
     @abstractmethod
-    def set_storage_service(self, storage_service: "BaseShortTermStorageService") -> None:
+    def set_storage_service(
+        self, storage_service: "BaseShortTermStorageService"
+    ) -> None:
         pass
 
     @abstractmethod
@@ -51,13 +57,19 @@ class BaseAreaService(ABC):
 
     @abstractmethod
     def create_area(
-        self, area_name: str, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
+        self,
+        area_name: str,
+        properties: Optional[AreaProperties] = None,
+        ui: Optional[AreaUi] = None,
     ) -> Area:
         pass
 
     @abstractmethod
     def create_thermal_cluster(
-        self, area_id: str, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
+        self,
+        area_id: str,
+        thermal_name: str,
+        properties: Optional[ThermalClusterProperties] = None,
     ) -> ThermalCluster:
         """
         Args:
@@ -122,7 +134,10 @@ class BaseAreaService(ABC):
 
     @abstractmethod
     def create_st_storage(
-        self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
+        self,
+        area_id: str,
+        st_storage_name: str,
+        properties: Optional[STStorageProperties] = None,
     ) -> STStorage:
         """
         Args:
@@ -195,7 +210,9 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def update_area_properties(self, area: Area, properties: AreaProperties) -> AreaProperties:
+    def update_area_properties(
+        self, area: Area, properties: AreaProperties
+    ) -> AreaProperties:
         """
         Args:
             area: concerned area
@@ -221,7 +238,9 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def delete_thermal_clusters(self, area: Area, thermal_clusters: List[ThermalCluster]) -> None:
+    def delete_thermal_clusters(
+        self, area: Area, thermal_clusters: List[ThermalCluster]
+    ) -> None:
         """
         Args:
             area: area containing the cluster
@@ -230,7 +249,9 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def delete_renewable_clusters(self, area: Area, renewable_clusters: List[RenewableCluster]) -> None:
+    def delete_renewable_clusters(
+        self, area: Area, renewable_clusters: List[RenewableCluster]
+    ) -> None:
         """
         Args:
             area: area containing the cluster
@@ -269,27 +290,29 @@ class BaseAreaService(ABC):
 
     @abstractmethod
     def read_thermal_cluster(
-            self,
-            area_id: str,
-            thermal_name: str,
-            properties: Optional[ThermalClusterProperties] = None,
+        self,
+        area_id: str,
+        thermal_name: str,
+        properties: Optional[ThermalClusterProperties] = None,
     ) -> ThermalCluster:
         pass
 
-
     @abstractmethod
     def read_renewable_cluster(
-            self,
-            area_id: str,
-            renewable_name: str,
-            properties: Optional[RenewableClusterProperties] = None,
-            series: Optional[pd.DataFrame] = None,
+        self,
+        area_id: str,
+        renewable_name: str,
+        properties: Optional[RenewableClusterProperties] = None,
+        series: Optional[pd.DataFrame] = None,
     ) -> RenewableCluster:
         pass
 
     @abstractmethod
     def read_st_storage(
-            self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
+        self,
+        area_id: str,
+        st_storage_name: str,
+        properties: Optional[STStorageProperties] = None,
     ) -> STStorage:
         pass
 
@@ -311,16 +334,19 @@ class BaseAreaService(ABC):
 
     @abstractmethod
     def read_hydro(
-            self,
-            area_id: str,
-            properties: Optional[HydroProperties] = None,
-            matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
+        self,
+        area_id: str,
+        properties: Optional[HydroProperties] = None,
+        matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
     ) -> Hydro:
         pass
 
     @abstractmethod
     def read_area(
-            self, area_name: str, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
+        self,
+        area_name: str,
+        properties: Optional[AreaProperties] = None,
+        ui: Optional[AreaUi] = None,
     ) -> Area:
         """
         Args:
@@ -367,7 +393,9 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def update_link_properties(self, link: Link, properties: LinkProperties) -> LinkProperties:
+    def update_link_properties(
+        self, link: Link, properties: LinkProperties
+    ) -> LinkProperties:
         """
         Args:
             link: concerned link
@@ -420,7 +448,9 @@ class BaseThermalService(ABC):
         pass
 
     @abstractmethod
-    def get_thermal_matrix(self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName) -> pd.DataFrame:
+    def get_thermal_matrix(
+        self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName
+    ) -> pd.DataFrame:
         """
         Args:
             thermal_cluster: cluster to retrieve matrix
@@ -458,7 +488,9 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def add_constraint_terms(self, constraint: BindingConstraint, terms: List[ConstraintTerm]) -> List[ConstraintTerm]:
+    def add_constraint_terms(
+        self, constraint: BindingConstraint, terms: List[ConstraintTerm]
+    ) -> List[ConstraintTerm]:
         """
         Args:
             constraint: the concerned binding constraint
@@ -480,7 +512,9 @@ class BaseBindingConstraintService(ABC):
 
     @abstractmethod
     def update_binding_constraint_properties(
-        self, binding_constraint: BindingConstraint, properties: BindingConstraintProperties
+        self,
+        binding_constraint: BindingConstraint,
+        properties: BindingConstraintProperties,
     ) -> BindingConstraintProperties:
         """
         Args:
@@ -490,7 +524,9 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
+    def get_constraint_matrix(
+        self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName
+    ) -> pd.DataFrame:
         """
         Args:
             constraint: the concerned binding constraint
@@ -500,7 +536,10 @@ class BaseBindingConstraintService(ABC):
 
     @abstractmethod
     def update_constraint_matrix(
-        self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName, matrix: pd.DataFrame
+        self,
+        constraint: BindingConstraint,
+        matrix_name: ConstraintMatrixName,
+        matrix: pd.DataFrame,
     ) -> None:
         """
         Args:
@@ -578,10 +617,13 @@ class BaseStudyService(ABC):
         """
         pass
 
+
 class BaseRenewableService(ABC):
     @abstractmethod
     def update_renewable_properties(
-        self, renewable_cluster: RenewableCluster, properties: RenewableClusterProperties
+        self,
+        renewable_cluster: RenewableCluster,
+        properties: RenewableClusterProperties,
     ) -> RenewableClusterProperties:
         """
         Args:

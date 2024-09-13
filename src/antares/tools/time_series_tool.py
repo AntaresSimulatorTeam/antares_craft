@@ -59,15 +59,23 @@ class TimeSeriesFile:
             raise ValueError("area_id is required for this file type.")
 
         self.file_path = study_path / (
-            ts_file_type.value if not area_id else ts_file_type.value.format(area_id=area_id)
+            ts_file_type.value
+            if not area_id
+            else ts_file_type.value.format(area_id=area_id)
         )
 
         if self.file_path.is_file() and time_series is not None:
-            raise ValueError(f"File {self.file_path} already exists and a time series was provided.")
+            raise ValueError(
+                f"File {self.file_path} already exists and a time series was provided."
+            )
         elif self.file_path.is_file() and time_series is None:
-            self._time_series = pd.read_csv(self.file_path, sep="\t", header=None, index_col=None, encoding="utf-8")
+            self._time_series = pd.read_csv(
+                self.file_path, sep="\t", header=None, index_col=None, encoding="utf-8"
+            )
         else:
-            self._time_series = time_series if time_series is not None else pd.DataFrame([])
+            self._time_series = (
+                time_series if time_series is not None else pd.DataFrame([])
+            )
             self._write_file()
 
     @property
@@ -81,7 +89,9 @@ class TimeSeriesFile:
 
     def _write_file(self) -> None:
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
-        self._time_series.to_csv(self.file_path, sep="\t", header=False, index=False, encoding="utf-8")
+        self._time_series.to_csv(
+            self.file_path, sep="\t", header=False, index=False, encoding="utf-8"
+        )
 
 
 class TimeSeries:
@@ -90,7 +100,9 @@ class TimeSeries:
     """
 
     def __init__(
-        self, time_series: pd.DataFrame = pd.DataFrame([]), local_file: Optional[TimeSeriesFile] = None
+        self,
+        time_series: pd.DataFrame = pd.DataFrame([]),
+        local_file: Optional[TimeSeriesFile] = None,
     ) -> None:
         self._time_series = time_series
         self._local_file = local_file
