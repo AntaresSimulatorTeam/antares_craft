@@ -29,7 +29,7 @@ from antares.model.link import Link, LinkUi, LinkProperties
 from antares.model.settings import StudySettings
 from antares.service.api_services.study_api import _returns_study_settings
 from antares.service.base_services import BaseStudyService
-from antares.service.service_factory import ServiceFactory
+from antares.service.service_factory import ServiceFactory, ServiceReader
 
 """
 The study module defines the data model for antares study.
@@ -76,6 +76,15 @@ def _verify_study_already_exists(study_directory: Path) -> None:
     if os.path.exists(study_directory):
         raise FileExistsError(f"Study {study_directory} already exists.")
 
+
+def _directories_can_be_read(local_path: Path) -> None:
+    if local_path.is_dir():
+        try:
+            for item in local_path.iterdir():
+                if item.is_dir():
+                    next(item.iterdir())
+        except PermissionError:
+            raise PermissionError(f"Some content cannot be accessed in {local_path}")
 
 def create_study_local(
     study_name: str, version: str, local_config: LocalConfiguration, settings: Optional[StudySettings] = None
@@ -142,23 +151,62 @@ InfoTip = Antares Study {version}: {study_name}
         version=version,
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
         settings=settings,
+        mode="create",
+    )
+
+
+def read_study_local(
+    study_name: str, version: str, local_config: LocalConfiguration) -> "Study":
+    """
+    Create a directory structure for the study with empty files.
+    Args:
+        study_name: antares study name to read
+        version: antares version for study
+        settings: study settings. If not provided, AntaresWeb will use its default values.
+
+    Raises:
+        PermissionError if the study cannot be read
+        ValueError if the provided directory does not exist
+
+    """
+    def _directory_not_exists(local_path: Path) -> None:
+        if local_path is None or not os.path.exists(local_path):
+            raise ValueError(f"Provided directory {local_path} does not exist.")
+
+    _directory_not_exists(local_config.local_path)
+    study_directory = local_config.local_path / study_name
+    _directories_can_be_read(study_directory)
+
+    return Study(
+        name=study_name,
+        version=version,
+        service_factory=ServiceReader(config=local_config, study_name=study_name),
+        mode="read",
     )
 
 
 class Study:
     def __init__(
-        self, name: str, version: str, service_factory: ServiceFactory, settings: Optional[StudySettings] = None
+        self, name: str, version: str, service_factory, settings: Optional[StudySettings] = None, mode: str = "create"
     ):
         self.name = name
         self.version = version
-        self._study_service = service_factory.create_study_service()
-        self._area_service = service_factory.create_area_service()
-        self._link_service = service_factory.create_link_service()
-        self._binding_constraints_service = service_factory.create_binding_constraints_service()
-        self._settings = settings or StudySettings()
-        self._areas: Dict[str, Area] = dict()
-        self._links: Dict[str, Link] = dict()
-        self._binding_constraints: Dict[str, BindingConstraint] = dict()
+        if mode != "read":
+            self._study_service = service_factory.create_study_service()
+            self._area_service = service_factory.create_area_service()
+            self._link_service = service_factory.create_link_service()
+            self._binding_constraints_service = service_factory.create_binding_constraints_service()
+            self._settings = settings or StudySettings()
+            self._areas: Dict[str, Area] = dict()
+            self._links: Dict[str, Link] = dict()
+            self._binding_constraints: Dict[str, BindingConstraint] = dict()
+        else:
+            self._study_service = service_factory.read_study_service()
+            self._binding_constraints: Dict[str, BindingConstraint] = dict()
+            self._link_service = service_factory.create_link_service()
+            self._areas: Dict[str, Area] = dict()
+            self._links: Dict[str, Link] = dict()
+
 
     @property
     def service(self) -> BaseStudyService:

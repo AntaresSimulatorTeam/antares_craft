@@ -267,6 +267,73 @@ class BaseAreaService(ABC):
         # Once it will, there will be no change to do in the code on our side.
         pass
 
+    @abstractmethod
+    def read_thermal_cluster(
+            self,
+            area_id: str,
+            thermal_name: str,
+            properties: Optional[ThermalClusterProperties] = None,
+    ) -> ThermalCluster:
+        pass
+
+
+    @abstractmethod
+    def read_renewable_cluster(
+            self,
+            area_id: str,
+            renewable_name: str,
+            properties: Optional[RenewableClusterProperties] = None,
+            series: Optional[pd.DataFrame] = None,
+    ) -> RenewableCluster:
+        pass
+
+    @abstractmethod
+    def read_st_storage(
+            self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
+    ) -> STStorage:
+        pass
+
+    @abstractmethod
+    def read_wind(self, area: Area, series: Optional[pd.DataFrame]) -> Wind:
+        pass
+
+    @abstractmethod
+    def read_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
+        pass
+
+    @abstractmethod
+    def read_solar(self, area: Area, series: Optional[pd.DataFrame]) -> Solar:
+        pass
+
+    @abstractmethod
+    def read_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
+        pass
+
+    @abstractmethod
+    def read_hydro(
+            self,
+            area_id: str,
+            properties: Optional[HydroProperties] = None,
+            matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
+    ) -> Hydro:
+        pass
+
+    @abstractmethod
+    def read_area(
+            self, area_name: str, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
+    ) -> Area:
+        """
+        Args:
+            area_name: area to be added to study
+            properties: area's properties. If not provided, default values will be used.
+            ui: area's ui characteristics. If not provided, default values will be used.
+
+        Returns: area name if success or Error if area can not be
+        created
+        """
+
+        pass
+
 
 class BaseLinkService(ABC):
     @abstractmethod
@@ -314,6 +381,28 @@ class BaseLinkService(ABC):
         Args:
             link: concerned link
             ui: new ui. Only registered fields will be updated.
+        """
+        pass
+
+    @abstractmethod
+    def read_link(
+        self,
+        area_from: Area,
+        area_to: Area,
+        properties: Optional[LinkProperties] = None,
+        ui: Optional[LinkUi] = None,
+        existing_areas: Optional[MappingProxyType[str, Area]] = None,
+    ) -> Link:
+        """
+        Args:
+            area_from: area where the link goes from
+            area_to: area where the link goes to
+            properties: link's properties
+            ui: link's ui characteristics
+            existing_areas: existing areas from study
+
+        Returns:
+            The created link
         """
         pass
 
@@ -421,6 +510,30 @@ class BaseBindingConstraintService(ABC):
         """
         pass
 
+    @abstractmethod
+    def read_binding_constraint(
+        self,
+        name: str,
+        properties: Optional[BindingConstraintProperties] = None,
+        terms: Optional[List[ConstraintTerm]] = None,
+        less_term_matrix: Optional[pd.DataFrame] = None,
+        equal_term_matrix: Optional[pd.DataFrame] = None,
+        greater_term_matrix: Optional[pd.DataFrame] = None,
+    ) -> BindingConstraint:
+        """
+        Args:
+            name: the binding constraint name
+            properties: the properties of the constraint. If not provided, AntaresWeb will use its own default values.
+            terms: the terms of the constraint. If not provided, no term will be created.
+            less_term_matrix: matrix corresponding to the lower bound of the constraint. If not provided, no matrix will be created.
+            equal_term_matrix: matrix corresponding to the equality bound of the constraint. If not provided, no matrix will be created.
+            greater_term_matrix: matrix corresponding to the upper bound of the constraint. If not provided, no matrix will be created.
+
+        Returns:
+            The created binding constraint
+        """
+        pass
+
 
 class BaseStudyService(ABC):
     @property
@@ -458,6 +571,12 @@ class BaseStudyService(ABC):
         """
         pass
 
+    @abstractmethod
+    def read_areas(self) -> None:
+        """
+        Read areas
+        """
+        pass
 
 class BaseRenewableService(ABC):
     @abstractmethod

@@ -111,3 +111,25 @@ class LinkLocalService(BaseLinkService):
             "filter-year-by-year",
         ]
         return dict(sorted(ini_dict.items(), key=lambda item: dict_order.index(item[0])))
+
+    def read_link(
+        self,
+        area_from: Area,
+        area_to: Area
+    ) -> Link:
+        """
+        Args:
+            area_from: area where the link goes from
+            area_to: area where the link goes to
+            properties: link's properties
+            ui: link's ui characteristics
+            existing_areas: existing areas from study
+
+        Returns:
+            The created link
+
+        Raises:
+            LinkCreationError if an area doesn't exist or existing areas have not been provided
+        """
+        pass
+

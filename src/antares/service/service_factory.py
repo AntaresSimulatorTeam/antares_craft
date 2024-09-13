@@ -124,3 +124,35 @@ class ServiceFactory:
         else:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
         return short_term_storage_service
+
+
+class ServiceReader:
+    def __init__(self, config: BaseConfiguration, study_name: str = "", study_id: str = ""):
+        self.config = config
+        self.study_id = study_id
+        self.study_name = study_name
+        self._areas = []
+        self._binding_constraints = []
+        self._links = []
+
+# we can have read area service here, for just one area
+    def read_study_service(self) -> BaseStudyService:
+        if isinstance(self.config, LocalConfiguration):
+            study_service: BaseStudyService = StudyLocalService(self.config, self.study_name)
+            areas = study_service.read_areas()
+            for area_name in range(areas):
+                area_service: BaseStudyService = AreaLocalService(self.config, self.study_name)
+                area = area_service.read_area(area_name)
+                self._areas[area.id] = area
+
+                # bc_service: BaseStudyService = BindingConstraintLocalService(self.config, self.study_name)
+                # bc = bc_service.read_binding_constraint(area_name)
+                # self._areas[bc.id] = area
+                # link_service: BaseStudyService = LinkLocalService(self.config, self.study_name)
+                # link = link_service.read_link(area_name)
+                # self._areas[link.id] = area
+        else:
+            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
+
+        return areas
+

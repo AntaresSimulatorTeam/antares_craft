@@ -290,3 +290,114 @@ class AreaLocalService(BaseAreaService):
 
     def get_load_matrix(self, area: Area) -> pd.DataFrame:
         raise NotImplementedError
+
+    def read_thermal_cluster(
+        self,
+        area_id: str,
+        thermal_name: str,
+        properties: Optional[ThermalClusterProperties] = None,
+    ) -> ThermalCluster:
+        local_thermal_properties = ThermalClusterPropertiesLocal(thermal_name, properties)
+
+        list_ini = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name=area_id)
+        list_ini.add_section(local_thermal_properties.list_ini_fields)
+        list_ini.write_ini_file(sort_sections=True)
+
+        return ThermalCluster(
+            self.thermal_service, area_id, thermal_name, local_thermal_properties.yield_thermal_cluster_properties()
+        )
+
+
+    def read_renewable_cluster(
+        self,
+        area_id: str,
+        renewable_name: str,
+        properties: Optional[RenewableClusterProperties] = None,
+    ) -> RenewableCluster:
+        local_properties = RenewableClusterPropertiesLocal(renewable_name, properties)
+
+        list_ini = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name=area_id)
+        list_ini.add_section(local_properties.ini_fields)
+        list_ini.write_ini_file()
+
+        return RenewableCluster(
+            self.renewable_service, area_id, renewable_name, local_properties.yield_renewable_cluster_properties()
+        )
+
+    def read_st_storage(
+        self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
+    ) -> STStorage:
+        local_st_storage_properties = STStoragePropertiesLocal(st_storage_name, properties)
+
+        list_ini = IniFile(self.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name=area_id)
+        list_ini.add_section(local_st_storage_properties.list_ini_fields)
+        list_ini.write_ini_file(sort_sections=True)
+
+        return STStorage(
+            self.storage_service,
+            area_id,
+            st_storage_name,
+            local_st_storage_properties.yield_st_storage_properties(),
+        )
+
+    def read_wind(self, area: Area) -> Wind:
+        series = pd.DataFrame([])
+        local_file = TimeSeriesFile(TimeSeriesFileType.WIND, self.config.study_path, area.id, series)
+        return Wind(series, local_file)
+
+    def read_reserves(self, area: Area) -> Reserves:
+        series = pd.DataFrame([])
+        local_file = TimeSeriesFile(TimeSeriesFileType.RESERVES, self.config.study_path, area.id, series)
+        return Reserves(series, local_file)
+
+    def read_solar(self, area: Area) -> Solar:
+        series = pd.DataFrame([])
+        local_file = TimeSeriesFile(TimeSeriesFileType.SOLAR, self.config.study_path, area.id, series)
+        return Solar(series, local_file)
+
+    def read_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
+        series = series if series is not None else pd.DataFrame([])
+        local_file = TimeSeriesFile(TimeSeriesFileType.MISC_GEN, self.config.study_path, area.id, series)
+        return MiscGen(series, local_file)
+
+    def read_hydro(
+        self,
+        area_id: str,
+        properties: Optional[HydroProperties] = None,
+    ) -> Hydro:
+        local_hydro_properties = HydroPropertiesLocal(area_id, properties)
+
+        list_ini = IniFile(self.config.study_path, IniFileTypes.HYDRO_INI)
+        list_ini.add_section(local_hydro_properties.hydro_ini_fields)
+        list_ini.write_ini_file(sort_section_content=True)
+
+        return Hydro(self, area_id, local_hydro_properties.yield_hydro_properties())
+
+    def read_area(
+        self, area_name: str, area_id: str) -> Area:
+        """
+        Args:
+            area_name: area to be added to study
+            area_id: area id. If not provided, default values will be used.
+
+        Returns: area object if success or Error if area can not be
+        read
+        """
+
+        def _line_exists_in_file(file_content: str, line_to_add: str) -> bool:
+            """
+            Args:
+                file_content: file content to check
+                line_to_add: line to add
+
+            Returns: True if line is already present in file.
+
+            """
+            return line_to_add.strip() in file_content.split("\n")
+
+
+        existing_path = self._config.local_path
+        study_path = existing_path / self.study_name
+        list_ini = IniFile(self.config.study_path, IniFileTypes.AREAS_SETS_INI)
+
+        return {}
