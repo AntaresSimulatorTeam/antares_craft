@@ -47,7 +47,8 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         )
 
     def add_constraint_terms(self, constraint: BindingConstraint, terms: List[ConstraintTerm]) -> List[ConstraintTerm]:
-        raise NotImplementedError
+        new_terms = [term for term in terms if term.id not in constraint.get_terms()]
+        return new_terms
 
     def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
         raise NotImplementedError

@@ -26,6 +26,7 @@ from antares.model.binding_constraint import (
     BindingConstraintProperties,
     BindingConstraintFrequency,
     BindingConstraintOperator,
+    ConstraintTerm,
 )
 from antares.model.commons import FilterOption
 from antares.model.hydro import Hydro
@@ -1183,3 +1184,8 @@ group = test group
 
         # Then
         assert actual_ini_content == expected_ini_content
+
+    def test_constraint_can_add_term(self, test_constraint):
+        new_term = [ConstraintTerm(data={"area1": "fr", "area2": "at"})]
+        test_constraint.add_terms(new_term)
+        assert test_constraint.get_terms()
