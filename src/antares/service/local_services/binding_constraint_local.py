@@ -113,6 +113,8 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         return self._time_series
 
     def add_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> list[ConstraintTerm]:
+        for term in terms:
+            term.weight = term.weight if term.weight is not None else 0
         new_terms = constraint.local_properties.terms | {
             term.id: term for term in terms if term.id not in constraint.get_terms()
         }
