@@ -110,6 +110,7 @@ class BindingConstraintPropertiesLocal(BaseModel):
         constraint_name: str,
         constraint_id: str,
         properties: Optional[BindingConstraintProperties] = None,
+        terms: Optional[dict[str, ConstraintTerm]] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -122,7 +123,16 @@ class BindingConstraintPropertiesLocal(BaseModel):
         self._comments = properties.comments
         self._filter_year_by_year = check_if_none(properties.filter_year_by_year, "hourly")
         self._filter_synthesis = check_if_none(properties.filter_synthesis, "hourly")
-        self._group = properties.group
+        self._group = check_if_none(properties.group, DEFAULT_GROUP)
+        self._terms = check_if_none(terms, {})
+
+    @property
+    def terms(self) -> dict[str, ConstraintTerm]:
+        return self._terms
+
+    @terms.setter
+    def terms(self, new_terms: dict[str, ConstraintTerm]) -> None:
+        self._terms = new_terms
 
     @computed_field  # type: ignore[misc]
     @property
@@ -137,7 +147,7 @@ class BindingConstraintPropertiesLocal(BaseModel):
             "filter-year-by-year": self._filter_year_by_year,
             "filter-synthesis": self._filter_synthesis,
             "group": self._group,
-        }
+        } | {term_id: term.weight for term_id, term in self._terms.items()}
         return {key: value for key, value in ini_dict.items() if value is not None}
 
     @computed_field  # type: ignore[misc]
@@ -168,7 +178,7 @@ class BindingConstraint:
         self._properties = properties or BindingConstraintProperties()
         self._terms = {term.id: term for term in terms} if terms else {}
         self._local_properties = BindingConstraintPropertiesLocal(
-            constraint_name=self._name, constraint_id=self._id, properties=properties
+            constraint_name=self._name, constraint_id=self._id, properties=properties, terms=self._terms
         )
 
     @property

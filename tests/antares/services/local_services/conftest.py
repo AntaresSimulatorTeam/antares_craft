@@ -256,5 +256,5 @@ def default_constraint_properties() -> BindingConstraintProperties:
         comments=None,
         filter_year_by_year="hourly",
         filter_synthesis="hourly",
-        group=None,
+        group="default",
     )

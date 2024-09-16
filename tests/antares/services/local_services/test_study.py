@@ -1125,6 +1125,7 @@ type = hourly
 operator = less
 filter-year-by-year = hourly
 filter-synthesis = hourly
+group = default
 
 """
 
@@ -1158,6 +1159,7 @@ type = hourly
 operator = less
 filter-year-by-year = hourly
 filter-synthesis = hourly
+group = default
 
 [1]
 name = test constraint two
