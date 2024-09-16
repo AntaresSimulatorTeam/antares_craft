@@ -1191,3 +1191,25 @@ group = test group
         new_term = [ConstraintTerm(data={"area1": "fr", "area2": "at"})]
         test_constraint.add_terms(new_term)
         assert test_constraint.get_terms()
+
+    def test_constraint_term_and_ini_have_correct_defaults(self, local_study_with_constraint, test_constraint):
+        # Given
+        expected_ini_contents = """[0]
+name = test constraint
+id = test constraint
+enabled = true
+type = hourly
+operator = less
+filter-year-by-year = hourly
+filter-synthesis = hourly
+group = default
+at%fr = 0
+
+"""
+        # When
+        new_term = [ConstraintTerm(data={"area1": "fr", "area2": "at"})]
+        test_constraint.add_terms(new_term)
+        with local_study_with_constraint._binding_constraints_service.ini_file.ini_path.open("r") as file:
+            actual_ini_content = file.read()
+
+        assert actual_ini_content == expected_ini_contents
