@@ -46,6 +46,15 @@ class TermOperators(BaseModel):
     weight: Optional[float] = None
     offset: Optional[int] = None
 
+    @computed_field  # type: ignore[misc]
+    @property
+    def weight_offset(self) -> str:
+        if self.offset is not None:
+            weight_offset = f"{(self.weight if self.weight is not None else 0):.1f}%{self.offset}"
+        else:
+            weight_offset = f"{self.weight if self.weight is not None else 0}"
+        return weight_offset
+
 
 class LinkData(BaseModel):
     """
@@ -147,7 +156,7 @@ class BindingConstraintPropertiesLocal(BaseModel):
             "filter-year-by-year": self._filter_year_by_year,
             "filter-synthesis": self._filter_synthesis,
             "group": self._group,
-        } | {term_id: term.weight for term_id, term in self._terms.items()}
+        } | {term_id: term.weight_offset for term_id, term in self._terms.items()}
         return {key: value for key, value in ini_dict.items() if value is not None}
 
     @computed_field  # type: ignore[misc]

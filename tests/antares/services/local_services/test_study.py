@@ -1213,3 +1213,27 @@ at%fr = 0
             actual_ini_content = file.read()
 
         assert actual_ini_content == expected_ini_contents
+
+    def test_constraint_term_with_offset_and_ini_have_correct_values(
+        self, local_study_with_constraint, test_constraint
+    ):
+        # Given
+        expected_ini_contents = """[0]
+name = test constraint
+id = test constraint
+enabled = true
+type = hourly
+operator = less
+filter-year-by-year = hourly
+filter-synthesis = hourly
+group = default
+at%fr = 0.0%1
+
+"""
+        # When
+        new_term = [ConstraintTerm(offset=1, data={"area1": "fr", "area2": "at"})]
+        test_constraint.add_terms(new_term)
+        with local_study_with_constraint._binding_constraints_service.ini_file.ini_path.open("r") as file:
+            actual_ini_content = file.read()
+
+        assert actual_ini_content == expected_ini_contents
