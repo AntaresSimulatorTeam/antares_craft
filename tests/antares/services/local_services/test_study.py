@@ -1227,7 +1227,7 @@ operator = less
 filter-year-by-year = hourly
 filter-synthesis = hourly
 group = default
-at%fr = 0.0%1
+at%fr = 0.000000%1
 
 """
         # When

@@ -50,7 +50,8 @@ class TermOperators(BaseModel):
     @property
     def weight_offset(self) -> str:
         if self.offset is not None:
-            weight_offset = f"{(self.weight if self.weight is not None else 0):.1f}%{self.offset}"
+            # Rounded the weight to 6 decimals to be in line with other floats in the ini files
+            weight_offset = f"{(self.weight if self.weight is not None else 0):.6f}%{self.offset}"
         else:
             weight_offset = f"{self.weight if self.weight is not None else 0}"
         return weight_offset
