@@ -11,6 +11,9 @@
 # This file is part of the Antares project.
 
 
+import pytest
+import requests_mock
+
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import LinkUiUpdateError, LinkPropertiesUpdateError
 from antares.model.area import Area
@@ -18,9 +21,6 @@ from antares.model.commons import FilterOption
 from antares.model.link import LinkProperties, LinkUi, Link
 from antares.model.study import Study
 from antares.service.service_factory import ServiceFactory
-import requests_mock
-
-import pytest
 
 
 class TestCreateAPI:
@@ -37,8 +37,8 @@ class TestCreateAPI:
     def test_update_links_properties_success(self):
         with requests_mock.Mocker() as mocker:
             properties = LinkProperties()
-            properties.filter_synthesis = [FilterOption.DAILY]
-            properties.filter_year_by_year = [FilterOption.DAILY]
+            properties.filter_synthesis = {FilterOption.DAILY}
+            properties.filter_year_by_year = {FilterOption.DAILY}
             ui = LinkUi()
             raw_url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/links/"
@@ -56,8 +56,8 @@ class TestCreateAPI:
     def test_update_links_properties_fails(self):
         with requests_mock.Mocker() as mocker:
             properties = LinkProperties()
-            properties.filter_synthesis = [FilterOption.DAILY]
-            properties.filter_year_by_year = [FilterOption.DAILY]
+            properties.filter_synthesis = {FilterOption.DAILY}
+            properties.filter_year_by_year = {FilterOption.DAILY}
             raw_url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/links/"
                 f"{self.area_from.id}/properties/{self.area_to.id}"
