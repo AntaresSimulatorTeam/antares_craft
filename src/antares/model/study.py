@@ -225,7 +225,7 @@ class Study:
         return self._settings
 
     def get_binding_constraints(self) -> MappingProxyType[str, BindingConstraint]:
-        return MappingProxyType(self._binding_constraints)
+        return MappingProxyType(self._binding_constraints_service.binding_constraints)
 
     def create_area(
         self, area_name: str, *, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
@@ -265,11 +265,9 @@ class Study:
         equal_term_matrix: Optional[pd.DataFrame] = None,
         greater_term_matrix: Optional[pd.DataFrame] = None,
     ) -> BindingConstraint:
-        constraint = self._binding_constraints_service.create_binding_constraint(
+        return self._binding_constraints_service.create_binding_constraint(
             name, properties, terms, less_term_matrix, equal_term_matrix, greater_term_matrix
         )
-        self._binding_constraints[constraint.id] = constraint
-        return constraint
 
     def update_settings(self, settings: StudySettings) -> None:
         new_settings = self._study_service.update_study_settings(settings)
@@ -278,7 +276,7 @@ class Study:
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         self._study_service.delete_binding_constraint(constraint)
-        self._binding_constraints.pop(constraint.id)
+        self._binding_constraints_service.binding_constraints.pop(constraint.id)
 
     def delete(self, children: bool = False) -> None:
         self._study_service.delete(children)

@@ -30,7 +30,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
-        self.binding_constraints: dict[str, BindingConstraint] = {}
+        self._binding_constraints: dict[str, BindingConstraint] = {}
         self.ini_file = IniFile(self.config.study_path, IniFileTypes.BINDING_CONSTRAINTS_INI)
 
     def create_binding_constraint(
@@ -49,7 +49,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             terms=terms,
         )
         constraint.properties = constraint.local_properties.yield_binding_constraint_properties
-        self.binding_constraints[constraint.id] = constraint
+        self._binding_constraints[constraint.id] = constraint
 
         self._write_binding_constraint_ini()
 
@@ -58,10 +58,14 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     def _write_binding_constraint_ini(self) -> None:
         binding_constraints_ini_content = {
             idx: idx_constraint.local_properties.list_ini_fields
-            for idx, idx_constraint in enumerate(self.binding_constraints.values())
+            for idx, idx_constraint in enumerate(self._binding_constraints.values())
         }
         self.ini_file.ini_dict = binding_constraints_ini_content
         self.ini_file.write_ini_file()
+
+    @property
+    def binding_constraints(self) -> dict[str, BindingConstraint]:
+        return self._binding_constraints
 
     def add_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> list[ConstraintTerm]:
         new_terms = constraint.local_properties.terms | {
