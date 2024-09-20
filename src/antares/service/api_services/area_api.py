@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-import json
 from pathlib import PurePosixPath
 from typing import Optional, Dict, Union, List
 
@@ -100,7 +99,7 @@ class AreaApiService(BaseAreaService):
 
             if properties:
                 url = f"{base_area_url}/{area_id}/properties/form"
-                body = json.loads(properties.model_dump_json(exclude_none=True))
+                body = properties.model_dump(mode="json", exclude_none=True)
                 if body:
                     self._wrapper.put(url, json=body)
             if ui:
@@ -166,7 +165,7 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/thermal"
             body = {"name": thermal_name.lower()}
             if properties:
-                camel_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
@@ -223,7 +222,7 @@ class AreaApiService(BaseAreaService):
                 raise TypeError("body['args'] must be a dictionary")
 
             if parameters:
-                camel_properties = json.loads(parameters.model_dump_json(by_alias=True, exclude_none=True))
+                camel_properties = parameters.model_dump(mode="json", by_alias=True, exclude_none=True)
                 args["parameters"].update(camel_properties)
 
             if prepro is not None:
@@ -305,7 +304,7 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
             body = {"name": renewable_name.lower()}
             if properties:
-                camel_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
@@ -347,7 +346,7 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages"
             body = {"name": st_storage_name}
             if properties:
-                camel_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
@@ -407,7 +406,7 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
             body = {}
             if properties:
-                camel_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 body = {**camel_properties}
             self._wrapper.put(url, json=body)
 
@@ -439,7 +438,7 @@ class AreaApiService(BaseAreaService):
     def update_area_properties(self, area: Area, properties: AreaProperties) -> AreaProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area.id}/properties/form"
         try:
-            body = json.loads(properties.model_dump_json(exclude_none=True))
+            body = properties.model_dump(mode="json", exclude_none=True)
             if not body:
                 return area.properties
 

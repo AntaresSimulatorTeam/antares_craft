@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-import json
 
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import LinkUiUpdateError, LinkPropertiesUpdateError
@@ -48,7 +47,7 @@ class TestCreateAPI:
             mocker.post(raw_url, status_code=200)
             mocker.get(
                 raw_url,
-                json={**ui.model_dump(by_alias=True), **json.loads(properties.model_dump_json(by_alias=True))},
+                json={**ui.model_dump(by_alias=True), **properties.model_dump(mode="json", by_alias=True)},
                 status_code=200,
             )
 

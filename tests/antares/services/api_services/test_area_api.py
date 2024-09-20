@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-import json
 
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
@@ -101,7 +100,7 @@ class TestCreateAPI:
     def test_create_thermal_success(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/clusters/thermal"
-            json_response = json.loads(ThermalClusterProperties().model_dump_json(by_alias=True))
+            json_response = ThermalClusterProperties().model_dump(mode="json", by_alias=True)
             thermal_name = "thermal_cluster"
             mocker.post(url, json={"name": thermal_name, "id": thermal_name, **json_response}, status_code=201)
             thermal = self.area.create_thermal_cluster(thermal_name=thermal_name)
@@ -122,7 +121,7 @@ class TestCreateAPI:
     def test_create_renewable_success(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/clusters/renewable"
-            json_response = json.loads(RenewableClusterProperties().model_dump_json(by_alias=True))
+            json_response = RenewableClusterProperties().model_dump(mode="json", by_alias=True)
             renewable_name = "renewable_cluster"
             mocker.post(url, json={"name": renewable_name, "id": renewable_name, **json_response}, status_code=201)
 
@@ -148,7 +147,7 @@ class TestCreateAPI:
     def test_create_st_storage_success(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/storages"
-            json_response = json.loads(STStorageProperties().model_dump_json(by_alias=True))
+            json_response = STStorageProperties().model_dump(mode="json", by_alias=True)
             st_storage_name = "short_term_storage"
             mocker.post(url, json={"name": st_storage_name, "id": st_storage_name, **json_response}, status_code=201)
 
@@ -202,7 +201,7 @@ class TestCreateAPI:
 
     def test_create_hydro_success(self):
         url_hydro_form = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/hydro/form"
-        json_for_post = json.loads(HydroProperties().model_dump_json(by_alias=True))
+        json_for_post = HydroProperties().model_dump(mode="json", by_alias=True)
         series = pd.DataFrame(data=np.ones((150, 1)))
 
         url_for_command = f"https://antares.com/api/v1/studies/{self.study_id}/commands"

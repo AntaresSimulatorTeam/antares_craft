@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-import json
 
 from antares.api_conf.api_conf import APIconf
 import requests_mock
@@ -180,7 +179,7 @@ class TestCreateAPI:
     def test_create_binding_constraint_success(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
-            json_response = json.loads(BindingConstraintProperties().model_dump_json(by_alias=True))
+            json_response = BindingConstraintProperties().model_dump(mode="json", by_alias=True)
             constraint_name = "bc_1"
             mocker.post(url, json={"id": "id", "name": constraint_name, "terms": [], **json_response}, status_code=201)
             constraint = self.study.create_binding_constraint(name=constraint_name)

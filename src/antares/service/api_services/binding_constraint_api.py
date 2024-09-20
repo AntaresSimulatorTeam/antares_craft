@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-import json
 from pathlib import PurePosixPath
 from typing import Optional, List
 
@@ -75,7 +74,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         try:
             body = {"name": name}
             if properties:
-                camel_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 body = {**body, **camel_properties}
             for matrix, matrix_name in zip(
                 [less_term_matrix, equal_term_matrix, greater_term_matrix],
@@ -118,7 +117,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
     ) -> BindingConstraintProperties:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{binding_constraint.id}"
         try:
-            body = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+            body = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
             if not body:
                 return binding_constraint.properties
 
