@@ -11,12 +11,13 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Optional, Set, Any, Mapping
+from typing import Optional, Set, Mapping
 
 from pydantic import BaseModel, computed_field
 
 from antares.model.area import Area
 from antares.model.commons import FilterOption, sort_filter_values
+from antares.tools.all_optional_meta import all_optional_model
 
 
 class TransmissionCapacities(Enum):
@@ -44,127 +45,93 @@ def link_aliasing(string: str) -> str:
     return string.replace("_", "-")
 
 
-class LinkProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=link_aliasing):
+class NonOptionalLinkProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=link_aliasing):
     """
     DTO for updating link properties
     """
 
-    hurdles_cost: Optional[bool] = None
-    loop_flow: Optional[bool] = None
-    use_phase_shifter: Optional[bool] = None
-    transmission_capacities: Optional[TransmissionCapacities] = None
-    asset_type: Optional[AssetType] = None
-    display_comments: Optional[bool] = None
-    filter_synthesis: Optional[Set[FilterOption]] = None
-    filter_year_by_year: Optional[Set[FilterOption]] = None
+    hurdles_cost: bool = False
+    loop_flow: bool = False
+    use_phase_shifter: bool = False
+    transmission_capacities: TransmissionCapacities = TransmissionCapacities.ENABLED
+    asset_type: AssetType = AssetType.AC
+    display_comments: bool = True
+    filter_synthesis: Set[FilterOption] = {
+        FilterOption.HOURLY,
+        FilterOption.DAILY,
+        FilterOption.WEEKLY,
+        FilterOption.MONTHLY,
+        FilterOption.ANNUAL,
+    }
+    filter_year_by_year: Set[FilterOption] = {
+        FilterOption.HOURLY,
+        FilterOption.DAILY,
+        FilterOption.WEEKLY,
+        FilterOption.MONTHLY,
+        FilterOption.ANNUAL,
+    }
 
 
-# TODO update to use check_if_none
-class LinkPropertiesLocal(BaseModel):
-    def __init__(
-        self,
-        link_properties: LinkProperties = LinkProperties(),
-        **kwargs: Optional[Any],
-    ):
-        super().__init__(**kwargs)
-        self._hurdles_cost = link_properties.hurdles_cost or False
-        self._loop_flow = link_properties.loop_flow or False
-        self._use_phase_shifter = link_properties.use_phase_shifter or False
-        self._transmission_capacities = (
-            link_properties.transmission_capacities
-            if link_properties.transmission_capacities
-            else TransmissionCapacities.ENABLED
-        )
-        self._asset_type = link_properties.asset_type if link_properties.asset_type else AssetType.AC
-        self._display_comments = link_properties.display_comments or True
-        self._filter_synthesis = link_properties.filter_synthesis or {
-            FilterOption.HOURLY,
-            FilterOption.DAILY,
-            FilterOption.WEEKLY,
-            FilterOption.MONTHLY,
-            FilterOption.ANNUAL,
-        }
-        self._filter_year_by_year = link_properties.filter_year_by_year or {
-            FilterOption.HOURLY,
-            FilterOption.DAILY,
-            FilterOption.WEEKLY,
-            FilterOption.MONTHLY,
-            FilterOption.ANNUAL,
-        }
+@all_optional_model
+class LinkProperties(NonOptionalLinkProperties):
+    pass
 
+
+class LinkPropertiesLocal(NonOptionalLinkProperties):
     @computed_field  # type: ignore[misc]
     @property
     def ini_fields(self) -> Mapping[str, str]:
         return {
-            "hurdles-cost": f"{self._hurdles_cost}".lower(),
-            "loop-flow": f"{self._loop_flow}".lower(),
-            "use-phase-shifter": f"{self._use_phase_shifter}".lower(),
-            "transmission-capacities": f"{self._transmission_capacities.value}",
-            "asset-type": f"{self._asset_type.value}",
-            "display-comments": f"{self._display_comments}".lower(),
-            "filter-synthesis": ", ".join(filter_value for filter_value in sort_filter_values(self._filter_synthesis)),
+            "hurdles-cost": f"{self.hurdles_cost}".lower(),
+            "loop-flow": f"{self.loop_flow}".lower(),
+            "use-phase-shifter": f"{self.use_phase_shifter}".lower(),
+            "transmission-capacities": f"{self.transmission_capacities.value}",
+            "asset-type": f"{self.asset_type.value}",
+            "display-comments": f"{self.display_comments}".lower(),
+            "filter-synthesis": ", ".join(filter_value for filter_value in sort_filter_values(self.filter_synthesis)),
             "filter-year-by-year": ", ".join(
-                filter_value for filter_value in sort_filter_values(self._filter_year_by_year)
+                filter_value for filter_value in sort_filter_values(self.filter_year_by_year)
             ),
         }
 
     def yield_link_properties(self) -> LinkProperties:
-        return LinkProperties(
-            hurdles_cost=self._hurdles_cost,
-            loop_flow=self._loop_flow,
-            use_phase_shifter=self._use_phase_shifter,
-            transmission_capacities=self._transmission_capacities,
-            asset_type=self._asset_type,
-            display_comments=self._display_comments,
-            filter_synthesis=self._filter_synthesis,
-            filter_year_by_year=self._filter_year_by_year,
-        )
+        excludes = {"ini_fields"}
+        return LinkProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
 
 
-class LinkUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=link_aliasing):
+class NonOptionalLinkUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=link_aliasing):
     """
     DTO for updating link UI
     """
 
-    link_style: Optional[LinkStyle] = None
-    link_width: Optional[float] = None
-    colorr: Optional[int] = None
-    colorg: Optional[int] = None
-    colorb: Optional[int] = None
+    link_style: LinkStyle = LinkStyle.PLAIN
+    link_width: float = 1
+    colorr: int = 112
+    colorg: int = 112
+    colorb: int = 112
 
 
-class LinkUiLocal(BaseModel):
-    def __init__(
-        self,
-        link_ui: LinkUi = LinkUi(),
-        **kwargs: Optional[Any],
-    ):
-        super().__init__(**kwargs)
-        self._link_style = link_ui.link_style if link_ui.link_style else LinkStyle.PLAIN
-        self._link_width = link_ui.link_width if link_ui.link_width is not None else 1
-        self._colorr = link_ui.colorr if link_ui.colorr is not None else 112
-        self._colorg = link_ui.colorg if link_ui.colorg is not None else 112
-        self._colorb = link_ui.colorb if link_ui.colorb is not None else 112
+@all_optional_model
+class LinkUi(NonOptionalLinkUi):
+    pass
 
+
+class LinkUiLocal(NonOptionalLinkUi):
     @computed_field  # type: ignore[misc]
     @property
     def ini_fields(self) -> Mapping[str, str]:
+        # todo: can be replaced with alias i believe
         return {
-            "link-style": f"{self._link_style.value}",
-            "link-width": f"{self._link_width}",
-            "colorr": f"{self._colorr}",
-            "colorg": f"{self._colorg}",
-            "colorb": f"{self._colorb}",
+            "link-style": f"{self.link_style.value}",
+            "link-width": f"{self.link_width}",
+            "colorr": f"{self.colorr}",
+            "colorg": f"{self.colorg}",
+            "colorb": f"{self.colorb}",
         }
 
     def yield_link_ui(self) -> LinkUi:
-        return LinkUi(
-            link_style=self._link_style,
-            link_width=self._link_width,
-            colorr=self._colorr,
-            colorg=self._colorg,
-            colorb=self._colorb,
-        )
+        excludes = {"ini_fields"}
+        return LinkUi.model_validate(self.model_dump(mode="json", exclude=excludes))
 
 
 class Link:

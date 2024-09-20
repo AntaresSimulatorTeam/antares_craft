@@ -234,14 +234,20 @@ class AreaLocalService(BaseAreaService):
             with (self.config.study_path / IniFileTypes.AREAS_SETS_INI.value).open("w") as sets_ini:
                 sets_ini_content.write(sets_ini)
 
-            local_properties = AreaPropertiesLocal(properties) if properties else AreaPropertiesLocal()
+            local_properties = (
+                AreaPropertiesLocal.model_validate(properties.model_dump(mode="json", exclude_none=True))
+                if properties
+                else AreaPropertiesLocal()
+            )
 
             adequacy_patch_ini = IniFile(self.config.study_path, IniFileTypes.AREA_ADEQUACY_PATCH_INI, area_name)
-            adequacy_patch_ini.add_section(local_properties.adequacy_patch_mode())
+            adequacy_patch_ini.add_section(local_properties.adequacy_patch())
             adequacy_patch_ini.write_ini_file()
 
             optimization_ini = ConfigParser()
-            optimization_ini.read_dict(local_properties.model_dump(by_alias=True, exclude_none=True))
+            args = {"nodal_optimization": local_properties.nodal_optimization}
+            args.update({"filtering": local_properties.filtering})
+            optimization_ini.read_dict(args)
 
             with open(new_area_directory / "optimization.ini", "w") as optimization_ini_file:
                 optimization_ini.write(optimization_ini_file)

@@ -65,8 +65,12 @@ class LinkLocalService(BaseLinkService):
         link_dir = self.config.study_path / "input/links" / area_from.name
         os.makedirs(link_dir, exist_ok=True)
 
-        local_properties = LinkPropertiesLocal(properties) if properties else LinkPropertiesLocal()
-        local_ui = LinkUiLocal(ui) if ui else LinkUiLocal()
+        local_properties = (
+            LinkPropertiesLocal.model_validate(properties.model_dump(mode="json", exclude_none=True))
+            if properties
+            else LinkPropertiesLocal()
+        )
+        local_ui = LinkUiLocal.model_validate(ui.model_dump(mode="json", exclude_none=True)) if ui else LinkUiLocal()
 
         properties_ini_file = link_dir / "properties.ini"
         properties_ini = configparser.ConfigParser()
