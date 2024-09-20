@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-import json
 from pathlib import PurePosixPath
 
 import pandas as pd
@@ -36,7 +35,7 @@ class RenewableApiService(BaseRenewableService):
     ) -> RenewableClusterProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{renewable_cluster.area_id}/clusters/renewable/{renewable_cluster.id}"
         try:
-            body = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+            body = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
             if not body:
                 return renewable_cluster.properties
 
