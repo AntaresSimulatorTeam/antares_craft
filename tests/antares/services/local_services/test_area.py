@@ -225,14 +225,11 @@ variableomcost = 5.000000
     ):
         # Given
         local_study_w_thermal.get_areas()["fr"].create_thermal_cluster("test thermal cluster two")
-        expected_list_ini_dict = ThermalClusterPropertiesLocal(
-            thermal_name="test thermal cluster", thermal_cluster_properties=default_thermal_cluster_properties
-        ).list_ini_fields
-        expected_list_ini_dict.update(
-            ThermalClusterPropertiesLocal(
-                thermal_name="test thermal cluster two", thermal_cluster_properties=default_thermal_cluster_properties
-            ).list_ini_fields
-        )
+        args = default_thermal_cluster_properties.model_dump(mode="json", exclude_none=True)
+        args["thermal_name"] = "test thermal cluster"
+        expected_list_ini_dict = ThermalClusterPropertiesLocal.model_validate(args).list_ini_fields
+        args["thermal_name"] = "test thermal cluster two"
+        expected_list_ini_dict.update(ThermalClusterPropertiesLocal.model_validate(args).list_ini_fields)
 
         expected_list_ini = ConfigParser()
         expected_list_ini.read_dict(expected_list_ini_dict)
@@ -251,20 +248,13 @@ variableomcost = 5.000000
         first_cluster_alphabetically = "a is before b and t"
         second_cluster_alphabetically = "b is after a"
 
-        expected_list_ini_dict = ThermalClusterPropertiesLocal(
-            thermal_name=first_cluster_alphabetically, thermal_cluster_properties=default_thermal_cluster_properties
-        ).list_ini_fields
-        expected_list_ini_dict.update(
-            ThermalClusterPropertiesLocal(
-                thermal_name=second_cluster_alphabetically,
-                thermal_cluster_properties=default_thermal_cluster_properties,
-            ).list_ini_fields
-        )
-        expected_list_ini_dict.update(
-            ThermalClusterPropertiesLocal(
-                thermal_name="test thermal cluster", thermal_cluster_properties=default_thermal_cluster_properties
-            ).list_ini_fields
-        )
+        args = default_thermal_cluster_properties.model_dump(mode="json", exclude_none=True)
+        args["thermal_name"] = first_cluster_alphabetically
+        expected_list_ini_dict = ThermalClusterPropertiesLocal.model_validate(args).list_ini_fields
+        args["thermal_name"] = second_cluster_alphabetically
+        expected_list_ini_dict.update(ThermalClusterPropertiesLocal.model_validate(args).list_ini_fields)
+        args["thermal_name"] = "test thermal cluster"
+        expected_list_ini_dict.update(ThermalClusterPropertiesLocal.model_validate(args).list_ini_fields)
         expected_list_ini = ConfigParser()
         expected_list_ini.read_dict(expected_list_ini_dict)
 

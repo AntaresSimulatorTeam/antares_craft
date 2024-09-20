@@ -77,7 +77,9 @@ class AreaLocalService(BaseAreaService):
         thermal_name: str,
         properties: Optional[ThermalClusterProperties] = None,
     ) -> ThermalCluster:
-        local_thermal_properties = ThermalClusterPropertiesLocal(thermal_name, properties)
+        properties = properties or ThermalClusterProperties()
+        args = {"thermal_name": thermal_name, **properties.model_dump(mode="json", exclude_none=True)}
+        local_thermal_properties = ThermalClusterPropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name=area_id)
         list_ini.add_section(local_thermal_properties.list_ini_fields)
