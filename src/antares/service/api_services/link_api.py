@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-import json
 from types import MappingProxyType
 from typing import Optional
 
@@ -113,7 +112,7 @@ class LinkApiService(BaseLinkService):
         area1_id, area2_id = sorted([link.area_from.id, link.area_to.id])
         raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path=input/links/{area1_id}/properties/{area2_id}"
         try:
-            new_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+            new_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
             if not new_properties:
                 return link.properties
 
@@ -145,7 +144,7 @@ class LinkApiService(BaseLinkService):
         area1_id, area2_id = sorted([link.area_from.id, link.area_to.id])
         raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path=input/links/{area1_id}/properties/{area2_id}"
         try:
-            new_ui = json.loads(ui.model_dump_json(by_alias=True, exclude_none=True))
+            new_ui = ui.model_dump(mode="json", by_alias=True, exclude_none=True)
             if not new_ui:
                 return link.ui
 
