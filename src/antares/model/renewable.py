@@ -17,6 +17,7 @@ import pandas as pd
 from pydantic import BaseModel, computed_field
 
 from antares.model.cluster import ClusterProperties
+from antares.tools.all_optional_meta import all_optional_model
 from antares.tools.contents_tool import transform_name_to_id
 
 
@@ -54,13 +55,18 @@ class TimeSeriesInterpretation(Enum):
     PRODUCTION_FACTOR = "production-factor"
 
 
-class RenewableClusterProperties(ClusterProperties):
+class NonOptionalRenewableClusterProperties(ClusterProperties):
     """
     Properties of a renewable cluster read from the configuration files.
     """
 
-    group: Optional[RenewableClusterGroup] = None
-    ts_interpretation: Optional[TimeSeriesInterpretation] = None
+    group: RenewableClusterGroup = RenewableClusterGroup.OTHER1
+    ts_interpretation: TimeSeriesInterpretation = TimeSeriesInterpretation.POWER_GENERATION
+
+
+@all_optional_model
+class RenewableClusterProperties(NonOptionalRenewableClusterProperties):
+    pass
 
 
 # TODO update to use check_if_none

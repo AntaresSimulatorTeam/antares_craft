@@ -17,6 +17,7 @@ import pandas as pd
 from pydantic import BaseModel, computed_field
 
 from antares.model.cluster import ClusterProperties
+from antares.tools.all_optional_meta import all_optional_model
 from antares.tools.contents_tool import transform_name_to_id
 from antares.tools.ini_tool import check_if_none
 
@@ -65,46 +66,51 @@ class ThermalCostGeneration(Enum):
     USE_COST_TIME_SERIES = "useCostTimeseries"
 
 
-class ThermalClusterProperties(ClusterProperties):
+class NonOptionalThermalProperties(ClusterProperties):
     """
     Thermal cluster configuration model.
     This model describes the configuration parameters for a thermal cluster.
     """
 
-    group: Optional[ThermalClusterGroup] = None
-    gen_ts: Optional[LocalTSGenerationBehavior] = None
-    min_stable_power: Optional[float] = None
-    min_up_time: Optional[int] = None
-    min_down_time: Optional[int] = None
-    must_run: Optional[bool] = None
-    spinning: Optional[float] = None
-    volatility_forced: Optional[float] = None
-    volatility_planned: Optional[float] = None
-    law_forced: Optional[LawOption] = None
-    law_planned: Optional[LawOption] = None
-    marginal_cost: Optional[float] = None
-    spread_cost: Optional[float] = None
-    fixed_cost: Optional[float] = None
-    startup_cost: Optional[float] = None
-    market_bid_cost: Optional[float] = None
-    co2: Optional[float] = None
+    group: ThermalClusterGroup = ThermalClusterGroup.OTHER1
+    gen_ts: LocalTSGenerationBehavior = LocalTSGenerationBehavior.USE_GLOBAL
+    min_stable_power: float = 0
+    min_up_time: int = 1
+    min_down_time: int = 1
+    must_run: bool = False
+    spinning: float = 0
+    volatility_forced: float = 0
+    volatility_planned: float = 0
+    law_forced: LawOption = LawOption.UNIFORM
+    law_planned: LawOption = LawOption.UNIFORM
+    marginal_cost: float = 0
+    spread_cost: float = 0
+    fixed_cost: float = 0
+    startup_cost: float = 0
+    market_bid_cost: float = 0
+    co2: float = 0
     # version 860
-    nh3: Optional[float] = None
-    so2: Optional[float] = None
-    nox: Optional[float] = None
-    pm2_5: Optional[float] = None
-    pm5: Optional[float] = None
-    pm10: Optional[float] = None
-    nmvoc: Optional[float] = None
-    op1: Optional[float] = None
-    op2: Optional[float] = None
-    op3: Optional[float] = None
-    op4: Optional[float] = None
-    op5: Optional[float] = None
+    nh3: float = 0
+    so2: float = 0
+    nox: float = 0
+    pm2_5: float = 0
+    pm5: float = 0
+    pm10: float = 0
+    nmvoc: float = 0
+    op1: float = 0
+    op2: float = 0
+    op3: float = 0
+    op4: float = 0
+    op5: float = 0
     # version 870
-    cost_generation: Optional[ThermalCostGeneration] = None
-    efficiency: Optional[float] = None
-    variable_o_m_cost: Optional[float] = None
+    cost_generation: ThermalCostGeneration = ThermalCostGeneration.SET_MANUALLY
+    efficiency: float = 100
+    variable_o_m_cost: float = 0
+
+
+@all_optional_model
+class ThermalClusterProperties(NonOptionalThermalProperties):
+    pass
 
 
 class ThermalClusterPropertiesLocal(BaseModel):

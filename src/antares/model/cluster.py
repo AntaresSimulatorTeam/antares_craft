@@ -24,19 +24,15 @@ class ClusterProperties(BaseModel, extra="forbid", populate_by_name=True, alias_
     # Activity status:
     # - True: the plant may generate.
     # - False: not yet commissioned, moth-balled, etc.
-    enabled: Optional[bool] = None
+    enabled: bool = True
 
-    unit_count: Optional[int] = None
-    nominal_capacity: Optional[float] = None
+    unit_count: int = 1
+    nominal_capacity: float = 0
 
     @property
-    def installed_capacity(self) -> Optional[float]:
-        if self.unit_count is None or self.nominal_capacity is None:
-            return None
+    def installed_capacity(self) -> float:
         return self.unit_count * self.nominal_capacity
 
     @property
     def enabled_capacity(self) -> Optional[float]:
-        if self.enabled is None or self.installed_capacity is None:
-            return None
         return self.enabled * self.installed_capacity
