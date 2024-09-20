@@ -26,7 +26,6 @@ from antares.exceptions.exceptions import (
 from antares.model.area import Area
 from antares.model.link import LinkProperties, LinkUi, Link
 from antares.service.base_services import BaseLinkService
-from antares.tools.ini_tool import check_if_none
 
 
 class LinkApiService(BaseLinkService):
@@ -73,10 +72,10 @@ class LinkApiService(BaseLinkService):
             json_file = response.json()
             # TODO update to use check_if_none or similar
             if properties or ui:
-                link_properties = json.loads(
-                    check_if_none(properties, LinkProperties()).model_dump_json(by_alias=True, exclude_none=True)
+                link_properties = (properties or LinkProperties()).model_dump(
+                    mode="json", by_alias=True, exclude_none=True
                 )
-                link_ui = json.loads(check_if_none(ui, LinkUi()).model_dump_json(by_alias=True, exclude_none=True))
+                link_ui = (ui or LinkUi()).model_dump(mode="json", by_alias=True, exclude_none=True)
                 body = {**link_properties, **link_ui}
                 if body:
                     json_file = _join_filter_values_for_json(json_file, body)
@@ -92,13 +91,13 @@ class LinkApiService(BaseLinkService):
                 else:
                     json_properties[key] = value
                 del json_file[key]
-            link_ui = LinkUi.model_validate(json_file)
-            link_properties = LinkProperties.model_validate(json_properties)
+            ui = LinkUi.model_validate(json_file)
+            created_properties = LinkProperties.model_validate(json_properties)
 
         except APIError as e:
             raise LinkCreationError(area_from.id, area_to.id, e.message) from e
 
-        return Link(area_from, area_to, self, link_properties, link_ui)
+        return Link(area_from, area_to, self, created_properties, ui)
 
     def delete_link(self, link: Link) -> None:
         area_from_id = link.area_from.id
