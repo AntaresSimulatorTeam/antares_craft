@@ -8,3 +8,4 @@ pytest~=7.2.1
 python-dateutil~=2.9.0
 pydantic==2.7.1
 configparser~=5.0.2
+click~=8.1.7
