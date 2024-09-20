@@ -170,7 +170,9 @@ class AreaLocalService(BaseAreaService):
         properties: Optional[HydroProperties] = None,
         matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
     ) -> Hydro:
-        local_hydro_properties = HydroPropertiesLocal(area_id, properties)
+        properties = properties or HydroProperties()
+        args = {"area_id": area_id, **properties.model_dump(mode="json", exclude_none=True)}
+        local_hydro_properties = HydroPropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, IniFileTypes.HYDRO_INI)
         list_ini.add_section(local_hydro_properties.hydro_ini_fields)

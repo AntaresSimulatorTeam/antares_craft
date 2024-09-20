@@ -149,7 +149,3 @@ class IniFile:
         for section in ini_to_sort.sections():
             sorted_ini[section] = {key: value for (key, value) in sorted(list(ini_to_sort[section].items()))}
         return sorted_ini
-
-
-def check_if_none(value_to_check: Any, default_value: Any) -> Any:
-    return value_to_check if value_to_check is not None else default_value
