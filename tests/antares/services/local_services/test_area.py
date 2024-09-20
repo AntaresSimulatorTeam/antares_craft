@@ -331,12 +331,11 @@ ts-interpretation = power-generation
 
     def test_renewable_cluster_and_ini_have_custom_properties(self, local_study_w_thermal, actual_renewable_list_ini):
         # Given
-        custom_properties = RenewableClusterPropertiesLocal(
-            "renewable cluster",
-            RenewableClusterProperties(
-                group=RenewableClusterGroup.WIND_OFF_SHORE, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
-            ),
+        props = RenewableClusterProperties(
+            group=RenewableClusterGroup.WIND_OFF_SHORE, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
         )
+        args = {"renewable_name": "renewable cluster", **props.model_dump(mode="json", exclude_none=True)}
+        custom_properties = RenewableClusterPropertiesLocal.model_validate(args)
         expected_renewables_list_ini_content = """[renewable cluster]
 name = renewable cluster
 group = Wind Offshore

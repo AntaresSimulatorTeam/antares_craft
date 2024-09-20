@@ -109,7 +109,9 @@ class AreaLocalService(BaseAreaService):
         properties: Optional[RenewableClusterProperties] = None,
         series: Optional[pd.DataFrame] = None,
     ) -> RenewableCluster:
-        local_properties = RenewableClusterPropertiesLocal(renewable_name, properties)
+        properties = properties or RenewableClusterProperties()
+        args = {"renewable_name": renewable_name, **properties.model_dump(mode="json", exclude_none=True)}
+        local_properties = RenewableClusterPropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name=area_id)
         list_ini.add_section(local_properties.ini_fields)
