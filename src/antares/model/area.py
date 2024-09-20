@@ -113,6 +113,11 @@ class AreaPropertiesLocal(NonOptionalAreaProperties, alias_generator=config_alia
     def adequacy_patch(self) -> dict[str, dict[str, str]]:
         return {"adequacy-patch": {"adequacy-patch-mode": self.adequacy_patch_mode.value}}
 
+    def yield_local_dict(self) -> dict[str, Mapping[str, str]]:
+        args = {"nodal optimization": self.nodal_optimization}
+        args.update({"filtering": self.filtering})
+        return args
+
     def yield_area_properties(self) -> AreaProperties:
         excludes = {"filtering", "nodal_optimization"}
         return AreaProperties.model_validate(self.model_dump(mode="json", exclude=excludes))

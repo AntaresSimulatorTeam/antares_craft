@@ -245,9 +245,7 @@ class AreaLocalService(BaseAreaService):
             adequacy_patch_ini.write_ini_file()
 
             optimization_ini = ConfigParser()
-            args = {"nodal_optimization": local_properties.nodal_optimization}
-            args.update({"filtering": local_properties.filtering})
-            optimization_ini.read_dict(args)
+            optimization_ini.read_dict(local_properties.yield_local_dict())
 
             with open(new_area_directory / "optimization.ini", "w") as optimization_ini_file:
                 optimization_ini.write(optimization_ini_file)
