@@ -118,7 +118,7 @@ class ThermalClusterPropertiesLocal(NonOptionalThermalProperties):
     @computed_field  # type: ignore[misc]
     @property
     def list_ini_fields(self) -> dict[str, dict[str, str]]:
-        # todo: This is horrible. Should be handled via aliases ...
+        # todo: Should be handled via aliases
         return {
             f"{self.thermal_name}": {
                 "group": self.group.value,
