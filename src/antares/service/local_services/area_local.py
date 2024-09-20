@@ -129,7 +129,9 @@ class AreaLocalService(BaseAreaService):
     def create_st_storage(
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
-        local_st_storage_properties = STStoragePropertiesLocal(st_storage_name, properties)
+        properties = properties or STStorageProperties()
+        args = {"st_storage_name": st_storage_name, **properties.model_dump(mode="json", exclude_none=True)}
+        local_st_storage_properties = STStoragePropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name=area_id)
         list_ini.add_section(local_st_storage_properties.list_ini_fields)

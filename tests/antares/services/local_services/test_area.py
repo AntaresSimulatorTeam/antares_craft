@@ -421,10 +421,9 @@ enabled = true
 
     def test_st_storage_and_ini_have_custom_properties(self, local_study_with_st_storage, actual_st_storage_list_ini):
         # Given
-        custom_properties = STStoragePropertiesLocal(
-            "short term storage",
-            STStorageProperties(group=STStorageGroup.BATTERY, reservoir_capacity=12.345),
-        )
+        props = STStorageProperties(group=STStorageGroup.BATTERY, reservoir_capacity=12.345)
+        args = {"st_storage_name": "short term storage", **props.model_dump(mode="json", exclude_none=True)}
+        custom_properties = STStoragePropertiesLocal.model_validate(args)
         expected_st_storage_list_ini_content = """[short term storage]
 name = short term storage
 group = Battery
