@@ -42,7 +42,7 @@ class STStorageMatrixName(Enum):
     INFLOWS = "inflows"
 
 
-class NonOptionalSTStorageProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+class DefaultSTStorageProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     """
     Properties of a short-term storage system read from the configuration files.
 
@@ -61,11 +61,11 @@ class NonOptionalSTStorageProperties(BaseModel, extra="forbid", populate_by_name
 
 
 @all_optional_model
-class STStorageProperties(NonOptionalSTStorageProperties):
+class STStorageProperties(DefaultSTStorageProperties):
     pass
 
 
-class STStoragePropertiesLocal(NonOptionalSTStorageProperties):
+class STStoragePropertiesLocal(DefaultSTStorageProperties):
     st_storage_name: str
 
     @computed_field  # type: ignore[misc]

@@ -32,7 +32,7 @@ class HydroMatrixName(Enum):
     COMMON_CREDIT_MODULATIONS = "creditmodulations"
 
 
-class NonOptionalHydroProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+class DefaultHydroProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     """
     Properties of hydro system read from the configuration files.
 
@@ -57,11 +57,11 @@ class NonOptionalHydroProperties(BaseModel, extra="forbid", populate_by_name=Tru
 
 
 @all_optional_model
-class HydroProperties(NonOptionalHydroProperties):
+class HydroProperties(DefaultHydroProperties):
     pass
 
 
-class HydroPropertiesLocal(NonOptionalHydroProperties):
+class HydroPropertiesLocal(DefaultHydroProperties):
     area_id: str
 
     @computed_field  # type: ignore[misc]

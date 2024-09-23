@@ -45,7 +45,7 @@ def link_aliasing(string: str) -> str:
     return string.replace("_", "-")
 
 
-class NonOptionalLinkProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=link_aliasing):
+class DefaultLinkProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=link_aliasing):
     """
     DTO for updating link properties
     """
@@ -73,11 +73,11 @@ class NonOptionalLinkProperties(BaseModel, extra="forbid", populate_by_name=True
 
 
 @all_optional_model
-class LinkProperties(NonOptionalLinkProperties):
+class LinkProperties(DefaultLinkProperties):
     pass
 
 
-class LinkPropertiesLocal(NonOptionalLinkProperties):
+class LinkPropertiesLocal(DefaultLinkProperties):
     @computed_field  # type: ignore[misc]
     @property
     def ini_fields(self) -> Mapping[str, str]:
@@ -99,7 +99,7 @@ class LinkPropertiesLocal(NonOptionalLinkProperties):
         return LinkProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
 
 
-class NonOptionalLinkUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=link_aliasing):
+class DefaultLinkUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=link_aliasing):
     """
     DTO for updating link UI
     """
@@ -112,11 +112,11 @@ class NonOptionalLinkUi(BaseModel, extra="forbid", populate_by_name=True, alias_
 
 
 @all_optional_model
-class LinkUi(NonOptionalLinkUi):
+class LinkUi(DefaultLinkUi):
     pass
 
 
-class LinkUiLocal(NonOptionalLinkUi):
+class LinkUiLocal(DefaultLinkUi):
     @computed_field  # type: ignore[misc]
     @property
     def ini_fields(self) -> Mapping[str, str]:

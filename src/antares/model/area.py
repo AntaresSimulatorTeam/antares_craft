@@ -49,7 +49,7 @@ class AdequacyPatchMode(EnumIgnoreCase):
     VIRTUAL = "virtual"
 
 
-class NonOptionalAreaProperties(BaseModel, extra="forbid", populate_by_name=True):
+class DefaultAreaProperties(BaseModel, extra="forbid", populate_by_name=True):
     """
     DTO for updating area properties
     """
@@ -80,7 +80,7 @@ class NonOptionalAreaProperties(BaseModel, extra="forbid", populate_by_name=True
 
 
 @all_optional_model
-class AreaProperties(NonOptionalAreaProperties, alias_generator=to_camel):
+class AreaProperties(DefaultAreaProperties, alias_generator=to_camel):
     pass
 
 
@@ -88,7 +88,7 @@ def config_alias_generator(field_name: str) -> str:
     return field_name.replace("_", " ")
 
 
-class AreaPropertiesLocal(NonOptionalAreaProperties, alias_generator=config_alias_generator):
+class AreaPropertiesLocal(DefaultAreaProperties, alias_generator=config_alias_generator):
     @computed_field  # type: ignore[misc]
     @property
     def nodal_optimization(self) -> Mapping[str, str]:

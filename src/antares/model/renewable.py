@@ -55,7 +55,7 @@ class TimeSeriesInterpretation(Enum):
     PRODUCTION_FACTOR = "production-factor"
 
 
-class NonOptionalRenewableClusterProperties(ClusterProperties):
+class DefaultRenewableClusterProperties(ClusterProperties):
     """
     Properties of a renewable cluster read from the configuration files.
     """
@@ -65,11 +65,11 @@ class NonOptionalRenewableClusterProperties(ClusterProperties):
 
 
 @all_optional_model
-class RenewableClusterProperties(NonOptionalRenewableClusterProperties):
+class RenewableClusterProperties(DefaultRenewableClusterProperties):
     pass
 
 
-class RenewableClusterPropertiesLocal(NonOptionalRenewableClusterProperties):
+class RenewableClusterPropertiesLocal(DefaultRenewableClusterProperties):
     renewable_name: str
 
     @computed_field  # type: ignore[misc]

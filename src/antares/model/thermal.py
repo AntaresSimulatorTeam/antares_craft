@@ -65,7 +65,7 @@ class ThermalCostGeneration(Enum):
     USE_COST_TIME_SERIES = "useCostTimeseries"
 
 
-class NonOptionalThermalProperties(ClusterProperties):
+class DefaultThermalProperties(ClusterProperties):
     """
     Thermal cluster configuration model.
     This model describes the configuration parameters for a thermal cluster.
@@ -108,11 +108,11 @@ class NonOptionalThermalProperties(ClusterProperties):
 
 
 @all_optional_model
-class ThermalClusterProperties(NonOptionalThermalProperties):
+class ThermalClusterProperties(DefaultThermalProperties):
     pass
 
 
-class ThermalClusterPropertiesLocal(NonOptionalThermalProperties):
+class ThermalClusterPropertiesLocal(DefaultThermalProperties):
     thermal_name: str
 
     @computed_field  # type: ignore[misc]
