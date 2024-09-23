@@ -253,7 +253,7 @@ def default_constraint_properties() -> BindingConstraintProperties:
         enabled=True,
         time_step=BindingConstraintFrequency.HOURLY,
         operator=BindingConstraintOperator.LESS,
-        comments=None,
+        comments="",
         filter_year_by_year="hourly",
         filter_synthesis="hourly",
         group="default",

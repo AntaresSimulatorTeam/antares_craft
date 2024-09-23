@@ -17,10 +17,8 @@ import pandas as pd
 from pydantic import BaseModel, Field, model_validator, computed_field
 from pydantic.alias_generators import to_camel
 
+from antares.tools.all_optional_meta import all_optional_model
 from antares.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
-from antares.tools.ini_tool import check_if_none
-
-DEFAULT_GROUP = "default"
 
 
 class BindingConstraintFrequency(EnumIgnoreCase):
@@ -95,83 +93,73 @@ class ConstraintTerm(TermOperators):
         return ".".join((data.area.lower(), data.cluster.lower()))
 
 
-class BindingConstraintProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
-    enabled: Optional[bool] = None
-    time_step: Optional[BindingConstraintFrequency] = None
-    operator: Optional[BindingConstraintOperator] = None
-    comments: Optional[str] = None
-    filter_year_by_year: Optional[str] = None
-    filter_synthesis: Optional[str] = None
-    group: Optional[str] = None
+class DefaultBindingConstraintProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+    """Default properties for binding constraints
+
+    Attributes:
+        enabled (bool): True
+        time_step (BindingConstraintFrequency): BindingConstraintFrequency.HOURLY
+        operator (BindingConstraintOperator): BindingConstraintOperator.LESS
+        comments (str): None
+        filter_year_by_year (str): "hourly"
+        filter_synthesis (str): "hourly"
+        group (str): "default"
+
+    """
+
+    enabled: bool = True
+    time_step: BindingConstraintFrequency = BindingConstraintFrequency.HOURLY
+    operator: BindingConstraintOperator = BindingConstraintOperator.LESS
+    comments: str = ""
+    filter_year_by_year: str = "hourly"
+    filter_synthesis: str = "hourly"
+    group: str = "default"
 
 
-class BindingConstraintPropertiesLocal(BaseModel):
+@all_optional_model
+class BindingConstraintProperties(DefaultBindingConstraintProperties):
+    pass
+
+
+class BindingConstraintPropertiesLocal(DefaultBindingConstraintProperties):
     """
     Used to create the entries for the bindingconstraints.ini file
 
-    Args:
+    Attributes:
         constraint_name: The constraint name
         constraint_id: The constraint id
         properties (BindingConstraintProperties): The BindingConstraintProperties  to set
+        terms (dict[str, ConstraintTerm]]): The terms applying to the binding constraint
     """
 
-    def __init__(
-        self,
-        constraint_name: str,
-        constraint_id: str,
-        properties: Optional[BindingConstraintProperties] = None,
-        terms: Optional[dict[str, ConstraintTerm]] = None,
-        **kwargs: Any,
-    ) -> None:
-        super().__init__(**kwargs)
-        properties = properties if properties is not None else BindingConstraintProperties()
-        self._constraint_name = constraint_name
-        self._constraint_id = constraint_id
-        self._enabled = check_if_none(properties.enabled, True)
-        self._time_step = check_if_none(properties.time_step, BindingConstraintFrequency.HOURLY)
-        self._operator = check_if_none(properties.operator, BindingConstraintOperator.LESS)
-        self._comments = properties.comments
-        self._filter_year_by_year = check_if_none(properties.filter_year_by_year, "hourly")
-        self._filter_synthesis = check_if_none(properties.filter_synthesis, "hourly")
-        self._group = check_if_none(properties.group, DEFAULT_GROUP)
-        self._terms = check_if_none(terms, {})
-
-    @property
-    def terms(self) -> dict[str, ConstraintTerm]:
-        return self._terms
-
-    @terms.setter
-    def terms(self, new_terms: dict[str, ConstraintTerm]) -> None:
-        self._terms = new_terms
+    constraint_name: str
+    constraint_id: str
+    terms: dict[str, ConstraintTerm] = {}
 
     @computed_field  # type: ignore[misc]
     @property
     def list_ini_fields(self) -> dict[str, str]:
         ini_dict = {
-            "name": self._constraint_name,
-            "id": self._constraint_id,
-            "enabled": f"{self._enabled}".lower(),
-            "type": self._time_step.value,
-            "operator": self._operator.value,
-            "comments": self._comments,
-            "filter-year-by-year": self._filter_year_by_year,
-            "filter-synthesis": self._filter_synthesis,
-            "group": self._group,
-        } | {term_id: term.weight_offset for term_id, term in self._terms.items()}
-        return {key: value for key, value in ini_dict.items() if value is not None}
+            "name": self.constraint_name,
+            "id": self.constraint_id,
+            "enabled": f"{self.enabled}".lower(),
+            "type": self.time_step.value,
+            "operator": self.operator.value,
+            "comments": self.comments,
+            "filter-year-by-year": self.filter_year_by_year,
+            "filter-synthesis": self.filter_synthesis,
+            "group": self.group,
+        } | {term_id: term.weight_offset for term_id, term in self.terms.items()}
+        return {key: value for key, value in ini_dict.items() if value not in [None, ""]}
 
-    @computed_field  # type: ignore[misc]
-    @property
     def yield_binding_constraint_properties(self) -> BindingConstraintProperties:
-        return BindingConstraintProperties(
-            enabled=self._enabled,
-            time_step=self._time_step,
-            operator=self._operator,
-            comments=self._comments,
-            filter_year_by_year=self._filter_year_by_year,
-            filter_synthesis=self._filter_synthesis,
-            group=self._group,
-        )
+        excludes = {
+            "constraint_name",
+            "constraint_id",
+            "terms",
+            "list_ini_fields",
+        }
+        return BindingConstraintProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
 
 
 class BindingConstraint:
@@ -187,9 +175,13 @@ class BindingConstraint:
         self._id = transform_name_to_id(name)
         self._properties = properties or BindingConstraintProperties()
         self._terms = {term.id: term for term in terms} if terms else {}
-        self._local_properties = BindingConstraintPropertiesLocal(
-            constraint_name=self._name, constraint_id=self._id, properties=properties, terms=self._terms
-        )
+        local_property_args = {
+            "constraint_name": self._name,
+            "constraint_id": self._id,
+            "terms": self._terms,
+            **self._properties.model_dump(mode="json", exclude_none=True),
+        }
+        self._local_properties = BindingConstraintPropertiesLocal.model_validate(local_property_args)
 
     @property
     def name(self) -> str:

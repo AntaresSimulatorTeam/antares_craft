@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Optional, List, Any
+from typing import Optional, Any
 
 import pandas as pd
 
@@ -48,7 +48,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             properties=properties,
             terms=terms,
         )
-        constraint.properties = constraint.local_properties.yield_binding_constraint_properties
+        constraint.properties = constraint.local_properties.yield_binding_constraint_properties()
         self._binding_constraints[constraint.id] = constraint
 
         self._write_binding_constraint_ini()
