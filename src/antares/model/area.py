@@ -33,6 +33,7 @@ from antares.model.solar import Solar
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.model.wind import Wind
+from antares.tools.all_optional_meta import all_optional_model
 from antares.tools.contents_tool import transform_name_to_id, EnumIgnoreCase
 
 
@@ -48,111 +49,78 @@ class AdequacyPatchMode(EnumIgnoreCase):
     VIRTUAL = "virtual"
 
 
-# todo: Warning, with filesystem, we want to avoid camel case and use link_aliasing.
-class AreaProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+class DefaultAreaProperties(BaseModel, extra="forbid", populate_by_name=True):
     """
     DTO for updating area properties
     """
 
-    energy_cost_unsupplied: Optional[float] = None
-    energy_cost_spilled: Optional[float] = None
-    non_dispatch_power: Optional[bool] = None
-    dispatch_hydro_power: Optional[bool] = None
-    other_dispatch_power: Optional[bool] = None
-    filter_synthesis: Optional[Set[FilterOption]] = None
-    filter_by_year: Optional[Set[FilterOption]] = None
+    energy_cost_unsupplied: float = 0.0
+    energy_cost_spilled: float = 0.0
+    non_dispatch_power: bool = True
+    dispatch_hydro_power: bool = True
+    other_dispatch_power: bool = True
+    filter_synthesis: Set[FilterOption] = {
+        FilterOption.HOURLY,
+        FilterOption.DAILY,
+        FilterOption.WEEKLY,
+        FilterOption.MONTHLY,
+        FilterOption.ANNUAL,
+    }
+    filter_by_year: Set[FilterOption] = {
+        FilterOption.HOURLY,
+        FilterOption.DAILY,
+        FilterOption.WEEKLY,
+        FilterOption.MONTHLY,
+        FilterOption.ANNUAL,
+    }
     # version 830
-    adequacy_patch_mode: Optional[AdequacyPatchMode] = None
-    spread_unsupplied_energy_cost: Optional[float] = None
-    spread_spilled_energy_cost: Optional[float] = None
+    adequacy_patch_mode: AdequacyPatchMode = AdequacyPatchMode.OUTSIDE
+    spread_unsupplied_energy_cost: float = 0.0
+    spread_spilled_energy_cost: float = 0.0
+
+
+@all_optional_model
+class AreaProperties(DefaultAreaProperties, alias_generator=to_camel):
+    pass
 
 
 def config_alias_generator(field_name: str) -> str:
     return field_name.replace("_", " ")
 
 
-# TODO update to use check_if_none
-class AreaPropertiesLocal(BaseModel, alias_generator=config_alias_generator):
-    def __init__(
-        self,
-        input_area_properties: AreaProperties = AreaProperties(),
-        **kwargs: Optional[Any],
-    ):
-        super().__init__(**kwargs)
-        self._energy_cost_unsupplied = input_area_properties.energy_cost_unsupplied or 0.0
-        self._energy_cost_spilled = input_area_properties.energy_cost_spilled or 0.0
-        self._non_dispatch_power = (
-            input_area_properties.non_dispatch_power if input_area_properties.non_dispatch_power is not None else True
-        )
-        self._dispatch_hydro_power = (
-            input_area_properties.dispatch_hydro_power
-            if input_area_properties.dispatch_hydro_power is not None
-            else True
-        )
-        self._other_dispatch_power = (
-            input_area_properties.other_dispatch_power
-            if input_area_properties.other_dispatch_power is not None
-            else True
-        )
-        self._filter_synthesis = input_area_properties.filter_synthesis or {
-            FilterOption.HOURLY,
-            FilterOption.DAILY,
-            FilterOption.WEEKLY,
-            FilterOption.MONTHLY,
-            FilterOption.ANNUAL,
-        }
-        self._filter_by_year = input_area_properties.filter_by_year or {
-            FilterOption.HOURLY,
-            FilterOption.DAILY,
-            FilterOption.WEEKLY,
-            FilterOption.MONTHLY,
-            FilterOption.ANNUAL,
-        }
-        self._adequacy_patch_mode = (
-            input_area_properties.adequacy_patch_mode
-            if input_area_properties.adequacy_patch_mode
-            else AdequacyPatchMode.OUTSIDE
-        )
-        self._spread_spilled_energy_cost = input_area_properties.spread_spilled_energy_cost or 0.0
-        self._spread_unsupplied_energy_cost = input_area_properties.spread_unsupplied_energy_cost or 0.0
-
+class AreaPropertiesLocal(DefaultAreaProperties, alias_generator=config_alias_generator):
     @computed_field  # type: ignore[misc]
     @property
     def nodal_optimization(self) -> Mapping[str, str]:
         return {
-            "non-dispatchable-power": f"{self._non_dispatch_power}".lower(),
-            "dispatchable-hydro-power": f"{self._dispatch_hydro_power}".lower(),
-            "other-dispatchable-power": f"{self._other_dispatch_power}".lower(),
-            "spread-unsupplied-energy-cost": f"{self._spread_unsupplied_energy_cost:.6f}",
-            "spread-spilled-energy-cost": f"{self._spread_spilled_energy_cost:.6f}",
-            "average-unsupplied-energy-cost": f"{self._energy_cost_unsupplied:.6f}",
-            "average-spilled-energy-cost": f"{self._energy_cost_spilled:.6f}",
+            "non-dispatchable-power": f"{self.non_dispatch_power}".lower(),
+            "dispatchable-hydro-power": f"{self.dispatch_hydro_power}".lower(),
+            "other-dispatchable-power": f"{self.other_dispatch_power}".lower(),
+            "spread-unsupplied-energy-cost": f"{self.spread_unsupplied_energy_cost:.6f}",
+            "spread-spilled-energy-cost": f"{self.spread_spilled_energy_cost:.6f}",
+            "average-unsupplied-energy-cost": f"{self.energy_cost_unsupplied:.6f}",
+            "average-spilled-energy-cost": f"{self.energy_cost_spilled:.6f}",
         }
 
     @computed_field  # type: ignore[misc]
     @property
     def filtering(self) -> Mapping[str, str]:
         return {
-            "filter-synthesis": ", ".join(filter_value for filter_value in sort_filter_values(self._filter_synthesis)),
-            "filter-year-by-year": ", ".join(filter_value for filter_value in sort_filter_values(self._filter_by_year)),
+            "filter-synthesis": ", ".join(filter_value for filter_value in sort_filter_values(self.filter_synthesis)),
+            "filter-year-by-year": ", ".join(filter_value for filter_value in sort_filter_values(self.filter_by_year)),
         }
 
-    def adequacy_patch_mode(self) -> dict[str, dict[str, str]]:
-        return {"adequacy-patch": {"adequacy-patch-mode": self._adequacy_patch_mode.value}}
+    def adequacy_patch(self) -> dict[str, dict[str, str]]:
+        return {"adequacy-patch": {"adequacy-patch-mode": self.adequacy_patch_mode.value}}
+
+    def yield_local_dict(self) -> dict[str, Mapping[str, str]]:
+        args = {"nodal optimization": self.nodal_optimization}
+        args.update({"filtering": self.filtering})
+        return args
 
     def yield_area_properties(self) -> AreaProperties:
-        return AreaProperties(
-            energy_cost_unsupplied=self._energy_cost_unsupplied,
-            energy_cost_spilled=self._energy_cost_spilled,
-            non_dispatch_power=self._non_dispatch_power,
-            dispatch_hydro_power=self._dispatch_hydro_power,
-            other_dispatch_power=self._other_dispatch_power,
-            filter_synthesis=self._filter_synthesis,
-            filter_by_year=self._filter_by_year,
-            adequacy_patch_mode=self._adequacy_patch_mode,
-            spread_unsupplied_energy_cost=self._spread_unsupplied_energy_cost,
-            spread_spilled_energy_cost=self._spread_spilled_energy_cost,
-        )
+        excludes = {"filtering", "nodal_optimization"}
+        return AreaProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
 
 
 class AreaUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):

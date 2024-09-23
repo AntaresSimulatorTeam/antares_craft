@@ -11,12 +11,13 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Optional, Any
+from typing import Optional
 
 import pandas as pd
-from pydantic import BaseModel, computed_field
+from pydantic import computed_field
 
 from antares.model.cluster import ClusterProperties
+from antares.tools.all_optional_meta import all_optional_model
 from antares.tools.contents_tool import transform_name_to_id
 
 
@@ -54,70 +55,40 @@ class TimeSeriesInterpretation(Enum):
     PRODUCTION_FACTOR = "production-factor"
 
 
-class RenewableClusterProperties(ClusterProperties):
+class DefaultRenewableClusterProperties(ClusterProperties):
     """
     Properties of a renewable cluster read from the configuration files.
     """
 
-    group: Optional[RenewableClusterGroup] = None
-    ts_interpretation: Optional[TimeSeriesInterpretation] = None
+    group: RenewableClusterGroup = RenewableClusterGroup.OTHER1
+    ts_interpretation: TimeSeriesInterpretation = TimeSeriesInterpretation.POWER_GENERATION
 
 
-# TODO update to use check_if_none
-class RenewableClusterPropertiesLocal(
-    BaseModel,
-):
-    def __init__(
-        self,
-        renewable_name: str,
-        renewable_cluster_properties: Optional[RenewableClusterProperties] = None,
-        **kwargs: Optional[Any],
-    ):
-        super().__init__(**kwargs)
-        renewable_cluster_properties = renewable_cluster_properties or RenewableClusterProperties()
-        self._renewable_name = renewable_name
-        self._enabled = (
-            renewable_cluster_properties.enabled if renewable_cluster_properties.enabled is not None else True
-        )
-        self._unit_count = (
-            renewable_cluster_properties.unit_count if renewable_cluster_properties.unit_count is not None else 1
-        )
-        self._nominal_capacity = (
-            renewable_cluster_properties.nominal_capacity
-            if renewable_cluster_properties.nominal_capacity is not None
-            else 0
-        )
-        self._group = renewable_cluster_properties.group or RenewableClusterGroup.OTHER1
-        self._ts_interpretation = (
-            renewable_cluster_properties.ts_interpretation or TimeSeriesInterpretation.POWER_GENERATION
-        )
+@all_optional_model
+class RenewableClusterProperties(DefaultRenewableClusterProperties):
+    pass
 
-    @property
-    def renewable_name(self) -> str:
-        return self._renewable_name
+
+class RenewableClusterPropertiesLocal(DefaultRenewableClusterProperties):
+    renewable_name: str
 
     @computed_field  # type: ignore[misc]
     @property
     def ini_fields(self) -> dict[str, dict[str, str]]:
         return {
-            self._renewable_name: {
-                "name": self._renewable_name,
-                "group": self._group.value,
-                "enabled": f"{self._enabled}".lower(),
-                "nominalcapacity": f"{self._nominal_capacity:.6f}",
-                "unitcount": f"{self._unit_count}",
-                "ts-interpretation": self._ts_interpretation.value,
+            self.renewable_name: {
+                "name": self.renewable_name,
+                "group": self.group.value,
+                "enabled": f"{self.enabled}".lower(),
+                "nominalcapacity": f"{self.nominal_capacity:.6f}",
+                "unitcount": f"{self.unit_count}",
+                "ts-interpretation": self.ts_interpretation.value,
             }
         }
 
     def yield_renewable_cluster_properties(self) -> RenewableClusterProperties:
-        return RenewableClusterProperties(
-            enabled=self._enabled,
-            unit_count=self._unit_count,
-            nominal_capacity=self._nominal_capacity,
-            group=self._group,
-            ts_interpretation=self._ts_interpretation,
-        )
+        excludes = {"renewable_name", "ini_fields"}
+        return RenewableClusterProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
 
 
 class RenewableCluster:

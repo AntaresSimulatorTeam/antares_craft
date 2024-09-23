@@ -524,7 +524,7 @@ layers = 0
     def test_areas_have_default_properties(self, tmp_path, local_study_w_areas):
         # Given
         expected_default_properties = {
-            "nodal_optimization": {
+            "nodal optimization": {
                 "non-dispatchable-power": "true",
                 "dispatchable-hydro-power": "true",
                 "other-dispatchable-power": "true",
@@ -541,7 +541,8 @@ layers = 0
 
         # When
         actual_area_properties = local_study_w_areas.get_areas()["fr"].properties
-        actual_properties = AreaPropertiesLocal(actual_area_properties).model_dump(exclude_none=True)
+        created_properties = actual_area_properties.model_dump(mode="json", exclude_none=True)
+        actual_properties = AreaPropertiesLocal.model_validate(created_properties).yield_local_dict()
 
         assert expected_default_properties == actual_properties
 
@@ -555,7 +556,7 @@ layers = 0
             filter_by_year={FilterOption.ANNUAL, FilterOption.ANNUAL, FilterOption.HOURLY, FilterOption.WEEKLY},
         )
         expected_properties = {
-            "nodal_optimization": {
+            "nodal optimization": {
                 "non-dispatchable-power": "true",
                 "dispatchable-hydro-power": "false",
                 "other-dispatchable-power": "true",
@@ -572,8 +573,8 @@ layers = 0
 
         # When
         created_area = local_study.create_area(area_name=area_to_create, properties=area_properties)
-        actual_properties = AreaPropertiesLocal(created_area.properties).model_dump(exclude_none=True)
-
+        created_properties = created_area.properties.model_dump(mode="json", exclude_none=True)
+        actual_properties = AreaPropertiesLocal.model_validate(created_properties).yield_local_dict()
         assert expected_properties == actual_properties
 
     def test_areas_ini_has_correct_sections(self, actual_thermal_areas_ini):
@@ -767,7 +768,7 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
 """
         expected_ini = ConfigParser()
         expected_ini.read_string(expected_ini_content)
-        default_properties = LinkPropertiesLocal(LinkProperties()).yield_link_properties()
+        default_properties = LinkPropertiesLocal().yield_link_properties()
 
         # When
         area_from, area_to = link_to_create.split("_")
@@ -834,7 +835,8 @@ filter-year-by-year = daily, weekly
 
         # Then
         assert actual_ini_content == expected_ini_content
-        assert link_created.properties == LinkPropertiesLocal(link_properties).yield_link_properties()
+        created_properties = link_properties.model_dump(mode="json", exclude_none=True)
+        assert link_created.properties == LinkPropertiesLocal.model_validate(created_properties).yield_link_properties()
         assert expected_ini == actual_ini
 
     def test_multiple_links_created_from_same_area(self, tmp_path, local_study_w_areas):
@@ -1068,5 +1070,7 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         assert isinstance(local_study_w_areas.get_links()[link_to_create].ui, LinkUi)
         assert actual_ini == expected_ini
         assert actual_ini_string == expected_ini_string
-        assert actual_properties == LinkPropertiesLocal(expected_properties).yield_link_properties()
-        assert actual_ui == LinkUiLocal(expected_ui).yield_link_ui()
+        created_properties = expected_properties.model_dump(mode="json", exclude_none=True)
+        assert actual_properties == LinkPropertiesLocal.model_validate(created_properties).yield_link_properties()
+        created_ui = expected_ui.model_dump(mode="json", exclude_none=True)
+        assert actual_ui == LinkUiLocal.model_validate(created_ui).yield_link_ui()

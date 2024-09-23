@@ -225,14 +225,11 @@ variableomcost = 5.000000
     ):
         # Given
         local_study_w_thermal.get_areas()["fr"].create_thermal_cluster("test thermal cluster two")
-        expected_list_ini_dict = ThermalClusterPropertiesLocal(
-            thermal_name="test thermal cluster", thermal_cluster_properties=default_thermal_cluster_properties
-        ).list_ini_fields
-        expected_list_ini_dict.update(
-            ThermalClusterPropertiesLocal(
-                thermal_name="test thermal cluster two", thermal_cluster_properties=default_thermal_cluster_properties
-            ).list_ini_fields
-        )
+        args = default_thermal_cluster_properties.model_dump(mode="json", exclude_none=True)
+        args["thermal_name"] = "test thermal cluster"
+        expected_list_ini_dict = ThermalClusterPropertiesLocal.model_validate(args).list_ini_fields
+        args["thermal_name"] = "test thermal cluster two"
+        expected_list_ini_dict.update(ThermalClusterPropertiesLocal.model_validate(args).list_ini_fields)
 
         expected_list_ini = ConfigParser()
         expected_list_ini.read_dict(expected_list_ini_dict)
@@ -251,20 +248,13 @@ variableomcost = 5.000000
         first_cluster_alphabetically = "a is before b and t"
         second_cluster_alphabetically = "b is after a"
 
-        expected_list_ini_dict = ThermalClusterPropertiesLocal(
-            thermal_name=first_cluster_alphabetically, thermal_cluster_properties=default_thermal_cluster_properties
-        ).list_ini_fields
-        expected_list_ini_dict.update(
-            ThermalClusterPropertiesLocal(
-                thermal_name=second_cluster_alphabetically,
-                thermal_cluster_properties=default_thermal_cluster_properties,
-            ).list_ini_fields
-        )
-        expected_list_ini_dict.update(
-            ThermalClusterPropertiesLocal(
-                thermal_name="test thermal cluster", thermal_cluster_properties=default_thermal_cluster_properties
-            ).list_ini_fields
-        )
+        args = default_thermal_cluster_properties.model_dump(mode="json", exclude_none=True)
+        args["thermal_name"] = first_cluster_alphabetically
+        expected_list_ini_dict = ThermalClusterPropertiesLocal.model_validate(args).list_ini_fields
+        args["thermal_name"] = second_cluster_alphabetically
+        expected_list_ini_dict.update(ThermalClusterPropertiesLocal.model_validate(args).list_ini_fields)
+        args["thermal_name"] = "test thermal cluster"
+        expected_list_ini_dict.update(ThermalClusterPropertiesLocal.model_validate(args).list_ini_fields)
         expected_list_ini = ConfigParser()
         expected_list_ini.read_dict(expected_list_ini_dict)
 
@@ -341,12 +331,11 @@ ts-interpretation = power-generation
 
     def test_renewable_cluster_and_ini_have_custom_properties(self, local_study_w_thermal, actual_renewable_list_ini):
         # Given
-        custom_properties = RenewableClusterPropertiesLocal(
-            "renewable cluster",
-            RenewableClusterProperties(
-                group=RenewableClusterGroup.WIND_OFF_SHORE, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
-            ),
+        props = RenewableClusterProperties(
+            group=RenewableClusterGroup.WIND_OFF_SHORE, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
         )
+        args = {"renewable_name": "renewable cluster", **props.model_dump(mode="json", exclude_none=True)}
+        custom_properties = RenewableClusterPropertiesLocal.model_validate(args)
         expected_renewables_list_ini_content = """[renewable cluster]
 name = renewable cluster
 group = Wind Offshore
@@ -432,10 +421,9 @@ enabled = true
 
     def test_st_storage_and_ini_have_custom_properties(self, local_study_with_st_storage, actual_st_storage_list_ini):
         # Given
-        custom_properties = STStoragePropertiesLocal(
-            "short term storage",
-            STStorageProperties(group=STStorageGroup.BATTERY, reservoir_capacity=12.345),
-        )
+        props = STStorageProperties(group=STStorageGroup.BATTERY, reservoir_capacity=12.345)
+        args = {"st_storage_name": "short term storage", **props.model_dump(mode="json", exclude_none=True)}
+        custom_properties = STStoragePropertiesLocal.model_validate(args)
         expected_st_storage_list_ini_content = """[short term storage]
 name = short term storage
 group = Battery

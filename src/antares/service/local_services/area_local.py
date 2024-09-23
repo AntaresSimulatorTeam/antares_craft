@@ -77,7 +77,9 @@ class AreaLocalService(BaseAreaService):
         thermal_name: str,
         properties: Optional[ThermalClusterProperties] = None,
     ) -> ThermalCluster:
-        local_thermal_properties = ThermalClusterPropertiesLocal(thermal_name, properties)
+        properties = properties or ThermalClusterProperties()
+        args = {"thermal_name": thermal_name, **properties.model_dump(mode="json", exclude_none=True)}
+        local_thermal_properties = ThermalClusterPropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name=area_id)
         list_ini.add_section(local_thermal_properties.list_ini_fields)
@@ -107,7 +109,9 @@ class AreaLocalService(BaseAreaService):
         properties: Optional[RenewableClusterProperties] = None,
         series: Optional[pd.DataFrame] = None,
     ) -> RenewableCluster:
-        local_properties = RenewableClusterPropertiesLocal(renewable_name, properties)
+        properties = properties or RenewableClusterProperties()
+        args = {"renewable_name": renewable_name, **properties.model_dump(mode="json", exclude_none=True)}
+        local_properties = RenewableClusterPropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name=area_id)
         list_ini.add_section(local_properties.ini_fields)
@@ -125,7 +129,9 @@ class AreaLocalService(BaseAreaService):
     def create_st_storage(
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
-        local_st_storage_properties = STStoragePropertiesLocal(st_storage_name, properties)
+        properties = properties or STStorageProperties()
+        args = {"st_storage_name": st_storage_name, **properties.model_dump(mode="json", exclude_none=True)}
+        local_st_storage_properties = STStoragePropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name=area_id)
         list_ini.add_section(local_st_storage_properties.list_ini_fields)
@@ -164,7 +170,9 @@ class AreaLocalService(BaseAreaService):
         properties: Optional[HydroProperties] = None,
         matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
     ) -> Hydro:
-        local_hydro_properties = HydroPropertiesLocal(area_id, properties)
+        properties = properties or HydroProperties()
+        args = {"area_id": area_id, **properties.model_dump(mode="json", exclude_none=True)}
+        local_hydro_properties = HydroPropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, IniFileTypes.HYDRO_INI)
         list_ini.add_section(local_hydro_properties.hydro_ini_fields)
@@ -226,14 +234,18 @@ class AreaLocalService(BaseAreaService):
             with (self.config.study_path / IniFileTypes.AREAS_SETS_INI.value).open("w") as sets_ini:
                 sets_ini_content.write(sets_ini)
 
-            local_properties = AreaPropertiesLocal(properties) if properties else AreaPropertiesLocal()
+            local_properties = (
+                AreaPropertiesLocal.model_validate(properties.model_dump(mode="json", exclude_none=True))
+                if properties
+                else AreaPropertiesLocal()
+            )
 
             adequacy_patch_ini = IniFile(self.config.study_path, IniFileTypes.AREA_ADEQUACY_PATCH_INI, area_name)
-            adequacy_patch_ini.add_section(local_properties.adequacy_patch_mode())
+            adequacy_patch_ini.add_section(local_properties.adequacy_patch())
             adequacy_patch_ini.write_ini_file()
 
             optimization_ini = ConfigParser()
-            optimization_ini.read_dict(local_properties.model_dump(by_alias=True, exclude_none=True))
+            optimization_ini.read_dict(local_properties.yield_local_dict())
 
             with open(new_area_directory / "optimization.ini", "w") as optimization_ini_file:
                 optimization_ini.write(optimization_ini_file)

@@ -11,14 +11,14 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Optional, Any
+from typing import Optional
 
 import pandas as pd
 from pydantic import BaseModel, computed_field
 from pydantic.alias_generators import to_camel
 
+from antares.tools.all_optional_meta import all_optional_model
 from antares.tools.contents_tool import transform_name_to_id
-from antares.tools.ini_tool import check_if_none
 
 
 class STStorageGroup(Enum):
@@ -42,75 +42,52 @@ class STStorageMatrixName(Enum):
     INFLOWS = "inflows"
 
 
-class STStorageProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+class DefaultSTStorageProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     """
     Properties of a short-term storage system read from the configuration files.
 
     All aliases match the name of the corresponding field in the INI files.
     """
 
-    group: Optional[STStorageGroup] = None
-    injection_nominal_capacity: Optional[float] = None
-    withdrawal_nominal_capacity: Optional[float] = None
-    reservoir_capacity: Optional[float] = None
-    efficiency: Optional[float] = None
-    initial_level: Optional[float] = None
-    initial_level_optim: Optional[bool] = None
+    group: STStorageGroup = STStorageGroup.OTHER1
+    injection_nominal_capacity: float = 0
+    withdrawal_nominal_capacity: float = 0
+    reservoir_capacity: float = 0
+    efficiency: float = 1
+    initial_level: float = 0.5
+    initial_level_optim: bool = False
     # v880
-    enabled: Optional[bool] = None
+    enabled: bool = True
 
 
-class STStoragePropertiesLocal(BaseModel):
-    def __init__(
-        self,
-        st_storage_name: str,
-        st_storage_properties: Optional[STStorageProperties] = None,
-        **kwargs: Optional[Any],
-    ):
-        super().__init__(**kwargs)
-        st_storage_properties = st_storage_properties or STStorageProperties()
-        self._st_storage_name = st_storage_name
-        self._group = check_if_none(st_storage_properties.group, STStorageGroup.OTHER1)
-        self._injection_nominal_capacity = check_if_none(st_storage_properties.injection_nominal_capacity, 0)
-        self._withdrawal_nominal_capacity = check_if_none(st_storage_properties.withdrawal_nominal_capacity, 0)
-        self._reservoir_capacity = check_if_none(st_storage_properties.reservoir_capacity, 0)
-        self._efficiency = check_if_none(st_storage_properties.efficiency, 1)
-        self._initial_level = check_if_none(st_storage_properties.initial_level, 0.5)
-        self._initial_level_optim = check_if_none(st_storage_properties.initial_level_optim, False)
-        self._enabled = check_if_none(st_storage_properties.enabled, True)
+@all_optional_model
+class STStorageProperties(DefaultSTStorageProperties):
+    pass
 
-    @property
-    def st_storage_name(self) -> str:
-        return self._st_storage_name
+
+class STStoragePropertiesLocal(DefaultSTStorageProperties):
+    st_storage_name: str
 
     @computed_field  # type: ignore[misc]
     @property
     def list_ini_fields(self) -> dict[str, dict[str, str]]:
         return {
-            f"{self._st_storage_name}": {
-                "name": self._st_storage_name,
-                "group": self._group.value,
-                "injectionnominalcapacity": f"{self._injection_nominal_capacity:.6f}",
-                "withdrawalnominalcapacity": f"{self._withdrawal_nominal_capacity:.6f}",
-                "reservoircapacity": f"{self._reservoir_capacity:.6f}",
-                "efficiency": f"{self._efficiency:.6f}",
-                "initiallevel": f"{self._initial_level:.6f}",
-                "initialleveloptim": f"{self._initial_level_optim}".lower(),
-                "enabled": f"{self._enabled}".lower(),
+            f"{self.st_storage_name}": {
+                "name": self.st_storage_name,
+                "group": self.group.value,
+                "injectionnominalcapacity": f"{self.injection_nominal_capacity:.6f}",
+                "withdrawalnominalcapacity": f"{self.withdrawal_nominal_capacity:.6f}",
+                "reservoircapacity": f"{self.reservoir_capacity:.6f}",
+                "efficiency": f"{self.efficiency:.6f}",
+                "initiallevel": f"{self.initial_level:.6f}",
+                "initialleveloptim": f"{self.initial_level_optim}".lower(),
+                "enabled": f"{self.enabled}".lower(),
             }
         }
 
     def yield_st_storage_properties(self) -> STStorageProperties:
-        return STStorageProperties(
-            group=self._group,
-            injection_nominal_capacity=self._injection_nominal_capacity,
-            withdrawal_nominal_capacity=self._withdrawal_nominal_capacity,
-            reservoir_capacity=self._reservoir_capacity,
-            efficiency=self._efficiency,
-            initial_level=self._initial_level,
-            initial_level_optim=self._initial_level_optim,
-            enabled=self._enabled,
-        )
+        excludes = {"st_storage_name", "list_ini_fields"}
+        return STStorageProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
 
 
 class STStorage:
