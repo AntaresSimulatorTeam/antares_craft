@@ -11,15 +11,13 @@
 # This file is part of the Antares project.
 
 import pandas as pd
-
-from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import RenewablePropertiesUpdateError, RenewableMatrixDownloadError
-from antares.model.area import Area
-from antares.model.renewable import RenewableClusterProperties, RenewableCluster
-from antares.service.service_factory import ServiceFactory
-import requests_mock
-
 import pytest
+import requests_mock
+from antares.api_conf.api_conf import APIconf
+from antares.exceptions.exceptions import RenewableMatrixDownloadError, RenewablePropertiesUpdateError
+from antares.model.area import Area
+from antares.model.renewable import RenewableCluster, RenewableClusterProperties
+from antares.service.service_factory import ServiceFactory
 
 
 class TestCreateAPI:

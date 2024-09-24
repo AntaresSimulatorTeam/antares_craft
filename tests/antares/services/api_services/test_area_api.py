@@ -11,28 +11,27 @@
 # This file is part of the Antares project.
 
 
+import numpy as np
+import pandas as pd
+import pytest
+import requests_mock
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
-    ThermalCreationError,
-    RenewableCreationError,
-    STStorageCreationError,
     AreaPropertiesUpdateError,
     AreaUiUpdateError,
     LoadMatrixDownloadError,
     LoadMatrixUploadError,
     MatrixUploadError,
+    RenewableCreationError,
+    STStorageCreationError,
+    ThermalCreationError,
 )
-from antares.model.area import Area, AreaUi, AreaProperties
-from antares.model.hydro import HydroMatrixName, HydroProperties, Hydro
-from antares.model.renewable import RenewableClusterProperties, RenewableCluster
-from antares.model.st_storage import STStorageProperties, STStorage
-from antares.model.thermal import ThermalClusterProperties, ThermalCluster
+from antares.model.area import Area, AreaProperties, AreaUi
+from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
+from antares.model.renewable import RenewableCluster, RenewableClusterProperties
+from antares.model.st_storage import STStorage, STStorageProperties
+from antares.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.service.service_factory import ServiceFactory
-import requests_mock
-
-import pytest
-import pandas as pd
-import numpy as np
 
 
 class TestCreateAPI:

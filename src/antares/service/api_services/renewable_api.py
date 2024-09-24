@@ -16,7 +16,7 @@ import pandas as pd
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
-from antares.exceptions.exceptions import APIError, RenewablePropertiesUpdateError, RenewableMatrixDownloadError
+from antares.exceptions.exceptions import APIError, RenewableMatrixDownloadError, RenewablePropertiesUpdateError
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.service.api_services.utils import get_matrix
 from antares.service.base_services import BaseRenewableService

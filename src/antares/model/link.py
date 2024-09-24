@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Optional, Set, Mapping
+from typing import Mapping, Optional, Set
 
 from pydantic import BaseModel
 

@@ -15,7 +15,7 @@ import os
 import time
 from pathlib import Path
 from types import MappingProxyType
-from typing import Optional, Dict, List, Any
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -25,7 +25,7 @@ from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import APIError, StudyCreationError
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
-from antares.model.link import Link, LinkUi, LinkProperties
+from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings import StudySettings
 from antares.service.api_services.study_api import _returns_study_settings
 from antares.service.base_services import BaseStudyService

@@ -23,7 +23,7 @@ from antares.exceptions.exceptions import (
     LinkUiUpdateError,
 )
 from antares.model.area import Area
-from antares.model.link import LinkProperties, LinkUi, Link
+from antares.model.link import Link, LinkProperties, LinkUi
 from antares.service.base_services import BaseLinkService
 
 

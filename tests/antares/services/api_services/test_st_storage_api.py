@@ -11,19 +11,17 @@
 # This file is part of the Antares project.
 
 import pandas as pd
-
+import pytest
+import requests_mock
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
-    STStoragePropertiesUpdateError,
     STStorageMatrixDownloadError,
     STStorageMatrixUploadError,
+    STStoragePropertiesUpdateError,
 )
 from antares.model.area import Area
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.service.service_factory import ServiceFactory
-import requests_mock
-
-import pytest
 
 
 class TestCreateAPI:

@@ -12,27 +12,26 @@
 import numpy as np
 import pandas as pd
 import pytest
-
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
-    LoadMatrixUploadError,
-    STStorageMatrixUploadError,
+    AreaDeletionError,
     BindingConstraintCreationError,
     ConstraintMatrixUpdateError,
-    AreaDeletionError,
+    LoadMatrixUploadError,
+    STStorageMatrixUploadError,
 )
-from antares.model.settings.advanced_parameters import UnitCommitmentMode, AdvancedProperties
-from antares.model.study import create_study_api
-from antares.model.binding_constraint import BindingConstraintProperties, LinkData, ClusterData, ConstraintTerm
-from antares.model.link import LinkUi, LinkProperties, LinkStyle
-from antares.model.renewable import RenewableClusterProperties, RenewableClusterGroup, TimeSeriesInterpretation
-from antares.model.settings import StudySettings, GeneralProperties, PlaylistData
+from antares.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
+from antares.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
+from antares.model.link import LinkProperties, LinkStyle, LinkUi
+from antares.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
+from antares.model.settings import GeneralProperties, PlaylistData, StudySettings
+from antares.model.settings.advanced_parameters import AdvancedProperties, UnitCommitmentMode
 from antares.model.settings.general import Mode
-from antares.model.st_storage import STStorageProperties, STStorageGroup, STStorageMatrixName
-from antares.model.thermal import ThermalClusterProperties, ThermalClusterGroup
+from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
+from antares.model.study import create_study_api
+from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 
-from antares.model.area import AreaUi, AreaProperties, AdequacyPatchMode, FilterOption
-from tests.integration.antares_web_desktop import AntaresWebDesktop
+from integration.antares_web_desktop import AntaresWebDesktop
 
 
 # todo add integration tests for matrices

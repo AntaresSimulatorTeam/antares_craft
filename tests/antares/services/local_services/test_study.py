@@ -19,29 +19,28 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
-
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import CustomError, LinkCreationError
-from antares.model.area import AreaProperties, AreaUi, AreaUiLocal, AreaPropertiesLocal, Area
+from antares.model.area import Area, AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
 from antares.model.binding_constraint import (
     BindingConstraint,
-    BindingConstraintProperties,
     BindingConstraintFrequency,
     BindingConstraintOperator,
+    BindingConstraintProperties,
     ConstraintTerm,
     BindingConstraintPropertiesLocal,
 )
 from antares.model.commons import FilterOption
 from antares.model.hydro import Hydro
 from antares.model.link import (
+    AssetType,
     Link,
     LinkProperties,
     LinkPropertiesLocal,
-    TransmissionCapacities,
-    LinkUi,
-    AssetType,
     LinkStyle,
+    LinkUi,
     LinkUiLocal,
+    TransmissionCapacities,
 )
 from antares.model.study import create_study_local
 from antares.service.local_services.area_local import AreaLocalService

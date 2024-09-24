@@ -12,28 +12,28 @@
 
 from abc import ABC, abstractmethod
 from types import MappingProxyType
-from typing import Optional, Dict, List
+from typing import Dict, List, Optional
 
 import pandas as pd
 
 from antares.config.base_configuration import BaseConfiguration
-from antares.model.area import AreaProperties, Area, AreaUi
+from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import (
-    BindingConstraintProperties,
-    ConstraintTerm,
     BindingConstraint,
+    BindingConstraintProperties,
     ConstraintMatrixName,
+    ConstraintTerm,
 )
-from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
-from antares.model.link import LinkProperties, LinkUi, Link
+from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
+from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.load import Load
 from antares.model.misc_gen import MiscGen
-from antares.model.renewable import RenewableClusterProperties, RenewableCluster
+from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.reserves import Reserves
 from antares.model.settings import StudySettings
 from antares.model.solar import Solar
-from antares.model.st_storage import STStorageProperties, STStorage
-from antares.model.thermal import ThermalClusterProperties, ThermalCluster, ThermalClusterMatrixName
+from antares.model.st_storage import STStorage, STStorageProperties
+from antares.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
 from antares.model.wind import Wind
 
 

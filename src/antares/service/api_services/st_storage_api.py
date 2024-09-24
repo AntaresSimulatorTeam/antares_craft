@@ -16,11 +16,11 @@ from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
 from antares.exceptions.exceptions import (
     APIError,
-    STStoragePropertiesUpdateError,
-    STStorageMatrixUploadError,
     STStorageMatrixDownloadError,
+    STStorageMatrixUploadError,
+    STStoragePropertiesUpdateError,
 )
-from antares.model.st_storage import STStorage, STStorageProperties, STStorageMatrixName
+from antares.model.st_storage import STStorage, STStorageMatrixName, STStorageProperties
 from antares.service.base_services import BaseShortTermStorageService
 
 
