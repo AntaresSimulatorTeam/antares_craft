@@ -13,9 +13,7 @@ from antares.service.base_services import BaseBindingConstraintService
 
 
 class BindingConstraintLocalService(BaseBindingConstraintService):
-    def __init__(
-        self, config: LocalConfiguration, study_name: str, **kwargs: Any
-    ) -> None:
+    def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
@@ -31,9 +29,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     ) -> BindingConstraint:
         raise NotImplementedError
 
-    def add_constraint_terms(
-        self, constraint: BindingConstraint, terms: List[ConstraintTerm]
-    ) -> List[ConstraintTerm]:
+    def add_constraint_terms(self, constraint: BindingConstraint, terms: List[ConstraintTerm]) -> List[ConstraintTerm]:
         raise NotImplementedError
 
     def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
@@ -46,9 +42,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     ) -> BindingConstraintProperties:
         raise NotImplementedError
 
-    def get_constraint_matrix(
-        self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName
-    ) -> pd.DataFrame:
+    def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
         raise NotImplementedError
 
     def update_constraint_matrix(

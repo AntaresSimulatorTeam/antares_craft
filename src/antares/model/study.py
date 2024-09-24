@@ -72,15 +72,11 @@ def create_study_api(
         response = wrapper.post(url)
         study_id = response.json()
 
-        study_settings = _returns_study_settings(
-            base_url, study_id, wrapper, False, settings
-        )
+        study_settings = _returns_study_settings(base_url, study_id, wrapper, False, settings)
 
     except APIError as e:
         raise StudyCreationError(study_name, e.message) from e
-    return Study(
-        study_name, version, ServiceFactory(api_config, study_id), study_settings
-    )
+    return Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:
@@ -170,9 +166,7 @@ InfoTip = Antares Study {version}: {study_name}
     )
 
 
-def read_study_local(
-    study_name: str, version: str, local_config: LocalConfiguration
-) -> "Study":
+def read_study_local(study_name: str, version: str, local_config: LocalConfiguration) -> "Study":
     """
     Create a directory structure for the study with empty files.
     Args:
@@ -217,9 +211,7 @@ class Study:
             self._study_service = service_factory.create_study_service()
             self._area_service = service_factory.create_area_service()
             self._link_service = service_factory.create_link_service()
-            self._binding_constraints_service = (
-                service_factory.create_binding_constraints_service()
-            )
+            self._binding_constraints_service = service_factory.create_binding_constraints_service()
             self._settings = settings or StudySettings()
             self._areas: Dict[str, Area] = dict()
             self._links: Dict[str, Link] = dict()
@@ -271,9 +263,7 @@ class Study:
         ui: Optional[LinkUi] = None,
         existing_areas: Optional[MappingProxyType[str, Area]] = None,
     ) -> Link:
-        link = self._link_service.create_link(
-            area_from, area_to, properties, ui, existing_areas
-        )
+        link = self._link_service.create_link(area_from, area_to, properties, ui, existing_areas)
         self._links[link.name] = link
         return link
 

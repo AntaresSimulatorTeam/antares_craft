@@ -18,7 +18,5 @@ from antares.api_conf.request_wrapper import RequestWrapper
 def get_matrix(url: str, wrapper: RequestWrapper) -> pd.DataFrame:
     response = wrapper.get(url)
     json_df = response.json()
-    dataframe = pd.DataFrame(
-        data=json_df["data"], index=json_df["index"], columns=json_df["columns"]
-    )
+    dataframe = pd.DataFrame(data=json_df["data"], index=json_df["index"], columns=json_df["columns"])
     return dataframe

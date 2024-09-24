@@ -42,9 +42,7 @@ class RenewableApiService(BaseRenewableService):
     ) -> RenewableClusterProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{renewable_cluster.area_id}/clusters/renewable/{renewable_cluster.id}"
         try:
-            body = json.loads(
-                properties.model_dump_json(by_alias=True, exclude_none=True)
-            )
+            body = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
             if not body:
                 return renewable_cluster.properties
 
@@ -55,9 +53,7 @@ class RenewableApiService(BaseRenewableService):
             new_properties = RenewableClusterProperties.model_validate(json_response)
 
         except APIError as e:
-            raise RenewablePropertiesUpdateError(
-                renewable_cluster.id, renewable_cluster.area_id, e.message
-            ) from e
+            raise RenewablePropertiesUpdateError(renewable_cluster.id, renewable_cluster.area_id, e.message) from e
 
         return new_properties
 
@@ -76,6 +72,4 @@ class RenewableApiService(BaseRenewableService):
                 self._wrapper,
             )
         except APIError as e:
-            raise RenewableMatrixDownloadError(
-                renewable.area_id, renewable.name, e.message
-            ) from e
+            raise RenewableMatrixDownloadError(renewable.area_id, renewable.name, e.message) from e

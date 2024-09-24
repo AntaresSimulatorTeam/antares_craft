@@ -24,7 +24,12 @@ from antares.model.renewable import (
     TimeSeriesInterpretation,
     RenewableClusterPropertiesLocal,
 )
-from antares.model.st_storage import STStorage, STStoragePropertiesLocal, STStorageProperties, STStorageGroup
+from antares.model.st_storage import (
+    STStorage,
+    STStoragePropertiesLocal,
+    STStorageProperties,
+    STStorageGroup,
+)
 from antares.model.thermal import (
     ThermalCluster,
     ThermalClusterProperties,
@@ -221,16 +226,21 @@ variableomcost = 5.000000
         assert actual_thermal_list_ini.parsed_ini == expected_list_ini
 
     def test_list_ini_has_multiple_clusters(
-        self, local_study_w_thermal, actual_thermal_list_ini, default_thermal_cluster_properties
+        self,
+        local_study_w_thermal,
+        actual_thermal_list_ini,
+        default_thermal_cluster_properties,
     ):
         # Given
         local_study_w_thermal.get_areas()["fr"].create_thermal_cluster("test thermal cluster two")
         expected_list_ini_dict = ThermalClusterPropertiesLocal(
-            thermal_name="test thermal cluster", thermal_cluster_properties=default_thermal_cluster_properties
+            thermal_name="test thermal cluster",
+            thermal_cluster_properties=default_thermal_cluster_properties,
         ).list_ini_fields
         expected_list_ini_dict.update(
             ThermalClusterPropertiesLocal(
-                thermal_name="test thermal cluster two", thermal_cluster_properties=default_thermal_cluster_properties
+                thermal_name="test thermal cluster two",
+                thermal_cluster_properties=default_thermal_cluster_properties,
             ).list_ini_fields
         )
 
@@ -245,14 +255,18 @@ variableomcost = 5.000000
         assert actual_thermal_list_ini.parsed_ini == expected_list_ini
 
     def test_clusters_are_alphabetical_in_list_ini(
-        self, local_study_w_thermal, actual_thermal_list_ini, default_thermal_cluster_properties
+        self,
+        local_study_w_thermal,
+        actual_thermal_list_ini,
+        default_thermal_cluster_properties,
     ):
         # Given
         first_cluster_alphabetically = "a is before b and t"
         second_cluster_alphabetically = "b is after a"
 
         expected_list_ini_dict = ThermalClusterPropertiesLocal(
-            thermal_name=first_cluster_alphabetically, thermal_cluster_properties=default_thermal_cluster_properties
+            thermal_name=first_cluster_alphabetically,
+            thermal_cluster_properties=default_thermal_cluster_properties,
         ).list_ini_fields
         expected_list_ini_dict.update(
             ThermalClusterPropertiesLocal(
@@ -262,7 +276,8 @@ variableomcost = 5.000000
         )
         expected_list_ini_dict.update(
             ThermalClusterPropertiesLocal(
-                thermal_name="test thermal cluster", thermal_cluster_properties=default_thermal_cluster_properties
+                thermal_name="test thermal cluster",
+                thermal_cluster_properties=default_thermal_cluster_properties,
             ).list_ini_fields
         )
         expected_list_ini = ConfigParser()
@@ -290,7 +305,8 @@ class TestCreateRenewablesCluster:
         # Then
         assert local_study_w_thermal.get_areas()["fr"].get_renewables()
         assert isinstance(
-            local_study_w_thermal.get_areas()["fr"].get_renewables()[renewable_cluster_name], RenewableCluster
+            local_study_w_thermal.get_areas()["fr"].get_renewables()[renewable_cluster_name],
+            RenewableCluster,
         )
 
     def test_renewable_cluster_has_properties(self, local_study_with_renewable):
@@ -344,7 +360,8 @@ ts-interpretation = power-generation
         custom_properties = RenewableClusterPropertiesLocal(
             "renewable cluster",
             RenewableClusterProperties(
-                group=RenewableClusterGroup.WIND_OFF_SHORE, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
+                group=RenewableClusterGroup.WIND_OFF_SHORE,
+                ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR,
             ),
         )
         expected_renewables_list_ini_content = """[renewable cluster]
@@ -381,7 +398,10 @@ class TestCreateSTStorage:
 
         # Then
         assert local_study_with_renewable.get_areas()["fr"].get_st_storages()
-        assert isinstance(local_study_with_renewable.get_areas()["fr"].get_st_storages()[storage_name], STStorage)
+        assert isinstance(
+            local_study_with_renewable.get_areas()["fr"].get_st_storages()[storage_name],
+            STStorage,
+        )
 
     def test_storage_has_properties(self, local_study_with_st_storage):
         assert (

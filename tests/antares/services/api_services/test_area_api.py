@@ -62,7 +62,16 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             ui = AreaUi(layerX={"1": 0}, layerY={"1": 0}, layerColor={"1": "0"})
             url1 = f"https://antares.com/api/v1/studies/{self.study_id}/areas?type=AREA&ui=true"
-            ui_info = {"ui": {"x": 0, "y": 0, "layers": 0, "color_r": 0, "color_g": 0, "color_b": 0}}
+            ui_info = {
+                "ui": {
+                    "x": 0,
+                    "y": 0,
+                    "layers": 0,
+                    "color_r": 0,
+                    "color_g": 0,
+                    "color_b": 0,
+                }
+            }
             area_ui = {**ui.model_dump(by_alias=True), **ui_info}
             mocker.get(url1, json={self.area.id: area_ui}, status_code=201)
             url2 = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/ui"
@@ -74,7 +83,16 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             ui = AreaUi(layerX={"1": 0}, layerY={"1": 0}, layerColor={"1": "0"})
             url1 = f"https://antares.com/api/v1/studies/{self.study_id}/areas?type=AREA&ui=true"
-            ui_info = {"ui": {"x": 0, "y": 0, "layers": 0, "color_r": 0, "color_g": 0, "color_b": 0}}
+            ui_info = {
+                "ui": {
+                    "x": 0,
+                    "y": 0,
+                    "layers": 0,
+                    "color_r": 0,
+                    "color_g": 0,
+                    "color_b": 0,
+                }
+            }
             area_ui = {**ui.model_dump(by_alias=True), **ui_info}
             mocker.get(url1, json={self.area.id: area_ui}, status_code=201)
             url2 = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/ui"
@@ -91,14 +109,22 @@ class TestCreateAPI:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/clusters/thermal"
             json_response = json.loads(ThermalClusterProperties().model_dump_json(by_alias=True))
             thermal_name = "thermal_cluster"
-            mocker.post(url, json={"name": thermal_name, "id": thermal_name, **json_response}, status_code=201)
+            mocker.post(
+                url,
+                json={"name": thermal_name, "id": thermal_name, **json_response},
+                status_code=201,
+            )
             thermal = self.area.create_thermal_cluster(thermal_name=thermal_name)
             assert isinstance(thermal, ThermalCluster)
 
     def test_create_thermal_fails(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/clusters/thermal"
-            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            mocker.post(
+                url,
+                json={"description": self.antares_web_description_msg},
+                status_code=404,
+            )
             thermal_name = "thermal_cluster"
 
             with pytest.raises(
@@ -112,17 +138,27 @@ class TestCreateAPI:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/clusters/renewable"
             json_response = json.loads(RenewableClusterProperties().model_dump_json(by_alias=True))
             renewable_name = "renewable_cluster"
-            mocker.post(url, json={"name": renewable_name, "id": renewable_name, **json_response}, status_code=201)
+            mocker.post(
+                url,
+                json={"name": renewable_name, "id": renewable_name, **json_response},
+                status_code=201,
+            )
 
             renewable = self.area.create_renewable_cluster(
-                renewable_name=renewable_name, properties=RenewableClusterProperties(), series=None
+                renewable_name=renewable_name,
+                properties=RenewableClusterProperties(),
+                series=None,
             )
             assert isinstance(renewable, RenewableCluster)
 
     def test_create_renewable_fails(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/clusters/renewable"
-            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            mocker.post(
+                url,
+                json={"description": self.antares_web_description_msg},
+                status_code=404,
+            )
             renewable_name = "renewable_cluster"
 
             with pytest.raises(
@@ -130,7 +166,9 @@ class TestCreateAPI:
                 match=f"Could not create the renewable cluster {renewable_name} inside area {self.area.id}: {self.antares_web_description_msg}",
             ):
                 self.area.create_renewable_cluster(
-                    renewable_name=renewable_name, properties=RenewableClusterProperties(), series=None
+                    renewable_name=renewable_name,
+                    properties=RenewableClusterProperties(),
+                    series=None,
                 )
 
     def test_create_st_storage_success(self):
@@ -138,7 +176,11 @@ class TestCreateAPI:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/storages"
             json_response = json.loads(STStorageProperties().model_dump_json(by_alias=True))
             st_storage_name = "short_term_storage"
-            mocker.post(url, json={"name": st_storage_name, "id": st_storage_name, **json_response}, status_code=201)
+            mocker.post(
+                url,
+                json={"name": st_storage_name, "id": st_storage_name, **json_response},
+                status_code=201,
+            )
 
             st_storage = self.area.create_st_storage(st_storage_name=st_storage_name)
             assert isinstance(st_storage, STStorage)
@@ -146,7 +188,11 @@ class TestCreateAPI:
     def test_create_st_storage_fails(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/storages"
-            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            mocker.post(
+                url,
+                json={"description": self.antares_web_description_msg},
+                status_code=404,
+            )
             st_storage_name = "short_term_storage"
 
             with pytest.raises(
@@ -224,7 +270,11 @@ class TestCreateAPI:
     def test_get_load_matrix_fails(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
-            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            mocker.get(
+                url,
+                json={"description": self.antares_web_description_msg},
+                status_code=404,
+            )
             with pytest.raises(
                 LoadMatrixDownloadError,
                 match=f"Could not download load matrix for area {self.area.id}: {self.antares_web_description_msg}",
@@ -240,7 +290,11 @@ class TestCreateAPI:
     def test_upload_load_matrix_fails(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
-            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            mocker.post(
+                url,
+                json={"description": self.antares_web_description_msg},
+                status_code=404,
+            )
             with pytest.raises(
                 LoadMatrixUploadError,
                 match=f"Could not upload load matrix for area {self.area.id}: {self.antares_web_description_msg}",
@@ -250,7 +304,11 @@ class TestCreateAPI:
     def test_upload_wrong_load_matrix_fails(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
-            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            mocker.post(
+                url,
+                json={"description": self.antares_web_description_msg},
+                status_code=404,
+            )
             with pytest.raises(
                 LoadMatrixUploadError,
                 match=f"Could not upload load matrix for area {self.area.id}: Expected 8760 rows and received 1.",
@@ -282,10 +340,15 @@ class TestCreateAPI:
     def test_create_reserves_fails(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=" f"input/reserves/{self.area.id}"
-            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            mocker.post(
+                url,
+                json={"description": self.antares_web_description_msg},
+                status_code=404,
+            )
 
             with pytest.raises(
-                MatrixUploadError, match=f"Error uploading matrix for area {self.area.id}: Mocked Server KO"
+                MatrixUploadError,
+                match=f"Error uploading matrix for area {self.area.id}: Mocked Server KO",
             ):
                 self.area.create_reserves(series=self.matrix)
 

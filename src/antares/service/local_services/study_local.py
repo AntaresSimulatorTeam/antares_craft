@@ -9,9 +9,7 @@ from antares.service.base_services import BaseStudyService
 
 
 class StudyLocalService(BaseStudyService):
-    def __init__(
-        self, config: LocalConfiguration, study_name: str, **kwargs: Any
-    ) -> None:
+    def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self._config = config
         self._study_name = study_name
@@ -37,25 +35,19 @@ class StudyLocalService(BaseStudyService):
         local_path = self._config.local_path
         patch_path = local_path / self._study_name / "patch.json"
         if not os.path.exists(patch_path):
-            return json.loads(
-                f"Le fichier {patch_path} n'existe pas dans le dossier {local_path / self._study_name}"
-            )
+            return json.loads(f"Le fichier {patch_path} n'existe pas dans le dossier {local_path / self._study_name}")
         try:
             with open(patch_path, "r") as file:
                 content = file.read()
                 try:
                     data = json.loads(content)
                 except json.JSONDecodeError:
-                    return json.loads(
-                        f"Le fichier {patch_path} ne contient pas du JSON valide"
-                    )
+                    return json.loads(f"Le fichier {patch_path} ne contient pas du JSON valide")
                 if "areas" in data:
                     areas = data["areas"]
                     if isinstance(areas, dict):
                         return list(areas.keys())
                 else:
-                    return json.loads(
-                        f"The key  'areas' n'existe pas dans le fichier JSON"
-                    )
+                    return json.loads(f"The key  'areas' n'existe pas dans le fichier JSON")
         except IOError:
             return f"Impossible de lire le fichier {patch_path}"

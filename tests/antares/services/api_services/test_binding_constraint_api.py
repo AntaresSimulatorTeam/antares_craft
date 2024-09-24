@@ -1,9 +1,16 @@
 import pandas as pd
 
 from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import ConstraintPropertiesUpdateError, ConstraintMatrixDownloadError
+from antares.exceptions.exceptions import (
+    ConstraintPropertiesUpdateError,
+    ConstraintMatrixDownloadError,
+)
 from antares.model.area import Area
-from antares.model.binding_constraint import BindingConstraintProperties, BindingConstraint, ConstraintMatrixName
+from antares.model.binding_constraint import (
+    BindingConstraintProperties,
+    BindingConstraint,
+    ConstraintMatrixName,
+)
 from antares.model.study import Study
 from antares.service.service_factory import ServiceFactory
 import requests_mock
@@ -14,9 +21,24 @@ import pytest
 @pytest.fixture
 def constraint_set():
     params = [
-        ("get_less_term_matrix", ConstraintMatrixName.LESS_TERM, "input/bindingconstraints/bc_test_lt", [[0]]),
-        ("get_greater_term_matrix", ConstraintMatrixName.GREATER_TERM, "input/bindingconstraints/bc_test_gt", [[0]]),
-        ("get_equal_term_matrix", ConstraintMatrixName.EQUAL_TERM, "input/bindingconstraints/bc_test_eq", [[0]]),
+        (
+            "get_less_term_matrix",
+            ConstraintMatrixName.LESS_TERM,
+            "input/bindingconstraints/bc_test_lt",
+            [[0]],
+        ),
+        (
+            "get_greater_term_matrix",
+            ConstraintMatrixName.GREATER_TERM,
+            "input/bindingconstraints/bc_test_gt",
+            [[0]],
+        ),
+        (
+            "get_equal_term_matrix",
+            ConstraintMatrixName.EQUAL_TERM,
+            "input/bindingconstraints/bc_test_eq",
+            [[0]],
+        ),
     ]
     return params
 
@@ -39,17 +61,28 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             properties = BindingConstraintProperties(enabled=False)
             constraint = BindingConstraint(
-                "bc_1", ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
+                "bc_1",
+                ServiceFactory(self.api, self.study_id).create_binding_constraints_service(),
             )
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}"
-            mocker.put(url, json={"id": "id", "name": "name", "terms": [], **properties.model_dump()}, status_code=200)
+            mocker.put(
+                url,
+                json={
+                    "id": "id",
+                    "name": "name",
+                    "terms": [],
+                    **properties.model_dump(),
+                },
+                status_code=200,
+            )
             constraint.update_properties(properties=properties)
 
     def test_update_binding_constraint_properties_fails(self):
         with requests_mock.Mocker() as mocker:
             properties = BindingConstraintProperties(enabled=False)
             constraint = BindingConstraint(
-                "bc_1", ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
+                "bc_1",
+                ServiceFactory(self.api, self.study_id).create_binding_constraints_service(),
             )
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}"
             antares_web_description_msg = "Server KO"
@@ -63,23 +96,33 @@ class TestCreateAPI:
 
     def test_get_constraint_matrix_success(self, constraint_set):
         constraint = BindingConstraint(
-            "bc_test", ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
+            "bc_test",
+            ServiceFactory(self.api, self.study_id).create_binding_constraints_service(),
         )
         for matrix_method, enum_value, path, expected_matrix in constraint_set:
             with requests_mock.Mocker() as mocker:
                 url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path={path}"
-                mocker.get(url, json={"data": expected_matrix, "index": [0], "columns": [0]}, status_code=200)
+                mocker.get(
+                    url,
+                    json={"data": expected_matrix, "index": [0], "columns": [0]},
+                    status_code=200,
+                )
                 constraint_matrix = getattr(constraint, matrix_method)()
             assert constraint_matrix.equals(self.matrix)
 
     def test_get_constraint_matrix_fails(self, constraint_set):
         constraint = BindingConstraint(
-            "bc_test", ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
+            "bc_test",
+            ServiceFactory(self.api, self.study_id).create_binding_constraints_service(),
         )
         for matrix_method, enum_value, path, _ in constraint_set:
             with requests_mock.Mocker() as mocker:
                 url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path={path}"
-                mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
+                mocker.get(
+                    url,
+                    json={"description": self.antares_web_description_msg},
+                    status_code=404,
+                )
                 with pytest.raises(
                     ConstraintMatrixDownloadError,
                     match=f"Could not download matrix {enum_value.value} for binding constraint {constraint.name}:",

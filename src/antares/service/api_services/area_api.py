@@ -97,9 +97,7 @@ class AreaApiService(BaseAreaService):
         base_area_url = f"{self._base_url}/studies/{self.study_id}/areas"
 
         try:
-            response = self._wrapper.post(
-                base_area_url, json={"name": area_name, "type": "AREA"}
-            )
+            response = self._wrapper.post(base_area_url, json={"name": area_name, "type": "AREA"})
             area_id = response.json()["id"]
 
             if properties:
@@ -173,9 +171,7 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/thermal"
             body = {"name": thermal_name.lower()}
             if properties:
-                camel_properties = json.loads(
-                    properties.model_dump_json(by_alias=True, exclude_none=True)
-                )
+                camel_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
@@ -236,9 +232,7 @@ class AreaApiService(BaseAreaService):
                 raise TypeError("body['args'] must be a dictionary")
 
             if parameters:
-                camel_properties = json.loads(
-                    parameters.model_dump_json(by_alias=True, exclude_none=True)
-                )
+                camel_properties = json.loads(parameters.model_dump_json(by_alias=True, exclude_none=True))
                 args["parameters"].update(camel_properties)
 
             if prepro is not None:
@@ -251,9 +245,7 @@ class AreaApiService(BaseAreaService):
             response.raise_for_status()
 
             if series is not None or CO2Cost is not None or fuelCost is not None:
-                self._create_thermal_series(
-                    area_id, cluster_name, series, CO2Cost, fuelCost
-                )
+                self._create_thermal_series(area_id, cluster_name, series, CO2Cost, fuelCost)
 
         except APIError as e:
             raise ThermalCreationError(cluster_name, area_id, e.message) from e
@@ -270,21 +262,15 @@ class AreaApiService(BaseAreaService):
     ) -> None:
         command_body = []
         if series is not None:
-            series_path = (
-                f"input/thermal/series/{area_id}/{cluster_name.lower()}/series"
-            )
+            series_path = f"input/thermal/series/{area_id}/{cluster_name.lower()}/series"
             command_body.append(prepare_args_replace_matrix(series, series_path))
 
         if CO2Cost is not None:
-            co2_cost_path = (
-                f"input/thermal/series/{area_id}/{cluster_name.lower()}/CO2Cost"
-            )
+            co2_cost_path = f"input/thermal/series/{area_id}/{cluster_name.lower()}/CO2Cost"
             command_body.append(prepare_args_replace_matrix(CO2Cost, co2_cost_path))
 
         if fuelCost is not None:
-            fuel_cost_path = (
-                f"input/thermal/series/{area_id}/{cluster_name.lower()}/fuelCost"
-            )
+            fuel_cost_path = f"input/thermal/series/{area_id}/{cluster_name.lower()}/fuelCost"
             command_body.append(prepare_args_replace_matrix(fuelCost, fuel_cost_path))
 
         if command_body:
@@ -328,9 +314,7 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
             body = {"name": renewable_name.lower()}
             if properties:
-                camel_properties = json.loads(
-                    properties.model_dump_json(by_alias=True, exclude_none=True)
-                )
+                camel_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
@@ -340,9 +324,7 @@ class AreaApiService(BaseAreaService):
             properties = RenewableClusterProperties.model_validate(json_response)
 
             if series is not None:
-                series_path = (
-                    f"input/renewables/series/{area_id}/{renewable_name.lower()}/series"
-                )
+                series_path = f"input/renewables/series/{area_id}/{renewable_name.lower()}/series"
                 command_body = [prepare_args_replace_matrix(series, series_path)]
                 self._replace_matrix_request(command_body)
 
@@ -374,9 +356,7 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages"
             body = {"name": st_storage_name}
             if properties:
-                camel_properties = json.loads(
-                    properties.model_dump_json(by_alias=True, exclude_none=True)
-                )
+                camel_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
@@ -390,9 +370,7 @@ class AreaApiService(BaseAreaService):
 
         return STStorage(self.storage_service, area_id, name, properties)
 
-    def _upload_series(
-        self, area: Area, series: Optional[pd.DataFrame], path: str
-    ) -> None:
+    def _upload_series(self, area: Area, series: Optional[pd.DataFrame], path: str) -> None:
         try:
             url = f"{self._base_url}/studies/{self.study_id}/raw?path={path}"
             if series is not None:
@@ -438,9 +416,7 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
             body = {}
             if properties:
-                camel_properties = json.loads(
-                    properties.model_dump_json(by_alias=True, exclude_none=True)
-                )
+                camel_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
                 body = {**camel_properties}
             self._wrapper.put(url, json=body)
 
@@ -452,9 +428,7 @@ class AreaApiService(BaseAreaService):
 
         return Hydro(self, area_id, properties)
 
-    def _create_hydro_series(
-        self, area_id: str, matrices: Dict[HydroMatrixName, pd.DataFrame]
-    ) -> None:
+    def _create_hydro_series(self, area_id: str, matrices: Dict[HydroMatrixName, pd.DataFrame]) -> None:
         command_body = []
         for matrix_name, series in matrices.items():
             if "SERIES" in matrix_name.name:
@@ -464,21 +438,15 @@ class AreaApiService(BaseAreaService):
                 series_path = f"input/hydro/prepro/{area_id}/{matrix_name.value}"
                 command_body.append(prepare_args_replace_matrix(series, series_path))
             if "COMMON" in matrix_name.name:
-                series_path = (
-                    f"input/hydro/common/capacity/{matrix_name.value}_{area_id}"
-                )
+                series_path = f"input/hydro/common/capacity/{matrix_name.value}_{area_id}"
                 command_body.append(prepare_args_replace_matrix(series, series_path))
         if command_body:
             json_payload = command_body
 
             self._replace_matrix_request(json_payload)
 
-    def update_area_properties(
-        self, area: Area, properties: AreaProperties
-    ) -> AreaProperties:
-        url = (
-            f"{self._base_url}/studies/{self.study_id}/areas/{area.id}/properties/form"
-        )
+    def update_area_properties(self, area: Area, properties: AreaProperties) -> AreaProperties:
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area.id}/properties/form"
         try:
             body = json.loads(properties.model_dump_json(exclude_none=True))
             if not body:
@@ -534,21 +502,15 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise AreaDeletionError(area_id, e.message) from e
 
-    def delete_thermal_clusters(
-        self, area: Area, clusters: List[ThermalCluster]
-    ) -> None:
-        url = (
-            f"{self._base_url}/studies/{self.study_id}/areas/{area.id}/clusters/thermal"
-        )
+    def delete_thermal_clusters(self, area: Area, clusters: List[ThermalCluster]) -> None:
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area.id}/clusters/thermal"
         body = [cluster.id for cluster in clusters]
         try:
             self._wrapper.delete(url, json=body)
         except APIError as e:
             raise ThermalDeletionError(area.id, body, e.message) from e
 
-    def delete_renewable_clusters(
-        self, area: Area, clusters: List[RenewableCluster]
-    ) -> None:
+    def delete_renewable_clusters(self, area: Area, clusters: List[RenewableCluster]) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area.id}/clusters/renewable"
         body = [cluster.id for cluster in clusters]
         try:
@@ -572,9 +534,7 @@ class AreaApiService(BaseAreaService):
             rows_number = load_matrix.shape[0]
             expected_rows = 8760
             if rows_number < expected_rows:
-                raise APIError(
-                    f"Expected {expected_rows} rows and received {rows_number}."
-                )
+                raise APIError(f"Expected {expected_rows} rows and received {rows_number}.")
             array_data = load_matrix.to_numpy().tolist()
             self._wrapper.post(url, json=array_data)
         except APIError as e:
@@ -584,15 +544,11 @@ class AreaApiService(BaseAreaService):
         raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path={path}"
         response = self._wrapper.get(raw_url)
         json_df = response.json()
-        dataframe = pd.DataFrame(
-            data=json_df["data"], index=json_df["index"], columns=json_df["columns"]
-        )
+        dataframe = pd.DataFrame(data=json_df["data"], index=json_df["index"], columns=json_df["columns"])
         return dataframe
 
     def get_load_matrix(self, area: Area) -> pd.DataFrame:
         try:
-            return self.get_matrix(
-                PurePosixPath("input") / "load" / "series" / f"load_{area.id}"
-            )
+            return self.get_matrix(PurePosixPath("input") / "load" / "series" / f"load_{area.id}")
         except APIError as e:
             raise LoadMatrixDownloadError(area.id, e.message) from e

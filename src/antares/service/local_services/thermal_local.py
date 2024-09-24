@@ -12,9 +12,7 @@ from antares.service.base_services import BaseThermalService
 
 
 class ThermalLocalService(BaseThermalService):
-    def __init__(
-        self, config: LocalConfiguration, study_name: str, **kwargs: Any
-    ) -> None:
+    def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
@@ -24,7 +22,5 @@ class ThermalLocalService(BaseThermalService):
     ) -> ThermalClusterProperties:
         raise NotImplementedError
 
-    def get_thermal_matrix(
-        self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName
-    ) -> pd.DataFrame:
+    def get_thermal_matrix(self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName) -> pd.DataFrame:
         raise NotImplementedError

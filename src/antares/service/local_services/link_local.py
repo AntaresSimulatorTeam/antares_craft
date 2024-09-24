@@ -18,9 +18,7 @@ from antares.tools.contents_tool import sort_ini_sections
 
 
 class LinkLocalService(BaseLinkService):
-    def __init__(
-        self, config: LocalConfiguration, study_name: str, **kwargs: Any
-    ) -> None:
+    def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
@@ -52,22 +50,16 @@ class LinkLocalService(BaseLinkService):
         if existing_areas is not None:
             for area in areas.keys():
                 if area not in existing_areas:
-                    raise LinkCreationError(
-                        area_from.name, area_to.name, f"{area} does not exist."
-                    )
+                    raise LinkCreationError(area_from.name, area_to.name, f"{area} does not exist.")
         else:
-            raise LinkCreationError(
-                area_from.name, area_to.name, "Cannot verify existing areas."
-            )
+            raise LinkCreationError(area_from.name, area_to.name, "Cannot verify existing areas.")
 
         area_from, area_to = areas.values()
 
         link_dir = self.config.study_path / "input/links" / area_from.name
         os.makedirs(link_dir, exist_ok=True)
 
-        local_properties = (
-            LinkPropertiesLocal(properties) if properties else LinkPropertiesLocal()
-        )
+        local_properties = LinkPropertiesLocal(properties) if properties else LinkPropertiesLocal()
         local_ui = LinkUiLocal(ui) if ui else LinkUiLocal()
 
         properties_ini_file = link_dir / "properties.ini"
@@ -79,9 +71,7 @@ class LinkLocalService(BaseLinkService):
         try:
             properties_ini.add_section(area_to.name)
         except configparser.DuplicateSectionError as e:
-            raise CustomError(
-                f"Link exists already, section already exists in properties.ini:\n\n{e.message}"
-            )
+            raise CustomError(f"Link exists already, section already exists in properties.ini:\n\n{e.message}")
         ini_dict = dict(local_properties.ini_fields)
         ini_dict.update(local_ui.ini_fields)
         properties_ini[area_to.name] = self.sort_link_properties_dict(ini_dict)
@@ -102,9 +92,7 @@ class LinkLocalService(BaseLinkService):
     def delete_link(self, link: Link) -> None:
         raise NotImplementedError
 
-    def update_link_properties(
-        self, link: Link, properties: LinkProperties
-    ) -> LinkProperties:
+    def update_link_properties(self, link: Link, properties: LinkProperties) -> LinkProperties:
         raise NotImplementedError
 
     def update_link_ui(self, link: Link, ui: LinkUi) -> LinkUi:
@@ -128,9 +116,7 @@ class LinkLocalService(BaseLinkService):
             "filter-synthesis",
             "filter-year-by-year",
         ]
-        return dict(
-            sorted(ini_dict.items(), key=lambda item: dict_order.index(item[0]))
-        )
+        return dict(sorted(ini_dict.items(), key=lambda item: dict_order.index(item[0])))
 
     def read_link(self, area_from: Area, area_to: Area) -> Link:
         """

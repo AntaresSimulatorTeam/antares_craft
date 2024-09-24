@@ -8,7 +8,13 @@ import pytest
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import CustomError, LinkCreationError
-from antares.model.area import AreaProperties, AreaUi, AreaUiLocal, AreaPropertiesLocal, Area
+from antares.model.area import (
+    AreaProperties,
+    AreaUi,
+    AreaUiLocal,
+    AreaPropertiesLocal,
+    Area,
+)
 from antares.model.commons import FilterOption
 from antares.model.hydro import Hydro
 from antares.model.link import (
@@ -112,12 +118,16 @@ author = Unknown
         def mock_verify_study_already_exists(study_directory):
             raise FileExistsError(f"Failed to create study. Study {study_directory} already exists")
 
-        monkeypatch.setattr("antares.model.study._verify_study_already_exists", mock_verify_study_already_exists)
+        monkeypatch.setattr(
+            "antares.model.study._verify_study_already_exists",
+            mock_verify_study_already_exists,
+        )
 
         # When
         with caplog.at_level(logging.ERROR):
             with pytest.raises(
-                FileExistsError, match=f"Failed to create study. Study {tmp_path}/{study_name} already exists"
+                FileExistsError,
+                match=f"Failed to create study. Study {tmp_path}/{study_name} already exists",
             ):
                 create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
 
@@ -231,7 +241,12 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
             dispatch_hydro_power=False,
             energy_cost_unsupplied=1.04,
             energy_cost_spilled=1,
-            filter_by_year={FilterOption.ANNUAL, FilterOption.HOURLY, FilterOption.WEEKLY, FilterOption.HOURLY},
+            filter_by_year={
+                FilterOption.ANNUAL,
+                FilterOption.HOURLY,
+                FilterOption.WEEKLY,
+                FilterOption.HOURLY,
+            },
         )
         expected_optimization_ini = ConfigParser()
         actual_optimization_ini = ConfigParser()
@@ -306,8 +321,14 @@ layers = 0
         def mock_error_in_sets_ini():
             raise CustomError("An error occurred while processing area can not be created")
 
-        monkeypatch.setattr("antares.service.local_services.area_local._sets_ini_content", mock_error_in_sets_ini)
-        with pytest.raises(CustomError, match="An error occurred while processing area can not be created"):
+        monkeypatch.setattr(
+            "antares.service.local_services.area_local._sets_ini_content",
+            mock_error_in_sets_ini,
+        )
+        with pytest.raises(
+            CustomError,
+            match="An error occurred while processing area can not be created",
+        ):
             local_study.create_area("test")
 
     def test_create_area_with_custom_ui(self, tmp_path, local_study):
@@ -386,7 +407,12 @@ layers = 0
             dispatch_hydro_power=False,
             spread_unsupplied_energy_cost=1,
             energy_cost_spilled=3.5,
-            filter_by_year={FilterOption.ANNUAL, FilterOption.ANNUAL, FilterOption.HOURLY, FilterOption.WEEKLY},
+            filter_by_year={
+                FilterOption.ANNUAL,
+                FilterOption.ANNUAL,
+                FilterOption.HOURLY,
+                FilterOption.WEEKLY,
+            },
         )
         expected_properties = {
             "nodal_optimization": {
@@ -505,7 +531,9 @@ class TestCreateLink:
             match=f"Could not create the link {area_from.name} / {area_to.name}: {area_from.name} does not exist",
         ):
             local_study_w_areas.create_link(
-                area_from=area_from, area_to=area_to, existing_areas=local_study_w_areas.get_areas()
+                area_from=area_from,
+                area_to=area_to,
+                existing_areas=local_study_w_areas.get_areas(),
             )
 
     def test_study_areas_not_provided_errors(self, tmp_path, local_study_w_areas):
@@ -878,7 +906,11 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
             hurdles_cost=True,
             transmission_capacities=TransmissionCapacities.DISABLED,
             asset_type=AssetType.GAZ,
-            filter_synthesis={FilterOption.MONTHLY, FilterOption.HOURLY, FilterOption.WEEKLY},
+            filter_synthesis={
+                FilterOption.MONTHLY,
+                FilterOption.HOURLY,
+                FilterOption.WEEKLY,
+            },
         )
         expected_ui = LinkUi(link_style=LinkStyle.DOT, colorr=234, colorg=123, colorb=0)
 

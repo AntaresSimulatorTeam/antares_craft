@@ -44,9 +44,7 @@ class SimplexOptimizationRange(Enum):
 class OptimizationProperties(BaseModel, alias_generator=to_camel):
     binding_constraints: Optional[bool] = None
     hurdle_costs: Optional[bool] = None
-    transmission_capacities: Union[
-        bool, Union[LegacyTransmissionCapacities, TransmissionCapacities], None
-    ] = None
+    transmission_capacities: Union[bool, Union[LegacyTransmissionCapacities, TransmissionCapacities], None] = None
     thermal_clusters_min_stable_power: Optional[bool] = None
     thermal_clusters_min_ud_time: Optional[bool] = None
     day_ahead_reserve: Optional[bool] = None

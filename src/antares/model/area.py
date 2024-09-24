@@ -48,9 +48,7 @@ class AdequacyPatchMode(EnumIgnoreCase):
 
 
 # todo: Warning, with filesystem, we want to avoid camel case and use link_aliasing.
-class AreaProperties(
-    BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel
-):
+class AreaProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     """
     DTO for updating area properties
     """
@@ -80,14 +78,10 @@ class AreaPropertiesLocal(BaseModel, alias_generator=config_alias_generator):
         **kwargs: Optional[Any],
     ):
         super().__init__(**kwargs)
-        self._energy_cost_unsupplied = (
-            input_area_properties.energy_cost_unsupplied or 0.0
-        )
+        self._energy_cost_unsupplied = input_area_properties.energy_cost_unsupplied or 0.0
         self._energy_cost_spilled = input_area_properties.energy_cost_spilled or 0.0
         self._non_dispatch_power = (
-            input_area_properties.non_dispatch_power
-            if input_area_properties.non_dispatch_power is not None
-            else True
+            input_area_properties.non_dispatch_power if input_area_properties.non_dispatch_power is not None else True
         )
         self._dispatch_hydro_power = (
             input_area_properties.dispatch_hydro_power
@@ -118,12 +112,8 @@ class AreaPropertiesLocal(BaseModel, alias_generator=config_alias_generator):
             if input_area_properties.adequacy_patch_mode
             else AdequacyPatchMode.OUTSIDE
         )
-        self._spread_spilled_energy_cost = (
-            input_area_properties.spread_spilled_energy_cost or 0.0
-        )
-        self._spread_unsupplied_energy_cost = (
-            input_area_properties.spread_unsupplied_energy_cost or 0.0
-        )
+        self._spread_spilled_energy_cost = input_area_properties.spread_spilled_energy_cost or 0.0
+        self._spread_unsupplied_energy_cost = input_area_properties.spread_unsupplied_energy_cost or 0.0
 
     @computed_field  # type: ignore[misc]
     @property
@@ -142,20 +132,12 @@ class AreaPropertiesLocal(BaseModel, alias_generator=config_alias_generator):
     @property
     def filtering(self) -> Mapping[str, str]:
         return {
-            "filter-synthesis": ", ".join(
-                filter_value
-                for filter_value in sort_filter_values(self._filter_synthesis)
-            ),
-            "filter-year-by-year": ", ".join(
-                filter_value
-                for filter_value in sort_filter_values(self._filter_by_year)
-            ),
+            "filter-synthesis": ", ".join(filter_value for filter_value in sort_filter_values(self._filter_synthesis)),
+            "filter-year-by-year": ", ".join(filter_value for filter_value in sort_filter_values(self._filter_by_year)),
         }
 
     def adequacy_patch_mode(self) -> dict[str, dict[str, str]]:
-        return {
-            "adequacy-patch": {"adequacy-patch-mode": self._adequacy_patch_mode.value}
-        }
+        return {"adequacy-patch": {"adequacy-patch-mode": self._adequacy_patch_mode.value}}
 
     def yield_area_properties(self) -> AreaProperties:
         return AreaProperties(
@@ -172,9 +154,7 @@ class AreaPropertiesLocal(BaseModel, alias_generator=config_alias_generator):
         )
 
 
-class AreaUi(
-    BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel
-):
+class AreaUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     """
     DTO for updating area UI
     """
@@ -324,9 +304,7 @@ class Area:
     def create_thermal_cluster(
         self, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
     ) -> ThermalCluster:
-        thermal = self._area_service.create_thermal_cluster(
-            self.id, thermal_name, properties
-        )
+        thermal = self._area_service.create_thermal_cluster(self.id, thermal_name, properties)
         self._thermals[thermal.id] = thermal
         return thermal
 
@@ -359,18 +337,12 @@ class Area:
         properties: Optional[RenewableClusterProperties],
         series: Optional[pd.DataFrame],
     ) -> RenewableCluster:
-        renewable = self._area_service.create_renewable_cluster(
-            self.id, renewable_name, properties, series
-        )
+        renewable = self._area_service.create_renewable_cluster(self.id, renewable_name, properties, series)
         self._renewables[renewable.id] = renewable
         return renewable
 
-    def create_st_storage(
-        self, st_storage_name: str, properties: Optional[STStorageProperties] = None
-    ) -> STStorage:
-        storage = self._area_service.create_st_storage(
-            self.id, st_storage_name, properties
-        )
+    def create_st_storage(self, st_storage_name: str, properties: Optional[STStorageProperties] = None) -> STStorage:
+        storage = self._area_service.create_st_storage(self.id, st_storage_name, properties)
         self._st_storages[storage.id] = storage
 
         return storage
@@ -389,9 +361,7 @@ class Area:
     def delete_thermal_cluster(self, thermal_cluster: ThermalCluster) -> None:
         self.delete_thermal_clusters([thermal_cluster])
 
-    def delete_renewable_clusters(
-        self, renewable_clusters: List[RenewableCluster]
-    ) -> None:
+    def delete_renewable_clusters(self, renewable_clusters: List[RenewableCluster]) -> None:
         self._area_service.delete_renewable_clusters(self, renewable_clusters)
         for cluster in renewable_clusters:
             self._renewables.pop(cluster.id)

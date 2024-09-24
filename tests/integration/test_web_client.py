@@ -21,14 +21,30 @@ from antares.exceptions.exceptions import (
     ConstraintMatrixUpdateError,
     AreaDeletionError,
 )
-from antares.model.settings.advanced_parameters import UnitCommitmentMode, AdvancedProperties
+from antares.model.settings.advanced_parameters import (
+    UnitCommitmentMode,
+    AdvancedProperties,
+)
 from antares.model.study import create_study_api
-from antares.model.binding_constraint import BindingConstraintProperties, LinkData, ClusterData, ConstraintTerm
+from antares.model.binding_constraint import (
+    BindingConstraintProperties,
+    LinkData,
+    ClusterData,
+    ConstraintTerm,
+)
 from antares.model.link import LinkUi, LinkProperties, LinkStyle
-from antares.model.renewable import RenewableClusterProperties, RenewableClusterGroup, TimeSeriesInterpretation
+from antares.model.renewable import (
+    RenewableClusterProperties,
+    RenewableClusterGroup,
+    TimeSeriesInterpretation,
+)
 from antares.model.settings import StudySettings, GeneralProperties, PlaylistData
 from antares.model.settings.general import Mode
-from antares.model.st_storage import STStorageProperties, STStorageGroup, STStorageMatrixName
+from antares.model.st_storage import (
+    STStorageProperties,
+    STStorageGroup,
+    STStorageMatrixName,
+)
 from antares.model.thermal import ThermalClusterProperties, ThermalClusterGroup
 
 from antares.model.area import AreaUi, AreaProperties, AdequacyPatchMode, FilterOption
@@ -82,12 +98,19 @@ class TestWebClient:
             properties = AreaProperties()
             properties.energy_cost_spilled = 100
             properties.adequacy_patch_mode = AdequacyPatchMode.INSIDE
-            properties.filter_synthesis = [FilterOption.HOURLY, FilterOption.DAILY, FilterOption.HOURLY]
+            properties.filter_synthesis = [
+                FilterOption.HOURLY,
+                FilterOption.DAILY,
+                FilterOption.HOURLY,
+            ]
             area_name = "DE"
             area_de = study.create_area(area_name, properties=properties)
             assert area_de.properties.energy_cost_spilled == 100
             assert area_de.properties.adequacy_patch_mode == AdequacyPatchMode.INSIDE
-            assert area_de.properties.filter_synthesis == {FilterOption.HOURLY, FilterOption.DAILY}
+            assert area_de.properties.filter_synthesis == {
+                FilterOption.HOURLY,
+                FilterOption.DAILY,
+            }
 
             # tests link creation with default values
             link_de_fr = study.create_link(area_from=area_de, area_to=area_fr)
@@ -99,14 +122,26 @@ class TestWebClient:
             link_ui = LinkUi(colorr=44)
             link_properties = LinkProperties(hurdles_cost=True)
             link_properties.filter_year_by_year = [FilterOption.HOURLY]
-            link_be_fr = study.create_link(area_from=area_be, area_to=area_fr, ui=link_ui, properties=link_properties)
+            link_be_fr = study.create_link(
+                area_from=area_be,
+                area_to=area_fr,
+                ui=link_ui,
+                properties=link_properties,
+            )
             assert link_be_fr.ui.colorr == 44
             assert link_be_fr.properties.hurdles_cost
             assert link_be_fr.properties.filter_year_by_year == {FilterOption.HOURLY}
 
             # asserts study contains all links and areas
-            assert study.get_areas() == {area_be.id: area_be, area_fr.id: area_fr, area_de.id: area_de}
-            assert study.get_links() == {link_be_fr.name: link_be_fr, link_de_fr.name: link_de_fr}
+            assert study.get_areas() == {
+                area_be.id: area_be,
+                area_fr.id: area_fr,
+                area_de.id: area_de,
+            }
+            assert study.get_links() == {
+                link_be_fr.name: link_be_fr,
+                link_de_fr.name: link_de_fr,
+            }
 
             # test thermal cluster creation with default values
             thermal_name = "Cluster_test %?"
@@ -206,11 +241,20 @@ class TestWebClient:
 
             # asserts areas contains the clusters + short term storages
             assert area_be.get_thermals() == {thermal_be.id: thermal_be}
-            assert area_fr.get_thermals() == {thermal_fr.id: thermal_fr, thermal_value_be.id: thermal_value_be}
+            assert area_fr.get_thermals() == {
+                thermal_fr.id: thermal_fr,
+                thermal_value_be.id: thermal_value_be,
+            }
             assert area_be.get_renewables() == {}
-            assert area_fr.get_renewables() == {renewable_onshore.id: renewable_onshore, renewable_fr.id: renewable_fr}
+            assert area_fr.get_renewables() == {
+                renewable_onshore.id: renewable_onshore,
+                renewable_fr.id: renewable_fr,
+            }
             assert area_be.get_st_storages() == {}
-            assert area_fr.get_st_storages() == {battery_fr.id: battery_fr, storage_fr.id: storage_fr}
+            assert area_fr.get_st_storages() == {
+                battery_fr.id: battery_fr,
+                storage_fr.id: storage_fr,
+            }
 
             # test binding constraint creation without terms
             properties = BindingConstraintProperties(enabled=False)
@@ -229,7 +273,10 @@ class TestWebClient:
             terms = [link_term_2, cluster_term]
             constraint_2 = study.create_binding_constraint(name="bc_2", terms=terms)
             assert constraint_2.name == "bc_2"
-            assert constraint_2.get_terms() == {link_term_2.id: link_term_2, cluster_term.id: cluster_term}
+            assert constraint_2.get_terms() == {
+                link_term_2.id: link_term_2,
+                cluster_term.id: cluster_term,
+            }
 
             # test constraint creation with matrices
             # Case that fails
@@ -268,7 +315,10 @@ class TestWebClient:
             cluster_term = ConstraintTerm(data=cluster_data, weight=100)
             terms = [link_term_1, cluster_term]
             constraint_1.add_terms(terms)
-            assert constraint_1.get_terms() == {link_term_1.id: link_term_1, cluster_term.id: cluster_term}
+            assert constraint_1.get_terms() == {
+                link_term_1.id: link_term_1,
+                cluster_term.id: cluster_term,
+            }
 
             # asserts study contains the constraints
             assert study.get_binding_constraints() == {

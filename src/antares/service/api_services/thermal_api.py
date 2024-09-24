@@ -44,9 +44,7 @@ class ThermalApiService(BaseThermalService):
     ) -> ThermalClusterProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{thermal_cluster.area_id}/clusters/thermal/{thermal_cluster.id}"
         try:
-            body = json.loads(
-                properties.model_dump_json(by_alias=True, exclude_none=True)
-            )
+            body = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
             if not body:
                 return thermal_cluster.properties
 
@@ -57,15 +55,11 @@ class ThermalApiService(BaseThermalService):
             new_properties = ThermalClusterProperties.model_validate(json_response)
 
         except APIError as e:
-            raise ThermalPropertiesUpdateError(
-                thermal_cluster.id, thermal_cluster.area_id, e.message
-            ) from e
+            raise ThermalPropertiesUpdateError(thermal_cluster.id, thermal_cluster.area_id, e.message) from e
 
         return new_properties
 
-    def get_thermal_matrix(
-        self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName
-    ) -> pd.DataFrame:
+    def get_thermal_matrix(self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName) -> pd.DataFrame:
         try:
             keyword = "series" if "SERIES" in ts_name.name else "prepro"
             path = (

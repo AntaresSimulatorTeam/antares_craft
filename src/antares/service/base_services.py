@@ -42,9 +42,7 @@ from antares.model.wind import Wind
 
 class BaseAreaService(ABC):
     @abstractmethod
-    def set_storage_service(
-        self, storage_service: "BaseShortTermStorageService"
-    ) -> None:
+    def set_storage_service(self, storage_service: "BaseShortTermStorageService") -> None:
         pass
 
     @abstractmethod
@@ -210,9 +208,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def update_area_properties(
-        self, area: Area, properties: AreaProperties
-    ) -> AreaProperties:
+    def update_area_properties(self, area: Area, properties: AreaProperties) -> AreaProperties:
         """
         Args:
             area: concerned area
@@ -238,9 +234,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def delete_thermal_clusters(
-        self, area: Area, thermal_clusters: List[ThermalCluster]
-    ) -> None:
+    def delete_thermal_clusters(self, area: Area, thermal_clusters: List[ThermalCluster]) -> None:
         """
         Args:
             area: area containing the cluster
@@ -249,9 +243,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def delete_renewable_clusters(
-        self, area: Area, renewable_clusters: List[RenewableCluster]
-    ) -> None:
+    def delete_renewable_clusters(self, area: Area, renewable_clusters: List[RenewableCluster]) -> None:
         """
         Args:
             area: area containing the cluster
@@ -393,9 +385,7 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def update_link_properties(
-        self, link: Link, properties: LinkProperties
-    ) -> LinkProperties:
+    def update_link_properties(self, link: Link, properties: LinkProperties) -> LinkProperties:
         """
         Args:
             link: concerned link
@@ -448,9 +438,7 @@ class BaseThermalService(ABC):
         pass
 
     @abstractmethod
-    def get_thermal_matrix(
-        self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName
-    ) -> pd.DataFrame:
+    def get_thermal_matrix(self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName) -> pd.DataFrame:
         """
         Args:
             thermal_cluster: cluster to retrieve matrix
@@ -488,9 +476,7 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def add_constraint_terms(
-        self, constraint: BindingConstraint, terms: List[ConstraintTerm]
-    ) -> List[ConstraintTerm]:
+    def add_constraint_terms(self, constraint: BindingConstraint, terms: List[ConstraintTerm]) -> List[ConstraintTerm]:
         """
         Args:
             constraint: the concerned binding constraint
@@ -524,9 +510,7 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def get_constraint_matrix(
-        self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName
-    ) -> pd.DataFrame:
+    def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
         """
         Args:
             constraint: the concerned binding constraint

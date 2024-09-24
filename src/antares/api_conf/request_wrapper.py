@@ -17,9 +17,7 @@ import requests
 
 from antares.exceptions.exceptions import APIError
 
-DATA_TYPE = Union[
-    str, bytes, Mapping[str, Any], Iterable[Tuple[str, Optional[str]]], IO
-]
+DATA_TYPE = Union[str, bytes, Mapping[str, Any], Iterable[Tuple[str, Optional[str]]], IO]
 
 
 def _handle_exceptions(response: requests.Response) -> requests.Response:
@@ -48,24 +46,16 @@ class RequestWrapper:
         return _handle_exceptions(response)
 
     def post(
-        self,
-        url: str,
-        data: Optional[DATA_TYPE] = None,
-        json: Optional[Any] = None,
-        **kwargs: Any
+        self, url: str, data: Optional[DATA_TYPE] = None, json: Optional[Any] = None, **kwargs: Any
     ) -> requests.Response:
         response = self.session.post(url, data, json, **kwargs)
         return _handle_exceptions(response)
 
-    def put(
-        self, url: str, data: Optional[DATA_TYPE] = None, **kwargs: Any
-    ) -> requests.Response:
+    def put(self, url: str, data: Optional[DATA_TYPE] = None, **kwargs: Any) -> requests.Response:
         response = self.session.put(url, data, **kwargs)
         return _handle_exceptions(response)
 
-    def patch(
-        self, url: str, data: Optional[DATA_TYPE] = None, **kwargs: Any
-    ) -> requests.Response:
+    def patch(self, url: str, data: Optional[DATA_TYPE] = None, **kwargs: Any) -> requests.Response:
         response = self.session.patch(url, data, **kwargs)
         return _handle_exceptions(response)
 

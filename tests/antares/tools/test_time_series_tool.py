@@ -14,7 +14,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from antares.tools.time_series_tool import TimeSeries, TimeSeriesFile, TimeSeriesFileType
+from antares.tools.time_series_tool import (
+    TimeSeries,
+    TimeSeriesFile,
+    TimeSeriesFileType,
+)
 
 
 class TestTimeSeries:
@@ -64,7 +68,11 @@ class TestTimeSeries:
 
         # Then
         actual_file_content = pd.read_csv(
-            time_series.local_file.file_path, sep="\t", header=None, index_col=None, encoding="utf-8"
+            time_series.local_file.file_path,
+            sep="\t",
+            header=None,
+            index_col=None,
+            encoding="utf-8",
         )
         assert actual_file_content.equals(update_file_content)
 
@@ -97,7 +105,11 @@ class TestTimeSeriesFile:
     def test_no_area_provided_gives_error(self, tmp_path, time_series_data):
         # Given
         with pytest.raises(ValueError, match="area_id is required for this file type."):
-            TimeSeriesFile(ts_file_type=TimeSeriesFileType.RESERVES, study_path=tmp_path, time_series=time_series_data)
+            TimeSeriesFile(
+                ts_file_type=TimeSeriesFileType.RESERVES,
+                study_path=tmp_path,
+                time_series=time_series_data,
+            )
 
     def test_file_exists_time_series_provided_gives_error(self, tmp_path, time_series_data):
         # Given
@@ -110,7 +122,8 @@ class TestTimeSeriesFile:
 
         # Then
         with pytest.raises(
-            ValueError, match=f"File {tmp_path / file_name} already exists and a time series was provided."
+            ValueError,
+            match=f"File {tmp_path / file_name} already exists and a time series was provided.",
         ):
             TimeSeriesFile(TimeSeriesFileType.RESERVES, tmp_path, "test", time_series.time_series)
 

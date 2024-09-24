@@ -44,9 +44,7 @@ def link_aliasing(string: str) -> str:
     return string.replace("_", "-")
 
 
-class LinkProperties(
-    BaseModel, extra="forbid", populate_by_name=True, alias_generator=link_aliasing
-):
+class LinkProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=link_aliasing):
     """
     DTO for updating link properties
     """
@@ -77,9 +75,7 @@ class LinkPropertiesLocal(BaseModel):
             if link_properties.transmission_capacities
             else TransmissionCapacities.ENABLED
         )
-        self._asset_type = (
-            link_properties.asset_type if link_properties.asset_type else AssetType.AC
-        )
+        self._asset_type = link_properties.asset_type if link_properties.asset_type else AssetType.AC
         self._display_comments = link_properties.display_comments or True
         self._filter_synthesis = link_properties.filter_synthesis or {
             FilterOption.HOURLY,
@@ -106,13 +102,9 @@ class LinkPropertiesLocal(BaseModel):
             "transmission-capacities": f"{self._transmission_capacities.value}",
             "asset-type": f"{self._asset_type.value}",
             "display-comments": f"{self._display_comments}".lower(),
-            "filter-synthesis": ", ".join(
-                filter_value
-                for filter_value in sort_filter_values(self._filter_synthesis)
-            ),
+            "filter-synthesis": ", ".join(filter_value for filter_value in sort_filter_values(self._filter_synthesis)),
             "filter-year-by-year": ", ".join(
-                filter_value
-                for filter_value in sort_filter_values(self._filter_year_by_year)
+                filter_value for filter_value in sort_filter_values(self._filter_year_by_year)
             ),
         }
 
@@ -129,9 +121,7 @@ class LinkPropertiesLocal(BaseModel):
         )
 
 
-class LinkUi(
-    BaseModel, extra="forbid", populate_by_name=True, alias_generator=link_aliasing
-):
+class LinkUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=link_aliasing):
     """
     DTO for updating link UI
     """

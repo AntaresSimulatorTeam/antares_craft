@@ -16,9 +16,7 @@ from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
 
 
-class ClusterProperties(
-    BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel
-):
+class ClusterProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     """
     Common properties for thermal and renewable clusters
     """
