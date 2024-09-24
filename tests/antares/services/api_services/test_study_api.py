@@ -11,10 +11,11 @@
 # This file is part of the Antares project.
 
 
-import re
-
 import pytest
 import requests_mock
+
+import re
+
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
     AreaCreationError,

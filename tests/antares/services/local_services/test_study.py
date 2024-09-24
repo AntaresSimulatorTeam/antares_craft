@@ -10,15 +10,18 @@
 #
 # This file is part of the Antares project.
 
+import pytest
+
 import logging
 import os
 import time
+
 from configparser import ConfigParser
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import pytest
+
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import CustomError, LinkCreationError
 from antares.model.area import Area, AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal

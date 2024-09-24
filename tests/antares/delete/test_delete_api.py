@@ -12,6 +12,7 @@
 
 import pytest
 import requests_mock
+
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
     AreaDeletionError,

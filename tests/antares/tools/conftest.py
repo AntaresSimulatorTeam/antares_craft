@@ -10,9 +10,10 @@
 #
 # This file is part of the Antares project.
 
+import pytest
+
 import numpy as np
 import pandas as pd
-import pytest
 
 from antares.tools.time_series_tool import TimeSeriesFile, TimeSeriesFileType
 

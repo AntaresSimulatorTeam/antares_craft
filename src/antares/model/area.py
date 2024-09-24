@@ -20,6 +20,7 @@ from types import MappingProxyType
 from typing import Any, Dict, List, Mapping, Optional, Set
 
 import pandas as pd
+
 from pydantic import BaseModel, computed_field
 from pydantic.alias_generators import to_camel
 

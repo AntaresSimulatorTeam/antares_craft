@@ -11,10 +11,12 @@
 # This file is part of the Antares project.
 
 
-import numpy as np
-import pandas as pd
 import pytest
 import requests_mock
+
+import numpy as np
+import pandas as pd
+
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
     AreaPropertiesUpdateError,

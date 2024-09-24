@@ -13,6 +13,7 @@
 
 import pytest
 import requests_mock
+
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import LinkPropertiesUpdateError, LinkUiUpdateError
 from antares.model.area import Area

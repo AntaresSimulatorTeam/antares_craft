@@ -15,6 +15,7 @@ from io import StringIO
 
 import numpy as np
 import pandas as pd
+
 from antares.model.hydro import Hydro
 from antares.model.renewable import (
     RenewableCluster,
