@@ -15,6 +15,18 @@ dependencies = [
 
 ]
 
+[tool.pytest.ini_options]
+pythonpath = "src"
+testpaths = "tests"
+log_cli = true
+junit_family= "xunit2"
+
+[tool.mypy]
+mypy_path = "src"
+packages = "antares"
+disallow_untyped_defs = true
+disallow_untyped_calls = true
+
 [tool.setuptools.packages.find]
 # All the following settings are optional:
 where = ["src"]
