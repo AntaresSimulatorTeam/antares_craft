@@ -4,7 +4,10 @@ __pycache__
 
 .idea
 venv
+.venv/
 .env
 .coverage
 coverage.xml
-AntaresWebDesktop
+AntaresWebDesktop/
+.tox/
+
