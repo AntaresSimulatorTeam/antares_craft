@@ -1,13 +1,30 @@
-.vscode
-__pycache__
-**.ipynb
+# Some categories and items copied from https://github.com/github/gitignore/blob/main/Python.gitignore
 
-.idea
-venv
-.venv/
-.env
+# Byte-compiled / optimized / DLL files
+__pycache__
+
+# Distribution / packaging
+.Python
+build/
+dist/
+sdist/
+*.egg-info/
+
+# Unit test / coverage reports
 .coverage
 coverage.xml
-AntaresWebDesktop/
 .tox/
 
+# Environments
+.env
+.venv
+env/
+venv/
+
+# Jupyter notebooks
+**.ipynb
+
+# Other
+.vscode
+.idea
+AntaresWebDesktop/
