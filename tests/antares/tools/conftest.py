@@ -24,4 +24,4 @@ def time_series_data():
 
 @pytest.fixture
 def time_series_file(tmp_path, time_series_data):
-    return TimeSeriesFile(TimeSeriesFileType.RESERVES, tmp_path, "test", time_series_data)
+    return TimeSeriesFile(TimeSeriesFileType.RESERVES, tmp_path, area_id="test", time_series=time_series_data)

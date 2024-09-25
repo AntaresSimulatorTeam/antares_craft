@@ -123,7 +123,9 @@ class AreaLocalService(BaseAreaService):
 
     def create_load(self, area: Area, series: Optional[pd.DataFrame]) -> Load:
         series = series if series is not None else pd.DataFrame([])
-        local_file = TimeSeriesFile(TimeSeriesFileType.LOAD, self.config.study_path, area.id, series)
+        local_file = TimeSeriesFile(
+            TimeSeriesFileType.LOAD, self.config.study_path, area_id=area.id, time_series=series
+        )
         return Load(time_series=series, local_file=local_file, study_path=self.config.study_path, area_id=area.id)
 
     def create_st_storage(
@@ -146,22 +148,30 @@ class AreaLocalService(BaseAreaService):
 
     def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> Wind:
         series = series if series is not None else pd.DataFrame([])
-        local_file = TimeSeriesFile(TimeSeriesFileType.WIND, self.config.study_path, area.id, series)
+        local_file = TimeSeriesFile(
+            TimeSeriesFileType.WIND, self.config.study_path, area_id=area.id, time_series=series
+        )
         return Wind(time_series=series, local_file=local_file, study_path=self.config.study_path, area_id=area.id)
 
     def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
         series = series if series is not None else pd.DataFrame([])
-        local_file = TimeSeriesFile(TimeSeriesFileType.RESERVES, self.config.study_path, area.id, series)
+        local_file = TimeSeriesFile(
+            TimeSeriesFileType.RESERVES, self.config.study_path, area_id=area.id, time_series=series
+        )
         return Reserves(series, local_file)
 
     def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> Solar:
         series = series if series is not None else pd.DataFrame([])
-        local_file = TimeSeriesFile(TimeSeriesFileType.SOLAR, self.config.study_path, area.id, series)
+        local_file = TimeSeriesFile(
+            TimeSeriesFileType.SOLAR, self.config.study_path, area_id=area.id, time_series=series
+        )
         return Solar(time_series=series, local_file=local_file, study_path=self.config.study_path, area_id=area.id)
 
     def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
         series = series if series is not None else pd.DataFrame([])
-        local_file = TimeSeriesFile(TimeSeriesFileType.MISC_GEN, self.config.study_path, area.id, series)
+        local_file = TimeSeriesFile(
+            TimeSeriesFileType.MISC_GEN, self.config.study_path, area_id=area.id, time_series=series
+        )
         return MiscGen(series, local_file)
 
     def create_hydro(

@@ -294,12 +294,12 @@ class Area:
     def create_renewable_cluster(
         self, renewable_name: str, properties: Optional[RenewableClusterProperties], series: Optional[pd.DataFrame]
     ) -> RenewableCluster:
-        renewable = self._area_service.create_renewable_cluster(self.id, renewable_name, properties, series)
+        renewable = self._area_service.create_renewable_cluster(self.id, renewable_name, properties, series=series)
         self._renewables[renewable.id] = renewable
         return renewable
 
     def create_load(self, series: Optional[pd.DataFrame]) -> Load:
-        load = self._area_service.create_load(self, series)
+        load = self._area_service.create_load(self, series=series)
         self._load = load
         return load
 
@@ -348,22 +348,22 @@ class Area:
         self._ui = new_ui
 
     def create_wind(self, series: Optional[pd.DataFrame]) -> Wind:
-        wind = self._area_service.create_wind(self, series)
+        wind = self._area_service.create_wind(self, series=series)
         self._wind = wind
         return wind
 
     def create_reserves(self, series: Optional[pd.DataFrame]) -> Reserves:
-        reserves = self._area_service.create_reserves(self, series)
+        reserves = self._area_service.create_reserves(self, series=series)
         self._reserves = reserves
         return reserves
 
     def create_solar(self, series: Optional[pd.DataFrame]) -> Solar:
-        solar = self._area_service.create_solar(self, series)
+        solar = self._area_service.create_solar(self, series=series)
         self._solar = solar
         return solar
 
     def create_misc_gen(self, series: Optional[pd.DataFrame]) -> MiscGen:
-        misc_gen = self._area_service.create_misc_gen(self, series)
+        misc_gen = self._area_service.create_misc_gen(self, series=series)
         self._misc_gen = misc_gen
         return misc_gen
 

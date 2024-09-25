@@ -24,13 +24,13 @@ class TimeSeriesFileType(Enum):
     This DTO contains the relative paths to different timeseries files used in the generation of an Antares study,
     starting from the base folder of the study.
 
-    Files where the path contains {area_id} have to be used with .format(area_id=<area_id>) where <area_id> is replaced
-    with the area's id to access the correct path.
+    Files where the path contains {area_id} or {constraint_id} have to be used with `.format` to access the correct path.
 
     Example:
         TimeSeriesFileType.SOLAR.value.format(area_id="test_area")
     """
 
+    BINDING_CONSTRAINT_LESS = "input/bindingconstraints/{constraint_id}_lt.txt"
     LOAD = "input/load/series/load_{area_id}.txt"
     LOAD_CONVERSION = "input/load/prepro/{area_id}/conversion.txt"
     LOAD_DATA = "input/load/prepro/{area_id}/data.txt"
@@ -70,6 +70,7 @@ class TimeSeriesFile:
         self,
         ts_file_type: TimeSeriesFileType,
         study_path: Path,
+        *,
         area_id: Optional[str] = None,
         time_series: Optional[pd.DataFrame] = None,
     ) -> None:
