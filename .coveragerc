@@ -1,3 +1,0 @@
-[coverage:run]
-# needed to not have absolute path in coverage.xml
-relative_files = True
