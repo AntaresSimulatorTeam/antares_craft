@@ -16,6 +16,8 @@ import time
 from configparser import ConfigParser
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
 import pytest
 
 from antares.config.local_configuration import LocalConfiguration
@@ -1237,3 +1239,65 @@ at%fr = 0.000000%1
             actual_ini_content = file.read()
 
         assert actual_ini_content == expected_ini_contents
+
+    def test_binding_constraint_with_timeseries_stores_ts_file(self, local_study_with_hydro):
+        # Given
+        ts_matrix = pd.DataFrame(np.zeros([365 * 24, 2]))
+
+        # When
+        constraints = {
+            "lesser":
+            # Less than timeseries
+            local_study_with_hydro.create_binding_constraint(
+                name="test constraint - less",
+                properties=BindingConstraintProperties(
+                    operator=BindingConstraintOperator.LESS,
+                ),
+                less_term_matrix=ts_matrix,
+            ),
+            "equal":
+            # Equal timeseries
+            local_study_with_hydro.create_binding_constraint(
+                name="test constraint - equal",
+                properties=BindingConstraintProperties(
+                    operator=BindingConstraintOperator.EQUAL,
+                ),
+                equal_term_matrix=ts_matrix,
+            ),
+            "greater":
+            # Greater than timeseries
+            local_study_with_hydro.create_binding_constraint(
+                name="test constraint - greater",
+                properties=BindingConstraintProperties(
+                    operator=BindingConstraintOperator.GREATER,
+                ),
+                greater_term_matrix=ts_matrix,
+            ),
+            "both":
+            # Greater than timeseries
+            local_study_with_hydro.create_binding_constraint(
+                name="test constraint - both",
+                properties=BindingConstraintProperties(
+                    operator=BindingConstraintOperator.BOTH,
+                ),
+                less_term_matrix=ts_matrix,
+                greater_term_matrix=ts_matrix,
+            ),
+        }
+
+        # Then
+        assert local_study_with_hydro._binding_constraints_service.time_series[
+            f"{constraints['lesser'].id.lower()}_lt"
+        ].file_path.is_file()
+        assert local_study_with_hydro._binding_constraints_service.time_series[
+            f"{constraints['equal'].id.lower()}_eq"
+        ].file_path.is_file()
+        assert local_study_with_hydro._binding_constraints_service.time_series[
+            f"{constraints['greater'].id.lower()}_gt"
+        ].file_path.is_file()
+        assert local_study_with_hydro._binding_constraints_service.time_series[
+            f"{constraints['both'].id.lower()}_lt"
+        ].file_path.is_file()
+        assert local_study_with_hydro._binding_constraints_service.time_series[
+            f"{constraints['both'].id.lower()}_gt"
+        ].file_path.is_file()

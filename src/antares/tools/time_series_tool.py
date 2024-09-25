@@ -30,6 +30,8 @@ class TimeSeriesFileType(Enum):
         TimeSeriesFileType.SOLAR.value.format(area_id="test_area")
     """
 
+    BINDING_CONSTRAINT_EQUAL = "input/bindingconstraints/{constraint_id}_eq.txt"
+    BINDING_CONSTRAINT_GREATER = "input/bindingconstraints/{constraint_id}_gt.txt"
     BINDING_CONSTRAINT_LESS = "input/bindingconstraints/{constraint_id}_lt.txt"
     LOAD = "input/load/series/load_{area_id}.txt"
     LOAD_CONVERSION = "input/load/prepro/{area_id}/conversion.txt"
@@ -60,6 +62,7 @@ class TimeSeriesFile:
         ts_file_type: Type of time series file using the class TimeSeriesFileType.
         study_path: `Path` to the study directory.
         area_id: Area ID for file paths that use the area's id in their path
+        constraint_id: Constraint ID for file paths that use the binding constraint's id in their path
         time_series: The actual timeseries as a pandas DataFrame.
 
     Raises:
@@ -72,13 +75,18 @@ class TimeSeriesFile:
         study_path: Path,
         *,
         area_id: Optional[str] = None,
+        constraint_id: Optional[str] = None,
         time_series: Optional[pd.DataFrame] = None,
     ) -> None:
         if "{area_id}" in ts_file_type.value and area_id is None:
             raise ValueError("area_id is required for this file type.")
+        if "{constraint_id}" in ts_file_type.value and constraint_id is None:
+            raise ValueError("constraint_id is required for this file type.")
 
         self.file_path = study_path / (
-            ts_file_type.value if not area_id else ts_file_type.value.format(area_id=area_id)
+            ts_file_type.value
+            if not (area_id or constraint_id)
+            else ts_file_type.value.format(area_id=area_id, constraint_id=constraint_id)
         )
 
         if self.file_path.is_file() and time_series is not None:
