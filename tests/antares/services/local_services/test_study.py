@@ -1288,16 +1288,16 @@ at%fr = 0.000000%1
         # Then
         assert local_study_with_hydro._binding_constraints_service.time_series[
             f"{constraints['lesser'].id.lower()}_lt"
-        ].file_path.is_file()
+        ].local_file.file_path.is_file()
         assert local_study_with_hydro._binding_constraints_service.time_series[
             f"{constraints['equal'].id.lower()}_eq"
-        ].file_path.is_file()
+        ].local_file.file_path.is_file()
         assert local_study_with_hydro._binding_constraints_service.time_series[
             f"{constraints['greater'].id.lower()}_gt"
-        ].file_path.is_file()
+        ].local_file.file_path.is_file()
         assert local_study_with_hydro._binding_constraints_service.time_series[
             f"{constraints['both'].id.lower()}_lt"
-        ].file_path.is_file()
+        ].local_file.file_path.is_file()
         assert local_study_with_hydro._binding_constraints_service.time_series[
             f"{constraints['both'].id.lower()}_gt"
-        ].file_path.is_file()
+        ].local_file.file_path.is_file()

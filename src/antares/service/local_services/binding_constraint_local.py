@@ -24,7 +24,7 @@ from antares.model.binding_constraint import (
 )
 from antares.service.base_services import BaseBindingConstraintService
 from antares.tools.ini_tool import IniFile, IniFileTypes
-from antares.tools.time_series_tool import TimeSeriesFile, TimeSeriesFileType
+from antares.tools.time_series_tool import TimeSeriesFile, TimeSeriesFileType, TimeSeries
 
 
 class BindingConstraintLocalService(BaseBindingConstraintService):
@@ -34,7 +34,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         self.study_name = study_name
         self._binding_constraints: dict[str, BindingConstraint] = {}
         self.ini_file = IniFile(self.config.study_path, IniFileTypes.BINDING_CONSTRAINTS_INI)
-        self._time_series: dict[str, TimeSeriesFile] = {}
+        self._time_series: dict[str, TimeSeries] = {}
 
     def create_binding_constraint(
         self,
@@ -62,28 +62,37 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             constraint.properties.operator in (BindingConstraintOperator.LESS, BindingConstraintOperator.BOTH)
             and less_term_matrix is not None
         ):
-            self._time_series[f"{name}_lt"] = TimeSeriesFile(
-                TimeSeriesFileType.BINDING_CONSTRAINT_LESS,
-                self.config.study_path,
-                constraint_id=constraint.id.lower(),
-                time_series=less_term_matrix,
+            self._time_series[f"{name}_lt"] = TimeSeries(
+                less_term_matrix,
+                TimeSeriesFile(
+                    TimeSeriesFileType.BINDING_CONSTRAINT_LESS,
+                    self.config.study_path,
+                    constraint_id=constraint.id.lower(),
+                    time_series=less_term_matrix,
+                ),
             )
         if constraint.properties.operator == BindingConstraintOperator.EQUAL and equal_term_matrix is not None:
-            self._time_series[f"{name}_eq"] = TimeSeriesFile(
-                TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL,
-                self.config.study_path,
-                constraint_id=constraint.id.lower(),
-                time_series=equal_term_matrix,
+            self._time_series[f"{name}_eq"] = TimeSeries(
+                equal_term_matrix,
+                TimeSeriesFile(
+                    TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL,
+                    self.config.study_path,
+                    constraint_id=constraint.id.lower(),
+                    time_series=equal_term_matrix,
+                ),
             )
         if (
             constraint.properties.operator in (BindingConstraintOperator.GREATER, BindingConstraintOperator.BOTH)
             and greater_term_matrix is not None
         ):
-            self._time_series[f"{name}_gt"] = TimeSeriesFile(
-                TimeSeriesFileType.BINDING_CONSTRAINT_GREATER,
-                self.config.study_path,
-                constraint_id=constraint.id.lower(),
-                time_series=greater_term_matrix,
+            self._time_series[f"{name}_gt"] = TimeSeries(
+                greater_term_matrix,
+                TimeSeriesFile(
+                    TimeSeriesFileType.BINDING_CONSTRAINT_GREATER,
+                    self.config.study_path,
+                    constraint_id=constraint.id.lower(),
+                    time_series=greater_term_matrix,
+                ),
             )
 
         return constraint
@@ -101,7 +110,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         return self._binding_constraints
 
     @property
-    def time_series(self) -> dict[str, TimeSeriesFile]:
+    def time_series(self) -> dict[str, TimeSeries]:
         return self._time_series
 
     def add_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> list[ConstraintTerm]:
