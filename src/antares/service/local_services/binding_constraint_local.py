@@ -12,6 +12,7 @@
 
 from typing import Optional, Any
 
+import numpy as np
 import pandas as pd
 
 from antares.config.local_configuration import LocalConfiguration
@@ -21,6 +22,7 @@ from antares.model.binding_constraint import (
     BindingConstraint,
     ConstraintMatrixName,
     BindingConstraintOperator,
+    BindingConstraintFrequency,
 )
 from antares.service.base_services import BaseBindingConstraintService
 from antares.tools.ini_tool import IniFile, IniFileTypes
@@ -58,40 +60,49 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         self._write_binding_constraint_ini()
 
         # Add constraint time series
-        if (
-            constraint.properties.operator in (BindingConstraintOperator.LESS, BindingConstraintOperator.BOTH)
-            and less_term_matrix is not None
-        ):
+        time_series_length = (
+            (365 * 24 + 24) if constraint.properties.time_step == BindingConstraintFrequency.HOURLY else 366
+        )
+
+        if constraint.properties.operator in (BindingConstraintOperator.LESS, BindingConstraintOperator.BOTH):
+            time_series = (
+                less_term_matrix if less_term_matrix is not None else pd.DataFrame(np.zeros([time_series_length, 1]))
+            )
             self._time_series[f"{name}_lt"] = TimeSeries(
-                less_term_matrix,
+                time_series,
                 TimeSeriesFile(
                     TimeSeriesFileType.BINDING_CONSTRAINT_LESS,
                     self.config.study_path,
                     constraint_id=constraint.id.lower(),
-                    time_series=less_term_matrix,
+                    time_series=time_series,
                 ),
             )
-        if constraint.properties.operator == BindingConstraintOperator.EQUAL and equal_term_matrix is not None:
+        if constraint.properties.operator == BindingConstraintOperator.EQUAL:
+            time_series = (
+                equal_term_matrix if equal_term_matrix is not None else pd.DataFrame(np.zeros([time_series_length, 1]))
+            )
             self._time_series[f"{name}_eq"] = TimeSeries(
-                equal_term_matrix,
+                time_series,
                 TimeSeriesFile(
                     TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL,
                     self.config.study_path,
                     constraint_id=constraint.id.lower(),
-                    time_series=equal_term_matrix,
+                    time_series=time_series,
                 ),
             )
-        if (
-            constraint.properties.operator in (BindingConstraintOperator.GREATER, BindingConstraintOperator.BOTH)
-            and greater_term_matrix is not None
-        ):
+        if constraint.properties.operator in (BindingConstraintOperator.GREATER, BindingConstraintOperator.BOTH):
+            time_series = (
+                greater_term_matrix
+                if greater_term_matrix is not None
+                else pd.DataFrame(np.zeros([time_series_length, 1]))
+            )
             self._time_series[f"{name}_gt"] = TimeSeries(
-                greater_term_matrix,
+                time_series,
                 TimeSeriesFile(
                     TimeSeriesFileType.BINDING_CONSTRAINT_GREATER,
                     self.config.study_path,
                     constraint_id=constraint.id.lower(),
-                    time_series=greater_term_matrix,
+                    time_series=time_series,
                 ),
             )
 

@@ -49,6 +49,7 @@ from antares.service.local_services.renewable_local import RenewableLocalService
 from antares.service.local_services.st_storage_local import ShortTermStorageLocalService
 from antares.service.local_services.thermal_local import ThermalLocalService
 from antares.tools.ini_tool import IniFileTypes
+from antares.tools.time_series_tool import TimeSeriesFileType
 
 
 class TestCreateStudy:
@@ -1301,3 +1302,67 @@ at%fr = 0.000000%1
         assert local_study_with_hydro._binding_constraints_service.time_series[
             f"{constraints['both'].id.lower()}_gt"
         ].local_file.file_path.is_file()
+
+    def test_binding_constraints_have_correct_default_time_series(self, test_constraint, local_study_with_constraint):
+        # Given
+        expected_time_series_hourly = pd.DataFrame(np.zeros([365 * 24 + 24, 1]))
+        expected_time_series_daily_weekly = pd.DataFrame(np.zeros([365 + 1, 1]))
+        local_study_with_constraint.create_binding_constraint(
+            name="test greater",
+            properties=BindingConstraintProperties(
+                operator=BindingConstraintOperator.GREATER, time_step=BindingConstraintFrequency.WEEKLY
+            ),
+        )
+        local_study_with_constraint.create_binding_constraint(
+            name="test equal",
+            properties=BindingConstraintProperties(
+                operator=BindingConstraintOperator.EQUAL, time_step=BindingConstraintFrequency.DAILY
+            ),
+        )
+        local_study_with_constraint.create_binding_constraint(
+            name="test both",
+            properties=BindingConstraintProperties(
+                operator=BindingConstraintOperator.BOTH, time_step=BindingConstraintFrequency.HOURLY
+            ),
+        )
+        expected_pre_created_ts_file = (
+            local_study_with_constraint.service.config.study_path
+            / TimeSeriesFileType.BINDING_CONSTRAINT_LESS.value.format(constraint_id=test_constraint.id)
+        )
+
+        # When
+        with local_study_with_constraint._binding_constraints_service.time_series[
+            f"{test_constraint.id}_lt"
+        ].local_file.file_path.open("r") as pre_created_file:
+            actual_time_series_pre_created = pd.read_csv(pre_created_file, header=None)
+        with local_study_with_constraint._binding_constraints_service.time_series[
+            "test greater_gt"
+        ].local_file.file_path.open("r") as greater_file:
+            actual_time_series_greater = pd.read_csv(greater_file, header=None)
+        with local_study_with_constraint._binding_constraints_service.time_series[
+            "test equal_eq"
+        ].local_file.file_path.open("r") as equal_file:
+            actual_time_series_equal = pd.read_csv(equal_file, header=None)
+        with local_study_with_constraint._binding_constraints_service.time_series[
+            "test both_gt"
+        ].local_file.file_path.open("r") as both_greater_file:
+            actual_time_series_both_greater = pd.read_csv(both_greater_file, header=None)
+        with local_study_with_constraint._binding_constraints_service.time_series[
+            "test both_lt"
+        ].local_file.file_path.open("r") as both_lesser_file:
+            actual_time_series_both_lesser = pd.read_csv(both_lesser_file, header=None)
+
+        # Then
+        # Verify that file names are created correctly
+        assert (
+            local_study_with_constraint._binding_constraints_service.time_series[
+                f"{test_constraint.id}_lt"
+            ].local_file.file_path
+            == expected_pre_created_ts_file
+        )
+        # Verify that default file contents are the correct and expected
+        assert actual_time_series_pre_created.equals(expected_time_series_hourly)
+        assert actual_time_series_greater.equals(expected_time_series_daily_weekly)
+        assert actual_time_series_equal.equals(expected_time_series_daily_weekly)
+        assert actual_time_series_both_greater.equals(expected_time_series_hourly)
+        assert actual_time_series_both_lesser.equals(expected_time_series_hourly)
