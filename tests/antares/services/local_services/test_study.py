@@ -1366,3 +1366,30 @@ at%fr = 0.000000%1
         assert actual_time_series_equal.equals(expected_time_series_daily_weekly)
         assert actual_time_series_both_greater.equals(expected_time_series_hourly)
         assert actual_time_series_both_lesser.equals(expected_time_series_hourly)
+
+    def test_submitted_time_series_is_saved(self, local_study_with_constraint):
+        # Given
+        expected_time_series = pd.DataFrame(np.ones([3, 1]))
+        local_study_with_constraint.create_binding_constraint(
+            name="test time series",
+            properties=BindingConstraintProperties(
+                operator=BindingConstraintOperator.GREATER, time_step=BindingConstraintFrequency.HOURLY
+            ),
+            greater_term_matrix=expected_time_series,
+        )
+        expected_file_contents = """1.0
+1.0
+1.0
+"""
+
+        # When
+        with local_study_with_constraint._binding_constraints_service.time_series[
+            "test time series_gt"
+        ].local_file.file_path.open("r") as time_series_file:
+            actual_time_series = pd.read_csv(time_series_file, header=None)
+            time_series_file.seek(0)
+            actual_file_contents = time_series_file.read()
+
+        # Then
+        assert actual_time_series.equals(expected_time_series)
+        assert actual_file_contents == expected_file_contents
