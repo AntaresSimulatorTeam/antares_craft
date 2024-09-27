@@ -13,7 +13,7 @@
 from enum import Enum
 from typing import Optional, Set, Mapping
 
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel
 
 from antares.model.area import Area
 from antares.model.commons import FilterOption, sort_filter_values
@@ -78,7 +78,6 @@ class LinkProperties(DefaultLinkProperties):
 
 
 class LinkPropertiesLocal(DefaultLinkProperties):
-    @computed_field  # type: ignore[misc]
     @property
     def ini_fields(self) -> Mapping[str, str]:
         return {
@@ -117,7 +116,6 @@ class LinkUi(DefaultLinkUi):
 
 
 class LinkUiLocal(DefaultLinkUi):
-    @computed_field  # type: ignore[misc]
     @property
     def ini_fields(self) -> Mapping[str, str]:
         # todo: can be replaced with alias i believe

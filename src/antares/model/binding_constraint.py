@@ -14,7 +14,7 @@ from enum import Enum
 from typing import Optional, Union, List, Any, Dict
 
 import pandas as pd
-from pydantic import BaseModel, Field, model_validator, computed_field
+from pydantic import BaseModel, Field, model_validator
 from pydantic.alias_generators import to_camel
 
 from antares.tools.all_optional_meta import all_optional_model
@@ -134,7 +134,6 @@ class BindingConstraintPropertiesLocal(DefaultBindingConstraintProperties):
     constraint_id: str
     terms: dict[str, ConstraintTerm] = {}
 
-    @computed_field  # type: ignore[misc]
     @property
     def list_ini_fields(self) -> dict[str, str]:
         ini_dict = {

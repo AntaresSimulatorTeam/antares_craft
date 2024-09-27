@@ -14,7 +14,7 @@ from enum import Enum
 from typing import Optional
 
 import pandas as pd
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
 
 from antares.tools.all_optional_meta import all_optional_model
@@ -68,7 +68,6 @@ class STStorageProperties(DefaultSTStorageProperties):
 class STStoragePropertiesLocal(DefaultSTStorageProperties):
     st_storage_name: str
 
-    @computed_field  # type: ignore[misc]
     @property
     def list_ini_fields(self) -> dict[str, dict[str, str]]:
         return {

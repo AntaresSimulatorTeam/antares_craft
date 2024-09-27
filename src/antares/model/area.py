@@ -89,7 +89,6 @@ def config_alias_generator(field_name: str) -> str:
 
 
 class AreaPropertiesLocal(DefaultAreaProperties, alias_generator=config_alias_generator):
-    @computed_field  # type: ignore[misc]
     @property
     def nodal_optimization(self) -> Mapping[str, str]:
         return {
@@ -102,7 +101,6 @@ class AreaPropertiesLocal(DefaultAreaProperties, alias_generator=config_alias_ge
             "average-spilled-energy-cost": f"{self.energy_cost_spilled:.6f}",
         }
 
-    @computed_field  # type: ignore[misc]
     @property
     def filtering(self) -> Mapping[str, str]:
         return {
