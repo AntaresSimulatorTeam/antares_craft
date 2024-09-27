@@ -60,53 +60,45 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         self._write_binding_constraint_ini()
 
         # Add constraint time series
-        time_series_length = (
-            (365 * 24 + 24) if constraint.properties.time_step == BindingConstraintFrequency.HOURLY else 366
-        )
-
-        if constraint.properties.operator in (BindingConstraintOperator.LESS, BindingConstraintOperator.BOTH):
-            time_series = (
-                less_term_matrix if less_term_matrix is not None else pd.DataFrame(np.zeros([time_series_length, 1]))
-            )
-            self._time_series[f"{name}_lt"] = TimeSeries(
-                time_series,
-                TimeSeriesFile(
-                    TimeSeriesFileType.BINDING_CONSTRAINT_LESS,
-                    self.config.study_path,
-                    constraint_id=constraint.id.lower(),
-                    time_series=time_series,
-                ),
-            )
-        if constraint.properties.operator == BindingConstraintOperator.EQUAL:
-            time_series = (
-                equal_term_matrix if equal_term_matrix is not None else pd.DataFrame(np.zeros([time_series_length, 1]))
-            )
-            self._time_series[f"{name}_eq"] = TimeSeries(
-                time_series,
-                TimeSeriesFile(
-                    TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL,
-                    self.config.study_path,
-                    constraint_id=constraint.id.lower(),
-                    time_series=time_series,
-                ),
-            )
-        if constraint.properties.operator in (BindingConstraintOperator.GREATER, BindingConstraintOperator.BOTH):
-            time_series = (
-                greater_term_matrix
-                if greater_term_matrix is not None
-                else pd.DataFrame(np.zeros([time_series_length, 1]))
-            )
-            self._time_series[f"{name}_gt"] = TimeSeries(
-                time_series,
-                TimeSeriesFile(
-                    TimeSeriesFileType.BINDING_CONSTRAINT_GREATER,
-                    self.config.study_path,
-                    constraint_id=constraint.id.lower(),
-                    time_series=time_series,
-                ),
-            )
+        self._store_time_series(constraint, less_term_matrix, equal_term_matrix, greater_term_matrix)
 
         return constraint
+
+    def _store_time_series(
+        self,
+        constraint: BindingConstraint,
+        less_term_matrix: Optional[pd.DataFrame],
+        equal_term_matrix: Optional[pd.DataFrame],
+        greater_term_matrix: Optional[pd.DataFrame],
+    ) -> None:
+        time_series = []
+        time_series_ids = []
+        file_types = []
+        # Lesser or greater can happen together when operator is both
+        if constraint.properties.operator in (BindingConstraintOperator.LESS, BindingConstraintOperator.BOTH):
+            time_series += [self._check_if_empty_ts(constraint.properties.time_step, less_term_matrix)]
+            time_series_ids += [f"{constraint.id.lower()}_lt"]
+            file_types += [TimeSeriesFileType.BINDING_CONSTRAINT_LESS]
+        if constraint.properties.operator in (BindingConstraintOperator.GREATER, BindingConstraintOperator.BOTH):
+            time_series += [self._check_if_empty_ts(constraint.properties.time_step, greater_term_matrix)]
+            time_series_ids += [f"{constraint.id.lower()}_gt"]
+            file_types += [TimeSeriesFileType.BINDING_CONSTRAINT_GREATER]
+        # Equal is always exclusive
+        if constraint.properties.operator == BindingConstraintOperator.EQUAL:
+            time_series = [self._check_if_empty_ts(constraint.properties.time_step, equal_term_matrix)]
+            time_series_ids = [f"{constraint.id.lower()}_eq"]
+            file_types = [TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL]
+
+        for ts, ts_id, file_type in zip(time_series, time_series_ids, file_types):
+            self._time_series[ts_id] = TimeSeries(
+                ts,
+                TimeSeriesFile(file_type, self.config.study_path, constraint_id=constraint.id.lower(), time_series=ts),
+            )
+
+    @staticmethod
+    def _check_if_empty_ts(time_step: BindingConstraintFrequency, time_series: Optional[pd.DataFrame]) -> pd.DataFrame:
+        time_series_length = (365 * 24 + 24) if time_step == BindingConstraintFrequency.HOURLY else 366
+        return time_series if time_series is not None else pd.DataFrame(np.zeros([time_series_length, 1]))
 
     def _write_binding_constraint_ini(self) -> None:
         binding_constraints_ini_content = {
