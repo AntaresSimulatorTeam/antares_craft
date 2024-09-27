@@ -118,7 +118,7 @@ class AreaUiResponse(BaseModel):
 
 # TODO maybe put sorting functions together
 def sort_ini_sections(ini_to_sort: configparser.ConfigParser) -> configparser.ConfigParser:
-    sorted_ini = configparser.ConfigParser()
+    sorted_ini = configparser.ConfigParser(interpolation=None)
     for section in sorted(ini_to_sort.sections()):
         sorted_ini[section] = ini_to_sort[section]
     return sorted_ini

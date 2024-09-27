@@ -16,11 +16,21 @@ import time
 from configparser import ConfigParser
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
 import pytest
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import CustomError, LinkCreationError
 from antares.model.area import AreaProperties, AreaUi, AreaUiLocal, AreaPropertiesLocal, Area
+from antares.model.binding_constraint import (
+    BindingConstraint,
+    BindingConstraintProperties,
+    BindingConstraintFrequency,
+    BindingConstraintOperator,
+    ConstraintTerm,
+    BindingConstraintPropertiesLocal,
+)
 from antares.model.commons import FilterOption
 from antares.model.hydro import Hydro
 from antares.model.link import (
@@ -39,6 +49,8 @@ from antares.service.local_services.link_local import LinkLocalService
 from antares.service.local_services.renewable_local import RenewableLocalService
 from antares.service.local_services.st_storage_local import ShortTermStorageLocalService
 from antares.service.local_services.thermal_local import ThermalLocalService
+from antares.tools.ini_tool import IniFileTypes
+from antares.tools.time_series_tool import TimeSeriesFileType
 
 
 class TestCreateStudy:
@@ -1074,3 +1086,327 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         assert actual_properties == LinkPropertiesLocal.model_validate(created_properties).yield_link_properties()
         created_ui = expected_ui.model_dump(mode="json", exclude_none=True)
         assert actual_ui == LinkUiLocal.model_validate(created_ui).yield_link_ui()
+
+
+class TestCreateBindingconstraint:
+    def test_can_be_created(self, local_study_with_hydro):
+        # When
+        binding_constraint_name = "test constraint"
+        binding_constraint = local_study_with_hydro.create_binding_constraint(name=binding_constraint_name)
+
+        # Then
+        assert isinstance(binding_constraint, BindingConstraint)
+
+    def test_constraints_have_default_properties(self, local_study_with_constraint):
+        # Given
+        constraint = local_study_with_constraint.get_binding_constraints()["test constraint"]
+
+        # Then
+        assert constraint.properties.model_dump(exclude_none=True)
+
+    def test_constraints_have_correct_default_properties(self, test_constraint, default_constraint_properties):
+        assert test_constraint.properties == default_constraint_properties
+
+    def test_creating_constraints_creates_ini(self, local_study_with_constraint):
+        # Given
+        expected_ini_file_path = (
+            local_study_with_constraint.service.config.study_path / "input/bindingconstraints/bindingconstraints.ini"
+        )
+
+        # Then
+        assert expected_ini_file_path.exists()
+        assert expected_ini_file_path.is_file()
+
+    def test_constraints_ini_have_correct_default_content(
+        self, local_study_with_constraint, test_constraint, default_constraint_properties
+    ):
+        # Given
+        expected_ini_contents = """[0]
+name = test constraint
+id = test constraint
+enabled = true
+type = hourly
+operator = less
+filter-year-by-year = hourly
+filter-synthesis = hourly
+group = default
+
+"""
+
+        # When
+        actual_ini_path = (
+            local_study_with_constraint.service.config.study_path / IniFileTypes.BINDING_CONSTRAINTS_INI.value
+        )
+        with actual_ini_path.open("r") as file:
+            actual_ini_content = file.read()
+
+        # Then
+        assert default_constraint_properties == test_constraint.properties
+        assert actual_ini_content == expected_ini_contents
+
+    def test_constraints_and_ini_have_custom_properties(self, local_study_with_constraint):
+        # Given
+        custom_constraint_properties = BindingConstraintProperties(
+            enabled=False,
+            time_step=BindingConstraintFrequency.WEEKLY,
+            operator=BindingConstraintOperator.BOTH,
+            comments="test comment",
+            filter_year_by_year="yearly",
+            filter_synthesis="monthly",
+            group="test group",
+        )
+        expected_ini_content = """[0]
+name = test constraint
+id = test constraint
+enabled = true
+type = hourly
+operator = less
+filter-year-by-year = hourly
+filter-synthesis = hourly
+group = default
+
+[1]
+name = test constraint two
+id = test constraint two
+enabled = false
+type = weekly
+operator = both
+comments = test comment
+filter-year-by-year = yearly
+filter-synthesis = monthly
+group = test group
+
+"""
+
+        # When
+        local_study_with_constraint.create_binding_constraint(
+            name="test constraint two", properties=custom_constraint_properties
+        )
+        actual_file_path = (
+            local_study_with_constraint.service.config.study_path / IniFileTypes.BINDING_CONSTRAINTS_INI.value
+        )
+        with actual_file_path.open("r") as file:
+            actual_ini_content = file.read()
+
+        # Then
+        assert actual_ini_content == expected_ini_content
+
+    def test_constraint_can_add_term(self, test_constraint):
+        new_term = [ConstraintTerm(data={"area1": "fr", "area2": "at"})]
+        test_constraint.add_terms(new_term)
+        assert test_constraint.get_terms()
+
+    def test_constraint_term_and_ini_have_correct_defaults(self, local_study_with_constraint, test_constraint):
+        # Given
+        expected_ini_contents = """[0]
+name = test constraint
+id = test constraint
+enabled = true
+type = hourly
+operator = less
+filter-year-by-year = hourly
+filter-synthesis = hourly
+group = default
+at%fr = 0
+
+"""
+        # When
+        new_term = [ConstraintTerm(data={"area1": "fr", "area2": "at"})]
+        test_constraint.add_terms(new_term)
+        with local_study_with_constraint._binding_constraints_service.ini_file.ini_path.open("r") as file:
+            actual_ini_content = file.read()
+
+        assert actual_ini_content == expected_ini_contents
+
+    def test_constraint_term_with_offset_and_ini_have_correct_values(
+        self, local_study_with_constraint, test_constraint
+    ):
+        # Given
+        expected_ini_contents = """[0]
+name = test constraint
+id = test constraint
+enabled = true
+type = hourly
+operator = less
+filter-year-by-year = hourly
+filter-synthesis = hourly
+group = default
+at%fr = 0.000000%1
+
+"""
+        # When
+        new_term = [ConstraintTerm(offset=1, data={"area1": "fr", "area2": "at"})]
+        test_constraint.add_terms(new_term)
+        with local_study_with_constraint._binding_constraints_service.ini_file.ini_path.open("r") as file:
+            actual_ini_content = file.read()
+
+        assert actual_ini_content == expected_ini_contents
+
+    def test_binding_constraint_with_timeseries_stores_ts_file(self, local_study_with_hydro):
+        # Given
+        ts_matrix = pd.DataFrame(np.zeros([365 * 24, 2]))
+
+        # When
+        constraints = {
+            "lesser":
+            # Less than timeseries
+            local_study_with_hydro.create_binding_constraint(
+                name="test constraint - less",
+                properties=BindingConstraintProperties(
+                    operator=BindingConstraintOperator.LESS,
+                ),
+                less_term_matrix=ts_matrix,
+            ),
+            "equal":
+            # Equal timeseries
+            local_study_with_hydro.create_binding_constraint(
+                name="test constraint - equal",
+                properties=BindingConstraintProperties(
+                    operator=BindingConstraintOperator.EQUAL,
+                ),
+                equal_term_matrix=ts_matrix,
+            ),
+            "greater":
+            # Greater than timeseries
+            local_study_with_hydro.create_binding_constraint(
+                name="test constraint - greater",
+                properties=BindingConstraintProperties(
+                    operator=BindingConstraintOperator.GREATER,
+                ),
+                greater_term_matrix=ts_matrix,
+            ),
+            "both":
+            # Greater than timeseries
+            local_study_with_hydro.create_binding_constraint(
+                name="test constraint - both",
+                properties=BindingConstraintProperties(
+                    operator=BindingConstraintOperator.BOTH,
+                ),
+                less_term_matrix=ts_matrix,
+                greater_term_matrix=ts_matrix,
+            ),
+        }
+
+        # Then
+        assert local_study_with_hydro._binding_constraints_service.time_series[
+            f"{constraints['lesser'].id.lower()}_lt"
+        ].local_file.file_path.is_file()
+        assert local_study_with_hydro._binding_constraints_service.time_series[
+            f"{constraints['equal'].id.lower()}_eq"
+        ].local_file.file_path.is_file()
+        assert local_study_with_hydro._binding_constraints_service.time_series[
+            f"{constraints['greater'].id.lower()}_gt"
+        ].local_file.file_path.is_file()
+        assert local_study_with_hydro._binding_constraints_service.time_series[
+            f"{constraints['both'].id.lower()}_lt"
+        ].local_file.file_path.is_file()
+        assert local_study_with_hydro._binding_constraints_service.time_series[
+            f"{constraints['both'].id.lower()}_gt"
+        ].local_file.file_path.is_file()
+
+    def test_binding_constraints_have_correct_default_time_series(self, test_constraint, local_study_with_constraint):
+        # Given
+        expected_time_series_hourly = pd.DataFrame(np.zeros([365 * 24 + 24, 1]))
+        expected_time_series_daily_weekly = pd.DataFrame(np.zeros([365 + 1, 1]))
+        local_study_with_constraint.create_binding_constraint(
+            name="test greater",
+            properties=BindingConstraintProperties(
+                operator=BindingConstraintOperator.GREATER, time_step=BindingConstraintFrequency.WEEKLY
+            ),
+        )
+        local_study_with_constraint.create_binding_constraint(
+            name="test equal",
+            properties=BindingConstraintProperties(
+                operator=BindingConstraintOperator.EQUAL, time_step=BindingConstraintFrequency.DAILY
+            ),
+        )
+        local_study_with_constraint.create_binding_constraint(
+            name="test both",
+            properties=BindingConstraintProperties(
+                operator=BindingConstraintOperator.BOTH, time_step=BindingConstraintFrequency.HOURLY
+            ),
+        )
+        expected_pre_created_ts_file = (
+            local_study_with_constraint.service.config.study_path
+            / TimeSeriesFileType.BINDING_CONSTRAINT_LESS.value.format(constraint_id=test_constraint.id)
+        )
+
+        # When
+        with local_study_with_constraint._binding_constraints_service.time_series[
+            f"{test_constraint.id}_lt"
+        ].local_file.file_path.open("r") as pre_created_file:
+            actual_time_series_pre_created = pd.read_csv(pre_created_file, header=None)
+        with local_study_with_constraint._binding_constraints_service.time_series[
+            "test greater_gt"
+        ].local_file.file_path.open("r") as greater_file:
+            actual_time_series_greater = pd.read_csv(greater_file, header=None)
+        with local_study_with_constraint._binding_constraints_service.time_series[
+            "test equal_eq"
+        ].local_file.file_path.open("r") as equal_file:
+            actual_time_series_equal = pd.read_csv(equal_file, header=None)
+        with local_study_with_constraint._binding_constraints_service.time_series[
+            "test both_gt"
+        ].local_file.file_path.open("r") as both_greater_file:
+            actual_time_series_both_greater = pd.read_csv(both_greater_file, header=None)
+        with local_study_with_constraint._binding_constraints_service.time_series[
+            "test both_lt"
+        ].local_file.file_path.open("r") as both_lesser_file:
+            actual_time_series_both_lesser = pd.read_csv(both_lesser_file, header=None)
+
+        # Then
+        # Verify that file names are created correctly
+        assert (
+            local_study_with_constraint._binding_constraints_service.time_series[
+                f"{test_constraint.id}_lt"
+            ].local_file.file_path
+            == expected_pre_created_ts_file
+        )
+        # Verify that default file contents are the correct and expected
+        assert actual_time_series_pre_created.equals(expected_time_series_hourly)
+        assert actual_time_series_greater.equals(expected_time_series_daily_weekly)
+        assert actual_time_series_equal.equals(expected_time_series_daily_weekly)
+        assert actual_time_series_both_greater.equals(expected_time_series_hourly)
+        assert actual_time_series_both_lesser.equals(expected_time_series_hourly)
+
+    def test_submitted_time_series_is_saved(self, local_study_with_constraint):
+        # Given
+        expected_time_series = pd.DataFrame(np.ones([3, 1]))
+        local_study_with_constraint.create_binding_constraint(
+            name="test time series",
+            properties=BindingConstraintProperties(
+                operator=BindingConstraintOperator.GREATER, time_step=BindingConstraintFrequency.HOURLY
+            ),
+            greater_term_matrix=expected_time_series,
+        )
+        expected_file_contents = """1.0
+1.0
+1.0
+"""
+
+        # When
+        with local_study_with_constraint._binding_constraints_service.time_series[
+            "test time series_gt"
+        ].local_file.file_path.open("r") as time_series_file:
+            actual_time_series = pd.read_csv(time_series_file, header=None)
+            time_series_file.seek(0)
+            actual_file_contents = time_series_file.read()
+
+        # Then
+        assert actual_time_series.equals(expected_time_series)
+        assert actual_file_contents == expected_file_contents
+
+    def test_updating_binding_constraint_properties_updates_local(self, local_study_with_constraint, test_constraint):
+        # Given
+        new_properties = BindingConstraintProperties(comments="testing update")
+        local_property_args = {
+            "constraint_name": test_constraint.name,
+            "constraint_id": test_constraint.id,
+            "terms": test_constraint._terms,
+            **new_properties.model_dump(mode="json", exclude_none=True),
+        }
+
+        # When
+        test_constraint.properties = new_properties
+
+        # Then
+        assert test_constraint.local_properties == BindingConstraintPropertiesLocal.model_validate(local_property_args)

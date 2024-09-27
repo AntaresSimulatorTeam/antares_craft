@@ -46,13 +46,17 @@ class PreproFolder:
         self._settings = IniFile(study_path, settings, area_id)
         self._conversion = TimeSeries(
             ConversionFile().data,
-            TimeSeriesFile(conversion, study_path, area_id, ConversionFile().data),
+            TimeSeriesFile(conversion, study_path, area_id=area_id, time_series=ConversionFile().data),
         )
-        self._data = TimeSeries(DataFile().data, TimeSeriesFile(data, study_path, area_id, DataFile().data))
-        self._k = TimeSeries(pd.DataFrame([]), TimeSeriesFile(k, study_path, area_id, pd.DataFrame([])))
+        self._data = TimeSeries(
+            DataFile().data, TimeSeriesFile(data, study_path, area_id=area_id, time_series=DataFile().data)
+        )
+        self._k = TimeSeries(
+            pd.DataFrame([]), TimeSeriesFile(k, study_path, area_id=area_id, time_series=pd.DataFrame([]))
+        )
         self._translation = TimeSeries(
             pd.DataFrame([]),
-            TimeSeriesFile(translation, study_path, area_id, pd.DataFrame([])),
+            TimeSeriesFile(translation, study_path, area_id=area_id, time_series=pd.DataFrame([])),
         )
 
     @property

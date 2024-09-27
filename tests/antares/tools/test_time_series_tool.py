@@ -112,7 +112,7 @@ class TestTimeSeriesFile:
         with pytest.raises(
             ValueError, match=f"File {tmp_path / file_name} already exists and a time series was provided."
         ):
-            TimeSeriesFile(TimeSeriesFileType.RESERVES, tmp_path, "test", time_series.time_series)
+            TimeSeriesFile(TimeSeriesFileType.RESERVES, tmp_path, area_id="test", time_series=time_series.time_series)
 
     def test_file_exists_no_time_series_provided(self, tmp_path, time_series_data):
         # Given
@@ -122,7 +122,7 @@ class TestTimeSeriesFile:
         # When
         file_name.parent.mkdir(exist_ok=True, parents=True)
         time_series.time_series.to_csv(file_name, sep="\t", header=False, index=False, encoding="utf-8")
-        time_series_file = TimeSeriesFile(TimeSeriesFileType.RESERVES, tmp_path, "test")
+        time_series_file = TimeSeriesFile(TimeSeriesFileType.RESERVES, tmp_path, area_id="test")
 
         # Then
         assert time_series_file.time_series.equals(time_series_data)

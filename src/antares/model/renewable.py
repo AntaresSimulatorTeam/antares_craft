@@ -14,7 +14,6 @@ from enum import Enum
 from typing import Optional
 
 import pandas as pd
-from pydantic import computed_field
 
 from antares.model.cluster import ClusterProperties
 from antares.tools.all_optional_meta import all_optional_model
@@ -72,7 +71,6 @@ class RenewableClusterProperties(DefaultRenewableClusterProperties):
 class RenewableClusterPropertiesLocal(DefaultRenewableClusterProperties):
     renewable_name: str
 
-    @computed_field  # type: ignore[misc]
     @property
     def ini_fields(self) -> dict[str, dict[str, str]]:
         return {

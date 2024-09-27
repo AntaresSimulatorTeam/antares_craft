@@ -32,6 +32,7 @@ class IniFileTypes(Enum):
     AREA_OPTIMIZATION_INI = "input/areas/{area_name}/optimization.ini"
     AREA_UI_INI = "input/areas/{area_name}/ui.ini"
     AREA_ADEQUACY_PATCH_INI = "input/areas/{area_name}/adequacy_patch.ini"
+    BINDING_CONSTRAINTS_INI = "input/bindingconstraints/bindingconstraints.ini"
     HYDRO_INI = "input/hydro/hydro.ini"
     LINK_PROPERTIES_INI = "input/links/{area_name}/properties.ini"
     LOAD_CORRELATION_INI = "input/load/prepro/correlation.ini"
@@ -68,7 +69,7 @@ class IniFile:
         elif isinstance(ini_contents, ConfigParser):
             self._ini_contents = ini_contents
         else:
-            self._ini_contents = ConfigParser()
+            self._ini_contents = ConfigParser(interpolation=None)
         if self._full_path.is_file():
             self.update_from_ini_file()
         else:
@@ -81,7 +82,7 @@ class IniFile:
 
     @ini_dict.setter
     def ini_dict(self, new_ini_dict: dict[str, dict[str, str]]) -> None:
-        self._ini_contents = ConfigParser()
+        self._ini_contents = ConfigParser(interpolation=None)
         self._ini_contents.read_dict(new_ini_dict)
 
     @property
@@ -117,7 +118,7 @@ class IniFile:
         if not self._full_path.is_file():
             raise FileNotFoundError(f"No such file: {self._full_path}")
 
-        parsed_ini = ConfigParser()
+        parsed_ini = ConfigParser(interpolation=None)
         with self._full_path.open() as file:
             parsed_ini.read_file(file)
 
@@ -138,14 +139,14 @@ class IniFile:
 
     @staticmethod
     def _sort_ini_sections(ini_to_sort: ConfigParser) -> ConfigParser:
-        sorted_ini = ConfigParser()
+        sorted_ini = ConfigParser(interpolation=None)
         for section in sorted(ini_to_sort.sections()):
             sorted_ini[section] = ini_to_sort[section]
         return sorted_ini
 
     @staticmethod
     def _sort_ini_section_content(ini_to_sort: ConfigParser) -> ConfigParser:
-        sorted_ini = ConfigParser()
+        sorted_ini = ConfigParser(interpolation=None)
         for section in ini_to_sort.sections():
             sorted_ini[section] = {key: value for (key, value) in sorted(list(ini_to_sort[section].items()))}
         return sorted_ini
