@@ -2,11 +2,18 @@ name: CI
 on:
   push:
     branches:
-      - "**"
+      - main
+      - test/cicd
+  pull_request:
+    branches: [ "main"]
 
 jobs:
   ci:
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
