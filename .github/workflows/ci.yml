@@ -2,8 +2,8 @@ name: CI
 on:
   push:
     branches:
-      - main
-      - test/cicd
+    - main
+    - test/cicd
   pull_request:
     branches: [ "main"]
 
@@ -49,7 +49,10 @@ jobs:
           path: coverage.xml
 
   sonarcloud:
-        runs-on: ubuntu-20.04
+        runs-on: ${{ matrix.os }}
+        strategy:
+          matrix:
+            os: [ ubuntu-latest, macos-latest, windows-latest ]
         needs: [ci]
         steps:
           - uses: actions/checkout@v4
