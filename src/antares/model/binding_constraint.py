@@ -198,7 +198,9 @@ class BindingConstraint:
         )
         self._properties = new_properties
 
-    def _create_local_property_args(self, properties: BindingConstraintProperties) -> dict[str, str]:
+    def _create_local_property_args(
+        self, properties: BindingConstraintProperties
+    ) -> dict[str, Union[str, dict[str, ConstraintTerm]]]:
         return {
             "constraint_name": self._name,
             "constraint_id": self._id,
