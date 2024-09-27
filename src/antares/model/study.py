@@ -206,7 +206,6 @@ class Study:
         self._settings = settings or StudySettings()
         self._areas: Dict[str, Area] = dict()
         self._links: Dict[str, Link] = dict()
-        self._binding_constraints: Dict[str, BindingConstraint] = dict()
         for argument in kwargs:
             if argument == "ini_files":
                 self._ini_files: dict[str, IniFile] = kwargs[argument] or dict()

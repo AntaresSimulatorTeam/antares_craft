@@ -43,7 +43,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         self.study_id = study_id
         self._wrapper = RequestWrapper(self.api_config.set_up_api_conf())
         self._base_url = f"{self.api_config.get_host()}/api/v1"
-        self._binding_constraints: dict[str, BindingConstraint] = {}
+        self.binding_constraints = {}
 
     def create_binding_constraint(
         self,
@@ -105,13 +105,9 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise BindingConstraintCreationError(name, e.message) from e
 
         constraint = BindingConstraint(name, self, bc_properties, bc_terms)
-        self._binding_constraints[constraint.id] = constraint
+        self.binding_constraints[constraint.id] = constraint
 
         return constraint
-
-    @property
-    def binding_constraints(self) -> dict[str, BindingConstraint]:
-        return self._binding_constraints
 
     def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint_id}/term/{term_id}"

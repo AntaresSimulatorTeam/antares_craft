@@ -355,6 +355,8 @@ class BaseThermalService(ABC):
 
 
 class BaseBindingConstraintService(ABC):
+    binding_constraints: dict[str, BindingConstraint]
+
     @abstractmethod
     def create_binding_constraint(
         self,
@@ -389,11 +391,6 @@ class BaseBindingConstraintService(ABC):
         Returns:
             The created terms
         """
-        pass
-
-    @property
-    @abstractmethod
-    def binding_constraints(self) -> dict[str, BindingConstraint]:
         pass
 
     @abstractmethod

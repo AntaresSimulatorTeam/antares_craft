@@ -34,9 +34,9 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
-        self._binding_constraints: dict[str, BindingConstraint] = {}
         self.ini_file = IniFile(self.config.study_path, IniFileTypes.BINDING_CONSTRAINTS_INI)
         self._time_series: dict[str, TimeSeries] = {}
+        self.binding_constraints = {}
 
     def create_binding_constraint(
         self,
@@ -56,7 +56,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         constraint.properties = constraint.local_properties.yield_binding_constraint_properties()
 
         # Add binding constraints
-        self._binding_constraints[constraint.id] = constraint
+        self.binding_constraints[constraint.id] = constraint
         self._write_binding_constraint_ini()
 
         # Add constraint time series
@@ -103,14 +103,10 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     def _write_binding_constraint_ini(self) -> None:
         binding_constraints_ini_content = {
             idx: idx_constraint.local_properties.list_ini_fields
-            for idx, idx_constraint in enumerate(self._binding_constraints.values())
+            for idx, idx_constraint in enumerate(self.binding_constraints.values())
         }
         self.ini_file.ini_dict = binding_constraints_ini_content
         self.ini_file.write_ini_file()
-
-    @property
-    def binding_constraints(self) -> dict[str, BindingConstraint]:
-        return self._binding_constraints
 
     @property
     def time_series(self) -> dict[str, TimeSeries]:
