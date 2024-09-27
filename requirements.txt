@@ -1,6 +1,5 @@
 absl-py~=1.4.0
 numpy~=1.26.4
-protobuf~=4.23.3
 requests~=2.31.0
 pandas~=2.2.2
 pandas-stubs~=2.2.2
