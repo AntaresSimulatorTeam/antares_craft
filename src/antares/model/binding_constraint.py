@@ -175,13 +175,9 @@ class BindingConstraint:
         self._id = transform_name_to_id(name)
         self._properties = properties or BindingConstraintProperties()
         self._terms = {term.id: term for term in terms} if terms else {}
-        local_property_args = {
-            "constraint_name": self._name,
-            "constraint_id": self._id,
-            "terms": self._terms,
-            **self._properties.model_dump(mode="json", exclude_none=True),
-        }
-        self._local_properties = BindingConstraintPropertiesLocal.model_validate(local_property_args)
+        self._local_properties = BindingConstraintPropertiesLocal.model_validate(
+            self._create_local_property_args(self._properties)
+        )
 
     @property
     def name(self) -> str:
@@ -197,7 +193,18 @@ class BindingConstraint:
 
     @properties.setter
     def properties(self, new_properties: BindingConstraintProperties) -> None:
+        self._local_properties = BindingConstraintPropertiesLocal.model_validate(
+            self._create_local_property_args(new_properties)
+        )
         self._properties = new_properties
+
+    def _create_local_property_args(self, properties: BindingConstraintProperties) -> dict[str, str]:
+        return {
+            "constraint_name": self._name,
+            "constraint_id": self._id,
+            "terms": self._terms,
+            **properties.model_dump(mode="json", exclude_none=True),
+        }
 
     @property
     def local_properties(self) -> BindingConstraintPropertiesLocal:
