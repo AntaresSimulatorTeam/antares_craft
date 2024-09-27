@@ -44,8 +44,6 @@ class TermOperators(BaseModel):
     weight: Optional[float] = None
     offset: Optional[int] = None
 
-    @computed_field  # type: ignore[misc]
-    @property
     def weight_offset(self) -> str:
         if self.offset is not None:
             # Rounded the weight to 6 decimals to be in line with other floats in the ini files
@@ -149,7 +147,7 @@ class BindingConstraintPropertiesLocal(DefaultBindingConstraintProperties):
             "filter-year-by-year": self.filter_year_by_year,
             "filter-synthesis": self.filter_synthesis,
             "group": self.group,
-        } | {term_id: term.weight_offset for term_id, term in self.terms.items()}
+        } | {term_id: term.weight_offset() for term_id, term in self.terms.items()}
         return {key: value for key, value in ini_dict.items() if value not in [None, ""]}
 
     def yield_binding_constraint_properties(self) -> BindingConstraintProperties:
