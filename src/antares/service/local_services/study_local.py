@@ -14,7 +14,7 @@ from typing import Any, Optional
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.binding_constraint import BindingConstraint
-from antares.model.settings import StudySettings
+from antares.model.settings.study_settings import StudySettings
 from antares.service.base_services import BaseStudyService
 
 
