@@ -30,8 +30,8 @@ from antares.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
-    ConstraintTerm,
     BindingConstraintPropertiesLocal,
+    ConstraintTerm,
 )
 from antares.model.commons import FilterOption
 from antares.model.hydro import Hydro

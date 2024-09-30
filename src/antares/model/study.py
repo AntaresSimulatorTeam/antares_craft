@@ -30,7 +30,6 @@ from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings import StudySettings
 from antares.service.api_services.study_api import _returns_study_settings
 from antares.service.base_services import BaseStudyService
-from antares.service.local_services.study_local import StudyLocalService
 from antares.service.service_factory import ServiceFactory
 from antares.tools.ini_tool import IniFile, IniFileTypes
 

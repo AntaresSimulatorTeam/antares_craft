@@ -393,11 +393,6 @@ class BaseBindingConstraintService(ABC):
         """
         pass
 
-    @property
-    @abstractmethod
-    def binding_constraints(self) -> dict[str, BindingConstraint]:
-        pass
-
     @abstractmethod
     def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
         """
