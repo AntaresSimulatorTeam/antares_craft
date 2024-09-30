@@ -26,9 +26,9 @@ from antares.model.area import AdequacyPatchMode, AreaProperties, AreaUi, Filter
 from antares.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
 from antares.model.link import LinkProperties, LinkStyle, LinkUi
 from antares.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
-from antares.model.settings import GeneralProperties, PlaylistData, StudySettings
 from antares.model.settings.advanced_parameters import AdvancedProperties, UnitCommitmentMode
-from antares.model.settings.general import Mode
+from antares.model.settings.general import GeneralProperties, Mode
+from antares.model.settings.study_settings import PlaylistData, StudySettings
 from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
 from antares.model.study import create_study_api
 from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties

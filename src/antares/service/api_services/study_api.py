@@ -21,15 +21,13 @@ from antares.exceptions.exceptions import (
     StudySettingsUpdateError,
 )
 from antares.model.binding_constraint import BindingConstraint
-from antares.model.settings import (
-    AdequacyPatchProperties,
-    AdvancedProperties,
-    GeneralProperties,
-    OptimizationProperties,
-    StudySettings,
-    ThematicTrimming,
-    TimeSeriesProperties,
-)
+from antares.model.settings.adequacy_patch import AdequacyPatchProperties
+from antares.model.settings.advanced_parameters import AdvancedProperties
+from antares.model.settings.general import GeneralProperties
+from antares.model.settings.optimization import OptimizationProperties
+from antares.model.settings.study_settings import StudySettings
+from antares.model.settings.thematic_trimming import ThematicTrimming
+from antares.model.settings.time_series import TimeSeriesProperties
 from antares.service.base_services import BaseStudyService
 
 
