@@ -30,7 +30,7 @@ from antares.model.load import Load
 from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.reserves import Reserves
-from antares.model.settings import StudySettings
+from antares.model.settings.study_settings import StudySettings
 from antares.model.solar import Solar
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
