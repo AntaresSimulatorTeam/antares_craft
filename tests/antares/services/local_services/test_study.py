@@ -45,6 +45,7 @@ from antares.model.link import (
     LinkUiLocal,
     TransmissionCapacities,
 )
+from antares.model.settings.study_settings import StudySettings
 from antares.model.study import create_study_local
 from antares.service.local_services.area_local import AreaLocalService
 from antares.service.local_services.link_local import LinkLocalService
@@ -300,6 +301,15 @@ mode = annual
         assert actual_ini_content == expected_ini_content
         assert actual_ini.parsed_ini.sections() == expected_ini.sections()
         assert actual_ini.parsed_ini == expected_ini
+
+
+class TestStudyProperties:
+    def test_local_study_has_settings(self, local_study):
+        # When
+        local_study_settings = local_study.get_settings()
+        # Then
+        assert local_study.get_settings()
+        assert isinstance(local_study_settings, StudySettings)
 
 
 class TestCreateArea:
