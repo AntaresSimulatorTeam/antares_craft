@@ -34,6 +34,7 @@ from antares.model.solar import Solar
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.model.wind import Wind
+from antares.tools.alias_generators import to_space
 from antares.tools.all_optional_meta import all_optional_model
 from antares.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 
@@ -85,11 +86,7 @@ class AreaProperties(DefaultAreaProperties, alias_generator=to_camel):
     pass
 
 
-def config_alias_generator(field_name: str) -> str:
-    return field_name.replace("_", " ")
-
-
-class AreaPropertiesLocal(DefaultAreaProperties, alias_generator=config_alias_generator):
+class AreaPropertiesLocal(DefaultAreaProperties, alias_generator=to_space):
     @property
     def nodal_optimization(self) -> Mapping[str, str]:
         return {
