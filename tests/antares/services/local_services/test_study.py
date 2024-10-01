@@ -45,6 +45,7 @@ from antares.model.link import (
     LinkUiLocal,
     TransmissionCapacities,
 )
+from antares.model.settings.general import BuildingMode, GeneralPropertiesLocal, Mode, Month, WeekDay
 from antares.model.settings.study_settings import StudySettings
 from antares.model.study import create_study_local
 from antares.service.local_services.area_local import AreaLocalService
@@ -310,6 +311,35 @@ class TestStudyProperties:
         # Then
         assert local_study.get_settings()
         assert isinstance(local_study_settings, StudySettings)
+
+    def test_local_study_has_correct_default_general_properties(self, local_study):
+        # Given
+        # https://antares-simulator.readthedocs.io/en/latest/user-guide/solver/04-parameters/
+        expected_general_properties = GeneralPropertiesLocal.model_validate(
+            {
+                "mode": Mode.ECONOMY,
+                "horizon": "",
+                "nb_years": 1,
+                "first_day": 0,
+                "last_day": 365,
+                "first_january": WeekDay.MONDAY,
+                "first_month": Month.JANUARY,
+                "first_week_day": WeekDay.MONDAY,
+                "leap_year": False,
+                "year_by_year": False,
+                "building_mode": BuildingMode.AUTOMATIC,
+                "selection_mode": False,
+                "thematic_trimming": False,
+                "geographic_trimming": False,
+                "simulation_synthesis": True,
+                "mc_scenario": False,
+            }
+        )
+        # When
+        expected_study_settings = StudySettings(general_properties=expected_general_properties.yield_properties())
+
+        # Then
+        assert local_study.get_settings() == expected_study_settings
 
 
 class TestCreateArea:

@@ -27,6 +27,7 @@ from antares.exceptions.exceptions import APIError, StudyCreationError
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
 from antares.model.link import Link, LinkProperties, LinkUi
+from antares.model.settings.general import GeneralPropertiesLocal
 from antares.model.settings.study_settings import StudySettings
 from antares.service.api_services.study_api import _returns_study_settings
 from antares.service.base_services import BaseStudyService
@@ -166,6 +167,11 @@ InfoTip = Antares Study {version}: {study_name}
         desktop_ini_file.write(desktop_ini_content)
 
     settings = settings if settings is not None else StudySettings()
+    local_settings = StudySettings(
+        general_properties=GeneralPropertiesLocal.model_validate(
+            settings.model_dump(exclude_none=True)
+        ).yield_properties()
+    )
 
     # Create various .ini files for the study
     correlation_inis_to_create = [
@@ -185,7 +191,7 @@ InfoTip = Antares Study {version}: {study_name}
         name=study_name,
         version=version,
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
-        settings=settings,
+        settings=local_settings,
         ini_files=ini_files,
     )
 
