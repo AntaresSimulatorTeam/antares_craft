@@ -165,6 +165,8 @@ InfoTip = Antares Study {version}: {study_name}
     with open(desktop_ini_path, "w") as desktop_ini_file:
         desktop_ini_file.write(desktop_ini_content)
 
+    settings = settings if settings is not None else StudySettings()
+
     # Create various .ini files for the study
     correlation_inis_to_create = [
         ("solar_correlation", IniFileTypes.SOLAR_CORRELATION_INI),

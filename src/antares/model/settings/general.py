@@ -10,11 +10,11 @@
 #
 # This file is part of the Antares project.
 
-from typing import Optional
 
 from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
 
+from antares.tools.all_optional_meta import all_optional_model
 from antares.tools.contents_tool import EnumIgnoreCase
 
 
@@ -55,20 +55,30 @@ class BuildingMode(EnumIgnoreCase):
     DERATED = "derated"
 
 
-class GeneralProperties(BaseModel, alias_generator=to_camel):
-    mode: Optional[Mode] = None
-    first_day: Optional[int] = None
-    last_day: Optional[int] = None
-    horizon: Optional[str] = None
-    first_month: Optional[Month] = None
-    first_week_day: Optional[WeekDay] = None
-    first_january: Optional[WeekDay] = None
-    leap_year: Optional[bool] = None
-    nb_years: Optional[int] = None
-    building_mode: Optional[BuildingMode] = None
-    selection_mode: Optional[bool] = None
-    year_by_year: Optional[bool] = None
-    simulation_synthesis: Optional[bool] = None
-    mc_scenario: Optional[bool] = None
-    geographic_trimming: Optional[bool] = None
-    thematic_trimming: Optional[bool] = None
+class DefaultGeneralProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+    mode: Mode = Mode.ECONOMY
+    first_day: int = 0
+    last_day: int = 365
+    horizon: str = ""
+    first_month: Month = Month.JANUARY
+    first_week_day: WeekDay = WeekDay.MONDAY
+    first_january: WeekDay = WeekDay.MONDAY
+    leap_year: bool = False
+    nb_years: int = 1
+    building_mode: BuildingMode = BuildingMode.AUTOMATIC  # ? derated and custom-scenario
+    selection_mode: bool = False  # ? user-playlist
+    year_by_year: bool = False
+    simulation_synthesis: bool = True  # ? output/synthesis
+    mc_scenario: bool = False  # ? output/storenewset
+    geographic_trimming: bool = False
+    thematic_trimming: bool = False
+
+
+@all_optional_model
+class GeneralProperties(DefaultGeneralProperties):
+    pass
+
+
+class GeneralPropertiesLocal(DefaultGeneralProperties):
+    def yield_properties(self) -> GeneralProperties:
+        return GeneralProperties.model_validate(self.model_dump(exclude_none=True))
