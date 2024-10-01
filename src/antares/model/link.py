@@ -17,6 +17,7 @@ from pydantic import BaseModel
 
 from antares.model.area import Area
 from antares.model.commons import FilterOption, sort_filter_values
+from antares.tools.alias_generators import to_kebab
 from antares.tools.all_optional_meta import all_optional_model
 
 
@@ -41,11 +42,7 @@ class LinkStyle(Enum):
     DOT_DASH = "dotdash"
 
 
-def link_aliasing(string: str) -> str:
-    return string.replace("_", "-")
-
-
-class DefaultLinkProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=link_aliasing):
+class DefaultLinkProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_kebab):
     """
     DTO for updating link properties
     """
@@ -98,7 +95,7 @@ class LinkPropertiesLocal(DefaultLinkProperties):
         return LinkProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
 
 
-class DefaultLinkUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=link_aliasing):
+class DefaultLinkUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_kebab):
     """
     DTO for updating link UI
     """
