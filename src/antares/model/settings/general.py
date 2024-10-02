@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from typing import Union
 
 from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
@@ -55,23 +55,40 @@ class BuildingMode(EnumIgnoreCase):
     DERATED = "derated"
 
 
+class OutputTimeSeries(EnumIgnoreCase):
+    LOAD = "load"
+    WIND = "wind"
+    HYDRO = "hydro"
+    THERMAL = "thermal"
+    SOLAR = "solar"
+    RENEWABLES = "renewables"
+    NTC = "ntc"
+    MAX_POWER = "max-power"
+
+
 class DefaultGeneralProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     mode: Mode = Mode.ECONOMY
+    horizon: str = ""
+    # Calendar parameters
+    nb_years: int = 1
     first_day: int = 0
     last_day: int = 365
-    horizon: str = ""
+    first_january: WeekDay = WeekDay.MONDAY
     first_month: Month = Month.JANUARY
     first_week_day: WeekDay = WeekDay.MONDAY
-    first_january: WeekDay = WeekDay.MONDAY
     leap_year: bool = False
-    nb_years: int = 1
+    # Additional parameters
+    year_by_year: bool = False
     building_mode: BuildingMode = BuildingMode.AUTOMATIC  # ? derated and custom-scenario
     selection_mode: bool = False  # ? user-playlist
-    year_by_year: bool = False
+    thematic_trimming: bool = False
+    geographic_trimming: bool = False
+    active_rules_scenario: str = "default ruleset"  # only one option available currently
+    read_only: bool = False
+    # Output parameters
     simulation_synthesis: bool = True  # ? output/synthesis
     mc_scenario: bool = False  # ? output/storenewset
-    geographic_trimming: bool = False
-    thematic_trimming: bool = False
+    archives: Union[set[OutputTimeSeries], str] = ""
 
 
 @all_optional_model
