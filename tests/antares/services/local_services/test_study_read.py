@@ -37,3 +37,8 @@ class TestReadStudy:
                     match=f"Some content cannot be accessed in {escaped_path}",
                 ):
                     read_study_local(study_name, "880", LocalConfiguration(tmp_path, study_name))
+
+    def test_directory(self, caplog):
+        local_path = r"../../studies_samples/"
+        study_name = "study_renewable_thermique"
+        read_study_local(study_name, "880", LocalConfiguration(local_path, study_name))

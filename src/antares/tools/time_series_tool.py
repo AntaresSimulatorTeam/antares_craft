@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+import os
 from enum import Enum
 from pathlib import Path
 from typing import Optional
@@ -30,6 +30,11 @@ class TimeSeriesFileType(Enum):
     RESERVES = "input/reserves/{area_id}.txt"
     SOLAR = "input/solar/series/solar_{area_id}.txt"
     WIND = "input/wind/series/wind_{area_id}.txt"
+    THERMAL_PREPRO_PREFIX = "input/thermal/prepro/{area_id}"
+    THERMAL_MODULATION = "input/thermal/prepro/{area_id}/{group_id}/modulation.txt"
+    THERMAL_DATA = "input/thermal/prepro/{area_id}/{group_id}/data.txt"
+    THERMAL_SERIES_PREFIX = "input/thermal/series/{area_id}"
+    THERMAL_DATA_SERIES = "input/thermal/series/{area_id}/{group_id}/series.txt"
 
 
 class TimeSeriesFile:
@@ -53,21 +58,45 @@ class TimeSeriesFile:
         ts_file_type: TimeSeriesFileType,
         study_path: Path,
         area_id: Optional[str] = None,
+        group_id: Optional[str] = None,
         time_series: Optional[pd.DataFrame] = None,
     ) -> None:
         if "{area_id}" in ts_file_type.value and area_id is None:
             raise ValueError("area_id is required for this file type.")
-
-        self.file_path = study_path / (
-            ts_file_type.value if not area_id else ts_file_type.value.format(area_id=area_id)
-        )
+        if "{group_id}" in ts_file_type.value and group_id is None:
+            raise ValueError("group_id is required for this file type.")
+        if group_id:
+            self.file_path = study_path / (
+                ts_file_type.value
+                if not area_id
+                else ts_file_type.value.format(area_id=area_id, group_id=group_id)
+            )
+        else:
+            self.file_path = study_path / (
+                ts_file_type.value
+                if not area_id
+                else ts_file_type.value.format(area_id=area_id)
+            )
 
         if self.file_path.is_file() and time_series is not None:
-            raise ValueError(f"File {self.file_path} already exists and a time series was provided.")
+            raise ValueError(
+                f"File {self.file_path} already exists and a time series was provided."
+            )
         elif self.file_path.is_file() and time_series is None:
-            self._time_series = pd.read_csv(self.file_path, sep="\t", header=None, index_col=None, encoding="utf-8")
+            if os.path.getsize(self.file_path) != 0:
+                self._time_series = pd.read_csv(
+                    self.file_path,
+                    sep="\t",
+                    header=None,
+                    index_col=None,
+                    encoding="utf-8",
+                )
+            else:
+                self._time_series = pd.DataFrame()
         else:
-            self._time_series = time_series if time_series is not None else pd.DataFrame([])
+            self._time_series = (
+                time_series if time_series is not None else pd.DataFrame([])
+            )
             self._write_file()
 
     @property
@@ -81,7 +110,9 @@ class TimeSeriesFile:
 
     def _write_file(self) -> None:
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
-        self._time_series.to_csv(self.file_path, sep="\t", header=False, index=False, encoding="utf-8")
+        self._time_series.to_csv(
+            self.file_path, sep="\t", header=False, index=False, encoding="utf-8"
+        )
 
 
 class TimeSeries:

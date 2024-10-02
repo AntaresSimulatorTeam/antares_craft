@@ -49,7 +49,9 @@ class IniFile:
         ini_contents: Optional[ConfigParser] = None,
     ) -> None:
         if "{area_name}" in ini_file_type.value and not area_name:
-            raise ValueError(f"Area name not provided, ini type {ini_file_type.name} requires 'area_name'")
+            raise ValueError(
+                f"Area name not provided, ini type {ini_file_type.name} requires 'area_name'"
+            )
         self._full_path = study_path / (
             ini_file_type.value.format(area_name=area_name)
             if ("{area_name}" in ini_file_type.value and area_name)
@@ -66,7 +68,10 @@ class IniFile:
     @property
     def ini_dict(self) -> dict:
         """Ini contents as a python dictionary"""
-        return {section: dict(self._ini_contents[section]) for section in self._ini_contents.sections()}
+        return {
+            section: dict(self._ini_contents[section])
+            for section in self._ini_contents.sections()
+        }
 
     @ini_dict.setter
     def ini_dict(self, new_ini_dict: dict[str, dict[str, str]]) -> None:
@@ -88,10 +93,12 @@ class IniFile:
         return self._full_path
 
     @overload
-    def add_section(self, section: Path) -> None: ...
+    def add_section(self, section: Path) -> None:
+        ...
 
     @overload
-    def add_section(self, section: dict[str, dict[str, str]]) -> None: ...
+    def add_section(self, section: dict[str, dict[str, str]]) -> None:
+        ...
 
     def add_section(self, section: Any) -> None:
         if isinstance(section, dict):
@@ -103,6 +110,7 @@ class IniFile:
             raise TypeError("Only dict or Path are allowed")
 
     def update_from_ini_file(self) -> None:
+        # todo to use
         if not self._full_path.is_file():
             raise FileNotFoundError(f"No such file: {self._full_path}")
 
@@ -119,8 +127,16 @@ class IniFile:
     ) -> None:
         if not self._file_path.is_dir():
             self._file_path.mkdir(parents=True)
-        ini_to_write = self._ini_contents if not sort_sections else self._sort_ini_sections(self._ini_contents)
-        ini_to_write = ini_to_write if not sort_section_content else self._sort_ini_section_content(ini_to_write)
+        ini_to_write = (
+            self._ini_contents
+            if not sort_sections
+            else self._sort_ini_sections(self._ini_contents)
+        )
+        ini_to_write = (
+            ini_to_write
+            if not sort_section_content
+            else self._sort_ini_section_content(ini_to_write)
+        )
 
         with self._full_path.open("w") as file:
             ini_to_write.write(file)
@@ -136,7 +152,10 @@ class IniFile:
     def _sort_ini_section_content(ini_to_sort: ConfigParser) -> ConfigParser:
         sorted_ini = ConfigParser()
         for section in ini_to_sort.sections():
-            sorted_ini[section] = {key: value for (key, value) in sorted(list(ini_to_sort[section].items()))}
+            sorted_ini[section] = {
+                key: value
+                for (key, value) in sorted(list(ini_to_sort[section].items()))
+            }
         return sorted_ini
 
 

@@ -72,11 +72,15 @@ def create_study_api(
         response = wrapper.post(url)
         study_id = response.json()
 
-        study_settings = _returns_study_settings(base_url, study_id, wrapper, False, settings)
+        study_settings = _returns_study_settings(
+            base_url, study_id, wrapper, False, settings
+        )
 
     except APIError as e:
         raise StudyCreationError(study_name, e.message) from e
-    return Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
+    return Study(
+        study_name, version, ServiceFactory(api_config, study_id), study_settings
+    )
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:
@@ -184,14 +188,15 @@ def read_study_local(study_name: str, version: str, local_config: LocalConfigura
         if local_path is None or not os.path.exists(local_path):
             raise ValueError(f"Provided directory {local_path} does not exist.")
 
-    _directory_not_exists(local_config.local_path)
-    study_directory = local_config.local_path / study_name
+    local_path = Path(local_config.local_path)
+    _directory_not_exists(local_path)
+    study_directory = local_path / study_name
     _directories_can_be_read(study_directory)
 
     return Study(
         name=study_name,
         version=version,
-        service_factory=ServiceReader(config=local_config, study_name=study_name),
+        service_factory=ServiceReader(config=local_config, study_name=Path(study_name)),
         mode="read",
     )
 
