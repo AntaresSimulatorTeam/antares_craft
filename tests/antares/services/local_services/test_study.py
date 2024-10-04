@@ -45,8 +45,18 @@ from antares.model.link import (
     LinkUiLocal,
     TransmissionCapacities,
 )
-from antares.model.settings.general import BuildingMode, GeneralProperties, Mode, Month, WeekDay
-from antares.model.settings.study_settings import StudySettings
+from antares.model.settings.adequacy_patch import (
+    DefaultAdequacyPatchProperties,
+    PriceTakingOrder,
+)
+from antares.model.settings.general import (
+    BuildingMode,
+    DefaultGeneralProperties,
+    Mode,
+    Month,
+    WeekDay,
+)
+from antares.model.settings.study_settings import DefaultStudySettings, StudySettingsLocal
 from antares.model.study import create_study_local
 from antares.service.local_services.area_local import AreaLocalService
 from antares.service.local_services.link_local import LinkLocalService
@@ -310,12 +320,12 @@ class TestStudyProperties:
         local_study_settings = local_study.get_settings()
         # Then
         assert local_study.get_settings()
-        assert isinstance(local_study_settings, StudySettings)
+        assert isinstance(local_study_settings, DefaultStudySettings)
 
     def test_local_study_has_correct_default_general_properties(self, local_study):
         # Given
         # https://antares-simulator.readthedocs.io/en/latest/user-guide/solver/04-parameters/
-        expected_general_properties = GeneralProperties.model_validate(
+        expected_general_properties = DefaultGeneralProperties.model_validate(
             {
                 "mode": Mode.ECONOMY,
                 "horizon": "",
@@ -339,11 +349,45 @@ class TestStudyProperties:
             }
         )
         # When
-        expected_study_settings = StudySettings(general_properties=expected_general_properties)
+        expected_study_settings = StudySettingsLocal(general_properties=expected_general_properties)
 
         # Then
         assert local_study.get_settings().general_properties == expected_general_properties
         assert local_study.get_settings() == expected_study_settings
+
+    def test_local_study_has_correct_default_adequacy_patch_properties(self, local_study):
+        # Given
+        expected_adequacy_patch_properties = DefaultAdequacyPatchProperties.model_validate(
+            {
+                "enable_adequacy_patch": False,
+                "ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch": True,
+                "ntc_between_physical_areas_out_adequacy_patch": True,
+                "price_taking_order": PriceTakingOrder.DENS,
+                "include_hurdle_cost_csr": False,
+                "check_csr_cost_function": False,
+                "enable_first_step": False,
+                "threshold_initiate_curtailment_sharing_rule": 0,
+                "threshold_display_local_matching_rule_violations": 0,
+                "threshold_csr_variable_bounds_relaxation": 3,
+            }
+        )
+        expected_study_settings = StudySettingsLocal(
+            adequacy_patch_properties=DefaultAdequacyPatchProperties.model_validate(
+                expected_adequacy_patch_properties.model_dump(exclude_none=True)
+            )
+        )
+
+        # When
+        actual_adequacy_patch_properties = DefaultAdequacyPatchProperties.model_validate(
+            local_study.get_settings().adequacy_patch_properties.model_dump(exclude_none=True)
+        )
+        actual_study_settings = StudySettingsLocal.model_validate(
+            local_study.get_settings().model_dump(exclude_none=True)
+        )
+
+        # Then
+        assert actual_adequacy_patch_properties == expected_adequacy_patch_properties
+        assert actual_study_settings == expected_study_settings
 
 
 class TestCreateArea:
