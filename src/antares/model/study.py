@@ -16,7 +16,7 @@ import time
 
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -27,8 +27,7 @@ from antares.exceptions.exceptions import APIError, StudyCreationError
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
 from antares.model.link import Link, LinkProperties, LinkUi
-from antares.model.settings.general import GeneralPropertiesLocal
-from antares.model.settings.study_settings import StudySettings
+from antares.model.settings.study_settings import DefaultStudySettings, StudySettings, StudySettingsLocal
 from antares.service.api_services.study_api import _returns_study_settings
 from antares.service.base_services import BaseStudyService
 from antares.service.service_factory import ServiceFactory
@@ -75,7 +74,7 @@ def create_study_api(
 
 
 def create_study_local(
-    study_name: str, version: str, local_config: LocalConfiguration, settings: Optional[StudySettings] = None
+    study_name: str, version: str, local_config: LocalConfiguration, settings: StudySettingsLocal = StudySettingsLocal()
 ) -> "Study":
     """
     Create a directory structure for the study with empty files.
@@ -120,12 +119,7 @@ InfoTip = Antares Study {version}: {study_name}
     with open(desktop_ini_path, "w") as desktop_ini_file:
         desktop_ini_file.write(desktop_ini_content)
 
-    settings = settings if settings is not None else StudySettings()
-    local_settings = StudySettings(
-        general_properties=GeneralPropertiesLocal.model_validate(
-            settings.model_dump(exclude_none=True)
-        ).yield_properties()
-    )
+    local_settings = StudySettingsLocal.model_validate(settings)
 
     # Create various .ini files for the study
     correlation_inis_to_create = [
@@ -156,7 +150,7 @@ class Study:
         name: str,
         version: str,
         service_factory: ServiceFactory,
-        settings: Optional[StudySettings] = None,
+        settings: Union[StudySettings, StudySettingsLocal, None] = None,
         # ini_files: Optional[dict[str, IniFile]] = None,
         **kwargs: Any,
     ):
@@ -166,7 +160,7 @@ class Study:
         self._area_service = service_factory.create_area_service()
         self._link_service = service_factory.create_link_service()
         self._binding_constraints_service = service_factory.create_binding_constraints_service()
-        self._settings = settings or StudySettings()
+        self._settings = DefaultStudySettings.model_validate(settings if settings is not None else StudySettings())
         self._areas: Dict[str, Area] = dict()
         self._links: Dict[str, Link] = dict()
         for argument in kwargs:
@@ -183,7 +177,7 @@ class Study:
     def get_links(self) -> MappingProxyType[str, Link]:
         return MappingProxyType(self._links)
 
-    def get_settings(self) -> StudySettings:
+    def get_settings(self) -> DefaultStudySettings:
         return self._settings
 
     def get_binding_constraints(self) -> MappingProxyType[str, BindingConstraint]:
