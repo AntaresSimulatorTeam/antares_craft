@@ -74,11 +74,6 @@ def create_study_api(
     return Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
 
 
-def _verify_study_already_exists(study_directory: Path) -> None:
-    if os.path.exists(study_directory):
-        raise FileExistsError(f"Study {study_directory} already exists.")
-
-
 def create_study_local(
     study_name: str, version: str, local_config: LocalConfiguration, settings: Optional[StudySettings] = None
 ) -> "Study":
@@ -94,47 +89,6 @@ def create_study_local(
     Raises:
         FileExistsError if the study already exists in the given location
     """
-
-    def _create_directory_structure(study_path: Path) -> None:
-        subdirectories = [
-            "input/hydro/allocation",
-            "input/hydro/common/capacity",
-            "input/hydro/series",
-            "input/links",
-            "input/load/series",
-            "input/misc-gen",
-            "input/reserves",
-            "input/solar/series",
-            "input/thermal/clusters",
-            "input/thermal/prepro",
-            "input/thermal/series",
-            "input/wind/series",
-            "layers",
-            "output",
-            "settings/resources",
-            "settings/simulations",
-            "user",
-        ]
-        for subdirectory in subdirectories:
-            (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
-
-    def _correlation_defaults() -> dict[str, dict[str, str]]:
-        return {
-            "general": {"mode": "annual"},
-            "annual": {},
-            "0": {},
-            "1": {},
-            "2": {},
-            "3": {},
-            "4": {},
-            "5": {},
-            "6": {},
-            "7": {},
-            "8": {},
-            "9": {},
-            "10": {},
-            "11": {},
-        }
 
     study_directory = local_config.local_path / study_name
 
@@ -288,3 +242,39 @@ class Study:
 
     def delete(self, children: bool = False) -> None:
         self._study_service.delete(children)
+
+
+def _verify_study_already_exists(study_directory: Path) -> None:
+    if os.path.exists(study_directory):
+        raise FileExistsError(f"Study {study_directory} already exists.")
+
+
+def _create_directory_structure(study_path: Path) -> None:
+    subdirectories = [
+        "input/hydro/allocation",
+        "input/hydro/common/capacity",
+        "input/hydro/series",
+        "input/links",
+        "input/load/series",
+        "input/misc-gen",
+        "input/reserves",
+        "input/solar/series",
+        "input/thermal/clusters",
+        "input/thermal/prepro",
+        "input/thermal/series",
+        "input/wind/series",
+        "layers",
+        "output",
+        "settings/resources",
+        "settings/simulations",
+        "user",
+    ]
+    for subdirectory in subdirectories:
+        (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
+
+
+def _correlation_defaults() -> dict[str, dict[str, str]]:
+    return {
+        "general": {"mode": "annual"},
+        "annual": {},
+    } | {f"{num}": {} for num in range(12)}
