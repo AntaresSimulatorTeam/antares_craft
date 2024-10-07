@@ -67,6 +67,13 @@ from antares.model.settings.general import (
     Month,
     WeekDay,
 )
+from antares.model.settings.optimization import (
+    DefaultOptimizationParameters,
+    ExportMPS,
+    OptimizationTransmissionCapacities,
+    SimplexOptimizationRange,
+    UnfeasibleProblemBehavior,
+)
 from antares.model.settings.study_settings import DefaultStudySettings, StudySettingsLocal
 from antares.model.study import create_study_local
 from antares.service.local_services.area_local import AreaLocalService
@@ -438,6 +445,39 @@ class TestStudyProperties:
 
         # Then
         assert actual_advanced_parameters == expected_advanced_parameters
+        assert actual_study_settings == expected_study_settings
+
+    def test_local_study_has_correct_optimization_parameters(self, local_study):
+        # Given
+        expected_optimization_parameters = DefaultOptimizationParameters.model_validate(
+            {
+                "simplex_optimization_range": SimplexOptimizationRange.WEEK,
+                "transmission_capacities": OptimizationTransmissionCapacities.LOCAL_VALUES,
+                "binding_constraints": True,
+                "hurdle_costs": True,
+                "thermal_clusters_min_stable_power": True,
+                "thermal_clusters_min_ud_time": True,
+                "day_ahead_reserve": True,
+                "strategic_reserve": True,
+                "spinning_reserve": True,
+                "primary_reserve": True,
+                "export_mps": ExportMPS.NONE,
+                "include_exportstructure": False,
+                "unfeasible_problem_behavior": UnfeasibleProblemBehavior.ERROR_VERBOSE,
+            }
+        )
+        expected_study_settings = StudySettingsLocal(optimization_parameters=expected_optimization_parameters)
+
+        # When
+        actual_optimization_parameters = DefaultOptimizationParameters.model_validate(
+            local_study.get_settings().optimization_parameters.model_dump(exclude_none=True)
+        )
+        actual_study_settings = StudySettingsLocal.model_validate(
+            local_study.get_settings().model_dump(exclude_none=True)
+        )
+
+        # Then
+        assert actual_optimization_parameters == expected_optimization_parameters
         assert actual_study_settings == expected_study_settings
 
 
