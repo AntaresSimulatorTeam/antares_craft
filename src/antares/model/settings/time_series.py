@@ -22,7 +22,7 @@ class SeasonCorrelation(Enum):
     ANNUAL = "annual"
 
 
-class _Properties(BaseModel, alias_generator=to_camel):
+class _Parameters(BaseModel, alias_generator=to_camel):
     stochastic_ts_status: Optional[bool] = None
     number: Optional[int] = None
     refresh: Optional[bool] = None
@@ -34,11 +34,11 @@ class _Properties(BaseModel, alias_generator=to_camel):
     inter_modal: Optional[bool] = None
 
 
-class TimeSeriesProperties(BaseModel, alias_generator=to_camel):
-    load: Optional[_Properties] = None
-    hydro: Optional[_Properties] = None
-    thermal: Optional[_Properties] = None
-    wind: Optional[_Properties] = None
-    solar: Optional[_Properties] = None
-    renewables: Optional[_Properties] = None
-    ntc: Optional[_Properties] = None
+class TimeSeriesParameters(BaseModel, alias_generator=to_camel):
+    load: Optional[_Parameters] = None
+    hydro: Optional[_Parameters] = None
+    thermal: Optional[_Parameters] = None
+    wind: Optional[_Parameters] = None
+    solar: Optional[_Parameters] = None
+    renewables: Optional[_Parameters] = None
+    ntc: Optional[_Parameters] = None

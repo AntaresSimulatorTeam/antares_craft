@@ -27,7 +27,7 @@ from antares.exceptions.exceptions import (
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties
 from antares.model.link import Link, LinkProperties, LinkUi
-from antares.model.settings.general import GeneralProperties
+from antares.model.settings.general import GeneralParameters
 from antares.model.settings.study_settings import StudySettings
 from antares.model.study import Study, create_study_api
 from antares.service.service_factory import ServiceFactory
@@ -75,7 +75,7 @@ class TestCreateAPI:
     def test_update_study_settings_success(self):
         with requests_mock.Mocker() as mocker:
             settings = StudySettings()
-            settings.general_properties = GeneralProperties(mode="Adequacy")
+            settings.general_parameters = GeneralParameters(mode="Adequacy")
             config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
             mocker.put(config_urls, status_code=200)
             mocker.get(config_urls, json={}, status_code=200)
@@ -84,7 +84,7 @@ class TestCreateAPI:
     def test_update_study_settings_fails(self):
         with requests_mock.Mocker() as mocker:
             settings = StudySettings()
-            settings.general_properties = GeneralProperties(mode="Adequacy")
+            settings.general_parameters = GeneralParameters(mode="Adequacy")
             config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
             antares_web_description_msg = "Server KO"
             mocker.put(config_urls, json={"description": antares_web_description_msg}, status_code=404)

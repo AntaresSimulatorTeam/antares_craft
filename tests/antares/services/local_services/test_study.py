@@ -46,12 +46,12 @@ from antares.model.link import (
     TransmissionCapacities,
 )
 from antares.model.settings.adequacy_patch import (
-    DefaultAdequacyPatchProperties,
+    DefaultAdequacyPatchParameters,
     PriceTakingOrder,
 )
 from antares.model.settings.general import (
     BuildingMode,
-    DefaultGeneralProperties,
+    DefaultGeneralParameters,
     Mode,
     Month,
     WeekDay,
@@ -325,7 +325,7 @@ class TestStudyProperties:
     def test_local_study_has_correct_default_general_properties(self, local_study):
         # Given
         # https://antares-simulator.readthedocs.io/en/latest/user-guide/solver/04-parameters/
-        expected_general_properties = DefaultGeneralProperties.model_validate(
+        expected_general_properties = DefaultGeneralParameters.model_validate(
             {
                 "mode": Mode.ECONOMY,
                 "horizon": "",
@@ -352,12 +352,12 @@ class TestStudyProperties:
         expected_study_settings = StudySettingsLocal(general_properties=expected_general_properties)
 
         # Then
-        assert local_study.get_settings().general_properties == expected_general_properties
+        assert local_study.get_settings().general_parameters == expected_general_properties
         assert local_study.get_settings() == expected_study_settings
 
     def test_local_study_has_correct_default_adequacy_patch_properties(self, local_study):
         # Given
-        expected_adequacy_patch_properties = DefaultAdequacyPatchProperties.model_validate(
+        expected_adequacy_patch_properties = DefaultAdequacyPatchParameters.model_validate(
             {
                 "enable_adequacy_patch": False,
                 "ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch": True,
@@ -372,14 +372,14 @@ class TestStudyProperties:
             }
         )
         expected_study_settings = StudySettingsLocal(
-            adequacy_patch_properties=DefaultAdequacyPatchProperties.model_validate(
+            adequacy_patch_properties=DefaultAdequacyPatchParameters.model_validate(
                 expected_adequacy_patch_properties.model_dump(exclude_none=True)
             )
         )
 
         # When
-        actual_adequacy_patch_properties = DefaultAdequacyPatchProperties.model_validate(
-            local_study.get_settings().adequacy_patch_properties.model_dump(exclude_none=True)
+        actual_adequacy_patch_properties = DefaultAdequacyPatchParameters.model_validate(
+            local_study.get_settings().adequacy_patch_parameters.model_dump(exclude_none=True)
         )
         actual_study_settings = StudySettingsLocal.model_validate(
             local_study.get_settings().model_dump(exclude_none=True)

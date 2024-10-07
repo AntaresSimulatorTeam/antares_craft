@@ -23,7 +23,7 @@ class PriceTakingOrder(Enum):
     LOAD = "Load"
 
 
-class DefaultAdequacyPatchProperties(BaseModel, populate_by_name=True, alias_generator=to_camel):
+class DefaultAdequacyPatchParameters(BaseModel, populate_by_name=True, alias_generator=to_camel):
     # version 830
     enable_adequacy_patch: bool = False
     ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch: bool = True
@@ -39,9 +39,9 @@ class DefaultAdequacyPatchProperties(BaseModel, populate_by_name=True, alias_gen
 
 
 @all_optional_model
-class AdequacyPatchProperties(DefaultAdequacyPatchProperties):
+class AdequacyPatchParameters(DefaultAdequacyPatchParameters):
     pass
 
 
-class AdequacyPatchPropertiesLocal(DefaultAdequacyPatchProperties):
+class AdequacyPatchParametersLocal(DefaultAdequacyPatchParameters):
     pass

@@ -66,7 +66,7 @@ class OutputTimeSeries(EnumIgnoreCase):
     MAX_POWER = "max-power"
 
 
-class DefaultGeneralProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+class DefaultGeneralParameters(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     mode: Mode = Mode.ECONOMY
     horizon: str = ""
     # Calendar parameters
@@ -92,10 +92,10 @@ class DefaultGeneralProperties(BaseModel, extra="forbid", populate_by_name=True,
 
 
 @all_optional_model
-class GeneralProperties(DefaultGeneralProperties):
+class GeneralParameters(DefaultGeneralParameters):
     pass
 
 
-class GeneralPropertiesLocal(DefaultGeneralProperties):
-    def yield_properties(self) -> GeneralProperties:
-        return GeneralProperties.model_validate(self.model_dump(exclude_none=True))
+class GeneralParametersLocal(DefaultGeneralParameters):
+    def yield_properties(self) -> GeneralParameters:
+        return GeneralParameters.model_validate(self.model_dump(exclude_none=True))
