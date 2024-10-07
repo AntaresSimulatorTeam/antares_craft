@@ -11,10 +11,12 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
+
+from antares.model.settings.general import OutputChoices
+from antares.tools.all_optional_meta import all_optional_model
 
 
 class InitialReservoirLevel(Enum):
@@ -66,28 +68,36 @@ class RenewableGenerationModeling(Enum):
     CLUSTERS = "clusters"
 
 
-class AdvancedParameters(BaseModel, alias_generator=to_camel):
+class DefaultAdvancedParameters(BaseModel, alias_generator=to_camel):
     # Advanced parameters
-    accuracy_on_correlation: Optional[str] = None
+    accuracy_on_correlation: set[OutputChoices] = set()
     # Other preferences
-    initial_reservoir_levels: Optional[InitialReservoirLevel] = None
-    power_fluctuations: Optional[PowerFluctuation] = None
-    shedding_policy: Optional[SheddingPolicy] = None
-    hydro_pricing_mode: Optional[HydroPricingMode] = None
-    hydro_heuristic_policy: Optional[HydroHeuristicPolicy] = None
-    unit_commitment_mode: Optional[UnitCommitmentMode] = None
-    number_of_cores_mode: Optional[SimulationCore] = None
-    day_ahead_reserve_management: Optional[ReserveManagement] = None
-    renewable_generation_modelling: Optional[RenewableGenerationModeling] = None
+    initial_reservoir_levels: InitialReservoirLevel = InitialReservoirLevel.COLD_START
+    hydro_heuristic_policy: HydroHeuristicPolicy = HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES
+    hydro_pricing_mode: HydroPricingMode = HydroPricingMode.FAST
+    power_fluctuations: PowerFluctuation = PowerFluctuation.FREE_MODULATIONS
+    shedding_policy: SheddingPolicy = SheddingPolicy.SHAVE_PEAKS
+    unit_commitment_mode: UnitCommitmentMode = UnitCommitmentMode.FAST
+    number_of_cores_mode: SimulationCore = SimulationCore.MEDIUM
+    renewable_generation_modelling: RenewableGenerationModeling = RenewableGenerationModeling.AGGREGATED
     # Seeds
-    seed_tsgen_wind: Optional[int] = None
-    seed_tsgen_load: Optional[int] = None
-    seed_tsgen_hydro: Optional[int] = None
-    seed_tsgen_thermal: Optional[int] = None
-    seed_tsgen_solar: Optional[int] = None
-    seed_tsnumbers: Optional[int] = None
-    seed_unsupplied_energy_costs: Optional[int] = None
-    seed_spilled_energy_costs: Optional[int] = None
-    seed_thermal_costs: Optional[int] = None
-    seed_hydro_costs: Optional[int] = None
-    seed_initial_reservoir_levels: Optional[int] = None
+    seed_tsgen_wind: int = 5489
+    seed_tsgen_load: int = 1005489
+    seed_tsgen_hydro: int = 2005489
+    seed_tsgen_thermal: int = 3005489
+    seed_tsgen_solar: int = 4005489
+    seed_tsnumbers: int = 5005489
+    seed_unsupplied_energy_costs: int = 6005489
+    seed_spilled_energy_costs: int = 7005489
+    seed_thermal_costs: int = 8005489
+    seed_hydro_costs: int = 9005489
+    seed_initial_reservoir_levels: int = 10005489
+
+
+@all_optional_model
+class AdvancedParameters(DefaultAdvancedParameters):
+    pass
+
+
+class AdvancedParametersLocal(DefaultAdvancedParameters):
+    pass

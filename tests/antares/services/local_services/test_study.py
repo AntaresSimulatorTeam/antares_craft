@@ -49,6 +49,17 @@ from antares.model.settings.adequacy_patch import (
     DefaultAdequacyPatchParameters,
     PriceTakingOrder,
 )
+from antares.model.settings.advanced_parameters import (
+    DefaultAdvancedParameters,
+    HydroHeuristicPolicy,
+    HydroPricingMode,
+    InitialReservoirLevel,
+    PowerFluctuation,
+    RenewableGenerationModeling,
+    SheddingPolicy,
+    SimulationCore,
+    UnitCommitmentMode,
+)
 from antares.model.settings.general import (
     BuildingMode,
     DefaultGeneralParameters,
@@ -387,6 +398,46 @@ class TestStudyProperties:
 
         # Then
         assert actual_adequacy_patch_properties == expected_adequacy_patch_properties
+        assert actual_study_settings == expected_study_settings
+
+    def test_local_study_has_correct_advanced_parameters(self, local_study):
+        # Given
+        expected_advanced_parameters = DefaultAdvancedParameters.model_validate(
+            {
+                "accuracy_on_correlation": set(),
+                "initial_reservoir_levels": InitialReservoirLevel.COLD_START,
+                "hydro_heuristic_policy": HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES,
+                "hydro_pricing_mode": HydroPricingMode.FAST,
+                "power_fluctuations": PowerFluctuation.FREE_MODULATIONS,
+                "shedding_policy": SheddingPolicy.SHAVE_PEAKS,
+                "unit_commitment_mode": UnitCommitmentMode.FAST,
+                "number_of_cores_mode": SimulationCore.MEDIUM,
+                "renewable_generation_modelling": RenewableGenerationModeling.AGGREGATED,
+                "seed_tsgen_wind": 5489,
+                "seed_tsgen_load": 1005489,
+                "seed_tsgen_hydro": 2005489,
+                "seed_tsgen_thermal": 3005489,
+                "seed_tsgen_solar": 4005489,
+                "seed_tsnumbers": 5005489,
+                "seed_unsupplied_energy_costs": 6005489,
+                "seed_spilled_energy_costs": 7005489,
+                "seed_thermal_costs": 8005489,
+                "seed_hydro_costs": 9005489,
+                "seed_initial_reservoir_levels": 10005489,
+            }
+        )
+        expected_study_settings = StudySettingsLocal(advanced_parameters=expected_advanced_parameters)
+
+        # When
+        actual_advanced_parameters = DefaultAdvancedParameters.model_validate(
+            local_study.get_settings().advanced_parameters.model_dump(exclude_none=True)
+        )
+        actual_study_settings = StudySettingsLocal.model_validate(
+            local_study.get_settings().model_dump(exclude_none=True)
+        )
+
+        # Then
+        assert actual_advanced_parameters == expected_advanced_parameters
         assert actual_study_settings == expected_study_settings
 
 
