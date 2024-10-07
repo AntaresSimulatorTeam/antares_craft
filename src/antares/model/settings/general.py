@@ -55,7 +55,7 @@ class BuildingMode(EnumIgnoreCase):
     DERATED = "derated"
 
 
-class OutputTimeSeries(EnumIgnoreCase):
+class OutputChoices(EnumIgnoreCase):
     LOAD = "load"
     WIND = "wind"
     HYDRO = "hydro"
@@ -88,7 +88,7 @@ class DefaultGeneralParameters(BaseModel, extra="forbid", populate_by_name=True,
     # Output parameters
     simulation_synthesis: bool = True  # ? output/synthesis
     mc_scenario: bool = False  # ? output/storenewset
-    archives: Union[set[OutputTimeSeries], str] = ""
+    archives: Union[set[OutputChoices], str] = ""
 
 
 @all_optional_model
