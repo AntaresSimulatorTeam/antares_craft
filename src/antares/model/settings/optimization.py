@@ -41,7 +41,7 @@ class SimplexOptimizationRange(Enum):
     WEEK = "week"
 
 
-class OptimizationProperties(BaseModel, alias_generator=to_camel):
+class OptimizationParameters(BaseModel, alias_generator=to_camel):
     binding_constraints: Optional[bool] = None
     hurdle_costs: Optional[bool] = None
     transmission_capacities: Union[bool, Union[LegacyTransmissionCapacities, TransmissionCapacities], None] = None
