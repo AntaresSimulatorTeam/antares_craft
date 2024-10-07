@@ -74,7 +74,10 @@ def create_study_api(
 
 
 def create_study_local(
-    study_name: str, version: str, local_config: LocalConfiguration, settings: StudySettingsLocal = StudySettingsLocal()
+    study_name: str,
+    version: str,
+    local_config: LocalConfiguration,
+    settings: StudySettingsLocal = StudySettingsLocal(),
 ) -> "Study":
     """
     Create a directory structure for the study with empty files.

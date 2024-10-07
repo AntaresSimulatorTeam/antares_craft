@@ -14,12 +14,12 @@ from typing import Dict
 
 from pydantic import BaseModel
 
-from antares.model.settings.adequacy_patch import DefaultAdequacyPatchProperties
-from antares.model.settings.advanced_parameters import AdvancedProperties
-from antares.model.settings.general import DefaultGeneralProperties
-from antares.model.settings.optimization import OptimizationProperties
-from antares.model.settings.thematic_trimming import ThematicTrimming
-from antares.model.settings.time_series import TimeSeriesProperties
+from antares.model.settings.adequacy_patch import DefaultAdequacyPatchParameters
+from antares.model.settings.advanced_parameters import AdvancedParameters
+from antares.model.settings.general import DefaultGeneralParameters
+from antares.model.settings.optimization import OptimizationParameters
+from antares.model.settings.thematic_trimming import ThematicTrimmingParameters
+from antares.model.settings.time_series import TimeSeriesParameters
 from antares.tools.all_optional_meta import all_optional_model
 
 
@@ -29,18 +29,18 @@ class PlaylistData(BaseModel):
 
 
 class DefaultStudySettings(BaseModel):
-    general_properties: DefaultGeneralProperties = DefaultGeneralProperties()
-    thematic_trimming: ThematicTrimming = ThematicTrimming()
+    general_parameters: DefaultGeneralParameters = DefaultGeneralParameters()
+    thematic_trimming_parameters: ThematicTrimmingParameters = ThematicTrimmingParameters()
     # These parameters are listed under the [variables selection] section in the .ini file.
     # They are required if thematic-trimming is set to true.
     # https://antares-simulator.readthedocs.io/en/latest/user-guide/solver/04-parameters/#variables-selection-parameters
-    time_series_properties: TimeSeriesProperties = TimeSeriesProperties()
+    time_series_parameters: TimeSeriesParameters = TimeSeriesParameters()
     # These parameters are listed under the [general] section in the .ini file.
     # https://antares-simulator.readthedocs.io/en/latest/user-guide/ts-generator/04-parameters/
-    adequacy_patch_properties: DefaultAdequacyPatchProperties = DefaultAdequacyPatchProperties()
-    advanced_properties: AdvancedProperties = AdvancedProperties()
-    optimization_properties: OptimizationProperties = OptimizationProperties()
-    playlist: Dict[str, PlaylistData] = {}
+    adequacy_patch_parameters: DefaultAdequacyPatchParameters = DefaultAdequacyPatchParameters()
+    advanced_parameters: AdvancedParameters = AdvancedParameters()
+    optimization_parameters: OptimizationParameters = OptimizationParameters()
+    playlist_parameters: Dict[str, PlaylistData] = {}
 
 
 @all_optional_model

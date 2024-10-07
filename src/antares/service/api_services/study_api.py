@@ -21,13 +21,13 @@ from antares.exceptions.exceptions import (
     StudySettingsUpdateError,
 )
 from antares.model.binding_constraint import BindingConstraint
-from antares.model.settings.adequacy_patch import AdequacyPatchProperties
-from antares.model.settings.advanced_parameters import AdvancedProperties
-from antares.model.settings.general import GeneralProperties
-from antares.model.settings.optimization import OptimizationProperties
+from antares.model.settings.adequacy_patch import AdequacyPatchParameters
+from antares.model.settings.advanced_parameters import AdvancedParameters
+from antares.model.settings.general import GeneralParameters
+from antares.model.settings.optimization import OptimizationParameters
 from antares.model.settings.study_settings import StudySettings
-from antares.model.settings.thematic_trimming import ThematicTrimming
-from antares.model.settings.time_series import TimeSeriesProperties
+from antares.model.settings.thematic_trimming import ThematicTrimmingParameters
+from antares.model.settings.time_series import TimeSeriesParameters
 from antares.service.base_services import BaseStudyService
 
 
@@ -36,13 +36,13 @@ def _returns_study_settings(
 ) -> Optional[StudySettings]:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
     mapping = {
-        "general_properties": ("general", GeneralProperties),
-        "thematic_trimming": ("thematictrimming", ThematicTrimming),
-        "time_series_properties": ("timeseries", TimeSeriesProperties),
-        "adequacy_patch_properties": ("adequacypatch", AdequacyPatchProperties),
-        "advanced_properties": ("advancedparameters", AdvancedProperties),
-        "optimization_properties": ("optimization", OptimizationProperties),
-        "playlist": ("playlist", None),
+        "general_parameters": ("general", GeneralParameters),
+        "thematic_trimming_parameters": ("thematictrimming", ThematicTrimmingParameters),
+        "time_series_parameters": ("timeseries", TimeSeriesParameters),
+        "adequacy_patch_parameters": ("adequacypatch", AdequacyPatchParameters),
+        "advanced_parameters": ("advancedparameters", AdvancedParameters),
+        "optimization_parameters": ("optimization", OptimizationParameters),
+        "playlist_parameters": ("playlist", None),
     }
     if settings:
         json_settings = settings.model_dump(mode="json", by_alias=True, exclude_none=True)
@@ -58,7 +58,7 @@ def _returns_study_settings(
         settings_class = settings_tuple[1]
         url = f"{settings_base_url}/{settings_tuple[0]}/form"
         response = wrapper.get(url)
-        if settings_type == "playlist":
+        if settings_type == "playlist_parameters":
             settings_property = response.json()
         else:
             settings_property = settings_class.model_validate(response.json())  # type: ignore

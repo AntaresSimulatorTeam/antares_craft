@@ -66,7 +66,7 @@ class RenewableGenerationModeling(Enum):
     CLUSTERS = "clusters"
 
 
-class AdvancedProperties(BaseModel, alias_generator=to_camel):
+class AdvancedParameters(BaseModel, alias_generator=to_camel):
     # Advanced parameters
     accuracy_on_correlation: Optional[str] = None
     # Other preferences
