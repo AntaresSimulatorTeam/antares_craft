@@ -17,7 +17,7 @@ from pydantic import BaseModel
 from antares.model.settings.adequacy_patch import DefaultAdequacyPatchParameters
 from antares.model.settings.advanced_parameters import DefaultAdvancedParameters
 from antares.model.settings.general import DefaultGeneralParameters
-from antares.model.settings.optimization import OptimizationParameters
+from antares.model.settings.optimization import DefaultOptimizationParameters
 from antares.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.model.settings.time_series import TimeSeriesParameters
 from antares.tools.all_optional_meta import all_optional_model
@@ -39,7 +39,7 @@ class DefaultStudySettings(BaseModel):
     # https://antares-simulator.readthedocs.io/en/latest/user-guide/ts-generator/04-parameters/
     adequacy_patch_parameters: DefaultAdequacyPatchParameters = DefaultAdequacyPatchParameters()
     advanced_parameters: DefaultAdvancedParameters = DefaultAdvancedParameters()
-    optimization_parameters: OptimizationParameters = OptimizationParameters()
+    optimization_parameters: DefaultOptimizationParameters = DefaultOptimizationParameters()
     playlist_parameters: Dict[str, PlaylistData] = {}
 
 
