@@ -44,10 +44,12 @@ class SimplexOptimizationRange(Enum):
 
 
 class ExportMPS(Enum):
+    FALSE = False
     NONE = "none"
     OPTIM1 = "optim1"
     OPTIM2 = "optim2"
     BOTH_OPTIMS = "both-optims"
+    TRUE = True
 
 
 class DefaultOptimizationParameters(BaseModel, alias_generator=to_camel):
