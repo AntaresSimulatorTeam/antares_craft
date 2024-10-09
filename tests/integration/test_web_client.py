@@ -28,7 +28,7 @@ from antares.model.link import LinkProperties, LinkStyle, LinkUi
 from antares.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
 from antares.model.settings.general import GeneralParameters, Mode
-from antares.model.settings.study_settings import PlaylistData, StudySettings
+from antares.model.settings.study_settings import PlaylistData, PlaylistParameters, StudySettings
 from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
 from antares.model.study import create_study_api
 from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
@@ -372,7 +372,9 @@ class TestWebClient:
             settings = new_study.get_settings()
             assert settings.general_parameters.mode == Mode.ADEQUACY
             assert not settings.general_parameters.year_by_year
-            assert settings.playlist_parameters == {"1": PlaylistData(status=False, weight=1)}
+            assert settings.playlist_parameters == PlaylistParameters(
+                playlist_reset=True, mc_years={"1": PlaylistData(status=False, weight=1)}
+            )
 
             # tests update settings
             new_settings = StudySettings()
