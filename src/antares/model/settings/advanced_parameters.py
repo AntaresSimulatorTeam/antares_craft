@@ -15,7 +15,6 @@ from enum import Enum
 from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
 
-from antares.model.settings.general import OutputChoices
 from antares.tools.all_optional_meta import all_optional_model
 
 
@@ -70,7 +69,7 @@ class RenewableGenerationModeling(Enum):
 
 class DefaultAdvancedParameters(BaseModel, alias_generator=to_camel):
     # Advanced parameters
-    accuracy_on_correlation: set[OutputChoices] = set()
+    accuracy_on_correlation: str = ""
     # Other preferences
     initial_reservoir_levels: InitialReservoirLevel = InitialReservoirLevel.COLD_START
     hydro_heuristic_policy: HydroHeuristicPolicy = HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES

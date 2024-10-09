@@ -411,7 +411,7 @@ class TestStudyProperties:
         # Given
         expected_advanced_parameters = DefaultAdvancedParameters.model_validate(
             {
-                "accuracy_on_correlation": set(),
+                "accuracy_on_correlation": "",
                 "initial_reservoir_levels": InitialReservoirLevel.COLD_START,
                 "hydro_heuristic_policy": HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES,
                 "hydro_pricing_mode": HydroPricingMode.FAST,
