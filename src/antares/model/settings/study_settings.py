@@ -10,8 +10,6 @@
 #
 # This file is part of the Antares project.
 
-from typing import Dict
-
 from pydantic import BaseModel
 
 from antares.model.settings.adequacy_patch import DefaultAdequacyPatchParameters
@@ -24,8 +22,13 @@ from antares.tools.all_optional_meta import all_optional_model
 
 
 class PlaylistData(BaseModel):
-    status: bool
-    weight: float
+    status: bool = True
+    weight: float = 1.0
+
+
+class PlaylistParameters(BaseModel):
+    playlist_reset: bool = False
+    mc_years: dict[int, PlaylistData] = {}
 
 
 class DefaultStudySettings(BaseModel):
@@ -40,7 +43,7 @@ class DefaultStudySettings(BaseModel):
     adequacy_patch_parameters: DefaultAdequacyPatchParameters = DefaultAdequacyPatchParameters()
     advanced_parameters: DefaultAdvancedParameters = DefaultAdvancedParameters()
     optimization_parameters: DefaultOptimizationParameters = DefaultOptimizationParameters()
-    playlist_parameters: Dict[str, PlaylistData] = {}
+    playlist_parameters: PlaylistParameters = PlaylistParameters()
 
 
 @all_optional_model
