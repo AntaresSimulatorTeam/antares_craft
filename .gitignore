@@ -9,6 +9,7 @@ build/
 dist/
 sdist/
 *.egg-info/
+site/
 
 # Unit test / coverage reports
 .coverage

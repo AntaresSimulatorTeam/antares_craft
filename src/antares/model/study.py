@@ -47,15 +47,14 @@ def create_study_api(
 ) -> "Study":
     """
     Args:
-
-    study_name: antares study name to be created
-    version: antares version
-    api_config: host and token config for API
-    settings: study settings. If not provided, AntaresWeb will use its default values.
+        study_name: antares study name to be created
+        version: antares version
+        api_config: host and token config for API
+        settings: study settings. If not provided, AntaresWeb will use its default values.
 
     Raises:
-    MissingTokenError if api_token is missing
-    StudyCreationError if an HTTP Exception occurs
+        MissingTokenError if api_token is missing
+        StudyCreationError if an HTTP Exception occurs
     """
 
     session = api_config.set_up_api_conf()
@@ -84,6 +83,7 @@ def create_study_local(
 ) -> "Study":
     """
     Create a directory structure for the study with empty files.
+
     Args:
         study_name: antares study name to be created
         version: antares version for study
