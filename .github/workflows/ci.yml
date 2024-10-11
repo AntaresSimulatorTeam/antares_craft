@@ -33,7 +33,7 @@ jobs:
 
       - name: Test
         run: |
-          pytest --cov-config=pyproject.toml --cov src --cov-report xml tests/antares
+          pytest --cov src --cov-report xml tests/antares
 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v4

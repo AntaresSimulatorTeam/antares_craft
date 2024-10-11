@@ -33,68 +33,7 @@ classifiers = [
 Repository = "https://github.com/AntaresSimulatorTeam/antares_craft"
 "Bug Tracker" = "https://github.com/AntaresSimulatorTeam/antares_craft/issues"
 
-# Coverage
-[tool.coverage.run]
-relative_files = true
-
-# Mypy
-[tool.mypy]
-mypy_path = "src"
-packages = "antares"
-disallow_untyped_defs = true
-disallow_untyped_calls = true
-
-# Pytest
-[tool.pytest.ini_options]
-pythonpath = "src"
-testpaths = "tests"
-log_cli = true
-junit_family= "xunit2"
-
-# Ruff
-[tool.ruff]
-line-length = 120
-
-[tool.ruff.lint]
-## E4, E7, E9 and F are the default configuration of ruff, "I" is added to handle imports
-select = ["E4", "E7", "E9", "F", "I"]
-
-[tool.ruff.lint.isort]
-## Use a single line between direct import and from import.
-lines-between-types = 1
-section-order = [
-    "testing",
-    "future",
-    "standard-library",
-    "third-party",
-    "first-party",
-    "local-folder",
-]
-
-[tool.ruff.lint.isort.sections]
-testing = ["pytest*", "*mock*"]
-
 # Setuptools
 [tool.setuptools.packages.find]
 ## All the following settings are optional:
 where = ["src"]
-
-[tool.tox]
-requires = ["tox>=4.21"]
-env_list =["py3.9", "py3.10", "py3.11", "py3.12", "lint"]
-
-[tool.tox.env_run_base]
-description = "run the tests with pytest"
-deps = ["-r requirements-dev.txt"]
-commands = [["pytest", "tests/antares"]]
-
-[tool.tox.env.lint]
-description = "linting with ruff and typechecking with mypy"
-extras = ["lint"]
-commands = [
-    ["python", "scripts/license_checker_and_adder.py", "--path=src", "--action=fix"],
-    ["python", "scripts/license_checker_and_adder.py", "--path=tests", "--action=fix"],
-    ["ruff", "check", "--fix", "src/", "tests/"],
-    ["ruff", "format", "src/", "tests/"],
-    ["mypy"]
-]
