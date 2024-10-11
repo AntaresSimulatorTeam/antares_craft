@@ -5,7 +5,7 @@ from unittest import mock
 import pytest
 
 from antares.config.local_configuration import LocalConfiguration
-from antares.model.study import create_study_local, read_study_local
+from antares.model.study import read_study_local
 
 
 class TestReadStudy:

@@ -27,14 +27,48 @@ class TimeSeriesFileType(Enum):
     """
 
     MISC_GEN = "input/misc-gen/miscgen-{area_id}.txt"
+
     RESERVES = "input/reserves/{area_id}.txt"
-    SOLAR = "input/solar/series/solar_{area_id}.txt"
-    WIND = "input/wind/series/wind_{area_id}.txt"
+
     THERMAL_PREPRO_PREFIX = "input/thermal/prepro/{area_id}"
     THERMAL_MODULATION = "input/thermal/prepro/{area_id}/{group_id}/modulation.txt"
     THERMAL_DATA = "input/thermal/prepro/{area_id}/{group_id}/data.txt"
     THERMAL_SERIES_PREFIX = "input/thermal/series/{area_id}"
     THERMAL_DATA_SERIES = "input/thermal/series/{area_id}/{group_id}/series.txt"
+
+    RENEWABLE_SERIES_PREFIX = "input/renewables/series/{area_id}"
+    RENEWABLE_DATA_SERIES = "input/renewables/series/{area_id}/{group_id}/series.txt"
+
+    LOAD_PREPRO_TRANSLATION = "input/load/prepro/{area_id}/translation.txt"
+    LOAD_PREPRO_CONVERSION = "input/load/prepro/{area_id}/conversion.txt"
+    LOAD_PREPRO_DATA = "input/load/prepro/{area_id}/data.txt"
+    LOAD_PREPRO_K = "input/load/prepro/{area_id}/k.txt"
+    LOAD_DATA_SERIES = "input/load/series/load_{area_id}.txt"
+
+    SOLAR_PREPRO_TRANSLATION = "input/solar/prepro/{area_id}/translation.txt"
+    SOLAR_PREPRO_CONVERSION = "input/solar/prepro/{area_id}/conversion.txt"
+    SOLAR_PREPRO_DATA = "input/solar/prepro/{area_id}/data.txt"
+    SOLAR_PREPRO_K = "input/solar/prepro/{area_id}/k.txt"
+    SOLAR_DATA_SERIES = "input/solar/series/solar_{area_id}.txt"
+
+    WIND_PREPRO_TRANSLATION = "input/wind/prepro/{area_id}/translation.txt"
+    WIND_PREPRO_CONVERSION = "input/wind/prepro/{area_id}/conversion.txt"
+    WIND_PREPRO_DATA = "input/wind/prepro/{area_id}/data.txt"
+    WIND_PREPRO_K = "input/wind/prepro/{area_id}/k.txt"
+    WIND_DATA_SERIES = "input/wind/series/wind_{area_id}.txt"
+
+
+    HYDRO_COMMON_CM = "input/hydro/common/capacity/creditmodulations_{area_id}.txt"
+    HYDRO_COMMON_IFP = "input/hydro/common/capacity/inflowPattern_{area_id}.txt"
+    HYDRO_COMMON_MP = "input/hydro/common/capacity/maxpower_{area_id}.txt"
+    HYDRO_COMMON_R = "input/hydro/common/capacity/reservoir_{area_id}.txt"
+    HYDRO_COMMON_WV = "input/hydro/common/capacity/waterValues_{area_id}.txt"
+
+    HYDRO_ENERGY = "input/hydro/prepro/{area_id}/energy.txt"
+
+    HYDRO_MINGEN_SERIES = "input/hydro/series/{area_id}/mingen.txt"
+    HYDRO_MOD_SERIES = "input/hydro/series/{area_id}/mod.txt"
+    HYDRO_ROR_SERIES = "input/hydro/series/{area_id}/ror.txt"
 
 
 class TimeSeriesFile:
@@ -83,6 +117,7 @@ class TimeSeriesFile:
                 f"File {self.file_path} already exists and a time series was provided."
             )
         elif self.file_path.is_file() and time_series is None:
+
             if os.path.getsize(self.file_path) != 0:
                 self._time_series = pd.read_csv(
                     self.file_path,

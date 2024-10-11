@@ -32,12 +32,29 @@ class IniFileTypes(Enum):
     AREA_OPTIMIZATION_INI = "input/areas/{area_name}/optimization.ini"
     AREA_UI_INI = "input/areas/{area_name}/ui.ini"
     AREA_ADEQUACY_PATCH_INI = "input/areas/{area_name}/adequacy_patch.ini"
-    HYDRO_INI = "input/hydro/hydro.ini"
+
     LINK_PROPERTIES_INI = "input/links/{area_name}/properties.ini"
-    RENEWABLES_LIST_INI = "input/renewables/clusters/{area_name}/list.ini"
+
+    RENEWABLE_LIST_INI = "input/renewables/clusters/{area_name}/list.ini"
+
     ST_STORAGE_LIST_INI = "input/st-storage/clusters/{area_name}/list.ini"
+
     THERMAL_AREAS_INI = "input/thermal/areas.ini"
     THERMAL_LIST_INI = "input/thermal/clusters/{area_name}/list.ini"
+
+    LOAD_PREPRO_INI = "input/load/prepro/{area_name}/settings.ini"
+    LOAD_PREPRO_CORRELATION_INI = "input/load/prepro/correlation.ini"
+
+    SOLAR_PREPRO_INI = "input/solar/prepro/{area_name}/settings.ini"
+    SOLAR_PREPRO_CORRELATION_INI = "input/solar/prepro/correlation.ini"
+
+    WIND_PREPRO_INI = "input/wind/prepro/{area_name}/settings.ini"
+    WIND_PREPRO_CORRELATION_INI = "input/wind/prepro/correlation.ini"
+
+    HYDRO_ALLOCATION_INI = "input/hydro/allocation/{area_name}.ini"
+    HYDRO_PREPRO_CORRELATION_INI = "input/hydro/prepro/correlation.ini"
+    HYDRO_PREPRO_PREPRO_INI = "input/hydro/prepro/{area_name}/prepro.ini"
+    HYDRO_INI_INI = "input/hydro/hydro.ini"
 
 
 class IniFile:
