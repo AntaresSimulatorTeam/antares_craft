@@ -223,8 +223,8 @@ class Study:
             self._binding_constraints: Dict[str, BindingConstraint] = dict()
         else:
             self._study_service = service_factory.read_study_service()
-            self._binding_constraints: Dict[str, BindingConstraint] = dict()
-            self._link_service = service_factory.create_link_service()
+            # self._binding_constraints: Dict[str, BindingConstraint] = dict()
+            # self._link_service = service_factory.create_link_service()
             self._areas: Dict[str, Area] = dict()
             self._links: Dict[str, Link] = dict()
 

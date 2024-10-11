@@ -140,7 +140,7 @@ class AreaLocalService(BaseAreaService):
         local_properties = RenewableClusterPropertiesLocal(renewable_name, properties)
 
         list_ini = IniFile(
-            self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name=area_id
+            self.config.study_path, IniFileTypes.RENEWABLE_LIST_INI, area_name=area_id
         )
         list_ini.add_section(local_properties.ini_fields)
         list_ini.write_ini_file()
@@ -396,7 +396,7 @@ class AreaLocalService(BaseAreaService):
     ) -> RenewableCluster:
         local_properties = RenewableClusterPropertiesLocal(renewable_name, properties)
 
-        list_ini = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name=area_id)
+        list_ini = IniFile(self.config.study_path, IniFileTypes.RENEWABLE_LIST_INI, area_name=area_id)
         list_ini.add_section(local_properties.ini_fields)
         list_ini.write_ini_file()
 
@@ -483,9 +483,11 @@ class AreaLocalService(BaseAreaService):
 
         existing_path = self.config.local_path
         study_path = existing_path / self.study_name
+
         optimization_ini = IniFile(
             study_path, IniFileTypes.AREA_OPTIMIZATION_INI, area_name
         ).parsed_ini
+
         dict_optimization = {
             section: {key: f"{value}" for key, value in optimization_ini.items(section)}
             for section in optimization_ini.sections()
