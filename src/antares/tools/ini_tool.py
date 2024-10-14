@@ -34,7 +34,6 @@ class IniFileTypes(Enum):
     AREA_ADEQUACY_PATCH_INI = "input/areas/{area_name}/adequacy_patch.ini"
     BINDING_CONSTRAINTS_INI = "input/bindingconstraints/bindingconstraints.ini"
 
-
     LINK_PROPERTIES_INI = "input/links/{area_name}/properties.ini"
 
     RENEWABLES_LIST_INI = "input/renewables/clusters/{area_name}/list.ini"

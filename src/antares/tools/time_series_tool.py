@@ -82,6 +82,7 @@ class TimeSeriesFileType(Enum):
     HYDRO_MOD_SERIES = "input/hydro/series/{area_id}/mod.txt"
     HYDRO_ROR_SERIES = "input/hydro/series/{area_id}/ror.txt"
 
+
 class TimeSeriesFile:
     """
     Handling time series files reading and writing locally.

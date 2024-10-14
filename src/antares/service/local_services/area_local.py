@@ -265,12 +265,12 @@ class AreaLocalService(BaseAreaService):
                 areas_ini.add_section({"unserverdenergycost": {}})
                 areas_ini.add_section({"spilledenergycost": {}})
                 areas_ini.write_ini_file()
-            areas_ini.parsed_ini["unserverdenergycost"][
-                area_name
-            ] = local_properties.nodal_optimization["average-unsupplied-energy-cost"]
-            areas_ini.parsed_ini["spilledenergycost"][
-                area_name
-            ] = local_properties.nodal_optimization["average-spilled-energy-cost"]
+            areas_ini.parsed_ini["unserverdenergycost"][area_name] = local_properties.nodal_optimization[
+                "average-unsupplied-energy-cost"
+            ]
+            areas_ini.parsed_ini["spilledenergycost"][area_name] = local_properties.nodal_optimization[
+                "average-spilled-energy-cost"
+            ]
             areas_ini.write_ini_file()
 
             local_ui = AreaUiLocal(ui) if ui else AreaUiLocal()
@@ -325,13 +325,9 @@ class AreaLocalService(BaseAreaService):
         thermal_name: str,
         properties: Optional[ThermalClusterProperties] = None,
     ) -> ThermalCluster:
-        local_thermal_properties = ThermalClusterPropertiesLocal(
-            thermal_name, properties
-        )
+        local_thermal_properties = ThermalClusterPropertiesLocal(thermal_name, properties)
 
-        list_ini = IniFile(
-            self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name=area_id
-        )
+        list_ini = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name=area_id)
         list_ini.add_section(local_thermal_properties.list_ini_fields)
         list_ini.write_ini_file(sort_sections=True)
 
@@ -369,9 +365,7 @@ class AreaLocalService(BaseAreaService):
     ) -> STStorage:
         local_st_storage_properties = STStoragePropertiesLocal(st_storage_name, properties)
 
-        list_ini = IniFile(
-            self.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name=area_id
-        )
+        list_ini = IniFile(self.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name=area_id)
         list_ini.add_section(local_st_storage_properties.list_ini_fields)
         list_ini.write_ini_file(sort_sections=True)
 
@@ -438,9 +432,7 @@ class AreaLocalService(BaseAreaService):
         existing_path = self.config.local_path
         study_path = existing_path / self.study_name
 
-        optimization_ini = IniFile(
-            study_path, IniFileTypes.AREA_OPTIMIZATION_INI, area_name
-        ).parsed_ini
+        optimization_ini = IniFile(study_path, IniFileTypes.AREA_OPTIMIZATION_INI, area_name).parsed_ini
 
         dict_optimization = {
             section: {key: f"{value}" for key, value in optimization_ini.items(section)}
@@ -448,17 +440,11 @@ class AreaLocalService(BaseAreaService):
         }
 
         ui_ini = IniFile(study_path, IniFileTypes.AREA_UI_INI, area_name).parsed_ini
-        dict_ui = {
-            section: {key: f"{value}" for key, value in ui_ini.items(section)}
-            for section in ui_ini.sections()
-        }
+        dict_ui = {section: {key: f"{value}" for key, value in ui_ini.items(section)} for section in ui_ini.sections()}
 
-        patch_ini = IniFile(
-            study_path, IniFileTypes.AREA_ADEQUACY_PATCH_INI, area_name
-        ).parsed_ini
+        patch_ini = IniFile(study_path, IniFileTypes.AREA_ADEQUACY_PATCH_INI, area_name).parsed_ini
         dict_adequacy_patch = {
-            section: {key: f"{value}" for key, value in patch_ini.items(section)}
-            for section in patch_ini.sections()
+            section: {key: f"{value}" for key, value in patch_ini.items(section)} for section in patch_ini.sections()
         }
 
         return [dict_optimization, dict_ui, dict_adequacy_patch]

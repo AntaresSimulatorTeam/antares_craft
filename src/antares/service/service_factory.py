@@ -134,9 +134,7 @@ class ServiceFactory:
 
 
 class ServiceReader:
-    def __init__(
-        self, config: BaseConfiguration, study_name: Path = "", study_id: str = ""
-    ):
+    def __init__(self, config: BaseConfiguration, study_name: Path = "", study_id: str = ""):
         self.config = config
         self.study_id = study_id
         self.study_name = study_name
@@ -162,11 +160,7 @@ class ServiceReader:
     @staticmethod
     def _lister_dossiers(dossier):
         try:
-            dossiers = [
-                d
-                for d in os.listdir(dossier)
-                if os.path.isdir(os.path.join(dossier, d))
-            ]
+            dossiers = [d for d in os.listdir(dossier) if os.path.isdir(os.path.join(dossier, d))]
             return dossiers
         except FileNotFoundError:
             return []
@@ -174,9 +168,7 @@ class ServiceReader:
     # we can have read area service here, for just one area
     def read_study_service(self) -> BaseStudyService:
         if isinstance(self.config, LocalConfiguration):
-            study_service: BaseStudyService = StudyLocalService(
-                self.config, self.study_name
-            )
+            study_service: BaseStudyService = StudyLocalService(self.config, self.study_name)
             areas = study_service.read_areas()
 
             study_path = self.config.local_path / self.study_name
@@ -185,8 +177,7 @@ class ServiceReader:
             sets_ini = IniFile(study_path, IniFileTypes.AREAS_SETS_INI).parsed_ini
 
             self._areas = {
-                section: {key: f"{value}" for key, value in sets_ini.items(section)}
-                for section in sets_ini.sections()
+                section: {key: f"{value}" for key, value in sets_ini.items(section)} for section in sets_ini.sections()
             }
             if not self._directory_exists(study_path):
                 return {}
@@ -194,36 +185,24 @@ class ServiceReader:
             # Areas
             for area_name in areas:
                 # Get everything inside input/areas/{area_name}
-                area_service: BaseStudyService = AreaLocalService(
-                    self.config, self.study_name
-                )
+                area_service: BaseStudyService = AreaLocalService(self.config, self.study_name)
                 area = area_service.read_area(area_name)
                 self._areas[area_name] = area
 
             # Load
             # Get everything inside input/load/prepro/
-            load_correlation_ini = IniFile(
-                study_path, IniFileTypes.LOAD_CORRELATION_INI
-            ).parsed_ini
+            load_correlation_ini = IniFile(study_path, IniFileTypes.LOAD_CORRELATION_INI).parsed_ini
             self._load["correlation"] = {
-                section: {
-                    key: f"{value}"
-                    for key, value in load_correlation_ini.items(section)
-                }
+                section: {key: f"{value}" for key, value in load_correlation_ini.items(section)}
                 for section in load_correlation_ini.sections()
             }
             for area_name in areas:
                 self._load[area_name] = {}
                 # Get everything inside input/load/prepro/{area_name}
-                load_settings_ini = IniFile(
-                    study_path, IniFileTypes.LOAD_SETTINGS_INI, area_name
-                ).parsed_ini
+                load_settings_ini = IniFile(study_path, IniFileTypes.LOAD_SETTINGS_INI, area_name).parsed_ini
 
                 self._load[area_name]["settings"] = {
-                    section: {
-                        key: f"{value}"
-                        for key, value in load_settings_ini.items(section)
-                    }
+                    section: {key: f"{value}" for key, value in load_settings_ini.items(section)}
                     for section in load_settings_ini.sections()
                 }
 
@@ -253,22 +232,14 @@ class ServiceReader:
                 self._load[area_name]["k"] = load_module
 
                 # Get everything inside input/load/series/{area_name}
-                load_series = TimeSeriesFile(
-                    TimeSeriesFileType.LOAD_DATA_SERIES,
-                    study_path,
-                    area_name
-                ).time_series
+                load_series = TimeSeriesFile(TimeSeriesFileType.LOAD_DATA_SERIES, study_path, area_name).time_series
                 self._load[area_name]["series"] = load_series
 
             # misc-gen
             for area_name in areas:
                 self._misc[area_name] = {}
                 # Get everything inside input/misc-gen/{area_name}
-                miscgen_series = TimeSeriesFile(
-                    TimeSeriesFileType.MISC_GEN,
-                    study_path,
-                    area_name
-                ).time_series
+                miscgen_series = TimeSeriesFile(TimeSeriesFileType.MISC_GEN, study_path, area_name).time_series
                 self._misc[area_name]["series"] = miscgen_series
 
             # Renewables
@@ -276,24 +247,14 @@ class ServiceReader:
                 self._renewables[area_name] = {}
 
                 # Get everything inside input/renewables/clusters/{area_name}
-                renewables_list_ini = IniFile(
-                    study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name
-                ).parsed_ini
+                renewables_list_ini = IniFile(study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name).parsed_ini
                 self._renewables[area_name]["list"] = {
-                    section: {
-                        key: f"{value}"
-                        for key, value in renewables_list_ini.items(section)
-                    }
+                    section: {key: f"{value}" for key, value in renewables_list_ini.items(section)}
                     for section in renewables_list_ini.sections()
                 }
 
                 # Get everything inside input/renewables/series/{area_name}
-                prefix_path = (
-                        study_path
-                        / TimeSeriesFileType.RENEWABLE_SERIES_PREFIX.value.format(
-                    area_id=area_name
-                )
-                )
+                prefix_path = study_path / TimeSeriesFileType.RENEWABLE_SERIES_PREFIX.value.format(area_id=area_name)
                 groups = self._lister_dossiers(prefix_path)
                 for group_name in groups:
                     renewable_series = TimeSeriesFile(
@@ -306,29 +267,19 @@ class ServiceReader:
 
             # Solar
             # Get everything inside input/solar/prepro/
-            solar_correlation_ini = IniFile(
-                study_path, IniFileTypes.SOLAR_CORRELATION_INI
-            ).parsed_ini
+            solar_correlation_ini = IniFile(study_path, IniFileTypes.SOLAR_CORRELATION_INI).parsed_ini
             self._solar["correlation"] = {
-                section: {
-                    key: f"{value}"
-                    for key, value in solar_correlation_ini.items(section)
-                }
+                section: {key: f"{value}" for key, value in solar_correlation_ini.items(section)}
                 for section in solar_correlation_ini.sections()
             }
             for area_name in areas:
                 self._solar[area_name] = {}
 
                 # Get everything inside input/solar/prepro/{area_name}
-                solar_settings_ini = IniFile(
-                    study_path, IniFileTypes.SOLAR_SETTINGS_INI, area_name
-                ).parsed_ini
+                solar_settings_ini = IniFile(study_path, IniFileTypes.SOLAR_SETTINGS_INI, area_name).parsed_ini
 
                 self._solar[area_name]["settings"] = {
-                    section: {
-                        key: f"{value}"
-                        for key, value in solar_settings_ini.items(section)
-                    }
+                    section: {key: f"{value}" for key, value in solar_settings_ini.items(section)}
                     for section in solar_settings_ini.sections()
                 }
 
@@ -358,60 +309,36 @@ class ServiceReader:
                 self._solar[area_name]["k"] = solar_module
 
                 # Get everything inside input/solar/series/{area_name}
-                solar_series = TimeSeriesFile(
-                    TimeSeriesFileType.SOLAR,
-                    study_path,
-                    area_name
-                ).time_series
+                solar_series = TimeSeriesFile(TimeSeriesFileType.SOLAR, study_path, area_name).time_series
                 self._solar[area_name]["series"] = solar_series
 
             # St-storage
             for area_name in areas:
                 self._storage[area_name] = {}
                 # Get everything inside input/st-storage/clusters/
-                storage_list_ini = IniFile(
-                    study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name
-                ).parsed_ini
+                storage_list_ini = IniFile(study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name).parsed_ini
                 self._storage[area_name]["list"] = {
-                    section: {
-                        key: f"{value}"
-                        for key, value in storage_list_ini.items(section)
-                    }
+                    section: {key: f"{value}" for key, value in storage_list_ini.items(section)}
                     for section in storage_list_ini.sections()
                 }
 
             # Thermals
-            thermal_list_ini = IniFile(
-                study_path, IniFileTypes.THERMAL_AREAS_INI
-            ).parsed_ini
+            thermal_list_ini = IniFile(study_path, IniFileTypes.THERMAL_AREAS_INI).parsed_ini
             self._thermals["areas"] = {
-                section: {
-                    key: f"{value}"
-                    for key, value in thermal_list_ini.items(section)
-                }
+                section: {key: f"{value}" for key, value in thermal_list_ini.items(section)}
                 for section in thermal_list_ini.sections()
             }
             for area_name in areas:
                 self._thermals[area_name] = {}
                 # Get everything inside input/thermal/clusters/{area_name}
-                thermal_list_ini = IniFile(
-                    study_path, IniFileTypes.THERMAL_LIST_INI, area_name
-                ).parsed_ini
+                thermal_list_ini = IniFile(study_path, IniFileTypes.THERMAL_LIST_INI, area_name).parsed_ini
                 self._thermals[area_name]["list"] = {
-                    section: {
-                        key: f"{value}"
-                        for key, value in thermal_list_ini.items(section)
-                    }
+                    section: {key: f"{value}" for key, value in thermal_list_ini.items(section)}
                     for section in thermal_list_ini.sections()
                 }
 
                 # Get everything inside input/thermal/prepro/{area_name}
-                prefix_path = (
-                    study_path
-                    / TimeSeriesFileType.THERMAL_PREFIX.value.format(
-                        area_id=area_name
-                    )
-                )
+                prefix_path = study_path / TimeSeriesFileType.THERMAL_PREFIX.value.format(area_id=area_name)
                 groups = self._lister_dossiers(prefix_path)
                 for group_name in groups:
                     thermal_prepro = TimeSeriesFile(
@@ -430,12 +357,7 @@ class ServiceReader:
                     self._thermals[area_name][f"{group_name}-modulation"] = thermal_module
 
                 # Get everything inside input/thermal/series/{area_name}
-                prefix_path = (
-                    study_path
-                    / TimeSeriesFileType.THERMAL_SERIES_PREFIX.value.format(
-                        area_id=area_name
-                    )
-                )
+                prefix_path = study_path / TimeSeriesFileType.THERMAL_SERIES_PREFIX.value.format(area_id=area_name)
                 groups = self._lister_dossiers(prefix_path)
                 for group_name in groups:
                     thermal_series = TimeSeriesFile(
@@ -446,32 +368,21 @@ class ServiceReader:
                     ).time_series
                     self._thermals[area_name][f"{group_name}-series"] = thermal_series
 
-
             # Wind
             # Get everything inside input/wind/prepro/
-            wind_correlation_ini = IniFile(
-                study_path, IniFileTypes.WIND_CORRELATION_INI
-            ).parsed_ini
+            wind_correlation_ini = IniFile(study_path, IniFileTypes.WIND_CORRELATION_INI).parsed_ini
             self._wind["correlation"] = {
-                section: {
-                    key: f"{value}"
-                    for key, value in wind_correlation_ini.items(section)
-                }
+                section: {key: f"{value}" for key, value in wind_correlation_ini.items(section)}
                 for section in wind_correlation_ini.sections()
             }
             for area_name in areas:
                 self._wind[area_name] = {}
 
                 # Get everything inside input/wind/prepro/{area_name}
-                wind_settings_ini = IniFile(
-                    study_path, IniFileTypes.WIND_SETTINGS_INI, area_name
-                ).parsed_ini
+                wind_settings_ini = IniFile(study_path, IniFileTypes.WIND_SETTINGS_INI, area_name).parsed_ini
 
                 self._wind[area_name]["settings"] = {
-                    section: {
-                        key: f"{value}"
-                        for key, value in wind_settings_ini.items(section)
-                    }
+                    section: {key: f"{value}" for key, value in wind_settings_ini.items(section)}
                     for section in wind_settings_ini.sections()
                 }
 
@@ -504,11 +415,7 @@ class ServiceReader:
                 self._wind[area_name]["k"] = wind_module
 
                 # Get everything inside input/wind/series/{area_name}
-                wind_series = TimeSeriesFile(
-                    TimeSeriesFileType.WIND,
-                    study_path,
-                    area_name
-                ).time_series
+                wind_series = TimeSeriesFile(TimeSeriesFileType.WIND, study_path, area_name).time_series
                 self._wind[area_name]["series"] = wind_series
 
             ## Hydro
@@ -563,7 +470,6 @@ class ServiceReader:
                     area_name,
                 ).time_series
                 self._hydro[area_name]["watervalues"] = hydro_module
-
 
                 # Get everything inside input/hydro/prepro/{area_name}
                 hydro_module = TimeSeriesFile(

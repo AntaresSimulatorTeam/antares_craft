@@ -43,12 +43,14 @@ class TestReadStudy:
         content = read_study_local(study_name, "880", LocalConfiguration(local_path, study_name))
         study = content._study_service
 
-        expected_keys = ['areas', 'hydro', 'load', 'misc', 'renewables', 'solar', 'storage', 'thermals', 'wind']
+        expected_keys = ["areas", "hydro", "load", "misc", "renewables", "solar", "storage", "thermals", "wind"]
 
         for key in expected_keys:
             assert key in study, f"La clé '{key}' est absente du dictionnaire 'study'"
         not_expected_key = "fake_key"
-        assert not_expected_key not in study, f"La clé '{not_expected_key}' ne devrait pas être présente dans le dictionnaire 'study'"
+        assert (
+            not_expected_key not in study
+        ), f"La clé '{not_expected_key}' ne devrait pas être présente dans le dictionnaire 'study'"
 
     def test_directory_renewable_thermique(self, caplog):
         local_path = r"../../studies_samples/"
@@ -89,34 +91,34 @@ class TestReadStudy:
                 "op2": "0.0",
                 "op3": "0.0",
                 "op4": "0.0",
-                "op5": "0.0"
+                "op5": "0.0",
             }
         }
         assert content._study_service["renewables"].get("zone_rt").get("list") == {
-          "onshore": {
-            "group": "Wind Onshore",
-            "name": "onshore",
-            "enabled": "True",
-            "unitcount": "1",
-            "nominalcapacity": "0.0",
-            "ts-interpretation": "power-generation"
-          },
-          "offshore": {
-            "group": "Wind Offshore",
-            "name": "offshore",
-            "enabled": "True",
-            "unitcount": "1",
-            "nominalcapacity": "0.0",
-            "ts-interpretation": "power-generation"
-          },
-          "solar": {
-            "group": "Solar PV",
-            "name": "solar",
-            "enabled": "True",
-            "unitcount": "1",
-            "nominalcapacity": "0.0",
-            "ts-interpretation": "power-generation"
-          }
+            "onshore": {
+                "group": "Wind Onshore",
+                "name": "onshore",
+                "enabled": "True",
+                "unitcount": "1",
+                "nominalcapacity": "0.0",
+                "ts-interpretation": "power-generation",
+            },
+            "offshore": {
+                "group": "Wind Offshore",
+                "name": "offshore",
+                "enabled": "True",
+                "unitcount": "1",
+                "nominalcapacity": "0.0",
+                "ts-interpretation": "power-generation",
+            },
+            "solar": {
+                "group": "Solar PV",
+                "name": "solar",
+                "enabled": "True",
+                "unitcount": "1",
+                "nominalcapacity": "0.0",
+                "ts-interpretation": "power-generation",
+            },
         }
 
     def test_directory_hydro_stockage(self, caplog):
@@ -125,28 +127,15 @@ class TestReadStudy:
         content = read_study_local(study_name, "880", LocalConfiguration(local_path, study_name))
 
         assert content._study_service["storage"].get("zone_hs").get("list") == {
-            'batterie': {'group': 'Battery', 'name': 'batterie'}}
+            "batterie": {"group": "Battery", "name": "batterie"}
+        }
 
         assert content._study_service["hydro"].get("hydro") == {
-                "inter-daily-breakdown": {
-                    "zone_hs": "1"
-                },
-                "intra-daily-modulation": {
-                    "zone_hs": "24"
-                },
-                "inter-monthly-breakdown": {
-                    "zone_hs": "1"
-                },
-                "initialize reservoir date": {
-                    "zone_hs": "0"
-                },
-                "leeway low": {
-                    "zone_hs": "1"
-                },
-                "leeway up": {
-                    "zone_hs": "1"
-                },
-                "pumping efficiency": {
-                    "zone_hs": "1"
-                }
-            }
+            "inter-daily-breakdown": {"zone_hs": "1"},
+            "intra-daily-modulation": {"zone_hs": "24"},
+            "inter-monthly-breakdown": {"zone_hs": "1"},
+            "initialize reservoir date": {"zone_hs": "0"},
+            "leeway low": {"zone_hs": "1"},
+            "leeway up": {"zone_hs": "1"},
+            "pumping efficiency": {"zone_hs": "1"},
+        }
