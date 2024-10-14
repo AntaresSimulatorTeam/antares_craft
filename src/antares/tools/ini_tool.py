@@ -13,7 +13,7 @@
 from configparser import ConfigParser
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Any, overload, Union
+from typing import Any, Optional, Union, overload
 
 
 class IniFileTypes(Enum):

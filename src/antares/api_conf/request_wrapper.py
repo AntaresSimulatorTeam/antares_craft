@@ -11,13 +11,21 @@
 # This file is part of the Antares project.
 
 import json
-from typing import IO, Any, Iterable, Mapping, Optional, Tuple, Union
+
+from typing import Any, Iterable, Mapping, Optional, Union
 
 import requests
 
 from antares.exceptions.exceptions import APIError
 
-DATA_TYPE = Union[str, bytes, Mapping[str, Any], Iterable[Tuple[str, Optional[str]]], IO]
+DATA_TYPE = Union[
+    Iterable[bytes],
+    str,
+    bytes,
+    list[tuple[Any, Any]],
+    tuple[tuple[Any, Any], ...],
+    Mapping[Any, Any],
+]
 
 
 def _handle_exceptions(response: requests.Response) -> requests.Response:

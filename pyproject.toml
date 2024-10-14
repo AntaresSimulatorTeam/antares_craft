@@ -5,13 +5,35 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "antares_craft"
 version = "0.0.1"
+description = """Antares Craft python library is currently under construction. When completed it will allow to \
+create, update and read antares studies."""
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name="Sylvain Leclerc"},
+    {name="Tatiana Vargas"},
+    {name="Martin Behlthle"},
+    {name="Sigurd Borge"}
+]
+requires-python = ">=3.9"
 dependencies = [
 
 ]
+classifiers = [
+#    Classifiers here: https://pypi.org/classifiers/
+    "Development Status :: 2 - Pre-Alpha",
+    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 
+[project.urls]
+Repository = "https://github.com/AntaresSimulatorTeam/antares_craft"
+"Bug Tracker" = "https://github.com/AntaresSimulatorTeam/antares_craft/issues"
+
+# Setuptools
 [tool.setuptools.packages.find]
-# All the following settings are optional:
+## All the following settings are optional:
 where = ["src"]
-
-[tool.ruff]
-line-length = 120

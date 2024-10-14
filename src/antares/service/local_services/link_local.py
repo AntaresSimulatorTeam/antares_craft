@@ -12,13 +12,14 @@
 
 import configparser
 import os
+
 from types import MappingProxyType
-from typing import Optional, Any, Dict
+from typing import Any, Dict, Optional
 
 from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import LinkCreationError, CustomError
+from antares.exceptions.exceptions import CustomError, LinkCreationError
 from antares.model.area import Area
-from antares.model.link import LinkProperties, LinkUi, Link, LinkPropertiesLocal, LinkUiLocal
+from antares.model.link import Link, LinkProperties, LinkPropertiesLocal, LinkUi, LinkUiLocal
 from antares.service.base_services import BaseLinkService
 from antares.tools.contents_tool import sort_ini_sections
 

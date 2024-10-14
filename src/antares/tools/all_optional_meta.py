@@ -12,6 +12,7 @@
 
 import copy
 import typing as t
+
 from pydantic import BaseModel, create_model
 
 ModelClass = t.TypeVar("ModelClass", bound=BaseModel)

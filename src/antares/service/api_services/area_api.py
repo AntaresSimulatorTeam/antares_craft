@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from pathlib import PurePosixPath
-from typing import Optional, Dict, Union, List
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -20,35 +20,35 @@ from antares.api_conf.request_wrapper import RequestWrapper
 from antares.exceptions.exceptions import (
     APIError,
     AreaCreationError,
-    AreaPropertiesUpdateError,
     AreaDeletionError,
+    AreaPropertiesUpdateError,
     AreaUiUpdateError,
-    MatrixUploadError,
     HydroCreationError,
-    ThermalCreationError,
-    RenewableCreationError,
-    STStorageCreationError,
-    ThermalDeletionError,
-    RenewableDeletionError,
-    STStorageDeletionError,
-    LoadMatrixUploadError,
     LoadMatrixDownloadError,
+    LoadMatrixUploadError,
+    MatrixUploadError,
+    RenewableCreationError,
+    RenewableDeletionError,
+    STStorageCreationError,
+    STStorageDeletionError,
+    ThermalCreationError,
+    ThermalDeletionError,
 )
-from antares.model.area import AreaProperties, AreaUi, Area
-from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
+from antares.model.area import Area, AreaProperties, AreaUi
+from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.model.load import Load
 from antares.model.misc_gen import MiscGen
-from antares.model.renewable import RenewableClusterProperties, RenewableCluster
+from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.reserves import Reserves
 from antares.model.solar import Solar
-from antares.model.st_storage import STStorageProperties, STStorage
-from antares.model.thermal import ThermalClusterProperties, ThermalCluster
+from antares.model.st_storage import STStorage, STStorageProperties
+from antares.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.model.wind import Wind
 from antares.service.base_services import (
     BaseAreaService,
+    BaseRenewableService,
     BaseShortTermStorageService,
     BaseThermalService,
-    BaseRenewableService,
 )
 from antares.tools.contents_tool import AreaUiResponse
 from antares.tools.matrix_tool import prepare_args_replace_matrix

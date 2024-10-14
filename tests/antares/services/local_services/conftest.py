@@ -16,21 +16,21 @@ from antares.config.local_configuration import LocalConfiguration
 from antares.model.area import Area
 from antares.model.binding_constraint import (
     BindingConstraint,
-    BindingConstraintProperties,
     BindingConstraintFrequency,
     BindingConstraintOperator,
+    BindingConstraintProperties,
 )
 from antares.model.hydro import HydroProperties
 from antares.model.load import Load
-from antares.model.renewable import RenewableClusterProperties, TimeSeriesInterpretation, RenewableClusterGroup
+from antares.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.model.solar import Solar
-from antares.model.st_storage import STStorageProperties, STStorageGroup
+from antares.model.st_storage import STStorageGroup, STStorageProperties
 from antares.model.study import Study, create_study_local
 from antares.model.thermal import (
-    ThermalClusterProperties,
+    LawOption,
     LocalTSGenerationBehavior,
     ThermalClusterGroup,
-    LawOption,
+    ThermalClusterProperties,
     ThermalCostGeneration,
 )
 from antares.model.wind import Wind

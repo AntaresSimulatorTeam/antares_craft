@@ -15,8 +15,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.tools.ini_tool import IniFileTypes, IniFile
-from antares.tools.time_series_tool import TimeSeriesFileType, TimeSeries, TimeSeriesFile
+from antares.tools.ini_tool import IniFile, IniFileTypes
+from antares.tools.time_series_tool import TimeSeries, TimeSeriesFile, TimeSeriesFileType
 
 
 class PreproFolder:

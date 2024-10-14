@@ -17,14 +17,15 @@ electrical demand (load), generation fleet (clusters),
 """
 
 from types import MappingProxyType
-from typing import Optional, Dict, List, Any, Mapping, Set
+from typing import Any, Dict, List, Mapping, Optional, Set
 
 import pandas as pd
+
 from pydantic import BaseModel, computed_field
 from pydantic.alias_generators import to_camel
 
 from antares.model.commons import FilterOption, sort_filter_values
-from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
+from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.model.load import Load
 from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
@@ -34,7 +35,7 @@ from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.model.wind import Wind
 from antares.tools.all_optional_meta import all_optional_model
-from antares.tools.contents_tool import transform_name_to_id, EnumIgnoreCase
+from antares.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 
 
 class AdequacyPatchMode(EnumIgnoreCase):

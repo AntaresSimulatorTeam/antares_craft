@@ -16,12 +16,12 @@ import requests_mock
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
     AreaDeletionError,
-    LinkDeletionError,
-    ThermalDeletionError,
-    RenewableDeletionError,
-    STStorageDeletionError,
     BindingConstraintDeletionError,
     ConstraintTermDeletionError,
+    LinkDeletionError,
+    RenewableDeletionError,
+    STStorageDeletionError,
+    ThermalDeletionError,
 )
 from antares.model.area import Area
 from antares.model.binding_constraint import BindingConstraint

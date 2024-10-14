@@ -18,23 +18,23 @@ import pandas as pd
 
 from antares.model.hydro import Hydro
 from antares.model.renewable import (
-    RenewableClusterProperties,
     RenewableCluster,
     RenewableClusterGroup,
-    TimeSeriesInterpretation,
+    RenewableClusterProperties,
     RenewableClusterPropertiesLocal,
+    TimeSeriesInterpretation,
 )
-from antares.model.st_storage import STStorage, STStoragePropertiesLocal, STStorageProperties, STStorageGroup
+from antares.model.st_storage import STStorage, STStorageGroup, STStorageProperties, STStoragePropertiesLocal
 from antares.model.thermal import (
-    ThermalCluster,
-    ThermalClusterProperties,
-    ThermalClusterGroup,
-    LocalTSGenerationBehavior,
     LawOption,
-    ThermalCostGeneration,
+    LocalTSGenerationBehavior,
+    ThermalCluster,
+    ThermalClusterGroup,
+    ThermalClusterProperties,
     ThermalClusterPropertiesLocal,
+    ThermalCostGeneration,
 )
-from antares.tools.ini_tool import IniFileTypes, IniFile
+from antares.tools.ini_tool import IniFile, IniFileTypes
 from antares.tools.time_series_tool import TimeSeriesFileType
 
 

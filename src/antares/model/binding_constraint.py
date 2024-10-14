@@ -11,9 +11,10 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Optional, Union, List, Any, Dict
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
+
 from pydantic import BaseModel, Field, model_validator
 from pydantic.alias_generators import to_camel
 

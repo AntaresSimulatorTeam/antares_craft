@@ -16,8 +16,8 @@ import pandas as pd
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
-from antares.exceptions.exceptions import APIError, ThermalPropertiesUpdateError, ThermalMatrixDownloadError
-from antares.model.thermal import ThermalCluster, ThermalClusterProperties, ThermalClusterMatrixName
+from antares.exceptions.exceptions import APIError, ThermalMatrixDownloadError, ThermalPropertiesUpdateError
+from antares.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
 from antares.service.api_services.utils import get_matrix
 from antares.service.base_services import BaseThermalService
 
