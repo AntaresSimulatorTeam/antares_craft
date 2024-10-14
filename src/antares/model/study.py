@@ -15,7 +15,7 @@ import os
 import time
 from pathlib import Path
 from types import MappingProxyType
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 
 import pandas as pd
 
@@ -34,6 +34,7 @@ from antares.model.settings import StudySettings
 from antares.service.api_services.study_api import _returns_study_settings
 from antares.service.base_services import BaseStudyService
 from antares.service.service_factory import ServiceFactory, ServiceReader
+from antares.tools.ini_tool import IniFile, IniFileTypes
 
 """
 The study module defines the data model for antares study.
@@ -45,10 +46,7 @@ _study_path if stored in a disk
 
 
 def create_study_api(
-    study_name: str,
-    version: str,
-    api_config: APIconf,
-    settings: Optional[StudySettings] = None,
+    study_name: str, version: str, api_config: APIconf, settings: Optional[StudySettings] = None
 ) -> "Study":
     """
     Args:
@@ -72,15 +70,11 @@ def create_study_api(
         response = wrapper.post(url)
         study_id = response.json()
 
-        study_settings = _returns_study_settings(
-            base_url, study_id, wrapper, False, settings
-        )
+        study_settings = _returns_study_settings(base_url, study_id, wrapper, False, settings)
 
     except APIError as e:
         raise StudyCreationError(study_name, e.message) from e
-    return Study(
-        study_name, version, ServiceFactory(api_config, study_id), study_settings
-    )
+    return Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:
@@ -99,10 +93,7 @@ def _directories_can_be_read(local_path: Path) -> None:
 
 
 def create_study_local(
-    study_name: str,
-    version: str,
-    local_config: LocalConfiguration,
-    settings: Optional[StudySettings] = None,
+    study_name: str, version: str, local_config: LocalConfiguration, settings: Optional[StudySettings] = None
 ) -> "Study":
     """
     Create a directory structure for the study with empty files.
@@ -209,9 +200,14 @@ class Study:
         service_factory,
         settings: Optional[StudySettings] = None,
         mode: str = "create",
+        # ini_files: Optional[dict[str, IniFile]] = None,
+        **kwargs: Any,
     ):
         self.name = name
         self.version = version
+        for argument in kwargs:
+            if argument == "ini_files":
+                self._ini_files: dict[str, IniFile] = kwargs[argument] or dict()
         if mode != "read":
             self._study_service = service_factory.create_study_service()
             self._area_service = service_factory.create_area_service()
@@ -242,14 +238,10 @@ class Study:
         return self._settings
 
     def get_binding_constraints(self) -> MappingProxyType[str, BindingConstraint]:
-        return MappingProxyType(self._binding_constraints)
+        return MappingProxyType(self._binding_constraints_service.binding_constraints)
 
     def create_area(
-        self,
-        area_name: str,
-        *,
-        properties: Optional[AreaProperties] = None,
-        ui: Optional[AreaUi] = None,
+        self, area_name: str, *, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
     ) -> Area:
         area = self._area_service.create_area(area_name, properties, ui)
         self._areas[area.id] = area
@@ -286,16 +278,9 @@ class Study:
         equal_term_matrix: Optional[pd.DataFrame] = None,
         greater_term_matrix: Optional[pd.DataFrame] = None,
     ) -> BindingConstraint:
-        constraint = self._binding_constraints_service.create_binding_constraint(
-            name,
-            properties,
-            terms,
-            less_term_matrix,
-            equal_term_matrix,
-            greater_term_matrix,
+        return self._binding_constraints_service.create_binding_constraint(
+            name, properties, terms, less_term_matrix, equal_term_matrix, greater_term_matrix
         )
-        self._binding_constraints[constraint.id] = constraint
-        return constraint
 
     def update_settings(self, settings: StudySettings) -> None:
         new_settings = self._study_service.update_study_settings(settings)
@@ -304,7 +289,7 @@ class Study:
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         self._study_service.delete_binding_constraint(constraint)
-        self._binding_constraints.pop(constraint.id)
+        self._binding_constraints_service.binding_constraints.pop(constraint.id)
 
     def delete(self, children: bool = False) -> None:
         self._study_service.delete(children)

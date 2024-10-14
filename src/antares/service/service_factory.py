@@ -203,7 +203,7 @@ class ServiceReader:
             # Load
             # Get everything inside input/load/prepro/
             load_correlation_ini = IniFile(
-                study_path, IniFileTypes.LOAD_PREPRO_CORRELATION_INI
+                study_path, IniFileTypes.LOAD_CORRELATION_INI
             ).parsed_ini
             self._load["correlation"] = {
                 section: {
@@ -215,16 +215,16 @@ class ServiceReader:
             for area_name in areas:
                 self._load[area_name] = {}
                 # Get everything inside input/load/prepro/{area_name}
-                load_prepro_ini = IniFile(
-                    study_path, IniFileTypes.LOAD_PREPRO_INI, area_name
+                load_settings_ini = IniFile(
+                    study_path, IniFileTypes.LOAD_SETTINGS_INI, area_name
                 ).parsed_ini
 
                 self._load[area_name]["settings"] = {
                     section: {
                         key: f"{value}"
-                        for key, value in load_prepro_ini.items(section)
+                        for key, value in load_settings_ini.items(section)
                     }
-                    for section in load_prepro_ini.sections()
+                    for section in load_settings_ini.sections()
                 }
 
                 load_module = TimeSeriesFile(
@@ -276,15 +276,15 @@ class ServiceReader:
                 self._renewables[area_name] = {}
 
                 # Get everything inside input/renewables/clusters/{area_name}
-                renewable_list_ini = IniFile(
-                    study_path, IniFileTypes.RENEWABLE_LIST_INI, area_name
+                renewables_list_ini = IniFile(
+                    study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name
                 ).parsed_ini
                 self._renewables[area_name]["list"] = {
                     section: {
                         key: f"{value}"
-                        for key, value in renewable_list_ini.items(section)
+                        for key, value in renewables_list_ini.items(section)
                     }
-                    for section in renewable_list_ini.sections()
+                    for section in renewables_list_ini.sections()
                 }
 
                 # Get everything inside input/renewables/series/{area_name}
@@ -307,7 +307,7 @@ class ServiceReader:
             # Solar
             # Get everything inside input/solar/prepro/
             solar_correlation_ini = IniFile(
-                study_path, IniFileTypes.SOLAR_PREPRO_CORRELATION_INI
+                study_path, IniFileTypes.SOLAR_CORRELATION_INI
             ).parsed_ini
             self._solar["correlation"] = {
                 section: {
@@ -320,38 +320,38 @@ class ServiceReader:
                 self._solar[area_name] = {}
 
                 # Get everything inside input/solar/prepro/{area_name}
-                solar_prepro_ini = IniFile(
-                    study_path, IniFileTypes.SOLAR_PREPRO_INI, area_name
+                solar_settings_ini = IniFile(
+                    study_path, IniFileTypes.SOLAR_SETTINGS_INI, area_name
                 ).parsed_ini
 
                 self._solar[area_name]["settings"] = {
                     section: {
                         key: f"{value}"
-                        for key, value in solar_prepro_ini.items(section)
+                        for key, value in solar_settings_ini.items(section)
                     }
-                    for section in solar_prepro_ini.sections()
+                    for section in solar_settings_ini.sections()
                 }
 
                 solar_module = TimeSeriesFile(
-                    TimeSeriesFileType.SOLAR_PREPRO_TRANSLATION,
+                    TimeSeriesFileType.SOLAR_TRANSLATION,
                     study_path,
                     area_name,
                 ).time_series
                 self._solar[area_name]["translation"] = solar_module
                 solar_module = TimeSeriesFile(
-                    TimeSeriesFileType.SOLAR_PREPRO_CONVERSION,
+                    TimeSeriesFileType.SOLAR_CONVERSION,
                     study_path,
                     area_name,
                 ).time_series
                 self._solar[area_name]["conversion"] = solar_module
                 solar_module = TimeSeriesFile(
-                    TimeSeriesFileType.SOLAR_PREPRO_DATA,
+                    TimeSeriesFileType.SOLAR_DATA,
                     study_path,
                     area_name,
                 ).time_series
                 self._solar[area_name]["data"] = solar_module
                 solar_module = TimeSeriesFile(
-                    TimeSeriesFileType.SOLAR_PREPRO_K,
+                    TimeSeriesFileType.SOLAR_K,
                     study_path,
                     area_name,
                 ).time_series
@@ -359,7 +359,7 @@ class ServiceReader:
 
                 # Get everything inside input/solar/series/{area_name}
                 solar_series = TimeSeriesFile(
-                    TimeSeriesFileType.SOLAR_DATA_SERIES,
+                    TimeSeriesFileType.SOLAR,
                     study_path,
                     area_name
                 ).time_series
@@ -408,7 +408,7 @@ class ServiceReader:
                 # Get everything inside input/thermal/prepro/{area_name}
                 prefix_path = (
                     study_path
-                    / TimeSeriesFileType.THERMAL_PREPRO_PREFIX.value.format(
+                    / TimeSeriesFileType.THERMAL_PREFIX.value.format(
                         area_id=area_name
                     )
                 )
@@ -450,7 +450,7 @@ class ServiceReader:
             # Wind
             # Get everything inside input/wind/prepro/
             wind_correlation_ini = IniFile(
-                study_path, IniFileTypes.WIND_PREPRO_CORRELATION_INI
+                study_path, IniFileTypes.WIND_CORRELATION_INI
             ).parsed_ini
             self._wind["correlation"] = {
                 section: {
@@ -463,41 +463,41 @@ class ServiceReader:
                 self._wind[area_name] = {}
 
                 # Get everything inside input/wind/prepro/{area_name}
-                wind_prepro_ini = IniFile(
-                    study_path, IniFileTypes.WIND_PREPRO_INI, area_name
+                wind_settings_ini = IniFile(
+                    study_path, IniFileTypes.WIND_SETTINGS_INI, area_name
                 ).parsed_ini
 
                 self._wind[area_name]["settings"] = {
                     section: {
                         key: f"{value}"
-                        for key, value in wind_prepro_ini.items(section)
+                        for key, value in wind_settings_ini.items(section)
                     }
-                    for section in wind_prepro_ini.sections()
+                    for section in wind_settings_ini.sections()
                 }
 
                 wind_module = TimeSeriesFile(
-                    TimeSeriesFileType.WIND_PREPRO_TRANSLATION,
+                    TimeSeriesFileType.WIND_TRANSLATION,
                     study_path,
                     area_name,
                 ).time_series
                 self._wind[area_name]["translation"] = wind_module
 
                 wind_module = TimeSeriesFile(
-                    TimeSeriesFileType.WIND_PREPRO_CONVERSION,
+                    TimeSeriesFileType.WIND_CONVERSION,
                     study_path,
                     area_name,
                 ).time_series
                 self._wind[area_name]["conversion"] = wind_module
 
                 wind_module = TimeSeriesFile(
-                    TimeSeriesFileType.WIND_PREPRO_DATA,
+                    TimeSeriesFileType.WIND_DATA,
                     study_path,
                     area_name,
                 ).time_series
                 self._wind[area_name]["data"] = wind_module
 
                 wind_module = TimeSeriesFile(
-                    TimeSeriesFileType.WIND_PREPRO_K,
+                    TimeSeriesFileType.WIND_K,
                     study_path,
                     area_name,
                 ).time_series
@@ -505,7 +505,7 @@ class ServiceReader:
 
                 # Get everything inside input/wind/series/{area_name}
                 wind_series = TimeSeriesFile(
-                    TimeSeriesFileType.WIND_DATA_SERIES,
+                    TimeSeriesFileType.WIND,
                     study_path,
                     area_name
                 ).time_series
@@ -513,13 +513,13 @@ class ServiceReader:
 
             ## Hydro
             # Get everything inside input/hydro/prepro/
-            correlation_ini = IniFile(study_path, IniFileTypes.HYDRO_PREPRO_CORRELATION_INI).parsed_ini
+            correlation_ini = IniFile(study_path, IniFileTypes.HYDRO_CORRELATION_INI).parsed_ini
             self._hydro["correlation"] = {
                 section: {key: f"{value}" for key, value in correlation_ini.items(section)}
                 for section in correlation_ini.sections()
             }
             # Get areas/sets.ini file
-            hydro_ini = IniFile(study_path, IniFileTypes.HYDRO_INI_INI).parsed_ini
+            hydro_ini = IniFile(study_path, IniFileTypes.HYDRO_INI).parsed_ini
             self._hydro["hydro"] = {
                 section: {key: f"{value}" for key, value in hydro_ini.items(section)}
                 for section in hydro_ini.sections()
@@ -573,7 +573,7 @@ class ServiceReader:
                 ).time_series
                 self._hydro[area_name]["energy"] = hydro_module
 
-                hydro_ini = IniFile(study_path, IniFileTypes.HYDRO_PREPRO_PREPRO_INI, area_name).parsed_ini
+                hydro_ini = IniFile(study_path, IniFileTypes.HYDRO_PREPRO_INI, area_name).parsed_ini
                 self._hydro[area_name]["prepro"] = {
                     section: {key: f"{value}" for key, value in hydro_ini.items(section)}
                     for section in hydro_ini.sections()

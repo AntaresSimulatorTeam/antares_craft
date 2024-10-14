@@ -14,7 +14,17 @@ import pytest
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.area import Area
+from antares.model.binding_constraint import (
+    BindingConstraint,
+    BindingConstraintProperties,
+    BindingConstraintFrequency,
+    BindingConstraintOperator,
+)
 from antares.model.hydro import HydroProperties
+from antares.model.load import Load
+from antares.model.wind import Wind
+from antares.model.renewable import RenewableClusterProperties, TimeSeriesInterpretation, RenewableClusterGroup
+from antares.model.solar import Solar
 from antares.model.renewable import (
     RenewableClusterProperties,
     TimeSeriesInterpretation,
@@ -111,11 +121,7 @@ def default_thermal_cluster_properties() -> ThermalClusterProperties:
 
 @pytest.fixture
 def actual_thermal_list_ini(local_study_w_thermal) -> IniFile:
-    return IniFile(
-        local_study_w_thermal.service.config.study_path,
-        IniFileTypes.THERMAL_LIST_INI,
-        area_name="fr",
-    )
+    return IniFile(local_study_w_thermal.service.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name="fr")
 
 
 @pytest.fixture
@@ -125,11 +131,7 @@ def actual_thermal_areas_ini(local_study_w_thermal) -> IniFile:
 
 @pytest.fixture
 def actual_adequacy_patch_ini(local_study_w_areas) -> IniFile:
-    return IniFile(
-        local_study_w_areas.service.config.study_path,
-        IniFileTypes.AREA_ADEQUACY_PATCH_INI,
-        area_name="fr",
-    )
+    return IniFile(local_study_w_areas.service.config.study_path, IniFileTypes.AREA_ADEQUACY_PATCH_INI, area_name="fr")
 
 
 @pytest.fixture
@@ -155,9 +157,7 @@ def default_renewable_cluster_properties() -> RenewableClusterProperties:
 @pytest.fixture
 def actual_renewable_list_ini(local_study_with_renewable) -> IniFile:
     return IniFile(
-        local_study_with_renewable.service.config.study_path,
-        IniFileTypes.RENEWABLES_LIST_INI,
-        area_name="fr",
+        local_study_with_renewable.service.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name="fr"
     )
 
 
@@ -185,9 +185,7 @@ def default_st_storage_properties() -> STStorageProperties:
 @pytest.fixture
 def actual_st_storage_list_ini(local_study_with_st_storage) -> IniFile:
     return IniFile(
-        local_study_with_st_storage.service.config.study_path,
-        IniFileTypes.ST_STORAGE_LIST_INI,
-        area_name="fr",
+        local_study_with_st_storage.service.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name="fr"
     )
 
 
@@ -226,3 +224,42 @@ def actual_hydro_ini(local_study_with_hydro) -> IniFile:
 @pytest.fixture
 def area_fr(local_study_with_hydro) -> Area:
     return local_study_with_hydro.get_areas()["fr"]
+
+
+@pytest.fixture
+def fr_solar(area_fr) -> Solar:
+    return area_fr.create_solar(None)
+
+
+@pytest.fixture
+def fr_wind(area_fr) -> Wind:
+    return area_fr.create_wind(None)
+
+
+@pytest.fixture
+def fr_load(area_fr) -> Load:
+    return area_fr.create_load(None)
+
+
+@pytest.fixture
+def local_study_with_constraint(local_study_with_hydro) -> Study:
+    local_study_with_hydro.create_binding_constraint(name="test constraint")
+    return local_study_with_hydro
+
+
+@pytest.fixture
+def test_constraint(local_study_with_constraint) -> BindingConstraint:
+    return local_study_with_constraint.get_binding_constraints()["test constraint"]
+
+
+@pytest.fixture
+def default_constraint_properties() -> BindingConstraintProperties:
+    return BindingConstraintProperties(
+        enabled=True,
+        time_step=BindingConstraintFrequency.HOURLY,
+        operator=BindingConstraintOperator.LESS,
+        comments="",
+        filter_year_by_year="hourly",
+        filter_synthesis="hourly",
+        group="default",
+    )

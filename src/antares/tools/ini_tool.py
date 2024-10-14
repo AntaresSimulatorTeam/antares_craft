@@ -13,7 +13,7 @@
 from configparser import ConfigParser
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Any, overload
+from typing import Optional, Any, overload, Union
 
 
 class IniFileTypes(Enum):
@@ -32,29 +32,31 @@ class IniFileTypes(Enum):
     AREA_OPTIMIZATION_INI = "input/areas/{area_name}/optimization.ini"
     AREA_UI_INI = "input/areas/{area_name}/ui.ini"
     AREA_ADEQUACY_PATCH_INI = "input/areas/{area_name}/adequacy_patch.ini"
+    BINDING_CONSTRAINTS_INI = "input/bindingconstraints/bindingconstraints.ini"
+
 
     LINK_PROPERTIES_INI = "input/links/{area_name}/properties.ini"
 
-    RENEWABLE_LIST_INI = "input/renewables/clusters/{area_name}/list.ini"
+    RENEWABLES_LIST_INI = "input/renewables/clusters/{area_name}/list.ini"
 
     ST_STORAGE_LIST_INI = "input/st-storage/clusters/{area_name}/list.ini"
 
     THERMAL_AREAS_INI = "input/thermal/areas.ini"
     THERMAL_LIST_INI = "input/thermal/clusters/{area_name}/list.ini"
 
-    LOAD_PREPRO_INI = "input/load/prepro/{area_name}/settings.ini"
-    LOAD_PREPRO_CORRELATION_INI = "input/load/prepro/correlation.ini"
+    LOAD_CORRELATION_INI = "input/load/prepro/correlation.ini"
+    LOAD_SETTINGS_INI = "input/load/prepro/{area_name}/settings.ini"
 
-    SOLAR_PREPRO_INI = "input/solar/prepro/{area_name}/settings.ini"
-    SOLAR_PREPRO_CORRELATION_INI = "input/solar/prepro/correlation.ini"
+    SOLAR_CORRELATION_INI = "input/solar/prepro/correlation.ini"
+    SOLAR_SETTINGS_INI = "input/solar/prepro/{area_name}/settings.ini"
 
-    WIND_PREPRO_INI = "input/wind/prepro/{area_name}/settings.ini"
-    WIND_PREPRO_CORRELATION_INI = "input/wind/prepro/correlation.ini"
+    WIND_CORRELATION_INI = "input/wind/prepro/correlation.ini"
+    WIND_SETTINGS_INI = "input/wind/prepro/{area_name}/settings.ini"
 
     HYDRO_ALLOCATION_INI = "input/hydro/allocation/{area_name}.ini"
-    HYDRO_PREPRO_CORRELATION_INI = "input/hydro/prepro/correlation.ini"
-    HYDRO_PREPRO_PREPRO_INI = "input/hydro/prepro/{area_name}/prepro.ini"
-    HYDRO_INI_INI = "input/hydro/hydro.ini"
+    HYDRO_CORRELATION_INI = "input/hydro/prepro/correlation.ini"
+    HYDRO_PREPRO_INI = "input/hydro/prepro/{area_name}/prepro.ini"
+    HYDRO_INI = "input/hydro/hydro.ini"
 
 
 class IniFile:
@@ -63,12 +65,10 @@ class IniFile:
         study_path: Path,
         ini_file_type: IniFileTypes,
         area_name: Optional[str] = None,
-        ini_contents: Optional[ConfigParser] = None,
+        ini_contents: Union[ConfigParser, dict[str, dict[str, str]], None] = None,
     ) -> None:
         if "{area_name}" in ini_file_type.value and not area_name:
-            raise ValueError(
-                f"Area name not provided, ini type {ini_file_type.name} requires 'area_name'"
-            )
+            raise ValueError(f"Area name not provided, ini type {ini_file_type.name} requires 'area_name'")
         self._full_path = study_path / (
             ini_file_type.value.format(area_name=area_name)
             if ("{area_name}" in ini_file_type.value and area_name)
@@ -76,7 +76,12 @@ class IniFile:
         )
         self._file_name = self._full_path.name
         self._file_path = self._full_path.parent
-        self._ini_contents = ini_contents or ConfigParser()
+        if isinstance(ini_contents, dict):
+            self.ini_dict = ini_contents
+        elif isinstance(ini_contents, ConfigParser):
+            self._ini_contents = ini_contents
+        else:
+            self._ini_contents = ConfigParser(interpolation=None)
         if self._full_path.is_file():
             self.update_from_ini_file()
         else:
@@ -85,14 +90,11 @@ class IniFile:
     @property
     def ini_dict(self) -> dict:
         """Ini contents as a python dictionary"""
-        return {
-            section: dict(self._ini_contents[section])
-            for section in self._ini_contents.sections()
-        }
+        return {section: dict(self._ini_contents[section]) for section in self._ini_contents.sections()}
 
     @ini_dict.setter
     def ini_dict(self, new_ini_dict: dict[str, dict[str, str]]) -> None:
-        self._ini_contents = ConfigParser()
+        self._ini_contents = ConfigParser(interpolation=None)
         self._ini_contents.read_dict(new_ini_dict)
 
     @property
@@ -110,12 +112,10 @@ class IniFile:
         return self._full_path
 
     @overload
-    def add_section(self, section: Path) -> None:
-        ...
+    def add_section(self, section: Path) -> None: ...
 
     @overload
-    def add_section(self, section: dict[str, dict[str, str]]) -> None:
-        ...
+    def add_section(self, section: dict[str, dict[str, str]]) -> None: ...
 
     def add_section(self, section: Any) -> None:
         if isinstance(section, dict):
@@ -127,11 +127,10 @@ class IniFile:
             raise TypeError("Only dict or Path are allowed")
 
     def update_from_ini_file(self) -> None:
-        # todo to use
         if not self._full_path.is_file():
             raise FileNotFoundError(f"No such file: {self._full_path}")
 
-        parsed_ini = ConfigParser()
+        parsed_ini = ConfigParser(interpolation=None)
         with self._full_path.open() as file:
             parsed_ini.read_file(file)
 
@@ -144,37 +143,22 @@ class IniFile:
     ) -> None:
         if not self._file_path.is_dir():
             self._file_path.mkdir(parents=True)
-        ini_to_write = (
-            self._ini_contents
-            if not sort_sections
-            else self._sort_ini_sections(self._ini_contents)
-        )
-        ini_to_write = (
-            ini_to_write
-            if not sort_section_content
-            else self._sort_ini_section_content(ini_to_write)
-        )
+        ini_to_write = self._ini_contents if not sort_sections else self._sort_ini_sections(self._ini_contents)
+        ini_to_write = ini_to_write if not sort_section_content else self._sort_ini_section_content(ini_to_write)
 
         with self._full_path.open("w") as file:
             ini_to_write.write(file)
 
     @staticmethod
     def _sort_ini_sections(ini_to_sort: ConfigParser) -> ConfigParser:
-        sorted_ini = ConfigParser()
+        sorted_ini = ConfigParser(interpolation=None)
         for section in sorted(ini_to_sort.sections()):
             sorted_ini[section] = ini_to_sort[section]
         return sorted_ini
 
     @staticmethod
     def _sort_ini_section_content(ini_to_sort: ConfigParser) -> ConfigParser:
-        sorted_ini = ConfigParser()
+        sorted_ini = ConfigParser(interpolation=None)
         for section in ini_to_sort.sections():
-            sorted_ini[section] = {
-                key: value
-                for (key, value) in sorted(list(ini_to_sort[section].items()))
-            }
+            sorted_ini[section] = {key: value for (key, value) in sorted(list(ini_to_sort[section].items()))}
         return sorted_ini
-
-
-def check_if_none(value_to_check: Any, default_value: Any) -> Any:
-    return value_to_check if value_to_check is not None else default_value

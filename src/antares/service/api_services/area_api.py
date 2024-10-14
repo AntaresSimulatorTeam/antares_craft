@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-import json
 from pathlib import PurePosixPath
 from typing import Optional, Dict, Union, List
 
@@ -37,6 +36,7 @@ from antares.exceptions.exceptions import (
 )
 from antares.model.area import AreaProperties, AreaUi, Area
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
+from antares.model.load import Load
 from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster
 from antares.model.reserves import Reserves
@@ -75,10 +75,7 @@ class AreaApiService(BaseAreaService):
         self.renewable_service = renewable_service
 
     def create_area(
-        self,
-        area_name: str,
-        properties: Optional[AreaProperties] = None,
-        ui: Optional[AreaUi] = None,
+        self, area_name: str, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
     ) -> Area:
         """
         Args:
@@ -102,7 +99,7 @@ class AreaApiService(BaseAreaService):
 
             if properties:
                 url = f"{base_area_url}/{area_id}/properties/form"
-                body = json.loads(properties.model_dump_json(exclude_none=True))
+                body = properties.model_dump(mode="json", exclude_none=True)
                 if body:
                     self._wrapper.put(url, json=body)
             if ui:
@@ -148,10 +145,7 @@ class AreaApiService(BaseAreaService):
         )
 
     def create_thermal_cluster(
-        self,
-        area_id: str,
-        thermal_name: str,
-        properties: Optional[ThermalClusterProperties] = None,
+        self, area_id: str, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
     ) -> ThermalCluster:
         """
         Args:
@@ -171,7 +165,7 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/thermal"
             body = {"name": thermal_name.lower()}
             if properties:
-                camel_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
@@ -220,11 +214,7 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/commands"
             body = {
                 "action": "create_cluster",
-                "args": {
-                    "area_id": area_id,
-                    "cluster_name": cluster_name,
-                    "parameters": {},
-                },
+                "args": {"area_id": area_id, "cluster_name": cluster_name, "parameters": {}},
             }
             args = body.get("args")
 
@@ -232,7 +222,7 @@ class AreaApiService(BaseAreaService):
                 raise TypeError("body['args'] must be a dictionary")
 
             if parameters:
-                camel_properties = json.loads(parameters.model_dump_json(by_alias=True, exclude_none=True))
+                camel_properties = parameters.model_dump(mode="json", by_alias=True, exclude_none=True)
                 args["parameters"].update(camel_properties)
 
             if prepro is not None:
@@ -314,7 +304,7 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
             body = {"name": renewable_name.lower()}
             if properties:
-                camel_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
@@ -333,11 +323,11 @@ class AreaApiService(BaseAreaService):
 
         return RenewableCluster(self.renewable_service, area_id, name, properties)
 
+    def create_load(self, area: Area, series: Optional[pd.DataFrame]) -> Load:
+        raise NotImplementedError
+
     def create_st_storage(
-        self,
-        area_id: str,
-        st_storage_name: str,
-        properties: Optional[STStorageProperties] = None,
+        self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
         """
         Args:
@@ -356,7 +346,7 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages"
             body = {"name": st_storage_name}
             if properties:
-                camel_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
@@ -383,7 +373,7 @@ class AreaApiService(BaseAreaService):
         series = series if series is not None else pd.DataFrame([])
         series_path = f"input/wind/series/wind_{area.id}"
         self._upload_series(area, series, series_path)
-        return Wind(series)
+        return Wind(time_series=series)
 
     def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
         series = series if series is not None else pd.DataFrame([])
@@ -395,7 +385,7 @@ class AreaApiService(BaseAreaService):
         series = series if series is not None else pd.DataFrame([])
         series_path = f"input/solar/series/solar_{area.id}"
         self._upload_series(area, series, series_path)
-        return Solar(series)
+        return Solar(time_series=series)
 
     def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
         series = series if series is not None else pd.DataFrame([])
@@ -416,7 +406,7 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
             body = {}
             if properties:
-                camel_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 body = {**camel_properties}
             self._wrapper.put(url, json=body)
 
@@ -448,7 +438,7 @@ class AreaApiService(BaseAreaService):
     def update_area_properties(self, area: Area, properties: AreaProperties) -> AreaProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area.id}/properties/form"
         try:
-            body = json.loads(properties.model_dump_json(exclude_none=True))
+            body = properties.model_dump(mode="json", exclude_none=True)
             if not body:
                 return area.properties
 

@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-import json
 from typing import Optional
 
 from antares.api_conf.api_conf import APIconf
@@ -35,11 +34,7 @@ from antares.service.base_services import BaseStudyService
 
 
 def _returns_study_settings(
-    base_url: str,
-    study_id: str,
-    wrapper: RequestWrapper,
-    update: bool,
-    settings: Optional[StudySettings],
+    base_url: str, study_id: str, wrapper: RequestWrapper, update: bool, settings: Optional[StudySettings]
 ) -> Optional[StudySettings]:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
     mapping = {
@@ -52,7 +47,7 @@ def _returns_study_settings(
         "playlist": ("playlist", None),
     }
     if settings:
-        json_settings = json.loads(settings.model_dump_json(by_alias=True, exclude_none=True))
+        json_settings = settings.model_dump(mode="json", by_alias=True, exclude_none=True)
         if not json_settings and update:
             return None
 

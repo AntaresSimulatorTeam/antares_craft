@@ -26,6 +26,7 @@ from antares.model.binding_constraint import (
 )
 from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
 from antares.model.link import LinkProperties, LinkUi, Link
+from antares.model.load import Load
 from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster
 from antares.model.reserves import Reserves
@@ -55,19 +56,13 @@ class BaseAreaService(ABC):
 
     @abstractmethod
     def create_area(
-        self,
-        area_name: str,
-        properties: Optional[AreaProperties] = None,
-        ui: Optional[AreaUi] = None,
+        self, area_name: str, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
     ) -> Area:
         pass
 
     @abstractmethod
     def create_thermal_cluster(
-        self,
-        area_id: str,
-        thermal_name: str,
-        properties: Optional[ThermalClusterProperties] = None,
+        self, area_id: str, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
     ) -> ThermalCluster:
         """
         Args:
@@ -127,6 +122,16 @@ class BaseAreaService(ABC):
 
         Returns:
             The created renewable cluster
+        """
+        pass
+
+    @abstractmethod
+    def create_load(self, area: Area, series: Optional[pd.DataFrame]) -> Load:
+        """
+        Args:
+            area: area to create load series matrices
+            series: load/series/load_{area_id}.txt
+
         """
         pass
 
@@ -451,6 +456,8 @@ class BaseThermalService(ABC):
 
 
 class BaseBindingConstraintService(ABC):
+    binding_constraints: dict[str, BindingConstraint]
+
     @abstractmethod
     def create_binding_constraint(
         self,
@@ -498,9 +505,7 @@ class BaseBindingConstraintService(ABC):
 
     @abstractmethod
     def update_binding_constraint_properties(
-        self,
-        binding_constraint: BindingConstraint,
-        properties: BindingConstraintProperties,
+        self, binding_constraint: BindingConstraint, properties: BindingConstraintProperties
     ) -> BindingConstraintProperties:
         """
         Args:
@@ -520,10 +525,7 @@ class BaseBindingConstraintService(ABC):
 
     @abstractmethod
     def update_constraint_matrix(
-        self,
-        constraint: BindingConstraint,
-        matrix_name: ConstraintMatrixName,
-        matrix: pd.DataFrame,
+        self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName, matrix: pd.DataFrame
     ) -> None:
         """
         Args:
@@ -605,9 +607,7 @@ class BaseStudyService(ABC):
 class BaseRenewableService(ABC):
     @abstractmethod
     def update_renewable_properties(
-        self,
-        renewable_cluster: RenewableCluster,
-        properties: RenewableClusterProperties,
+        self, renewable_cluster: RenewableCluster, properties: RenewableClusterProperties
     ) -> RenewableClusterProperties:
         """
         Args:

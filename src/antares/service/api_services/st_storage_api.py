@@ -10,8 +10,6 @@
 #
 # This file is part of the Antares project.
 
-import json
-
 import pandas as pd
 
 from antares.api_conf.api_conf import APIconf
@@ -39,7 +37,7 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
     ) -> STStorageProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{st_storage.area_id}/storages/{st_storage.id}"
         try:
-            body = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+            body = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
             if not body:
                 return st_storage.properties
 

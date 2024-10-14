@@ -11,13 +11,13 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Optional, Dict, Any
+from typing import Optional, Dict
 
 import pandas as pd
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
 
-from antares.tools.ini_tool import check_if_none
+from antares.tools.all_optional_meta import all_optional_model
 
 
 class HydroMatrixName(Enum):
@@ -32,95 +32,61 @@ class HydroMatrixName(Enum):
     COMMON_CREDIT_MODULATIONS = "creditmodulations"
 
 
-class HydroProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+class DefaultHydroProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     """
     Properties of hydro system read from the configuration files.
 
     All aliases match the name of the corresponding field in the INI files.
     """
 
-    inter_daily_breakdown: Optional[float] = None
-    intra_daily_modulation: Optional[float] = None
-    inter_monthly_breakdown: Optional[float] = None
-    reservoir: Optional[bool] = None
-    reservoir_capacity: Optional[float] = None
-    follow_load: Optional[bool] = None
-    use_water: Optional[bool] = None
-    hard_bounds: Optional[bool] = None
-    initialize_reservoir_date: Optional[int] = None
-    use_heuristic: Optional[bool] = None
-    power_to_level: Optional[bool] = None
-    use_leeway: Optional[bool] = None
-    leeway_low: Optional[float] = None
-    leeway_up: Optional[float] = None
-    pumping_efficiency: Optional[float] = None
+    inter_daily_breakdown: float = 1
+    intra_daily_modulation: float = 24
+    inter_monthly_breakdown: float = 1
+    reservoir: bool = False
+    reservoir_capacity: float = 0
+    follow_load: bool = True
+    use_water: bool = False
+    hard_bounds: bool = False
+    initialize_reservoir_date: int = 0
+    use_heuristic: bool = True
+    power_to_level: bool = False
+    use_leeway: bool = False
+    leeway_low: float = 1
+    leeway_up: float = 1
+    pumping_efficiency: float = 1
 
 
-class HydroPropertiesLocal(BaseModel):
-    def __init__(
-        self,
-        area_id: str,
-        hydro_properties: Optional[HydroProperties] = None,
-        **kwargs: Optional[Any],
-    ):
-        super().__init__(**kwargs)
-        self._area_id = area_id
-        hydro_properties = hydro_properties or HydroProperties()
-        self._inter_daily_breakdown = check_if_none(hydro_properties.inter_daily_breakdown, 1)
-        self._intra_daily_modulation = check_if_none(hydro_properties.intra_daily_modulation, 24)
-        self._inter_monthly_breakdown = check_if_none(hydro_properties.inter_monthly_breakdown, 1)
-        self._reservoir = check_if_none(hydro_properties.reservoir, False)
-        self._reservoir_capacity = check_if_none(hydro_properties.reservoir_capacity, 0)
-        self._follow_load = check_if_none(hydro_properties.follow_load, True)
-        self._use_water = check_if_none(hydro_properties.use_water, False)
-        self._hard_bounds = check_if_none(hydro_properties.hard_bounds, False)
-        self._initialize_reservoir_date = check_if_none(hydro_properties.initialize_reservoir_date, 0)
-        self._use_heuristic = check_if_none(hydro_properties.use_heuristic, True)
-        self._power_to_level = check_if_none(hydro_properties.power_to_level, False)
-        self._use_leeway = check_if_none(hydro_properties.use_leeway, False)
-        self._leeway_low = check_if_none(hydro_properties.leeway_low, 1)
-        self._leeway_up = check_if_none(hydro_properties.leeway_up, 1)
-        self._pumping_efficiency = check_if_none(hydro_properties.pumping_efficiency, 1)
+@all_optional_model
+class HydroProperties(DefaultHydroProperties):
+    pass
 
-    @computed_field  # type: ignore[misc]
+
+class HydroPropertiesLocal(DefaultHydroProperties):
+    area_id: str
+
     @property
     def hydro_ini_fields(self) -> dict[str, dict[str, str]]:
         return {
-            "inter-daily-breakdown": {f"{self._area_id}": f"{self._inter_daily_breakdown:.6f}"},
-            "intra-daily-modulation": {f"{self._area_id}": f"{self._intra_daily_modulation:.6f}"},
-            "inter-monthly-breakdown": {f"{self._area_id}": f"{self._inter_monthly_breakdown:.6f}"},
-            "reservoir": {f"{self._area_id}": f"{self._reservoir}".lower()},
-            "reservoir capacity": {f"{self._area_id}": f"{self._reservoir_capacity:.6f}"},
-            "follow load": {f"{self._area_id}": f"{self._follow_load}".lower()},
-            "use water": {f"{self._area_id}": f"{self._use_water}".lower()},
-            "hard bounds": {f"{self._area_id}": f"{self._hard_bounds}".lower()},
-            "initialize reservoir date": {f"{self._area_id}": f"{self._initialize_reservoir_date}"},
-            "use heuristic": {f"{self._area_id}": f"{self._use_heuristic}".lower()},
-            "power to level": {f"{self._area_id}": f"{self._power_to_level}".lower()},
-            "use leeway": {f"{self._area_id}": f"{self._use_leeway}".lower()},
-            "leeway low": {f"{self._area_id}": f"{self._leeway_low:.6f}"},
-            "leeway up": {f"{self._area_id}": f"{self._leeway_up:.6f}"},
-            "pumping efficiency": {f"{self._area_id}": f"{self._pumping_efficiency:.6f}"},
+            "inter-daily-breakdown": {f"{self.area_id}": f"{self.inter_daily_breakdown:.6f}"},
+            "intra-daily-modulation": {f"{self.area_id}": f"{self.intra_daily_modulation:.6f}"},
+            "inter-monthly-breakdown": {f"{self.area_id}": f"{self.inter_monthly_breakdown:.6f}"},
+            "reservoir": {f"{self.area_id}": f"{self.reservoir}".lower()},
+            "reservoir capacity": {f"{self.area_id}": f"{self.reservoir_capacity:.6f}"},
+            "follow load": {f"{self.area_id}": f"{self.follow_load}".lower()},
+            "use water": {f"{self.area_id}": f"{self.use_water}".lower()},
+            "hard bounds": {f"{self.area_id}": f"{self.hard_bounds}".lower()},
+            "initialize reservoir date": {f"{self.area_id}": f"{self.initialize_reservoir_date}"},
+            "use heuristic": {f"{self.area_id}": f"{self.use_heuristic}".lower()},
+            "power to level": {f"{self.area_id}": f"{self.power_to_level}".lower()},
+            "use leeway": {f"{self.area_id}": f"{self.use_leeway}".lower()},
+            "leeway low": {f"{self.area_id}": f"{self.leeway_low:.6f}"},
+            "leeway up": {f"{self.area_id}": f"{self.leeway_up:.6f}"},
+            "pumping efficiency": {f"{self.area_id}": f"{self.pumping_efficiency:.6f}"},
         }
 
     def yield_hydro_properties(self) -> HydroProperties:
-        return HydroProperties(
-            inter_daily_breakdown=self._inter_daily_breakdown,
-            intra_daily_modulation=self._intra_daily_modulation,
-            inter_monthly_breakdown=self._inter_monthly_breakdown,
-            reservoir=self._reservoir,
-            reservoir_capacity=self._reservoir_capacity,
-            follow_load=self._follow_load,
-            use_water=self._use_water,
-            hard_bounds=self._hard_bounds,
-            initialize_reservoir_date=self._initialize_reservoir_date,
-            use_heuristic=self._use_heuristic,
-            power_to_level=self._power_to_level,
-            use_leeway=self._use_leeway,
-            leeway_low=self._leeway_low,
-            leeway_up=self._leeway_up,
-            pumping_efficiency=self._pumping_efficiency,
-        )
+        excludes = {"area_id", "hydro_ini_fields"}
+        return HydroProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
 
 
 class Hydro:

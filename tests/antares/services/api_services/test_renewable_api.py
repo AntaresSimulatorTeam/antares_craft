@@ -1,10 +1,19 @@
+# Copyright (c) 2024, RTE (https://www.rte-france.com)
+#
+# See AUTHORS.txt
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# SPDX-License-Identifier: MPL-2.0
+#
+# This file is part of the Antares project.
+
 import pandas as pd
 
 from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import (
-    RenewablePropertiesUpdateError,
-    RenewableMatrixDownloadError,
-)
+from antares.exceptions.exceptions import RenewablePropertiesUpdateError, RenewableMatrixDownloadError
 from antares.model.area import Area
 from antares.model.renewable import RenewableClusterProperties, RenewableCluster
 from antares.service.service_factory import ServiceFactory
@@ -34,11 +43,7 @@ class TestCreateAPI:
                 f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.renewable.area_id}/"
                 f"clusters/renewable/{self.renewable.id}"
             )
-            mocker.patch(
-                url,
-                json={"id": "id", "name": "name", **properties.model_dump()},
-                status_code=200,
-            )
+            mocker.patch(url, json={"id": "id", "name": "name", **properties.model_dump()}, status_code=200)
             self.renewable.update_properties(properties=properties)
 
     def test_update_renewable_properties_fails(self):
@@ -74,11 +79,7 @@ class TestCreateAPI:
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/renewables/series/"
                 f"{self.area.id}/{self.renewable.name}/series"
             )
-            mocker.get(
-                url,
-                json={"description": self.antares_web_description_msg},
-                status_code=404,
-            )
+            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 RenewableMatrixDownloadError,
                 match=f"Could not download matrix for cluster {self.renewable.name} inside area {self.area.id}"

@@ -10,23 +10,14 @@
 #
 # This file is part of the Antares project.
 
-import json
 from pathlib import PurePosixPath
 
 import pandas as pd
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
-from antares.exceptions.exceptions import (
-    APIError,
-    ThermalPropertiesUpdateError,
-    ThermalMatrixDownloadError,
-)
-from antares.model.thermal import (
-    ThermalCluster,
-    ThermalClusterProperties,
-    ThermalClusterMatrixName,
-)
+from antares.exceptions.exceptions import APIError, ThermalPropertiesUpdateError, ThermalMatrixDownloadError
+from antares.model.thermal import ThermalCluster, ThermalClusterProperties, ThermalClusterMatrixName
 from antares.service.api_services.utils import get_matrix
 from antares.service.base_services import BaseThermalService
 
@@ -44,7 +35,7 @@ class ThermalApiService(BaseThermalService):
     ) -> ThermalClusterProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{thermal_cluster.area_id}/clusters/thermal/{thermal_cluster.id}"
         try:
-            body = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+            body = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
             if not body:
                 return thermal_cluster.properties
 
@@ -70,10 +61,7 @@ class ThermalApiService(BaseThermalService):
                 / f"{thermal_cluster.name.lower()}"
                 / ts_name.value
             )
-            return get_matrix(
-                f"{self._base_url}/studies/{self.study_id}/raw?path={path}",
-                self._wrapper,
-            )
+            return get_matrix(f"{self._base_url}/studies/{self.study_id}/raw?path={path}", self._wrapper)
         except APIError as e:
             raise ThermalMatrixDownloadError(
                 thermal_cluster.area_id, thermal_cluster.name, ts_name.value, e.message

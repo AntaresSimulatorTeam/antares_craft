@@ -1,3 +1,15 @@
+# Copyright (c) 2024, RTE (https://www.rte-france.com)
+#
+# See AUTHORS.txt
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# SPDX-License-Identifier: MPL-2.0
+#
+# This file is part of the Antares project.
+
 import pandas as pd
 
 from antares.api_conf.api_conf import APIconf
@@ -35,11 +47,7 @@ class TestCreateAPI:
                 f"https://antares.com/api/v1/studies/{self.study_id}/"
                 f"areas/{self.storage.area_id}/storages/{self.storage.id}"
             )
-            mocker.patch(
-                url,
-                json={"id": "id", "name": "name", **properties.model_dump()},
-                status_code=200,
-            )
+            mocker.patch(url, json={"id": "id", "name": "name", **properties.model_dump()}, status_code=200)
             self.storage.update_properties(properties=properties)
 
     def test_update_st_storage_properties_fails(self):
@@ -75,11 +83,7 @@ class TestCreateAPI:
                 f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.storage.area_id}"
                 f"/storages/{self.storage.id}/series/inflows"
             )
-            mocker.get(
-                url,
-                json={"description": self.antares_web_description_msg},
-                status_code=404,
-            )
+            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 STStorageMatrixDownloadError,
                 match=f"Could not download inflows matrix for storage {self.storage.id} "
@@ -102,11 +106,7 @@ class TestCreateAPI:
                 f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.storage.area_id}"
                 f"/storages/{self.storage.id}/series/inflows"
             )
-            mocker.put(
-                url,
-                json={"description": self.antares_web_description_msg},
-                status_code=404,
-            )
+            mocker.put(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 STStorageMatrixUploadError,
                 match=f"Could not upload inflows matrix for storage {self.storage.id} inside area {self.area.id}:"

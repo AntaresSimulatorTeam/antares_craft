@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-import json
 from pathlib import PurePosixPath
 from typing import Optional, List
 
@@ -44,6 +43,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         self.study_id = study_id
         self._wrapper = RequestWrapper(self.api_config.set_up_api_conf())
         self._base_url = f"{self.api_config.get_host()}/api/v1"
+        self.binding_constraints = {}
 
     def create_binding_constraint(
         self,
@@ -75,7 +75,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         try:
             body = {"name": name}
             if properties:
-                camel_properties = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 body = {**body, **camel_properties}
             for matrix, matrix_name in zip(
                 [less_term_matrix, equal_term_matrix, greater_term_matrix],
@@ -104,7 +104,10 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         except APIError as e:
             raise BindingConstraintCreationError(name, e.message) from e
 
-        return BindingConstraint(name, self, bc_properties, bc_terms)
+        constraint = BindingConstraint(name, self, bc_properties, bc_terms)
+        self.binding_constraints[constraint.id] = constraint
+
+        return constraint
 
     def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint_id}/term/{term_id}"
@@ -114,13 +117,11 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise ConstraintTermDeletionError(constraint_id, term_id, e.message) from e
 
     def update_binding_constraint_properties(
-        self,
-        binding_constraint: BindingConstraint,
-        properties: BindingConstraintProperties,
+        self, binding_constraint: BindingConstraint, properties: BindingConstraintProperties
     ) -> BindingConstraintProperties:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{binding_constraint.id}"
         try:
-            body = json.loads(properties.model_dump_json(by_alias=True, exclude_none=True))
+            body = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
             if not body:
                 return binding_constraint.properties
 
@@ -138,18 +139,12 @@ class BindingConstraintApiService(BaseBindingConstraintService):
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
         try:
             path = PurePosixPath("input") / "bindingconstraints" / f"{constraint.id}_{matrix_name.value}"
-            return get_matrix(
-                f"{self._base_url}/studies/{self.study_id}/raw?path={path}",
-                self._wrapper,
-            )
+            return get_matrix(f"{self._base_url}/studies/{self.study_id}/raw?path={path}", self._wrapper)
         except APIError as e:
             raise ConstraintMatrixDownloadError(constraint.id, matrix_name.value, e.message) from e
 
     def update_constraint_matrix(
-        self,
-        constraint: BindingConstraint,
-        matrix_name: ConstraintMatrixName,
-        matrix: pd.DataFrame,
+        self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName, matrix: pd.DataFrame
     ) -> None:
         mapping = {
             ConstraintMatrixName.LESS_TERM: "lessTermMatrix",

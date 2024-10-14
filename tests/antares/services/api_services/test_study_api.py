@@ -1,4 +1,15 @@
-import json
+# Copyright (c) 2024, RTE (https://www.rte-france.com)
+#
+# See AUTHORS.txt
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# SPDX-License-Identifier: MPL-2.0
+#
+# This file is part of the Antares project.
+
 
 from antares.api_conf.api_conf import APIconf
 import requests_mock
@@ -14,10 +25,7 @@ from antares.exceptions.exceptions import (
     StudySettingsUpdateError,
 )
 from antares.model.area import AreaUi, AreaProperties, Area
-from antares.model.binding_constraint import (
-    BindingConstraintProperties,
-    BindingConstraint,
-)
+from antares.model.binding_constraint import BindingConstraintProperties, BindingConstraint
 from antares.model.link import LinkProperties, LinkUi, Link
 from antares.model.settings import StudySettings, GeneralProperties
 from antares.model.study import create_study_api, Study
@@ -55,11 +63,7 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             url = "https://antares.com/api/v1/studies?name=TestStudy&version=880"
             study_name = "TestStudy"
-            mocker.post(
-                url,
-                json={"description": self.antares_web_description_msg},
-                status_code=404,
-            )
+            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
 
             with pytest.raises(
                 StudyCreationError,
@@ -82,11 +86,7 @@ class TestCreateAPI:
             settings.general_properties = GeneralProperties(mode="Adequacy")
             config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
             antares_web_description_msg = "Server KO"
-            mocker.put(
-                config_urls,
-                json={"description": antares_web_description_msg},
-                status_code=404,
-            )
+            mocker.put(config_urls, json={"description": antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 StudySettingsUpdateError,
                 match=f"Could not update settings for study {self.study_id}: {antares_web_description_msg}",
@@ -100,16 +100,7 @@ class TestCreateAPI:
 
             url1 = f"{base_url}/studies/{self.study_id}/areas"
             mocker.post(url1, json={"id": area_name}, status_code=201)
-            ui_info = {
-                "ui": {
-                    "x": 0,
-                    "y": 0,
-                    "layers": 0,
-                    "color_r": 0,
-                    "color_g": 0,
-                    "color_b": 0,
-                }
-            }
+            ui_info = {"ui": {"x": 0, "y": 0, "layers": 0, "color_r": 0, "color_g": 0, "color_b": 0}}
             area_ui = {
                 **AreaUi(layerX={"1": 0}, layerY={"1": 0}, layerColor={"1": "0"}).model_dump(by_alias=True),
                 **ui_info,
@@ -126,11 +117,7 @@ class TestCreateAPI:
         area_name = "area_test"
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas"
-            mocker.post(
-                url,
-                json={"description": self.antares_web_description_msg},
-                status_code=404,
-            )
+            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
 
             with pytest.raises(
                 AreaCreationError,
@@ -159,10 +146,7 @@ class TestCreateAPI:
             )
 
             raw_url = f"{base_url}/raw?path=input/links/{area.id}/properties/{area_to.id}"
-            json_response = {
-                **LinkProperties().model_dump(by_alias=True),
-                **LinkUi().model_dump(by_alias=True),
-            }
+            json_response = {**LinkProperties().model_dump(by_alias=True), **LinkUi().model_dump(by_alias=True)}
             mocker.get(raw_url, json=json_response, status_code=200)
             link = self.study.create_link(area_from=area, area_to=area_to)
             assert isinstance(link, Link)
@@ -170,11 +154,7 @@ class TestCreateAPI:
     def test_create_link_fails(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
-            mocker.post(
-                url,
-                json={"description": self.antares_web_description_msg},
-                status_code=404,
-            )
+            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             area_from = Area(
                 name="area_from",
                 area_service=self.api,
@@ -199,29 +179,16 @@ class TestCreateAPI:
     def test_create_binding_constraint_success(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
-            json_response = json.loads(BindingConstraintProperties().model_dump_json(by_alias=True))
+            json_response = BindingConstraintProperties().model_dump(mode="json", by_alias=True)
             constraint_name = "bc_1"
-            mocker.post(
-                url,
-                json={
-                    "id": "id",
-                    "name": constraint_name,
-                    "terms": [],
-                    **json_response,
-                },
-                status_code=201,
-            )
+            mocker.post(url, json={"id": "id", "name": constraint_name, "terms": [], **json_response}, status_code=201)
             constraint = self.study.create_binding_constraint(name=constraint_name)
             assert isinstance(constraint, BindingConstraint)
 
     def test_create_binding_constraint_fails(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
-            mocker.post(
-                url,
-                json={"description": self.antares_web_description_msg},
-                status_code=404,
-            )
+            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             constraint_name = "bc_1"
 
             with pytest.raises(

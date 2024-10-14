@@ -3,17 +3,18 @@ import logging
 from unittest import mock
 
 import pytest
-
+from pathlib import Path
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.study import read_study_local
 
 
 class TestReadStudy:
     def test_directory_not_exists_error(self, caplog):
-        local_path = r"/fake/path/"
+        local_path = r"fake/path/"
         study_name = "study_name"
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(ValueError, match=f"Provided directory {local_path} does not exist."):
+            regex_pattern = r"Provided directory fake\\path does not exist\."
+            with pytest.raises(ValueError, match=regex_pattern):
                 read_study_local(study_name, "880", LocalConfiguration(local_path, study_name))
 
     def test_directory_permission_denied(self, tmp_path, caplog):
