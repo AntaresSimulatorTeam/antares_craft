@@ -23,7 +23,7 @@ from antares.exceptions.exceptions import (
     LinkUiUpdateError,
 )
 from antares.model.area import Area
-from antares.model.link import LinkProperties, LinkUi, Link
+from antares.model.link import Link, LinkProperties, LinkUi
 from antares.service.base_services import BaseLinkService
 
 
@@ -163,6 +163,14 @@ class LinkApiService(BaseLinkService):
             raise LinkUiUpdateError(link.name, e.message) from e
 
         return link_ui
+
+    def read_link(
+        self,
+        area_from: Area,
+        area_to: Area,
+        existing_areas: Optional[MappingProxyType[str, Area]] = None,
+    ) -> Link:
+        raise NotImplementedError
 
 
 def _join_filter_values_for_json(json_dict: dict, dict_to_extract: dict) -> dict:

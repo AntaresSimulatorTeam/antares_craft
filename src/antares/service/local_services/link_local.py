@@ -12,13 +12,14 @@
 
 import configparser
 import os
+
 from types import MappingProxyType
-from typing import Optional, Any, Dict
+from typing import Any, Dict, Optional
 
 from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import LinkCreationError, CustomError
+from antares.exceptions.exceptions import CustomError, LinkCreationError
 from antares.model.area import Area
-from antares.model.link import LinkProperties, LinkUi, Link, LinkPropertiesLocal, LinkUiLocal
+from antares.model.link import Link, LinkProperties, LinkPropertiesLocal, LinkUi, LinkUiLocal
 from antares.service.base_services import BaseLinkService
 from antares.tools.contents_tool import sort_ini_sections
 
@@ -128,19 +129,10 @@ class LinkLocalService(BaseLinkService):
         ]
         return dict(sorted(ini_dict.items(), key=lambda item: dict_order.index(item[0])))
 
-    def read_link(self, area_from: Area, area_to: Area) -> Link:
-        """
-        Args:
-            area_from: area where the link goes from
-            area_to: area where the link goes to
-            properties: link's properties
-            ui: link's ui characteristics
-            existing_areas: existing areas from study
-
-        Returns:
-            The created link
-
-        Raises:
-            LinkCreationError if an area doesn't exist or existing areas have not been provided
-        """
-        pass
+    def read_link(
+        self,
+        area_from: Area,
+        area_to: Area,
+        existing_areas: Optional[MappingProxyType[str, Area]] = None,
+    ) -> Link:
+        raise NotImplementedError

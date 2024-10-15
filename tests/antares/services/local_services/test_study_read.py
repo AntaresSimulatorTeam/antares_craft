@@ -10,12 +10,12 @@
 #
 # This file is part of the Antares project.
 
+import pytest
+
 import logging
 
 from unittest import mock
 
-import pytest
-from pathlib import Path
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.study import read_study_local
 
@@ -53,7 +53,9 @@ class TestReadStudy:
         local_path = r"../../studies_samples/"
         study_name = "hydro_stockage"
         content = read_study_local(study_name, "880", LocalConfiguration(local_path, study_name))
-        study = content._study_service
+
+        areas = content.service.read_areas()
+        study = content.service.read_study(areas)
 
         expected_keys = ["areas", "hydro", "load", "misc", "renewables", "solar", "storage", "thermals", "wind"]
 
@@ -69,7 +71,9 @@ class TestReadStudy:
         study_name = "renewable_thermique"
 
         content = read_study_local(study_name, "880", LocalConfiguration(local_path, study_name))
-        assert content._study_service["thermals"].get("zone_rt").get("list") == {
+        areas = content.service.read_areas()
+        study = content.service.read_study(areas)
+        assert study["thermals"].get("zone_rt").get("list") == {
             "GAZ": {
                 "group": "Gas",
                 "name": "GAZ",
@@ -106,7 +110,7 @@ class TestReadStudy:
                 "op5": "0.0",
             }
         }
-        assert content._study_service["renewables"].get("zone_rt").get("list") == {
+        assert study["renewables"].get("zone_rt").get("list") == {
             "onshore": {
                 "group": "Wind Onshore",
                 "name": "onshore",
@@ -138,11 +142,12 @@ class TestReadStudy:
         study_name = "hydro_stockage"
         content = read_study_local(study_name, "880", LocalConfiguration(local_path, study_name))
 
-        assert content._study_service["storage"].get("zone_hs").get("list") == {
-            "batterie": {"group": "Battery", "name": "batterie"}
-        }
+        areas = content.service.read_areas()
+        study = content.service.read_study(areas)
 
-        assert content._study_service["hydro"].get("hydro") == {
+        assert study["storage"].get("zone_hs").get("list") == {"batterie": {"group": "Battery", "name": "batterie"}}
+
+        assert study["hydro"].get("hydro") == {
             "inter-daily-breakdown": {"zone_hs": "1"},
             "intra-daily-modulation": {"zone_hs": "24"},
             "inter-monthly-breakdown": {"zone_hs": "1"},

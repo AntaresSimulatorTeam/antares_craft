@@ -10,17 +10,17 @@
 #
 # This file is part of the Antares project.
 
+import pytest
+import requests_mock
+
 import pandas as pd
 
 from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import ConstraintPropertiesUpdateError, ConstraintMatrixDownloadError
+from antares.exceptions.exceptions import ConstraintMatrixDownloadError, ConstraintPropertiesUpdateError
 from antares.model.area import Area
-from antares.model.binding_constraint import BindingConstraintProperties, BindingConstraint, ConstraintMatrixName
+from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintMatrixName
 from antares.model.study import Study
 from antares.service.service_factory import ServiceFactory
-import requests_mock
-
-import pytest
 
 
 @pytest.fixture

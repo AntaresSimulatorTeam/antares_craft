@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from pathlib import PurePosixPath
-from typing import Optional, List
+from typing import List, Optional
 
 import pandas as pd
 
@@ -20,17 +20,17 @@ from antares.api_conf.request_wrapper import RequestWrapper
 from antares.exceptions.exceptions import (
     APIError,
     BindingConstraintCreationError,
-    ConstraintTermDeletionError,
-    ConstraintPropertiesUpdateError,
     ConstraintMatrixDownloadError,
     ConstraintMatrixUpdateError,
+    ConstraintPropertiesUpdateError,
     ConstraintTermAdditionError,
+    ConstraintTermDeletionError,
 )
 from antares.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintProperties,
-    ConstraintTerm,
     ConstraintMatrixName,
+    ConstraintTerm,
 )
 from antares.service.api_services.utils import get_matrix
 from antares.service.base_services import BaseBindingConstraintService
@@ -172,3 +172,11 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise ConstraintTermAdditionError(constraint.id, [term.id for term in terms], e.message) from e
 
         return new_terms
+
+    def read_binding_constraint(
+        self,
+        name: str,
+        constraint: BindingConstraint,
+        matrix: pd.DataFrame,
+    ) -> BindingConstraint:
+        raise NotImplementedError

@@ -12,31 +12,31 @@
 
 from abc import ABC, abstractmethod
 from types import MappingProxyType
-from typing import Optional, Dict, List
+from typing import Dict, List, Optional
 
 import pandas as pd
 
 from antares.config.base_configuration import BaseConfiguration
-from antares.model.area import AreaProperties, Area, AreaUi
+from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import (
-    BindingConstraintProperties,
-    ConstraintTerm,
     BindingConstraint,
+    BindingConstraintProperties,
     ConstraintMatrixName,
+    ConstraintTerm,
 )
-from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro
-from antares.model.link import LinkProperties, LinkUi, Link
+from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
+from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.load import Load
 from antares.model.misc_gen import MiscGen
-from antares.model.renewable import RenewableClusterProperties, RenewableCluster
+from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.reserves import Reserves
 from antares.model.settings import StudySettings
 from antares.model.solar import Solar
-from antares.model.st_storage import STStorageProperties, STStorage
+from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import (
-    ThermalClusterProperties,
     ThermalCluster,
     ThermalClusterMatrixName,
+    ThermalClusterProperties,
 )
 from antares.model.wind import Wind
 
@@ -300,7 +300,6 @@ class BaseAreaService(ABC):
         area_id: str,
         renewable_name: str,
         properties: Optional[RenewableClusterProperties] = None,
-        series: Optional[pd.DataFrame] = None,
     ) -> RenewableCluster:
         pass
 
@@ -314,15 +313,15 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def read_wind(self, area: Area, series: Optional[pd.DataFrame]) -> Wind:
+    def read_wind(self, area: Area) -> Wind:
         pass
 
     @abstractmethod
-    def read_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
+    def read_reserves(self, area: Area) -> Reserves:
         pass
 
     @abstractmethod
-    def read_solar(self, area: Area, series: Optional[pd.DataFrame]) -> Solar:
+    def read_solar(self, area: Area) -> Solar:
         pass
 
     @abstractmethod
@@ -334,23 +333,14 @@ class BaseAreaService(ABC):
         self,
         area_id: str,
         properties: Optional[HydroProperties] = None,
-        matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
     ) -> Hydro:
         pass
 
     @abstractmethod
-    def read_area(
-        self,
-        area_name: str,
-        properties: Optional[AreaProperties] = None,
-        ui: Optional[AreaUi] = None,
-    ) -> Area:
+    def read_area(self, area_name: str) -> List:
         """
         Args:
             area_name: area to be added to study
-            properties: area's properties. If not provided, default values will be used.
-            ui: area's ui characteristics. If not provided, default values will be used.
-
         Returns: area name if success or Error if area can not be
         created
         """
@@ -412,8 +402,6 @@ class BaseLinkService(ABC):
         self,
         area_from: Area,
         area_to: Area,
-        properties: Optional[LinkProperties] = None,
-        ui: Optional[LinkUi] = None,
         existing_areas: Optional[MappingProxyType[str, Area]] = None,
     ) -> Link:
         """
@@ -539,20 +527,14 @@ class BaseBindingConstraintService(ABC):
     def read_binding_constraint(
         self,
         name: str,
-        properties: Optional[BindingConstraintProperties] = None,
-        terms: Optional[List[ConstraintTerm]] = None,
-        less_term_matrix: Optional[pd.DataFrame] = None,
-        equal_term_matrix: Optional[pd.DataFrame] = None,
-        greater_term_matrix: Optional[pd.DataFrame] = None,
+        constraint: BindingConstraint,
+        matrix: pd.DataFrame,
     ) -> BindingConstraint:
         """
         Args:
             name: the binding constraint name
-            properties: the properties of the constraint. If not provided, AntaresWeb will use its own default values.
-            terms: the terms of the constraint. If not provided, no term will be created.
-            less_term_matrix: matrix corresponding to the lower bound of the constraint. If not provided, no matrix will be created.
-            equal_term_matrix: matrix corresponding to the equality bound of the constraint. If not provided, no matrix will be created.
-            greater_term_matrix: matrix corresponding to the upper bound of the constraint. If not provided, no matrix will be created.
+            constraint: consraint object
+            matrix: matrix corresponding to the constraint. If not provided, no matrix will be created.
 
         Returns:
             The created binding constraint
@@ -597,7 +579,7 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
-    def read_areas(self) -> None:
+    def read_areas(self) -> dict:
         """
         Read areas
         """

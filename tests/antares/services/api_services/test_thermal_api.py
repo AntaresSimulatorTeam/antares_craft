@@ -10,17 +10,17 @@
 #
 # This file is part of the Antares project.
 
+import pytest
+import requests_mock
+
 import pandas as pd
 
 from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import ThermalPropertiesUpdateError, ThermalMatrixDownloadError
+from antares.exceptions.exceptions import ThermalMatrixDownloadError, ThermalPropertiesUpdateError
 from antares.model.area import Area
 from antares.model.study import Study
-from antares.model.thermal import ThermalCluster, ThermalClusterProperties, ThermalClusterMatrixName
+from antares.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
 from antares.service.service_factory import ServiceFactory
-import requests_mock
-
-import pytest
 
 
 @pytest.fixture

@@ -12,30 +12,32 @@
 
 import logging
 import os
+
 from configparser import ConfigParser
-from typing import Optional, Dict, List, Any
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import CustomError
-from antares.model.area import AreaProperties, AreaUi, Area, AreaPropertiesLocal, AreaUiLocal
-from antares.model.hydro import HydroProperties, HydroMatrixName, Hydro, HydroPropertiesLocal
+from antares.model.area import Area, AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
+from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesLocal
 from antares.model.load import Load
 from antares.model.misc_gen import MiscGen
-from antares.model.renewable import RenewableClusterProperties, RenewableCluster, RenewableClusterPropertiesLocal
+from antares.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesLocal
 from antares.model.reserves import Reserves
 from antares.model.solar import Solar
-from antares.model.st_storage import STStorageProperties, STStorage, STStoragePropertiesLocal
-from antares.model.thermal import ThermalClusterProperties, ThermalCluster, ThermalClusterPropertiesLocal
+from antares.model.st_storage import STStorage, STStorageProperties, STStoragePropertiesLocal
+from antares.model.thermal import ThermalCluster, ThermalClusterProperties, ThermalClusterPropertiesLocal
 from antares.model.wind import Wind
 from antares.service.base_services import (
     BaseAreaService,
+    BaseRenewableService,
     BaseShortTermStorageService,
     BaseThermalService,
-    BaseRenewableService,
 )
-from antares.tools.ini_tool import IniFileTypes, IniFile
+from antares.tools.ini_tool import IniFile, IniFileTypes
 from antares.tools.time_series_tool import TimeSeriesFile, TimeSeriesFileType
 
 
@@ -325,7 +327,9 @@ class AreaLocalService(BaseAreaService):
         thermal_name: str,
         properties: Optional[ThermalClusterProperties] = None,
     ) -> ThermalCluster:
-        local_thermal_properties = ThermalClusterPropertiesLocal(thermal_name, properties)
+        properties = properties or ThermalClusterProperties()
+        args = {"thermal_name": thermal_name, **properties.model_dump(mode="json", exclude_none=True)}
+        local_thermal_properties = ThermalClusterPropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name=area_id)
         list_ini.add_section(local_thermal_properties.list_ini_fields)
@@ -344,9 +348,11 @@ class AreaLocalService(BaseAreaService):
         renewable_name: str,
         properties: Optional[RenewableClusterProperties] = None,
     ) -> RenewableCluster:
-        local_properties = RenewableClusterPropertiesLocal(renewable_name, properties)
+        properties = properties or RenewableClusterProperties()
+        args = {"renewable_name": renewable_name, **properties.model_dump(mode="json", exclude_none=True)}
+        local_properties = RenewableClusterPropertiesLocal.model_validate(args)
 
-        list_ini = IniFile(self.config.study_path, IniFileTypes.RENEWABLE_LIST_INI, area_name=area_id)
+        list_ini = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name=area_id)
         list_ini.add_section(local_properties.ini_fields)
         list_ini.write_ini_file()
 
@@ -363,7 +369,9 @@ class AreaLocalService(BaseAreaService):
         st_storage_name: str,
         properties: Optional[STStorageProperties] = None,
     ) -> STStorage:
-        local_st_storage_properties = STStoragePropertiesLocal(st_storage_name, properties)
+        properties = properties or STStorageProperties()
+        args = {"st_storage_name": st_storage_name, **properties.model_dump(mode="json", exclude_none=True)}
+        local_st_storage_properties = STStoragePropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name=area_id)
         list_ini.add_section(local_st_storage_properties.list_ini_fields)
@@ -378,22 +386,30 @@ class AreaLocalService(BaseAreaService):
 
     def read_wind(self, area: Area) -> Wind:
         series = pd.DataFrame([])
-        local_file = TimeSeriesFile(TimeSeriesFileType.WIND, self.config.study_path, area.id, series)
+        local_file = TimeSeriesFile(
+            TimeSeriesFileType.WIND, self.config.study_path, area_id=area.id, time_series=series
+        )
         return Wind(series, local_file)
 
     def read_reserves(self, area: Area) -> Reserves:
         series = pd.DataFrame([])
-        local_file = TimeSeriesFile(TimeSeriesFileType.RESERVES, self.config.study_path, area.id, series)
+        local_file = TimeSeriesFile(
+            TimeSeriesFileType.RESERVES, self.config.study_path, area_id=area.id, time_series=series
+        )
         return Reserves(series, local_file)
 
     def read_solar(self, area: Area) -> Solar:
         series = pd.DataFrame([])
-        local_file = TimeSeriesFile(TimeSeriesFileType.SOLAR, self.config.study_path, area.id, series)
-        return Solar(series, local_file)
+        local_file = TimeSeriesFile(
+            TimeSeriesFileType.SOLAR, self.config.study_path, area_id=area.id, time_series=series
+        )
+        return Solar(time_series=series, local_file=local_file)
 
     def read_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
         series = series if series is not None else pd.DataFrame([])
-        local_file = TimeSeriesFile(TimeSeriesFileType.MISC_GEN, self.config.study_path, area.id, series)
+        local_file = TimeSeriesFile(
+            TimeSeriesFileType.MISC_GEN, self.config.study_path, area_id=area.id, time_series=series
+        )
         return MiscGen(series, local_file)
 
     def read_hydro(
@@ -401,7 +417,9 @@ class AreaLocalService(BaseAreaService):
         area_id: str,
         properties: Optional[HydroProperties] = None,
     ) -> Hydro:
-        local_hydro_properties = HydroPropertiesLocal(area_id, properties)
+        properties = properties or HydroProperties()
+        args = {"area_id": area_id, **properties.model_dump(mode="json", exclude_none=True)}
+        local_hydro_properties = HydroPropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, IniFileTypes.HYDRO_INI)
         list_ini.add_section(local_hydro_properties.hydro_ini_fields)
@@ -409,7 +427,7 @@ class AreaLocalService(BaseAreaService):
 
         return Hydro(self, area_id, local_hydro_properties.yield_hydro_properties())
 
-    def read_area(self, area_name: str) -> Area:
+    def read_area(self, area_name: str) -> List:
         """
         Args:
             area_name: area to be added to study
@@ -430,7 +448,7 @@ class AreaLocalService(BaseAreaService):
             return line_to_add.strip() in file_content.split("\n")
 
         existing_path = self.config.local_path
-        study_path = existing_path / self.study_name
+        study_path = existing_path / Path(self.study_name)
 
         optimization_ini = IniFile(study_path, IniFileTypes.AREA_OPTIMIZATION_INI, area_name).parsed_ini
 

@@ -10,23 +10,23 @@
 #
 # This file is part of the Antares project.
 
-from typing import Optional, Any
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.binding_constraint import (
-    BindingConstraintProperties,
-    ConstraintTerm,
     BindingConstraint,
-    ConstraintMatrixName,
-    BindingConstraintOperator,
     BindingConstraintFrequency,
+    BindingConstraintOperator,
+    BindingConstraintProperties,
+    ConstraintMatrixName,
+    ConstraintTerm,
 )
 from antares.service.base_services import BaseBindingConstraintService
 from antares.tools.ini_tool import IniFile, IniFileTypes
-from antares.tools.time_series_tool import TimeSeriesFile, TimeSeriesFileType, TimeSeries
+from antares.tools.time_series_tool import TimeSeries, TimeSeriesFile, TimeSeriesFileType
 
 
 class BindingConstraintLocalService(BaseBindingConstraintService):
@@ -141,8 +141,8 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
     def read_binding_constraint(
         self,
+        name: str,
         constraint: BindingConstraint,
-        matrix_name: ConstraintMatrixName,
         matrix: pd.DataFrame,
-    ) -> None:
+    ) -> BindingConstraint:
         raise NotImplementedError

@@ -11,24 +11,24 @@
 # This file is part of the Antares project.
 
 
-from antares.api_conf.api_conf import APIconf
+import pytest
 import requests_mock
+
 import re
 
-import pytest
-
+from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
-    StudyCreationError,
-    BindingConstraintCreationError,
     AreaCreationError,
+    BindingConstraintCreationError,
     LinkCreationError,
+    StudyCreationError,
     StudySettingsUpdateError,
 )
-from antares.model.area import AreaUi, AreaProperties, Area
-from antares.model.binding_constraint import BindingConstraintProperties, BindingConstraint
-from antares.model.link import LinkProperties, LinkUi, Link
-from antares.model.settings import StudySettings, GeneralProperties
-from antares.model.study import create_study_api, Study
+from antares.model.area import Area, AreaProperties, AreaUi
+from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties
+from antares.model.link import Link, LinkProperties, LinkUi
+from antares.model.settings import GeneralProperties, StudySettings
+from antares.model.study import Study, create_study_api
 from antares.service.service_factory import ServiceFactory
 
 

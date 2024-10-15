@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 from pydantic import BaseModel
 

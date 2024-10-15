@@ -13,9 +13,10 @@
 import logging
 import os
 import time
+
 from pathlib import Path
 from types import MappingProxyType
-from typing import Optional, Dict, List, Any
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -29,12 +30,11 @@ from antares.model.binding_constraint import (
     BindingConstraintProperties,
     ConstraintTerm,
 )
-from antares.model.link import Link, LinkUi, LinkProperties
+from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings import StudySettings
 from antares.service.api_services.study_api import _returns_study_settings
-from antares.service.base_services import BaseStudyService
 from antares.service.service_factory import ServiceFactory, ServiceReader
-from antares.tools.ini_tool import IniFile, IniFileTypes
+from antares.tools.ini_tool import IniFile
 
 """
 The study module defines the data model for antares study.
@@ -157,7 +157,6 @@ InfoTip = Antares Study {version}: {study_name}
         version=version,
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
         settings=settings,
-        mode="create",
     )
 
 
@@ -185,10 +184,7 @@ def read_study_local(study_name: str, version: str, local_config: LocalConfigura
     _directories_can_be_read(study_directory)
 
     return Study(
-        name=study_name,
-        version=version,
-        service_factory=ServiceReader(config=local_config, study_name=Path(study_name)),
-        mode="read",
+        name=study_name, version=version, service_factory=ServiceReader(config=local_config, study_name=study_name)
     )
 
 
@@ -197,10 +193,9 @@ class Study:
         self,
         name: str,
         version: str,
-        service_factory,
+        service_factory: Union[ServiceFactory, ServiceReader],
         settings: Optional[StudySettings] = None,
-        mode: str = "create",
-        # ini_files: Optional[dict[str, IniFile]] = None,
+        ini_files: Optional[dict[str, IniFile]] = None,
         **kwargs: Any,
     ):
         self.name = name
@@ -208,24 +203,24 @@ class Study:
         for argument in kwargs:
             if argument == "ini_files":
                 self._ini_files: dict[str, IniFile] = kwargs[argument] or dict()
-        if mode != "read":
+        self._areas: Dict[str, Area] = dict()
+        self._links: Dict[str, Link] = dict()
+
+        if isinstance(service_factory, ServiceFactory):
             self._study_service = service_factory.create_study_service()
             self._area_service = service_factory.create_area_service()
             self._link_service = service_factory.create_link_service()
             self._binding_constraints_service = service_factory.create_binding_constraints_service()
             self._settings = settings or StudySettings()
-            self._areas: Dict[str, Area] = dict()
-            self._links: Dict[str, Link] = dict()
             self._binding_constraints: Dict[str, BindingConstraint] = dict()
-        else:
+        elif isinstance(service_factory, ServiceReader):
             self._study_service = service_factory.read_study_service()
+
             # self._binding_constraints: Dict[str, BindingConstraint] = dict()
             # self._link_service = service_factory.create_link_service()
-            self._areas: Dict[str, Area] = dict()
-            self._links: Dict[str, Link] = dict()
 
     @property
-    def service(self) -> BaseStudyService:
+    def service(self) -> Any:
         return self._study_service
 
     def get_areas(self) -> MappingProxyType[str, Area]:

@@ -16,19 +16,19 @@ from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
 from antares.exceptions.exceptions import (
     APIError,
-    StudySettingsUpdateError,
     BindingConstraintDeletionError,
     StudyDeletionError,
+    StudySettingsUpdateError,
 )
 from antares.model.binding_constraint import BindingConstraint
 from antares.model.settings import (
-    StudySettings,
-    GeneralProperties,
-    ThematicTrimming,
-    TimeSeriesProperties,
     AdequacyPatchProperties,
     AdvancedProperties,
+    GeneralProperties,
     OptimizationProperties,
+    StudySettings,
+    ThematicTrimming,
+    TimeSeriesProperties,
 )
 from antares.service.base_services import BaseStudyService
 
@@ -105,3 +105,9 @@ class StudyApiService(BaseStudyService):
             self._wrapper.delete(url)
         except APIError as e:
             raise StudyDeletionError(self.study_id, e.message) from e
+
+    def read_areas(self) -> dict:
+        """
+        Read areas
+        """
+        raise NotImplementedError
