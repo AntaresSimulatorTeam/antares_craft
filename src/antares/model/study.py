@@ -34,7 +34,7 @@ from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings import StudySettings
 from antares.service.api_services.study_api import _returns_study_settings
 from antares.service.service_factory import ServiceFactory, ServiceReader
-from antares.tools.ini_tool import IniFile
+from antares.tools.ini_tool import IniFile, IniFileTypes
 
 """
 The study module defines the data model for antares study.
@@ -45,17 +45,20 @@ _study_path if stored in a disk
 """
 
 
+def verify_study_already_exists(study_directory: Path) -> None:
+    if os.path.exists(study_directory):
+        raise FileExistsError(f"Failed to create study. Study {study_directory} already exists")
+
+
 def create_study_api(
     study_name: str, version: str, api_config: APIconf, settings: Optional[StudySettings] = None
 ) -> "Study":
     """
     Args:
-
     study_name: antares study name to be created
     version: antares version
     api_config: host and token config for API
     settings: study settings. If not provided, AntaresWeb will use its default values.
-
     Raises:
     MissingTokenError if api_token is missing
     StudyCreationError if an HTTP Exception occurs
@@ -77,21 +80,6 @@ def create_study_api(
     return Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
 
 
-def _verify_study_already_exists(study_directory: Path) -> None:
-    if os.path.exists(study_directory):
-        raise FileExistsError(f"Study {study_directory} already exists.")
-
-
-def _directories_can_be_read(local_path: Path) -> None:
-    if local_path.is_dir():
-        try:
-            for item in local_path.iterdir():
-                if item.is_dir():
-                    next(item.iterdir())
-        except PermissionError:
-            raise PermissionError(f"Some content cannot be accessed in {local_path}")
-
-
 def create_study_local(
     study_name: str, version: str, local_config: LocalConfiguration, settings: Optional[StudySettings] = None
 ) -> "Study":
@@ -102,25 +90,55 @@ def create_study_local(
         version: antares version for study
         local_config: Local configuration options for example directory in which to story the study
         settings: study settings. If not provided, AntaresWeb will use its default values.
-
     Raises:
         FileExistsError if the study already exists in the given location
-        ValueError if the provided directory does not exist
-
     """
 
-    def _directory_not_exists(local_path: Path) -> None:
-        if local_path is None or not os.path.exists(local_path):
-            raise ValueError(f"Provided directory {local_path} does not exist.")
+    def _create_directory_structure(study_path: Path) -> None:
+        subdirectories = [
+            "input/hydro/allocation",
+            "input/hydro/common/capacity",
+            "input/hydro/series",
+            "input/links",
+            "input/load/series",
+            "input/misc-gen",
+            "input/reserves",
+            "input/solar/series",
+            "input/thermal/clusters",
+            "input/thermal/prepro",
+            "input/thermal/series",
+            "input/wind/series",
+            "layers",
+            "output",
+            "settings/resources",
+            "settings/simulations",
+            "user",
+        ]
+        for subdirectory in subdirectories:
+            (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
 
-    _directory_not_exists(local_config.local_path)
+    def _correlation_defaults() -> dict[str, dict[str, str]]:
+        return {
+            "general": {"mode": "annual"},
+            "annual": {},
+            "0": {},
+            "1": {},
+            "2": {},
+            "3": {},
+            "4": {},
+            "5": {},
+            "6": {},
+            "7": {},
+            "8": {},
+            "9": {},
+            "10": {},
+            "11": {},
+        }
 
     study_directory = local_config.local_path / study_name
-
-    _verify_study_already_exists(study_directory)
-
-    # Create the main study directory
-    os.makedirs(study_directory, exist_ok=True)
+    verify_study_already_exists(study_directory)
+    # Create the directory structure
+    _create_directory_structure(study_directory)
 
     # Create study.antares file with timestamps and study_name
     antares_file_path = os.path.join(study_directory, "study.antares")
@@ -145,11 +163,18 @@ InfoTip = Antares Study {version}: {study_name}
     with open(desktop_ini_path, "w") as desktop_ini_file:
         desktop_ini_file.write(desktop_ini_content)
 
-    # Create subdirectories
-    subdirectories = ["input", "layers", "output", "setting", "user"]
-    for subdirectory in subdirectories:
-        subdirectory_path = os.path.join(study_directory, subdirectory)
-        os.makedirs(subdirectory_path, exist_ok=True)
+    # Create various .ini files for the study
+    correlation_inis_to_create = [
+        ("solar_correlation", IniFileTypes.SOLAR_CORRELATION_INI),
+        ("wind_correlation", IniFileTypes.WIND_CORRELATION_INI),
+        ("load_correlation", IniFileTypes.LOAD_CORRELATION_INI),
+    ]
+    ini_files = {
+        correlation: IniFile(study_directory, file_type, ini_contents=_correlation_defaults())
+        for (correlation, file_type) in correlation_inis_to_create
+    }
+    for ini_file in ini_files.keys():
+        ini_files[ini_file].write_ini_file()
 
     logging.info(f"Study successfully created: {study_name}")
     return Study(
@@ -157,6 +182,7 @@ InfoTip = Antares Study {version}: {study_name}
         version=version,
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
         settings=settings,
+        ini_files=ini_files,
     )
 
 
@@ -173,6 +199,15 @@ def read_study_local(study_name: str, version: str, local_config: LocalConfigura
         ValueError if the provided directory does not exist
 
     """
+
+    def _directories_can_be_read(local_path: Path) -> None:
+        if local_path.is_dir():
+            try:
+                for item in local_path.iterdir():
+                    if item.is_dir():
+                        next(item.iterdir())
+            except PermissionError:
+                raise PermissionError(f"Some content cannot be accessed in {local_path}")
 
     def _directory_not_exists(local_path: Path) -> None:
         if local_path is None or not os.path.exists(local_path):
@@ -195,7 +230,7 @@ class Study:
         version: str,
         service_factory: Union[ServiceFactory, ServiceReader],
         settings: Optional[StudySettings] = None,
-        ini_files: Optional[dict[str, IniFile]] = None,
+        # ini_files: Optional[dict[str, IniFile]] = None,
         **kwargs: Any,
     ):
         self.name = name

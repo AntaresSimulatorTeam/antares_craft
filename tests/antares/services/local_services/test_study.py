@@ -14,6 +14,7 @@ import pytest
 
 import logging
 import os
+import re
 import time
 
 from configparser import ConfigParser
@@ -130,13 +131,17 @@ author = Unknown
         def mock_verify_study_already_exists(study_directory):
             raise FileExistsError(f"Failed to create study. Study {study_directory} already exists")
 
-        monkeypatch.setattr("antares.model.study._verify_study_already_exists", mock_verify_study_already_exists)
+        monkeypatch.setattr("antares.model.study.verify_study_already_exists", mock_verify_study_already_exists)
+
+        current_dir = Path(tmp_path)
+        relative_path = Path(f"{study_name}")
+        full_path = re.escape(str(current_dir / relative_path))
+
+        expected_message = f"Failed to create study. Study {full_path} already exists"
 
         # When
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(
-                FileExistsError, match=f"Failed to create study. Study {tmp_path}/{study_name} already exists"
-            ):
+            with pytest.raises(FileExistsError, match=expected_message):
                 create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
 
     def test_solar_correlation_ini_exists(self, local_study_with_hydro):

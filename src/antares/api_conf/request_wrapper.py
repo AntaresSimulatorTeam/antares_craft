@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 
 import json
+
 from typing import Any, Dict, Optional, Union
 
 import requests

@@ -13,7 +13,9 @@
 import pytest
 
 import logging
+import re
 
+from pathlib import Path
 from unittest import mock
 
 from antares.config.local_configuration import LocalConfiguration
@@ -22,12 +24,16 @@ from antares.model.study import read_study_local
 
 class TestReadStudy:
     def test_directory_not_exists_error(self, caplog):
-        local_path = r"fake/path/"
         study_name = "study_name"
+
+        current_dir = Path.cwd()
+        relative_path = Path("fake/path/")
+        full_path = current_dir / relative_path
+        escaped_full_path = re.escape(str(full_path))
+
         with caplog.at_level(logging.ERROR):
-            regex_pattern = r"Provided directory fake\\path does not exist\."
-            with pytest.raises(ValueError, match=regex_pattern):
-                read_study_local(study_name, "880", LocalConfiguration(local_path, study_name))
+            with pytest.raises(ValueError, match=escaped_full_path):
+                read_study_local(study_name, "880", LocalConfiguration(full_path, study_name))
 
     def test_directory_permission_denied(self, tmp_path, caplog):
         # Given
@@ -50,9 +56,13 @@ class TestReadStudy:
                     read_study_local(study_name, "880", LocalConfiguration(tmp_path, study_name))
 
     def test_read_study_service(self, caplog):
-        local_path = r"../../studies_samples/"
         study_name = "hydro_stockage"
-        content = read_study_local(study_name, "880", LocalConfiguration(local_path, study_name))
+
+        current_dir = Path.cwd()
+        relative_path = Path("../../studies_samples/")
+        full_path = current_dir / relative_path
+
+        content = read_study_local(study_name, "880", LocalConfiguration(full_path, study_name))
 
         areas = content.service.read_areas()
         study = content.service.read_study(areas)
@@ -67,10 +77,13 @@ class TestReadStudy:
         ), f"La clé '{not_expected_key}' ne devrait pas être présente dans le dictionnaire 'study'"
 
     def test_directory_renewable_thermique(self, caplog):
-        local_path = r"../../studies_samples/"
         study_name = "renewable_thermique"
 
-        content = read_study_local(study_name, "880", LocalConfiguration(local_path, study_name))
+        current_dir = Path.cwd()
+        relative_path = Path("../../studies_samples/")
+        full_path = current_dir / relative_path
+
+        content = read_study_local(study_name, "880", LocalConfiguration(full_path, study_name))
         areas = content.service.read_areas()
         study = content.service.read_study(areas)
         assert study["thermals"].get("zone_rt").get("list") == {
@@ -138,10 +151,13 @@ class TestReadStudy:
         }
 
     def test_directory_hydro_stockage(self, caplog):
-        local_path = r"../../studies_samples/"
         study_name = "hydro_stockage"
-        content = read_study_local(study_name, "880", LocalConfiguration(local_path, study_name))
 
+        current_dir = Path.cwd()
+        relative_path = Path("../../studies_samples/")
+        full_path = current_dir / relative_path
+
+        content = read_study_local(study_name, "880", LocalConfiguration(full_path, study_name))
         areas = content.service.read_areas()
         study = content.service.read_study(areas)
 
