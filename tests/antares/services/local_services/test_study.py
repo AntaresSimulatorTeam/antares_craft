@@ -485,7 +485,6 @@ class TestStudyProperties:
     def test_local_study_with_playlist_has_correct_defaults(self, tmp_path):
         # Given
         nb_years = 2
-        # mc_years = {year + 1: PlaylistData() for year in range(nb_years)}
         playlist_study = create_study_local(
             "test_study",
             "880",
@@ -497,11 +496,14 @@ class TestStudyProperties:
         )
 
         # When
-        expected_playlist_parameters = {1: {"status": True, "weight": 1.0}, 2: {"status": True, "weight": 1.0}}
+        expected_playlist_parameters_dict = {1: {"status": True, "weight": 1.0}, 2: {"status": True, "weight": 1.0}}
+        expected_playlist_parameters = PlaylistParameters(playlist=expected_playlist_parameters_dict)
 
-        actual_playlist_parameters = playlist_study.get_settings().playlist_parameters.model_dump()
+        actual_playlist_parameters_dict = playlist_study.get_settings().playlist_parameters.model_dump()
+        actual_playlist_parameters = playlist_study.get_settings().playlist_parameters
 
         # Then
+        assert actual_playlist_parameters_dict == expected_playlist_parameters_dict
         assert actual_playlist_parameters == expected_playlist_parameters
 
 
