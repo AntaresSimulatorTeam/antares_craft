@@ -10,11 +10,14 @@
 #
 # This file is part of the Antares project.
 
+
 from antares.api_conf.api_conf import APIconf
 from antares.config.base_configuration import BaseConfiguration
 from antares.config.local_configuration import LocalConfiguration
 from antares.service.api_services.area_api import AreaApiService
-from antares.service.api_services.binding_constraint_api import BindingConstraintApiService
+from antares.service.api_services.binding_constraint_api import (
+    BindingConstraintApiService,
+)
 from antares.service.api_services.link_api import LinkApiService
 from antares.service.api_services.renewable_api import RenewableApiService
 from antares.service.api_services.st_storage_api import ShortTermStorageApiService
@@ -30,7 +33,9 @@ from antares.service.base_services import (
     BaseThermalService,
 )
 from antares.service.local_services.area_local import AreaLocalService
-from antares.service.local_services.binding_constraint_local import BindingConstraintLocalService
+from antares.service.local_services.binding_constraint_local import (
+    BindingConstraintLocalService,
+)
 from antares.service.local_services.link_local import LinkLocalService
 from antares.service.local_services.renewable_local import RenewableLocalService
 from antares.service.local_services.st_storage_local import ShortTermStorageLocalService
@@ -124,3 +129,18 @@ class ServiceFactory:
         else:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
         return short_term_storage_service
+
+
+class ServiceReader:
+    def __init__(self, config: BaseConfiguration, study_name: str = "", study_id: str = ""):
+        self.config = config
+        self.study_id = study_id
+        self.study_name = study_name
+
+    # we can have read area service here, for just one area
+    def read_study_service(self) -> BaseStudyService:
+        if isinstance(self.config, LocalConfiguration):
+            study_service: BaseStudyService = StudyLocalService(self.config, self.study_name)
+        else:
+            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
+        return study_service

@@ -16,7 +16,7 @@ import time
 
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -25,12 +25,15 @@ from antares.api_conf.request_wrapper import RequestWrapper
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import APIError, StudyCreationError
 from antares.model.area import Area, AreaProperties, AreaUi
-from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
+from antares.model.binding_constraint import (
+    BindingConstraint,
+    BindingConstraintProperties,
+    ConstraintTerm,
+)
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings import StudySettings
 from antares.service.api_services.study_api import _returns_study_settings
-from antares.service.base_services import BaseStudyService
-from antares.service.service_factory import ServiceFactory
+from antares.service.service_factory import ServiceFactory, ServiceReader
 from antares.tools.ini_tool import IniFile, IniFileTypes
 
 """
@@ -42,19 +45,23 @@ _study_path if stored in a disk
 """
 
 
+def verify_study_already_exists(study_directory: Path) -> None:
+    if os.path.exists(study_directory):
+        raise FileExistsError(f"Failed to create study. Study {study_directory} already exists")
+
+
 def create_study_api(
     study_name: str, version: str, api_config: APIconf, settings: Optional[StudySettings] = None
 ) -> "Study":
     """
     Args:
-        study_name: antares study name to be created
-        version: antares version
-        api_config: host and token config for API
-        settings: study settings. If not provided, AntaresWeb will use its default values.
-
+    study_name: antares study name to be created
+    version: antares version
+    api_config: host and token config for API
+    settings: study settings. If not provided, AntaresWeb will use its default values.
     Raises:
-        MissingTokenError if api_token is missing
-        StudyCreationError if an HTTP Exception occurs
+    MissingTokenError if api_token is missing
+    StudyCreationError if an HTTP Exception occurs
     """
 
     session = api_config.set_up_api_conf()
@@ -73,23 +80,16 @@ def create_study_api(
     return Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
 
 
-def _verify_study_already_exists(study_directory: Path) -> None:
-    if os.path.exists(study_directory):
-        raise FileExistsError(f"Study {study_directory} already exists.")
-
-
 def create_study_local(
     study_name: str, version: str, local_config: LocalConfiguration, settings: Optional[StudySettings] = None
 ) -> "Study":
     """
     Create a directory structure for the study with empty files.
-
     Args:
         study_name: antares study name to be created
         version: antares version for study
         local_config: Local configuration options for example directory in which to story the study
         settings: study settings. If not provided, AntaresWeb will use its default values.
-
     Raises:
         FileExistsError if the study already exists in the given location
     """
@@ -136,9 +136,7 @@ def create_study_local(
         }
 
     study_directory = local_config.local_path / study_name
-
-    _verify_study_already_exists(study_directory)
-
+    verify_study_already_exists(study_directory)
     # Create the directory structure
     _create_directory_structure(study_directory)
 
@@ -188,31 +186,76 @@ InfoTip = Antares Study {version}: {study_name}
     )
 
 
+def read_study_local(study_name: str, version: str, local_config: LocalConfiguration) -> "Study":
+    """
+    Create a directory structure for the study with empty files.
+    Args:
+        study_name: antares study name to read
+        version: antares version for study
+        settings: study settings. If not provided, AntaresWeb will use its default values.
+
+    Raises:
+        PermissionError if the study cannot be read
+        ValueError if the provided directory does not exist
+
+    """
+
+    def _directories_can_be_read(local_path: Path) -> None:
+        if local_path.is_dir():
+            try:
+                for item in local_path.iterdir():
+                    if item.is_dir():
+                        next(item.iterdir())
+            except PermissionError:
+                raise PermissionError(f"Some content cannot be accessed in {local_path}")
+
+    def _directory_not_exists(local_path: Path) -> None:
+        if local_path is None or not os.path.exists(local_path):
+            raise ValueError(f"Provided directory {local_path} does not exist.")
+
+    local_path = Path(local_config.local_path)
+    _directory_not_exists(local_path)
+    study_directory = local_path / study_name
+    _directories_can_be_read(study_directory)
+
+    return Study(
+        name=study_name, version=version, service_factory=ServiceReader(config=local_config, study_name=study_name)
+    )
+
+
 class Study:
     def __init__(
         self,
         name: str,
         version: str,
-        service_factory: ServiceFactory,
+        service_factory: Union[ServiceFactory, ServiceReader],
         settings: Optional[StudySettings] = None,
         # ini_files: Optional[dict[str, IniFile]] = None,
         **kwargs: Any,
     ):
         self.name = name
         self.version = version
-        self._study_service = service_factory.create_study_service()
-        self._area_service = service_factory.create_area_service()
-        self._link_service = service_factory.create_link_service()
-        self._binding_constraints_service = service_factory.create_binding_constraints_service()
-        self._settings = settings or StudySettings()
-        self._areas: Dict[str, Area] = dict()
-        self._links: Dict[str, Link] = dict()
         for argument in kwargs:
             if argument == "ini_files":
                 self._ini_files: dict[str, IniFile] = kwargs[argument] or dict()
+        self._areas: Dict[str, Area] = dict()
+        self._links: Dict[str, Link] = dict()
+
+        if isinstance(service_factory, ServiceFactory):
+            self._study_service = service_factory.create_study_service()
+            self._area_service = service_factory.create_area_service()
+            self._link_service = service_factory.create_link_service()
+            self._binding_constraints_service = service_factory.create_binding_constraints_service()
+            self._settings = settings or StudySettings()
+            self._binding_constraints: Dict[str, BindingConstraint] = dict()
+        elif isinstance(service_factory, ServiceReader):
+            self._study_service = service_factory.read_study_service()
+
+            # self._binding_constraints: Dict[str, BindingConstraint] = dict()
+            # self._link_service = service_factory.create_link_service()
 
     @property
-    def service(self) -> BaseStudyService:
+    def service(self) -> Any:
         return self._study_service
 
     def get_areas(self) -> MappingProxyType[str, Area]:

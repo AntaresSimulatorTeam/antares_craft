@@ -14,6 +14,7 @@ import logging
 import os
 
 from configparser import ConfigParser
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
@@ -319,3 +320,149 @@ class AreaLocalService(BaseAreaService):
 
     def get_load_matrix(self, area: Area) -> pd.DataFrame:
         raise NotImplementedError
+
+    def read_thermal_cluster(
+        self,
+        area_id: str,
+        thermal_name: str,
+        properties: Optional[ThermalClusterProperties] = None,
+    ) -> ThermalCluster:
+        properties = properties or ThermalClusterProperties()
+        args = {"thermal_name": thermal_name, **properties.model_dump(mode="json", exclude_none=True)}
+        local_thermal_properties = ThermalClusterPropertiesLocal.model_validate(args)
+
+        list_ini = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name=area_id)
+        list_ini.add_section(local_thermal_properties.list_ini_fields)
+        list_ini.write_ini_file(sort_sections=True)
+
+        return ThermalCluster(
+            self.thermal_service,
+            area_id,
+            thermal_name,
+            local_thermal_properties.yield_thermal_cluster_properties(),
+        )
+
+    def read_renewable_cluster(
+        self,
+        area_id: str,
+        renewable_name: str,
+        properties: Optional[RenewableClusterProperties] = None,
+    ) -> RenewableCluster:
+        properties = properties or RenewableClusterProperties()
+        args = {"renewable_name": renewable_name, **properties.model_dump(mode="json", exclude_none=True)}
+        local_properties = RenewableClusterPropertiesLocal.model_validate(args)
+
+        list_ini = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name=area_id)
+        list_ini.add_section(local_properties.ini_fields)
+        list_ini.write_ini_file()
+
+        return RenewableCluster(
+            self.renewable_service,
+            area_id,
+            renewable_name,
+            local_properties.yield_renewable_cluster_properties(),
+        )
+
+    def read_st_storage(
+        self,
+        area_id: str,
+        st_storage_name: str,
+        properties: Optional[STStorageProperties] = None,
+    ) -> STStorage:
+        properties = properties or STStorageProperties()
+        args = {"st_storage_name": st_storage_name, **properties.model_dump(mode="json", exclude_none=True)}
+        local_st_storage_properties = STStoragePropertiesLocal.model_validate(args)
+
+        list_ini = IniFile(self.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name=area_id)
+        list_ini.add_section(local_st_storage_properties.list_ini_fields)
+        list_ini.write_ini_file(sort_sections=True)
+
+        return STStorage(
+            self.storage_service,
+            area_id,
+            st_storage_name,
+            local_st_storage_properties.yield_st_storage_properties(),
+        )
+
+    def read_wind(self, area: Area) -> Wind:
+        series = pd.DataFrame([])
+        local_file = TimeSeriesFile(
+            TimeSeriesFileType.WIND, self.config.study_path, area_id=area.id, time_series=series
+        )
+        return Wind(series, local_file)
+
+    def read_reserves(self, area: Area) -> Reserves:
+        series = pd.DataFrame([])
+        local_file = TimeSeriesFile(
+            TimeSeriesFileType.RESERVES, self.config.study_path, area_id=area.id, time_series=series
+        )
+        return Reserves(series, local_file)
+
+    def read_solar(self, area: Area) -> Solar:
+        series = pd.DataFrame([])
+        local_file = TimeSeriesFile(
+            TimeSeriesFileType.SOLAR, self.config.study_path, area_id=area.id, time_series=series
+        )
+        return Solar(time_series=series, local_file=local_file)
+
+    def read_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
+        series = series if series is not None else pd.DataFrame([])
+        local_file = TimeSeriesFile(
+            TimeSeriesFileType.MISC_GEN, self.config.study_path, area_id=area.id, time_series=series
+        )
+        return MiscGen(series, local_file)
+
+    def read_hydro(
+        self,
+        area_id: str,
+        properties: Optional[HydroProperties] = None,
+    ) -> Hydro:
+        properties = properties or HydroProperties()
+        args = {"area_id": area_id, **properties.model_dump(mode="json", exclude_none=True)}
+        local_hydro_properties = HydroPropertiesLocal.model_validate(args)
+
+        list_ini = IniFile(self.config.study_path, IniFileTypes.HYDRO_INI)
+        list_ini.add_section(local_hydro_properties.hydro_ini_fields)
+        list_ini.write_ini_file(sort_section_content=True)
+
+        return Hydro(self, area_id, local_hydro_properties.yield_hydro_properties())
+
+    def read_area(self, area_name: str) -> List:
+        """
+        Args:
+            area_name: area to be added to study
+
+        Returns: area object if success or Error if area can not be
+        read
+        """
+
+        def _line_exists_in_file(file_content: str, line_to_add: str) -> bool:
+            """
+            Args:
+                file_content: file content to check
+                line_to_add: line to add
+
+            Returns: True if line is already present in file.
+
+            """
+            return line_to_add.strip() in file_content.split("\n")
+
+        existing_path = self.config.local_path
+        study_path = existing_path / Path(self.study_name)
+
+        optimization_ini = IniFile(study_path, IniFileTypes.AREA_OPTIMIZATION_INI, area_name).parsed_ini
+
+        dict_optimization = {
+            section: {key: f"{value}" for key, value in optimization_ini.items(section)}
+            for section in optimization_ini.sections()
+        }
+
+        ui_ini = IniFile(study_path, IniFileTypes.AREA_UI_INI, area_name).parsed_ini
+        dict_ui = {section: {key: f"{value}" for key, value in ui_ini.items(section)} for section in ui_ini.sections()}
+
+        patch_ini = IniFile(study_path, IniFileTypes.AREA_ADEQUACY_PATCH_INI, area_name).parsed_ini
+        dict_adequacy_patch = {
+            section: {key: f"{value}" for key, value in patch_ini.items(section)} for section in patch_ini.sections()
+        }
+
+        return [dict_optimization, dict_ui, dict_adequacy_patch]

@@ -128,3 +128,11 @@ class LinkLocalService(BaseLinkService):
             "filter-year-by-year",
         ]
         return dict(sorted(ini_dict.items(), key=lambda item: dict_order.index(item[0])))
+
+    def read_link(
+        self,
+        area_from: Area,
+        area_to: Area,
+        existing_areas: Optional[MappingProxyType[str, Area]] = None,
+    ) -> Link:
+        raise NotImplementedError

@@ -24,7 +24,10 @@ def test_prepare_args():
     series_path = "input/thermal/series/area_id/cluster_name/series"
 
     # Expected result
-    expected_result = {"action": "replace_matrix", "args": {"target": series_path, "matrix": matrix.tolist()}}
+    expected_result = {
+        "action": "replace_matrix",
+        "args": {"target": series_path, "matrix": matrix.tolist()},
+    }
 
     # When
     result = prepare_args_replace_matrix(series, series_path)

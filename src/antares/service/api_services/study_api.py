@@ -105,3 +105,9 @@ class StudyApiService(BaseStudyService):
             self._wrapper.delete(url)
         except APIError as e:
             raise StudyDeletionError(self.study_id, e.message) from e
+
+    def read_areas(self) -> dict:
+        """
+        Read areas
+        """
+        raise NotImplementedError

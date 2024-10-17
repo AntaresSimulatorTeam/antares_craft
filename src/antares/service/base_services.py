@@ -33,7 +33,11 @@ from antares.model.reserves import Reserves
 from antares.model.settings import StudySettings
 from antares.model.solar import Solar
 from antares.model.st_storage import STStorage, STStorageProperties
-from antares.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
+from antares.model.thermal import (
+    ThermalCluster,
+    ThermalClusterMatrixName,
+    ThermalClusterProperties,
+)
 from antares.model.wind import Wind
 
 
@@ -278,6 +282,68 @@ class BaseAreaService(ABC):
         # Once it will, there will be no change to do in the code on our side.
         pass
 
+    @abstractmethod
+    def read_thermal_cluster(
+        self,
+        area_id: str,
+        thermal_name: str,
+        properties: Optional[ThermalClusterProperties] = None,
+    ) -> ThermalCluster:
+        pass
+
+    @abstractmethod
+    def read_renewable_cluster(
+        self,
+        area_id: str,
+        renewable_name: str,
+        properties: Optional[RenewableClusterProperties] = None,
+    ) -> RenewableCluster:
+        pass
+
+    @abstractmethod
+    def read_st_storage(
+        self,
+        area_id: str,
+        st_storage_name: str,
+        properties: Optional[STStorageProperties] = None,
+    ) -> STStorage:
+        pass
+
+    @abstractmethod
+    def read_wind(self, area: Area) -> Wind:
+        pass
+
+    @abstractmethod
+    def read_reserves(self, area: Area) -> Reserves:
+        pass
+
+    @abstractmethod
+    def read_solar(self, area: Area) -> Solar:
+        pass
+
+    @abstractmethod
+    def read_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
+        pass
+
+    @abstractmethod
+    def read_hydro(
+        self,
+        area_id: str,
+        properties: Optional[HydroProperties] = None,
+    ) -> Hydro:
+        pass
+
+    @abstractmethod
+    def read_area(self, area_name: str) -> List:
+        """
+        Args:
+            area_name: area to be added to study
+        Returns: area name if success or Error if area can not be
+        created
+        """
+
+        pass
+
 
 class BaseLinkService(ABC):
     @abstractmethod
@@ -325,6 +391,26 @@ class BaseLinkService(ABC):
         Args:
             link: concerned link
             ui: new ui. Only registered fields will be updated.
+        """
+        pass
+
+    @abstractmethod
+    def read_link(
+        self,
+        area_from: Area,
+        area_to: Area,
+        existing_areas: Optional[MappingProxyType[str, Area]] = None,
+    ) -> Link:
+        """
+        Args:
+            area_from: area where the link goes from
+            area_to: area where the link goes to
+            properties: link's properties
+            ui: link's ui characteristics
+            existing_areas: existing areas from study
+
+        Returns:
+            The created link
         """
         pass
 
@@ -434,6 +520,24 @@ class BaseBindingConstraintService(ABC):
         """
         pass
 
+    @abstractmethod
+    def read_binding_constraint(
+        self,
+        name: str,
+        constraint: BindingConstraint,
+        matrix: pd.DataFrame,
+    ) -> BindingConstraint:
+        """
+        Args:
+            name: the binding constraint name
+            constraint: consraint object
+            matrix: matrix corresponding to the constraint. If not provided, no matrix will be created.
+
+        Returns:
+            The created binding constraint
+        """
+        pass
+
 
 class BaseStudyService(ABC):
     @property
@@ -468,6 +572,13 @@ class BaseStudyService(ABC):
     def delete(self, children: bool) -> None:
         """
         Deletes the study and its children if children is True
+        """
+        pass
+
+    @abstractmethod
+    def read_areas(self) -> dict:
+        """
+        Read areas
         """
         pass
 

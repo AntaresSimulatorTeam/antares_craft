@@ -132,6 +132,17 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         raise NotImplementedError
 
     def update_constraint_matrix(
-        self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName, matrix: pd.DataFrame
+        self,
+        constraint: BindingConstraint,
+        matrix_name: ConstraintMatrixName,
+        matrix: pd.DataFrame,
     ) -> None:
+        raise NotImplementedError
+
+    def read_binding_constraint(
+        self,
+        name: str,
+        constraint: BindingConstraint,
+        matrix: pd.DataFrame,
+    ) -> BindingConstraint:
         raise NotImplementedError

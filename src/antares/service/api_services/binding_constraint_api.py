@@ -172,3 +172,11 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise ConstraintTermAdditionError(constraint.id, [term.id for term in terms], e.message) from e
 
         return new_terms
+
+    def read_binding_constraint(
+        self,
+        name: str,
+        constraint: BindingConstraint,
+        matrix: pd.DataFrame,
+    ) -> BindingConstraint:
+        raise NotImplementedError

@@ -542,3 +542,49 @@ class AreaApiService(BaseAreaService):
             return self.get_matrix(PurePosixPath("input") / "load" / "series" / f"load_{area.id}")
         except APIError as e:
             raise LoadMatrixDownloadError(area.id, e.message) from e
+
+    def read_thermal_cluster(
+        self,
+        area_id: str,
+        thermal_name: str,
+        properties: Optional[ThermalClusterProperties] = None,
+    ) -> ThermalCluster:
+        raise NotImplementedError
+
+    def read_renewable_cluster(
+        self,
+        area_id: str,
+        renewable_name: str,
+        properties: Optional[RenewableClusterProperties] = None,
+    ) -> RenewableCluster:
+        raise NotImplementedError
+
+    def read_st_storage(
+        self,
+        area_id: str,
+        st_storage_name: str,
+        properties: Optional[STStorageProperties] = None,
+    ) -> STStorage:
+        raise NotImplementedError
+
+    def read_wind(self, area: Area) -> Wind:
+        raise NotImplementedError
+
+    def read_reserves(self, area: Area) -> Reserves:
+        raise NotImplementedError
+
+    def read_solar(self, area: Area) -> Solar:
+        raise NotImplementedError
+
+    def read_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
+        raise NotImplementedError
+
+    def read_hydro(
+        self,
+        area_id: str,
+        properties: Optional[HydroProperties] = None,
+    ) -> Hydro:
+        raise NotImplementedError
+
+    def read_area(self, area_name: str) -> List:
+        raise NotImplementedError

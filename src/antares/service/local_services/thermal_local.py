@@ -15,7 +15,11 @@ from typing import Any
 import pandas as pd
 
 from antares.config.local_configuration import LocalConfiguration
-from antares.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
+from antares.model.thermal import (
+    ThermalCluster,
+    ThermalClusterMatrixName,
+    ThermalClusterProperties,
+)
 from antares.service.base_services import BaseThermalService
 
 
