@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -16,19 +17,10 @@ from antares.model.settings.adequacy_patch import DefaultAdequacyPatchParameters
 from antares.model.settings.advanced_parameters import DefaultAdvancedParameters
 from antares.model.settings.general import DefaultGeneralParameters
 from antares.model.settings.optimization import DefaultOptimizationParameters
-from antares.model.settings.thematic_trimming import ThematicTrimmingParameters
+from antares.model.settings.playlist_parameters import PlaylistParameters
+from antares.model.settings.thematic_trimming import DefaultThematicTrimmingParameters
 from antares.model.settings.time_series import TimeSeriesParameters
 from antares.tools.all_optional_meta import all_optional_model
-
-
-class PlaylistData(BaseModel):
-    status: bool = True
-    weight: float = 1.0
-
-
-class PlaylistParameters(BaseModel):
-    playlist_reset: bool = False
-    mc_years: dict[int, PlaylistData] = {}
 
 
 class DefaultStudySettings(BaseModel):
@@ -43,7 +35,7 @@ class DefaultStudySettings(BaseModel):
     adequacy_patch_parameters: DefaultAdequacyPatchParameters = DefaultAdequacyPatchParameters()
     advanced_parameters: DefaultAdvancedParameters = DefaultAdvancedParameters()
     optimization_parameters: DefaultOptimizationParameters = DefaultOptimizationParameters()
-    playlist_parameters: PlaylistParameters = PlaylistParameters()
+    playlist_parameters: Optional[PlaylistParameters] = None
 
 
 @all_optional_model

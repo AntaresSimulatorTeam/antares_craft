@@ -25,7 +25,8 @@ from antares.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.model.settings.advanced_parameters import AdvancedParameters
 from antares.model.settings.general import GeneralParameters
 from antares.model.settings.optimization import OptimizationParameters
-from antares.model.settings.study_settings import PlaylistParameters, StudySettings
+from antares.model.settings.playlist_parameters import PlaylistData, PlaylistParameters
+from antares.model.settings.study_settings import StudySettings
 from antares.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.model.settings.time_series import TimeSeriesParameters
 from antares.service.base_services import BaseStudyService
@@ -58,13 +59,9 @@ def _returns_study_settings(
         settings_class = settings_tuple[1]
         url = f"{settings_base_url}/{settings_tuple[0]}/form"
         response = wrapper.get(url)
-        if settings_type == "playlist_parameters" and json_settings["general_parameters"].selection_mode:
-            settings_property = settings_class.model_validate(  # type: ignore
-                # Using selection_mode as that is the selector for user-playlist in general-parameters, AntaresWeb
-                # does not seem to allow any control of playlist_reset outside of debug and defaults to true which is
-                # the opposite of the documentation.
-                {"playlist_reset": json_settings["general_parameters"].selection_mode, "mc_years": response.json()}
-            )
+        if settings_type == "playlist_parameters":
+            mc_years = [PlaylistData.model_validate(year) for year in response.json().values()]
+            settings_property = settings_class(playlist=mc_years) if mc_years else None
         else:
             settings_property = settings_class.model_validate(response.json())  # type: ignore
         json_settings[settings_type] = settings_property
