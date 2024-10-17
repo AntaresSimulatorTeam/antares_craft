@@ -57,12 +57,9 @@ class TestReadStudy:
 
     def test_read_study_service(self, caplog):
         study_name = "hydro_stockage"
+        relative_path = Path("tests/antares/studies_samples/")
 
-        current_dir = Path.cwd()
-        relative_path = Path("../../studies_samples/")
-        full_path = current_dir / relative_path
-
-        content = read_study_local(study_name, "880", LocalConfiguration(full_path, study_name))
+        content = read_study_local(study_name, "880", LocalConfiguration(relative_path, study_name))
 
         areas = content.service.read_areas()
         study = content.service.read_study(areas)
@@ -78,12 +75,9 @@ class TestReadStudy:
 
     def test_directory_renewable_thermique(self, caplog):
         study_name = "renewable_thermique"
+        relative_path = Path("tests/antares/studies_samples/")
 
-        current_dir = Path.cwd()
-        relative_path = Path("../../studies_samples/")
-        full_path = current_dir / relative_path
-
-        content = read_study_local(study_name, "880", LocalConfiguration(full_path, study_name))
+        content = read_study_local(study_name, "880", LocalConfiguration(relative_path, study_name))
         areas = content.service.read_areas()
         study = content.service.read_study(areas)
         assert study["thermals"].get("zone_rt").get("list") == {
@@ -152,12 +146,9 @@ class TestReadStudy:
 
     def test_directory_hydro_stockage(self, caplog):
         study_name = "hydro_stockage"
+        relative_path = Path("tests/antares/studies_samples/")
 
-        current_dir = Path.cwd()
-        relative_path = Path("../../studies_samples/")
-        full_path = current_dir / relative_path
-
-        content = read_study_local(study_name, "880", LocalConfiguration(full_path, study_name))
+        content = read_study_local(study_name, "880", LocalConfiguration(relative_path, study_name))
         areas = content.service.read_areas()
         study = content.service.read_study(areas)
 
