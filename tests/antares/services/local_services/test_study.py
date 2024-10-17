@@ -63,6 +63,7 @@ from antares.model.settings.advanced_parameters import (
 from antares.model.settings.general import (
     BuildingMode,
     DefaultGeneralParameters,
+    GeneralParameters,
     Mode,
     Month,
     WeekDay,
@@ -74,6 +75,7 @@ from antares.model.settings.optimization import (
     SimplexOptimizationRange,
     UnfeasibleProblemBehavior,
 )
+from antares.model.settings.playlist_parameters import PlaylistData, PlaylistParameters
 from antares.model.settings.study_settings import DefaultStudySettings, StudySettingsLocal
 from antares.model.study import create_study_local
 from antares.service.local_services.area_local import AreaLocalService
@@ -479,6 +481,28 @@ class TestStudyProperties:
         # Then
         assert actual_optimization_parameters == expected_optimization_parameters
         assert actual_study_settings == expected_study_settings
+
+    def test_local_study_with_playlist_has_correct_defaults(self, tmp_path):
+        # Given
+        nb_years = 2
+        # mc_years = {year + 1: PlaylistData() for year in range(nb_years)}
+        playlist_study = create_study_local(
+            "test_study",
+            "880",
+            LocalConfiguration(tmp_path, "test_study"),
+            StudySettingsLocal(
+                general_parameters=GeneralParameters(nb_years=nb_years, selection_mode=True),
+                playlist_parameters=PlaylistParameters(playlist=[PlaylistData()] * nb_years),
+            ),
+        )
+
+        # When
+        expected_playlist_parameters = {1: {"status": True, "weight": 1.0}, 2: {"status": True, "weight": 1.0}}
+
+        actual_playlist_parameters = playlist_study.get_settings().playlist_parameters.model_dump()
+
+        # Then
+        assert actual_playlist_parameters == expected_playlist_parameters
 
 
 class TestCreateArea:
