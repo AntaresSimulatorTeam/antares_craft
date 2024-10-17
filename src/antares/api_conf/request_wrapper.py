@@ -12,13 +12,20 @@
 
 import json
 
-from typing import Any, Dict, Optional, Union
+from typing import Any, Iterable, Mapping, Optional, Union
 
 import requests
 
 from antares.exceptions.exceptions import APIError
 
-DATA_TYPE = Union[str, bytes, Dict[str, Any], None]
+DATA_TYPE = Union[
+    Iterable[bytes],
+    str,
+    bytes,
+    list[tuple[Any, Any]],
+    tuple[tuple[Any, Any], ...],
+    Mapping[Any, Any],
+]
 
 
 def _handle_exceptions(response: requests.Response) -> requests.Response:

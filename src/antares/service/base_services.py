@@ -137,10 +137,7 @@ class BaseAreaService(ABC):
 
     @abstractmethod
     def create_st_storage(
-        self,
-        area_id: str,
-        st_storage_name: str,
-        properties: Optional[STStorageProperties] = None,
+        self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
         """
         Args:

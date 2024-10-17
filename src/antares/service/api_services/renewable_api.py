@@ -16,11 +16,7 @@ import pandas as pd
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
-from antares.exceptions.exceptions import (
-    APIError,
-    RenewableMatrixDownloadError,
-    RenewablePropertiesUpdateError,
-)
+from antares.exceptions.exceptions import APIError, RenewableMatrixDownloadError, RenewablePropertiesUpdateError
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.service.api_services.utils import get_matrix
 from antares.service.base_services import BaseRenewableService
@@ -64,9 +60,6 @@ class RenewableApiService(BaseRenewableService):
                 / f"{renewable.name}"
                 / "series"
             )
-            return get_matrix(
-                f"{self._base_url}/studies/{self.study_id}/raw?path={path}",
-                self._wrapper,
-            )
+            return get_matrix(f"{self._base_url}/studies/{self.study_id}/raw?path={path}", self._wrapper)
         except APIError as e:
             raise RenewableMatrixDownloadError(renewable.area_id, renewable.name, e.message) from e

@@ -1,0 +1,34 @@
+site_name: Antares Craft
+repo_url: https://github.com/AntaresSimulatorTeam/antares_craft
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+theme:
+  name: material
+  logo: assets/logo.png
+  favicon: assets/Icone.png
+  prev_next_buttons_location: none
+#  custom_dir: docs/overrides
+  features:
+    - navigation.instant
+    - navigation.top
+    - content.tabs.link
+  # - navigation.expand
+  #  - navigation.sections
+  #   - header.autohide
+  #   - toc.separate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: antares
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+
+plugins:
+- search
+- mkdocstrings
