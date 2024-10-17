@@ -69,7 +69,7 @@ class PlaylistParameters(BaseModel):
 
     @property
     def playlist_reset(self) -> bool:
-        return sum([year.status for year in self.playlist]) < (len(self.playlist) / 2)
+        return sum([year.status for year in self.playlist]) > (len(self.playlist) / 2)
 
     @property
     def mc_years(self) -> dict[int, PlaylistData]:
