@@ -1,3 +1,9 @@
-[coverage:run]
+[run]
 # needed to not have absolute path in coverage.xml
 relative_files = True
+
+[report]
+fail_under = 80
+
+[xml]
+output = coverage.xml
