@@ -25,7 +25,7 @@ from antares.tools.all_optional_meta import all_optional_model
 
 class DefaultStudySettings(BaseModel):
     general_parameters: DefaultGeneralParameters = DefaultGeneralParameters()
-    thematic_trimming_parameters: ThematicTrimmingParameters = ThematicTrimmingParameters()
+    thematic_trimming_parameters: Optional[DefaultThematicTrimmingParameters] = None
     # These parameters are listed under the [variables selection] section in the .ini file.
     # They are required if thematic-trimming is set to true.
     # https://antares-simulator.readthedocs.io/en/latest/user-guide/solver/04-parameters/#variables-selection-parameters

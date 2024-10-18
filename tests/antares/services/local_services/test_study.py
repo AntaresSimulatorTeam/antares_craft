@@ -64,6 +64,7 @@ from antares.model.settings.general import (
     BuildingMode,
     DefaultGeneralParameters,
     GeneralParameters,
+    GeneralParametersLocal,
     Mode,
     Month,
     WeekDay,
@@ -77,6 +78,7 @@ from antares.model.settings.optimization import (
 )
 from antares.model.settings.playlist_parameters import PlaylistData, PlaylistParameters
 from antares.model.settings.study_settings import DefaultStudySettings, StudySettingsLocal
+from antares.model.settings.thematic_trimming import DefaultThematicTrimmingParameters, ThematicTrimmingParametersLocal
 from antares.model.study import create_study_local
 from antares.service.local_services.area_local import AreaLocalService
 from antares.service.local_services.link_local import LinkLocalService
@@ -505,6 +507,130 @@ class TestStudyProperties:
         # Then
         assert actual_playlist_parameters_dict == expected_playlist_parameters_dict
         assert actual_playlist_parameters == expected_playlist_parameters
+
+    def test_local_study_has_correct_thematic_trimming_parameters(self, tmp_path):
+        # Given
+        expected_thematic_trimming_parameters = ThematicTrimmingParametersLocal.model_validate(
+            {
+                "ov_cost": True,
+                "op_cost": True,
+                "mrg_price": True,
+                "co2_emis": True,
+                "dtg_by_plant": True,
+                "balance": True,
+                "row_bal": True,
+                "psp": True,
+                "misc_ndg": True,
+                "load": True,
+                "h_ror": True,
+                "wind": True,
+                "solar": True,
+                "nuclear": True,
+                "lignite": True,
+                "coal": True,
+                "gas": True,
+                "oil": True,
+                "mix_fuel": True,
+                "misc_dtg": True,
+                "h_stor": True,
+                "h_pump": True,
+                "h_lev": True,
+                "h_infl": True,
+                "h_ovfl": True,
+                "h_val": True,
+                "h_cost": True,
+                "unsp_enrg": True,
+                "spil_enrg": True,
+                "lold": True,
+                "lolp": True,
+                "avl_dtg": True,
+                "dtg_mrg": True,
+                "max_mrg": True,
+                "np_cost": True,
+                "np_cost_by_plant": True,
+                "nodu": True,
+                "nodu_by_plant": True,
+                "flow_lin": True,
+                "ucap_lin": True,
+                "loop_flow": True,
+                "flow_quad": True,
+                "cong_fee_alg": True,
+                "cong_fee_abs": True,
+                "marg_cost": True,
+                "cong_prob_plus": True,
+                "cong_prob_minus": True,
+                "hurdle_cost": True,
+                "res_generation_by_plant": True,
+                "misc_dtg_2": True,
+                "misc_dtg_3": True,
+                "misc_dtg_4": True,
+                "wind_offshore": True,
+                "wind_onshore": True,
+                "solar_concrt": True,
+                "solar_pv": True,
+                "solar_rooft": True,
+                "renw_1": True,
+                "renw_2": True,
+                "renw_3": True,
+                "renw_4": True,
+                "dens": True,
+                "profit_by_plant": True,
+                "sts_inj_by_plant": True,
+                "sts_withdrawal_by_plant": True,
+                "sts_lvl_by_plant": True,
+                "psp_open_injection": True,
+                "psp_open_withdrawal": True,
+                "psp_open_level": True,
+                "psp_closed_injection": True,
+                "psp_closed_withdrawal": True,
+                "psp_closed_level": True,
+                "pondage_injection": True,
+                "pondage_withdrawal": True,
+                "pondage_level": True,
+                "battery_injection": True,
+                "battery_withdrawal": True,
+                "battery_level": True,
+                "other1_injection": True,
+                "other1_withdrawal": True,
+                "other1_level": True,
+                "other2_injection": True,
+                "other2_withdrawal": True,
+                "other2_level": True,
+                "other3_injection": True,
+                "other3_withdrawal": True,
+                "other3_level": True,
+                "other4_injection": True,
+                "other4_withdrawal": True,
+                "other4_level": True,
+                "other5_injection": True,
+                "other5_withdrawal": True,
+                "other5_level": True,
+                "sts_cashflow_by_cluster": True,
+            }
+        )
+        expected_study_settings = StudySettingsLocal(
+            general_parameters=GeneralParametersLocal(thematic_trimming=True),
+            thematic_trimming_parameters=expected_thematic_trimming_parameters,
+        )
+        thematic_trimming_study = create_study_local(
+            "test_study",
+            "880",
+            LocalConfiguration(tmp_path, "test_study"),
+            StudySettingsLocal(
+                general_parameters=GeneralParametersLocal(thematic_trimming=True),
+                thematic_trimming_parameters=ThematicTrimmingParametersLocal(),
+            ),
+        )
+
+        # When
+        actual_thematic_trimming_parameters = DefaultThematicTrimmingParameters.model_validate(
+            thematic_trimming_study.get_settings().thematic_trimming_parameters
+        )
+        actual_study_settings = DefaultStudySettings.model_validate(thematic_trimming_study.get_settings())
+
+        # Then
+        assert actual_thematic_trimming_parameters == expected_thematic_trimming_parameters
+        assert actual_study_settings == expected_study_settings
 
 
 class TestCreateArea:
