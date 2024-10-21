@@ -632,6 +632,13 @@ class TestStudyProperties:
         assert actual_thematic_trimming_parameters == expected_thematic_trimming_parameters
         assert actual_study_settings == expected_study_settings
 
+    def test_generaldata_ini_exists(self, local_study):
+        # Given
+        expected_file = local_study.service.config.study_path / "settings/generaldata.ini"
+
+        # Then
+        assert expected_file.is_file()
+
 
 class TestCreateArea:
     def test_areas_sets_ini_content(self, tmp_path, local_study):

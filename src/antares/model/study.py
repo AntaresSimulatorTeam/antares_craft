@@ -123,6 +123,7 @@ InfoTip = Antares Study {version}: {study_name}
         desktop_ini_file.write(desktop_ini_content)
 
     local_settings = StudySettingsLocal.model_validate(settings)
+    local_settings_file = IniFile(study_directory, IniFileTypes.GENERAL)
 
     # Create various .ini files for the study
     correlation_inis_to_create = [
