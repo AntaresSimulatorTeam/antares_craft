@@ -71,7 +71,7 @@ class DefaultGeneralParameters(BaseModel, extra="forbid", populate_by_name=True,
     horizon: str = ""
     # Calendar parameters
     nb_years: int = 1
-    first_day: int = 0
+    first_day: int = 1
     last_day: int = 365
     first_january: WeekDay = WeekDay.MONDAY
     first_month: Month = Month.JANUARY

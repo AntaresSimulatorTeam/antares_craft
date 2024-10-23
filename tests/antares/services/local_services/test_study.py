@@ -50,7 +50,7 @@ from antares.model.settings.adequacy_patch import (
     PriceTakingOrder,
 )
 from antares.model.settings.advanced_parameters import (
-    DefaultAdvancedParameters,
+    AdvancedParametersLocal,
     HydroHeuristicPolicy,
     HydroPricingMode,
     InitialReservoirLevel,
@@ -62,16 +62,14 @@ from antares.model.settings.advanced_parameters import (
 )
 from antares.model.settings.general import (
     BuildingMode,
-    DefaultGeneralParameters,
-    GeneralParameters,
     GeneralParametersLocal,
     Mode,
     Month,
     WeekDay,
 )
 from antares.model.settings.optimization import (
-    DefaultOptimizationParameters,
     ExportMPS,
+    OptimizationParametersLocal,
     OptimizationTransmissionCapacities,
     SimplexOptimizationRange,
     UnfeasibleProblemBehavior,
@@ -347,12 +345,12 @@ class TestStudyProperties:
     def test_local_study_has_correct_default_general_properties(self, local_study):
         # Given
         # https://antares-simulator.readthedocs.io/en/latest/user-guide/solver/04-parameters/
-        expected_general_properties = DefaultGeneralParameters.model_validate(
+        expected_general_properties = GeneralParametersLocal.model_validate(
             {
                 "mode": Mode.ECONOMY,
                 "horizon": "",
                 "nb_years": 1,
-                "first_day": 0,
+                "first_day": 1,
                 "last_day": 365,
                 "first_january": WeekDay.MONDAY,
                 "first_month": Month.JANUARY,
@@ -413,7 +411,7 @@ class TestStudyProperties:
 
     def test_local_study_has_correct_advanced_parameters(self, local_study):
         # Given
-        expected_advanced_parameters = DefaultAdvancedParameters.model_validate(
+        expected_advanced_parameters = AdvancedParametersLocal.model_validate(
             {
                 "accuracy_on_correlation": "",
                 "initial_reservoir_levels": InitialReservoirLevel.COLD_START,
@@ -440,7 +438,7 @@ class TestStudyProperties:
         expected_study_settings = StudySettingsLocal(advanced_parameters=expected_advanced_parameters)
 
         # When
-        actual_advanced_parameters = DefaultAdvancedParameters.model_validate(
+        actual_advanced_parameters = AdvancedParametersLocal.model_validate(
             local_study.get_settings().advanced_parameters.model_dump(exclude_none=True)
         )
         actual_study_settings = StudySettingsLocal.model_validate(
@@ -453,7 +451,7 @@ class TestStudyProperties:
 
     def test_local_study_has_correct_optimization_parameters(self, local_study):
         # Given
-        expected_optimization_parameters = DefaultOptimizationParameters.model_validate(
+        expected_optimization_parameters = OptimizationParametersLocal.model_validate(
             {
                 "simplex_optimization_range": SimplexOptimizationRange.WEEK,
                 "transmission_capacities": OptimizationTransmissionCapacities.LOCAL_VALUES,
@@ -473,7 +471,7 @@ class TestStudyProperties:
         expected_study_settings = StudySettingsLocal(optimization_parameters=expected_optimization_parameters)
 
         # When
-        actual_optimization_parameters = DefaultOptimizationParameters.model_validate(
+        actual_optimization_parameters = OptimizationParametersLocal.model_validate(
             local_study.get_settings().optimization_parameters.model_dump(exclude_none=True)
         )
         actual_study_settings = StudySettingsLocal.model_validate(
@@ -492,7 +490,7 @@ class TestStudyProperties:
             "880",
             LocalConfiguration(tmp_path, "test_study"),
             StudySettingsLocal(
-                general_parameters=GeneralParameters(nb_years=nb_years, selection_mode=True),
+                general_parameters=GeneralParametersLocal(nb_years=nb_years, selection_mode=True),
                 playlist_parameters=PlaylistParameters(playlist=[PlaylistData()] * nb_years),
             ),
         )
