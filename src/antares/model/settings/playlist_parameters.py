@@ -74,3 +74,7 @@ class PlaylistParameters(BaseModel):
     @property
     def mc_years(self) -> dict[int, PlaylistData]:
         return {year + 1: self.playlist[year] for year in range(len(self.playlist))}
+
+    @property
+    def ini_fields(self) -> dict:
+        return {}

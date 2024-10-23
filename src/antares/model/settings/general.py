@@ -97,5 +97,9 @@ class GeneralParameters(DefaultGeneralParameters):
 
 
 class GeneralParametersLocal(DefaultGeneralParameters):
+    @property
+    def ini_fields(self) -> dict:
+        return {}
+
     def yield_properties(self) -> GeneralParameters:
         return GeneralParameters.model_validate(self.model_dump(exclude_none=True))

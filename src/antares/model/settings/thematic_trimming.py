@@ -134,7 +134,9 @@ class ThematicTrimmingParameters(DefaultThematicTrimmingParameters):
 
 
 class ThematicTrimmingParametersLocal(DefaultThematicTrimmingParameters):
-    pass
+    @property
+    def ini_fields(self) -> dict:
+        return {}
 
 
 class ThematicVars(Enum):

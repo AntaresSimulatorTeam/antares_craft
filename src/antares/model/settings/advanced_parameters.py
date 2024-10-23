@@ -99,4 +99,6 @@ class AdvancedParameters(DefaultAdvancedParameters):
 
 
 class AdvancedParametersLocal(DefaultAdvancedParameters):
-    pass
+    @property
+    def ini_fields(self) -> dict:
+        return {}

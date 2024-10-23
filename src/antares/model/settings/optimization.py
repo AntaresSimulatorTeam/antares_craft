@@ -76,4 +76,6 @@ class OptimizationParameters(DefaultOptimizationParameters):
 
 
 class OptimizationParametersLocal(DefaultOptimizationParameters):
-    pass
+    @property
+    def ini_fields(self) -> dict:
+        return {}

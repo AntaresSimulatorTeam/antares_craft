@@ -44,4 +44,6 @@ class AdequacyPatchParameters(DefaultAdequacyPatchParameters):
 
 
 class AdequacyPatchParametersLocal(DefaultAdequacyPatchParameters):
-    pass
+    @property
+    def ini_fields(self) -> dict:
+        return {}
