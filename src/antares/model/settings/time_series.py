@@ -16,23 +16,56 @@ from typing import Optional
 from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
 
+from antares.tools.all_optional_meta import all_optional_model
+
 
 class SeasonCorrelation(Enum):
     MONTHLY = "monthly"
     ANNUAL = "annual"
 
 
-class _Parameters(BaseModel, alias_generator=to_camel):
-    stochastic_ts_status: Optional[bool] = None
-    number: Optional[int] = None
-    refresh: Optional[bool] = None
-    refresh_interval: Optional[int] = None
-    season_correlation: Optional[SeasonCorrelation] = None
-    store_in_input: Optional[bool] = None
-    store_in_output: Optional[bool] = None
-    intra_modal: Optional[bool] = None
-    inter_modal: Optional[bool] = None
+class _DefaultParameters(BaseModel, alias_generator=to_camel):
+    stochastic_ts_status: bool = False
+    number: int = 1
+    refresh: bool = False
+    refresh_interval: int = 100
+    season_correlation: SeasonCorrelation = SeasonCorrelation.ANNUAL
+    store_in_input: bool = False
+    store_in_output: bool = False
+    intra_modal: bool = False
+    inter_modal: bool = False
 
+
+@all_optional_model
+class _Parameters(_DefaultParameters):
+    pass
+
+
+class _ParametersLocal(_DefaultParameters):
+    @property
+    def ini_fields(self) -> dict:
+        return {}
+
+
+class DefaultTimeSeriesParameters(BaseModel, alias_generator=to_camel):
+    load: _DefaultParameters = _DefaultParameters()
+    hydro: _DefaultParameters = _DefaultParameters()
+    thermal: _DefaultParameters = _DefaultParameters()
+    wind: _DefaultParameters = _DefaultParameters()
+    solar: _DefaultParameters = _DefaultParameters()
+    renewables: Optional[_DefaultParameters] = None
+    ntc: Optional[_DefaultParameters] = None
+
+
+@all_optional_model
+class TimeSeriesParameters(DefaultTimeSeriesParameters):
+    pass
+
+
+class TimeSeriesParametersLocal(DefaultTimeSeriesParameters):
+    @property
+    def ini_fields(self) -> dict:
+        return {}
 
 class TimeSeriesParameters(BaseModel, alias_generator=to_camel):
     load: Optional[_Parameters] = None
