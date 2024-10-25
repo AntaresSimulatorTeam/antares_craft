@@ -4,7 +4,8 @@ configparser~=5.0
 numpy~=1.26
 pandas~=2.2
 pandas-stubs~=2.2
-pydantic~=2.7
+pydantic~=2.7; python_version < "3.13"
+pydantic~=2.8; python_version >= "3.13"
 pytest~=7.2
 python-dateutil~=2.9
 requests~=2.31
