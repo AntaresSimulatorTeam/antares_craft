@@ -15,6 +15,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, Union, overload
 
+from pydantic import BaseModel
+
+from antares.tools.model_tools import filter_out_empty_model_fields
+
 
 class IniFileTypes(Enum):
     """
