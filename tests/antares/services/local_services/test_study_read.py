@@ -18,7 +18,13 @@ import re
 from pathlib import Path
 from unittest import mock
 
-from antares.config.local_configuration import LocalConfiguration
+from antares.model.hydro import HydroProperties, HydroPropertiesLocal
+from antares.model.renewable import (
+    RenewableClusterGroup,
+    RenewableClusterProperties,
+    RenewableClusterPropertiesLocal,
+    TimeSeriesInterpretation,
+)
 from antares.model.study import read_study_local
 
 
@@ -33,37 +39,37 @@ class TestReadStudy:
 
         with caplog.at_level(logging.ERROR):
             with pytest.raises(ValueError, match=escaped_full_path):
-                read_study_local(study_name, "880", LocalConfiguration(full_path, study_name))
+                read_study_local(study_name, "880", full_path)
 
-    def test_directory_permission_denied(self, tmp_path, caplog):
+    def test_directory_permission_denied(self, caplog, local_study_with_hydro):
         # Given
         study_name = "studyTest"
-        restricted_dir = tmp_path / study_name
-
-        restricted_dir.mkdir(parents=True, exist_ok=True)
-        restricted_path = restricted_dir / "file.txt"
-        restricted_path.touch(exist_ok=True)
+        relative_path = str(local_study_with_hydro.service.config.study_path).strip(study_name)
         with caplog.at_level(logging.ERROR):
             with mock.patch(
                 "pathlib.Path.iterdir",
-                side_effect=PermissionError(f"Some content cannot be accessed in {restricted_dir}"),
+                side_effect=PermissionError(f"Some content cannot be accessed in {local_study_with_hydro}"),
             ):
-                escaped_path = str(restricted_dir).replace("\\", "\\\\")
                 with pytest.raises(
                     PermissionError,
-                    match=f"Some content cannot be accessed in {escaped_path}",
+                    match=f"Some content cannot be accessed in {local_study_with_hydro}",
                 ):
-                    read_study_local(study_name, "880", LocalConfiguration(tmp_path, study_name))
+                    read_study_local(study_name, "880", relative_path)
 
-    def test_read_study_service(self, caplog):
-        study_name = "hydro_stockage"
-        relative_path = Path("tests/antares/studies_samples/")
+    def test_read_study_service(self, caplog, local_study_with_hydro):
+        study_name = "studyTest"
+        area_name = "zone_hs"
+        relative_path = str(local_study_with_hydro.service.config.study_path).strip(study_name)
+        local_study_with_hydro.create_area(area_name)
 
-        content = read_study_local(study_name, "880", LocalConfiguration(relative_path, study_name))
+        patch_ini_path = local_study_with_hydro.service.config.study_path / "patch.json"
+        with open(patch_ini_path, "w") as desktop_ini_file:
+            content = '{"study": null, "areas": {"zone_hs": {"country": null, "tags": []}}, "thermal_clusters": null, "outputs": null}'
+            desktop_ini_file.write(content)
 
+        content = read_study_local(study_name, "880", relative_path)
         areas = content.service.read_areas()
         study = content.service.read_study(areas)
-
         expected_keys = ["areas", "hydro", "load", "misc", "renewables", "solar", "storage", "thermals", "wind"]
 
         for key in expected_keys:
@@ -73,93 +79,115 @@ class TestReadStudy:
             not_expected_key not in study
         ), f"La clé '{not_expected_key}' ne devrait pas être présente dans le dictionnaire 'study'"
 
-    def test_directory_renewable_thermique(self, caplog):
-        study_name = "renewable_thermique"
-        relative_path = Path("tests/antares/studies_samples/")
+    def test_directory_renewable(self, local_study_w_thermal, actual_renewable_list_ini):
+        study_name = "studyTest"
+        area_name_1 = "onshore"
+        area_name_2 = "offshore"
+        relative_path = str(local_study_w_thermal.service.config.study_path).strip(study_name)
 
-        content = read_study_local(study_name, "880", LocalConfiguration(relative_path, study_name))
+        props = RenewableClusterProperties(
+            group=RenewableClusterGroup.WIND_ON_SHORE, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
+        )
+        args = {"renewable_name": area_name_1, **props.model_dump(mode="json", exclude_none=True)}
+        custom_properties = RenewableClusterPropertiesLocal.model_validate(args)
+        local_study_w_thermal.create_area(area_name_1)
+        local_study_w_thermal.get_areas()[area_name_1].create_renewable_cluster(
+            renewable_name=custom_properties.renewable_name,
+            properties=custom_properties.yield_renewable_cluster_properties(),
+            series=None,
+        )
+
+        props = RenewableClusterProperties(
+            group=RenewableClusterGroup.WIND_OFF_SHORE, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
+        )
+        args = {"renewable_name": area_name_2, **props.model_dump(mode="json", exclude_none=True)}
+        custom_properties = RenewableClusterPropertiesLocal.model_validate(args)
+        local_study_w_thermal.create_area(area_name_2)
+        local_study_w_thermal.get_areas()[area_name_2].create_renewable_cluster(
+            renewable_name=custom_properties.renewable_name,
+            properties=custom_properties.yield_renewable_cluster_properties(),
+            series=None,
+        )
+
+        patch_ini_path = local_study_w_thermal.service.config.study_path / "patch.json"
+        with open(patch_ini_path, "w") as desktop_ini_file:
+            content = '{"study": null, "areas": {"onshore": {"country": null, "tags": []}, "offshore": {"country": null, "tags": []}}, "thermal_clusters": null, "outputs": null}'
+            desktop_ini_file.write(content)
+
+        content = read_study_local(study_name, "880", relative_path)
         areas = content.service.read_areas()
         study = content.service.read_study(areas)
-        assert study["thermals"].get("zone_rt").get("list") == {
-            "GAZ": {
-                "group": "Gas",
-                "name": "GAZ",
-                "enabled": "True",
-                "unitcount": "1",
-                "nominalcapacity": "0.0",
-                "gen-ts": "use global parameter",
-                "min-stable-power": "0.0",
-                "min-up-time": "1",
-                "min-down-time": "1",
-                "must-run": "False",
-                "spinning": "0.0",
-                "volatility.forced": "0.0",
-                "volatility.planned": "0.0",
-                "law.forced": "uniform",
-                "law.planned": "uniform",
-                "marginal-cost": "0.0",
-                "spread-cost": "0.0",
-                "fixed-cost": "0.0",
-                "startup-cost": "0.0",
-                "market-bid-cost": "0.0",
-                "co2": "0.0",
-                "nh3": "0.0",
-                "so2": "0.0",
-                "nox": "0.0",
-                "pm2_5": "0.0",
-                "pm5": "0.0",
-                "pm10": "0.0",
-                "nmvoc": "0.0",
-                "op1": "0.0",
-                "op2": "0.0",
-                "op3": "0.0",
-                "op4": "0.0",
-                "op5": "0.0",
-            }
-        }
-        assert study["renewables"].get("zone_rt").get("list") == {
+        assert study["renewables"].get(area_name_1).get("list") == {
             "onshore": {
                 "group": "Wind Onshore",
                 "name": "onshore",
-                "enabled": "True",
+                "enabled": "true",
                 "unitcount": "1",
-                "nominalcapacity": "0.0",
-                "ts-interpretation": "power-generation",
-            },
+                "nominalcapacity": "0.000000",
+                "ts-interpretation": "production-factor",
+            }
+        }
+        assert study["renewables"].get(area_name_2).get("list") == {
             "offshore": {
-                "group": "Wind Offshore",
                 "name": "offshore",
-                "enabled": "True",
+                "group": "Wind Offshore",
+                "enabled": "true",
+                "nominalcapacity": "0.000000",
                 "unitcount": "1",
-                "nominalcapacity": "0.0",
-                "ts-interpretation": "power-generation",
-            },
-            "solar": {
-                "group": "Solar PV",
-                "name": "solar",
-                "enabled": "True",
-                "unitcount": "1",
-                "nominalcapacity": "0.0",
-                "ts-interpretation": "power-generation",
-            },
+                "ts-interpretation": "production-factor",
+            }
         }
 
-    def test_directory_hydro_stockage(self, caplog):
-        study_name = "hydro_stockage"
-        relative_path = Path("tests/antares/studies_samples/")
+    def test_directory_hydro(self, local_study_w_thermal):
+        study_name = "studyTest"
+        area_name = "hydro_1"
+        relative_path = str(local_study_w_thermal.service.config.study_path).strip(study_name)
 
-        content = read_study_local(study_name, "880", LocalConfiguration(relative_path, study_name))
+        properties = HydroProperties(
+            inter_daily_breakdown=6,
+            intra_daily_modulation=24,
+            inter_monthly_breakdown=1,
+            reservoir=False,
+            reservoir_capacity=1,
+            follow_load=True,
+            use_water=False,
+            hard_bounds=False,
+            initialize_reservoir_date=0,
+            use_heuristic=True,
+            power_to_level=False,
+            use_leeway=False,
+            leeway_low=1,
+            leeway_up=1,
+            pumping_efficiency=1,
+        )
+        args = {"area_id": area_name, **properties.model_dump(mode="json", exclude_none=True)}
+        local_hydro_properties = HydroPropertiesLocal.model_validate(args)
+        local_study_w_thermal.create_area(area_name)
+        local_study_w_thermal.get_areas()[area_name].create_hydro(
+            properties=local_hydro_properties.yield_hydro_properties(),
+            matrices=None,
+        )
+
+        patch_ini_path = local_study_w_thermal.service.config.study_path / "patch.json"
+        with open(patch_ini_path, "w") as desktop_ini_file:
+            content = '{"study": null, "areas": {"hydro_1": {"country": null, "tags": []}}, "thermal_clusters": null, "outputs": null}'
+            desktop_ini_file.write(content)
+
+        content = read_study_local(study_name, "880", relative_path)
         areas = content.service.read_areas()
         study = content.service.read_study(areas)
 
-        assert study["storage"].get("zone_hs").get("list") == {"batterie": {"group": "Battery", "name": "batterie"}}
-
-        assert study["hydro"].get("hydro") == {
-            "inter-daily-breakdown": {"zone_hs": "1"},
-            "intra-daily-modulation": {"zone_hs": "24"},
-            "inter-monthly-breakdown": {"zone_hs": "1"},
-            "initialize reservoir date": {"zone_hs": "0"},
-            "leeway low": {"zone_hs": "1"},
-            "leeway up": {"zone_hs": "1"},
-            "pumping efficiency": {"zone_hs": "1"},
-        }
+        assert study["hydro"]["hydro"]["inter-daily-breakdown"]["hydro_1"] == "6.000000"
+        assert study["hydro"]["hydro"]["intra-daily-modulation"]["hydro_1"] == "24.000000"
+        assert study["hydro"]["hydro"]["inter-monthly-breakdown"]["hydro_1"] == "1.000000"
+        assert study["hydro"]["hydro"]["reservoir"]["hydro_1"] == "false"
+        assert study["hydro"]["hydro"]["reservoir capacity"]["hydro_1"] == "1.000000"
+        assert study["hydro"]["hydro"]["follow load"]["hydro_1"] == "true"
+        assert study["hydro"]["hydro"]["use water"]["hydro_1"] == "false"
+        assert study["hydro"]["hydro"]["hard bounds"]["hydro_1"] == "false"
+        assert study["hydro"]["hydro"]["initialize reservoir date"]["hydro_1"] == "0"
+        assert study["hydro"]["hydro"]["use heuristic"]["hydro_1"] == "true"
+        assert study["hydro"]["hydro"]["power to level"]["hydro_1"] == "false"
+        assert study["hydro"]["hydro"]["use leeway"]["hydro_1"] == "false"
+        assert study["hydro"]["hydro"]["leeway up"]["hydro_1"] == "1.000000"
+        assert study["hydro"]["hydro"]["pumping efficiency"]["hydro_1"] == "1.000000"

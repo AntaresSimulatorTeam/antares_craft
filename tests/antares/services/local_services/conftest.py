@@ -41,7 +41,12 @@ from antares.tools.ini_tool import IniFile, IniFileTypes
 def local_study(tmp_path) -> Study:
     study_name = "studyTest"
     study_version = "880"
-    return create_study_local(study_name, study_version, LocalConfiguration(tmp_path, study_name))
+    study_object = create_study_local(study_name, study_version, LocalConfiguration(tmp_path, study_name))
+    # Create patch.json file
+    patch_ini_path = tmp_path / "studyTest/patch.json"
+    with open(patch_ini_path, "w") as desktop_ini_file:
+        desktop_ini_file.write("{}")
+    return study_object
 
 
 @pytest.fixture

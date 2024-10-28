@@ -186,7 +186,7 @@ InfoTip = Antares Study {version}: {study_name}
     )
 
 
-def read_study_local(study_name: str, version: str, local_config: LocalConfiguration) -> "Study":
+def read_study_local(study_name: str, version: str, relative_path: Path) -> "Study":
     """
     Create a directory structure for the study with empty files.
     Args:
@@ -200,22 +200,30 @@ def read_study_local(study_name: str, version: str, local_config: LocalConfigura
 
     """
 
+    local_config = LocalConfiguration(relative_path, study_name)
+
     def _directories_can_be_read(local_path: Path) -> None:
         if local_path.is_dir():
-            try:
-                for item in local_path.iterdir():
+            for item in local_path.iterdir():
+                try:
                     if item.is_dir():
-                        next(item.iterdir())
-            except PermissionError:
-                raise PermissionError(f"Some content cannot be accessed in {local_path}")
+                        # Si c'est un dossier, on essaie de lister son contenu
+                        for sub_item in item.iterdir():
+                            pass
+                except PermissionError:
+                    logging.error(f"PermissionError: Cannot access {item}")
+                    raise
+                except Exception as e:
+                    logging.error(f"An error occurred with {item}: {e}")
+                    raise
 
     def _directory_not_exists(local_path: Path) -> None:
         if local_path is None or not os.path.exists(local_path):
             raise ValueError(f"Provided directory {local_path} does not exist.")
 
     local_path = Path(local_config.local_path)
-    _directory_not_exists(local_path)
-    study_directory = local_path / study_name
+    study_directory = local_path / study_name / "input"
+    _directory_not_exists(study_directory)
     _directories_can_be_read(study_directory)
 
     return Study(
