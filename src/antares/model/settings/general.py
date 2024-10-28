@@ -9,9 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from typing import Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 from antares.tools.all_optional_meta import all_optional_model
@@ -66,20 +65,29 @@ class OutputChoices(EnumIgnoreCase):
     MAX_POWER = "max-power"
 
 
+class OutputFormat(EnumIgnoreCase):
+    TXT = "txt-files"
+    ZIP = "zip-files"
+
+
 class DefaultGeneralParameters(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
-    mode: Mode = Mode.ECONOMY
+    model_config = ConfigDict(use_enum_values=True)
+
+    mode: Mode = Field(default=Mode.ECONOMY, validate_default=True)
     horizon: str = ""
     # Calendar parameters
     nb_years: int = 1
     first_day: int = 1
     last_day: int = 365
-    first_january: WeekDay = WeekDay.MONDAY
-    first_month: Month = Month.JANUARY
-    first_week_day: WeekDay = WeekDay.MONDAY
+    first_january: WeekDay = Field(default=WeekDay.MONDAY, validate_default=True)
+    first_month: Month = Field(default=Month.JANUARY, validate_default=True)
+    first_week_day: WeekDay = Field(default=WeekDay.MONDAY, validate_default=True)
     leap_year: bool = False
     # Additional parameters
     year_by_year: bool = False
-    building_mode: BuildingMode = BuildingMode.AUTOMATIC  # ? derated and custom-scenario
+    building_mode: BuildingMode = Field(
+        default=BuildingMode.AUTOMATIC, validate_default=True
+    )  # ? derated and custom-scenario
     selection_mode: bool = False  # ? user-playlist
     thematic_trimming: bool = False
     geographic_trimming: bool = False
@@ -88,7 +96,7 @@ class DefaultGeneralParameters(BaseModel, extra="forbid", populate_by_name=True,
     # Output parameters
     simulation_synthesis: bool = True  # ? output/synthesis
     mc_scenario: bool = False  # ? output/storenewset
-    archives: Union[set[OutputChoices], str] = ""
+    result_format: OutputFormat = Field(default=OutputFormat.TXT, exclude=True)
 
 
 @all_optional_model
@@ -99,7 +107,32 @@ class GeneralParameters(DefaultGeneralParameters):
 class GeneralParametersLocal(DefaultGeneralParameters):
     @property
     def ini_fields(self) -> dict:
-        return {}
+        return {
+            "general": {
+                "mode": str(self.mode).title(),
+                "horizon": self.horizon,
+                "nbyears": str(self.nb_years),
+                "simulation.start": str(self.first_day),
+                "simulation.end": str(self.last_day),
+                "january.1st": str(self.first_january).title(),
+                "first-month-in-year": str(self.first_month).title(),
+                "first.weekday": str(self.first_week_day).title(),
+                "leapyear": str(self.leap_year).lower(),
+                "year-by-year": str(self.year_by_year).lower(),
+                "derated": str(self.building_mode == BuildingMode.DERATED).lower(),
+                "custom-scenario": str(self.building_mode == BuildingMode.CUSTOM).lower(),
+                "user-playlist": str(self.selection_mode).lower(),
+                "thematic-trimming": str(self.thematic_trimming).lower(),
+                "geographic-trimming": str(self.geographic_trimming).lower(),
+                "readonly": str(self.read_only).lower(),
+            },
+            "input": {},
+            "output": {
+                "synthesis": str(self.simulation_synthesis).lower(),
+                "storenewset": str(self.mc_scenario).lower(),
+                "result-format": self.result_format.value,
+            },
+        }
 
     def yield_properties(self) -> GeneralParameters:
         return GeneralParameters.model_validate(self.model_dump(exclude_none=True))
