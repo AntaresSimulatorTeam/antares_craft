@@ -133,10 +133,24 @@ class ThematicTrimmingParameters(DefaultThematicTrimmingParameters):
     pass
 
 
-class ThematicTrimmingParametersLocal(DefaultThematicTrimmingParameters):
+class ThematicTrimmingParametersLocal(DefaultThematicTrimmingParameters, populate_by_name=True):
     @property
     def ini_fields(self) -> dict:
-        return {}
+        variable_list = ", ".join(
+            [
+                getattr(ThematicVars, to_camel(variable)).value
+                for variable in self.model_fields
+                if getattr(self, variable) ^ self.selected_vars_reset
+            ]
+        )
+        if self.selected_vars_reset:
+            thematic_trimming_dict = {"select_var -": variable_list}
+        else:
+            thematic_trimming_dict = {"select_var +": variable_list}
+        return {
+            "variables selection": {"selected_vars_reset": str(self.selected_vars_reset).lower()}
+            | thematic_trimming_dict
+        }
 
 
 class ThematicVars(Enum):

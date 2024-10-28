@@ -9,9 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from pydantic import BaseModel
-
 from antares.tools.ini_tool import get_ini_fields_for_ini, merge_dicts_for_ini
+from pydantic import BaseModel
 
 
 class TestExtraFunctions:

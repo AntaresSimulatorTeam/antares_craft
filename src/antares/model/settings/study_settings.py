@@ -26,7 +26,6 @@ from antares.tools.ini_tool import get_ini_fields_for_ini
 
 class DefaultStudySettings(BaseModel):
     general_parameters: DefaultGeneralParameters = DefaultGeneralParameters()
-    thematic_trimming_parameters: Optional[DefaultThematicTrimmingParameters] = None
     # These parameters are listed under the [variables selection] section in the .ini file.
     # They are required if thematic-trimming is set to true.
     # https://antares-simulator.readthedocs.io/en/latest/user-guide/solver/04-parameters/#variables-selection-parameters
@@ -37,6 +36,7 @@ class DefaultStudySettings(BaseModel):
     adequacy_patch_parameters: DefaultAdequacyPatchParameters = DefaultAdequacyPatchParameters()
     advanced_parameters: DefaultAdvancedParameters = DefaultAdvancedParameters()
     playlist_parameters: Optional[PlaylistParameters] = None
+    thematic_trimming_parameters: Optional[DefaultThematicTrimmingParameters] = None
 
 
 @all_optional_model
@@ -46,11 +46,11 @@ class StudySettings(DefaultStudySettings):
 
 class StudySettingsLocal(DefaultStudySettings):
     general_parameters: GeneralParametersLocal = GeneralParametersLocal()
-    thematic_trimming_parameters: Optional[ThematicTrimmingParametersLocal] = None
     time_series_parameters: TimeSeriesParametersLocal = TimeSeriesParametersLocal()
     optimization_parameters: OptimizationParametersLocal = OptimizationParametersLocal()
     adequacy_patch_parameters: AdequacyPatchParametersLocal = AdequacyPatchParametersLocal()
     advanced_parameters: AdvancedParametersLocal = AdvancedParametersLocal()
+    thematic_trimming_parameters: Optional[ThematicTrimmingParametersLocal] = None
 
     @model_serializer
     def serialize(self) -> dict:
