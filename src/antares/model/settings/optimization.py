@@ -13,7 +13,7 @@
 from enum import Enum
 from typing import Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 from antares.tools.all_optional_meta import all_optional_model
@@ -53,9 +53,13 @@ class ExportMPS(Enum):
 
 
 class DefaultOptimizationParameters(BaseModel, alias_generator=to_camel):
-    simplex_optimization_range: SimplexOptimizationRange = SimplexOptimizationRange.WEEK
+    model_config = ConfigDict(use_enum_values=True)
+
+    simplex_optimization_range: SimplexOptimizationRange = Field(
+        default=SimplexOptimizationRange.WEEK, validate_default=True
+    )
     transmission_capacities: Union[bool, Union[LegacyTransmissionCapacities, OptimizationTransmissionCapacities]] = (
-        OptimizationTransmissionCapacities.LOCAL_VALUES
+        Field(default=OptimizationTransmissionCapacities.LOCAL_VALUES, validate_default=True)
     )
     binding_constraints: bool = True
     hurdle_costs: bool = True
@@ -65,9 +69,11 @@ class DefaultOptimizationParameters(BaseModel, alias_generator=to_camel):
     strategic_reserve: bool = True
     spinning_reserve: bool = True
     primary_reserve: bool = True
-    export_mps: ExportMPS = ExportMPS.NONE
+    export_mps: ExportMPS = Field(default=ExportMPS.NONE, validate_default=True)
     include_exportstructure: bool = False
-    unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
+    unfeasible_problem_behavior: UnfeasibleProblemBehavior = Field(
+        default=UnfeasibleProblemBehavior.ERROR_VERBOSE, validate_default=True
+    )
 
 
 @all_optional_model
@@ -78,4 +84,20 @@ class OptimizationParameters(DefaultOptimizationParameters):
 class OptimizationParametersLocal(DefaultOptimizationParameters):
     @property
     def ini_fields(self) -> dict:
-        return {}
+        return {
+            "optimization": {
+                "simplex-range": self.simplex_optimization_range,
+                "transmission-capacities": self.transmission_capacities,
+                "include-constraints": str(self.binding_constraints).lower(),
+                "include-hurdlecosts": str(self.hurdle_costs).lower(),
+                "include-tc-minstablepower": str(self.thermal_clusters_min_stable_power).lower(),
+                "include-tc-min-ud-time": str(self.thermal_clusters_min_ud_time).lower(),
+                "include-dayahead": str(self.day_ahead_reserve).lower(),
+                "include-strategicreserve": str(self.primary_reserve).lower(),
+                "include-spinningreserve": str(self.spinning_reserve).lower(),
+                "include-primaryreserve": str(self.primary_reserve).lower(),
+                "include-exportmps": self.export_mps,
+                "include-exportstructure": str(self.include_exportstructure).lower(),
+                "include-unfeasible-problem-behavior": self.unfeasible_problem_behavior,
+            }
+        }
