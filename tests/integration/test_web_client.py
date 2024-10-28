@@ -32,7 +32,6 @@ from antares.model.settings.study_settings import PlaylistParameters, StudySetti
 from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
 from antares.model.study import create_study_api
 from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
-
 from integration.antares_web_desktop import AntaresWebDesktop
 
 
@@ -371,7 +370,7 @@ class TestWebClient:
             settings.playlist_parameters.playlist = [{"status": False, "weight": 1}]
             new_study = create_study_api("second_study", "880", api_config, settings)
             settings = new_study.get_settings()
-            assert settings.general_parameters.mode == Mode.ADEQUACY
+            assert settings.general_parameters.mode == Mode.ADEQUACY.value
             assert not settings.general_parameters.year_by_year
             assert settings.playlist_parameters.model_dump() == {1: {"status": False, "weight": 1}}
 
@@ -383,9 +382,9 @@ class TestWebClient:
             new_settings.advanced_parameters = AdvancedParameters()
             new_settings.advanced_parameters.unit_commitment_mode = UnitCommitmentMode.MILP
             new_study.update_settings(new_settings)
-            assert new_study.get_settings().general_parameters.mode == Mode.ADEQUACY
+            assert new_study.get_settings().general_parameters.mode == Mode.ADEQUACY.value
             assert new_study.get_settings().general_parameters.nb_years == 4
-            assert new_study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP
+            assert new_study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP.value
 
             old_settings = new_study.get_settings()
             empty_settings = StudySettings()

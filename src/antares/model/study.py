@@ -28,6 +28,7 @@ from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings.study_settings import DefaultStudySettings, StudySettings, StudySettingsLocal
+from antares.model.settings.time_series import correlation_defaults
 from antares.service.api_services.study_api import _returns_study_settings
 from antares.service.base_services import BaseStudyService
 from antares.service.service_factory import ServiceFactory
@@ -124,19 +125,11 @@ InfoTip = Antares Study {version}: {study_name}
 
     local_settings = StudySettingsLocal.model_validate(settings)
     local_settings_file = IniFile(study_directory, IniFileTypes.GENERAL)
+    local_settings_file.ini_dict = local_settings.model_dump(exclude_none=True, by_alias=True)
+    local_settings_file.write_ini_file()
 
     # Create various .ini files for the study
-    correlation_inis_to_create = [
-        ("solar_correlation", IniFileTypes.SOLAR_CORRELATION_INI),
-        ("wind_correlation", IniFileTypes.WIND_CORRELATION_INI),
-        ("load_correlation", IniFileTypes.LOAD_CORRELATION_INI),
-    ]
-    ini_files = {
-        correlation: IniFile(study_directory, file_type, ini_contents=_correlation_defaults())
-        for (correlation, file_type) in correlation_inis_to_create
-    }
-    for ini_file in ini_files.keys():
-        ini_files[ini_file].write_ini_file()
+    ini_files = _create_correlation_ini_files(local_settings, study_directory)
 
     logging.info(f"Study successfully created: {study_name}")
     return Study(
@@ -271,8 +264,27 @@ def _create_directory_structure(study_path: Path) -> None:
         (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
 
 
-def _correlation_defaults() -> dict[str, dict[str, str]]:
-    return {
-        "general": {"mode": "annual"},
-        "annual": {},
-    } | {f"{num}": {} for num in range(12)}
+def _create_correlation_ini_files(local_settings: StudySettingsLocal, study_directory: Path) -> dict[str, IniFile]:
+    fields_to_check = ["hydro", "load", "solar", "wind"]
+    correlation_inis_to_create = [
+        (
+            field + "_correlation",
+            getattr(IniFileTypes, field.upper() + "_CORRELATION_INI"),
+            field,
+        )
+        for field in fields_to_check
+    ]
+    ini_files = {
+        correlation: IniFile(
+            study_directory,
+            file_type,
+            ini_contents=correlation_defaults(
+                season_correlation=getattr(local_settings.time_series_parameters, field).season_correlation,
+            ),
+        )
+        for (correlation, file_type, field) in correlation_inis_to_create
+    }
+
+    for ini_file in ini_files.keys():
+        ini_files[ini_file].write_ini_file()
+    return ini_files

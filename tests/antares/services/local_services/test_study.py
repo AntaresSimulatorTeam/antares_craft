@@ -83,7 +83,7 @@ from antares.service.local_services.link_local import LinkLocalService
 from antares.service.local_services.renewable_local import RenewableLocalService
 from antares.service.local_services.st_storage_local import ShortTermStorageLocalService
 from antares.service.local_services.thermal_local import ThermalLocalService
-from antares.tools.ini_tool import IniFileTypes
+from antares.tools.ini_tool import IniFile, IniFileTypes
 from antares.tools.time_series_tool import TimeSeriesFileType
 
 
@@ -365,7 +365,6 @@ class TestStudyProperties:
                 "read_only": False,
                 "simulation_synthesis": True,
                 "mc_scenario": False,
-                "archives": "",
             }
         )
         # When
@@ -636,6 +635,116 @@ class TestStudyProperties:
 
         # Then
         assert expected_file.is_file()
+
+    def test_generaldata_ini_has_correct_default_values(self, local_study):
+        # Given
+        expected_file_content = """[general]
+mode = Economy
+horizon = 
+nbyears = 1
+simulation.start = 1
+simulation.end = 365
+january.1st = Monday
+first-month-in-year = January
+first.weekday = Monday
+leapyear = false
+year-by-year = false
+derated = false
+custom-scenario = false
+user-playlist = false
+thematic-trimming = false
+geographic-trimming = false
+generate = 
+nbtimeseriesload = 1
+nbtimeserieshydro = 1
+nbtimeseriesthermal = 1
+nbtimeserieswind = 1
+nbtimeseriessolar = 1
+refreshtimeseries = 
+intra-modal = 
+inter-modal = 
+refreshintervalload = 100
+refreshintervalhydro = 100
+refreshintervalthermal = 100
+refreshintervalwind = 100
+refreshintervalsolar = 100
+readonly = false
+
+[input]
+import = 
+
+[output]
+synthesis = true
+storenewset = false
+archives = 
+result-format = txt-files
+
+[optimization]
+simplex-range = week
+transmission-capacities = local-values
+include-constraints = true
+include-hurdlecosts = true
+include-tc-minstablepower = true
+include-tc-min-ud-time = true
+include-dayahead = true
+include-strategicreserve = true
+include-spinningreserve = true
+include-primaryreserve = true
+include-exportmps = none
+include-exportstructure = false
+include-unfeasible-problem-behavior = error-verbose
+
+[adequacy patch]
+include-adq-patch = false
+set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = true
+set-to-null-ntc-between-physical-out-for-first-step = true
+enable-first-step = false
+price-taking-order = DENS
+include-hurdle-cost-csr = false
+check-csr-cost-function = false
+threshold-initiate-curtailment-sharing-rule = 0.000000
+threshold-display-local-matching-rule-violations = 0.000000
+threshold-csr-variable-bounds-relaxation = 3
+
+[other preferences]
+initial-reservoir-levels = cold start
+hydro-heuristic-policy = accommodate rule curves
+hydro-pricing-mode = fast
+power-fluctuations = free modulations
+shedding-policy = shave peaks
+unit-commitment-mode = fast
+number-of-cores-mode = medium
+renewable-generation-modelling = aggregated
+
+[advanced parameters]
+accuracy-on-correlation = 
+
+[seeds - Mersenne Twister]
+seed-tsgen-wind = 5489
+seed-tsgen-load = 1005489
+seed-tsgen-hydro = 2005489
+seed-tsgen-thermal = 3005489
+seed-tsgen-solar = 4005489
+seed-tsnumbers = 5005489
+seed-unsupplied-energy-costs = 6005489
+seed-spilled-energy-costs = 7005489
+seed-thermal-costs = 8005489
+seed-hydro-costs = 9005489
+seed-initial-reservoir-levels = 10005489
+
+"""
+        expected_generaldata_ini = ConfigParser()
+        expected_generaldata_ini.read_string(expected_file_content)
+
+        # When
+        actual_generaldata_ini_file = IniFile(local_study.service.config.study_path, IniFileTypes.GENERAL)
+        actual_generaldata_ini = actual_generaldata_ini_file.parsed_ini
+        with actual_generaldata_ini_file.ini_path.open("r") as file:
+            actual_file_content = file.read()
+
+        # Then
+        assert actual_file_content == expected_file_content
+        assert actual_generaldata_ini == expected_generaldata_ini
 
 
 class TestCreateArea:
