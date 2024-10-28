@@ -11,16 +11,17 @@
 # This file is part of the Antares project.
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_serializer
 
-from antares.model.settings.adequacy_patch import DefaultAdequacyPatchParameters
-from antares.model.settings.advanced_parameters import DefaultAdvancedParameters
-from antares.model.settings.general import DefaultGeneralParameters
-from antares.model.settings.optimization import DefaultOptimizationParameters
+from antares.model.settings.adequacy_patch import AdequacyPatchParametersLocal, DefaultAdequacyPatchParameters
+from antares.model.settings.advanced_parameters import AdvancedParametersLocal, DefaultAdvancedParameters
+from antares.model.settings.general import DefaultGeneralParameters, GeneralParametersLocal
+from antares.model.settings.optimization import DefaultOptimizationParameters, OptimizationParametersLocal
 from antares.model.settings.playlist_parameters import PlaylistParameters
-from antares.model.settings.thematic_trimming import DefaultThematicTrimmingParameters
-from antares.model.settings.time_series import TimeSeriesParameters
+from antares.model.settings.thematic_trimming import DefaultThematicTrimmingParameters, ThematicTrimmingParametersLocal
+from antares.model.settings.time_series import DefaultTimeSeriesParameters, TimeSeriesParametersLocal
 from antares.tools.all_optional_meta import all_optional_model
+from antares.tools.ini_tool import get_ini_fields_for_ini
 
 
 class DefaultStudySettings(BaseModel):
@@ -29,12 +30,12 @@ class DefaultStudySettings(BaseModel):
     # These parameters are listed under the [variables selection] section in the .ini file.
     # They are required if thematic-trimming is set to true.
     # https://antares-simulator.readthedocs.io/en/latest/user-guide/solver/04-parameters/#variables-selection-parameters
-    time_series_parameters: TimeSeriesParameters = TimeSeriesParameters()
+    time_series_parameters: DefaultTimeSeriesParameters = DefaultTimeSeriesParameters()
     # These parameters are listed under the [general] section in the .ini file.
     # https://antares-simulator.readthedocs.io/en/latest/user-guide/ts-generator/04-parameters/
+    optimization_parameters: DefaultOptimizationParameters = DefaultOptimizationParameters()
     adequacy_patch_parameters: DefaultAdequacyPatchParameters = DefaultAdequacyPatchParameters()
     advanced_parameters: DefaultAdvancedParameters = DefaultAdvancedParameters()
-    optimization_parameters: DefaultOptimizationParameters = DefaultOptimizationParameters()
     playlist_parameters: Optional[PlaylistParameters] = None
 
 
@@ -44,4 +45,26 @@ class StudySettings(DefaultStudySettings):
 
 
 class StudySettingsLocal(DefaultStudySettings):
-    pass
+    general_parameters: GeneralParametersLocal = GeneralParametersLocal()
+    thematic_trimming_parameters: Optional[ThematicTrimmingParametersLocal] = None
+    time_series_parameters: TimeSeriesParametersLocal = TimeSeriesParametersLocal()
+    optimization_parameters: OptimizationParametersLocal = OptimizationParametersLocal()
+    adequacy_patch_parameters: AdequacyPatchParametersLocal = AdequacyPatchParametersLocal()
+    advanced_parameters: AdvancedParametersLocal = AdvancedParametersLocal()
+
+    @model_serializer
+    def serialize(self) -> dict:
+        output_dict = get_ini_fields_for_ini(self)
+        return self._sort_fields_last(output_dict)
+
+    @staticmethod
+    def _sort_fields_last(output_dict: dict) -> dict:
+        new_general = {key: value for key, value in output_dict["general"].items() if key != "readonly"} | {
+            "readonly": output_dict["general"]["readonly"]
+        }
+        new_output = {key: value for key, value in output_dict["output"].items() if key != "result-format"} | {
+            "result-format": output_dict["output"]["result-format"]
+        }
+        output_dict["general"] = new_general
+        output_dict["output"] = new_output
+        return output_dict
