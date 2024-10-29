@@ -77,4 +77,16 @@ class PlaylistParameters(BaseModel):
 
     @property
     def ini_fields(self) -> dict:
-        return {}
+        playlist_years = ", ".join(
+            [str(year) for year, year_obj in enumerate(self.playlist) if year_obj.status ^ self.playlist_reset]
+        )
+        if self.playlist_reset:
+            playlist_year_dict = {"playlist_year -": playlist_years}
+        else:
+            playlist_year_dict = {"playlist_year +": playlist_years}
+        return {
+            "playlist": {
+                "playlist_reset": str(self.playlist_reset).lower(),
+            }
+            | playlist_year_dict
+        }
