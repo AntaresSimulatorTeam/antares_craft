@@ -25,15 +25,11 @@ from antares.api_conf.request_wrapper import RequestWrapper
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import APIError, StudyCreationError
 from antares.model.area import Area, AreaProperties, AreaUi
-from antares.model.binding_constraint import (
-    BindingConstraint,
-    BindingConstraintProperties,
-    ConstraintTerm,
-)
+from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings import StudySettings
 from antares.service.api_services.study_api import _returns_study_settings
-from antares.service.service_factory import ServiceFactory, ServiceReader
+from antares.service.service_factory import ServiceFactory
 from antares.tools.ini_tool import IniFile, IniFileTypes
 
 """
@@ -55,13 +51,13 @@ def create_study_api(
 ) -> "Study":
     """
     Args:
-    study_name: antares study name to be created
-    version: antares version
-    api_config: host and token config for API
-    settings: study settings. If not provided, AntaresWeb will use its default values.
+        study_name: antares study name to be created
+        version: antares version
+        api_config: host and token config for API
+        settings: study settings. If not provided, AntaresWeb will use its default values.
     Raises:
-    MissingTokenError if api_token is missing
-    StudyCreationError if an HTTP Exception occurs
+        MissingTokenError if api_token is missing
+        StudyCreationError if an HTTP Exception occurs
     """
 
     session = api_config.set_up_api_conf()
@@ -77,11 +73,11 @@ def create_study_api(
 
     except APIError as e:
         raise StudyCreationError(study_name, e.message) from e
-    return Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
+    return Study(study_name, version, ServiceFactory(api_config, study_id), study_settings=study_settings)
 
 
 def create_study_local(
-    study_name: str, version: str, local_config: LocalConfiguration, settings: Optional[StudySettings] = None
+    study_name: str, version: str, study_path: Path, settings: Optional[StudySettings] = None
 ) -> "Study":
     """
     Create a directory structure for the study with empty files.
@@ -93,7 +89,7 @@ def create_study_local(
     Raises:
         FileExistsError if the study already exists in the given location
     """
-
+    local_config = LocalConfiguration(study_path, study_name)
     def _create_directory_structure(study_path: Path) -> None:
         subdirectories = [
             "input/hydro/allocation",
@@ -186,21 +182,8 @@ InfoTip = Antares Study {version}: {study_name}
     )
 
 
-def read_study_local(study_name: str, version: str, relative_path: Path) -> "Study":
-    """
-    Create a directory structure for the study with empty files.
-    Args:
-        study_name: antares study name to read
-        version: antares version for study
-        settings: study settings. If not provided, AntaresWeb will use its default values.
-
-    Raises:
-        PermissionError if the study cannot be read
-        ValueError if the provided directory does not exist
-
-    """
-
-    local_config = LocalConfiguration(relative_path, study_name)
+def read_study_local(study_name: str, version: str, study_path: Path) -> "Study":
+    local_config = LocalConfiguration(study_path, study_name)
 
     def _directories_can_be_read(local_path: Path) -> None:
         if local_path.is_dir():
@@ -226,17 +209,20 @@ def read_study_local(study_name: str, version: str, relative_path: Path) -> "Stu
     _directory_not_exists(study_directory)
     _directories_can_be_read(study_directory)
 
+    # return Study(
+    #     name=study_name, version=version, service_factory=ServiceReader(config=local_config, study_name=study_name)
+    # )
     return Study(
-        name=study_name, version=version, service_factory=ServiceReader(config=local_config, study_name=study_name)
+        name=study_name, version=version, service_factory=ServiceFactory(config=local_config, study_name=study_name)
     )
-
 
 class Study:
     def __init__(
         self,
         name: str,
         version: str,
-        service_factory: Union[ServiceFactory, ServiceReader],
+        service_factory: ServiceFactory,
+        initialisation: str = "create",
         settings: Optional[StudySettings] = None,
         # ini_files: Optional[dict[str, IniFile]] = None,
         **kwargs: Any,
@@ -249,24 +235,26 @@ class Study:
         self._areas: Dict[str, Area] = dict()
         self._links: Dict[str, Link] = dict()
 
-        if isinstance(service_factory, ServiceFactory):
+        if initialisation == "create":
             self._study_service = service_factory.create_study_service()
             self._area_service = service_factory.create_area_service()
             self._link_service = service_factory.create_link_service()
             self._binding_constraints_service = service_factory.create_binding_constraints_service()
             self._settings = settings or StudySettings()
             self._binding_constraints: Dict[str, BindingConstraint] = dict()
-        elif isinstance(service_factory, ServiceReader):
+        else:
             self._study_service = service_factory.read_study_service()
-
-            # self._binding_constraints: Dict[str, BindingConstraint] = dict()
-            # self._link_service = service_factory.create_link_service()
 
     @property
     def service(self) -> Any:
         return self._study_service
 
     def get_areas(self) -> MappingProxyType[str, Area]:
+        if hasattr(self._study_service, "read_areas"):
+            areas = self._study_service.read_areas()
+            for key, value in areas.items():
+                if key not in self._areas:
+                    self._areas[key] = value
         return MappingProxyType(dict(sorted(self._areas.items())))
 
     def get_links(self) -> MappingProxyType[str, Link]:

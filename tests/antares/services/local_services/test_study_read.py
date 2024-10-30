@@ -25,8 +25,7 @@ from antares.model.renewable import (
     RenewableClusterPropertiesLocal,
     TimeSeriesInterpretation,
 )
-from antares.model.study import read_study_local
-
+from antares.model.study import create_study_local, read_study_local
 
 class TestReadStudy:
     def test_directory_not_exists_error(self, caplog):
@@ -34,17 +33,17 @@ class TestReadStudy:
 
         current_dir = Path.cwd()
         relative_path = Path("fake/path/")
-        full_path = current_dir / relative_path
-        escaped_full_path = re.escape(str(full_path))
+        study_path = current_dir / relative_path
+        escaped_full_path = re.escape(str(study_path))
 
         with caplog.at_level(logging.ERROR):
             with pytest.raises(ValueError, match=escaped_full_path):
-                read_study_local(study_name, "880", full_path)
+                read_study_local(study_name, "880", study_path)
 
     def test_directory_permission_denied(self, caplog, local_study_with_hydro):
         # Given
         study_name = "studyTest"
-        relative_path = str(local_study_with_hydro.service.config.study_path).strip(study_name)
+        study_path = str(local_study_with_hydro.service.config.study_path).strip("studyTest")
         with caplog.at_level(logging.ERROR):
             with mock.patch(
                 "pathlib.Path.iterdir",
@@ -54,12 +53,12 @@ class TestReadStudy:
                     PermissionError,
                     match=f"Some content cannot be accessed in {local_study_with_hydro}",
                 ):
-                    read_study_local(study_name, "880", relative_path)
+                    read_study_local(study_name, "880", study_path)
 
     def test_read_study_service(self, caplog, local_study_with_hydro):
         study_name = "studyTest"
         area_name = "zone_hs"
-        relative_path = str(local_study_with_hydro.service.config.study_path).strip(study_name)
+        study_path = str(local_study_with_hydro.service.config.study_path).strip(study_name)
         local_study_with_hydro.create_area(area_name)
 
         patch_ini_path = local_study_with_hydro.service.config.study_path / "patch.json"
@@ -67,7 +66,7 @@ class TestReadStudy:
             content = '{"study": null, "areas": {"zone_hs": {"country": null, "tags": []}}, "thermal_clusters": null, "outputs": null}'
             desktop_ini_file.write(content)
 
-        content = read_study_local(study_name, "880", relative_path)
+        content = read_study_local(study_name, "880", study_path)
         areas = content.service.read_areas()
         study = content.service.read_study(areas)
         expected_keys = ["areas", "hydro", "load", "misc", "renewables", "solar", "storage", "thermals", "wind"]
@@ -83,7 +82,7 @@ class TestReadStudy:
         study_name = "studyTest"
         area_name_1 = "onshore"
         area_name_2 = "offshore"
-        relative_path = str(local_study_w_thermal.service.config.study_path).strip(study_name)
+        study_path = str(local_study_w_thermal.service.config.study_path).strip(study_name)
 
         props = RenewableClusterProperties(
             group=RenewableClusterGroup.WIND_ON_SHORE, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
@@ -114,7 +113,7 @@ class TestReadStudy:
             content = '{"study": null, "areas": {"onshore": {"country": null, "tags": []}, "offshore": {"country": null, "tags": []}}, "thermal_clusters": null, "outputs": null}'
             desktop_ini_file.write(content)
 
-        content = read_study_local(study_name, "880", relative_path)
+        content = read_study_local(study_name, "880", study_path)
         areas = content.service.read_areas()
         study = content.service.read_study(areas)
         assert study["renewables"].get(area_name_1).get("list") == {
@@ -141,7 +140,7 @@ class TestReadStudy:
     def test_directory_hydro(self, local_study_w_thermal):
         study_name = "studyTest"
         area_name = "hydro_1"
-        relative_path = str(local_study_w_thermal.service.config.study_path).strip(study_name)
+        study_path = str(local_study_w_thermal.service.config.study_path).strip(study_name)
 
         properties = HydroProperties(
             inter_daily_breakdown=6,
@@ -173,7 +172,7 @@ class TestReadStudy:
             content = '{"study": null, "areas": {"hydro_1": {"country": null, "tags": []}}, "thermal_clusters": null, "outputs": null}'
             desktop_ini_file.write(content)
 
-        content = read_study_local(study_name, "880", relative_path)
+        content = read_study_local(study_name, "880", study_path)
         areas = content.service.read_areas()
         study = content.service.read_study(areas)
 

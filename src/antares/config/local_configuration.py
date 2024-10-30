@@ -26,4 +26,4 @@ class LocalConfiguration(BaseConfiguration):
 
     @property
     def study_path(self) -> Path:
-        return self._local_path / self._study_name
+        return self._local_path / Path(self._study_name)

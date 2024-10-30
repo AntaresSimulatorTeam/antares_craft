@@ -79,24 +79,18 @@ class StudyLocalService(BaseStudyService):
     def read_areas(self) -> dict:
         local_path = self._config.local_path
 
-        patch_path = local_path / Path(self._study_name) / Path("patch.json")
-        if not os.path.exists(patch_path):
-            return json.loads(f"Le fichier {patch_path} n'existe pas dans le dossier {local_path / self._study_name}")
+        areas_path = local_path / Path(self._study_name) / Path("input/areas")
+        areas = {}
         try:
-            with open(patch_path, "r") as file:
-                content = file.read()
-                try:
-                    data = json.loads(content)
-                except json.JSONDecodeError:
-                    return json.loads(f"Le fichier {patch_path} ne contient pas du JSON valide")
-                if "areas" in data:
-                    areas = data["areas"]
-                    if isinstance(areas, dict):
-                        return {key: None for key in areas.keys()}
-                return json.loads("The key 'areas' n'existe pas dans le fichier JSON")
+            for element in Path(areas_path).iterdir():
+                if element.is_dir():
+                    areas[element.name] = None
+            return areas
+        except (FileNotFoundError, PermissionError):
+            # En cas de dossier non trouvé ou inaccessible, retourner un dictionnaire vide
+            return {}
 
-        except IOError:
-            return json.loads(f"Impossible de lire le fichier {patch_path}")
+
 
     def read_study(self, areas: dict) -> dict:
         study_path = self.config.local_path / Path(self._study_name)
@@ -108,7 +102,6 @@ class StudyLocalService(BaseStudyService):
         }
         if not self._directory_exists(study_path):
             return {}
-
         # Areas
         for area_name in areas:
             # Get everything inside input/areas/{area_name}
@@ -134,39 +127,41 @@ class StudyLocalService(BaseStudyService):
             }
 
             load_module = TimeSeriesFile(
-                TimeSeriesFileType.LOAD_PREPRO_TRANSLATION,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.LOAD_PREPRO_TRANSLATION,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._load[area_name]["translation"] = load_module
             load_module = TimeSeriesFile(
-                TimeSeriesFileType.LOAD_PREPRO_CONVERSION,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.LOAD_PREPRO_CONVERSION,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._load[area_name]["conversion"] = load_module
             load_module = TimeSeriesFile(
-                TimeSeriesFileType.LOAD_PREPRO_DATA,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.LOAD_PREPRO_DATA,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._load[area_name]["data"] = load_module
             load_module = TimeSeriesFile(
-                TimeSeriesFileType.LOAD_PREPRO_K,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.LOAD_PREPRO_K,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._load[area_name]["k"] = load_module
 
             # Get everything inside input/load/series/{area_name}
-            load_series = TimeSeriesFile(TimeSeriesFileType.LOAD_DATA_SERIES, study_path, area_name).time_series
+            load_series = TimeSeriesFile(ts_file_type=TimeSeriesFileType.LOAD_DATA_SERIES, study_path=study_path,\
+                                         area_id=area_name).time_series
             self._load[area_name]["series"] = load_series
 
         # misc-gen
         for area_name in areas:
             self._misc[area_name] = {}
             # Get everything inside input/misc-gen/{area_name}
-            miscgen_series = TimeSeriesFile(TimeSeriesFileType.MISC_GEN, study_path, area_name).time_series
+            miscgen_series = TimeSeriesFile(ts_file_type=TimeSeriesFileType.MISC_GEN, study_path=study_path,\
+                                            area_id=area_name).time_series
             self._misc[area_name]["series"] = miscgen_series
 
         # Renewables
@@ -185,10 +180,10 @@ class StudyLocalService(BaseStudyService):
             groups = self._lister_dossiers(prefix_path)
             for group_name in groups:
                 renewable_series = TimeSeriesFile(
-                    TimeSeriesFileType.RENEWABLE_DATA_SERIES,
-                    study_path,
-                    area_name,
-                    group_name,
+                    ts_file_type=TimeSeriesFileType.RENEWABLE_DATA_SERIES,
+                    study_path=study_path,
+                    area_id=area_name,
+                    group_id=group_name,
                 ).time_series
                 self._renewables[area_name][f"{group_name}-series"] = renewable_series
 
@@ -211,32 +206,33 @@ class StudyLocalService(BaseStudyService):
             }
 
             solar_module = TimeSeriesFile(
-                TimeSeriesFileType.SOLAR_TRANSLATION,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.SOLAR_TRANSLATION,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._solar[area_name]["translation"] = solar_module
             solar_module = TimeSeriesFile(
-                TimeSeriesFileType.SOLAR_CONVERSION,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.SOLAR_CONVERSION,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._solar[area_name]["conversion"] = solar_module
             solar_module = TimeSeriesFile(
-                TimeSeriesFileType.SOLAR_DATA,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.SOLAR_DATA,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._solar[area_name]["data"] = solar_module
             solar_module = TimeSeriesFile(
-                TimeSeriesFileType.SOLAR_K,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.SOLAR_K,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._solar[area_name]["k"] = solar_module
 
             # Get everything inside input/solar/series/{area_name}
-            solar_series = TimeSeriesFile(TimeSeriesFileType.SOLAR, study_path, area_name).time_series
+            solar_series = TimeSeriesFile(ts_file_type=TimeSeriesFileType.SOLAR, study_path=study_path, \
+                                          area_id=area_name).time_series
             self._solar[area_name]["series"] = solar_series
 
         # St-storage
@@ -269,17 +265,17 @@ class StudyLocalService(BaseStudyService):
             groups = self._lister_dossiers(prefix_path)
             for group_name in groups:
                 thermal_prepro = TimeSeriesFile(
-                    TimeSeriesFileType.THERMAL_DATA,
-                    study_path,
-                    area_name,
-                    group_name,
+                    ts_file_type=TimeSeriesFileType.THERMAL_DATA,
+                    study_path=study_path,
+                    area_id=area_name,
+                    group_id=group_name,
                 ).time_series
                 self._thermals[area_name][f"{group_name}-data"] = thermal_prepro
                 thermal_module = TimeSeriesFile(
-                    TimeSeriesFileType.THERMAL_MODULATION,
-                    study_path,
-                    area_name,
-                    group_name,
+                    ts_file_type=TimeSeriesFileType.THERMAL_MODULATION,
+                    study_path=study_path,
+                    area_id=area_name,
+                    group_id=group_name,
                 ).time_series
                 self._thermals[area_name][f"{group_name}-modulation"] = thermal_module
 
@@ -288,10 +284,10 @@ class StudyLocalService(BaseStudyService):
             groups = self._lister_dossiers(prefix_path)
             for group_name in groups:
                 thermal_series = TimeSeriesFile(
-                    TimeSeriesFileType.THERMAL_DATA_SERIES,
-                    study_path,
-                    area_name,
-                    group_name,
+                    ts_file_type=TimeSeriesFileType.THERMAL_DATA_SERIES,
+                    study_path=study_path,
+                    area_id=area_name,
+                    group_id=group_name,
                 ).time_series
                 self._thermals[area_name][f"{group_name}-series"] = thermal_series
 
@@ -314,35 +310,35 @@ class StudyLocalService(BaseStudyService):
             }
 
             wind_module = TimeSeriesFile(
-                TimeSeriesFileType.WIND_TRANSLATION,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.WIND_TRANSLATION,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._wind[area_name]["translation"] = wind_module
 
             wind_module = TimeSeriesFile(
-                TimeSeriesFileType.WIND_CONVERSION,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.WIND_CONVERSION,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._wind[area_name]["conversion"] = wind_module
 
             wind_module = TimeSeriesFile(
-                TimeSeriesFileType.WIND_DATA,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.WIND_DATA,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._wind[area_name]["data"] = wind_module
 
             wind_module = TimeSeriesFile(
-                TimeSeriesFileType.WIND_K,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.WIND_K,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._wind[area_name]["k"] = wind_module
 
             # Get everything inside input/wind/series/{area_name}
-            wind_series = TimeSeriesFile(TimeSeriesFileType.WIND, study_path, area_name).time_series
+            wind_series = TimeSeriesFile(ts_file_type=TimeSeriesFileType.WIND, study_path=study_path, area_id=area_name).time_series
             self._wind[area_name]["series"] = wind_series
 
         ## Hydro
@@ -367,41 +363,41 @@ class StudyLocalService(BaseStudyService):
             }
             # Get everything inside input/hydro/common/capacity/
             hydro_module = TimeSeriesFile(
-                TimeSeriesFileType.HYDRO_COMMON_CM,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.HYDRO_COMMON_CM,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._hydro[area_name]["creditmodulations"] = hydro_module
             hydro_module = TimeSeriesFile(
-                TimeSeriesFileType.HYDRO_COMMON_IFP,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.HYDRO_COMMON_IFP,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._hydro[area_name]["inflowpattern"] = hydro_module
             hydro_module = TimeSeriesFile(
-                TimeSeriesFileType.HYDRO_COMMON_MP,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.HYDRO_COMMON_MP,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._hydro[area_name]["maxpower"] = hydro_module
             hydro_module = TimeSeriesFile(
-                TimeSeriesFileType.HYDRO_COMMON_R,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.HYDRO_COMMON_R,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._hydro[area_name]["reservoir"] = hydro_module
             hydro_module = TimeSeriesFile(
-                TimeSeriesFileType.HYDRO_COMMON_WV,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.HYDRO_COMMON_WV,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._hydro[area_name]["watervalues"] = hydro_module
 
             # Get everything inside input/hydro/prepro/{area_name}
             hydro_module = TimeSeriesFile(
-                TimeSeriesFileType.HYDRO_ENERGY,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.HYDRO_ENERGY,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._hydro[area_name]["energy"] = hydro_module
 
@@ -413,21 +409,21 @@ class StudyLocalService(BaseStudyService):
 
             # Get everything inside input/hydro/series/{area_name}
             hydro_module = TimeSeriesFile(
-                TimeSeriesFileType.HYDRO_MINGEN_SERIES,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.HYDRO_MINGEN_SERIES,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._hydro[area_name]["mingen"] = hydro_module
             hydro_module = TimeSeriesFile(
-                TimeSeriesFileType.HYDRO_MOD_SERIES,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.HYDRO_MOD_SERIES,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._hydro[area_name]["mod"] = hydro_module
             hydro_module = TimeSeriesFile(
-                TimeSeriesFileType.HYDRO_ROR_SERIES,
-                study_path,
-                area_name,
+                ts_file_type=TimeSeriesFileType.HYDRO_ROR_SERIES,
+                study_path=study_path,
+                area_id=area_name,
             ).time_series
             self._hydro[area_name]["ror"] = hydro_module
 

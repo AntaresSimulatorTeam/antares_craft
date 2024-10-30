@@ -105,6 +105,7 @@ class TimeSeriesFile:
         self,
         ts_file_type: TimeSeriesFileType,
         study_path: Path,
+        *,
         area_id: Optional[str] = None,
         group_id: Optional[str] = None,
         constraint_id: Optional[str] = None,

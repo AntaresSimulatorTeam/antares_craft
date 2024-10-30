@@ -68,7 +68,7 @@ class TestCreateStudy:
         expected_study_path = tmp_path / "studyTest"
 
         # When
-        create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
+        create_study_local(study_name, version, tmp_path)
 
         # Then
         assert os.path.exists(expected_study_path)
@@ -116,7 +116,7 @@ author = Unknown
         monkeypatch.setattr(time, "time", lambda: "123")
 
         # When
-        create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
+        create_study_local(study_name, version, tmp_path)
         with open(expected_study_antares_path, "r") as file:
             actual_content = file.read()
 
@@ -133,16 +133,16 @@ author = Unknown
 
         monkeypatch.setattr("antares.model.study.verify_study_already_exists", mock_verify_study_already_exists)
 
-        current_dir = Path(tmp_path)
+        study_path = Path(tmp_path)
         relative_path = Path(f"{study_name}")
-        full_path = re.escape(str(current_dir / relative_path))
+        full_path = re.escape(str(study_path / relative_path))
 
         expected_message = f"Failed to create study. Study {full_path} already exists"
 
         # When
         with caplog.at_level(logging.ERROR):
             with pytest.raises(FileExistsError, match=expected_message):
-                create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
+                create_study_local(study_name, version, study_path)
 
     def test_solar_correlation_ini_exists(self, local_study_with_hydro):
         # Given

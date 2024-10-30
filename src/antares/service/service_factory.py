@@ -130,17 +130,10 @@ class ServiceFactory:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
         return short_term_storage_service
 
-
-class ServiceReader:
-    def __init__(self, config: BaseConfiguration, study_name: str = "", study_id: str = ""):
-        self.config = config
-        self.study_id = study_id
-        self.study_name = study_name
-
-    # we can have read area service here, for just one area
     def read_study_service(self) -> BaseStudyService:
         if isinstance(self.config, LocalConfiguration):
             study_service: BaseStudyService = StudyLocalService(self.config, self.study_name)
         else:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
         return study_service
+

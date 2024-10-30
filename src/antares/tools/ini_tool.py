@@ -27,35 +27,27 @@ class IniFileTypes(Enum):
     # DESKTOP = "Desktop.ini"
     # GENERAL = "settings/generaldata.ini"
     # SCENARIO = "settings/scenariobuilder.dat"
-    AREAS_SETS_INI = "input/areas/sets.ini"
-    AREAS_LIST_TXT = "input/areas/list.txt"
+    AREA_ADEQUACY_PATCH_INI = "input/areas/{area_name}/adequacy_patch.ini"
     AREA_OPTIMIZATION_INI = "input/areas/{area_name}/optimization.ini"
     AREA_UI_INI = "input/areas/{area_name}/ui.ini"
-    AREA_ADEQUACY_PATCH_INI = "input/areas/{area_name}/adequacy_patch.ini"
+    AREAS_LIST_TXT = "input/areas/list.txt"
+    AREAS_SETS_INI = "input/areas/sets.ini"
     BINDING_CONSTRAINTS_INI = "input/bindingconstraints/bindingconstraints.ini"
-
-    LINK_PROPERTIES_INI = "input/links/{area_name}/properties.ini"
-
-    RENEWABLES_LIST_INI = "input/renewables/clusters/{area_name}/list.ini"
-
-    ST_STORAGE_LIST_INI = "input/st-storage/clusters/{area_name}/list.ini"
-
-    THERMAL_AREAS_INI = "input/thermal/areas.ini"
-    THERMAL_LIST_INI = "input/thermal/clusters/{area_name}/list.ini"
-
-    LOAD_CORRELATION_INI = "input/load/prepro/correlation.ini"
-    LOAD_SETTINGS_INI = "input/load/prepro/{area_name}/settings.ini"
-
-    SOLAR_CORRELATION_INI = "input/solar/prepro/correlation.ini"
-    SOLAR_SETTINGS_INI = "input/solar/prepro/{area_name}/settings.ini"
-
-    WIND_CORRELATION_INI = "input/wind/prepro/correlation.ini"
-    WIND_SETTINGS_INI = "input/wind/prepro/{area_name}/settings.ini"
-
     HYDRO_ALLOCATION_INI = "input/hydro/allocation/{area_name}.ini"
     HYDRO_CORRELATION_INI = "input/hydro/prepro/correlation.ini"
-    HYDRO_PREPRO_INI = "input/hydro/prepro/{area_name}/prepro.ini"
     HYDRO_INI = "input/hydro/hydro.ini"
+    HYDRO_PREPRO_INI = "input/hydro/prepro/{area_name}/prepro.ini"
+    LINK_PROPERTIES_INI = "input/links/{area_name}/properties.ini"
+    LOAD_CORRELATION_INI = "input/load/prepro/correlation.ini"
+    LOAD_SETTINGS_INI = "input/load/prepro/{area_name}/settings.ini"
+    RENEWABLES_LIST_INI = "input/renewables/clusters/{area_name}/list.ini"
+    SOLAR_CORRELATION_INI = "input/solar/prepro/correlation.ini"
+    SOLAR_SETTINGS_INI = "input/solar/prepro/{area_name}/settings.ini"
+    ST_STORAGE_LIST_INI = "input/st-storage/clusters/{area_name}/list.ini"
+    THERMAL_AREAS_INI = "input/thermal/areas.ini"
+    THERMAL_LIST_INI = "input/thermal/clusters/{area_name}/list.ini"
+    WIND_CORRELATION_INI = "input/wind/prepro/correlation.ini"
+    WIND_SETTINGS_INI = "input/wind/prepro/{area_name}/settings.ini"
 
 
 class IniFile:
