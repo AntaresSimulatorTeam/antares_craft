@@ -45,6 +45,38 @@ from antares.model.link import (
     LinkUiLocal,
     TransmissionCapacities,
 )
+from antares.model.settings.adequacy_patch import (
+    DefaultAdequacyPatchParameters,
+    PriceTakingOrder,
+)
+from antares.model.settings.advanced_parameters import (
+    AdvancedParametersLocal,
+    HydroHeuristicPolicy,
+    HydroPricingMode,
+    InitialReservoirLevel,
+    PowerFluctuation,
+    RenewableGenerationModeling,
+    SheddingPolicy,
+    SimulationCore,
+    UnitCommitmentMode,
+)
+from antares.model.settings.general import (
+    BuildingMode,
+    GeneralParametersLocal,
+    Mode,
+    Month,
+    WeekDay,
+)
+from antares.model.settings.optimization import (
+    ExportMPS,
+    OptimizationParametersLocal,
+    OptimizationTransmissionCapacities,
+    SimplexOptimizationRange,
+    UnfeasibleProblemBehavior,
+)
+from antares.model.settings.playlist_parameters import PlaylistData, PlaylistParameters
+from antares.model.settings.study_settings import DefaultStudySettings, StudySettingsLocal
+from antares.model.settings.thematic_trimming import DefaultThematicTrimmingParameters, ThematicTrimmingParametersLocal
 from antares.model.study import create_study_local
 from antares.service.local_services.area_local import AreaLocalService
 from antares.service.local_services.link_local import LinkLocalService
@@ -300,6 +332,1057 @@ mode = annual
         assert actual_ini_content == expected_ini_content
         assert actual_ini.parsed_ini.sections() == expected_ini.sections()
         assert actual_ini.parsed_ini == expected_ini
+
+
+class TestStudyProperties:
+    def test_local_study_has_settings(self, local_study):
+        # When
+        local_study_settings = local_study.get_settings()
+        # Then
+        assert local_study.get_settings()
+        assert isinstance(local_study_settings, DefaultStudySettings)
+
+    def test_local_study_has_correct_default_general_properties(self, local_study):
+        # Given
+        # https://antares-simulator.readthedocs.io/en/latest/user-guide/solver/04-parameters/
+        expected_general_properties = GeneralParametersLocal.model_validate(
+            {
+                "mode": Mode.ECONOMY,
+                "horizon": "",
+                "nb_years": 1,
+                "first_day": 1,
+                "last_day": 365,
+                "first_january": WeekDay.MONDAY,
+                "first_month": Month.JANUARY,
+                "first_week_day": WeekDay.MONDAY,
+                "leap_year": False,
+                "year_by_year": False,
+                "building_mode": BuildingMode.AUTOMATIC,
+                "selection_mode": False,
+                "thematic_trimming": False,
+                "geographic_trimming": False,
+                "active_rules_scenario": "default ruleset",
+                "read_only": False,
+                "simulation_synthesis": True,
+                "mc_scenario": False,
+            }
+        )
+        # When
+        expected_study_settings = StudySettingsLocal(general_properties=expected_general_properties)
+
+        # Then
+        assert local_study.get_settings().general_parameters == expected_general_properties
+        assert local_study.get_settings() == expected_study_settings
+
+    def test_local_study_has_correct_default_adequacy_patch_properties(self, local_study):
+        # Given
+        expected_adequacy_patch_properties = DefaultAdequacyPatchParameters.model_validate(
+            {
+                "enable_adequacy_patch": False,
+                "ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch": True,
+                "ntc_between_physical_areas_out_adequacy_patch": True,
+                "price_taking_order": PriceTakingOrder.DENS,
+                "include_hurdle_cost_csr": False,
+                "check_csr_cost_function": False,
+                "enable_first_step": False,
+                "threshold_initiate_curtailment_sharing_rule": 0,
+                "threshold_display_local_matching_rule_violations": 0,
+                "threshold_csr_variable_bounds_relaxation": 3,
+            }
+        )
+        expected_study_settings = StudySettingsLocal(
+            adequacy_patch_properties=DefaultAdequacyPatchParameters.model_validate(
+                expected_adequacy_patch_properties.model_dump(exclude_none=True)
+            )
+        )
+
+        # When
+        actual_adequacy_patch_properties = DefaultAdequacyPatchParameters.model_validate(
+            local_study.get_settings().adequacy_patch_parameters.model_dump(exclude_none=True)
+        )
+        actual_study_settings = StudySettingsLocal.model_validate(
+            local_study.get_settings().model_dump(exclude_none=True)
+        )
+
+        # Then
+        assert actual_adequacy_patch_properties == expected_adequacy_patch_properties
+        assert actual_study_settings == expected_study_settings
+
+    def test_local_study_has_correct_advanced_parameters(self, local_study):
+        # Given
+        expected_advanced_parameters = AdvancedParametersLocal.model_validate(
+            {
+                "accuracy_on_correlation": "",
+                "initial_reservoir_levels": InitialReservoirLevel.COLD_START,
+                "hydro_heuristic_policy": HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES,
+                "hydro_pricing_mode": HydroPricingMode.FAST,
+                "power_fluctuations": PowerFluctuation.FREE_MODULATIONS,
+                "shedding_policy": SheddingPolicy.SHAVE_PEAKS,
+                "unit_commitment_mode": UnitCommitmentMode.FAST,
+                "number_of_cores_mode": SimulationCore.MEDIUM,
+                "renewable_generation_modelling": RenewableGenerationModeling.AGGREGATED,
+                "seed_tsgen_wind": 5489,
+                "seed_tsgen_load": 1005489,
+                "seed_tsgen_hydro": 2005489,
+                "seed_tsgen_thermal": 3005489,
+                "seed_tsgen_solar": 4005489,
+                "seed_tsnumbers": 5005489,
+                "seed_unsupplied_energy_costs": 6005489,
+                "seed_spilled_energy_costs": 7005489,
+                "seed_thermal_costs": 8005489,
+                "seed_hydro_costs": 9005489,
+                "seed_initial_reservoir_levels": 10005489,
+            }
+        )
+        expected_study_settings = StudySettingsLocal(advanced_parameters=expected_advanced_parameters)
+
+        # When
+        actual_advanced_parameters = AdvancedParametersLocal.model_validate(
+            local_study.get_settings().advanced_parameters.model_dump(exclude_none=True)
+        )
+        actual_study_settings = StudySettingsLocal.model_validate(
+            local_study.get_settings().model_dump(exclude_none=True)
+        )
+
+        # Then
+        assert actual_advanced_parameters == expected_advanced_parameters
+        assert actual_study_settings == expected_study_settings
+
+    def test_local_study_has_correct_optimization_parameters(self, local_study):
+        # Given
+        expected_optimization_parameters = OptimizationParametersLocal.model_validate(
+            {
+                "simplex_optimization_range": SimplexOptimizationRange.WEEK,
+                "transmission_capacities": OptimizationTransmissionCapacities.LOCAL_VALUES,
+                "binding_constraints": True,
+                "hurdle_costs": True,
+                "thermal_clusters_min_stable_power": True,
+                "thermal_clusters_min_ud_time": True,
+                "day_ahead_reserve": True,
+                "strategic_reserve": True,
+                "spinning_reserve": True,
+                "primary_reserve": True,
+                "export_mps": ExportMPS.NONE,
+                "include_exportstructure": False,
+                "unfeasible_problem_behavior": UnfeasibleProblemBehavior.ERROR_VERBOSE,
+            }
+        )
+        expected_study_settings = StudySettingsLocal(optimization_parameters=expected_optimization_parameters)
+
+        # When
+        actual_optimization_parameters = OptimizationParametersLocal.model_validate(
+            local_study.get_settings().optimization_parameters.model_dump(exclude_none=True)
+        )
+        actual_study_settings = StudySettingsLocal.model_validate(
+            local_study.get_settings().model_dump(exclude_none=True)
+        )
+
+        # Then
+        assert actual_optimization_parameters == expected_optimization_parameters
+        assert actual_study_settings == expected_study_settings
+
+    def test_local_study_with_playlist_has_correct_defaults(self, tmp_path):
+        # Given
+        nb_years = 2
+        playlist_study = create_study_local(
+            "test_study",
+            "880",
+            LocalConfiguration(tmp_path, "test_study"),
+            StudySettingsLocal(
+                general_parameters=GeneralParametersLocal(nb_years=nb_years, selection_mode=True),
+                playlist_parameters=PlaylistParameters(playlist=[PlaylistData()] * nb_years),
+            ),
+        )
+
+        # When
+        expected_playlist_parameters_dict = {1: {"status": True, "weight": 1.0}, 2: {"status": True, "weight": 1.0}}
+        expected_playlist_parameters = PlaylistParameters(playlist=expected_playlist_parameters_dict)
+
+        actual_playlist_parameters_dict = playlist_study.get_settings().playlist_parameters.model_dump()
+        actual_playlist_parameters = playlist_study.get_settings().playlist_parameters
+
+        # Then
+        assert actual_playlist_parameters_dict == expected_playlist_parameters_dict
+        assert actual_playlist_parameters == expected_playlist_parameters
+
+    def test_local_study_has_correct_thematic_trimming_parameters(self, tmp_path):
+        # Given
+        expected_thematic_trimming_parameters = ThematicTrimmingParametersLocal.model_validate(
+            {
+                "ov_cost": True,
+                "op_cost": True,
+                "mrg_price": True,
+                "co2_emis": True,
+                "dtg_by_plant": True,
+                "balance": True,
+                "row_bal": True,
+                "psp": True,
+                "misc_ndg": True,
+                "load": True,
+                "h_ror": True,
+                "wind": True,
+                "solar": True,
+                "nuclear": True,
+                "lignite": True,
+                "coal": True,
+                "gas": True,
+                "oil": True,
+                "mix_fuel": True,
+                "misc_dtg": True,
+                "h_stor": True,
+                "h_pump": True,
+                "h_lev": True,
+                "h_infl": True,
+                "h_ovfl": True,
+                "h_val": True,
+                "h_cost": True,
+                "unsp_enrg": True,
+                "spil_enrg": True,
+                "lold": True,
+                "lolp": True,
+                "avl_dtg": True,
+                "dtg_mrg": True,
+                "max_mrg": True,
+                "np_cost": True,
+                "np_cost_by_plant": True,
+                "nodu": True,
+                "nodu_by_plant": True,
+                "flow_lin": True,
+                "ucap_lin": True,
+                "loop_flow": True,
+                "flow_quad": True,
+                "cong_fee_alg": True,
+                "cong_fee_abs": True,
+                "marg_cost": True,
+                "cong_prob_plus": True,
+                "cong_prob_minus": True,
+                "hurdle_cost": True,
+                "res_generation_by_plant": True,
+                "misc_dtg_2": True,
+                "misc_dtg_3": True,
+                "misc_dtg_4": True,
+                "wind_offshore": True,
+                "wind_onshore": True,
+                "solar_concrt": True,
+                "solar_pv": True,
+                "solar_rooft": True,
+                "renw_1": True,
+                "renw_2": True,
+                "renw_3": True,
+                "renw_4": True,
+                "dens": True,
+                "profit_by_plant": True,
+                "sts_inj_by_plant": True,
+                "sts_withdrawal_by_plant": True,
+                "sts_lvl_by_plant": True,
+                "psp_open_injection": True,
+                "psp_open_withdrawal": True,
+                "psp_open_level": True,
+                "psp_closed_injection": True,
+                "psp_closed_withdrawal": True,
+                "psp_closed_level": True,
+                "pondage_injection": True,
+                "pondage_withdrawal": True,
+                "pondage_level": True,
+                "battery_injection": True,
+                "battery_withdrawal": True,
+                "battery_level": True,
+                "other1_injection": True,
+                "other1_withdrawal": True,
+                "other1_level": True,
+                "other2_injection": True,
+                "other2_withdrawal": True,
+                "other2_level": True,
+                "other3_injection": True,
+                "other3_withdrawal": True,
+                "other3_level": True,
+                "other4_injection": True,
+                "other4_withdrawal": True,
+                "other4_level": True,
+                "other5_injection": True,
+                "other5_withdrawal": True,
+                "other5_level": True,
+                "sts_cashflow_by_cluster": True,
+            }
+        )
+        expected_study_settings = StudySettingsLocal(
+            general_parameters=GeneralParametersLocal(thematic_trimming=True),
+            thematic_trimming_parameters=expected_thematic_trimming_parameters,
+        )
+        thematic_trimming_study = create_study_local(
+            "test_study",
+            "880",
+            LocalConfiguration(tmp_path, "test_study"),
+            StudySettingsLocal(
+                general_parameters=GeneralParametersLocal(thematic_trimming=True),
+                thematic_trimming_parameters=ThematicTrimmingParametersLocal(),
+            ),
+        )
+
+        # When
+        actual_thematic_trimming_parameters = DefaultThematicTrimmingParameters.model_validate(
+            thematic_trimming_study.get_settings().thematic_trimming_parameters
+        )
+        actual_study_settings = DefaultStudySettings.model_validate(thematic_trimming_study.get_settings())
+
+        # Then
+        assert actual_thematic_trimming_parameters == expected_thematic_trimming_parameters
+        assert actual_study_settings == expected_study_settings
+
+    def test_generaldata_ini_exists(self, local_study):
+        # Given
+        expected_file = local_study.service.config.study_path / "settings/generaldata.ini"
+
+        # Then
+        assert expected_file.is_file()
+
+    def test_generaldata_ini_has_correct_default_values(self, local_study):
+        # Given
+        expected_file_content = """[general]
+mode = Economy
+horizon = 
+nbyears = 1
+simulation.start = 1
+simulation.end = 365
+january.1st = Monday
+first-month-in-year = January
+first.weekday = Monday
+leapyear = false
+year-by-year = false
+derated = false
+custom-scenario = false
+user-playlist = false
+thematic-trimming = false
+geographic-trimming = false
+generate = 
+nbtimeseriesload = 1
+nbtimeserieshydro = 1
+nbtimeseriesthermal = 1
+nbtimeserieswind = 1
+nbtimeseriessolar = 1
+refreshtimeseries = 
+intra-modal = 
+inter-modal = 
+refreshintervalload = 100
+refreshintervalhydro = 100
+refreshintervalthermal = 100
+refreshintervalwind = 100
+refreshintervalsolar = 100
+readonly = false
+
+[input]
+import = 
+
+[output]
+synthesis = true
+storenewset = false
+archives = 
+result-format = txt-files
+
+[optimization]
+simplex-range = week
+transmission-capacities = local-values
+include-constraints = true
+include-hurdlecosts = true
+include-tc-minstablepower = true
+include-tc-min-ud-time = true
+include-dayahead = true
+include-strategicreserve = true
+include-spinningreserve = true
+include-primaryreserve = true
+include-exportmps = none
+include-exportstructure = false
+include-unfeasible-problem-behavior = error-verbose
+
+[adequacy patch]
+include-adq-patch = false
+set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = true
+set-to-null-ntc-between-physical-out-for-first-step = true
+enable-first-step = false
+price-taking-order = DENS
+include-hurdle-cost-csr = false
+check-csr-cost-function = false
+threshold-initiate-curtailment-sharing-rule = 0.000000
+threshold-display-local-matching-rule-violations = 0.000000
+threshold-csr-variable-bounds-relaxation = 3
+
+[other preferences]
+initial-reservoir-levels = cold start
+hydro-heuristic-policy = accommodate rule curves
+hydro-pricing-mode = fast
+power-fluctuations = free modulations
+shedding-policy = shave peaks
+unit-commitment-mode = fast
+number-of-cores-mode = medium
+renewable-generation-modelling = aggregated
+
+[advanced parameters]
+accuracy-on-correlation = 
+
+[seeds - Mersenne Twister]
+seed-tsgen-wind = 5489
+seed-tsgen-load = 1005489
+seed-tsgen-hydro = 2005489
+seed-tsgen-thermal = 3005489
+seed-tsgen-solar = 4005489
+seed-tsnumbers = 5005489
+seed-unsupplied-energy-costs = 6005489
+seed-spilled-energy-costs = 7005489
+seed-thermal-costs = 8005489
+seed-hydro-costs = 9005489
+seed-initial-reservoir-levels = 10005489
+
+"""
+
+        # When
+        actual_generaldata_ini_file = local_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_file_content = actual_generaldata_ini_file.read_text()
+
+        # Then
+        assert actual_file_content == expected_file_content
+
+    def test_generaldata_ini_with_thematic_trimming_has_negative_sign(self, tmp_path):
+        # Given
+        study_name = "test study"
+        study_version = "880"
+        general_parameters = GeneralParametersLocal(thematic_trimming=True)
+        thematic_trimming_parameters = ThematicTrimmingParametersLocal(op_cost=False)
+        study_config = LocalConfiguration(tmp_path, study_name)
+        expected_file_content = """[general]
+mode = Economy
+horizon = 
+nbyears = 1
+simulation.start = 1
+simulation.end = 365
+january.1st = Monday
+first-month-in-year = January
+first.weekday = Monday
+leapyear = false
+year-by-year = false
+derated = false
+custom-scenario = false
+user-playlist = false
+thematic-trimming = true
+geographic-trimming = false
+generate = 
+nbtimeseriesload = 1
+nbtimeserieshydro = 1
+nbtimeseriesthermal = 1
+nbtimeserieswind = 1
+nbtimeseriessolar = 1
+refreshtimeseries = 
+intra-modal = 
+inter-modal = 
+refreshintervalload = 100
+refreshintervalhydro = 100
+refreshintervalthermal = 100
+refreshintervalwind = 100
+refreshintervalsolar = 100
+readonly = false
+
+[input]
+import = 
+
+[output]
+synthesis = true
+storenewset = false
+archives = 
+result-format = txt-files
+
+[optimization]
+simplex-range = week
+transmission-capacities = local-values
+include-constraints = true
+include-hurdlecosts = true
+include-tc-minstablepower = true
+include-tc-min-ud-time = true
+include-dayahead = true
+include-strategicreserve = true
+include-spinningreserve = true
+include-primaryreserve = true
+include-exportmps = none
+include-exportstructure = false
+include-unfeasible-problem-behavior = error-verbose
+
+[adequacy patch]
+include-adq-patch = false
+set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = true
+set-to-null-ntc-between-physical-out-for-first-step = true
+enable-first-step = false
+price-taking-order = DENS
+include-hurdle-cost-csr = false
+check-csr-cost-function = false
+threshold-initiate-curtailment-sharing-rule = 0.000000
+threshold-display-local-matching-rule-violations = 0.000000
+threshold-csr-variable-bounds-relaxation = 3
+
+[other preferences]
+initial-reservoir-levels = cold start
+hydro-heuristic-policy = accommodate rule curves
+hydro-pricing-mode = fast
+power-fluctuations = free modulations
+shedding-policy = shave peaks
+unit-commitment-mode = fast
+number-of-cores-mode = medium
+renewable-generation-modelling = aggregated
+
+[advanced parameters]
+accuracy-on-correlation = 
+
+[seeds - Mersenne Twister]
+seed-tsgen-wind = 5489
+seed-tsgen-load = 1005489
+seed-tsgen-hydro = 2005489
+seed-tsgen-thermal = 3005489
+seed-tsgen-solar = 4005489
+seed-tsnumbers = 5005489
+seed-unsupplied-energy-costs = 6005489
+seed-spilled-energy-costs = 7005489
+seed-thermal-costs = 8005489
+seed-hydro-costs = 9005489
+seed-initial-reservoir-levels = 10005489
+
+[variables selection]
+selected_vars_reset = true
+select_var - = OP. COST
+
+"""
+
+        # When
+        new_study = create_study_local(
+            study_name,
+            study_version,
+            study_config,
+            StudySettingsLocal(
+                general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
+            ),
+        )
+        actual_generaldata_ini_file = new_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_file_content = actual_generaldata_ini_file.read_text()
+
+        # Then
+        assert actual_file_content == expected_file_content
+
+    def test_generaldata_ini_with_thematic_trimming_has_positive_sign(self, tmp_path):
+        # Given
+        study_name = "test study"
+        study_version = "880"
+        general_parameters = GeneralParametersLocal(thematic_trimming=True)
+        thematic_trimming_parameters = ThematicTrimmingParametersLocal(op_cost=False)
+        thematic_trimming_parameters = {
+            key: not value for key, value in thematic_trimming_parameters.model_dump().items()
+        }
+        study_config = LocalConfiguration(tmp_path, study_name)
+        expected_file_content = """[general]
+mode = Economy
+horizon = 
+nbyears = 1
+simulation.start = 1
+simulation.end = 365
+january.1st = Monday
+first-month-in-year = January
+first.weekday = Monday
+leapyear = false
+year-by-year = false
+derated = false
+custom-scenario = false
+user-playlist = false
+thematic-trimming = true
+geographic-trimming = false
+generate = 
+nbtimeseriesload = 1
+nbtimeserieshydro = 1
+nbtimeseriesthermal = 1
+nbtimeserieswind = 1
+nbtimeseriessolar = 1
+refreshtimeseries = 
+intra-modal = 
+inter-modal = 
+refreshintervalload = 100
+refreshintervalhydro = 100
+refreshintervalthermal = 100
+refreshintervalwind = 100
+refreshintervalsolar = 100
+readonly = false
+
+[input]
+import = 
+
+[output]
+synthesis = true
+storenewset = false
+archives = 
+result-format = txt-files
+
+[optimization]
+simplex-range = week
+transmission-capacities = local-values
+include-constraints = true
+include-hurdlecosts = true
+include-tc-minstablepower = true
+include-tc-min-ud-time = true
+include-dayahead = true
+include-strategicreserve = true
+include-spinningreserve = true
+include-primaryreserve = true
+include-exportmps = none
+include-exportstructure = false
+include-unfeasible-problem-behavior = error-verbose
+
+[adequacy patch]
+include-adq-patch = false
+set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = true
+set-to-null-ntc-between-physical-out-for-first-step = true
+enable-first-step = false
+price-taking-order = DENS
+include-hurdle-cost-csr = false
+check-csr-cost-function = false
+threshold-initiate-curtailment-sharing-rule = 0.000000
+threshold-display-local-matching-rule-violations = 0.000000
+threshold-csr-variable-bounds-relaxation = 3
+
+[other preferences]
+initial-reservoir-levels = cold start
+hydro-heuristic-policy = accommodate rule curves
+hydro-pricing-mode = fast
+power-fluctuations = free modulations
+shedding-policy = shave peaks
+unit-commitment-mode = fast
+number-of-cores-mode = medium
+renewable-generation-modelling = aggregated
+
+[advanced parameters]
+accuracy-on-correlation = 
+
+[seeds - Mersenne Twister]
+seed-tsgen-wind = 5489
+seed-tsgen-load = 1005489
+seed-tsgen-hydro = 2005489
+seed-tsgen-thermal = 3005489
+seed-tsgen-solar = 4005489
+seed-tsnumbers = 5005489
+seed-unsupplied-energy-costs = 6005489
+seed-spilled-energy-costs = 7005489
+seed-thermal-costs = 8005489
+seed-hydro-costs = 9005489
+seed-initial-reservoir-levels = 10005489
+
+[variables selection]
+selected_vars_reset = false
+select_var + = OP. COST
+
+"""
+
+        # When
+        new_study = create_study_local(
+            study_name,
+            study_version,
+            study_config,
+            StudySettingsLocal(
+                general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
+            ),
+        )
+        actual_generaldata_ini_file = new_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_file_content = actual_generaldata_ini_file.read_text()
+
+        # Then
+        assert actual_file_content == expected_file_content
+
+    def test_generaldata_ini_with_thematic_trimming_two_variables(self, tmp_path):
+        # Given
+        study_name = "test study"
+        study_version = "880"
+        general_parameters = GeneralParametersLocal(thematic_trimming=True)
+        thematic_trimming_parameters = ThematicTrimmingParametersLocal(op_cost=False, ov_cost=False)
+        # Invert selection
+        thematic_trimming_parameters = {
+            key: not value for key, value in thematic_trimming_parameters.model_dump().items()
+        }
+
+        study_config = LocalConfiguration(tmp_path, study_name)
+        expected_file_content = """[general]
+mode = Economy
+horizon = 
+nbyears = 1
+simulation.start = 1
+simulation.end = 365
+january.1st = Monday
+first-month-in-year = January
+first.weekday = Monday
+leapyear = false
+year-by-year = false
+derated = false
+custom-scenario = false
+user-playlist = false
+thematic-trimming = true
+geographic-trimming = false
+generate = 
+nbtimeseriesload = 1
+nbtimeserieshydro = 1
+nbtimeseriesthermal = 1
+nbtimeserieswind = 1
+nbtimeseriessolar = 1
+refreshtimeseries = 
+intra-modal = 
+inter-modal = 
+refreshintervalload = 100
+refreshintervalhydro = 100
+refreshintervalthermal = 100
+refreshintervalwind = 100
+refreshintervalsolar = 100
+readonly = false
+
+[input]
+import = 
+
+[output]
+synthesis = true
+storenewset = false
+archives = 
+result-format = txt-files
+
+[optimization]
+simplex-range = week
+transmission-capacities = local-values
+include-constraints = true
+include-hurdlecosts = true
+include-tc-minstablepower = true
+include-tc-min-ud-time = true
+include-dayahead = true
+include-strategicreserve = true
+include-spinningreserve = true
+include-primaryreserve = true
+include-exportmps = none
+include-exportstructure = false
+include-unfeasible-problem-behavior = error-verbose
+
+[adequacy patch]
+include-adq-patch = false
+set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = true
+set-to-null-ntc-between-physical-out-for-first-step = true
+enable-first-step = false
+price-taking-order = DENS
+include-hurdle-cost-csr = false
+check-csr-cost-function = false
+threshold-initiate-curtailment-sharing-rule = 0.000000
+threshold-display-local-matching-rule-violations = 0.000000
+threshold-csr-variable-bounds-relaxation = 3
+
+[other preferences]
+initial-reservoir-levels = cold start
+hydro-heuristic-policy = accommodate rule curves
+hydro-pricing-mode = fast
+power-fluctuations = free modulations
+shedding-policy = shave peaks
+unit-commitment-mode = fast
+number-of-cores-mode = medium
+renewable-generation-modelling = aggregated
+
+[advanced parameters]
+accuracy-on-correlation = 
+
+[seeds - Mersenne Twister]
+seed-tsgen-wind = 5489
+seed-tsgen-load = 1005489
+seed-tsgen-hydro = 2005489
+seed-tsgen-thermal = 3005489
+seed-tsgen-solar = 4005489
+seed-tsnumbers = 5005489
+seed-unsupplied-energy-costs = 6005489
+seed-spilled-energy-costs = 7005489
+seed-thermal-costs = 8005489
+seed-hydro-costs = 9005489
+seed-initial-reservoir-levels = 10005489
+
+[variables selection]
+selected_vars_reset = false
+"""
+
+        expected_file_content += "select_var + = OV. COST\nselect_var + = OP. COST\n\n"
+
+        # When
+        new_study = create_study_local(
+            study_name,
+            study_version,
+            study_config,
+            StudySettingsLocal(
+                general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
+            ),
+        )
+
+        actual_generaldata_ini_file_path = new_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_file_content = actual_generaldata_ini_file_path.read_text()
+
+        # Then
+        assert actual_file_content == expected_file_content
+
+    def test_generaldata_ini_with_playlist_has_negative_sign(self, tmp_path):
+        # Given
+        study_name = "test study"
+        study_version = "880"
+        general_parameters = GeneralParametersLocal(selection_mode=True, thematic_trimming=True)
+        playlist_parameters = PlaylistParameters(playlist=[PlaylistData(), PlaylistData(), PlaylistData(status=False)])
+        thematic_trimming_parameters = ThematicTrimmingParametersLocal(op_cost=False)
+        thematic_trimming_parameters = ThematicTrimmingParametersLocal.model_validate(
+            {key: not value for key, value in thematic_trimming_parameters.model_dump().items()}
+        )
+        study_config = LocalConfiguration(tmp_path, study_name)
+        expected_file_content = """[general]
+mode = Economy
+horizon = 
+nbyears = 1
+simulation.start = 1
+simulation.end = 365
+january.1st = Monday
+first-month-in-year = January
+first.weekday = Monday
+leapyear = false
+year-by-year = false
+derated = false
+custom-scenario = false
+user-playlist = true
+thematic-trimming = true
+geographic-trimming = false
+generate = 
+nbtimeseriesload = 1
+nbtimeserieshydro = 1
+nbtimeseriesthermal = 1
+nbtimeserieswind = 1
+nbtimeseriessolar = 1
+refreshtimeseries = 
+intra-modal = 
+inter-modal = 
+refreshintervalload = 100
+refreshintervalhydro = 100
+refreshintervalthermal = 100
+refreshintervalwind = 100
+refreshintervalsolar = 100
+readonly = false
+
+[input]
+import = 
+
+[output]
+synthesis = true
+storenewset = false
+archives = 
+result-format = txt-files
+
+[optimization]
+simplex-range = week
+transmission-capacities = local-values
+include-constraints = true
+include-hurdlecosts = true
+include-tc-minstablepower = true
+include-tc-min-ud-time = true
+include-dayahead = true
+include-strategicreserve = true
+include-spinningreserve = true
+include-primaryreserve = true
+include-exportmps = none
+include-exportstructure = false
+include-unfeasible-problem-behavior = error-verbose
+
+[adequacy patch]
+include-adq-patch = false
+set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = true
+set-to-null-ntc-between-physical-out-for-first-step = true
+enable-first-step = false
+price-taking-order = DENS
+include-hurdle-cost-csr = false
+check-csr-cost-function = false
+threshold-initiate-curtailment-sharing-rule = 0.000000
+threshold-display-local-matching-rule-violations = 0.000000
+threshold-csr-variable-bounds-relaxation = 3
+
+[other preferences]
+initial-reservoir-levels = cold start
+hydro-heuristic-policy = accommodate rule curves
+hydro-pricing-mode = fast
+power-fluctuations = free modulations
+shedding-policy = shave peaks
+unit-commitment-mode = fast
+number-of-cores-mode = medium
+renewable-generation-modelling = aggregated
+
+[advanced parameters]
+accuracy-on-correlation = 
+
+[seeds - Mersenne Twister]
+seed-tsgen-wind = 5489
+seed-tsgen-load = 1005489
+seed-tsgen-hydro = 2005489
+seed-tsgen-thermal = 3005489
+seed-tsgen-solar = 4005489
+seed-tsnumbers = 5005489
+seed-unsupplied-energy-costs = 6005489
+seed-spilled-energy-costs = 7005489
+seed-thermal-costs = 8005489
+seed-hydro-costs = 9005489
+seed-initial-reservoir-levels = 10005489
+
+[playlist]
+playlist_reset = true
+playlist_year - = 2
+
+[variables selection]
+selected_vars_reset = false
+select_var + = OP. COST
+
+"""
+
+        # When
+        new_study = create_study_local(
+            study_name,
+            study_version,
+            study_config,
+            StudySettingsLocal(
+                general_parameters=general_parameters,
+                playlist_parameters=playlist_parameters,
+                thematic_trimming_parameters=thematic_trimming_parameters,
+            ),
+        )
+
+        actual_general_parameters_file_path = new_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_file_content = actual_general_parameters_file_path.read_text()
+
+        # Then
+        assert actual_file_content == expected_file_content
+
+    def test_generaldata_ini_with_playlist_has_positive_sign(self, tmp_path):
+        # Given
+        study_name = "test study"
+        study_version = "880"
+        general_parameters = GeneralParametersLocal(selection_mode=True, thematic_trimming=True)
+        playlist_parameters = PlaylistParameters(
+            playlist=[PlaylistData(status=False), PlaylistData(status=False), PlaylistData()]
+        )
+        thematic_trimming_parameters = ThematicTrimmingParametersLocal(op_cost=False)
+        thematic_trimming_parameters = ThematicTrimmingParametersLocal.model_validate(
+            {key: not value for key, value in thematic_trimming_parameters.model_dump().items()}
+        )
+        study_config = LocalConfiguration(tmp_path, study_name)
+        expected_file_content = """[general]
+mode = Economy
+horizon = 
+nbyears = 1
+simulation.start = 1
+simulation.end = 365
+january.1st = Monday
+first-month-in-year = January
+first.weekday = Monday
+leapyear = false
+year-by-year = false
+derated = false
+custom-scenario = false
+user-playlist = true
+thematic-trimming = true
+geographic-trimming = false
+generate = 
+nbtimeseriesload = 1
+nbtimeserieshydro = 1
+nbtimeseriesthermal = 1
+nbtimeserieswind = 1
+nbtimeseriessolar = 1
+refreshtimeseries = 
+intra-modal = 
+inter-modal = 
+refreshintervalload = 100
+refreshintervalhydro = 100
+refreshintervalthermal = 100
+refreshintervalwind = 100
+refreshintervalsolar = 100
+readonly = false
+
+[input]
+import = 
+
+[output]
+synthesis = true
+storenewset = false
+archives = 
+result-format = txt-files
+
+[optimization]
+simplex-range = week
+transmission-capacities = local-values
+include-constraints = true
+include-hurdlecosts = true
+include-tc-minstablepower = true
+include-tc-min-ud-time = true
+include-dayahead = true
+include-strategicreserve = true
+include-spinningreserve = true
+include-primaryreserve = true
+include-exportmps = none
+include-exportstructure = false
+include-unfeasible-problem-behavior = error-verbose
+
+[adequacy patch]
+include-adq-patch = false
+set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = true
+set-to-null-ntc-between-physical-out-for-first-step = true
+enable-first-step = false
+price-taking-order = DENS
+include-hurdle-cost-csr = false
+check-csr-cost-function = false
+threshold-initiate-curtailment-sharing-rule = 0.000000
+threshold-display-local-matching-rule-violations = 0.000000
+threshold-csr-variable-bounds-relaxation = 3
+
+[other preferences]
+initial-reservoir-levels = cold start
+hydro-heuristic-policy = accommodate rule curves
+hydro-pricing-mode = fast
+power-fluctuations = free modulations
+shedding-policy = shave peaks
+unit-commitment-mode = fast
+number-of-cores-mode = medium
+renewable-generation-modelling = aggregated
+
+[advanced parameters]
+accuracy-on-correlation = 
+
+[seeds - Mersenne Twister]
+seed-tsgen-wind = 5489
+seed-tsgen-load = 1005489
+seed-tsgen-hydro = 2005489
+seed-tsgen-thermal = 3005489
+seed-tsgen-solar = 4005489
+seed-tsnumbers = 5005489
+seed-unsupplied-energy-costs = 6005489
+seed-spilled-energy-costs = 7005489
+seed-thermal-costs = 8005489
+seed-hydro-costs = 9005489
+seed-initial-reservoir-levels = 10005489
+
+[playlist]
+playlist_reset = false
+playlist_year + = 2
+
+[variables selection]
+selected_vars_reset = false
+select_var + = OP. COST
+
+"""
+
+        # When
+        new_study = create_study_local(
+            study_name,
+            study_version,
+            study_config,
+            StudySettingsLocal(
+                general_parameters=general_parameters,
+                playlist_parameters=playlist_parameters,
+                thematic_trimming_parameters=thematic_trimming_parameters,
+            ),
+        )
+
+        actual_general_ini_file_path = new_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_file_content = actual_general_ini_file_path.read_text()
+
+        # Then
+        assert actual_file_content == expected_file_content
 
 
 class TestCreateArea:

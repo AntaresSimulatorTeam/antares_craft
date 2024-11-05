@@ -11,17 +11,19 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Optional, Union
+from typing import Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
+
+from antares.tools.all_optional_meta import all_optional_model
 
 
 class LegacyTransmissionCapacities(Enum):
     INFINITE = "infinite"
 
 
-class TransmissionCapacities(Enum):
+class OptimizationTransmissionCapacities(Enum):
     LOCAL_VALUES = "local-values"
     NULL_FOR_ALL_LINKS = "null-for-all-links"
     INFINITE_FOR_ALL_LINKS = "infinite-for-all-links"
@@ -41,16 +43,61 @@ class SimplexOptimizationRange(Enum):
     WEEK = "week"
 
 
-class OptimizationProperties(BaseModel, alias_generator=to_camel):
-    binding_constraints: Optional[bool] = None
-    hurdle_costs: Optional[bool] = None
-    transmission_capacities: Union[bool, Union[LegacyTransmissionCapacities, TransmissionCapacities], None] = None
-    thermal_clusters_min_stable_power: Optional[bool] = None
-    thermal_clusters_min_ud_time: Optional[bool] = None
-    day_ahead_reserve: Optional[bool] = None
-    primary_reserve: Optional[bool] = None
-    strategic_reserve: Optional[bool] = None
-    spinning_reserve: Optional[bool] = None
-    export_mps: Union[bool, str, None] = None
-    unfeasible_problem_behavior: Optional[UnfeasibleProblemBehavior] = None
-    simplex_optimization_range: Optional[SimplexOptimizationRange] = None
+class ExportMPS(Enum):
+    FALSE = False
+    NONE = "none"
+    OPTIM1 = "optim1"
+    OPTIM2 = "optim2"
+    BOTH_OPTIMS = "both-optims"
+    TRUE = True
+
+
+class DefaultOptimizationParameters(BaseModel, alias_generator=to_camel):
+    model_config = ConfigDict(use_enum_values=True)
+
+    simplex_optimization_range: SimplexOptimizationRange = Field(
+        default=SimplexOptimizationRange.WEEK, validate_default=True
+    )
+    transmission_capacities: Union[bool, Union[LegacyTransmissionCapacities, OptimizationTransmissionCapacities]] = (
+        Field(default=OptimizationTransmissionCapacities.LOCAL_VALUES, validate_default=True)
+    )
+    binding_constraints: bool = True
+    hurdle_costs: bool = True
+    thermal_clusters_min_stable_power: bool = True
+    thermal_clusters_min_ud_time: bool = True
+    day_ahead_reserve: bool = True
+    strategic_reserve: bool = True
+    spinning_reserve: bool = True
+    primary_reserve: bool = True
+    export_mps: ExportMPS = Field(default=ExportMPS.NONE, validate_default=True)
+    include_exportstructure: bool = False
+    unfeasible_problem_behavior: UnfeasibleProblemBehavior = Field(
+        default=UnfeasibleProblemBehavior.ERROR_VERBOSE, validate_default=True
+    )
+
+
+@all_optional_model
+class OptimizationParameters(DefaultOptimizationParameters):
+    pass
+
+
+class OptimizationParametersLocal(DefaultOptimizationParameters):
+    @property
+    def ini_fields(self) -> dict:
+        return {
+            "optimization": {
+                "simplex-range": self.simplex_optimization_range,
+                "transmission-capacities": self.transmission_capacities,
+                "include-constraints": str(self.binding_constraints).lower(),
+                "include-hurdlecosts": str(self.hurdle_costs).lower(),
+                "include-tc-minstablepower": str(self.thermal_clusters_min_stable_power).lower(),
+                "include-tc-min-ud-time": str(self.thermal_clusters_min_ud_time).lower(),
+                "include-dayahead": str(self.day_ahead_reserve).lower(),
+                "include-strategicreserve": str(self.primary_reserve).lower(),
+                "include-spinningreserve": str(self.spinning_reserve).lower(),
+                "include-primaryreserve": str(self.primary_reserve).lower(),
+                "include-exportmps": self.export_mps,
+                "include-exportstructure": str(self.include_exportstructure).lower(),
+                "include-unfeasible-problem-behavior": self.unfeasible_problem_behavior,
+            }
+        }

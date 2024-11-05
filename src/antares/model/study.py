@@ -16,7 +16,7 @@ import time
 
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -27,7 +27,8 @@ from antares.exceptions.exceptions import APIError, StudyCreationError
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
 from antares.model.link import Link, LinkProperties, LinkUi
-from antares.model.settings import StudySettings
+from antares.model.settings.study_settings import DefaultStudySettings, StudySettings, StudySettingsLocal
+from antares.model.settings.time_series import correlation_defaults
 from antares.service.api_services.study_api import _returns_study_settings
 from antares.service.base_services import BaseStudyService
 from antares.service.service_factory import ServiceFactory
@@ -73,13 +74,11 @@ def create_study_api(
     return Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
 
 
-def _verify_study_already_exists(study_directory: Path) -> None:
-    if os.path.exists(study_directory):
-        raise FileExistsError(f"Study {study_directory} already exists.")
-
-
 def create_study_local(
-    study_name: str, version: str, local_config: LocalConfiguration, settings: Optional[StudySettings] = None
+    study_name: str,
+    version: str,
+    local_config: LocalConfiguration,
+    settings: StudySettingsLocal = StudySettingsLocal(),
 ) -> "Study":
     """
     Create a directory structure for the study with empty files.
@@ -93,47 +92,6 @@ def create_study_local(
     Raises:
         FileExistsError if the study already exists in the given location
     """
-
-    def _create_directory_structure(study_path: Path) -> None:
-        subdirectories = [
-            "input/hydro/allocation",
-            "input/hydro/common/capacity",
-            "input/hydro/series",
-            "input/links",
-            "input/load/series",
-            "input/misc-gen",
-            "input/reserves",
-            "input/solar/series",
-            "input/thermal/clusters",
-            "input/thermal/prepro",
-            "input/thermal/series",
-            "input/wind/series",
-            "layers",
-            "output",
-            "settings/resources",
-            "settings/simulations",
-            "user",
-        ]
-        for subdirectory in subdirectories:
-            (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
-
-    def _correlation_defaults() -> dict[str, dict[str, str]]:
-        return {
-            "general": {"mode": "annual"},
-            "annual": {},
-            "0": {},
-            "1": {},
-            "2": {},
-            "3": {},
-            "4": {},
-            "5": {},
-            "6": {},
-            "7": {},
-            "8": {},
-            "9": {},
-            "10": {},
-            "11": {},
-        }
 
     study_directory = local_config.local_path / study_name
 
@@ -165,25 +123,20 @@ InfoTip = Antares Study {version}: {study_name}
     with open(desktop_ini_path, "w") as desktop_ini_file:
         desktop_ini_file.write(desktop_ini_content)
 
+    local_settings = StudySettingsLocal.model_validate(settings)
+    local_settings_file = IniFile(study_directory, IniFileTypes.GENERAL)
+    local_settings_file.ini_dict = local_settings.model_dump(exclude_none=True, by_alias=True)
+    local_settings_file.write_ini_file()
+
     # Create various .ini files for the study
-    correlation_inis_to_create = [
-        ("solar_correlation", IniFileTypes.SOLAR_CORRELATION_INI),
-        ("wind_correlation", IniFileTypes.WIND_CORRELATION_INI),
-        ("load_correlation", IniFileTypes.LOAD_CORRELATION_INI),
-    ]
-    ini_files = {
-        correlation: IniFile(study_directory, file_type, ini_contents=_correlation_defaults())
-        for (correlation, file_type) in correlation_inis_to_create
-    }
-    for ini_file in ini_files.keys():
-        ini_files[ini_file].write_ini_file()
+    ini_files = _create_correlation_ini_files(local_settings, study_directory)
 
     logging.info(f"Study successfully created: {study_name}")
     return Study(
         name=study_name,
         version=version,
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
-        settings=settings,
+        settings=local_settings,
         ini_files=ini_files,
     )
 
@@ -194,7 +147,7 @@ class Study:
         name: str,
         version: str,
         service_factory: ServiceFactory,
-        settings: Optional[StudySettings] = None,
+        settings: Union[StudySettings, StudySettingsLocal, None] = None,
         # ini_files: Optional[dict[str, IniFile]] = None,
         **kwargs: Any,
     ):
@@ -204,7 +157,7 @@ class Study:
         self._area_service = service_factory.create_area_service()
         self._link_service = service_factory.create_link_service()
         self._binding_constraints_service = service_factory.create_binding_constraints_service()
-        self._settings = settings or StudySettings()
+        self._settings = DefaultStudySettings.model_validate(settings if settings is not None else StudySettings())
         self._areas: Dict[str, Area] = dict()
         self._links: Dict[str, Link] = dict()
         for argument in kwargs:
@@ -221,7 +174,7 @@ class Study:
     def get_links(self) -> MappingProxyType[str, Link]:
         return MappingProxyType(self._links)
 
-    def get_settings(self) -> StudySettings:
+    def get_settings(self) -> DefaultStudySettings:
         return self._settings
 
     def get_binding_constraints(self) -> MappingProxyType[str, BindingConstraint]:
@@ -280,3 +233,58 @@ class Study:
 
     def delete(self, children: bool = False) -> None:
         self._study_service.delete(children)
+
+
+def _verify_study_already_exists(study_directory: Path) -> None:
+    if os.path.exists(study_directory):
+        raise FileExistsError(f"Study {study_directory} already exists.")
+
+
+def _create_directory_structure(study_path: Path) -> None:
+    subdirectories = [
+        "input/hydro/allocation",
+        "input/hydro/common/capacity",
+        "input/hydro/series",
+        "input/links",
+        "input/load/series",
+        "input/misc-gen",
+        "input/reserves",
+        "input/solar/series",
+        "input/thermal/clusters",
+        "input/thermal/prepro",
+        "input/thermal/series",
+        "input/wind/series",
+        "layers",
+        "output",
+        "settings/resources",
+        "settings/simulations",
+        "user",
+    ]
+    for subdirectory in subdirectories:
+        (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
+
+
+def _create_correlation_ini_files(local_settings: StudySettingsLocal, study_directory: Path) -> dict[str, IniFile]:
+    fields_to_check = ["hydro", "load", "solar", "wind"]
+    correlation_inis_to_create = [
+        (
+            field + "_correlation",
+            getattr(IniFileTypes, field.upper() + "_CORRELATION_INI"),
+            field,
+        )
+        for field in fields_to_check
+    ]
+    ini_files = {
+        correlation: IniFile(
+            study_directory,
+            file_type,
+            ini_contents=correlation_defaults(
+                season_correlation=getattr(local_settings.time_series_parameters, field).season_correlation,
+            ),
+        )
+        for (correlation, file_type, field) in correlation_inis_to_create
+    }
+
+    for ini_file in ini_files.keys():
+        ini_files[ini_file].write_ini_file()
+    return ini_files
