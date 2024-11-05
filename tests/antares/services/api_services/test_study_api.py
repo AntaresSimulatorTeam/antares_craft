@@ -30,6 +30,7 @@ from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings.general import GeneralParameters
 from antares.model.settings.study_settings import StudySettings
 from antares.model.study import Study, create_study_api
+from antares.service.api_services.study_api import StudyApiService
 from antares.service.service_factory import ServiceFactory
 
 
@@ -45,7 +46,6 @@ class TestCreateAPI:
         ServiceFactory(api, study_id).create_thermal_service(),
         ServiceFactory(api, study_id).create_renewable_service(),
     )
-
     def test_create_study_test_ok(self) -> None:
         with requests_mock.Mocker() as mocker:
             expected_url = "https://antares.com/api/v1/studies?name=TestStudy&version=880"
@@ -197,3 +197,6 @@ class TestCreateAPI:
                 match=f"Could not create the binding constraint {constraint_name}: {self.antares_web_description_msg}",
             ):
                 self.study.create_binding_constraint(name=constraint_name)
+
+    def test_read_areas(self):
+        pass

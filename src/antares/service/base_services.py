@@ -471,6 +471,13 @@ class BaseStudyService(ABC):
         """
         pass
 
+    @abstractmethod
+    def read_areas(self) -> List:
+        """
+        Returns: Returns a list of areas
+        """
+        pass
+
 
 class BaseRenewableService(ABC):
     @abstractmethod

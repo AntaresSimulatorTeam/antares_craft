@@ -7,4 +7,7 @@ pandas-stubs~=2.2.2
 pydantic~=2.7.1
 pytest~=7.2.1
 python-dateutil~=2.9.0
-requests~=2.31.0
+requests~=2.32.0
+
+antares~=0.3.25.0
+requests-mock~=1.12.1

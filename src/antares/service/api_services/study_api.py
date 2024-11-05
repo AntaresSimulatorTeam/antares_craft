@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Optional
+from typing import Optional, List
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
@@ -20,6 +20,7 @@ from antares.exceptions.exceptions import (
     StudyDeletionError,
     StudySettingsUpdateError,
 )
+from antares.model.area import Area
 from antares.model.binding_constraint import BindingConstraint
 from antares.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.model.settings.advanced_parameters import AdvancedParameters
@@ -33,7 +34,7 @@ from antares.service.base_services import BaseStudyService
 
 
 def _returns_study_settings(
-    base_url: str, study_id: str, wrapper: RequestWrapper, update: bool, settings: Optional[StudySettings]
+        base_url: str, study_id: str, wrapper: RequestWrapper, update: bool, settings: Optional[StudySettings]
 ) -> Optional[StudySettings]:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
     mapping = {
@@ -105,3 +106,33 @@ class StudyApiService(BaseStudyService):
             self._wrapper.delete(url)
         except APIError as e:
             raise StudyDeletionError(self.study_id, e.message) from e
+
+    def read_areas(self) -> List:
+        area_list = []
+
+        base_api_url = f"{self._base_url}/studies/{self.study_id}/areas"
+        ui_url = "?ui=true"
+        url_thermal = f"clusters/thermal"
+        url_renewable = f"clusters/renewable"
+        url_st_storage = "storages"
+        url_properties_form = f"properties/form"
+
+        json_resp = self._wrapper.get(base_api_url + ui_url).json()
+
+        for area in json_resp:
+            #notes : service =
+            area_url = base_api_url + "/" + f"{area}/"
+            json_thermal = self._wrapper.get(area_url + url_thermal).json()
+            json_renewable = self._wrapper.get(area_url + url_renewable).json()
+            json_st_storage = self._wrapper.get(area_url + url_st_storage).json()
+            json_properties = self._wrapper.get(area_url + url_properties_form).json()
+            obj_area = Area(area, self.config, self.config, self.config, self.config)
+            #obj_area._st_storages = obj_area.create_st_storage(json_st_storage["name"],json_st_storage)
+            print(json_thermal)
+            print(json_renewable)
+            print(json_st_storage)
+            print(json_properties["energyCostUnsupplied"])
+            #area_list.append(obj_area)
+
+
+        return area_list
