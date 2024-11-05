@@ -38,7 +38,7 @@ class CustomRawConfigParser(RawConfigParser):
         """Writes a single line of the provided section to the specified `file_path`."""
         value = self._interpolation.before_write(self, section_name, key, value)
         if value is not None or not self._allow_no_value:  # type:ignore
-            value = delimiter + value.replace("\n", "\n\t")
+            value = delimiter + str(value).replace("\n", "\n\t")
         else:
             value = ""
         file_path.write(f"{key}{value}\n")
