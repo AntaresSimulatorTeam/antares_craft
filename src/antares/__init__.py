@@ -10,3 +10,6 @@
 #
 # This file is part of the Antares project.
 
+from antares.model.study import create_study_api, create_study_local
+
+__all__ = ["create_study_api", "create_study_local"]
