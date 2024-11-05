@@ -83,7 +83,7 @@ from antares.service.local_services.link_local import LinkLocalService
 from antares.service.local_services.renewable_local import RenewableLocalService
 from antares.service.local_services.st_storage_local import ShortTermStorageLocalService
 from antares.service.local_services.thermal_local import ThermalLocalService
-from antares.tools.ini_tool import IniFile, IniFileTypes
+from antares.tools.ini_tool import IniFileTypes
 from antares.tools.time_series_tool import TimeSeriesFileType
 
 
@@ -985,6 +985,133 @@ select_var + = OP. COST
         actual_generaldata_ini_file = new_study.service.config.study_path / IniFileTypes.GENERAL.value
         actual_file_content = actual_generaldata_ini_file.read_text()
 
+        # Then
+        assert actual_file_content == expected_file_content
+
+    def test_generaldata_ini_with_thematic_trimming_two_variables(self, tmp_path):
+        # Given
+        study_name = "test study"
+        study_version = "880"
+        general_parameters = GeneralParametersLocal(thematic_trimming=True)
+        thematic_trimming_parameters = ThematicTrimmingParametersLocal(op_cost=False, ov_cost=False)
+        # Invert selection
+        thematic_trimming_parameters = {
+            key: not value for key, value in thematic_trimming_parameters.model_dump().items()
+        }
+
+        study_config = LocalConfiguration(tmp_path, study_name)
+        expected_file_content = """[general]
+mode = Economy
+horizon = 
+nbyears = 1
+simulation.start = 1
+simulation.end = 365
+january.1st = Monday
+first-month-in-year = January
+first.weekday = Monday
+leapyear = false
+year-by-year = false
+derated = false
+custom-scenario = false
+user-playlist = false
+thematic-trimming = true
+geographic-trimming = false
+generate = 
+nbtimeseriesload = 1
+nbtimeserieshydro = 1
+nbtimeseriesthermal = 1
+nbtimeserieswind = 1
+nbtimeseriessolar = 1
+refreshtimeseries = 
+intra-modal = 
+inter-modal = 
+refreshintervalload = 100
+refreshintervalhydro = 100
+refreshintervalthermal = 100
+refreshintervalwind = 100
+refreshintervalsolar = 100
+readonly = false
+
+[input]
+import = 
+
+[output]
+synthesis = true
+storenewset = false
+archives = 
+result-format = txt-files
+
+[optimization]
+simplex-range = week
+transmission-capacities = local-values
+include-constraints = true
+include-hurdlecosts = true
+include-tc-minstablepower = true
+include-tc-min-ud-time = true
+include-dayahead = true
+include-strategicreserve = true
+include-spinningreserve = true
+include-primaryreserve = true
+include-exportmps = none
+include-exportstructure = false
+include-unfeasible-problem-behavior = error-verbose
+
+[adequacy patch]
+include-adq-patch = false
+set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = true
+set-to-null-ntc-between-physical-out-for-first-step = true
+enable-first-step = false
+price-taking-order = DENS
+include-hurdle-cost-csr = false
+check-csr-cost-function = false
+threshold-initiate-curtailment-sharing-rule = 0.000000
+threshold-display-local-matching-rule-violations = 0.000000
+threshold-csr-variable-bounds-relaxation = 3
+
+[other preferences]
+initial-reservoir-levels = cold start
+hydro-heuristic-policy = accommodate rule curves
+hydro-pricing-mode = fast
+power-fluctuations = free modulations
+shedding-policy = shave peaks
+unit-commitment-mode = fast
+number-of-cores-mode = medium
+renewable-generation-modelling = aggregated
+
+[advanced parameters]
+accuracy-on-correlation = 
+
+[seeds - Mersenne Twister]
+seed-tsgen-wind = 5489
+seed-tsgen-load = 1005489
+seed-tsgen-hydro = 2005489
+seed-tsgen-thermal = 3005489
+seed-tsgen-solar = 4005489
+seed-tsnumbers = 5005489
+seed-unsupplied-energy-costs = 6005489
+seed-spilled-energy-costs = 7005489
+seed-thermal-costs = 8005489
+seed-hydro-costs = 9005489
+seed-initial-reservoir-levels = 10005489
+
+[variables selection]
+selected_vars_reset = false
+"""
+
+        expected_file_content += "select_var + = OV. COST\nselect_var + = OP. COST\n\n"
+
+        # When
+        new_study = create_study_local(
+            study_name,
+            study_version,
+            study_config,
+            StudySettingsLocal(
+                general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
+            ),
+        )
+
+        actual_generaldata_ini_file_path = new_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_file_content = actual_generaldata_ini_file_path.read_text()
 
         # Then
         assert actual_file_content == expected_file_content
