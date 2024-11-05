@@ -733,18 +733,13 @@ seed-hydro-costs = 9005489
 seed-initial-reservoir-levels = 10005489
 
 """
-        expected_generaldata_ini = ConfigParser()
-        expected_generaldata_ini.read_string(expected_file_content)
 
         # When
-        actual_generaldata_ini_file = IniFile(local_study.service.config.study_path, IniFileTypes.GENERAL)
-        actual_generaldata_ini = actual_generaldata_ini_file.parsed_ini
-        with actual_generaldata_ini_file.ini_path.open("r") as file:
-            actual_file_content = file.read()
+        actual_generaldata_ini_file = local_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_file_content = actual_generaldata_ini_file.read_text()
 
         # Then
         assert actual_file_content == expected_file_content
-        assert actual_generaldata_ini == expected_generaldata_ini
 
     def test_generaldata_ini_with_thematic_trimming_has_negative_sign(self, tmp_path):
         # Given
@@ -852,8 +847,6 @@ selected_vars_reset = true
 select_var - = OP. COST
 
 """
-        expected_generaldata_ini = ConfigParser()
-        expected_generaldata_ini.read_string(expected_file_content)
 
         # When
         new_study = create_study_local(
@@ -864,15 +857,11 @@ select_var - = OP. COST
                 general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
             ),
         )
-        actual_generaldata_ini_file = IniFile(new_study.service.config.study_path, IniFileTypes.GENERAL)
-        actual_generaldata_ini = actual_generaldata_ini_file.parsed_ini
-        with actual_generaldata_ini_file.ini_path.open("r") as file:
-            actual_file_content = file.read()
+        actual_generaldata_ini_file = new_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_file_content = actual_generaldata_ini_file.read_text()
 
         # Then
         assert actual_file_content == expected_file_content
-        assert actual_generaldata_ini.sections() == expected_generaldata_ini.sections()
-        assert actual_generaldata_ini == expected_generaldata_ini
 
     def test_generaldata_ini_with_thematic_trimming_has_positive_sign(self, tmp_path):
         # Given
@@ -983,8 +972,6 @@ selected_vars_reset = false
 select_var + = OP. COST
 
 """
-        expected_generaldata_ini = ConfigParser()
-        expected_generaldata_ini.read_string(expected_file_content)
 
         # When
         new_study = create_study_local(
@@ -995,15 +982,12 @@ select_var + = OP. COST
                 general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
             ),
         )
-        actual_generaldata_ini_file = IniFile(new_study.service.config.study_path, IniFileTypes.GENERAL)
-        actual_generaldata_ini = actual_generaldata_ini_file.parsed_ini
-        with actual_generaldata_ini_file.ini_path.open("r") as file:
-            actual_file_content = file.read()
+        actual_generaldata_ini_file = new_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_file_content = actual_generaldata_ini_file.read_text()
+
 
         # Then
         assert actual_file_content == expected_file_content
-        assert actual_generaldata_ini.sections() == expected_generaldata_ini.sections()
-        assert actual_generaldata_ini == expected_generaldata_ini
 
     def test_generaldata_ini_with_playlist_has_negative_sign(self, tmp_path):
         # Given
@@ -1119,8 +1103,6 @@ selected_vars_reset = false
 select_var + = OP. COST
 
 """
-        expected_generaldata_ini = ConfigParser()
-        expected_generaldata_ini.read_string(expected_file_content)
 
         # When
         new_study = create_study_local(
@@ -1133,15 +1115,12 @@ select_var + = OP. COST
                 thematic_trimming_parameters=thematic_trimming_parameters,
             ),
         )
-        actual_generaldata_ini_file = IniFile(new_study.service.config.study_path, IniFileTypes.GENERAL)
-        actual_generaldata_ini = actual_generaldata_ini_file.parsed_ini
-        with actual_generaldata_ini_file.ini_path.open("r") as file:
-            actual_file_content = file.read()
+
+        actual_general_parameters_file_path = new_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_file_content = actual_general_parameters_file_path.read_text()
 
         # Then
         assert actual_file_content == expected_file_content
-        assert actual_generaldata_ini.sections() == expected_generaldata_ini.sections()
-        assert actual_generaldata_ini == expected_generaldata_ini
 
     def test_generaldata_ini_with_playlist_has_positive_sign(self, tmp_path):
         # Given
@@ -1259,8 +1238,6 @@ selected_vars_reset = false
 select_var + = OP. COST
 
 """
-        expected_generaldata_ini = ConfigParser()
-        expected_generaldata_ini.read_string(expected_file_content)
 
         # When
         new_study = create_study_local(
@@ -1273,15 +1250,12 @@ select_var + = OP. COST
                 thematic_trimming_parameters=thematic_trimming_parameters,
             ),
         )
-        actual_generaldata_ini_file = IniFile(new_study.service.config.study_path, IniFileTypes.GENERAL)
-        actual_generaldata_ini = actual_generaldata_ini_file.parsed_ini
-        with actual_generaldata_ini_file.ini_path.open("r") as file:
-            actual_file_content = file.read()
+
+        actual_general_ini_file_path = new_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_file_content = actual_general_ini_file_path.read_text()
 
         # Then
         assert actual_file_content == expected_file_content
-        assert actual_generaldata_ini.sections() == expected_generaldata_ini.sections()
-        assert actual_generaldata_ini == expected_generaldata_ini
 
 
 class TestCreateArea:
