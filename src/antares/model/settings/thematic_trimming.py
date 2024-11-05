@@ -136,17 +136,15 @@ class ThematicTrimmingParameters(DefaultThematicTrimmingParameters):
 class ThematicTrimmingParametersLocal(DefaultThematicTrimmingParameters, populate_by_name=True):
     @property
     def ini_fields(self) -> dict:
-        variable_list = ", ".join(
+        variable_list = repr(
             [
                 getattr(ThematicVars, to_camel(variable)).value
                 for variable in self.model_fields
                 if getattr(self, variable) ^ self.selected_vars_reset
             ]
         )
-        if self.selected_vars_reset:
-            thematic_trimming_dict = {"select_var -": variable_list}
-        else:
-            thematic_trimming_dict = {"select_var +": variable_list}
+        thematic_trimming_dict = {"select_var " + ("-" if self.selected_vars_reset else "+"): variable_list}
+
         return {
             "variables selection": {"selected_vars_reset": str(self.selected_vars_reset).lower()}
             | thematic_trimming_dict
