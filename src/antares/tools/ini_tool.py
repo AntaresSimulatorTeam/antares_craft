@@ -10,13 +10,14 @@
 #
 # This file is part of the Antares project.
 
-from configparser import ConfigParser
+
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, Union, overload
 
 from pydantic import BaseModel
 
+from antares.tools.custom_raw_config_parser import CustomRawConfigParser
 from antares.tools.model_tools import filter_out_empty_model_fields
 
 
@@ -58,7 +59,7 @@ class IniFile:
         study_path: Path,
         ini_file_type: IniFileTypes,
         area_name: Optional[str] = None,
-        ini_contents: Union[ConfigParser, dict[str, dict[str, str]], None] = None,
+        ini_contents: Union[CustomRawConfigParser, dict[str, dict[str, str]], None] = None,
     ) -> None:
         if "{area_name}" in ini_file_type.value and not area_name:
             raise ValueError(f"Area name not provided, ini type {ini_file_type.name} requires 'area_name'")
@@ -71,10 +72,10 @@ class IniFile:
         self._file_path = self._full_path.parent
         if isinstance(ini_contents, dict):
             self.ini_dict = ini_contents
-        elif isinstance(ini_contents, ConfigParser):
+        elif isinstance(ini_contents, CustomRawConfigParser):
             self._ini_contents = ini_contents
         else:
-            self._ini_contents = ConfigParser(interpolation=None)
+            self._ini_contents = CustomRawConfigParser()
         if self._full_path.is_file():
             self.update_from_ini_file()
         else:
@@ -87,16 +88,16 @@ class IniFile:
 
     @ini_dict.setter
     def ini_dict(self, new_ini_dict: dict[str, dict[str, str]]) -> None:
-        self._ini_contents = ConfigParser(interpolation=None)
+        self._ini_contents = CustomRawConfigParser()
         self._ini_contents.read_dict(new_ini_dict)
 
     @property
-    def parsed_ini(self) -> ConfigParser:
-        """Ini contents as a ConfigParser"""
+    def parsed_ini(self) -> CustomRawConfigParser:
+        """Ini contents as a CustomRawConfigParser"""
         return self._ini_contents
 
     @parsed_ini.setter
-    def parsed_ini(self, new_ini_contents: ConfigParser) -> None:
+    def parsed_ini(self, new_ini_contents: CustomRawConfigParser) -> None:
         self._ini_contents = new_ini_contents
 
     @property
@@ -123,7 +124,7 @@ class IniFile:
         if not self._full_path.is_file():
             raise FileNotFoundError(f"No such file: {self._full_path}")
 
-        parsed_ini = ConfigParser(interpolation=None)
+        parsed_ini = CustomRawConfigParser()
         with self._full_path.open() as file:
             parsed_ini.read_file(file)
 
@@ -143,15 +144,15 @@ class IniFile:
             ini_to_write.write(file)
 
     @staticmethod
-    def _sort_ini_sections(ini_to_sort: ConfigParser) -> ConfigParser:
-        sorted_ini = ConfigParser(interpolation=None)
+    def _sort_ini_sections(ini_to_sort: CustomRawConfigParser) -> CustomRawConfigParser:
+        sorted_ini = CustomRawConfigParser()
         for section in sorted(ini_to_sort.sections()):
             sorted_ini[section] = ini_to_sort[section]
         return sorted_ini
 
     @staticmethod
-    def _sort_ini_section_content(ini_to_sort: ConfigParser) -> ConfigParser:
-        sorted_ini = ConfigParser(interpolation=None)
+    def _sort_ini_section_content(ini_to_sort: CustomRawConfigParser) -> CustomRawConfigParser:
+        sorted_ini = CustomRawConfigParser()
         for section in ini_to_sort.sections():
             sorted_ini[section] = {key: value for (key, value) in sorted(list(ini_to_sort[section].items()))}
         return sorted_ini
