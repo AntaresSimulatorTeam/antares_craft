@@ -12,6 +12,7 @@
 
 from antares import create_study_local
 from antares.config.local_configuration import LocalConfiguration
+from antares.model.area import Area
 from antares.model.study import Study
 
 
@@ -24,3 +25,10 @@ class TestLocalClient:
         # Study
         test_study = create_study_local(study_name, study_version, study_config)
         assert isinstance(test_study, Study)
+
+        # Areas
+        fr = test_study.create_area("fr")
+        at = test_study.create_area("at")
+
+        assert isinstance(fr, Area)
+        assert isinstance(at, Area)
