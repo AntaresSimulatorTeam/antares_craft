@@ -13,6 +13,7 @@
 from antares import create_study_local
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.area import Area
+from antares.model.link import Link
 from antares.model.study import Study
 
 
@@ -32,3 +33,8 @@ class TestLocalClient:
 
         assert isinstance(fr, Area)
         assert isinstance(at, Area)
+
+        # Link
+        at_fr = test_study.create_link(area_from=fr, area_to=at)
+
+        assert isinstance(at_fr, Link)
