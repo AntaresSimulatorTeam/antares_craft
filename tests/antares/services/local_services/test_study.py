@@ -1640,9 +1640,7 @@ class TestCreateLink:
             LinkCreationError,
             match=f"Could not create the link {area_from} / {area_to}: {area_from} does not exist",
         ):
-            local_study_w_areas.create_link(
-                area_from=area_from, area_to=area_to, existing_areas=local_study_w_areas.get_areas()
-            )
+            local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
 
     def test_study_areas_not_provided_errors(self, tmp_path, local_study_w_areas):
         # With
@@ -1793,7 +1791,6 @@ filter-year-by-year = daily, weekly
             area_from="fr",
             area_to="it",
             properties=link_properties,
-            existing_areas=local_study_w_areas.get_areas(),
         )
         created_ini_file = tmp_path / local_study_w_areas.name / "input/links" / area_from / "properties.ini"
         actual_ini = ConfigParser()
@@ -2024,7 +2021,6 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
             area_to=area_to,
             properties=expected_properties,
             ui=expected_ui,
-            existing_areas=local_study_w_areas.get_areas(),
         )
         with open(actual_ini_file, "r") as file:
             actual_ini.read_file(file)
