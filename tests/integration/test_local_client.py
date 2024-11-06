@@ -9,11 +9,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import pytest
+
 import numpy as np
 import pandas as pd
 
 from antares import create_study_local
 from antares.config.local_configuration import LocalConfiguration
+from antares.exceptions.exceptions import LinkCreationError
 from antares.model.area import Area
 from antares.model.link import Link
 from antares.model.load import Load
@@ -22,7 +25,7 @@ from antares.model.thermal import ThermalCluster
 
 
 class TestLocalClient:
-    def test_local_study(self, tmp_path):
+    def test_local_study(self, tmp_path, other_area):
         study_name = "test study"
         study_version = "880"
         study_config = LocalConfiguration(tmp_path, study_name)
@@ -42,6 +45,10 @@ class TestLocalClient:
         at_fr = test_study.create_link(area_from=fr, area_to=at)
 
         assert isinstance(at_fr, Link)
+
+        ## Cannot link areas that don't exist in the study
+        with pytest.raises(LinkCreationError, match="Could not create the link fr / usa: usa does not exist."):
+            test_study.create_link(area_from=fr, area_to=other_area)
 
         # Thermal
         fr_nuclear = fr.create_thermal_cluster("nuclear")
