@@ -9,11 +9,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import numpy as np
+import pandas as pd
 
 from antares import create_study_local
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.area import Area
 from antares.model.link import Link
+from antares.model.load import Load
 from antares.model.study import Study
 from antares.model.thermal import ThermalCluster
 
@@ -44,3 +47,16 @@ class TestLocalClient:
         fr_nuclear = fr.create_thermal_cluster("nuclear")
 
         assert isinstance(fr_nuclear, ThermalCluster)
+
+        # Load
+        time_series_rows = 365 * 24
+        time_series_columns = 1
+        load_time_series = pd.DataFrame(np.ones([time_series_rows, time_series_columns]))
+        fr_load = fr.create_load(load_time_series)
+
+        assert isinstance(fr_load, Load)
+
+        expected_time_series = "1.0\n" * time_series_rows
+        actual_time_series = fr_load.time_series.local_file.file_path.read_text()
+
+        assert actual_time_series == expected_time_series
