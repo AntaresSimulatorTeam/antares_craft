@@ -15,6 +15,7 @@ from antares.config.local_configuration import LocalConfiguration
 from antares.model.area import Area
 from antares.model.link import Link
 from antares.model.study import Study
+from antares.model.thermal import ThermalCluster
 
 
 class TestLocalClient:
@@ -38,3 +39,8 @@ class TestLocalClient:
         at_fr = test_study.create_link(area_from=fr, area_to=at)
 
         assert isinstance(at_fr, Link)
+
+        # Thermal
+        fr_nuclear = fr.create_thermal_cluster("nuclear")
+
+        assert isinstance(fr_nuclear, ThermalCluster)
