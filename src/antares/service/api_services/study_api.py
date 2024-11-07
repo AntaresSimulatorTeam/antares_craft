@@ -9,8 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
-from typing import Optional, List
+import json
+from typing import Optional, List, Dict
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
@@ -20,8 +20,9 @@ from antares.exceptions.exceptions import (
     StudyDeletionError,
     StudySettingsUpdateError,
 )
-from antares.model.area import Area
+from antares.model.area import Area, AreaProperties
 from antares.model.binding_constraint import BindingConstraint
+from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.model.settings.advanced_parameters import AdvancedParameters
 from antares.model.settings.general import GeneralParameters
@@ -30,6 +31,8 @@ from antares.model.settings.playlist_parameters import PlaylistData, PlaylistPar
 from antares.model.settings.study_settings import StudySettings
 from antares.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.model.settings.time_series import TimeSeriesParameters
+from antares.model.st_storage import STStorage, STStorageProperties
+from antares.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.service.base_services import BaseStudyService
 
 
@@ -120,19 +123,46 @@ class StudyApiService(BaseStudyService):
         json_resp = self._wrapper.get(base_api_url + ui_url).json()
 
         for area in json_resp:
-            #notes : service =
+            thermals = dict()
+            renewables = dict()
+            st_storage = dict()
+
             area_url = base_api_url + "/" + f"{area}/"
             json_thermal = self._wrapper.get(area_url + url_thermal).json()
             json_renewable = self._wrapper.get(area_url + url_renewable).json()
             json_st_storage = self._wrapper.get(area_url + url_st_storage).json()
             json_properties = self._wrapper.get(area_url + url_properties_form).json()
-            obj_area = Area(area, self.config, self.config, self.config, self.config)
-            #obj_area._st_storages = obj_area.create_st_storage(json_st_storage["name"],json_st_storage)
-            print(json_thermal)
-            print(json_renewable)
-            print(json_st_storage)
-            print(json_properties["energyCostUnsupplied"])
-            #area_list.append(obj_area)
 
+            for therm in json_thermal:
+                id_therm = therm.pop('id')
+                name = therm.pop('name')
+
+                thermal_props=ThermalClusterProperties(**therm)
+                therm_cluster=ThermalCluster(self.config, area, name, thermal_props)
+                thermals.update({id_therm: therm_cluster})
+
+            for renew in json_renewable:
+                id_renew = renew.pop('id')
+                name = renew.pop('name')
+
+                renew_props=RenewableClusterProperties(**renew)
+                renew_cluster=RenewableCluster(self.config, area, name, renew_props)
+                renewables.update({id_renew: renew_cluster})
+
+            for storage in json_st_storage:
+                id_storage = storage.pop('id')
+                name = storage.pop('name')
+
+                storage_props = STStorageProperties(**storage)
+                st_storage_cl = STStorage(self.config, area, name, storage_props)
+                st_storage.update({id_storage:st_storage_cl})
+
+            area_obj=Area(area,
+                    self.config, self.config,
+                    self.config, self.config,
+                    renewables=renewables,thermals=thermals,
+                    st_storages=st_storage, properties=json_properties)
+
+            area_list.append(area_obj)
 
         return area_list
