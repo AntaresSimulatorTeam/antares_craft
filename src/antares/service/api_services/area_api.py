@@ -564,7 +564,7 @@ class AreaApiService(BaseAreaService):
 
         json_resp = self._wrapper.get(base_api_url + "?" + ui_url).json()
         for area in json_resp:
-            thermals = dict()  #: t.Dict[any, ThermalCluster]
+            thermals = dict()
             renewables = dict()
             st_storage = dict()
 
