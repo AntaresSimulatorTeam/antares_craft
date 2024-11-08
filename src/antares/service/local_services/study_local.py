@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Any, Optional
+from typing import Any, Optional, List
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.binding_constraint import BindingConstraint
@@ -39,4 +39,7 @@ class StudyLocalService(BaseStudyService):
         raise NotImplementedError
 
     def delete(self, children: bool) -> None:
+        raise NotImplementedError
+
+    def read_areas(self) -> List:
         raise NotImplementedError
