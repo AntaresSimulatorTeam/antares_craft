@@ -574,7 +574,7 @@ class AreaApiService(BaseAreaService):
             json_st_storage = self._wrapper.get(area_url + url_st_storage).json()
             json_properties = self._wrapper.get(area_url + url_properties_form).json()
 
-            ui_response = self.craft_ui(self, f"{base_api_url}?type=AREA&{ui_url}", area)
+            ui_response = self.craft_ui(f"{base_api_url}?type=AREA&{ui_url}", area)
 
             for thermal in json_thermal:
                 id_therm = thermal.pop("id")
