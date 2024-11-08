@@ -9,9 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import json
-import typing as t
-from typing import Optional, List
+from typing import List, Optional
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
@@ -38,7 +36,7 @@ from antares.service.base_services import BaseStudyService
 
 
 def _returns_study_settings(
-        base_url: str, study_id: str, wrapper: RequestWrapper, update: bool, settings: Optional[StudySettings]
+    base_url: str, study_id: str, wrapper: RequestWrapper, update: bool, settings: Optional[StudySettings]
 ) -> Optional[StudySettings]:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
     mapping = {
@@ -116,10 +114,10 @@ class StudyApiService(BaseStudyService):
 
         base_api_url = f"{self._base_url}/studies/{self.study_id}/areas"
         ui_url = "?ui=true"
-        url_thermal = f"clusters/thermal"
-        url_renewable = f"clusters/renewable"
+        url_thermal = "clusters/thermal"
+        url_renewable = "clusters/renewable"
         url_st_storage = "storages"
-        url_properties_form = f"properties/form"
+        url_properties_form = "properties/form"
 
         json_resp = self._wrapper.get(base_api_url + ui_url).json()
 
@@ -135,37 +133,41 @@ class StudyApiService(BaseStudyService):
             json_properties = self._wrapper.get(area_url + url_properties_form).json()
 
             for therm in json_thermal:
-                id_therm = therm.pop('id')
-                name = therm.pop('name')
+                id_therm = therm.pop("id")
+                name = therm.pop("name")
 
-                thermal_props=ThermalClusterProperties(**therm)
-                therm_cluster=ThermalCluster(self.config, area, name, thermal_props)
+                thermal_props = ThermalClusterProperties(**therm)
+                therm_cluster = ThermalCluster(self.config, area, name, thermal_props)
                 thermals.update({id_therm: therm_cluster})
 
             for renew in json_renewable:
-                id_renew = renew.pop('id')
-                name = renew.pop('name')
+                id_renew = renew.pop("id")
+                name = renew.pop("name")
 
-                renew_props=RenewableClusterProperties(**renew)
-                renew_cluster=RenewableCluster(self.config, area, name, renew_props)
+                renew_props = RenewableClusterProperties(**renew)
+                renew_cluster = RenewableCluster(self.config, area, name, renew_props)
                 renewables.update({id_renew: renew_cluster})
 
             for storage in json_st_storage:
-                id_storage = storage.pop('id')
-                name = storage.pop('name')
+                id_storage = storage.pop("id")
+                name = storage.pop("name")
 
                 storage_props = STStorageProperties(**storage)
                 st_storage_cl = STStorage(self.config, area, name, storage_props)
-                st_storage.update({id_storage:st_storage_cl})
+                st_storage.update({id_storage: st_storage_cl})
 
-            area_obj=Area(area,
-                    self.config, self.config,
-                    self.config, self.config,
-                    renewables=renewables,thermals=thermals,
-                    st_storages=st_storage, properties=json_properties)
+            area_obj = Area(
+                area,
+                self.config,
+                self.config,
+                self.config,
+                self.config,
+                renewables=renewables,
+                thermals=thermals,
+                st_storages=st_storage,
+                properties=json_properties,
+            )
 
             area_list.append(area_obj)
 
         return area_list
-
-

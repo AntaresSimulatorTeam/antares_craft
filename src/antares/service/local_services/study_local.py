@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Any, Optional, List
+from typing import Any, List, Optional
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.binding_constraint import BindingConstraint

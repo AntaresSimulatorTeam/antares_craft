@@ -45,6 +45,7 @@ class TestCreateAPI:
         ServiceFactory(api, study_id).create_thermal_service(),
         ServiceFactory(api, study_id).create_renewable_service(),
     )
+
     def test_create_study_test_ok(self) -> None:
         with requests_mock.Mocker() as mocker:
             expected_url = "https://antares.com/api/v1/studies?name=TestStudy&version=880"
