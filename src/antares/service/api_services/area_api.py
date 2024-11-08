@@ -543,6 +543,15 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise LoadMatrixDownloadError(area.id, e.message) from e
 
+    def craft_ui(self, url_str: str, area_id: str) -> AreaUi:
+        response = self._wrapper.get(url_str)
+        json_ui = response.json()[area_id]
+
+        ui_response = AreaUiResponse.model_validate(json_ui)
+        current_ui = AreaUi.model_validate(ui_response.to_craft())
+
+        return current_ui
+
     def read_areas(self) -> List[Area]:
         area_list = []
 
@@ -607,13 +616,3 @@ class AreaApiService(BaseAreaService):
             area_list.append(area_obj)
 
         return area_list
-
-
-def craft_ui(self, url_str: str, area_id: str) -> AreaUi:
-    response = self._wrapper.get(url_str)
-    json_ui = response.json()[area_id]
-
-    ui_response = AreaUiResponse.model_validate(json_ui)
-    current_ui = AreaUi.model_validate(ui_response.to_craft())
-
-    return current_ui
