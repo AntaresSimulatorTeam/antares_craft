@@ -10,7 +10,8 @@
 #
 # This file is part of the Antares project.
 import json
-from typing import Optional, List, Dict
+import typing as t
+from typing import Optional, List
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
@@ -20,7 +21,7 @@ from antares.exceptions.exceptions import (
     StudyDeletionError,
     StudySettingsUpdateError,
 )
-from antares.model.area import Area, AreaProperties
+from antares.model.area import Area
 from antares.model.binding_constraint import BindingConstraint
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.settings.adequacy_patch import AdequacyPatchParameters
@@ -123,7 +124,7 @@ class StudyApiService(BaseStudyService):
         json_resp = self._wrapper.get(base_api_url + ui_url).json()
 
         for area in json_resp:
-            thermals = dict()
+            thermals = dict()  #: t.Dict[any, ThermalCluster]
             renewables = dict()
             st_storage = dict()
 
@@ -166,3 +167,5 @@ class StudyApiService(BaseStudyService):
             area_list.append(area_obj)
 
         return area_list
+
+

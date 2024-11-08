@@ -30,7 +30,6 @@ from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings.general import GeneralParameters
 from antares.model.settings.study_settings import StudySettings
 from antares.model.study import Study, create_study_api
-from antares.service.api_services.study_api import StudyApiService
 from antares.service.service_factory import ServiceFactory
 
 

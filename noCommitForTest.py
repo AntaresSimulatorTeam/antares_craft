@@ -5,7 +5,8 @@ from tests.antares.services.local_services.conftest import area_fr
 
 api_host="https://antares-web-recette.rte-france.com"
 
-token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ7XCJpZFwiOjE1NCxcInR5cGVcIjpcImJvdHNcIixcImltcGVyc29uYXRvclwiOjIsXCJncm91cHNcIjpbXX0iLCJpYXQiOjE3MzA3Mjg4NTgsIm5iZiI6MTczMDcyODg1OCwianRpIjoiM2M3MTJmNTItNTY1Yi00NzFlLTg5NWMtMTVkZDRjY2EyMmFiIiwiZXhwIjo4MDg5NzY4ODU4LCJ0eXBlIjoiYWNjZXNzIiwiZnJlc2giOmZhbHNlfQ.ytXsdGF-Aj7uj9bsnkOsQbU6OtyfU54I0Vl2pVFaOlo"
+token = ("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+         ".eyJzdWIiOiJ7XCJpZFwiOjE1NCxcInR5cGVcIjpcImJvdHNcIixcImltcGVyc29uYXRvclwiOjIsXCJncm91cHNcIjpbXX0iLCJpYXQiOjE3MzA3Mjg4NTgsIm5iZiI6MTczMDcyODg1OCwianRpIjoiM2M3MTJmNTItNTY1Yi00NzFlLTg5NWMtMTVkZDRjY2EyMmFiIiwiZXhwIjo4MDg5NzY4ODU4LCJ0eXBlIjoiYWNjZXNzIiwiZnJlc2giOmZhbHNlfQ.ytXsdGF-Aj7uj9bsnkOsQbU6OtyfU54I0Vl2pVFaOlo")
 api = APIconf(api_host, token, False)
 #study = create_study_api("ACrafttest-01", "860", api)
 #area1=study.create_area("gozo")
