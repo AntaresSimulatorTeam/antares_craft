@@ -609,7 +609,7 @@ class AreaApiService(BaseAreaService):
         return area_list
 
 
-def craft_ui(self, url_str: str, area_id:str) -> AreaUi:
+def craft_ui(self, url_str: str, area_id: str) -> AreaUi:
     response = self._wrapper.get(url_str)
     json_ui = response.json()[area_id]
 
