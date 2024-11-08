@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from pathlib import PurePosixPath
-from typing import Dict, List, Optional, Union, Any
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -565,7 +565,7 @@ class AreaApiService(BaseAreaService):
             json_st_storage = self._wrapper.get(area_url + url_st_storage).json()
             json_properties = self._wrapper.get(area_url + url_properties_form).json()
 
-            ui_response = craft_ui(self,f"{base_api_url}?type=AREA&{ui_url}",area)
+            ui_response = craft_ui(self, f"{base_api_url}?type=AREA&{ui_url}", area)
 
             for thermal in json_thermal:
                 id_therm = thermal.pop("id")
@@ -601,14 +601,15 @@ class AreaApiService(BaseAreaService):
                 thermals=thermals,
                 st_storages=st_storage,
                 properties=json_properties,
-                ui=ui_response
+                ui=ui_response,
             )
 
             area_list.append(area_obj)
 
         return area_list
 
-def craft_ui(self, url_str:str, area_id) -> AreaUi:
+
+def craft_ui(self, url_str: str, area_id) -> AreaUi:
     response = self._wrapper.get(url_str)
     json_ui = response.json()[area_id]
 
