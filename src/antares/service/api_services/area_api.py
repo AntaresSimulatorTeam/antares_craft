@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from pathlib import PurePosixPath
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Any
 
 import pandas as pd
 
@@ -542,3 +542,77 @@ class AreaApiService(BaseAreaService):
             return self.get_matrix(PurePosixPath("input") / "load" / "series" / f"load_{area.id}")
         except APIError as e:
             raise LoadMatrixDownloadError(area.id, e.message) from e
+
+    def read_areas(self) -> List[Area]:
+        area_list = []
+
+        base_api_url = f"{self._base_url}/studies/{self.study_id}/areas"
+        ui_url = "ui=true"
+        url_thermal = "clusters/thermal"
+        url_renewable = "clusters/renewable"
+        url_st_storage = "storages"
+        url_properties_form = "properties/form"
+
+        json_resp = self._wrapper.get(base_api_url + "?" + ui_url).json()
+        for area in json_resp:
+            thermals = dict()  #: t.Dict[any, ThermalCluster]
+            renewables = dict()
+            st_storage = dict()
+
+            area_url = base_api_url + "/" + f"{area}/"
+            json_thermal = self._wrapper.get(area_url + url_thermal).json()
+            json_renewable = self._wrapper.get(area_url + url_renewable).json()
+            json_st_storage = self._wrapper.get(area_url + url_st_storage).json()
+            json_properties = self._wrapper.get(area_url + url_properties_form).json()
+
+            ui_response = craft_ui(self,f"{base_api_url}?type=AREA&{ui_url}",area)
+
+            for thermal in json_thermal:
+                id_therm = thermal.pop("id")
+                name = thermal.pop("name")
+
+                thermal_props = ThermalClusterProperties(**thermal)
+                therm_cluster = ThermalCluster(self.thermal_service, area, name, thermal_props)
+                thermals.update({id_therm: therm_cluster})
+
+            for renewable in json_renewable:
+                id_renew = renewable.pop("id")
+                name = renewable.pop("name")
+
+                renew_props = RenewableClusterProperties(**renewable)
+                renew_cluster = RenewableCluster(self.renewable_service, area, name, renew_props)
+                renewables.update({id_renew: renew_cluster})
+
+            for storage in json_st_storage:
+                id_storage = storage.pop("id")
+                name = storage.pop("name")
+
+                storage_props = STStorageProperties(**storage)
+                st_storage_cl = STStorage(self.storage_service, area, name, storage_props)
+                st_storage.update({id_storage: st_storage_cl})
+
+            area_obj = Area(
+                area,
+                self,
+                self.storage_service,
+                self.thermal_service,
+                self.renewable_service,
+                renewables=renewables,
+                thermals=thermals,
+                st_storages=st_storage,
+                properties=json_properties,
+                ui=ui_response
+            )
+
+            area_list.append(area_obj)
+
+        return area_list
+
+def craft_ui(self, url_str:str, area_id) -> AreaUi:
+    response = self._wrapper.get(url_str)
+    json_ui = response.json()[area_id]
+
+    ui_response = AreaUiResponse.model_validate(json_ui)
+    current_ui = AreaUi.model_validate(ui_response.to_craft())
+
+    return current_ui

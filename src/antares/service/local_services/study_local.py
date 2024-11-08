@@ -40,6 +40,3 @@ class StudyLocalService(BaseStudyService):
 
     def delete(self, children: bool) -> None:
         raise NotImplementedError
-
-    def read_areas(self) -> List:
-        raise NotImplementedError
