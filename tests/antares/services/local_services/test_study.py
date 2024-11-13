@@ -1437,7 +1437,10 @@ layers = 0
             raise CustomError("An error occurred while processing area can not be created")
 
         monkeypatch.setattr("antares.service.local_services.area_local._sets_ini_content", mock_error_in_sets_ini)
-        with pytest.raises(CustomError, match="An error occurred while processing area can not be created"):
+        with pytest.raises(
+            AreaCreationError,
+            match="Could not create the area test: Error during area creation: An error occurred while processing area can not be created",
+        ):
             local_study.create_area("test")
 
     def test_create_area_with_custom_ui(self, tmp_path, local_study):

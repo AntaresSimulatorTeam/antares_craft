@@ -16,7 +16,7 @@ import pandas as pd
 
 from antares import create_study_local
 from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import LinkCreationError
+from antares.exceptions.exceptions import AreaCreationError, LinkCreationError
 from antares.model.area import Area
 from antares.model.link import Link
 from antares.model.load import Load
@@ -40,6 +40,13 @@ class TestLocalClient:
 
         assert isinstance(fr, Area)
         assert isinstance(at, Area)
+
+        ## Area already exists
+        with pytest.raises(
+            AreaCreationError,
+            match="Could not create the area fr: Error during area creation: The Area 'fr' already exists in the study test study.",
+        ):
+            test_study.create_area("fr")
 
         # Link
         at_fr = test_study.create_link(area_from=fr, area_to=at)
