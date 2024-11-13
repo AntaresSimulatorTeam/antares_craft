@@ -40,17 +40,20 @@ class AntaresWebDesktop:
         self.url = f"http://{self.host}:{self.port}"
         self.process = subprocess.Popen(args, shell=True, cwd=str(antares_web_desktop_path))
 
-    @staticmethod
-    def is_port_open(host, port):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            return sock.connect_ex((host, port)) == 0
+    def _is_server_ready(self):
+        healthcheck_url = f"{self.url}/api/health"
+        try:
+            res = requests.get(healthcheck_url)
+            return res.status_code == 200
+        except requests.RequestException as exc:
+            return False
 
     def wait_for_server_to_start(self):
         timeout = 10
         interval = 1
         elapsed_time = 0
         while elapsed_time < timeout:
-            if self.is_port_open(self.host, self.port):
+            if self._is_server_ready():
                 return
             time.sleep(interval)
             elapsed_time += interval
