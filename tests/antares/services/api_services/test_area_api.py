@@ -331,8 +331,8 @@ class TestCreateAPI:
             assert mocker.request_history[0].url == expected_url
 
     def test_read_areas(self):
-        #-web - recette.rte - france
-        study_id_test="248bbb99-c909-47b7-b239-01f6f6ae7de7"
+        # -web - recette.rte - france
+        study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
         url = f"https://antares.com/api/v1/studies/{study_id_test}/areas"
         ui_url = url + "?ui=true"
         url_thermal = url + "/zone/clusters/thermal"
@@ -340,14 +340,29 @@ class TestCreateAPI:
         url_st_storage = url + "/zone/storages"
         url_properties_form = url + "/zone/properties/form"
 
-        json_ui = json.loads("""{"zone":{"ui":{"x":0,"y":0,"color_r":230,"color_g":108,"color_b":44,"layers":"0"},"layerX":{"0":0},"layerY":{"0":0},"layerColor":{"0":"230, 108, 44"}}}""")
-        json_thermal = [json.loads("""{"id":"therm_un","group":"Gas","name":"therm_un","enabled":true,"unitCount":1,"nominalCapacity":0,"genTs":"use global","minStablePower":0,"minUpTime":1,"minDownTime":1,"mustRun":false,"spinning":0,"volatilityForced":0,"volatilityPlanned":0,"lawForced":"uniform","lawPlanned":"uniform","marginalCost":0,"spreadCost":0,"fixedCost":0,"startupCost":0,"marketBidCost":0,"co2":0,"nh3":0,"so2":0,"nox":0,"pm25":0,"pm5":0,"pm10":0,"nmvoc":0,"op1":0,"op2":0,"op3":0,"op4":0,"op5":0,"costGeneration":"SetManually","efficiency":100,"variableOMCost":0}""")]
-        json_renewable = [json.loads("""{"id":"test_renouvelable","group":"Solar Thermal","name":"test_renouvelable","enabled":"true","unitCount":1,"nominalCapacity":0,"tsInterpretation":"power-generation"}""")]
-        json_st_storage = [json.loads("""{"id":"test_storage","group":"Pondage","name":"test_storage","injectionNominalCapacity":0,"withdrawalNominalCapacity":0,"reservoirCapacity":0,"efficiency":1,"initialLevel":0.5,"initialLevelOptim":false,"enabled":"true"}""")]
-        json_properties = json.loads("""{"energyCostUnsupplied":0,"energyCostSpilled":0,"nonDispatchPower":true,"dispatchHydroPower":true,"otherDispatchPower":true,"filterSynthesis":["daily","monthly","weekly","hourly","annual"],"filterByYear":["daily","monthly","weekly","hourly","annual"],"adequacyPatchMode":"outside"}""")
+        json_ui = json.loads(
+            """{"zone":{"ui":{"x":0,"y":0,"color_r":230,"color_g":108,"color_b":44,"layers":"0"},"layerX":{"0":0},"layerY":{"0":0},"layerColor":{"0":"230, 108, 44"}}}"""
+        )
+        json_thermal = [
+            json.loads(
+                """{"id":"therm_un","group":"Gas","name":"therm_un","enabled":true,"unitCount":1,"nominalCapacity":0,"genTs":"use global","minStablePower":0,"minUpTime":1,"minDownTime":1,"mustRun":false,"spinning":0,"volatilityForced":0,"volatilityPlanned":0,"lawForced":"uniform","lawPlanned":"uniform","marginalCost":0,"spreadCost":0,"fixedCost":0,"startupCost":0,"marketBidCost":0,"co2":0,"nh3":0,"so2":0,"nox":0,"pm25":0,"pm5":0,"pm10":0,"nmvoc":0,"op1":0,"op2":0,"op3":0,"op4":0,"op5":0,"costGeneration":"SetManually","efficiency":100,"variableOMCost":0}"""
+            )
+        ]
+        json_renewable = [
+            json.loads(
+                """{"id":"test_renouvelable","group":"Solar Thermal","name":"test_renouvelable","enabled":"true","unitCount":1,"nominalCapacity":0,"tsInterpretation":"power-generation"}"""
+            )
+        ]
+        json_st_storage = [
+            json.loads(
+                """{"id":"test_storage","group":"Pondage","name":"test_storage","injectionNominalCapacity":0,"withdrawalNominalCapacity":0,"reservoirCapacity":0,"efficiency":1,"initialLevel":0.5,"initialLevelOptim":false,"enabled":"true"}"""
+            )
+        ]
+        json_properties = json.loads(
+            """{"energyCostUnsupplied":0,"energyCostSpilled":0,"nonDispatchPower":true,"dispatchHydroPower":true,"otherDispatchPower":true,"filterSynthesis":["daily","monthly","weekly","hourly","annual"],"filterByYear":["daily","monthly","weekly","hourly","annual"],"adequacyPatchMode":"outside"}"""
+        )
 
         with requests_mock.Mocker() as mocker:
-
             mocker.get(ui_url, json=json_ui)
             mocker.get(url_thermal, json=json_thermal)
             mocker.get(url_renewable, json=json_renewable)
@@ -368,15 +383,24 @@ class TestCreateAPI:
             thermal_props = ThermalClusterProperties(**json_thermal[0])
             thermal_cluster = ThermalCluster(self.area_api.thermal_service, thermal_id, thermal_name, thermal_props)
             renewable_props = RenewableClusterProperties(**json_renewable[0])
-            renewable_cluster = RenewableCluster(self.area_api.renewable_service, renewable_id, renewable_name, renewable_props)
+            renewable_cluster = RenewableCluster(
+                self.area_api.renewable_service, renewable_id, renewable_name, renewable_props
+            )
             storage_props = STStorageProperties(**json_st_storage[0])
             st_storage = STStorage(self.area_api.storage_service, storage_id, storage_name, storage_props)
 
-            area_test = Area("zone",
-                    self.area_api, self.area_api.storage_service,
-                    self.area_api.thermal_service, self.area_api.renewable_service,
-                    thermals={thermal_id:thermal_cluster}, renewables={renewable_id:renewable_cluster},
-                    st_storages={storage_id:st_storage}, properties=json_properties, ui=area_ui)
+            area_test = Area(
+                "zone",
+                self.area_api,
+                self.area_api.storage_service,
+                self.area_api.thermal_service,
+                self.area_api.renewable_service,
+                thermals={thermal_id: thermal_cluster},
+                renewables={renewable_id: renewable_cluster},
+                st_storages={storage_id: st_storage},
+                properties=json_properties,
+                ui=area_ui,
+            )
 
             area_test_list = []
             area_test_list.append(area_test)
@@ -387,6 +411,15 @@ class TestCreateAPI:
             assert len(area_list[0].get_renewables()) == len(area_test_list[0].get_renewables())
             assert len(area_list[0].get_st_storages()) == len(area_test_list[0].get_st_storages())
             assert len(area_list[0].get_thermals()) == len(area_test_list[0].get_thermals())
-            assert area_list[0].get_thermals().get(thermal_id).name == area_test_list[0].get_thermals().get(thermal_id).name
-            assert area_list[0].get_renewables().get(renewable_id).name == area_test_list[0].get_renewables().get(renewable_id).name
-            assert area_list[0].get_st_storages().get(storage_id).name == area_test_list[0].get_st_storages().get(storage_id).name
+            assert (
+                area_list[0].get_thermals().get(thermal_id).name
+                == area_test_list[0].get_thermals().get(thermal_id).name
+            )
+            assert (
+                area_list[0].get_renewables().get(renewable_id).name
+                == area_test_list[0].get_renewables().get(renewable_id).name
+            )
+            assert (
+                area_list[0].get_st_storages().get(storage_id).name
+                == area_test_list[0].get_st_storages().get(storage_id).name
+            )

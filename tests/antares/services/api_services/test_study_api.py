@@ -199,5 +199,3 @@ class TestCreateAPI:
                 match=f"Could not create the binding constraint {constraint_name}: {self.antares_web_description_msg}",
             ):
                 self.study.create_binding_constraint(name=constraint_name)
-
-
