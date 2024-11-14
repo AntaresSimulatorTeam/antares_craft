@@ -33,7 +33,7 @@ from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStor
 from antares.model.study import create_study_api
 from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 
-from integration.antares_web_desktop import AntaresWebDesktop
+from tests.integration.antares_web_desktop import AntaresWebDesktop
 
 
 @pytest.fixture
