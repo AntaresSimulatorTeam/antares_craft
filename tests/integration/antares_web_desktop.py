@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 import os
-import socket
 import subprocess
 import time
 
@@ -45,7 +44,7 @@ class AntaresWebDesktop:
         try:
             res = requests.get(healthcheck_url)
             return res.status_code == 200
-        except requests.RequestException as exc:
+        except requests.RequestException:
             return False
 
     def wait_for_server_to_start(self):

@@ -376,7 +376,7 @@ class TestCreateAPI:
                     self.area_api, self.area_api.storage_service,
                     self.area_api.thermal_service, self.area_api.renewable_service,
                     thermals={thermal_id:thermal_cluster}, renewables={renewable_id:renewable_cluster},
-                    st_storages={storage_id:st_storage}, properties=json_properties)
+                    st_storages={storage_id:st_storage}, properties=json_properties, ui=area_ui)
 
             area_test_list = []
             area_test_list.append(area_test)
