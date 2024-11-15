@@ -197,13 +197,14 @@ class TestWebClient:
 
         # test api method -> reading list of areas
         area_list = area_api.read_areas()
-        assert area_fr.id == area_list[0].id
-        assert area_fr.ui.x == area_list[0].ui.x
-        assert area_fr.ui.color_rgb == area_list[0].ui.color_rgb
-        assert thermal_fr.id == area_list[0].get_thermals().get("cluster_test").id
-        assert renewable_fr.id == area_list[0].get_renewables().get("cluster_test").id
-        assert storage_fr.id == area_list[0].get_st_storages().get("cluster_test").id
-        assert thermal_be.id == area_list[0].get_thermals().get("cluster_test").id
+        actual_area_fr = area_list[2]
+        assert area_fr.id == actual_area_fr.id
+        assert area_fr.ui.x == actual_area_fr.ui.x
+        assert area_fr.ui.color_rgb == actual_area_fr.ui.color_rgb
+        assert thermal_fr.id == actual_area_fr.get_thermals().get("cluster_test").id
+        assert renewable_fr.id == actual_area_fr.get_renewables().get("cluster_test").id
+        assert storage_fr.id == actual_area_fr.get_st_storages().get("cluster_test").id
+        assert thermal_be.id == area_list[0].get_thermals().get("gaz_be").id
 
         # tests upload matrix for short term storage.
         # Case that fails
