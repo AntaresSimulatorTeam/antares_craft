@@ -32,6 +32,7 @@ from antares.model.settings.study_settings import PlaylistParameters, StudySetti
 from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
 from antares.model.study import create_study_api
 from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
+from antares.service.api_services.area_api import AreaApiService
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
@@ -50,6 +51,8 @@ class TestWebClient:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
         study = create_study_api("antares-craft-test", "880", api_config)
+
+        area_api = AreaApiService(api_config, study.service.study_id)
 
         # tests area creation with default values
         area_name = "FR"
@@ -191,6 +194,16 @@ class TestWebClient:
         properties = battery_fr.properties
         assert properties.reservoir_capacity == 0.5
         assert properties.group == STStorageGroup.BATTERY
+
+        # test api method -> reading list of areas
+        area_list = area_api.read_areas()
+        assert area_fr.id == area_list[0].id
+        assert area_fr.ui.x == area_list[0].ui.x
+        assert area_fr.ui.color_rgb == area_list[0].ui.color_rgb
+        assert thermal_fr.id == area_list[0].get_thermals().get("cluster_test").id
+        assert renewable_fr.id == area_list[0].get_renewables().get("cluster_test").id
+        assert storage_fr.id == area_list[0].get_st_storages().get("cluster_test").id
+        assert thermal_be.id == area_list[0].get_thermals().get("cluster_test").id
 
         # tests upload matrix for short term storage.
         # Case that fails

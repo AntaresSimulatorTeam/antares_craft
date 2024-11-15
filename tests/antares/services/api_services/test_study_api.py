@@ -30,7 +30,6 @@ from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings.general import GeneralParameters
 from antares.model.settings.study_settings import StudySettings
 from antares.model.study import Study, create_study_api
-from antares.service.api_services.study_api import StudyApiService
 from antares.service.service_factory import ServiceFactory
 
 
@@ -39,7 +38,6 @@ class TestCreateAPI:
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
     antares_web_description_msg = "Mocked Server KO"
     study = Study("TestStudy", "880", ServiceFactory(api, study_id))
-    study_api = StudyApiService(api, study_id)
     area = Area(
         "area_test",
         ServiceFactory(api, study_id).create_area_service(),
