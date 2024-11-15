@@ -59,6 +59,7 @@ class APIconf(BaseConfiguration):
     def set_up_api_conf(self) -> requests.Session:
         self.checks_token()
         session = requests.Session()
+        session.verify = self._verify
         if self._token:
             token_bearer = f"Bearer {self._token}"
             session.headers.update({"Authorization": token_bearer})

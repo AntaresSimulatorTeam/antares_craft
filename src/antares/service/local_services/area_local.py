@@ -319,3 +319,6 @@ class AreaLocalService(BaseAreaService):
 
     def get_load_matrix(self, area: Area) -> pd.DataFrame:
         raise NotImplementedError
+
+    def read_areas(self) -> List[Area]:
+        raise NotImplementedError

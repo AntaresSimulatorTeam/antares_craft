@@ -9,8 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
-
 import pytest
 import requests_mock
 
@@ -33,6 +31,7 @@ from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterProperties
+from antares.service.api_services.area_api import AreaApiService
 from antares.service.service_factory import ServiceFactory
 
 
@@ -46,6 +45,7 @@ class TestCreateAPI:
         ServiceFactory(api, study_id).create_thermal_service(),
         ServiceFactory(api, study_id).create_renewable_service(),
     )
+    area_api = AreaApiService(api, "248bbb99-c909-47b7-b239-01f6f6ae7de7")
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
 
@@ -327,3 +327,153 @@ class TestCreateAPI:
             self.area.create_misc_gen(series=self.matrix)
 
             assert mocker.request_history[0].url == expected_url
+
+    def test_read_areas(self):
+        study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
+        area_id = "zone"
+        url = f"https://antares.com/api/v1/studies/{study_id_test}/areas"
+        ui_url = url + "?ui=true"
+        url_thermal = url + f"/{area_id}/clusters/thermal"
+        url_renewable = url + f"/{area_id}/clusters/renewable"
+        url_st_storage = url + f"/{area_id}/storages"
+        url_properties_form = url + f"/{area_id}/properties/form"
+
+        json_ui = {
+            area_id: {
+                "ui": {"x": 0, "y": 0, "color_r": 230, "color_g": 108, "color_b": 44, "layers": "0"},
+                "layerX": {"0": 0},
+                "layerY": {"0": 0},
+                "layerColor": {"0": "230, 108, 44"},
+            }
+        }
+        json_thermal = [
+            {
+                "id": "therm_un",
+                "group": "Gas",
+                "name": "therm_un",
+                "enabled": "true",
+                "unitCount": 1,
+                "nominalCapacity": 0,
+                "genTs": "use global",
+                "minStablePower": 0,
+                "minUpTime": 1,
+                "minDownTime": 1,
+                "mustRun": "false",
+                "spinning": 0,
+                "volatilityForced": 0,
+                "volatilityPlanned": 0,
+                "lawForced": "uniform",
+                "lawPlanned": "uniform",
+                "marginalCost": 0,
+                "spreadCost": 0,
+                "fixedCost": 0,
+                "startupCost": 0,
+                "marketBidCost": 0,
+                "co2": 0,
+                "nh3": 0,
+                "so2": 0,
+                "nox": 0,
+                "pm25": 0,
+                "pm5": 0,
+                "pm10": 0,
+                "nmvoc": 0,
+                "op1": 0,
+                "op2": 0,
+                "op3": 0,
+                "op4": 0,
+                "op5": 0,
+                "costGeneration": "SetManually",
+                "efficiency": 100,
+                "variableOMCost": 0,
+            }
+        ]
+        json_renewable = [
+            {
+                "id": "test_renouvelable",
+                "group": "Solar Thermal",
+                "name": "test_renouvelable",
+                "enabled": "true",
+                "unitCount": 1,
+                "nominalCapacity": 0,
+                "tsInterpretation": "power-generation",
+            }
+        ]
+        json_st_storage = [
+            {
+                "id": "test_storage",
+                "group": "Pondage",
+                "name": "test_storage",
+                "injectionNominalCapacity": 0,
+                "withdrawalNominalCapacity": 0,
+                "reservoirCapacity": 0,
+                "efficiency": 1,
+                "initialLevel": 0.5,
+                "initialLevelOptim": "false",
+                "enabled": "true",
+            }
+        ]
+        json_properties = {
+            "energyCostUnsupplied": 0,
+            "energyCostSpilled": 0,
+            "nonDispatchPower": "true",
+            "dispatchHydroPower": "true",
+            "otherDispatchPower": "true",
+            "filterSynthesis": ["daily", "monthly", "weekly", "hourly", "annual"],
+            "filterByYear": ["daily", "monthly", "weekly", "hourly", "annual"],
+            "adequacyPatchMode": "outside",
+        }
+
+        with requests_mock.Mocker() as mocker:
+            mocker.get(ui_url, json=json_ui)
+            mocker.get(url_thermal, json=json_thermal)
+            mocker.get(url_renewable, json=json_renewable)
+            mocker.get(url_st_storage, json=json_st_storage)
+            mocker.get(url_properties_form, json=json_properties)
+
+            area_api = AreaApiService(self.api, study_id_test)
+            actual_area_list = area_api.read_areas()
+            area_ui = area_api.craft_ui(url + "?type=AREA&ui=true", "zone")
+
+            thermal_id = json_thermal[0].pop("id")
+            thermal_name = json_thermal[0].pop("name")
+            renewable_id = json_renewable[0].pop("id")
+            renewable_name = json_renewable[0].pop("name")
+            storage_id = json_st_storage[0].pop("id")
+            storage_name = json_st_storage[0].pop("name")
+
+            thermal_props = ThermalClusterProperties(**json_thermal[0])
+            thermal_cluster = ThermalCluster(self.area_api.thermal_service, thermal_id, thermal_name, thermal_props)
+            renewable_props = RenewableClusterProperties(**json_renewable[0])
+            renewable_cluster = RenewableCluster(
+                self.area_api.renewable_service, renewable_id, renewable_name, renewable_props
+            )
+            storage_props = STStorageProperties(**json_st_storage[0])
+            st_storage = STStorage(self.area_api.storage_service, storage_id, storage_name, storage_props)
+
+            expected_area = Area(
+                area_id,
+                self.area_api,
+                self.area_api.storage_service,
+                self.area_api.thermal_service,
+                self.area_api.renewable_service,
+                thermals={thermal_id: thermal_cluster},
+                renewables={renewable_id: renewable_cluster},
+                st_storages={storage_id: st_storage},
+                properties=json_properties,
+                ui=area_ui,
+            )
+
+            assert len(actual_area_list) == 1
+            actual_area = actual_area_list[0]
+            # assert actual_area == expected_area by performing various tests
+            assert actual_area.id == expected_area.id
+            assert actual_area.name == expected_area.name
+            actual_thermals = actual_area.get_thermals()
+            actual_renewables = actual_area.get_renewables()
+            actual_storages = actual_area.get_st_storages()
+            assert len(actual_renewables) == len(expected_area.get_renewables())
+            assert len(actual_storages) == len(expected_area.get_st_storages())
+            assert len(actual_thermals) == len(expected_area.get_thermals())
+            assert actual_thermals[thermal_id].name == expected_area.get_thermals()[thermal_id].name
+            assert actual_renewables[renewable_id].name == expected_area.get_renewables()[renewable_id].name
+            assert actual_storages[storage_id].name == expected_area.get_st_storages()[storage_id].name

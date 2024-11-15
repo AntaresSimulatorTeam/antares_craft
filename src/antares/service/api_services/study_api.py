@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 from typing import Optional
 
 from antares.api_conf.api_conf import APIconf
