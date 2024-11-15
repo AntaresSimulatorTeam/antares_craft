@@ -450,7 +450,7 @@ class TestCreateAPI:
             storage_props = STStorageProperties(**json_st_storage[0])
             st_storage = STStorage(self.area_api.storage_service, storage_id, storage_name, storage_props)
 
-            area_test = Area(
+            expected_area = Area(
                 area_id,
                 self.area_api,
                 self.area_api.storage_service,
@@ -463,24 +463,17 @@ class TestCreateAPI:
                 ui=area_ui,
             )
 
-            expected_area_list = []
-            expected_area_list.append(area_test)
-
-            # assert actual_area_list == expected_area_list
-            assert actual_area_list[0].id == expected_area_list[0].id
-            assert actual_area_list[0].name == expected_area_list[0].name
-            assert len(actual_area_list[0].get_renewables()) == len(expected_area_list[0].get_renewables())
-            assert len(actual_area_list[0].get_st_storages()) == len(expected_area_list[0].get_st_storages())
-            assert len(actual_area_list[0].get_thermals()) == len(expected_area_list[0].get_thermals())
-            assert (
-                actual_area_list[0].get_thermals().get(thermal_id).name
-                == expected_area_list[0].get_thermals().get(thermal_id).name
-            )
-            assert (
-                actual_area_list[0].get_renewables().get(renewable_id).name
-                == expected_area_list[0].get_renewables().get(renewable_id).name
-            )
-            assert (
-                actual_area_list[0].get_st_storages().get(storage_id).name
-                == expected_area_list[0].get_st_storages().get(storage_id).name
-            )
+            assert len(actual_area_list) == 1
+            actual_area = actual_area_list[0]
+            # assert actual_area == expected_area by performing various tests
+            assert actual_area.id == expected_area.id
+            assert actual_area.name == expected_area.name
+            actual_thermals = actual_area.get_thermals()
+            actual_renewables = actual_area.get_renewables()
+            actual_storages = actual_area.get_st_storages()
+            assert len(actual_renewables) == len(expected_area.get_renewables())
+            assert len(actual_storages) == len(expected_area.get_st_storages())
+            assert len(actual_thermals) == len(expected_area.get_thermals())
+            assert actual_thermals[thermal_id].name == expected_area.get_thermals()[thermal_id].name
+            assert actual_renewables[renewable_id].name == expected_area.get_renewables()[renewable_id].name
+            assert actual_storages[storage_id].name == expected_area.get_st_storages()[storage_id].name

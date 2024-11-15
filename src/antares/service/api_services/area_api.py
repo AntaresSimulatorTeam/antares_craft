@@ -615,6 +615,6 @@ class AreaApiService(BaseAreaService):
 
             area_list.append(area_obj)
 
-        #trier la liste d'areas basé sur leur id
-        area_list.sort(key=lambda area:area.id)
+        # sort area list to ensure reproducibility
+        area_list.sort(key=lambda area: area.id)
         return area_list

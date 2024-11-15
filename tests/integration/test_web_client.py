@@ -195,15 +195,20 @@ class TestWebClient:
         assert properties.reservoir_capacity == 0.5
         assert properties.group == STStorageGroup.BATTERY
 
-        # test api method -> reading list of areas
+        # test reading list of areas
         area_list = area_api.read_areas()
-        actual_area_fr = area_list[2]
-        assert area_fr.id == actual_area_fr.id
-        assert area_fr.ui.x == actual_area_fr.ui.x
-        assert area_fr.ui.color_rgb == actual_area_fr.ui.color_rgb
-        assert thermal_fr.id == actual_area_fr.get_thermals().get("cluster_test").id
-        assert renewable_fr.id == actual_area_fr.get_renewables().get("cluster_test").id
-        assert storage_fr.id == actual_area_fr.get_st_storages().get("cluster_test").id
+        assert len(area_list) == 3
+        # asserts areas are sorted by id
+        assert area_list[0].id == area_be.id
+        assert area_list[1].id == area_de.id
+        assert area_list[2].id == area_fr.id
+        third_area = area_list[2]
+        # checks various variables the list corresponds to the area we created initially
+        assert area_fr.ui.x == third_area.ui.x
+        assert area_fr.ui.color_rgb == third_area.ui.color_rgb
+        assert thermal_fr.id == third_area.get_thermals().get("cluster_test").id
+        assert renewable_fr.id == third_area.get_renewables().get("cluster_test").id
+        assert storage_fr.id == third_area.get_st_storages().get("cluster_test").id
         assert thermal_be.id == area_list[0].get_thermals().get("gaz_be").id
 
         # tests upload matrix for short term storage.
