@@ -209,12 +209,10 @@ def read_study_local(study_name: str, version: str, study_path: Path) -> "Study"
     _directory_not_exists(study_directory)
     _directories_can_be_read(study_directory)
 
-    # return Study(
-    #     name=study_name, version=version, service_factory=ServiceReader(config=local_config, study_name=study_name)
-    # )
     return Study(
-        name=study_name, version=version, service_factory=ServiceFactory(config=local_config, study_name=study_name)
-    )
+        name=study_name, version=version, service_factory=ServiceFactory(config=local_config, study_name=study_name),
+        initialisation="read")
+
 
 class Study:
     def __init__(
@@ -229,12 +227,12 @@ class Study:
     ):
         self.name = name
         self.version = version
+        self.service_factory = service_factory
         for argument in kwargs:
             if argument == "ini_files":
                 self._ini_files: dict[str, IniFile] = kwargs[argument] or dict()
         self._areas: Dict[str, Area] = dict()
         self._links: Dict[str, Link] = dict()
-
         if initialisation == "create":
             self._study_service = service_factory.create_study_service()
             self._area_service = service_factory.create_area_service()
@@ -244,6 +242,10 @@ class Study:
             self._binding_constraints: Dict[str, BindingConstraint] = dict()
         else:
             self._study_service = service_factory.read_study_service()
+
+    def __eq__(self, other):
+        return (self.service_factory.config.local_path == other.service_factory.config.local_path)
+
 
     @property
     def service(self) -> Any:
@@ -258,6 +260,11 @@ class Study:
         return MappingProxyType(dict(sorted(self._areas.items())))
 
     def get_links(self) -> MappingProxyType[str, Link]:
+        if hasattr(self._study_service, "read_links"):
+            areas = self._study_service.read_links()
+            for key, value in areas.items():
+                if key not in self._areas:
+                    self._areas[key] = value
         return MappingProxyType(self._links)
 
     def get_settings(self) -> StudySettings:

@@ -190,3 +190,25 @@ class TestReadStudy:
         assert study["hydro"]["hydro"]["use leeway"]["hydro_1"] == "false"
         assert study["hydro"]["hydro"]["leeway up"]["hydro_1"] == "1.000000"
         assert study["hydro"]["hydro"]["pumping efficiency"]["hydro_1"] == "1.000000"
+
+    def test_directory(self, local_study_w_thermal):
+        study_name = "studyTest"
+        area_name = "hydro_1"
+
+        base_dir = local_study_w_thermal.service.config.study_path
+        test_create = create_study_local(study_name, "880", base_dir)
+
+        at = test_create.create_area("at")
+        fr = test_create.create_area("fr")
+        test_create.create_link(area_from=at, area_to=fr, existing_areas=test_create.get_areas())
+        test_read = read_study_local(study_name, "880", base_dir)
+        print("comparaison entre deux constructeurs: ", test_read.name, test_create.name, test_read.version, test_create.version)
+
+        assert test_create == test_read
+
+        print("1", test_create.get_areas())
+        print("2", test_read.get_areas())
+        print("0", test_create.get_areas() == test_read.get_areas())
+
+        print("3", test_create.get_links())
+        print("4", test_read.get_links())

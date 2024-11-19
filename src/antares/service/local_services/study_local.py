@@ -60,7 +60,7 @@ class StudyLocalService(BaseStudyService):
         return True
 
     @staticmethod
-    def _lister_dossiers(dossier: Path) -> list[str]:
+    def _list_folders(dossier: Path) -> list[str]:
         try:
             dossiers = [d for d in os.listdir(dossier) if os.path.isdir(os.path.join(dossier, d))]
             return dossiers
@@ -90,7 +90,18 @@ class StudyLocalService(BaseStudyService):
             # En cas de dossier non trouvé ou inaccessible, retourner un dictionnaire vide
             return {}
 
-
+    def read_links(self) -> dict:
+        local_path = self._config.local_path
+        areas_path = local_path / Path(self._study_name) / Path("input/areas")
+        areas = {}
+        try:
+            for element in Path(areas_path).iterdir():
+                if element.is_dir():
+                    areas[element.name] = None
+            return areas
+        except (FileNotFoundError, PermissionError):
+            # En cas de dossier non trouvé ou inaccessible, retourner un dictionnaire vide
+            return {}
 
     def read_study(self, areas: dict) -> dict:
         study_path = self.config.local_path / Path(self._study_name)
@@ -177,7 +188,7 @@ class StudyLocalService(BaseStudyService):
 
             # Get everything inside input/renewables/series/{area_name}
             prefix_path = study_path / TimeSeriesFileType.RENEWABLE_SERIES_PREFIX.value.format(area_id=area_name)
-            groups = self._lister_dossiers(prefix_path)
+            groups = self._list_folders(prefix_path)
             for group_name in groups:
                 renewable_series = TimeSeriesFile(
                     ts_file_type=TimeSeriesFileType.RENEWABLE_DATA_SERIES,
@@ -262,7 +273,7 @@ class StudyLocalService(BaseStudyService):
 
             # Get everything inside input/thermal/prepro/{area_name}
             prefix_path = study_path / TimeSeriesFileType.THERMAL_PREFIX.value.format(area_id=area_name)
-            groups = self._lister_dossiers(prefix_path)
+            groups = self._list_folders(prefix_path)
             for group_name in groups:
                 thermal_prepro = TimeSeriesFile(
                     ts_file_type=TimeSeriesFileType.THERMAL_DATA,
@@ -281,7 +292,7 @@ class StudyLocalService(BaseStudyService):
 
             # Get everything inside input/thermal/series/{area_name}
             prefix_path = study_path / TimeSeriesFileType.THERMAL_SERIES_PREFIX.value.format(area_id=area_name)
-            groups = self._lister_dossiers(prefix_path)
+            groups = self._list_folders(prefix_path)
             for group_name in groups:
                 thermal_series = TimeSeriesFile(
                     ts_file_type=TimeSeriesFileType.THERMAL_DATA_SERIES,

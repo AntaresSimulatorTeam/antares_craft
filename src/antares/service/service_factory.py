@@ -51,6 +51,7 @@ class ServiceFactory:
         self.study_id = study_id
         self.study_name = study_name
 
+
     def create_area_service(self) -> BaseAreaService:
         if isinstance(self.config, APIconf):
             area_service: BaseAreaService = AreaApiService(self.config, self.study_id)
@@ -137,3 +138,9 @@ class ServiceFactory:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
         return study_service
 
+    def read_link_service(self) -> BaseLinkService:
+        if isinstance(self.config, LocalConfiguration):
+            link_service = LinkLocalService(self.config, self.study_name)
+        else:
+            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
+        return link_service
