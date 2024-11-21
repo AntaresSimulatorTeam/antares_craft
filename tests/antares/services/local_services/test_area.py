@@ -1181,5 +1181,5 @@ class TestReadArea:
         local_area_service = local_read_study.area_service
         liste = local_area_service.read_areas()
         list_area_name = ["at", "it", "fr"]
-        for index, area in enumerate(liste):
-            assert area.id in list_area_name[index]
+        for area in liste:
+            assert area.id in list_area_name
