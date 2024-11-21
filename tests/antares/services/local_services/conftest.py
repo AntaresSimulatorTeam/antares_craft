@@ -12,6 +12,8 @@
 
 import pytest
 
+from pathlib import Path
+
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.area import Area
 from antares.model.binding_constraint import (
@@ -35,7 +37,6 @@ from antares.model.thermal import (
 )
 from antares.model.wind import Wind
 from antares.tools.ini_tool import IniFile, IniFileTypes
-from pathlib import Path
 
 
 @pytest.fixture

@@ -1175,8 +1175,9 @@ class TestCreateLoad:
         # Then
         assert actual_file_contents == expected_file_contents
 
+
 class TestReadArea:
-    def test_read_areas_local(self, local_read_study):   
+    def test_read_areas_local(self, local_read_study):
         local_area_service = local_read_study.area_service
         liste = local_area_service.read_areas()
         list_area_name = ["at", "it", "fr"]

@@ -29,8 +29,6 @@ from antares.model.settings.study_settings import StudySettings
 from antares.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.model.settings.time_series import TimeSeriesParameters
 from antares.service.base_services import BaseStudyService
-from antares.service.api_services.area_api import AreaApiService
-from antares.service.base_services import BaseAreaService
 
 
 def _returns_study_settings(

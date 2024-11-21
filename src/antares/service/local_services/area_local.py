@@ -328,11 +328,15 @@ class AreaLocalService(BaseAreaService):
         try:
             for element in Path(areas_path).iterdir():
                 if element.is_dir():
-                    areas.append(Area(name=element.name,
-                                                area_service=self,
-                                                storage_service=self.storage_service,
-                                                thermal_service=self.thermal_service,
-                                                renewable_service=self.renewable_service,))
+                    areas.append(
+                        Area(
+                            name=element.name,
+                            area_service=self,
+                            storage_service=self.storage_service,
+                            thermal_service=self.thermal_service,
+                            renewable_service=self.renewable_service,
+                        )
+                    )
             return areas
         except (FileNotFoundError, PermissionError):
             # In case the folder is not found, return an empty list

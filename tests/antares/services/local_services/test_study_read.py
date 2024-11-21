@@ -16,12 +16,12 @@ import logging
 import re
 
 from pathlib import Path
+
 from antares.model.study import read_study_local
+
 
 class TestReadStudy:
     def test_directory_not_exists_error(self, caplog):
-        study_name = "study_name"
-
         current_dir = Path.cwd()
         relative_path = Path("fake/path/")
         study_path = current_dir / relative_path

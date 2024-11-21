@@ -30,7 +30,7 @@ from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings.study_settings import DefaultStudySettings, StudySettings, StudySettingsLocal
 from antares.model.settings.time_series import correlation_defaults
 from antares.service.api_services.study_api import _returns_study_settings
-from antares.service.base_services import BaseStudyService
+from antares.service.base_services import BaseAreaService, BaseStudyService
 from antares.service.service_factory import ServiceFactory
 from antares.tools.ini_tool import IniFile, IniFileTypes
 
@@ -181,7 +181,9 @@ def read_study_local(study_directory: Path) -> "Study":
     local_config = LocalConfiguration(study_directory.parent, study_directory.name)
 
     return Study(
-        name=study_params["caption"], version=study_params["version"], service_factory=ServiceFactory(config=local_config, study_name=study_params["caption"])
+        name=study_params["caption"],
+        version=study_params["version"],
+        service_factory=ServiceFactory(config=local_config, study_name=study_params["caption"]),
     )
 
 
@@ -213,7 +215,7 @@ class Study:
         return self._study_service
 
     @property
-    def area_service(self) -> BaseStudyService:
+    def area_service(self) -> BaseAreaService:
         return self._area_service
 
     def get_areas(self) -> MappingProxyType[str, Area]:
