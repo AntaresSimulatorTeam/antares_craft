@@ -106,7 +106,3 @@ class StudyApiService(BaseStudyService):
             self._wrapper.delete(url)
         except APIError as e:
             raise StudyDeletionError(self.study_id, e.message) from e
-
-    def read_areas(self) -> BaseAreaService:
-        area_api_service = AreaApiService(self._config, self._study_id)
-        return area_api_service.read_areas()
