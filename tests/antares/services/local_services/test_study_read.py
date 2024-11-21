@@ -14,9 +14,12 @@ import pytest
 
 import logging
 import re
-from unittest import mock
+
 from pathlib import Path
+from unittest import mock
+
 from antares.model.study import read_study_local
+
 
 class TestReadStudy:
     def test_directory_not_exists_error(self, caplog):
