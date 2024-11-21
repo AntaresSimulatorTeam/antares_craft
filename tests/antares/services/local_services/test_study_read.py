@@ -14,11 +14,9 @@ import pytest
 
 import logging
 import re
-
+from unittest import mock
 from pathlib import Path
-
 from antares.model.study import read_study_local
-
 
 class TestReadStudy:
     def test_directory_not_exists_error(self, caplog):
@@ -30,3 +28,16 @@ class TestReadStudy:
         with caplog.at_level(logging.ERROR):
             with pytest.raises(ValueError, match=escaped_full_path):
                 read_study_local(study_path)
+
+    def test_directory_permission_denied(self, caplog, local_study_with_hydro):
+        study_path = local_study_with_hydro.service.config.study_path
+        with caplog.at_level(logging.ERROR):
+            with mock.patch(
+                "pathlib.Path.iterdir",
+                side_effect=PermissionError(f"Some content cannot be accessed in {local_study_with_hydro}"),
+            ):
+                with pytest.raises(
+                    PermissionError,
+                    match=f"Some content cannot be accessed in {local_study_with_hydro}",
+                ):
+                    read_study_local(study_path)
