@@ -28,7 +28,7 @@ class IniFileTypes(Enum):
     """
 
     # TODO: Commented inis are not yet handled
-    # ANTARES = "study.antares"
+    ANTARES = "study.antares"
     # DESKTOP = "Desktop.ini"
     GENERAL = "settings/generaldata.ini"
     # SCENARIO = "settings/scenariobuilder.dat"

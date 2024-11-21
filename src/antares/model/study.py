@@ -141,6 +141,50 @@ InfoTip = Antares Study {version}: {study_name}
     )
 
 
+def read_study_local(study_directory: Path) -> "Study":
+    """
+    Read a study structure by returning a study object.
+    Args:
+        study_directory: antares study path to be read
+
+    Raises:
+        PermissionError if the study cannot be read
+        ValueError if the provided directory does not exist
+
+    """
+
+    def _directories_can_be_read(local_path: Path) -> None:
+        if local_path.is_dir():
+            for item in local_path.iterdir():
+                try:
+                    if item.is_dir():
+                        # Si c'est un dossier, on essaie de lister son contenu
+                        for sub_item in item.iterdir():
+                            pass
+                except PermissionError:
+                    logging.error(f"PermissionError: Cannot access {item}")
+                    raise
+                except Exception as e:
+                    logging.error(f"An error occurred with {item}: {e}")
+                    raise
+
+    def _directory_not_exists(local_path: Path) -> None:
+        if local_path is None or not os.path.exists(local_path):
+            raise ValueError(f"Provided directory {local_path} does not exist.")
+
+    _directory_not_exists(study_directory)
+    _directories_can_be_read(study_directory)
+
+    study_antares = IniFile(study_directory, IniFileTypes.ANTARES)
+    study_params = study_antares.ini_dict["antares"]
+
+    local_config = LocalConfiguration(study_directory.parent, study_directory.name)
+
+    return Study(
+        name=study_params["caption"], version=study_params["version"], service_factory=ServiceFactory(config=local_config, study_name=study_params["caption"])
+    )
+
+
 class Study:
     def __init__(
         self,
@@ -167,6 +211,10 @@ class Study:
     @property
     def service(self) -> BaseStudyService:
         return self._study_service
+
+    @property
+    def area_service(self) -> BaseStudyService:
+        return self._area_service
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
