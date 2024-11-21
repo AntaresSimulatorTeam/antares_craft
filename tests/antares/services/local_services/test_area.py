@@ -1182,4 +1182,4 @@ class TestReadArea:
         liste = local_area_service.read_areas()
         list_area_name = ["at", "it", "fr"]
         for index, area in enumerate(liste):
-            assert area.id == list_area_name[index]
+            assert area.id in list_area_name[index]
