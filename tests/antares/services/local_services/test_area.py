@@ -797,20 +797,8 @@ class TestCreateWind:
 
     def test_data_txt_has_correct_default_values(self, area_fr, fr_wind):
         # Given
-        expected_file_contents = """1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-"""
-        expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None)
+        expected_file_data = pd.DataFrame(np.ones([12, 6]), dtype=int)
+        expected_file_data[2] = 0
 
         # Then
         assert fr_wind.prepro.data.time_series.equals(expected_file_data)
@@ -946,20 +934,8 @@ class TestCreateSolar:
 
     def test_data_txt_has_correct_default_values(self, area_fr, fr_solar):
         # Given
-        expected_file_contents = """1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-"""
-        expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None)
+        expected_file_data = pd.DataFrame(np.ones([12, 6]), dtype=int)
+        expected_file_data[2] = 0
 
         # Then
         assert fr_solar.prepro.data.time_series.equals(expected_file_data)
@@ -1096,20 +1072,8 @@ class TestCreateLoad:
 
     def test_data_txt_has_correct_default_values(self, area_fr, fr_load):
         # Given
-        expected_file_contents = """1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-"""
-        expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None)
+        expected_file_data = pd.DataFrame(np.ones([12, 6]), dtype=int)
+        expected_file_data[2] = 0
 
         # Then
         assert fr_load.prepro.data.time_series.equals(expected_file_data)
