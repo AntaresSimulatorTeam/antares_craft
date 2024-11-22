@@ -167,7 +167,7 @@ author = Unknown
         # When
         with caplog.at_level(logging.ERROR):
             with pytest.raises(
-                FileExistsError, match=f"Failed to create study. Study {tmp_path}/{study_name} already exists"
+                FileExistsError, match=f"Failed to create study. Study {tmp_path / study_name} already exists"
             ):
                 create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
 
