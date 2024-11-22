@@ -154,7 +154,7 @@ author = Unknown
         # Then
         assert actual_content == antares_content
 
-    def test_verify_study_already_exists_error(self, monkeypatch, tmp_path, caplog):
+    def test_verify_study_already_exists_error(self, monkeypatch, tmp_path):
         # Given
         study_name = "studyTest"
         version = "850"
@@ -165,11 +165,10 @@ author = Unknown
         monkeypatch.setattr("antares.model.study._verify_study_already_exists", mock_verify_study_already_exists)
 
         # When
-        with caplog.at_level(logging.ERROR):
-            with pytest.raises(
-                FileExistsError, match=f"Failed to create study. Study {tmp_path / study_name} already exists"
-            ):
-                create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
+        with pytest.raises(
+            FileExistsError, match=f"Failed to create study. Study {tmp_path / study_name} already exists"
+        ):
+            create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
 
     def test_solar_correlation_ini_exists(self, local_study_with_hydro):
         # Given
@@ -1562,10 +1561,7 @@ layers = 0
         # Then
         assert actual_content == ui_ini_content
 
-    def test_create_area_with_custom_error(self, monkeypatch, caplog, local_study):
-        # Given
-        caplog.set_level(logging.INFO)
-
+    def test_create_area_with_custom_error(self, monkeypatch, local_study):
         def mock_error_in_sets_ini():
             raise CustomError("An error occurred while processing area can not be created")
 

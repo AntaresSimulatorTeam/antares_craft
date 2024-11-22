@@ -81,15 +81,16 @@ class TimeSeriesFile:
         constraint_id: Optional[str] = None,
         time_series: Optional[pd.DataFrame] = None,
     ) -> None:
-        if "{area_id}" in ts_file_type.path() and area_id is None:
+        ts_file_type_str = ts_file_type.path()
+        if "{area_id}" in ts_file_type_str and area_id is None:
             raise ValueError("area_id is required for this file type.")
-        if "{constraint_id}" in ts_file_type.path() and constraint_id is None:
+        if "{constraint_id}" in ts_file_type_str and constraint_id is None:
             raise ValueError("constraint_id is required for this file type.")
 
         self.file_path = study_path / (
             ts_file_type.value
             if not (area_id or constraint_id)
-            else ts_file_type.path().format(area_id=area_id, constraint_id=constraint_id)
+            else ts_file_type_str.format(area_id=area_id, constraint_id=constraint_id)
         )
 
         if self.file_path.is_file() and time_series is not None:
