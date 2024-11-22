@@ -30,4 +30,3 @@ class TestReadStudy:
         with caplog.at_level(logging.ERROR):
             with pytest.raises(ValueError, match=escaped_full_path):
                 read_study_local(study_path)
-

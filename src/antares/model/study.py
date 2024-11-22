@@ -152,6 +152,7 @@ def read_study_local(study_directory: Path) -> "Study":
         ValueError if the provided directory does not exist
 
     """
+
     def _directory_not_exists(local_path: Path) -> None:
         if local_path is None or not os.path.exists(local_path):
             raise ValueError(f"Provided directory {local_path} does not exist.")
