@@ -321,4 +321,18 @@ class AreaLocalService(BaseAreaService):
         raise NotImplementedError
 
     def read_areas(self) -> List[Area]:
-        raise NotImplementedError
+        local_path = self.config.local_path
+        areas_path = local_path / self.study_name / "input" / "areas"
+        areas = []
+        for element in areas_path.iterdir():
+            if element.is_dir():
+                areas.append(
+                    Area(
+                        name=element.name,
+                        area_service=self,
+                        storage_service=self.storage_service,
+                        thermal_service=self.thermal_service,
+                        renewable_service=self.renewable_service,
+                    )
+                )
+        return areas

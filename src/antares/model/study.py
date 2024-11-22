@@ -141,6 +141,36 @@ InfoTip = Antares Study {version}: {study_name}
     )
 
 
+def read_study_local(study_directory: Path) -> "Study":
+    """
+    Read a study structure by returning a study object.
+    Args:
+        study_directory: antares study path to be read
+
+    Raises:
+        FileNotFoundError: If the provided directory does not exist.
+
+    """
+
+    def _directory_not_exists(local_path: Path) -> None:
+        if not local_path.is_dir():
+            raise FileNotFoundError(f"The path {local_path} doesn't exist or isn't a folder.")
+
+    _directory_not_exists(study_directory)
+
+    study_antares = IniFile(study_directory, IniFileTypes.ANTARES)
+
+    study_params = study_antares.ini_dict["antares"]
+
+    local_config = LocalConfiguration(study_directory.parent, study_directory.name)
+
+    return Study(
+        name=study_params["caption"],
+        version=study_params["version"],
+        service_factory=ServiceFactory(config=local_config, study_name=study_params["caption"]),
+    )
+
+
 class Study:
     def __init__(
         self,
@@ -167,6 +197,9 @@ class Study:
     @property
     def service(self) -> BaseStudyService:
         return self._study_service
+
+    def read_areas(self) -> List[Area]:
+        return self._area_service.read_areas()
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))

@@ -25,6 +25,7 @@ from antares.model.renewable import (
     TimeSeriesInterpretation,
 )
 from antares.model.st_storage import STStorage, STStorageGroup, STStorageProperties, STStoragePropertiesLocal
+from antares.model.study import read_study_local
 from antares.model.thermal import (
     LawOption,
     LocalTSGenerationBehavior,
@@ -1174,3 +1175,15 @@ class TestCreateLoad:
 
         # Then
         assert actual_file_contents == expected_file_contents
+
+
+class TestReadArea:
+    def test_read_areas_local(self, local_study_w_areas):
+        study_path = local_study_w_areas.service.config.study_path
+
+        local_study_object = read_study_local(study_path)
+
+        actual_areas = local_study_object.read_areas()
+        expected_areas = ["at", "it", "fr"]
+        for area in actual_areas:
+            assert area.id in expected_areas
