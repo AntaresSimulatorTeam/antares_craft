@@ -12,7 +12,6 @@
 
 import pytest
 
-import logging
 import re
 
 from pathlib import Path
@@ -21,12 +20,20 @@ from antares.model.study import read_study_local
 
 
 class TestReadStudy:
-    def test_directory_not_exists_error(self, caplog):
+    def test_directory_not_exists_error(self):
         current_dir = Path.cwd()
-        relative_path = Path("fake/path/")
-        study_path = current_dir / relative_path
+        study_path = current_dir / "fake_path"
         escaped_full_path = re.escape(str(study_path))
 
-        with caplog.at_level(logging.ERROR):
-            with pytest.raises(ValueError, match=escaped_full_path):
-                read_study_local(study_path)
+        with pytest.raises(FileNotFoundError, match=escaped_full_path):
+            read_study_local(study_path)
+
+    def test_directory_is_a_file(self, local_study_with_hydro):
+        current_dir = local_study_with_hydro.service.config.study_path
+
+        study_path = current_dir / "file.txt"
+        study_path.write_text("Not a directory")
+        escaped_full_path = re.escape(str(study_path))
+
+        with pytest.raises(FileNotFoundError, match=escaped_full_path):
+            read_study_local(study_path)

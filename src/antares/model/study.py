@@ -148,13 +148,13 @@ def read_study_local(study_directory: Path) -> "Study":
         study_directory: antares study path to be read
 
     Raises:
-        ValueError if the provided directory does not exist
+        FileNotFoundError: If the provided directory does not exist.
 
     """
 
     def _directory_not_exists(local_path: Path) -> None:
-        if local_path is None or not os.path.exists(local_path):
-            raise ValueError(f"Provided directory {local_path} does not exist.")
+        if not local_path.is_dir():
+            raise FileNotFoundError(f"The path {local_path} doesn't exist or isn't a folder.")
 
     _directory_not_exists(study_directory)
 
