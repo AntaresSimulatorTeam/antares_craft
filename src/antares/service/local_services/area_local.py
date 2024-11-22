@@ -323,7 +323,7 @@ class AreaLocalService(BaseAreaService):
 
     def read_areas(self) -> List[Area]:
         local_path = self.config.local_path
-        areas_path = local_path / Path(self.study_name) / Path("input/areas")
+        areas_path = local_path / self.study_name / "input/areas"
         areas = []
         try:
             for element in Path(areas_path).iterdir():

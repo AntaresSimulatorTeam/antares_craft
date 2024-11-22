@@ -12,8 +12,6 @@
 
 import pytest
 
-from pathlib import Path
-
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.area import Area
 from antares.model.binding_constraint import (
@@ -43,11 +41,11 @@ from antares.tools.ini_tool import IniFile, IniFileTypes
 def local_read_study(local_study_with_hydro) -> Study:
     study_name = "studyTest"
     study_version = "880"
-    study_path = Path(local_study_with_hydro.service.config.study_path)
+    study_path = local_study_with_hydro.service.config.study_path
 
-    # Chemin attendu pour le fichier study.antares
+    # path expected for study.antares file
     expected_study_antares_path = study_path / "study.antares"
-    # Contenu du fichier antares
+    # Antares file content
     antares_content = f"""[antares]
 version = {study_version}
 caption = {study_name}
@@ -55,8 +53,8 @@ created = 123
 lastsave = 123
 author = Unknown
 """
-    # Écriture du contenu dans le fichier
-    expected_study_antares_path.parent.mkdir(parents=True, exist_ok=True)  # Crée les répertoires si nécessaires
+    # Content write in the file
+    expected_study_antares_path.parent.mkdir(parents=True, exist_ok=True)  # Create directories if necessary
     with open(expected_study_antares_path, "w", encoding="utf-8") as file:
         file.write(antares_content)
     return read_study_local(study_path)
