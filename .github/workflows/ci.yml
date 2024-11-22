@@ -6,7 +6,13 @@ on:
 
 jobs:
   ci:
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      max-parallel: 9
+      matrix:
+        os: [ windows-latest, ubuntu-20.04 ]
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -15,27 +21,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: 3.9
-          cache: pip
-          cache-dependency-path: |
-            requirements.txt
-            requirements-dev.txt
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt -r requirements-dev.txt
+          pip install tox~=4.21.2
+          pip install tox-uv~=1.11.3
 
-      - name: Check formatting
-        run: ruff format --check src tests
-
-      - name: Check typing
-        run: |
-          python -m mypy
-
-      - name: Test
-        run: |
-          pytest --cov src --cov-report xml tests/antares
+      - name: Perform all tests
+        run: tox -p
 
       - name: Archive code coverage results
+        if: matrix.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v4
         with:
           name: python-code-coverage-report
