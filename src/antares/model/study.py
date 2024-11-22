@@ -152,30 +152,14 @@ def read_study_local(study_directory: Path) -> "Study":
         ValueError if the provided directory does not exist
 
     """
-
-    def _directories_can_be_read(local_path: Path) -> None:
-        if local_path.is_dir():
-            for item in local_path.iterdir():
-                try:
-                    if item.is_dir():
-                        # Si c'est un dossier, on essaie de lister son contenu
-                        for sub_item in item.iterdir():
-                            pass
-                except PermissionError:
-                    logging.error(f"PermissionError: Cannot access {item}")
-                    raise
-                except Exception as e:
-                    logging.error(f"An error occurred with {item}: {e}")
-                    raise
-
     def _directory_not_exists(local_path: Path) -> None:
         if local_path is None or not os.path.exists(local_path):
             raise ValueError(f"Provided directory {local_path} does not exist.")
 
     _directory_not_exists(study_directory)
-    _directories_can_be_read(study_directory)
 
     study_antares = IniFile(study_directory, IniFileTypes.ANTARES)
+
     study_params = study_antares.ini_dict["antares"]
 
     local_config = LocalConfiguration(study_directory.parent, study_directory.name)
