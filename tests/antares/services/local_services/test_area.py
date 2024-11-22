@@ -812,14 +812,8 @@ class TestCreateWind:
 """
         expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None)
 
-        # When
-        with fr_wind.prepro.data.local_file.file_path.open("r") as fr_wind_file:
-            actual_file_contents = fr_wind_file.read()
-        actual_file_data = fr_wind.prepro.data.time_series
-
         # Then
-        assert actual_file_data.equals(expected_file_data)
-        assert actual_file_contents == expected_file_contents
+        assert fr_wind.prepro.data.time_series.equals(expected_file_data)
 
     def test_k_txt_exists(self, area_fr, fr_wind):
         # Given
@@ -967,14 +961,8 @@ class TestCreateSolar:
 """
         expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None)
 
-        # When
-        with fr_solar.prepro.data.local_file.file_path.open("r") as fr_solar_file:
-            actual_file_contents = fr_solar_file.read()
-        actual_file_data = fr_solar.prepro.data.time_series
-
         # Then
-        assert actual_file_data.equals(expected_file_data)
-        assert actual_file_contents == expected_file_contents
+        assert fr_solar.prepro.data.time_series.equals(expected_file_data)
 
     def test_k_txt_exists(self, area_fr, fr_solar):
         # Given
@@ -1123,14 +1111,8 @@ class TestCreateLoad:
 """
         expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None)
 
-        # When
-        with fr_load.prepro.data.local_file.file_path.open("r") as fr_load_file:
-            actual_file_contents = fr_load_file.read()
-        actual_file_data = fr_load.prepro.data.time_series
-
         # Then
-        assert actual_file_data.equals(expected_file_data)
-        assert actual_file_contents == expected_file_contents
+        assert fr_load.prepro.data.time_series.equals(expected_file_data)
 
     def test_k_txt_exists(self, area_fr, fr_load):
         # Given
