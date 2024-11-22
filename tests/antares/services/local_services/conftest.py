@@ -25,7 +25,7 @@ from antares.model.load import Load
 from antares.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.model.solar import Solar
 from antares.model.st_storage import STStorageGroup, STStorageProperties
-from antares.model.study import Study, create_study_local, read_study_local
+from antares.model.study import Study, create_study_local
 from antares.model.thermal import (
     LawOption,
     LocalTSGenerationBehavior,
@@ -35,29 +35,6 @@ from antares.model.thermal import (
 )
 from antares.model.wind import Wind
 from antares.tools.ini_tool import IniFile, IniFileTypes
-
-
-@pytest.fixture
-def local_read_study(local_study_with_hydro) -> Study:
-    study_name = "studyTest"
-    study_version = "880"
-    study_path = local_study_with_hydro.service.config.study_path
-
-    # path expected for study.antares file
-    expected_study_antares_path = study_path / "study.antares"
-    # Antares file content
-    antares_content = f"""[antares]
-version = {study_version}
-caption = {study_name}
-created = 123
-lastsave = 123
-author = Unknown
-"""
-    # Content write in the file
-    expected_study_antares_path.parent.mkdir(parents=True, exist_ok=True)  # Create directories if necessary
-    with open(expected_study_antares_path, "w", encoding="utf-8") as file:
-        file.write(antares_content)
-    return read_study_local(study_path)
 
 
 @pytest.fixture
