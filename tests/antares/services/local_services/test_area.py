@@ -1178,8 +1178,7 @@ class TestCreateLoad:
 
 class TestReadArea:
     def test_read_areas_local(self, local_read_study):
-        local_area_service = local_read_study.area_service
-        liste = local_area_service.read_areas()
+        liste = local_read_study.read_areas()
         list_area_name = ["at", "it", "fr"]
         for area in liste:
             assert area.id in list_area_name

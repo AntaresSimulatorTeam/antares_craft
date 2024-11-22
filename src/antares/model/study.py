@@ -30,7 +30,7 @@ from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings.study_settings import DefaultStudySettings, StudySettings, StudySettingsLocal
 from antares.model.settings.time_series import correlation_defaults
 from antares.service.api_services.study_api import _returns_study_settings
-from antares.service.base_services import BaseAreaService, BaseStudyService
+from antares.service.base_services import BaseStudyService
 from antares.service.service_factory import ServiceFactory
 from antares.tools.ini_tool import IniFile, IniFileTypes
 
@@ -199,9 +199,8 @@ class Study:
     def service(self) -> BaseStudyService:
         return self._study_service
 
-    @property
-    def area_service(self) -> BaseAreaService:
-        return self._area_service
+    def read_areas(self) -> List[Area]:
+        return self._area_service.read_areas()
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
