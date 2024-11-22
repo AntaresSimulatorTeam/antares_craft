@@ -147,7 +147,16 @@ def read_study_local(study_directory: Path) -> "Study":
     Args:
         study_directory: antares study path to be read
 
+    Raises:
+        ValueError if the provided directory does not exist
+
     """
+
+    def _directory_not_exists(local_path: Path) -> None:
+        if local_path is None or not os.path.exists(local_path):
+            raise ValueError(f"Provided directory {local_path} does not exist.")
+
+    _directory_not_exists(study_directory)
 
     study_antares = IniFile(study_directory, IniFileTypes.ANTARES)
 
