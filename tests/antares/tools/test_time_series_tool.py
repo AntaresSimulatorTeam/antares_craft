@@ -103,7 +103,7 @@ class TestTimeSeriesFile:
     def test_file_exists_time_series_provided_gives_error(self, tmp_path, time_series_data):
         # Given
         time_series = TimeSeries(time_series_data)
-        file_name = TimeSeriesFileType.RESERVES.value.format(area_id="test")
+        file_name = TimeSeriesFileType.RESERVES.path().format(area_id="test")
 
         # When
         (tmp_path / file_name).parent.mkdir(exist_ok=True, parents=True)
@@ -118,7 +118,7 @@ class TestTimeSeriesFile:
     def test_file_exists_no_time_series_provided(self, tmp_path, time_series_data):
         # Given
         time_series = TimeSeries(time_series_data)
-        file_name = tmp_path / TimeSeriesFileType.RESERVES.value.format(area_id="test")
+        file_name = tmp_path / TimeSeriesFileType.RESERVES.path().format(area_id="test")
 
         # When
         file_name.parent.mkdir(exist_ok=True, parents=True)

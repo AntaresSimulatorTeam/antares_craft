@@ -30,26 +30,29 @@ class TimeSeriesFileType(Enum):
         TimeSeriesFileType.SOLAR.value.format(area_id="test_area")
     """
 
-    BINDING_CONSTRAINT_EQUAL = "input/bindingconstraints/{constraint_id}_eq.txt"
-    BINDING_CONSTRAINT_GREATER = "input/bindingconstraints/{constraint_id}_gt.txt"
-    BINDING_CONSTRAINT_LESS = "input/bindingconstraints/{constraint_id}_lt.txt"
-    LOAD = "input/load/series/load_{area_id}.txt"
-    LOAD_CONVERSION = "input/load/prepro/{area_id}/conversion.txt"
-    LOAD_DATA = "input/load/prepro/{area_id}/data.txt"
-    LOAD_K = "input/load/prepro/{area_id}/k.txt"
-    LOAD_TRANSLATION = "input/load/prepro/{area_id}/translation.txt"
-    MISC_GEN = "input/misc-gen/miscgen-{area_id}.txt"
-    RESERVES = "input/reserves/{area_id}.txt"
-    SOLAR = "input/solar/series/solar_{area_id}.txt"
-    SOLAR_CONVERSION = "input/solar/prepro/{area_id}/conversion.txt"
-    SOLAR_DATA = "input/solar/prepro/{area_id}/data.txt"
-    SOLAR_K = "input/solar/prepro/{area_id}/k.txt"
-    SOLAR_TRANSLATION = "input/solar/prepro/{area_id}/translation.txt"
-    WIND = "input/wind/series/wind_{area_id}.txt"
-    WIND_CONVERSION = "input/wind/prepro/{area_id}/conversion.txt"
-    WIND_DATA = "input/wind/prepro/{area_id}/data.txt"
-    WIND_K = "input/wind/prepro/{area_id}/k.txt"
-    WIND_TRANSLATION = "input/wind/prepro/{area_id}/translation.txt"
+    BINDING_CONSTRAINT_EQUAL = Path("input") / "bindingconstraints" / "{constraint_id}_eq.txt"
+    BINDING_CONSTRAINT_GREATER = Path("input") / "bindingconstraints" / "{constraint_id}_gt.txt"
+    BINDING_CONSTRAINT_LESS = Path("input") / "bindingconstraints" / "{constraint_id}_lt.txt"
+    LOAD = Path("input") / "load" / "series" / "load_{area_id}.txt"
+    LOAD_CONVERSION = Path("input") / "load" / "prepro" / "{area_id}/conversion.txt"
+    LOAD_DATA = Path("input") / "load" / "prepro" / "{area_id}" / "data.txt"
+    LOAD_K = Path("input") / "load" / "prepro" / "{area_id}" / "k.txt"
+    LOAD_TRANSLATION = Path("input") / "load" / "prepro" / "{area_id}" / "translation.txt"
+    MISC_GEN = Path("input") / "misc-gen" / "miscgen-{area_id}.txt"
+    RESERVES = Path("input") / "reserves" / "{area_id}.txt"
+    SOLAR = Path("input") / "solar" / "series" / "solar_{area_id}.txt"
+    SOLAR_CONVERSION = Path("input") / "solar" / "prepro" / "{area_id}" / "conversion.txt"
+    SOLAR_DATA = Path("input") / "solar" / "prepro" / "{area_id}" / "data.txt"
+    SOLAR_K = Path("input") / "solar" / "prepro" / "{area_id}" / "k.txt"
+    SOLAR_TRANSLATION = Path("input") / "solar" / "prepro" / "{area_id}" / "translation.txt"
+    WIND = Path("input") / "wind" / "series" / "wind_{area_id}.txt"
+    WIND_CONVERSION = Path("input") / "wind" / "prepro" / "{area_id}" / "conversion.txt"
+    WIND_DATA = Path("input") / "wind" / "prepro" / "{area_id}" / "data.txt"
+    WIND_K = Path("input") / "wind" / "prepro" / "{area_id}" / "k.txt"
+    WIND_TRANSLATION = Path("input") / "wind" / "prepro" / "{area_id}" / "translation.txt"
+
+    def path(self) -> str:
+        return str(self.value)
 
 
 class TimeSeriesFile:
@@ -78,15 +81,15 @@ class TimeSeriesFile:
         constraint_id: Optional[str] = None,
         time_series: Optional[pd.DataFrame] = None,
     ) -> None:
-        if "{area_id}" in ts_file_type.value and area_id is None:
+        if "{area_id}" in ts_file_type.path() and area_id is None:
             raise ValueError("area_id is required for this file type.")
-        if "{constraint_id}" in ts_file_type.value and constraint_id is None:
+        if "{constraint_id}" in ts_file_type.path() and constraint_id is None:
             raise ValueError("constraint_id is required for this file type.")
 
         self.file_path = study_path / (
             ts_file_type.value
             if not (area_id or constraint_id)
-            else ts_file_type.value.format(area_id=area_id, constraint_id=constraint_id)
+            else ts_file_type.path().format(area_id=area_id, constraint_id=constraint_id)
         )
 
         if self.file_path.is_file() and time_series is not None:

@@ -2413,7 +2413,7 @@ at%fr = 0.000000%1
         )
         expected_pre_created_ts_file = (
             local_study_with_constraint.service.config.study_path
-            / TimeSeriesFileType.BINDING_CONSTRAINT_LESS.value.format(constraint_id=test_constraint.id)
+            / TimeSeriesFileType.BINDING_CONSTRAINT_LESS.path().format(constraint_id=test_constraint.id)
         )
 
         # When
