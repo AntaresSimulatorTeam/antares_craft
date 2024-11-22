@@ -1178,8 +1178,8 @@ class TestCreateLoad:
 
 
 class TestReadArea:
-    def test_read_areas_local(self, local_study_with_hydro):
-        study_path = local_study_with_hydro.service.config.study_path
+    def test_read_areas_local(self, local_study_w_areas):
+        study_path = local_study_w_areas.service.config.study_path
 
         local_study_object = read_study_local(study_path)
 

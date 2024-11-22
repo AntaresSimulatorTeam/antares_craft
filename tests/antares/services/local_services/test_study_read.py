@@ -28,11 +28,11 @@ class TestReadStudy:
         with pytest.raises(FileNotFoundError, match=escaped_full_path):
             read_study_local(study_path)
 
-    def test_directory_is_a_file(self, local_study_with_hydro):
-        current_dir = local_study_with_hydro.service.config.study_path
+    def test_directory_is_a_file(self, local_study):
+        current_dir = local_study.service.config.study_path
 
         study_path = current_dir / "file.txt"
-        study_path.write_text("Not a directory")
+        study_path.touch()
         escaped_full_path = re.escape(str(study_path))
 
         with pytest.raises(FileNotFoundError, match=escaped_full_path):
