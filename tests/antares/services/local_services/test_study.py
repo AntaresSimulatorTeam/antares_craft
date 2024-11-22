@@ -15,7 +15,6 @@ import pytest
 import logging
 import os
 import time
-import typing as t
 
 from configparser import ConfigParser
 from pathlib import Path
@@ -85,6 +84,7 @@ from antares.service.local_services.renewable_local import RenewableLocalService
 from antares.service.local_services.st_storage_local import ShortTermStorageLocalService
 from antares.service.local_services.thermal_local import ThermalLocalService
 from antares.tools.ini_tool import IniFileTypes
+from antares.tools.time_series_tool import TimeSeriesFileType
 
 
 class TestCreateStudy:
@@ -99,7 +99,7 @@ class TestCreateStudy:
         expected_study_path = tmp_path / "studyTest"
 
         # When
-        create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
+        create_study_local(study_name, version, str(tmp_path.absolute()))
 
         # Then
         assert os.path.exists(expected_study_path)
@@ -147,7 +147,7 @@ author = Unknown
         monkeypatch.setattr(time, "time", lambda: "123")
 
         # When
-        create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
+        create_study_local(study_name, version, str(tmp_path.absolute()))
         with open(expected_study_antares_path, "r") as file:
             actual_content = file.read()
 
@@ -162,7 +162,7 @@ author = Unknown
 
         # When
         with pytest.raises(FileExistsError, match=f"Study {study_name} already exists"):
-            create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
+            create_study_local(study_name, version, str(tmp_path.absolute()))
 
     def test_solar_correlation_ini_exists(self, local_study_with_hydro):
         # Given
@@ -480,7 +480,7 @@ class TestStudyProperties:
         playlist_study = create_study_local(
             "test_study",
             "880",
-            LocalConfiguration(tmp_path, "test_study"),
+            str(tmp_path.absolute()),
             StudySettingsLocal(
                 general_parameters=GeneralParametersLocal(nb_years=nb_years, selection_mode=True),
                 playlist_parameters=PlaylistParameters(playlist=[PlaylistData()] * nb_years),
@@ -605,7 +605,7 @@ class TestStudyProperties:
         thematic_trimming_study = create_study_local(
             "test_study",
             "880",
-            LocalConfiguration(tmp_path, "test_study"),
+            str(tmp_path.absolute()),
             StudySettingsLocal(
                 general_parameters=GeneralParametersLocal(thematic_trimming=True),
                 thematic_trimming_parameters=ThematicTrimmingParametersLocal(),
@@ -740,7 +740,7 @@ seed-initial-reservoir-levels = 10005489
         study_version = "880"
         general_parameters = GeneralParametersLocal(thematic_trimming=True)
         thematic_trimming_parameters = ThematicTrimmingParametersLocal(op_cost=False)
-        study_config = LocalConfiguration(tmp_path, study_name)
+        study_path = str(tmp_path.absolute())
         expected_file_content = """[general]
 mode = Economy
 horizon = 
@@ -845,7 +845,7 @@ select_var - = OP. COST
         new_study = create_study_local(
             study_name,
             study_version,
-            study_config,
+            study_path,
             StudySettingsLocal(
                 general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
             ),
@@ -865,7 +865,7 @@ select_var - = OP. COST
         thematic_trimming_parameters = {
             key: not value for key, value in thematic_trimming_parameters.model_dump().items()
         }
-        study_config = LocalConfiguration(tmp_path, study_name)
+        study_path = str(tmp_path.absolute())
         expected_file_content = """[general]
 mode = Economy
 horizon = 
@@ -970,7 +970,7 @@ select_var + = OP. COST
         new_study = create_study_local(
             study_name,
             study_version,
-            study_config,
+            study_path,
             StudySettingsLocal(
                 general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
             ),
@@ -992,7 +992,7 @@ select_var + = OP. COST
             key: not value for key, value in thematic_trimming_parameters.model_dump().items()
         }
 
-        study_config = LocalConfiguration(tmp_path, study_name)
+        study_path = str(tmp_path.absolute())
         expected_file_content = """[general]
 mode = Economy
 horizon = 
@@ -1097,7 +1097,7 @@ selected_vars_reset = false
         new_study = create_study_local(
             study_name,
             study_version,
-            study_config,
+            study_path,
             StudySettingsLocal(
                 general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
             ),
@@ -1119,7 +1119,7 @@ selected_vars_reset = false
         thematic_trimming_parameters = ThematicTrimmingParametersLocal.model_validate(
             {key: not value for key, value in thematic_trimming_parameters.model_dump().items()}
         )
-        study_config = LocalConfiguration(tmp_path, study_name)
+        study_path = str(tmp_path.absolute())
         expected_file_content = """[general]
 mode = Economy
 horizon = 
@@ -1228,7 +1228,7 @@ select_var + = OP. COST
         new_study = create_study_local(
             study_name,
             study_version,
-            study_config,
+            study_path,
             StudySettingsLocal(
                 general_parameters=general_parameters,
                 playlist_parameters=playlist_parameters,
@@ -1254,7 +1254,7 @@ select_var + = OP. COST
         thematic_trimming_parameters = ThematicTrimmingParametersLocal.model_validate(
             {key: not value for key, value in thematic_trimming_parameters.model_dump().items()}
         )
-        study_config = LocalConfiguration(tmp_path, study_name)
+        study_path = str(tmp_path.absolute())
         expected_file_content = """[general]
 mode = Economy
 horizon = 
@@ -1363,7 +1363,7 @@ select_var + = OP. COST
         new_study = create_study_local(
             study_name,
             study_version,
-            study_config,
+            study_path,
             StudySettingsLocal(
                 general_parameters=general_parameters,
                 playlist_parameters=playlist_parameters,

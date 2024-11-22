@@ -13,7 +13,6 @@ import pytest
 
 import pandas as pd
 
-from antares.config.local_configuration import LocalConfiguration
 from antares.model.area import Area
 from antares.model.binding_constraint import (
     BindingConstraint,
@@ -39,7 +38,7 @@ from antares.tools.ini_tool import IniFile, IniFileTypes
 def local_study(tmp_path) -> Study:
     study_name = "studyTest"
     study_version = "880"
-    return create_study_local(study_name, study_version, LocalConfiguration(tmp_path, study_name))
+    return create_study_local(study_name, study_version, str(tmp_path.absolute()))
 
 
 @pytest.fixture
