@@ -269,8 +269,8 @@ class Study:
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:
-    if os.path.exists(study_directory):
-        raise FileExistsError(f"Study {study_directory} already exists.")
+    if study_directory.exists():
+        raise FileExistsError(f"Study {study_directory.name} already exists.")
 
 
 def _create_directory_structure(study_path: Path) -> None:

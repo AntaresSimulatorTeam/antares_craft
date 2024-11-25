@@ -161,7 +161,7 @@ author = Unknown
         (tmp_path / study_name).mkdir(parents=True, exist_ok=True)
 
         # When
-        with pytest.raises(FileExistsError, match=f"Study {tmp_path / study_name} already exists"):
+        with pytest.raises(FileExistsError, match=f"Study {study_name} already exists"):
             create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
 
     def test_solar_correlation_ini_exists(self, local_study_with_hydro):
