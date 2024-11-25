@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from pathlib import Path
 from typing import Dict
 
 import pandas as pd
@@ -28,3 +28,7 @@ def prepare_args_replace_matrix(series: pd.DataFrame, series_path: str) -> Dict:
     matrix = series.to_numpy().tolist()
     body = {"target": series_path, "matrix": matrix}
     return {"action": "replace_matrix", "args": body}
+
+
+def save(df: pd.DataFrame, path: Path) -> None:
+    df.to_csv(path, sep="\t", header=False, index=False, encoding="utf-8")

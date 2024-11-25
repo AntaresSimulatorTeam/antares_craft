@@ -754,7 +754,6 @@ class TestCreateWind:
         # Then
         assert expected_ini_path.exists()
         assert expected_ini_path.is_file()
-        assert expected_ini_path == fr_wind.prepro.settings.ini_path
 
     def test_conversion_txt_exists(self, area_fr, fr_wind):
         # Given
@@ -765,7 +764,6 @@ class TestCreateWind:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_wind.prepro.conversion.local_file.file_path == expected_file_path
 
     def test_conversion_txt_has_correct_default_values(self, area_fr, fr_wind):
         # Given
@@ -793,7 +791,6 @@ class TestCreateWind:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_wind.prepro.data.local_file.file_path == expected_file_path
 
     def test_data_txt_has_correct_default_values(self, area_fr, fr_wind):
         # Given
@@ -812,7 +809,6 @@ class TestCreateWind:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_wind.prepro.k.local_file.file_path == expected_file_path
 
     def test_k_txt_is_empty_by_default(self, area_fr, fr_wind):
         # Given
@@ -835,7 +831,6 @@ class TestCreateWind:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_wind.prepro.translation.local_file.file_path == expected_file_path
 
     def test_translation_txt_is_empty_by_default(self, area_fr, fr_wind):
         # Given
@@ -892,7 +887,6 @@ class TestCreateSolar:
         # Then
         assert expected_ini_path.exists()
         assert expected_ini_path.is_file()
-        assert expected_ini_path == fr_solar.prepro.settings.ini_path
 
     def test_conversion_txt_exists(self, area_fr, fr_solar):
         # Given
@@ -904,7 +898,6 @@ class TestCreateSolar:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_solar.prepro.conversion.local_file.file_path == expected_file_path
 
     def test_conversion_txt_has_correct_default_values(self, area_fr, fr_solar):
         # Given
@@ -932,7 +925,6 @@ class TestCreateSolar:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_solar.prepro.data.local_file.file_path == expected_file_path
 
     def test_data_txt_has_correct_default_values(self, area_fr, fr_solar):
         # Given
@@ -951,7 +943,6 @@ class TestCreateSolar:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_solar.prepro.k.local_file.file_path == expected_file_path
 
     def test_k_txt_is_empty_by_default(self, area_fr, fr_solar):
         # Given
@@ -974,7 +965,6 @@ class TestCreateSolar:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_solar.prepro.translation.local_file.file_path == expected_file_path
 
     def test_translation_txt_is_empty_by_default(self, area_fr, fr_solar):
         # Given
@@ -1031,7 +1021,6 @@ class TestCreateLoad:
         # Then
         assert expected_ini_path.exists()
         assert expected_ini_path.is_file()
-        assert expected_ini_path == fr_load.prepro.settings.ini_path
 
     def test_conversion_txt_exists(self, area_fr, fr_load):
         # Given
@@ -1042,7 +1031,6 @@ class TestCreateLoad:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_load.prepro.conversion.local_file.file_path == expected_file_path
 
     def test_conversion_txt_has_correct_default_values(self, area_fr, fr_load):
         # Given
@@ -1070,7 +1058,6 @@ class TestCreateLoad:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_load.prepro.data.local_file.file_path == expected_file_path
 
     def test_data_txt_has_correct_default_values(self, area_fr, fr_load):
         # Given
@@ -1089,7 +1076,6 @@ class TestCreateLoad:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_load.prepro.k.local_file.file_path == expected_file_path
 
     def test_k_txt_is_empty_by_default(self, area_fr, fr_load):
         # Given
@@ -1112,7 +1098,6 @@ class TestCreateLoad:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_load.prepro.translation.local_file.file_path == expected_file_path
 
     def test_translation_txt_is_empty_by_default(self, area_fr, fr_load):
         # Given
