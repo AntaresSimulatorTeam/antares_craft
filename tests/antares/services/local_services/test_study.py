@@ -23,7 +23,7 @@ import numpy as np
 import pandas as pd
 
 from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import CustomError, LinkCreationError
+from antares.exceptions.exceptions import AreaCreationError, CustomError, LinkCreationError
 from antares.model.area import Area, AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
 from antares.model.binding_constraint import (
     BindingConstraint,
@@ -1607,6 +1607,17 @@ layers = 0
         # When
         local_study.create_area(area, ui=area_ui)
         assert local_study.get_areas()[area].ui == area_ui
+
+    def test_creating_duplicate_area_name_errors(self, local_study_w_areas):
+        # Given
+        area_to_create = "fr"
+
+        # Then
+        with pytest.raises(
+            AreaCreationError,
+            match=f"Could not create the area {area_to_create}: There is already an area '{area_to_create}' in the study '{local_study_w_areas.name}'",
+        ):
+            local_study_w_areas.create_area(area_to_create)
 
     def test_areas_have_default_properties(self, tmp_path, local_study_w_areas):
         # Given
