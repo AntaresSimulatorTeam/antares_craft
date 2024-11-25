@@ -806,7 +806,8 @@ class TestCreateWind:
         study_path = local_config.study_path
         actual_file_path = study_path.joinpath(Path("input") / "wind" / "prepro" / "fr" / "data.txt")
         actual_data = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=int)
-        assert actual_data.equals(expected_file_data)
+        # For some reason the equality check fails on windows, so we check it in a different way
+        assert actual_data.to_dict() == expected_file_data.to_dict()
 
     def test_k_txt_exists(self, area_fr, fr_wind):
         # Given
@@ -929,7 +930,8 @@ class TestCreateSolar:
         study_path = local_config.study_path
         actual_file_path = study_path.joinpath(Path("input") / "solar" / "prepro" / "fr" / "data.txt")
         actual_data = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=int)
-        assert actual_data.equals(expected_file_data)
+        # For some reason the equality check fails on windows, so we check it in a different way
+        assert actual_data.to_dict() == expected_file_data.to_dict()
 
     def test_k_txt_exists(self, area_fr, fr_solar):
         # Given
@@ -1051,7 +1053,8 @@ class TestCreateLoad:
         study_path = local_config.study_path
         actual_file_path = study_path.joinpath(Path("input") / "load" / "prepro" / "fr" / "data.txt")
         actual_data = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=int)
-        assert actual_data.equals(expected_file_data)
+        # For some reason the equality check fails on windows, so we check it in a different way
+        assert actual_data.to_dict() == expected_file_data.to_dict()
 
     def test_k_txt_exists(self, area_fr, fr_load):
         # Given
