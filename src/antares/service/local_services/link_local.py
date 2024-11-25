@@ -10,18 +10,19 @@
 #
 # This file is part of the Antares project.
 
-import configparser
 import os
 
+from configparser import DuplicateSectionError
 from types import MappingProxyType
 from typing import Any, Dict, Optional
 
 from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import CustomError, LinkCreationError
+from antares.exceptions.exceptions import LinkCreationError
 from antares.model.area import Area
 from antares.model.link import Link, LinkProperties, LinkPropertiesLocal, LinkUi, LinkUiLocal
 from antares.service.base_services import BaseLinkService
 from antares.tools.contents_tool import sort_ini_sections
+from antares.tools.custom_raw_config_parser import CustomRawConfigParser
 
 
 class LinkLocalService(BaseLinkService):
@@ -74,15 +75,19 @@ class LinkLocalService(BaseLinkService):
         local_ui = LinkUiLocal.model_validate(ui.model_dump(mode="json", exclude_none=True)) if ui else LinkUiLocal()
 
         properties_ini_file = link_dir / "properties.ini"
-        properties_ini = configparser.ConfigParser()
+        properties_ini = CustomRawConfigParser()
 
         if properties_ini_file.is_file():
             with open(properties_ini_file, "r") as ini_file:
                 properties_ini.read_file(ini_file)
         try:
             properties_ini.add_section(area_to.name)
-        except configparser.DuplicateSectionError as e:
-            raise CustomError(f"Link exists already, section already exists in properties.ini:\n\n{e.message}")
+        except DuplicateSectionError as e:
+            raise LinkCreationError(
+                area_from=area_from.name,
+                area_to=area_to.name,
+                message=f"Link exists already between '{area_from.name}' and '{area_to.name}', section already exists in properties.ini:\n\n{e.message}",
+            )
         ini_dict = dict(local_properties.ini_fields)
         ini_dict.update(local_ui.ini_fields)
         properties_ini[area_to.name] = self.sort_link_properties_dict(ini_dict)
