@@ -23,7 +23,12 @@ import numpy as np
 import pandas as pd
 
 from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import AreaCreationError, CustomError, LinkCreationError
+from antares.exceptions.exceptions import (
+    AreaCreationError,
+    BindingConstraintCreationError,
+    CustomError,
+    LinkCreationError,
+)
 from antares.model.area import Area, AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
 from antares.model.binding_constraint import (
     BindingConstraint,
@@ -2182,6 +2187,17 @@ class TestCreateBindingconstraint:
 
         # Then
         assert isinstance(binding_constraint, BindingConstraint)
+
+    def test_duplicate_name_errors(self, local_study_with_constraint):
+        # Given
+        binding_constraint_name = "test constraint"
+
+        # Then
+        with pytest.raises(
+            BindingConstraintCreationError,
+            match=f"Could not create the binding constraint {binding_constraint_name}: A binding constraint with the name '{binding_constraint_name}' already exists.",
+        ):
+            local_study_with_constraint.create_binding_constraint(name=binding_constraint_name)
 
     def test_constraints_have_default_properties(self, local_study_with_constraint):
         # Given
