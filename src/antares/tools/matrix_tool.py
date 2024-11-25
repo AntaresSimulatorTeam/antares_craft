@@ -30,5 +30,9 @@ def prepare_args_replace_matrix(series: pd.DataFrame, series_path: str) -> Dict:
     return {"action": "replace_matrix", "args": body}
 
 
-def save(df: pd.DataFrame, path: Path) -> None:
+def df_save(df: pd.DataFrame, path: Path) -> None:
     df.to_csv(path, sep="\t", header=False, index=False, encoding="utf-8")
+
+
+def df_read(path: Path) -> pd.DataFrame:
+    return pd.read_csv(path, sep="\t", header=None)

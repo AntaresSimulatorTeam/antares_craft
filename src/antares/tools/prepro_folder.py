@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 from antares.tools.ini_tool import IniFile, IniFileTypes
-from antares.tools.matrix_tool import save
+from antares.tools.matrix_tool import df_save
 from antares.tools.time_series_tool import TimeSeriesFileType
 
 
@@ -31,20 +31,20 @@ class PreproFolder(StrEnum):
         conversion = TimeSeriesFileType.__getitem__(f"{self.upper()}_CONVERSION").path().format(area_id=area_id)
         conversion_path = study_path.joinpath(conversion)
         conversion_matrix = pd.DataFrame([[-9999999980506447872, 0, 9999999980506447872], [0, 0, 0]])
-        save(conversion_matrix, conversion_path)
+        df_save(conversion_matrix, conversion_path)
 
         data = TimeSeriesFileType.__getitem__(f"{self.upper()}_DATA").path().format(area_id=area_id)
         data_matrix = pd.DataFrame(np.ones([12, 6]), dtype=int)
         data_matrix[2] = 0
         data_path = study_path.joinpath(data)
-        save(data_matrix, data_path)
+        df_save(data_matrix, data_path)
 
         k = TimeSeriesFileType.__getitem__(f"{self.upper()}_K").path().format(area_id=area_id)
         k_path = study_path.joinpath(k)
         k_matrix = pd.DataFrame([])
-        save(k_matrix, k_path)
+        df_save(k_matrix, k_path)
 
         translation = TimeSeriesFileType.__getitem__(f"{self.upper()}_TRANSLATION").path().format(area_id=area_id)
         translation_path = study_path.joinpath(translation)
         translation_matrix = pd.DataFrame([])
-        save(translation_matrix, translation_path)
+        df_save(translation_matrix, translation_path)

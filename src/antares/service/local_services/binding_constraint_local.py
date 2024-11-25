@@ -26,6 +26,7 @@ from antares.model.binding_constraint import (
 )
 from antares.service.base_services import BaseBindingConstraintService
 from antares.tools.ini_tool import IniFile, IniFileTypes
+from antares.tools.matrix_tool import df_save
 from antares.tools.time_series_tool import TimeSeriesFileType
 
 
@@ -35,7 +36,6 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         self.config = config
         self.study_name = study_name
         self.ini_file = IniFile(self.config.study_path, IniFileTypes.BINDING_CONSTRAINTS_INI)
-        self._time_series: dict[str, pd.DataFrame] = {}
         self.binding_constraints = {}
 
     def create_binding_constraint(
@@ -91,8 +91,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
         for ts, ts_id, file_type in zip(time_series, time_series_ids, file_types):
             matrix_path = self.config.study_path.joinpath(file_type.path().format(constraint_id=constraint.id))
-            ts.to_csv(matrix_path, sep="\t", header=False, index=False, encoding="utf-8")
-            self._time_series[ts_id] = ts
+            df_save(ts, matrix_path)
 
     @staticmethod
     def _check_if_empty_ts(time_step: BindingConstraintFrequency, time_series: Optional[pd.DataFrame]) -> pd.DataFrame:
@@ -106,10 +105,6 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         }
         self.ini_file.ini_dict = binding_constraints_ini_content
         self.ini_file.write_ini_file()
-
-    @property
-    def time_series(self) -> dict[str, pd.DataFrame]:
-        return self._time_series
 
     def add_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> list[ConstraintTerm]:
         new_terms = constraint.local_properties.terms | {
