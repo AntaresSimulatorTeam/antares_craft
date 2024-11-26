@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Any
+from typing import Any, List
 
 import pandas as pd
 
@@ -31,4 +31,7 @@ class ThermalLocalService(BaseThermalService):
         raise NotImplementedError
 
     def get_thermal_matrix(self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def read_thermal_clusters(self, area_id: str) -> List[ThermalCluster]:
         raise NotImplementedError

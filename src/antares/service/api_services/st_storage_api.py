@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from typing import List
 
 import pandas as pd
 
@@ -73,3 +74,18 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
         except APIError as e:
             raise STStorageMatrixDownloadError(storage.area_id, storage.id, ts_name.value, e.message) from e
         return dataframe
+
+    def read_st_storages(self, area_id: str) -> List[STStorage]:
+        json_storage = self._wrapper.get(area_id + "storages").json()
+        print(json_storage)
+        storages = []
+
+        for storage in json_storage:
+            storage_id = storage.pop("id")
+            storage_name = storage.pop("name")
+
+            storage_properties = STStorageProperties(**storage)
+            st_storage = STStorage(self.config, storage_id, storage_name, storage_properties)
+            storages.append(st_storage)
+
+        return storages

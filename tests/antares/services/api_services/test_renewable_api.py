@@ -19,6 +19,8 @@ from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import RenewableMatrixDownloadError, RenewablePropertiesUpdateError
 from antares.model.area import Area
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
+from antares.service.api_services.area_api import AreaApiService
+from antares.service.api_services.renewable_api import RenewableApiService
 from antares.service.service_factory import ServiceFactory
 
 
@@ -86,3 +88,44 @@ class TestCreateAPI:
                 f": {self.antares_web_description_msg}",
             ):
                 self.renewable.get_renewable_matrix()
+
+    def test_read_renewables(self):
+        json_renewable = [
+            {
+                "id": "test_renouvelable",
+                "group": "Solar Thermal",
+                "name": "test_renouvelable",
+                "enabled": "true",
+                "unitCount": 1,
+                "nominalCapacity": 0,
+                "tsInterpretation": "power-generation",
+            }
+        ]
+
+        study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
+        area_id = "zone"
+        url = f"https://antares-web-recette.rte-france.com/api/v1/studies/{study_id_test}/areas/{area_id}/"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.get(url + "clusters/renewable", json=json_renewable)
+            area_api = AreaApiService(self.api, study_id_test)
+            renewable_api = RenewableApiService(self.api, study_id_test)
+
+            actual_renewable_list = renewable_api.read_renewables(url)
+
+            renewable_id = json_renewable[0].pop("id")
+            renewable_name = json_renewable[0].pop("name")
+
+            renewable_props = RenewableClusterProperties(**json_renewable[0])
+            renewable = RenewableCluster(area_api.renewable_service, renewable_id, renewable_name, renewable_props)
+
+            expected_renewable_list = [renewable]
+
+            assert len(actual_renewable_list) == 1
+            assert len(actual_renewable_list) == len(expected_renewable_list)
+
+            expected_renewable = expected_renewable_list[0]
+            actual_renewable = actual_renewable_list[0]
+
+            assert expected_renewable.id == actual_renewable.id
+            assert expected_renewable.name == actual_renewable.name

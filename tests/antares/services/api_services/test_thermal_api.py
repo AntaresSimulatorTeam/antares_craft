@@ -20,6 +20,8 @@ from antares.exceptions.exceptions import ThermalMatrixDownloadError, ThermalPro
 from antares.model.area import Area
 from antares.model.study import Study
 from antares.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
+from antares.service.api_services.area_api import AreaApiService
+from antares.service.api_services.thermal_api import ThermalApiService
 from antares.service.service_factory import ServiceFactory
 
 
@@ -104,3 +106,73 @@ class TestCreateAPI:
                     f" inside area {self.area.id}: {self.antares_web_description_msg}",
                 ):
                     getattr(self.thermal, matrix_method)()
+
+    def test_read_thermals(self):
+        json_thermal = [
+            {
+                "id": "therm_un",
+                "group": "Gas",
+                "name": "therm_un",
+                "enabled": "true",
+                "unitCount": 1,
+                "nominalCapacity": 0,
+                "genTs": "use global",
+                "minStablePower": 0,
+                "minUpTime": 1,
+                "minDownTime": 1,
+                "mustRun": "false",
+                "spinning": 0,
+                "volatilityForced": 0,
+                "volatilityPlanned": 0,
+                "lawForced": "uniform",
+                "lawPlanned": "uniform",
+                "marginalCost": 0,
+                "spreadCost": 0,
+                "fixedCost": 0,
+                "startupCost": 0,
+                "marketBidCost": 0,
+                "co2": 0,
+                "nh3": 0,
+                "so2": 0,
+                "nox": 0,
+                "pm25": 0,
+                "pm5": 0,
+                "pm10": 0,
+                "nmvoc": 0,
+                "op1": 0,
+                "op2": 0,
+                "op3": 0,
+                "op4": 0,
+                "op5": 0,
+                "costGeneration": "SetManually",
+                "efficiency": 100,
+                "variableOMCost": 0,
+            }
+        ]
+        study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
+        area_id = "zone"
+        url = f"https://antares-web-recette.rte-france.com/api/v1/studies/{study_id_test}/areas/{area_id}/"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.get(url + "clusters/thermal", json=json_thermal)
+            area_api = AreaApiService(self.api, study_id_test)
+            thermal_api = ThermalApiService(self.api, study_id_test)
+
+            actual_thermal_list = thermal_api.read_thermal_clusters(url)
+
+            thermal_id = json_thermal[0].pop("id")
+            thermal_name = json_thermal[0].pop("name")
+
+            thermal_props = ThermalClusterProperties(**json_thermal[0])
+            thermal = ThermalCluster(area_api.thermal_service, thermal_id, thermal_name, thermal_props)
+
+            expected_thermal_list = [thermal]
+
+            assert len(actual_thermal_list) == 1
+            assert len(actual_thermal_list) == len(expected_thermal_list)
+
+            expected_thermal = expected_thermal_list[0]
+            actual_thermal = actual_thermal_list[0]
+
+            assert expected_thermal.id == actual_thermal.id
+            assert expected_thermal.name == actual_thermal.name

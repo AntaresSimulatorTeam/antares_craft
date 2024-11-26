@@ -23,6 +23,8 @@ from antares.exceptions.exceptions import (
 )
 from antares.model.area import Area
 from antares.model.st_storage import STStorage, STStorageProperties
+from antares.service.api_services.area_api import AreaApiService
+from antares.service.api_services.st_storage_api import ShortTermStorageApiService
 from antares.service.service_factory import ServiceFactory
 
 
@@ -113,3 +115,46 @@ class TestCreateAPI:
                 f" {self.antares_web_description_msg}",
             ):
                 self.storage.upload_storage_inflows(self.matrix)
+
+    def test_read_st_storages(self):
+        json_storage = [
+            {
+                "id": "test_storage",
+                "group": "Pondage",
+                "name": "test_storage",
+                "injectionNominalCapacity": 0,
+                "withdrawalNominalCapacity": 0,
+                "reservoirCapacity": 0,
+                "efficiency": 1,
+                "initialLevel": 0.5,
+                "initialLevelOptim": "false",
+                "enabled": "true",
+            }
+        ]
+        study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
+        area_id = "zone"
+        url = f"https://antares-web-recette.rte-france.com/api/v1/studies/{study_id_test}/areas/{area_id}/"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.get(url + "storages", json=json_storage)
+            area_api = AreaApiService(self.api, study_id_test)
+            storage_api = ShortTermStorageApiService(self.api, self.study_id)
+
+            actual_storage_list = storage_api.read_st_storages(url)
+
+            storage_id = json_storage[0].pop("id")
+            storage_name = json_storage[0].pop("name")
+
+            storage_props = STStorageProperties(**json_storage[0])
+            st_storage = STStorage(area_api.storage_service, storage_id, storage_name, storage_props)
+
+            expected_storage_list = [st_storage]
+
+            assert len(actual_storage_list) == 1
+            assert len(actual_storage_list) == len(expected_storage_list)
+
+            expected_st_storage = expected_storage_list[0]
+            actual_st_storage = actual_storage_list[0]
+
+            assert expected_st_storage.id == actual_st_storage.id
+            assert expected_st_storage.name == actual_st_storage.name

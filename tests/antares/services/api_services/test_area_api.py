@@ -433,7 +433,6 @@ class TestCreateAPI:
             area_api = AreaApiService(self.api, study_id_test)
             actual_area_list = area_api.read_areas()
             area_ui = area_api.craft_ui(url + "?type=AREA&ui=true", "zone")
-
             thermal_id = json_thermal[0].pop("id")
             thermal_name = json_thermal[0].pop("name")
             renewable_id = json_renewable[0].pop("id")
