@@ -32,8 +32,8 @@ jobs:
         run: tox -p
 
       - name: Performs Windows tests
-        if: matrix.os != 'windows-latest'
-        run: tox 3.9-test
+        if: matrix.os == 'windows-latest'
+        run: tox -e 3.9-test
 
       - name: Performs coverage
         if: matrix.os != 'ubuntu-22.04'
