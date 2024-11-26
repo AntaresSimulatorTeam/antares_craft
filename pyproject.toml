@@ -4,15 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "antares_craft"
-version = "0.0.1"
-description = """Antares Craft python library is currently under construction. When completed it will allow to \
-create, update and read antares studies."""
+version = "0.1.0"
+description = """Antares Craft python library under construction. It will allow to create, update and read antares studies."""
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [
     {name="Sylvain Leclerc"},
     {name="Tatiana Vargas"},
-    {name="Martin Behlthle"},
+    {name="Martin Belthle"},
     {name="Sigurd Borge"}
 ]
 requires-python = ">=3.9"
