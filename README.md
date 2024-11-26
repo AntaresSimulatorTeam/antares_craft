@@ -7,3 +7,9 @@ Antares Craft python library is currently under construction. When completed it 
 antares studies.
 
 This project only supports antares studies with a version v8.8 or higher.
+
+**Table of Contents**
+
+- [usage](docs/usage.md)
+- [development](docs/development.md)
+- [Changelog](docs/CHANGELOG.md)
