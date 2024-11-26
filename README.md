@@ -11,5 +11,5 @@ This project only supports antares studies with a version v8.8 or higher.
 **Table of Contents**
 
 - [usage](docs/usage.md)
-- [development](docs/development.md)
+- [development](docs/developer.md)
 - [Changelog](docs/CHANGELOG.md)
