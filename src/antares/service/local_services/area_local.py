@@ -37,7 +37,8 @@ from antares.service.base_services import (
     BaseThermalService,
 )
 from antares.tools.ini_tool import IniFile, IniFileTypes
-from antares.tools.time_series_tool import TimeSeriesFile, TimeSeriesFileType
+from antares.tools.prepro_folder import PreproFolder
+from antares.tools.time_series_tool import TimeSeriesFileType
 
 
 def _sets_ini_content() -> ConfigParser:
@@ -124,10 +125,13 @@ class AreaLocalService(BaseAreaService):
 
     def create_load(self, area: Area, series: Optional[pd.DataFrame]) -> Load:
         series = series if series is not None else pd.DataFrame([])
-        local_file = TimeSeriesFile(
-            TimeSeriesFileType.LOAD, self.config.study_path, area_id=area.id, time_series=series
-        )
-        return Load(time_series=series, local_file=local_file, study_path=self.config.study_path, area_id=area.id)
+        self._write_timeseries(series, TimeSeriesFileType.LOAD, area.id)
+        PreproFolder.LOAD.save(self.config.study_path, area.id)
+        return Load(time_series=series)
+
+    def _write_timeseries(self, series: pd.DataFrame, ts_file_type: TimeSeriesFileType, area_id: str) -> None:
+        file_path = self.config.study_path.joinpath(ts_file_type.value.format(area_id=area_id))
+        series.to_csv(file_path, sep="\t", header=False, index=False, encoding="utf-8")
 
     def create_st_storage(
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
@@ -149,31 +153,25 @@ class AreaLocalService(BaseAreaService):
 
     def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> Wind:
         series = series if series is not None else pd.DataFrame([])
-        local_file = TimeSeriesFile(
-            TimeSeriesFileType.WIND, self.config.study_path, area_id=area.id, time_series=series
-        )
-        return Wind(time_series=series, local_file=local_file, study_path=self.config.study_path, area_id=area.id)
+        self._write_timeseries(series, TimeSeriesFileType.WIND, area.id)
+        PreproFolder.WIND.save(self.config.study_path, area.id)
+        return Wind(time_series=series)
 
     def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
         series = series if series is not None else pd.DataFrame([])
-        local_file = TimeSeriesFile(
-            TimeSeriesFileType.RESERVES, self.config.study_path, area_id=area.id, time_series=series
-        )
-        return Reserves(series, local_file)
+        self._write_timeseries(series, TimeSeriesFileType.RESERVES, area.id)
+        return Reserves(series)
 
     def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> Solar:
         series = series if series is not None else pd.DataFrame([])
-        local_file = TimeSeriesFile(
-            TimeSeriesFileType.SOLAR, self.config.study_path, area_id=area.id, time_series=series
-        )
-        return Solar(time_series=series, local_file=local_file, study_path=self.config.study_path, area_id=area.id)
+        self._write_timeseries(series, TimeSeriesFileType.SOLAR, area.id)
+        PreproFolder.SOLAR.save(self.config.study_path, area.id)
+        return Solar(time_series=series)
 
     def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
         series = series if series is not None else pd.DataFrame([])
-        local_file = TimeSeriesFile(
-            TimeSeriesFileType.MISC_GEN, self.config.study_path, area_id=area.id, time_series=series
-        )
-        return MiscGen(series, local_file)
+        self._write_timeseries(series, TimeSeriesFileType.MISC_GEN, area.id)
+        return MiscGen(series)
 
     def create_hydro(
         self,

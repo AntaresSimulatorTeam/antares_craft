@@ -15,6 +15,7 @@ import pytest
 import logging
 import os
 import time
+import typing as t
 
 from configparser import ConfigParser
 from pathlib import Path
@@ -84,7 +85,6 @@ from antares.service.local_services.renewable_local import RenewableLocalService
 from antares.service.local_services.st_storage_local import ShortTermStorageLocalService
 from antares.service.local_services.thermal_local import ThermalLocalService
 from antares.tools.ini_tool import IniFileTypes
-from antares.tools.time_series_tool import TimeSeriesFileType
 
 
 class TestCreateStudy:
@@ -154,22 +154,15 @@ author = Unknown
         # Then
         assert actual_content == antares_content
 
-    def test_verify_study_already_exists_error(self, monkeypatch, tmp_path, caplog):
+    def test_verify_study_already_exists_error(self, tmp_path):
         # Given
         study_name = "studyTest"
         version = "850"
-
-        def mock_verify_study_already_exists(study_directory):
-            raise FileExistsError(f"Failed to create study. Study {study_directory} already exists")
-
-        monkeypatch.setattr("antares.model.study._verify_study_already_exists", mock_verify_study_already_exists)
+        (tmp_path / study_name).mkdir(parents=True, exist_ok=True)
 
         # When
-        with caplog.at_level(logging.ERROR):
-            with pytest.raises(
-                FileExistsError, match=f"Failed to create study. Study {tmp_path}/{study_name} already exists"
-            ):
-                create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
+        with pytest.raises(FileExistsError, match=f"Study {study_name} already exists"):
+            create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
 
     def test_solar_correlation_ini_exists(self, local_study_with_hydro):
         # Given
@@ -1562,10 +1555,7 @@ layers = 0
         # Then
         assert actual_content == ui_ini_content
 
-    def test_create_area_with_custom_error(self, monkeypatch, caplog, local_study):
-        # Given
-        caplog.set_level(logging.INFO)
-
+    def test_create_area_with_custom_error(self, monkeypatch, local_study):
         def mock_error_in_sets_ini():
             raise CustomError("An error occurred while processing area can not be created")
 
@@ -2327,68 +2317,6 @@ at%fr = 0.000000%1
 
         assert actual_ini_content == expected_ini_contents
 
-    def test_binding_constraint_with_timeseries_stores_ts_file(self, local_study_with_hydro):
-        # Given
-        ts_matrix = pd.DataFrame(np.zeros([365 * 24, 2]))
-
-        # When
-        constraints = {
-            "lesser":
-            # Less than timeseries
-            local_study_with_hydro.create_binding_constraint(
-                name="test constraint - less",
-                properties=BindingConstraintProperties(
-                    operator=BindingConstraintOperator.LESS,
-                ),
-                less_term_matrix=ts_matrix,
-            ),
-            "equal":
-            # Equal timeseries
-            local_study_with_hydro.create_binding_constraint(
-                name="test constraint - equal",
-                properties=BindingConstraintProperties(
-                    operator=BindingConstraintOperator.EQUAL,
-                ),
-                equal_term_matrix=ts_matrix,
-            ),
-            "greater":
-            # Greater than timeseries
-            local_study_with_hydro.create_binding_constraint(
-                name="test constraint - greater",
-                properties=BindingConstraintProperties(
-                    operator=BindingConstraintOperator.GREATER,
-                ),
-                greater_term_matrix=ts_matrix,
-            ),
-            "both":
-            # Greater than timeseries
-            local_study_with_hydro.create_binding_constraint(
-                name="test constraint - both",
-                properties=BindingConstraintProperties(
-                    operator=BindingConstraintOperator.BOTH,
-                ),
-                less_term_matrix=ts_matrix,
-                greater_term_matrix=ts_matrix,
-            ),
-        }
-
-        # Then
-        assert local_study_with_hydro._binding_constraints_service.time_series[
-            f"{constraints['lesser'].id.lower()}_lt"
-        ].local_file.file_path.is_file()
-        assert local_study_with_hydro._binding_constraints_service.time_series[
-            f"{constraints['equal'].id.lower()}_eq"
-        ].local_file.file_path.is_file()
-        assert local_study_with_hydro._binding_constraints_service.time_series[
-            f"{constraints['greater'].id.lower()}_gt"
-        ].local_file.file_path.is_file()
-        assert local_study_with_hydro._binding_constraints_service.time_series[
-            f"{constraints['both'].id.lower()}_lt"
-        ].local_file.file_path.is_file()
-        assert local_study_with_hydro._binding_constraints_service.time_series[
-            f"{constraints['both'].id.lower()}_gt"
-        ].local_file.file_path.is_file()
-
     def test_binding_constraints_have_correct_default_time_series(self, test_constraint, local_study_with_constraint):
         # Given
         expected_time_series_hourly = pd.DataFrame(np.zeros([365 * 24 + 24, 1]))
@@ -2411,74 +2339,50 @@ at%fr = 0.000000%1
                 operator=BindingConstraintOperator.BOTH, time_step=BindingConstraintFrequency.HOURLY
             ),
         )
-        expected_pre_created_ts_file = (
-            local_study_with_constraint.service.config.study_path
-            / TimeSeriesFileType.BINDING_CONSTRAINT_LESS.value.format(constraint_id=test_constraint.id)
-        )
-
-        # When
-        with local_study_with_constraint._binding_constraints_service.time_series[
-            f"{test_constraint.id}_lt"
-        ].local_file.file_path.open("r") as pre_created_file:
-            actual_time_series_pre_created = pd.read_csv(pre_created_file, header=None)
-        with local_study_with_constraint._binding_constraints_service.time_series[
-            "test greater_gt"
-        ].local_file.file_path.open("r") as greater_file:
-            actual_time_series_greater = pd.read_csv(greater_file, header=None)
-        with local_study_with_constraint._binding_constraints_service.time_series[
-            "test equal_eq"
-        ].local_file.file_path.open("r") as equal_file:
-            actual_time_series_equal = pd.read_csv(equal_file, header=None)
-        with local_study_with_constraint._binding_constraints_service.time_series[
-            "test both_gt"
-        ].local_file.file_path.open("r") as both_greater_file:
-            actual_time_series_both_greater = pd.read_csv(both_greater_file, header=None)
-        with local_study_with_constraint._binding_constraints_service.time_series[
-            "test both_lt"
-        ].local_file.file_path.open("r") as both_lesser_file:
-            actual_time_series_both_lesser = pd.read_csv(both_lesser_file, header=None)
 
         # Then
-        # Verify that file names are created correctly
-        assert (
-            local_study_with_constraint._binding_constraints_service.time_series[
-                f"{test_constraint.id}_lt"
-            ].local_file.file_path
-            == expected_pre_created_ts_file
-        )
-        # Verify that default file contents are the correct and expected
-        assert actual_time_series_pre_created.equals(expected_time_series_hourly)
+        local_config = t.cast(LocalConfiguration, local_study_with_constraint.service.config)
+        study_path = local_config.study_path
+
+        actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test greater_gt.txt")
+        actual_time_series_greater = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
         assert actual_time_series_greater.equals(expected_time_series_daily_weekly)
+
+        actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test equal_eq.txt")
+        actual_time_series_equal = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
         assert actual_time_series_equal.equals(expected_time_series_daily_weekly)
-        assert actual_time_series_both_greater.equals(expected_time_series_hourly)
+
+        actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / f"{test_constraint.id}_lt.txt")
+        actual_time_series_pre_created = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
+        assert actual_time_series_pre_created.equals(expected_time_series_hourly)
+
+        actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test both_lt.txt")
+        actual_time_series_both_lesser = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
         assert actual_time_series_both_lesser.equals(expected_time_series_hourly)
 
-    def test_submitted_time_series_is_saved(self, local_study_with_constraint):
+        actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test both_gt.txt")
+        actual_time_series_both_greater = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
+        assert actual_time_series_both_greater.equals(expected_time_series_hourly)
+
+    def test_submitted_time_series_is_saved(self, local_study):
         # Given
         expected_time_series = pd.DataFrame(np.ones([3, 1]))
-        local_study_with_constraint.create_binding_constraint(
-            name="test time series",
+        bc_name = "test time series"
+        local_study.create_binding_constraint(
+            name=bc_name,
             properties=BindingConstraintProperties(
                 operator=BindingConstraintOperator.GREATER, time_step=BindingConstraintFrequency.HOURLY
             ),
             greater_term_matrix=expected_time_series,
         )
-        expected_file_contents = """1.0
-1.0
-1.0
-"""
 
-        # When
-        with local_study_with_constraint._binding_constraints_service.time_series[
-            "test time series_gt"
-        ].local_file.file_path.open("r") as time_series_file:
-            actual_time_series = pd.read_csv(time_series_file, header=None)
-            time_series_file.seek(0)
-            actual_file_contents = time_series_file.read()
+        local_config = t.cast(LocalConfiguration, local_study.service.config)
+        study_path = local_config.study_path
+        actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / f"{bc_name}_gt.txt")
+        actual_time_series = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
 
         # Then
         assert actual_time_series.equals(expected_time_series)
-        assert actual_file_contents == expected_file_contents
 
     def test_updating_binding_constraint_properties_updates_local(self, local_study_with_constraint, test_constraint):
         # Given
