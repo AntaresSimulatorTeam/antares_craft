@@ -13,7 +13,7 @@
 
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, Union, overload
+from typing import Any, Optional, Union
 
 from pydantic import BaseModel
 
@@ -105,12 +105,6 @@ class IniFile:
         """Ini path"""
         return self._full_path
 
-    @overload
-    def add_section(self, section: Path) -> None: ...
-
-    @overload
-    def add_section(self, section: dict[str, dict[str, str]]) -> None: ...
-
     def add_section(self, section: Any) -> None:
         if isinstance(section, dict):
             self._ini_contents.read_dict(section)
@@ -118,7 +112,7 @@ class IniFile:
             with section.open() as ini_file:
                 self._ini_contents.read_file(ini_file)
         else:
-            raise TypeError("Only dict or Path are allowed")
+            raise TypeError(f"Only dict or Path are allowed, received {type(section)}")
 
     def update_from_ini_file(self) -> None:
         if not self._full_path.is_file():
