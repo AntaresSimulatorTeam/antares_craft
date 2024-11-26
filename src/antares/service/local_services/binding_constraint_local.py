@@ -90,7 +90,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             file_types = [TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL]
 
         for ts, ts_id, file_type in zip(time_series, time_series_ids, file_types):
-            matrix_path = self.config.study_path.joinpath(file_type.path().format(constraint_id=constraint.id))
+            matrix_path = self.config.study_path.joinpath(file_type.value.format(constraint_id=constraint.id))
             df_save(ts, matrix_path)
 
     @staticmethod

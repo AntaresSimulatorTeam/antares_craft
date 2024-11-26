@@ -644,7 +644,7 @@ it = 1.000000
 class TestCreateReserves:
     def test_can_create_reserves_ts_file(self, area_fr):
         # Given
-        reserves_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.RESERVES.path().format(
+        reserves_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.RESERVES.value.format(
             area_id=area_fr.id
         )
         expected_reserves_file_path = area_fr._area_service.config.study_path / "input/reserves/fr.txt"
@@ -659,7 +659,7 @@ class TestCreateReserves:
 
     def test_can_create_reserves_ts_file_with_time_series(self, area_fr):
         # Given
-        reserves_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.RESERVES.path().format(
+        reserves_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.RESERVES.value.format(
             area_id=area_fr.id
         )
         expected_time_series_string = """1.0\t1.0\t1.0
@@ -681,7 +681,7 @@ class TestCreateReserves:
 class TestCreateMiscGen:
     def test_can_create_misc_gen_ts_file(self, area_fr):
         # Given
-        misc_gen_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.MISC_GEN.path().format(
+        misc_gen_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.MISC_GEN.value.format(
             area_id=area_fr.id
         )
         expected_misc_gen_file_path = area_fr._area_service.config.study_path / "input/misc-gen/miscgen-fr.txt"
@@ -696,7 +696,7 @@ class TestCreateMiscGen:
 
     def test_can_create_misc_gen_ts_file_with_time_series(self, area_fr):
         # Given
-        misc_gen_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.MISC_GEN.path().format(
+        misc_gen_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.MISC_GEN.value.format(
             area_id=area_fr.id
         )
         expected_time_series_string = """1.0\t1.0\t1.0
@@ -718,7 +718,7 @@ class TestCreateMiscGen:
 class TestCreateWind:
     def test_can_create_wind_ts_file(self, area_fr):
         # Given
-        wind_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.WIND.path().format(
+        wind_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.WIND.value.format(
             area_id=area_fr.id
         )
         expected_wind_file_path = area_fr._area_service.config.study_path / "input/wind/series/wind_fr.txt"
@@ -733,7 +733,7 @@ class TestCreateWind:
 
     def test_can_create_wind_ts_file_with_time_series(self, area_fr):
         # Given
-        wind_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.WIND.path().format(
+        wind_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.WIND.value.format(
             area_id=area_fr.id
         )
         expected_time_series_string = """1.0\t1.0\t1.0
@@ -761,7 +761,7 @@ class TestCreateWind:
 
     def test_conversion_txt_exists(self, area_fr, fr_wind):
         # Given
-        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.WIND_CONVERSION.path().format(
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.WIND_CONVERSION.value.format(
             area_id=area_fr.id
         )
 
@@ -788,7 +788,7 @@ class TestCreateWind:
 
     def test_data_txt_exists(self, area_fr, fr_wind):
         # Given
-        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.WIND_DATA.path().format(
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.WIND_DATA.value.format(
             area_id=area_fr.id
         )
 
@@ -811,7 +811,7 @@ class TestCreateWind:
 
     def test_k_txt_exists(self, area_fr, fr_wind):
         # Given
-        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.WIND_K.path().format(
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.WIND_K.value.format(
             area_id=area_fr.id
         )
 
@@ -828,9 +828,8 @@ class TestCreateWind:
 
     def test_translation_txt_exists(self, area_fr, fr_wind):
         # Given
-        expected_file_path = (
-            area_fr._area_service.config.study_path
-            / TimeSeriesFileType.WIND_TRANSLATION.path().format(area_id=area_fr.id)
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.WIND_TRANSLATION.value.format(
+            area_id=area_fr.id
         )
 
         # Then
@@ -841,7 +840,7 @@ class TestCreateWind:
 class TestCreateSolar:
     def test_can_create_solar_ts_file(self, area_fr):
         # Given
-        solar_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.SOLAR.path().format(
+        solar_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.SOLAR.value.format(
             area_id=area_fr.id
         )
         expected_solar_file_path = area_fr._area_service.config.study_path / "input/solar/series/solar_fr.txt"
@@ -856,7 +855,7 @@ class TestCreateSolar:
 
     def test_can_create_solar_ts_file_with_time_series(self, area_fr):
         # Given
-        solar_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.SOLAR.path().format(
+        solar_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.SOLAR.value.format(
             area_id=area_fr.id
         )
         expected_time_series_string = """1.0\t1.0\t1.0
@@ -884,9 +883,8 @@ class TestCreateSolar:
 
     def test_conversion_txt_exists(self, area_fr, fr_solar):
         # Given
-        expected_file_path = (
-            area_fr._area_service.config.study_path
-            / TimeSeriesFileType.SOLAR_CONVERSION.path().format(area_id=area_fr.id)
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.SOLAR_CONVERSION.value.format(
+            area_id=area_fr.id
         )
 
         # Then
@@ -912,7 +910,7 @@ class TestCreateSolar:
 
     def test_data_txt_exists(self, area_fr, fr_solar):
         # Given
-        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.SOLAR_DATA.path().format(
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.SOLAR_DATA.value.format(
             area_id=area_fr.id
         )
 
@@ -935,7 +933,7 @@ class TestCreateSolar:
 
     def test_k_txt_exists(self, area_fr, fr_solar):
         # Given
-        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.SOLAR_K.path().format(
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.SOLAR_K.value.format(
             area_id=area_fr.id
         )
 
@@ -954,7 +952,7 @@ class TestCreateSolar:
         # Given
         expected_file_path = (
             area_fr._area_service.config.study_path
-            / TimeSeriesFileType.SOLAR_TRANSLATION.path().format(area_id=area_fr.id)
+            / TimeSeriesFileType.SOLAR_TRANSLATION.value.format(area_id=area_fr.id)
         )
 
         # Then
@@ -965,7 +963,7 @@ class TestCreateSolar:
 class TestCreateLoad:
     def test_can_create_load_ts_file(self, area_fr):
         # Given
-        load_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD.path().format(
+        load_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD.value.format(
             area_id=area_fr.id
         )
         expected_load_file_path = area_fr._area_service.config.study_path / "input/load/series/load_fr.txt"
@@ -980,7 +978,7 @@ class TestCreateLoad:
 
     def test_can_create_load_ts_file_with_time_series(self, area_fr):
         # Given
-        load_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD.path().format(
+        load_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD.value.format(
             area_id=area_fr.id
         )
         expected_time_series_string = """1.0\t1.0\t1.0
@@ -1008,7 +1006,7 @@ class TestCreateLoad:
 
     def test_conversion_txt_exists(self, area_fr, fr_load):
         # Given
-        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD_CONVERSION.path().format(
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD_CONVERSION.value.format(
             area_id=area_fr.id
         )
 
@@ -1035,7 +1033,7 @@ class TestCreateLoad:
 
     def test_data_txt_exists(self, area_fr, fr_load):
         # Given
-        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD_DATA.path().format(
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD_DATA.value.format(
             area_id=area_fr.id
         )
 
@@ -1058,7 +1056,7 @@ class TestCreateLoad:
 
     def test_k_txt_exists(self, area_fr, fr_load):
         # Given
-        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD_K.path().format(
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD_K.value.format(
             area_id=area_fr.id
         )
 
@@ -1068,9 +1066,8 @@ class TestCreateLoad:
 
     def test_translation_txt_exists(self, area_fr, fr_load):
         # Given
-        expected_file_path = (
-            area_fr._area_service.config.study_path
-            / TimeSeriesFileType.LOAD_TRANSLATION.path().format(area_id=area_fr.id)
+        expected_file_path = area_fr._area_service.config.study_path / TimeSeriesFileType.LOAD_TRANSLATION.value.format(
+            area_id=area_fr.id
         )
 
         # Then

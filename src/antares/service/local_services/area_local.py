@@ -130,7 +130,7 @@ class AreaLocalService(BaseAreaService):
         return Load(time_series=series)
 
     def _write_timeseries(self, series: pd.DataFrame, ts_file_type: TimeSeriesFileType, area_id: str) -> None:
-        file_path = self.config.study_path.joinpath(ts_file_type.path().format(area_id=area_id))
+        file_path = self.config.study_path.joinpath(ts_file_type.value.format(area_id=area_id))
         series.to_csv(file_path, sep="\t", header=False, index=False, encoding="utf-8")
 
     def create_st_storage(
