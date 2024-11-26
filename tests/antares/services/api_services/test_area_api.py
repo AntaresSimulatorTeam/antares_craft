@@ -32,6 +32,7 @@ from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.service.api_services.area_api import AreaApiService
+from antares.service.api_services.renewable_api import RenewableApiService
 from antares.service.service_factory import ServiceFactory
 
 
@@ -431,6 +432,9 @@ class TestCreateAPI:
             mocker.get(url_properties_form, json=json_properties)
 
             area_api = AreaApiService(self.api, study_id_test)
+            area_api.thermal_service = ServiceFactory(self.api, study_id_test).create_thermal_service()
+            area_api.renewable_service = ServiceFactory(self.api, study_id_test).create_renewable_service()
+            area_api.storage_service = ServiceFactory(self.api, study_id_test).create_st_storage_service()
             actual_area_list = area_api.read_areas()
             area_ui = area_api.craft_ui(url + "?type=AREA&ui=true", "zone")
             thermal_id = json_thermal[0].pop("id")
