@@ -27,18 +27,27 @@ jobs:
           pip install tox~=4.21.2
           pip install tox-uv~=1.11.3
 
-      - name: Perform all tests
-        run: tox
+      - name: Performs Ubuntu tests
+        if: matrix.os != 'windows-latest'
+        run: tox -p
+
+      - name: Performs Windows tests
+        if: matrix.os != 'windows-latest'
+        run: tox 3.9-test
+
+      - name: Performs coverage
+        if: matrix.os != 'ubuntu-22.04'
+        run: tox -e coverage
 
       - name: Archive code coverage results
-        if: matrix.os == 'ubuntu-20.04'
+        if: matrix.os == 'ubuntu-22.04'
         uses: actions/upload-artifact@v4
         with:
           name: python-code-coverage-report
           path: coverage.xml
 
   sonarcloud:
-        runs-on: ubuntu-20.04
+        runs-on: ubuntu-22.04
         needs: [ci]
         steps:
           - uses: actions/checkout@v4
