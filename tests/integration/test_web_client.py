@@ -32,7 +32,6 @@ from antares.model.settings.study_settings import PlaylistParameters, StudySetti
 from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
 from antares.model.study import create_study_api
 from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
-from antares.service.api_services.area_api import AreaApiService
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
@@ -51,8 +50,6 @@ class TestWebClient:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
         study = create_study_api("antares-craft-test", "880", api_config)
-
-        area_api = AreaApiService(api_config, study.service.study_id)
 
         # tests area creation with default values
         area_name = "FR"
@@ -196,7 +193,7 @@ class TestWebClient:
         assert properties.group == STStorageGroup.BATTERY
 
         # test reading list of areas
-        area_list = area_api.read_areas()
+        area_list = study.read_areas()
         assert len(area_list) == 3
         # asserts areas are sorted by id
         assert area_list[0].id == area_be.id
