@@ -561,9 +561,6 @@ class AreaApiService(BaseAreaService):
 
         json_resp = self._wrapper.get(base_api_url + "?" + ui_url).json()
         for area in json_resp:
-            dict_renewables = dict()
-            dict_thermals = dict()
-            dict_st_storage = dict()
 
             area_url = base_api_url + "/" + f"{area}/"
             json_properties = self._wrapper.get(area_url + url_properties_form).json()
@@ -578,14 +575,9 @@ class AreaApiService(BaseAreaService):
             thermals = self.thermal_service.read_thermal_clusters(area_url)
             st_storages = self.storage_service.read_st_storages(area_url)
 
-            for renewable in renewables:
-                dict_renewables.update({renewable.id: renewable})
-
-            for thermal in thermals:
-                dict_thermals.update({thermal.id: thermal})
-
-            for st_storage in st_storages:
-                dict_st_storage.update({st_storage.id: st_storage})
+            dict_renewables = {renewable.id: renewable for renewable in renewables}
+            dict_thermals = {thermal.id: thermal for thermal in thermals}
+            dict_st_storage = {storage.id: storage for storage in st_storages}
 
             area_obj = Area(
                 area,

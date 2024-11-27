@@ -133,7 +133,7 @@ class TestCreateAPI:
         ]
         study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
         area_id = "zone"
-        url = f"https://antares-web-recette.rte-france.com/api/v1/studies/{study_id_test}/areas/{area_id}/"
+        url = f"https://antares.com/api/v1/studies/{study_id_test}/areas/{area_id}/"
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url + "storages", json=json_storage)
@@ -146,14 +146,9 @@ class TestCreateAPI:
             storage_name = json_storage[0].pop("name")
 
             storage_props = STStorageProperties(**json_storage[0])
-            st_storage = STStorage(area_api.storage_service, storage_id, storage_name, storage_props)
-
-            expected_storage_list = [st_storage]
+            expected_st_storage = STStorage(area_api.storage_service, storage_id, storage_name, storage_props)
 
             assert len(actual_storage_list) == 1
-            assert len(actual_storage_list) == len(expected_storage_list)
-
-            expected_st_storage = expected_storage_list[0]
             actual_st_storage = actual_storage_list[0]
 
             assert expected_st_storage.id == actual_st_storage.id

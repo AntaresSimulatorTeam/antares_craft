@@ -77,7 +77,6 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
 
     def read_st_storages(self, area_id: str) -> List[STStorage]:
         json_storage = self._wrapper.get(area_id + "storages").json()
-        print(json_storage)
         storages = []
 
         for storage in json_storage:
