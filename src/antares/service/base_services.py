@@ -273,8 +273,8 @@ class BaseAreaService(ABC):
         Args:
             area: concerned area.
         """
-        # todo: Currently we do not return index and column names because AntaresWeb doesn't send the full information.
-        # Once it will, there will be no change to do in the code on our side.
+        # Currently we do not return index and column names.
+        # Once AntaresWeb will introduce specific endpoint for each matrix it will perhaps change.
         pass
 
 
