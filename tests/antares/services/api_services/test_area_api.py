@@ -29,7 +29,6 @@ from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.service.api_services.area_api import AreaApiService
-from antares.service.api_services.renewable_api import RenewableApiService
 from antares.service.service_factory import ServiceFactory
 
 
