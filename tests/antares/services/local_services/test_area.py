@@ -12,6 +12,8 @@
 
 import typing as t
 
+import pytest
+
 from configparser import ConfigParser
 from io import StringIO
 from pathlib import Path
@@ -20,6 +22,7 @@ import numpy as np
 import pandas as pd
 
 from antares.config.local_configuration import LocalConfiguration
+from antares.exceptions.exceptions import ThermalCreationError
 from antares.model.hydro import Hydro
 from antares.model.renewable import (
     RenewableCluster,
@@ -51,6 +54,18 @@ class TestCreateThermalCluster:
         # When
         created_thermal = local_study_w_areas.get_areas()["fr"].create_thermal_cluster(thermal_name)
         assert isinstance(created_thermal, ThermalCluster)
+
+    def test_duplicate_name_errors(self, local_study_w_thermal):
+        # Given
+        area_name = "fr"
+        thermal_name = "test thermal cluster"
+
+        # Then
+        with pytest.raises(
+            ThermalCreationError,
+            match=f"Could not create the thermal cluster {thermal_name} inside area {area_name}: A thermal cluster called '{thermal_name}' already exists in area '{area_name}'.",
+        ):
+            local_study_w_thermal.get_areas()[area_name].create_thermal_cluster(thermal_name)
 
     def test_has_default_properties(self, local_study_w_thermal):
         assert (
