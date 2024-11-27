@@ -32,7 +32,6 @@ from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.service.api_services.area_api import AreaApiService
-from antares.service.api_services.renewable_api import RenewableApiService
 from antares.service.service_factory import ServiceFactory
 
 
@@ -437,7 +436,6 @@ class TestCreateAPI:
 
             assert len(actual_area_list) == 1
             actual_area = actual_area_list[0]
-            # assert actual_area == expected_area by performing various tests
             assert actual_area.id == expected_area.id
             assert actual_area.name == expected_area.name
             actual_thermals = actual_area.get_thermals()

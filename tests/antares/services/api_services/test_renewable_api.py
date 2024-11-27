@@ -117,7 +117,9 @@ class TestCreateAPI:
             renewable_name = json_renewable[0].pop("name")
 
             renewable_props = RenewableClusterProperties(**json_renewable[0])
-            expected_renewable = RenewableCluster(area_api.renewable_service, renewable_id, renewable_name, renewable_props)
+            expected_renewable = RenewableCluster(
+                area_api.renewable_service, renewable_id, renewable_name, renewable_props
+            )
 
             assert len(actual_renewable_list) == 1
             actual_renewable = actual_renewable_list[0]

@@ -561,7 +561,6 @@ class AreaApiService(BaseAreaService):
 
         json_resp = self._wrapper.get(base_api_url + "?" + ui_url).json()
         for area in json_resp:
-
             area_url = base_api_url + "/" + f"{area}/"
             json_properties = self._wrapper.get(area_url + url_properties_form).json()
 
