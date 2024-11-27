@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-from pathlib import PurePosixPath
 from typing import Dict, List, Optional, Union
 
 import pandas as pd
@@ -24,7 +23,7 @@ from antares.exceptions.exceptions import (
     AreaPropertiesUpdateError,
     AreaUiUpdateError,
     HydroCreationError,
-    LoadMatrixDownloadError,
+    MatrixDownloadError,
     MatrixUploadError,
     RenewableCreationError,
     RenewableDeletionError,
@@ -512,18 +511,18 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise STStorageDeletionError(area.id, body, e.message) from e
 
-    def get_matrix(self, path: PurePosixPath) -> pd.DataFrame:
-        raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path={path}"
-        response = self._wrapper.get(raw_url)
-        json_df = response.json()
-        dataframe = pd.DataFrame(data=json_df["data"], index=json_df["index"], columns=json_df["columns"])
-        return dataframe
+    def get_matrix(self, area_id: str, series_path: str, matrix_type: str) -> pd.DataFrame:
+        try:
+            raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path={series_path}"
+            response = self._wrapper.get(raw_url)
+            json_df = response.json()
+            dataframe = pd.DataFrame(data=json_df["data"], index=json_df["index"], columns=json_df["columns"])
+            return dataframe
+        except APIError as e:
+            raise MatrixDownloadError(area_id, matrix_type, e.message) from e
 
     def get_load_matrix(self, area: Area) -> pd.DataFrame:
-        try:
-            return self.get_matrix(PurePosixPath("input") / "load" / "series" / f"load_{area.id}")
-        except APIError as e:
-            raise LoadMatrixDownloadError(area.id, e.message) from e
+        return self.get_matrix(area.id, f"input/load/series/load_{area.id}", "load")
 
     def craft_ui(self, url_str: str, area_id: str) -> AreaUi:
         response = self._wrapper.get(url_str)

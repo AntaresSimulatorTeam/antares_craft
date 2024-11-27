@@ -19,7 +19,7 @@ from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
     AreaPropertiesUpdateError,
     AreaUiUpdateError,
-    LoadMatrixDownloadError,
+    MatrixDownloadError,
     MatrixUploadError,
     RenewableCreationError,
     STStorageCreationError,
@@ -237,8 +237,8 @@ class TestCreateAPI:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
             mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
-                LoadMatrixDownloadError,
-                match=f"Could not download load matrix for area {self.area.id}: {self.antares_web_description_msg}",
+                MatrixDownloadError,
+                match=f"Error downloading load matrix for area {self.area.id}: {self.antares_web_description_msg}",
             ):
                 self.area.get_load_matrix()
 
