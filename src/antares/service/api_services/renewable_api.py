@@ -69,7 +69,9 @@ class RenewableApiService(BaseRenewableService):
         self,
         area_id: str,
     ) -> List[RenewableCluster]:
-        json_renewables = self._wrapper.get(self._base_url + "/studies/" + self.study_id + "/areas/" + area_id + "/clusters/renewable").json()
+        json_renewables = self._wrapper.get(
+            self._base_url + "/studies/" + self.study_id + "/areas/" + area_id + "/clusters/renewable"
+        ).json()
 
         renewables = []
 
