@@ -275,6 +275,39 @@ class BaseAreaService(ABC):
         """
         # Currently we do not return index and column names.
         # Once AntaresWeb will introduce specific endpoint for each matrix it will perhaps change.
+        # Same goes for other endpoints getting input matrices.
+        pass
+
+    @abstractmethod
+    def get_reserves_matrix(self, area: Area) -> pd.DataFrame:
+        """
+        Args:
+            area: concerned area.
+        """
+        pass
+
+    @abstractmethod
+    def get_misc_gen_matrix(self, area: Area) -> pd.DataFrame:
+        """
+        Args:
+            area: concerned area.
+        """
+        pass
+
+    @abstractmethod
+    def get_solar_matrix(self, area: Area) -> pd.DataFrame:
+        """
+        Args:
+            area: concerned area.
+        """
+        pass
+
+    @abstractmethod
+    def get_wind_matrix(self, area: Area) -> pd.DataFrame:
+        """
+        Args:
+            area: concerned area.
+        """
         pass
 
 

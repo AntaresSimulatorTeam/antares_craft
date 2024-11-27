@@ -306,6 +306,18 @@ class AreaLocalService(BaseAreaService):
     def get_load_matrix(self, area: Area) -> pd.DataFrame:
         raise NotImplementedError
 
+    def get_solar_matrix(self, area: Area) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_wind_matrix(self, area: Area) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_reserves_matrix(self, area: Area) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_misc_gen_matrix(self, area: Area) -> pd.DataFrame:
+        raise NotImplementedError
+
     def read_areas(self) -> List[Area]:
         local_path = self.config.local_path
         areas_path = local_path / self.study_name / "input" / "areas"

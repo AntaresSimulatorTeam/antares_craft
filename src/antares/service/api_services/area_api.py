@@ -524,6 +524,18 @@ class AreaApiService(BaseAreaService):
     def get_load_matrix(self, area: Area) -> pd.DataFrame:
         return self.get_matrix(area.id, f"input/load/series/load_{area.id}", "load")
 
+    def get_solar_matrix(self, area: Area) -> pd.DataFrame:
+        return self.get_matrix(area.id, f"input/solar/series/solar_{area.id}", "solar")
+
+    def get_wind_matrix(self, area: Area) -> pd.DataFrame:
+        return self.get_matrix(area.id, f"input/wind/series/wind_{area.id}", "wind")
+
+    def get_reserves_matrix(self, area: Area) -> pd.DataFrame:
+        return self.get_matrix(area.id, f"input/reserves/{area.id}", "reserves")
+
+    def get_misc_gen_matrix(self, area: Area) -> pd.DataFrame:
+        return self.get_matrix(area.id, f"input/misc-gen/miscgen-{area.id}", "misc-gen")
+
     def craft_ui(self, url_str: str, area_id: str) -> AreaUi:
         response = self._wrapper.get(url_str)
         json_ui = response.json()[area_id]
