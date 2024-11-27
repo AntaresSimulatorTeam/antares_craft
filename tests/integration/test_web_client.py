@@ -19,7 +19,7 @@ from antares.exceptions.exceptions import (
     AreaDeletionError,
     BindingConstraintCreationError,
     ConstraintMatrixUpdateError,
-    LoadMatrixUploadError,
+    MatrixUploadError,
     STStorageMatrixUploadError,
 )
 from antares.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
@@ -61,8 +61,8 @@ class TestWebClient:
         # Case that fails
         wrong_load_matrix = pd.DataFrame(data=[[0]])
         with pytest.raises(
-            LoadMatrixUploadError,
-            match=f"Could not upload load matrix for area {area_fr.id}: Expected 8760 rows and received 1",
+            MatrixUploadError,
+            match=f"Error uploading load matrix for area {area_fr.id}: Expected 8760 rows and received 1",
         ):
             area_fr.create_load(wrong_load_matrix)
 

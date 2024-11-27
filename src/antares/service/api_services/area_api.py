@@ -25,7 +25,6 @@ from antares.exceptions.exceptions import (
     AreaUiUpdateError,
     HydroCreationError,
     LoadMatrixDownloadError,
-    LoadMatrixUploadError,
     MatrixUploadError,
     RenewableCreationError,
     RenewableDeletionError,
@@ -352,37 +351,37 @@ class AreaApiService(BaseAreaService):
 
         return STStorage(self.storage_service, area_id, name, properties)
 
-    def _upload_series(self, area: Area, series: pd.DataFrame, path: str) -> None:
+    def _upload_series(self, area: Area, series: pd.DataFrame, path: str, matrix_type: str) -> None:
         try:
             url = f"{self._base_url}/studies/{self.study_id}/raw?path={path}"
             array_data = series.to_numpy().tolist()
             self._wrapper.post(url, json=array_data)
         except APIError as e:
-            raise MatrixUploadError(area.id, e.message) from e
+            raise MatrixUploadError(area.id, matrix_type, e.message) from e
 
     def create_load(self, area: Area, series: pd.DataFrame) -> None:
         series_path = f"input/load/series/load_{area.id}"
         rows_number = series.shape[0]
         expected_rows = 8760
         if rows_number < expected_rows:
-            raise LoadMatrixUploadError(area.id, f"Expected {expected_rows} rows and received {rows_number}.")
-        self._upload_series(area, series, series_path)
+            raise MatrixUploadError(area.id, "load", f"Expected {expected_rows} rows and received {rows_number}.")
+        self._upload_series(area, series, series_path, "load")
 
     def create_wind(self, area: Area, series: pd.DataFrame) -> None:
         series_path = f"input/wind/series/wind_{area.id}"
-        self._upload_series(area, series, series_path)
+        self._upload_series(area, series, series_path, "wind")
 
     def create_reserves(self, area: Area, series: pd.DataFrame) -> None:
         series_path = f"input/reserves/{area.id}"
-        self._upload_series(area, series, series_path)
+        self._upload_series(area, series, series_path, "reserves")
 
     def create_solar(self, area: Area, series: pd.DataFrame) -> None:
         series_path = f"input/solar/series/solar_{area.id}"
-        self._upload_series(area, series, series_path)
+        self._upload_series(area, series, series_path, "solar")
 
     def create_misc_gen(self, area: Area, series: pd.DataFrame) -> None:
         series_path = f"input/misc-gen/miscgen-{area.id}"
-        self._upload_series(area, series, series_path)
+        self._upload_series(area, series, series_path, "misc-gen")
 
     def create_hydro(
         self,

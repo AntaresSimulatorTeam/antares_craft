@@ -20,7 +20,6 @@ from antares.exceptions.exceptions import (
     AreaPropertiesUpdateError,
     AreaUiUpdateError,
     LoadMatrixDownloadError,
-    LoadMatrixUploadError,
     MatrixUploadError,
     RenewableCreationError,
     STStorageCreationError,
@@ -255,7 +254,7 @@ class TestCreateAPI:
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 MatrixUploadError,
-                match=f"Error uploading matrix for area {self.area.id}: {self.antares_web_description_msg}",
+                match=f"Error uploading load matrix for area {self.area.id}: {self.antares_web_description_msg}",
             ):
                 self.area.create_load(pd.DataFrame(data=np.ones((8760, 1))))
 
@@ -264,8 +263,8 @@ class TestCreateAPI:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
-                LoadMatrixUploadError,
-                match=f"Could not upload load matrix for area {self.area.id}: Expected 8760 rows and received 1.",
+                MatrixUploadError,
+                match=f"Error uploading load matrix for area {self.area.id}: Expected 8760 rows and received 1.",
             ):
                 self.area.create_load(self.matrix)
 
@@ -297,7 +296,7 @@ class TestCreateAPI:
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
 
             with pytest.raises(
-                MatrixUploadError, match=f"Error uploading matrix for area {self.area.id}: Mocked Server KO"
+                MatrixUploadError, match=f"Error uploading reserves matrix for area {self.area.id}: Mocked Server KO"
             ):
                 self.area.create_reserves(series=self.matrix)
 
