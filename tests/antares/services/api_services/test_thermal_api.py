@@ -127,7 +127,7 @@ class TestCreateAPI:
             area_api = AreaApiService(self.api, study_id_test)
             thermal_api = ThermalApiService(self.api, study_id_test)
 
-            actual_thermal_list = thermal_api.read_thermal_clusters(url)
+            actual_thermal_list = thermal_api.read_thermal_clusters(area_id)
 
             thermal_id = json_thermal[0].pop("id")
             thermal_name = json_thermal[0].pop("name")

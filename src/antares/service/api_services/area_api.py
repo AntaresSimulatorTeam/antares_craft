@@ -570,9 +570,9 @@ class AreaApiService(BaseAreaService):
             assert self.thermal_service is not None
             assert self.storage_service is not None
 
-            renewables = self.renewable_service.read_renewables(area_url)
-            thermals = self.thermal_service.read_thermal_clusters(area_url)
-            st_storages = self.storage_service.read_st_storages(area_url)
+            renewables = self.renewable_service.read_renewables(area)
+            thermals = self.thermal_service.read_thermal_clusters(area)
+            st_storages = self.storage_service.read_st_storages(area)
 
             dict_renewables = {renewable.id: renewable for renewable in renewables}
             dict_thermals = {thermal.id: thermal for thermal in thermals}

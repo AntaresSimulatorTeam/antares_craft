@@ -111,7 +111,7 @@ class TestCreateAPI:
             area_api = AreaApiService(self.api, study_id_test)
             renewable_api = RenewableApiService(self.api, study_id_test)
 
-            actual_renewable_list = renewable_api.read_renewables(url)
+            actual_renewable_list = renewable_api.read_renewables(area_id)
 
             renewable_id = json_renewable[0].pop("id")
             renewable_name = json_renewable[0].pop("name")

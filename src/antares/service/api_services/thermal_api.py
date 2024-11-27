@@ -72,7 +72,7 @@ class ThermalApiService(BaseThermalService):
         self,
         area_id: str,
     ) -> List[ThermalCluster]:
-        json_thermal = self._wrapper.get(area_id + "clusters/thermal").json()
+        json_thermal = self._wrapper.get(self._base_url + "/studies/" + self.study_id + "/areas/" + area_id + "/clusters/thermal").json()
 
         thermals = []
 

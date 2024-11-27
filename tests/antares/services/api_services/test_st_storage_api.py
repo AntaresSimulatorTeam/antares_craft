@@ -138,9 +138,9 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             mocker.get(url + "storages", json=json_storage)
             area_api = AreaApiService(self.api, study_id_test)
-            storage_api = ShortTermStorageApiService(self.api, self.study_id)
+            storage_api = ShortTermStorageApiService(self.api, study_id_test)
 
-            actual_storage_list = storage_api.read_st_storages(url)
+            actual_storage_list = storage_api.read_st_storages(area_id)
 
             storage_id = json_storage[0].pop("id")
             storage_name = json_storage[0].pop("name")
