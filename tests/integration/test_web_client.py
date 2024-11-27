@@ -32,6 +32,9 @@ from antares.model.settings.study_settings import PlaylistParameters, StudySetti
 from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
 from antares.model.study import create_study_api
 from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
+from antares.service.api_services.renewable_api import RenewableApiService
+from antares.service.api_services.st_storage_api import ShortTermStorageApiService
+from antares.service.api_services.thermal_api import ThermalApiService
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
@@ -182,6 +185,31 @@ class TestWebClient:
         storage_fr = area_fr.create_st_storage(st_storage_name)
         assert storage_fr.name == st_storage_name
         assert storage_fr.id == "cluster_test"
+
+        # testing
+        thermal_service = ThermalApiService(api_config, study_id=study.service.study_id)
+        renewable_service = RenewableApiService(api_config, study_id=study.service.study_id)
+        storage_service = ShortTermStorageApiService(api_config, study_id=study.service.study_id)
+        thermal_list = thermal_service.read_thermal_clusters(area_fr.id)
+        renewable_list = renewable_service.read_renewables(area_fr.id)
+        storage_list = storage_service.read_st_storages(area_fr.id)
+
+        assert len(thermal_list) == 2
+        assert len(renewable_list) == 2
+        assert len(storage_list) == 1
+
+        actual_thermal_cluster_1 = thermal_list[0]
+        actual_thermal_cluster_2 = thermal_list[1]
+        assert actual_thermal_cluster_1.id == thermal_fr.id
+        assert actual_thermal_cluster_2.id == thermal_value_be.id
+
+        actual_renewable_1 = renewable_list[0]
+        actual_renewable_2 = renewable_list[1]
+        assert actual_renewable_1.id == renewable_fr.id
+        assert actual_renewable_2.id == renewable_onshore.id
+
+        actual_storage = storage_list[0]
+        assert actual_storage.id == storage_fr.id
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
