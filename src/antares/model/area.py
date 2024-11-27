@@ -26,14 +26,9 @@ from pydantic.alias_generators import to_camel
 
 from antares.model.commons import FilterOption, sort_filter_values
 from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
-from antares.model.load import Load
-from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
-from antares.model.reserves import Reserves
-from antares.model.solar import Solar
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterProperties
-from antares.model.wind import Wind
 from antares.tools.alias_generators import to_space
 from antares.tools.all_optional_meta import all_optional_model
 from antares.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
@@ -207,13 +202,8 @@ class Area:
         *,
         renewables: Optional[Dict[str, RenewableCluster]] = None,
         thermals: Optional[Dict[str, ThermalCluster]] = None,
-        load: Optional[Load] = None,
         st_storages: Optional[Dict[str, STStorage]] = None,
         hydro: Optional[Hydro] = None,
-        wind: Optional[Wind] = None,
-        reserves: Optional[Reserves] = None,
-        solar: Optional[Solar] = None,
-        misc_gen: Optional[MiscGen] = None,
         properties: Optional[AreaProperties] = None,
         ui: Optional[AreaUi] = None,
     ):
@@ -225,13 +215,8 @@ class Area:
         self._renewable_service = renewable_service
         self._renewables = renewables or dict()
         self._thermals = thermals or dict()
-        self._load = load
         self._st_storages = st_storages or dict()
         self._hydro = hydro
-        self._wind = wind
-        self._reserves = reserves
-        self._solar = solar
-        self._misc_gen = misc_gen
         self._properties = properties or AreaProperties()
         self._ui = ui or AreaUi()
 
@@ -294,22 +279,13 @@ class Area:
         self._renewables[renewable.id] = renewable
         return renewable
 
-    def create_load(self, series: Optional[pd.DataFrame]) -> Load:
-        load = self._area_service.create_load(self, series=series)
-        self._load = load
-        return load
-
     def create_st_storage(self, st_storage_name: str, properties: Optional[STStorageProperties] = None) -> STStorage:
         storage = self._area_service.create_st_storage(self.id, st_storage_name, properties)
         self._st_storages[storage.id] = storage
-
         return storage
 
     def get_load_matrix(self) -> pd.DataFrame:
         return self._area_service.get_load_matrix(self)
-
-    def upload_load_matrix(self, load_matrix: pd.DataFrame) -> None:
-        self._area_service.upload_load_matrix(self, load_matrix)
 
     def delete_thermal_clusters(self, thermal_clusters: List[ThermalCluster]) -> None:
         self._area_service.delete_thermal_clusters(self, thermal_clusters)
@@ -343,25 +319,20 @@ class Area:
         new_ui = self._area_service.update_area_ui(self, ui)
         self._ui = new_ui
 
-    def create_wind(self, series: Optional[pd.DataFrame]) -> Wind:
-        wind = self._area_service.create_wind(self, series=series)
-        self._wind = wind
-        return wind
+    def create_load(self, series: pd.DataFrame) -> None:
+        self._area_service.create_load(self, series=series)
 
-    def create_reserves(self, series: Optional[pd.DataFrame]) -> Reserves:
-        reserves = self._area_service.create_reserves(self, series=series)
-        self._reserves = reserves
-        return reserves
+    def create_wind(self, series: pd.DataFrame) -> None:
+        self._area_service.create_wind(self, series=series)
 
-    def create_solar(self, series: Optional[pd.DataFrame]) -> Solar:
-        solar = self._area_service.create_solar(self, series=series)
-        self._solar = solar
-        return solar
+    def create_reserves(self, series: pd.DataFrame) -> None:
+        self._area_service.create_reserves(self, series=series)
 
-    def create_misc_gen(self, series: Optional[pd.DataFrame]) -> MiscGen:
-        misc_gen = self._area_service.create_misc_gen(self, series=series)
-        self._misc_gen = misc_gen
-        return misc_gen
+    def create_solar(self, series: pd.DataFrame) -> None:
+        self._area_service.create_solar(self, series=series)
+
+    def create_misc_gen(self, series: pd.DataFrame) -> None:
+        self._area_service.create_misc_gen(self, series=series)
 
     def create_hydro(
         self,

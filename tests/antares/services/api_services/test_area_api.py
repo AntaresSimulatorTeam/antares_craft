@@ -243,21 +243,21 @@ class TestCreateAPI:
             ):
                 self.area.get_load_matrix()
 
-    def test_upload_load_matrix_success(self):
+    def test_create_load_success(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
             mocker.post(url, status_code=200)
-            self.area.upload_load_matrix(pd.DataFrame(data=np.ones((8760, 1))))
+            self.area.create_load(pd.DataFrame(data=np.ones((8760, 1))))
 
-    def test_upload_load_matrix_fails(self):
+    def test_create_load_fails(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
-                LoadMatrixUploadError,
-                match=f"Could not upload load matrix for area {self.area.id}: {self.antares_web_description_msg}",
+                MatrixUploadError,
+                match=f"Error uploading matrix for area {self.area.id}: {self.antares_web_description_msg}",
             ):
-                self.area.upload_load_matrix(pd.DataFrame(data=np.ones((8760, 1))))
+                self.area.create_load(pd.DataFrame(data=np.ones((8760, 1))))
 
     def test_upload_wrong_load_matrix_fails(self):
         with requests_mock.Mocker() as mocker:
@@ -267,7 +267,7 @@ class TestCreateAPI:
                 LoadMatrixUploadError,
                 match=f"Could not upload load matrix for area {self.area.id}: Expected 8760 rows and received 1.",
             ):
-                self.area.upload_load_matrix(self.matrix)
+                self.area.create_load(self.matrix)
 
     def test_create_wind_success(self):
         with requests_mock.Mocker() as mocker:

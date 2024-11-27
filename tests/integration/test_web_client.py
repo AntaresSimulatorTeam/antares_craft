@@ -64,11 +64,11 @@ class TestWebClient:
             LoadMatrixUploadError,
             match=f"Could not upload load matrix for area {area_fr.id}: Expected 8760 rows and received 1",
         ):
-            area_fr.upload_load_matrix(wrong_load_matrix)
+            area_fr.create_load(wrong_load_matrix)
 
         # Case that succeeds
         load_matrix = pd.DataFrame(data=np.zeros((8760, 1)))
-        area_fr.upload_load_matrix(load_matrix)
+        area_fr.create_load(load_matrix)
 
         # tests get load matrix
         assert area_fr.get_load_matrix().equals(load_matrix)

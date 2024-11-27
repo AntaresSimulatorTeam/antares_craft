@@ -36,14 +36,9 @@ from antares.exceptions.exceptions import (
 )
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
-from antares.model.load import Load
-from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
-from antares.model.reserves import Reserves
-from antares.model.solar import Solar
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterProperties
-from antares.model.wind import Wind
 from antares.service.base_services import (
     BaseAreaService,
     BaseRenewableService,
@@ -323,9 +318,6 @@ class AreaApiService(BaseAreaService):
 
         return RenewableCluster(self.renewable_service, area_id, name, properties)
 
-    def create_load(self, area: Area, series: Optional[pd.DataFrame]) -> Load:
-        raise NotImplementedError
-
     def create_st_storage(
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
@@ -360,38 +352,37 @@ class AreaApiService(BaseAreaService):
 
         return STStorage(self.storage_service, area_id, name, properties)
 
-    def _upload_series(self, area: Area, series: Optional[pd.DataFrame], path: str) -> None:
+    def _upload_series(self, area: Area, series: pd.DataFrame, path: str) -> None:
         try:
             url = f"{self._base_url}/studies/{self.study_id}/raw?path={path}"
-            if series is not None:
-                array_data = series.to_numpy().tolist()
-                self._wrapper.post(url, json=array_data)
+            array_data = series.to_numpy().tolist()
+            self._wrapper.post(url, json=array_data)
         except APIError as e:
             raise MatrixUploadError(area.id, e.message) from e
 
-    def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> Wind:
-        series = series if series is not None else pd.DataFrame([])
+    def create_load(self, area: Area, series: pd.DataFrame) -> None:
+        series_path = f"input/load/series/load_{area.id}"
+        rows_number = series.shape[0]
+        expected_rows = 8760
+        if rows_number < expected_rows:
+            raise LoadMatrixUploadError(area.id, f"Expected {expected_rows} rows and received {rows_number}.")
+        self._upload_series(area, series, series_path)
+
+    def create_wind(self, area: Area, series: pd.DataFrame) -> None:
         series_path = f"input/wind/series/wind_{area.id}"
         self._upload_series(area, series, series_path)
-        return Wind(time_series=series)
 
-    def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
-        series = series if series is not None else pd.DataFrame([])
+    def create_reserves(self, area: Area, series: pd.DataFrame) -> None:
         series_path = f"input/reserves/{area.id}"
         self._upload_series(area, series, series_path)
-        return Reserves(series)
 
-    def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> Solar:
-        series = series if series is not None else pd.DataFrame([])
+    def create_solar(self, area: Area, series: pd.DataFrame) -> None:
         series_path = f"input/solar/series/solar_{area.id}"
         self._upload_series(area, series, series_path)
-        return Solar(time_series=series)
 
-    def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
-        series = series if series is not None else pd.DataFrame([])
+    def create_misc_gen(self, area: Area, series: pd.DataFrame) -> None:
         series_path = f"input/misc-gen/miscgen-{area.id}"
         self._upload_series(area, series, series_path)
-        return MiscGen(series)
 
     def create_hydro(
         self,
@@ -521,20 +512,6 @@ class AreaApiService(BaseAreaService):
             self._wrapper.delete(url, json=body)
         except APIError as e:
             raise STStorageDeletionError(area.id, body, e.message) from e
-
-    def upload_load_matrix(self, area: Area, load_matrix: pd.DataFrame) -> None:
-        path = PurePosixPath("input") / "load" / "series" / f"load_{area.id}"
-        url = f"{self._base_url}/studies/{self.study_id}/raw?path={path}"
-
-        try:
-            rows_number = load_matrix.shape[0]
-            expected_rows = 8760
-            if rows_number < expected_rows:
-                raise APIError(f"Expected {expected_rows} rows and received {rows_number}.")
-            array_data = load_matrix.to_numpy().tolist()
-            self._wrapper.post(url, json=array_data)
-        except APIError as e:
-            raise LoadMatrixUploadError(area.id, e.message) from e
 
     def get_matrix(self, path: PurePosixPath) -> pd.DataFrame:
         raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path={path}"

@@ -9,8 +9,9 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
+
+import pandas as pd
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.area import Area
@@ -21,9 +22,7 @@ from antares.model.binding_constraint import (
     BindingConstraintProperties,
 )
 from antares.model.hydro import HydroProperties
-from antares.model.load import Load
 from antares.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
-from antares.model.solar import Solar
 from antares.model.st_storage import STStorageGroup, STStorageProperties
 from antares.model.study import Study, create_study_local
 from antares.model.thermal import (
@@ -33,7 +32,6 @@ from antares.model.thermal import (
     ThermalClusterProperties,
     ThermalCostGeneration,
 )
-from antares.model.wind import Wind
 from antares.tools.ini_tool import IniFile, IniFileTypes
 
 
@@ -222,18 +220,18 @@ def area_fr(local_study_with_hydro) -> Area:
 
 
 @pytest.fixture
-def fr_solar(area_fr) -> Solar:
-    return area_fr.create_solar(None)
+def fr_solar(area_fr) -> None:
+    return area_fr.create_solar(pd.DataFrame())
 
 
 @pytest.fixture
-def fr_wind(area_fr) -> Wind:
-    return area_fr.create_wind(None)
+def fr_wind(area_fr) -> None:
+    return area_fr.create_wind(pd.DataFrame())
 
 
 @pytest.fixture
-def fr_load(area_fr) -> Load:
-    return area_fr.create_load(None)
+def fr_load(area_fr) -> None:
+    return area_fr.create_load(pd.DataFrame())
 
 
 @pytest.fixture
