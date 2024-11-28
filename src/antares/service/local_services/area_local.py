@@ -81,11 +81,11 @@ class AreaLocalService(BaseAreaService):
         list_ini = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name=area_id)
         try:
             list_ini.add_section(local_thermal_properties.list_ini_fields)
-        except DuplicateSectionError as error:
+        except DuplicateSectionError:
             raise ThermalCreationError(
                 thermal_name,
                 area_id,
-                f"A thermal cluster called '{thermal_name}' already exists in area '{area_id}'. " + error.message,
+                f"A thermal cluster called '{thermal_name}' already exists in area '{area_id}'.",
             )
         list_ini.write_ini_file(sort_sections=True)
 

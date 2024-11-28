@@ -2070,9 +2070,7 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         # Then
         with pytest.raises(
             LinkCreationError,
-            match=f"""Could not create the link {area_from} / {area_to}: Link exists already between '{area_from}' and '{area_to}', section already exists in properties.ini:
-
-Section '{area_to}' already exists""",
+            match=f"Could not create the link {area_from} / {area_to}: Link exists already between '{area_from}' and '{area_to}'.",
         ):
             local_study_w_links.create_link(
                 area_from=local_study_w_links.get_areas()[area_from],

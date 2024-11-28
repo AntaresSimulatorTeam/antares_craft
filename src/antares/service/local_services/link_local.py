@@ -82,11 +82,11 @@ class LinkLocalService(BaseLinkService):
                 properties_ini.read_file(ini_file)
         try:
             properties_ini.add_section(area_to.name)
-        except DuplicateSectionError as e:
+        except DuplicateSectionError:
             raise LinkCreationError(
                 area_from=area_from.name,
                 area_to=area_to.name,
-                message=f"Link exists already between '{area_from.name}' and '{area_to.name}', section already exists in properties.ini:\n\n{e.message}",
+                message=f"Link exists already between '{area_from.name}' and '{area_to.name}'.",
             )
         ini_dict = dict(local_properties.ini_fields)
         ini_dict.update(local_ui.ini_fields)
