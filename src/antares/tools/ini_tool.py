@@ -9,11 +9,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
-
+from configparser import DuplicateSectionError
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Iterable, Optional, Union
 
 from pydantic import BaseModel
 
@@ -105,14 +104,23 @@ class IniFile:
         """Ini path"""
         return self._full_path
 
-    def add_section(self, section: Any) -> None:
+    def add_section(self, section: Any, append: bool = False) -> None:
         if isinstance(section, dict):
+            self._check_if_duplicated_section_names(section.keys(), append)
             self._ini_contents.read_dict(section)
         elif isinstance(section, Path):
             with section.open() as ini_file:
+                temp_parser = CustomRawConfigParser()
+                temp_parser.read_file(ini_file)
+                self._check_if_duplicated_section_names(temp_parser.sections(), append)
                 self._ini_contents.read_file(ini_file)
         else:
             raise TypeError(f"Only dict or Path are allowed, received {type(section)}")
+
+    def _check_if_duplicated_section_names(self, sections: Iterable, append: bool = False) -> None:
+        for section in sections:
+            if section in self.ini_dict and not append:
+                raise DuplicateSectionError(section)
 
     def update_from_ini_file(self) -> None:
         if not self._full_path.is_file():

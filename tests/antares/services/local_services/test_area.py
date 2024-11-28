@@ -10,6 +10,8 @@
 #
 # This file is part of the Antares project.
 
+import pytest
+
 import typing as t
 
 from configparser import ConfigParser
@@ -20,6 +22,7 @@ import numpy as np
 import pandas as pd
 
 from antares.config.local_configuration import LocalConfiguration
+from antares.exceptions.exceptions import ThermalCreationError
 from antares.model.hydro import Hydro
 from antares.model.renewable import (
     RenewableCluster,
@@ -51,6 +54,18 @@ class TestCreateThermalCluster:
         # When
         created_thermal = local_study_w_areas.get_areas()["fr"].create_thermal_cluster(thermal_name)
         assert isinstance(created_thermal, ThermalCluster)
+
+    def test_duplicate_name_errors(self, local_study_w_thermal):
+        # Given
+        area_name = "fr"
+        thermal_name = "test thermal cluster"
+
+        # Then
+        with pytest.raises(
+            ThermalCreationError,
+            match=f"Could not create the thermal cluster {thermal_name} inside area {area_name}: A thermal cluster called '{thermal_name}' already exists in area '{area_name}'.",
+        ):
+            local_study_w_thermal.get_areas()[area_name].create_thermal_cluster(thermal_name)
 
     def test_has_default_properties(self, local_study_w_thermal):
         assert (
@@ -132,7 +147,7 @@ variableomcost = 0.000000
         assert actual_list_ini_contents == expected_list_ini_contents
         assert actual_thermal_list_ini.parsed_ini == expected_list_ini
 
-    def test_list_ini_has_custom_properties(self, tmp_path, local_study_w_areas, actual_thermal_list_ini):
+    def test_list_ini_has_custom_properties(self, tmp_path, local_study_w_areas):
         # Given
         expected_list_ini_contents = """[test thermal cluster]
 group = Nuclear
@@ -215,7 +230,9 @@ variableomcost = 5.000000
 
         # When
         local_study_w_areas.get_areas()["fr"].create_thermal_cluster("test thermal cluster", thermal_cluster_properties)
-
+        actual_thermal_list_ini = IniFile(
+            local_study_w_areas.service.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name="fr"
+        )
         actual_thermal_list_ini.update_from_ini_file()
         with actual_thermal_list_ini.ini_path.open("r") as actual_list_ini_file:
             actual_list_ini_contents = actual_list_ini_file.read()
@@ -334,7 +351,7 @@ ts-interpretation = power-generation
         assert actual_renewable_list_ini.parsed_ini.sections() == expected_renewables_list_ini.sections()
         assert actual_renewable_list_ini.parsed_ini == expected_renewables_list_ini
 
-    def test_renewable_cluster_and_ini_have_custom_properties(self, local_study_w_thermal, actual_renewable_list_ini):
+    def test_renewable_cluster_and_ini_have_custom_properties(self, local_study_w_thermal):
         # Given
         props = RenewableClusterProperties(
             group=RenewableClusterGroup.WIND_OFF_SHORE, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
@@ -350,6 +367,9 @@ unitcount = 1
 ts-interpretation = production-factor
 
 """
+        actual_renewable_list_ini = IniFile(
+            local_study_w_thermal.service.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name="fr"
+        )
 
         # When
         local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
@@ -424,7 +444,7 @@ enabled = true
         assert actual_st_storage_list_ini.parsed_ini.sections() == expected_st_storage_list_ini.sections()
         assert actual_st_storage_list_ini.parsed_ini == expected_st_storage_list_ini
 
-    def test_st_storage_and_ini_have_custom_properties(self, local_study_with_st_storage, actual_st_storage_list_ini):
+    def test_st_storage_and_ini_have_custom_properties(self, local_study_w_areas):
         # Given
         props = STStorageProperties(group=STStorageGroup.BATTERY, reservoir_capacity=12.345)
         args = {"st_storage_name": "short term storage", **props.model_dump(mode="json", exclude_none=True)}
@@ -441,9 +461,12 @@ initialleveloptim = false
 enabled = true
 
 """
+        actual_st_storage_list_ini = IniFile(
+            local_study_w_areas.service.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name="fr"
+        )
 
         # When
-        local_study_with_st_storage.get_areas()["fr"].create_st_storage(
+        local_study_w_areas.get_areas()["fr"].create_st_storage(
             st_storage_name=custom_properties.st_storage_name,
             properties=custom_properties.yield_st_storage_properties(),
         )
@@ -451,7 +474,7 @@ enabled = true
             actual_st_storage_list_ini_content = st_storage_list_ini_file.read()
 
         assert (
-            local_study_with_st_storage.get_areas()["fr"].get_st_storages()["short term storage"].properties
+            local_study_w_areas.get_areas()["fr"].get_st_storages()["short term storage"].properties
             == custom_properties.yield_st_storage_properties()
         )
         assert actual_st_storage_list_ini_content == expected_st_storage_list_ini_content
