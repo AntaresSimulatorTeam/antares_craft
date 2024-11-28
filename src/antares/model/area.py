@@ -373,3 +373,4 @@ class Area:
         area_id: str,
     ) -> List[ThermalCluster]:
         return self._thermal_service.read_thermal_clusters(area_id)
+
