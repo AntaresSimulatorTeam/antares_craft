@@ -20,10 +20,9 @@ from antares.config.local_configuration import LocalConfiguration
 def other_study(tmp_path):
     other_study_name = "other test study"
     study_version = "880"
-    study_config = LocalConfiguration(tmp_path, other_study_name)
 
     # Study
-    other_study = create_study_local(other_study_name, study_version, study_config)
+    other_study = create_study_local(other_study_name, study_version, tmp_path.absolute())
 
     return other_study
 

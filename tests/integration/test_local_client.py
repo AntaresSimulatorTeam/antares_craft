@@ -9,29 +9,29 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+
 import pytest
 
 import numpy as np
 import pandas as pd
 
 from antares import create_study_local
-from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import AreaCreationError, LinkCreationError
 from antares.model.area import Area
 from antares.model.link import Link
 from antares.model.load import Load
 from antares.model.study import Study
 from antares.model.thermal import ThermalCluster
+from antares.tools.time_series_tool import TimeSeriesFileType
 
 
 class TestLocalClient:
     def test_local_study(self, tmp_path, other_area):
         study_name = "test study"
         study_version = "880"
-        study_config = LocalConfiguration(tmp_path, study_name)
 
         # Study
-        test_study = create_study_local(study_name, study_version, study_config)
+        test_study = create_study_local(study_name, study_version, tmp_path.absolute())
         assert isinstance(test_study, Study)
 
         # Areas
@@ -44,7 +44,7 @@ class TestLocalClient:
         ## Area already exists
         with pytest.raises(
             AreaCreationError,
-            match="Could not create the area fr: Error during area creation: The Area 'fr' already exists in the study test study.",
+            match="Could not create the area fr: There is already an area 'fr' in the study 'test study'",
         ):
             test_study.create_area("fr")
 
@@ -71,6 +71,9 @@ class TestLocalClient:
         assert isinstance(fr_load, Load)
 
         expected_time_series = "1.0\n" * time_series_rows
-        actual_time_series = fr_load.time_series.local_file.file_path.read_text()
+
+        actual_time_series = test_study.service.config.study_path.joinpath(
+            TimeSeriesFileType.LOAD.value.format(area_id="fr")
+        ).read_text()
 
         assert actual_time_series == expected_time_series
