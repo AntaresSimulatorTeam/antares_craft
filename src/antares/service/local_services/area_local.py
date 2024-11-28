@@ -14,6 +14,7 @@ import logging
 import os
 
 from configparser import ConfigParser
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
@@ -334,3 +335,35 @@ class AreaLocalService(BaseAreaService):
                     )
                 )
         return areas
+
+    def _read_timeseries(self, ts_file_type: TimeSeriesFileType, study_path: Path, area_id: Optional[str] = None, group_id: Optional[str] = None,constraint_id: Optional[str] = None, time_series: Optional[pd.DataFrame] = None,) -> pd.DataFrame:
+        def _write_file(_file_path: Path, _time_series: pd.DataFrame) -> None:
+            _file_path.parent.mkdir(parents=True, exist_ok=True)
+            _time_series.to_csv(_file_path, sep="\t", header=False, index=False, encoding="utf-8")
+        
+        file_path = study_path / (
+            ts_file_type.value
+            if not (area_id or constraint_id or group_id)
+            else ts_file_type.value.format(area_id=area_id, constraint_id=constraint_id, group_id=group_id)
+        )
+        if file_path.is_file() and time_series is not None:
+            raise ValueError(f"File {file_path} already exists and a time series was provided.")
+        elif file_path.is_file() and time_series is None:
+            if os.path.getsize(file_path) != 0:
+                _time_series = pd.read_csv(
+                    file_path,
+                    sep="\t",
+                    header=None,
+                    index_col=None,
+                    encoding="utf-8",
+                )
+            else:
+                _time_series = pd.DataFrame()
+        else:
+            _time_series = time_series if time_series is not None else pd.DataFrame([])
+            _write_file(file_path, _time_series)
+        return _time_series
+   
+    def read_load(self, id: str) -> Load:
+        timeseries = self._read_timeseries(TimeSeriesFileType.LOAD, self.config.study_path, area_id=id)
+        return Load(timeseries)

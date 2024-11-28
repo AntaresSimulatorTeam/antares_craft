@@ -72,13 +72,6 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def read_areas(self) -> List[Area]:
-        """
-        Returns: Returns a list of areas
-        """
-        pass
-
-    @abstractmethod
     def create_thermal_cluster_with_matrices(
         self,
         area_id: str,
@@ -285,6 +278,12 @@ class BaseAreaService(ABC):
         # Once it will, there will be no change to do in the code on our side.
         pass
 
+    @abstractmethod
+    def read_areas(self) -> list[Area]:
+        """
+        Returns: Returns a list of areas
+        """
+        pass
 
 class BaseLinkService(ABC):
     @abstractmethod

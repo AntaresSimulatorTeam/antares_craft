@@ -372,3 +372,6 @@ class Area:
         hydro = self._area_service.create_hydro(self.id, properties, matrices)
         self._hydro = hydro
         return hydro
+
+    def read_load(self) -> Load:
+        return self._area_service.read_load(self._id)
