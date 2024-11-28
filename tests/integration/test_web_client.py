@@ -73,6 +73,15 @@ class TestWebClient:
         # tests get load matrix
         assert area_fr.get_load_matrix().equals(load_matrix)
 
+        # asserts solar and wind matrices can be created and read.
+        ts_matrix = pd.DataFrame(data=np.ones((4, 4)))
+
+        area_fr.create_solar(ts_matrix)
+        assert area_fr.get_solar_matrix().equals(ts_matrix)
+
+        area_fr.create_wind(ts_matrix)
+        assert area_fr.get_wind_matrix().equals(ts_matrix)
+
         # tests area creation with ui values
         area_ui = AreaUi(x=100, color_rgb=[255, 0, 0])
         area_name = "BE?"
