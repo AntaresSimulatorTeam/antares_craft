@@ -466,7 +466,7 @@ class TestCreateAPI:
             "useLeeway": "false",
             "leewayLow": 1,
             "leewayUp": 1,
-            "pumpingEfficiency": 1
+            "pumpingEfficiency": 1,
         }
         url = f"https://antares.com/api/v1/studies/{study_id_test}/areas/{area_id}/hydro/form"
 
@@ -481,4 +481,3 @@ class TestCreateAPI:
             assert actual_hydro.area_id == expected_hydro.area_id
             assert actual_hydro.properties == expected_hydro.properties
             assert actual_hydro.matrices is None
-
