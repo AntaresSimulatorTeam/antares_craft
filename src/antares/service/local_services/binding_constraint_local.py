@@ -26,6 +26,7 @@ from antares.model.binding_constraint import (
     ConstraintTerm,
 )
 from antares.service.base_services import BaseBindingConstraintService
+from antares.tools.contents_tool import transform_name_to_id
 from antares.tools.ini_tool import IniFile, IniFileTypes
 from antares.tools.matrix_tool import df_save
 from antares.tools.time_series_tool import TimeSeriesFileType
@@ -48,7 +49,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         equal_term_matrix: Optional[pd.DataFrame] = None,
         greater_term_matrix: Optional[pd.DataFrame] = None,
     ) -> BindingConstraint:
-        if name in self.binding_constraints:
+        if transform_name_to_id(name) in self.binding_constraints:
             raise BindingConstraintCreationError(
                 constraint_name=name, message=f"A binding constraint with the name '{name}' already exists."
             )
