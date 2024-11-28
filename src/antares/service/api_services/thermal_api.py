@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 
 from pathlib import PurePosixPath
+from typing import List
 
 import pandas as pd
 
@@ -66,3 +67,24 @@ class ThermalApiService(BaseThermalService):
             raise ThermalMatrixDownloadError(
                 thermal_cluster.area_id, thermal_cluster.name, ts_name.value, e.message
             ) from e
+
+    def read_thermal_clusters(
+        self,
+        area_id: str,
+    ) -> List[ThermalCluster]:
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/thermal"
+        json_thermal = self._wrapper.get(url).json()
+
+        thermals = []
+
+        for thermal in json_thermal:
+            thermal_id = thermal.pop("id")
+            thermal_name = thermal.pop("name")
+
+            thermal_props = ThermalClusterProperties(**thermal)
+            thermal_cluster = ThermalCluster(self, thermal_id, thermal_name, thermal_props)
+            thermals.append(thermal_cluster)
+
+        thermals.sort(key=lambda thermal: thermal.id)
+
+        return thermals

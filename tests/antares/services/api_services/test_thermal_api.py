@@ -20,6 +20,8 @@ from antares.exceptions.exceptions import ThermalMatrixDownloadError, ThermalPro
 from antares.model.area import Area
 from antares.model.study import Study
 from antares.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
+from antares.service.api_services.area_api import AreaApiService
+from antares.service.api_services.thermal_api import ThermalApiService
 from antares.service.service_factory import ServiceFactory
 
 
@@ -104,3 +106,37 @@ class TestCreateAPI:
                     f" inside area {self.area.id}: {self.antares_web_description_msg}",
                 ):
                     getattr(self.thermal, matrix_method)()
+
+    def test_read_thermals(self):
+        json_thermal = [
+            {
+                "id": "therm_un",
+                "group": "Gas",
+                "name": "therm_un",
+                "enabled": "true",
+                "unitCount": 1,
+                "nominalCapacity": 0,
+            }
+        ]
+        study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
+        area_id = "zone"
+        url = f"https://antares.com/api/v1/studies/{study_id_test}/areas/{area_id}/"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.get(url + "clusters/thermal", json=json_thermal)
+            area_api = AreaApiService(self.api, study_id_test)
+            thermal_api = ThermalApiService(self.api, study_id_test)
+
+            actual_thermal_list = thermal_api.read_thermal_clusters(area_id)
+
+            thermal_id = json_thermal[0].pop("id")
+            thermal_name = json_thermal[0].pop("name")
+
+            thermal_props = ThermalClusterProperties(**json_thermal[0])
+            expected_thermal = ThermalCluster(area_api.thermal_service, thermal_id, thermal_name, thermal_props)
+
+            assert len(actual_thermal_list) == 1
+            actual_thermal = actual_thermal_list[0]
+
+            assert expected_thermal.id == actual_thermal.id
+            assert expected_thermal.name == actual_thermal.name

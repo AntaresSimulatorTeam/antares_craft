@@ -354,37 +354,6 @@ class TestCreateAPI:
                 "enabled": "true",
                 "unitCount": 1,
                 "nominalCapacity": 0,
-                "genTs": "use global",
-                "minStablePower": 0,
-                "minUpTime": 1,
-                "minDownTime": 1,
-                "mustRun": "false",
-                "spinning": 0,
-                "volatilityForced": 0,
-                "volatilityPlanned": 0,
-                "lawForced": "uniform",
-                "lawPlanned": "uniform",
-                "marginalCost": 0,
-                "spreadCost": 0,
-                "fixedCost": 0,
-                "startupCost": 0,
-                "marketBidCost": 0,
-                "co2": 0,
-                "nh3": 0,
-                "so2": 0,
-                "nox": 0,
-                "pm25": 0,
-                "pm5": 0,
-                "pm10": 0,
-                "nmvoc": 0,
-                "op1": 0,
-                "op2": 0,
-                "op3": 0,
-                "op4": 0,
-                "op5": 0,
-                "costGeneration": "SetManually",
-                "efficiency": 100,
-                "variableOMCost": 0,
             }
         ]
         json_renewable = [
@@ -431,9 +400,11 @@ class TestCreateAPI:
             mocker.get(url_properties_form, json=json_properties)
 
             area_api = AreaApiService(self.api, study_id_test)
+            area_api.thermal_service = ServiceFactory(self.api, study_id_test).create_thermal_service()
+            area_api.renewable_service = ServiceFactory(self.api, study_id_test).create_renewable_service()
+            area_api.storage_service = ServiceFactory(self.api, study_id_test).create_st_storage_service()
             actual_area_list = area_api.read_areas()
             area_ui = area_api.craft_ui(url + "?type=AREA&ui=true", "zone")
-
             thermal_id = json_thermal[0].pop("id")
             thermal_name = json_thermal[0].pop("name")
             renewable_id = json_renewable[0].pop("id")
@@ -465,7 +436,6 @@ class TestCreateAPI:
 
             assert len(actual_area_list) == 1
             actual_area = actual_area_list[0]
-            # assert actual_area == expected_area by performing various tests
             assert actual_area.id == expected_area.id
             assert actual_area.name == expected_area.name
             actual_thermals = actual_area.get_thermals()

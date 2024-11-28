@@ -418,6 +418,12 @@ class AreaApiService(BaseAreaService):
 
         return Hydro(self, area_id, properties)
 
+    def read_hydro(
+        self,
+        area_id: str,
+    ) -> Hydro:
+        raise NotImplementedError
+
     def _create_hydro_series(self, area_id: str, matrices: Dict[HydroMatrixName, pd.DataFrame]) -> None:
         command_body = []
         for matrix_name, series in matrices.items():
@@ -557,48 +563,26 @@ class AreaApiService(BaseAreaService):
 
         base_api_url = f"{self._base_url}/studies/{self.study_id}/areas"
         ui_url = "ui=true"
-        url_thermal = "clusters/thermal"
-        url_renewable = "clusters/renewable"
-        url_st_storage = "storages"
         url_properties_form = "properties/form"
 
         json_resp = self._wrapper.get(base_api_url + "?" + ui_url).json()
         for area in json_resp:
-            thermals = dict()
-            renewables = dict()
-            st_storage = dict()
-
             area_url = base_api_url + "/" + f"{area}/"
-            json_thermal = self._wrapper.get(area_url + url_thermal).json()
-            json_renewable = self._wrapper.get(area_url + url_renewable).json()
-            json_st_storage = self._wrapper.get(area_url + url_st_storage).json()
             json_properties = self._wrapper.get(area_url + url_properties_form).json()
 
             ui_response = self.craft_ui(f"{base_api_url}?type=AREA&{ui_url}", area)
 
-            for thermal in json_thermal:
-                id_therm = thermal.pop("id")
-                name = thermal.pop("name")
+            assert self.renewable_service is not None
+            assert self.thermal_service is not None
+            assert self.storage_service is not None
 
-                thermal_props = ThermalClusterProperties(**thermal)
-                therm_cluster = ThermalCluster(self.thermal_service, area, name, thermal_props)
-                thermals.update({id_therm: therm_cluster})
+            renewables = self.renewable_service.read_renewables(area)
+            thermals = self.thermal_service.read_thermal_clusters(area)
+            st_storages = self.storage_service.read_st_storages(area)
 
-            for renewable in json_renewable:
-                id_renew = renewable.pop("id")
-                name = renewable.pop("name")
-
-                renew_props = RenewableClusterProperties(**renewable)
-                renew_cluster = RenewableCluster(self.renewable_service, area, name, renew_props)
-                renewables.update({id_renew: renew_cluster})
-
-            for storage in json_st_storage:
-                id_storage = storage.pop("id")
-                name = storage.pop("name")
-
-                storage_props = STStorageProperties(**storage)
-                st_storage_cl = STStorage(self.storage_service, area, name, storage_props)
-                st_storage.update({id_storage: st_storage_cl})
+            dict_renewables = {renewable.id: renewable for renewable in renewables}
+            dict_thermals = {thermal.id: thermal for thermal in thermals}
+            dict_st_storage = {storage.id: storage for storage in st_storages}
 
             area_obj = Area(
                 area,
@@ -606,9 +590,9 @@ class AreaApiService(BaseAreaService):
                 self.storage_service,
                 self.thermal_service,
                 self.renewable_service,
-                renewables=renewables,
-                thermals=thermals,
-                st_storages=st_storage,
+                renewables=dict_renewables,
+                thermals=dict_thermals,
+                st_storages=dict_st_storage,
                 properties=json_properties,
                 ui=ui_response,
             )

@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Any
+from typing import Any, List
 
 import pandas as pd
 
@@ -34,4 +34,7 @@ class RenewableLocalService(BaseRenewableService):
         self,
         renewable: RenewableCluster,
     ) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def read_renewables(self, area_id: str) -> List[RenewableCluster]:
         raise NotImplementedError

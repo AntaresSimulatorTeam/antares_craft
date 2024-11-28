@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Any
+from typing import Any, List
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.st_storage import STStorage, STStorageProperties
@@ -26,4 +26,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
     def update_st_storage_properties(
         self, st_storage: STStorage, properties: STStorageProperties
     ) -> STStorageProperties:
+        raise NotImplementedError
+
+    def read_st_storages(self, area_id: str) -> List[STStorage]:
         raise NotImplementedError

@@ -213,6 +213,13 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
+    def read_hydro(
+        self,
+        area_id: str,
+    ) -> Hydro:
+        pass
+
+    @abstractmethod
     def update_area_properties(self, area: Area, properties: AreaProperties) -> AreaProperties:
         """
         Args:
@@ -360,6 +367,10 @@ class BaseThermalService(ABC):
         """
         pass
 
+    @abstractmethod
+    def read_thermal_clusters(self, area_id: str) -> List[ThermalCluster]:
+        pass
+
 
 class BaseBindingConstraintService(ABC):
     binding_constraints: dict[str, BindingConstraint]
@@ -505,6 +516,10 @@ class BaseRenewableService(ABC):
         """
         pass
 
+    @abstractmethod
+    def read_renewables(self, area_id: str) -> List[RenewableCluster]:
+        pass
+
 
 class BaseShortTermStorageService(ABC):
     @abstractmethod
@@ -516,4 +531,8 @@ class BaseShortTermStorageService(ABC):
             st_storage: concerned storage
             properties: new properties. Only registered fields will be updated.
         """
+        pass
+
+    @abstractmethod
+    def read_st_storages(self, area_id: str) -> List[STStorage]:
         pass

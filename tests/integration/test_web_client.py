@@ -183,6 +183,28 @@ class TestWebClient:
         assert storage_fr.name == st_storage_name
         assert storage_fr.id == "cluster_test"
 
+        # test each list of clusters has the same length and objects by comparing their id
+        thermal_list = area_fr.read_thermal_clusters(area_fr.id)
+        renewable_list = area_fr.read_renewables(area_fr.id)
+        storage_list = area_fr.read_st_storages(area_fr.id)
+
+        assert len(thermal_list) == 2
+        assert len(renewable_list) == 2
+        assert len(storage_list) == 1
+
+        actual_thermal_cluster_1 = thermal_list[0]
+        actual_thermal_cluster_2 = thermal_list[1]
+        assert actual_thermal_cluster_1.id == thermal_fr.id
+        assert actual_thermal_cluster_2.id == thermal_value_be.id
+
+        actual_renewable_1 = renewable_list[0]
+        actual_renewable_2 = renewable_list[1]
+        assert actual_renewable_1.id == renewable_fr.id
+        assert actual_renewable_2.id == renewable_onshore.id
+
+        actual_storage = storage_list[0]
+        assert actual_storage.id == storage_fr.id
+
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
         storage_properties = STStorageProperties(reservoir_capacity=0.5)

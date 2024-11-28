@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 
 from pathlib import PurePosixPath
+from typing import List
 
 import pandas as pd
 
@@ -63,3 +64,24 @@ class RenewableApiService(BaseRenewableService):
             return get_matrix(f"{self._base_url}/studies/{self.study_id}/raw?path={path}", self._wrapper)
         except APIError as e:
             raise RenewableMatrixDownloadError(renewable.area_id, renewable.name, e.message) from e
+
+    def read_renewables(
+        self,
+        area_id: str,
+    ) -> List[RenewableCluster]:
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
+        json_renewables = self._wrapper.get(url).json()
+
+        renewables = []
+
+        for renewable in json_renewables:
+            renewable_id = renewable.pop("id")
+            renewable_name = renewable.pop("name")
+
+            renewable_props = RenewableClusterProperties(**renewable)
+            renewable_cluster = RenewableCluster(self.config, renewable_id, renewable_name, renewable_props)
+            renewables.append(renewable_cluster)
+
+        renewables.sort(key=lambda renewable: renewable.id)
+
+        return renewables
