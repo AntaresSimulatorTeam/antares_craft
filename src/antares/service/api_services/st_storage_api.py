@@ -88,4 +88,7 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
             st_storage = STStorage(self.config, storage_id, storage_name, storage_properties)
             storages.append(st_storage)
 
+
+        storages.sort(key=lambda storage: storage.id)
+
         return storages

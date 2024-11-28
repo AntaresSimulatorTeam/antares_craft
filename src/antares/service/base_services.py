@@ -213,6 +213,13 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
+    def read_hydro(
+        self,
+        area_id: str,
+    ) -> Hydro:
+        pass
+
+    @abstractmethod
     def update_area_properties(self, area: Area, properties: AreaProperties) -> AreaProperties:
         """
         Args:

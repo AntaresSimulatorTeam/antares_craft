@@ -85,4 +85,6 @@ class ThermalApiService(BaseThermalService):
             thermal_cluster = ThermalCluster(self, thermal_id, thermal_name, thermal_props)
             thermals.append(thermal_cluster)
 
+        thermals.sort(key=lambda thermal: thermal.id)
+
         return thermals

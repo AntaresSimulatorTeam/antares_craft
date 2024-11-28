@@ -186,13 +186,10 @@ class TestWebClient:
         assert storage_fr.name == st_storage_name
         assert storage_fr.id == "cluster_test"
 
-        # testing
-        thermal_service = ThermalApiService(api_config, study_id=study.service.study_id)
-        renewable_service = RenewableApiService(api_config, study_id=study.service.study_id)
-        storage_service = ShortTermStorageApiService(api_config, study_id=study.service.study_id)
-        thermal_list = thermal_service.read_thermal_clusters(area_fr.id)
-        renewable_list = renewable_service.read_renewables(area_fr.id)
-        storage_list = storage_service.read_st_storages(area_fr.id)
+        # test each list of clusters has the same length and objects by comparing their id
+        thermal_list = area_fr.read_thermal_clusters(area_fr.id)
+        renewable_list = area_fr.read_renewables(area_fr.id)
+        storage_list = area_fr.read_st_storages(area_fr.id)
 
         assert len(thermal_list) == 2
         assert len(renewable_list) == 2

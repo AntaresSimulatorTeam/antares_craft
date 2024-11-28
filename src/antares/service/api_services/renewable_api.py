@@ -82,4 +82,6 @@ class RenewableApiService(BaseRenewableService):
             renewable_cluster = RenewableCluster(self.config, renewable_id, renewable_name, renewable_props)
             renewables.append(renewable_cluster)
 
+        renewables.sort(key=lambda renewable: renewable.id)
+
         return renewables

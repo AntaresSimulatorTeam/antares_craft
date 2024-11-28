@@ -418,6 +418,12 @@ class AreaApiService(BaseAreaService):
 
         return Hydro(self, area_id, properties)
 
+    def read_hydro(
+        self,
+        area_id: str,
+    ) -> Hydro:
+        raise NotImplementedError
+
     def _create_hydro_series(self, area_id: str, matrices: Dict[HydroMatrixName, pd.DataFrame]) -> None:
         command_body = []
         for matrix_name, series in matrices.items():
