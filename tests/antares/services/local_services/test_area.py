@@ -444,7 +444,7 @@ enabled = true
         assert actual_st_storage_list_ini.parsed_ini.sections() == expected_st_storage_list_ini.sections()
         assert actual_st_storage_list_ini.parsed_ini == expected_st_storage_list_ini
 
-    def test_st_storage_and_ini_have_custom_properties(self, local_study_with_renewable):
+    def test_st_storage_and_ini_have_custom_properties(self, local_study_w_areas):
         # Given
         props = STStorageProperties(group=STStorageGroup.BATTERY, reservoir_capacity=12.345)
         args = {"st_storage_name": "short term storage", **props.model_dump(mode="json", exclude_none=True)}
@@ -462,11 +462,11 @@ enabled = true
 
 """
         actual_st_storage_list_ini = IniFile(
-            local_study_with_renewable.service.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name="fr"
+            local_study_w_areas.service.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name="fr"
         )
 
         # When
-        local_study_with_renewable.get_areas()["fr"].create_st_storage(
+        local_study_w_areas.get_areas()["fr"].create_st_storage(
             st_storage_name=custom_properties.st_storage_name,
             properties=custom_properties.yield_st_storage_properties(),
         )
@@ -474,7 +474,7 @@ enabled = true
             actual_st_storage_list_ini_content = st_storage_list_ini_file.read()
 
         assert (
-            local_study_with_renewable.get_areas()["fr"].get_st_storages()["short term storage"].properties
+            local_study_w_areas.get_areas()["fr"].get_st_storages()["short term storage"].properties
             == custom_properties.yield_st_storage_properties()
         )
         assert actual_st_storage_list_ini_content == expected_st_storage_list_ini_content
