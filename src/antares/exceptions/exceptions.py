@@ -232,18 +232,6 @@ class StudyDeletionError(Exception):
         super().__init__(self.message)
 
 
-class LoadMatrixUploadError(Exception):
-    def __init__(self, area_name: str, message: str) -> None:
-        self.message = f"Could not upload load matrix for area {area_name}: " + message
-        super().__init__(self.message)
-
-
-class LoadMatrixDownloadError(Exception):
-    def __init__(self, area_name: str, message: str) -> None:
-        self.message = f"Could not download load matrix for area {area_name}: " + message
-        super().__init__(self.message)
-
-
 class ThermalMatrixDownloadError(Exception):
     def __init__(self, area_name: str, cluster_name: str, matrix_name: str, message: str) -> None:
         self.message = (
@@ -259,8 +247,14 @@ class RenewableMatrixDownloadError(Exception):
 
 
 class MatrixUploadError(Exception):
-    def __init__(self, area_id: str, message: str) -> None:
-        self.message = f"Error uploading matrix for area {area_id}: {message}"
+    def __init__(self, area_id: str, matrix_type: str, message: str) -> None:
+        self.message = f"Error uploading {matrix_type} matrix for area {area_id}: {message}"
+        super().__init__(self.message)
+
+
+class MatrixDownloadError(Exception):
+    def __init__(self, area_id: str, matrix_type: str, message: str) -> None:
+        self.message = f"Error downloading {matrix_type} matrix for area {area_id}: {message}"
         super().__init__(self.message)
 
 
