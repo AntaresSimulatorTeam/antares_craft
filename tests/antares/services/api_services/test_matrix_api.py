@@ -87,6 +87,13 @@ class TestMatrixAPI:
     #  WIND
     # =======================
 
+    def test_get_wind_matrix_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/wind/series/wind_{self.area.id}"
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            wind_matrix = self.area.get_load_matrix()
+            assert wind_matrix.equals(self.matrix)
+
     def test_create_wind_success(self):
         with requests_mock.Mocker() as mocker:
             expected_url = (
