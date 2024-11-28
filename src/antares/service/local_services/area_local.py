@@ -14,6 +14,7 @@ import logging
 import os
 
 from configparser import ConfigParser, DuplicateSectionError
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
@@ -35,7 +36,6 @@ from antares.tools.ini_tool import IniFile, IniFileTypes
 from antares.tools.matrix_tool import df_read
 from antares.tools.prepro_folder import PreproFolder
 from antares.tools.time_series_tool import TimeSeriesFileType
-from pathlib import Path
 
 
 def _sets_ini_content() -> ConfigParser:
@@ -317,7 +317,7 @@ class AreaLocalService(BaseAreaService):
     def delete_st_storages(self, area: Area, storages: List[STStorage]) -> None:
         raise NotImplementedError
     
-    def _read_timeseries(self, ts_file_type: TimeSeriesFileType, study_path: Path, area_id: Optional[str] = None, constraint_id: Optional[str] = None, time_series: Optional[pd.DataFrame] = None,) -> pd.DataFrame:
+    def _read_timeseries(self, ts_file_type: TimeSeriesFileType, study_path: Path, area_id: Optional[str] = None, constraint_id: Optional[str] = None) -> pd.DataFrame:
         file_path = study_path / (
             ts_file_type.value
             if not (area_id or constraint_id)
@@ -332,8 +332,7 @@ class AreaLocalService(BaseAreaService):
         return _time_series
    
     def get_load_matrix(self, area: Area) -> pd.DataFrame:
-        timeseries = self._read_timeseries(TimeSeriesFileType.LOAD, self.config.study_path, area_id=area.id)
-        return timeseries
+        return self._read_timeseries(TimeSeriesFileType.LOAD, self.config.study_path, area_id=area.id)
     
     def get_solar_matrix(self, area: Area) -> pd.DataFrame:
         raise NotImplementedError
