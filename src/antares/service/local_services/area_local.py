@@ -346,17 +346,6 @@ class AreaLocalService(BaseAreaService):
 
         if os.path.getsize(file_path) != 0:
             _time_series = df_read(file_path)
-        if file_path.is_file() and time_series is None:
-            if os.path.getsize(file_path) != 0:
-                _time_series = pd.read_csv(
-                    file_path,
-                    sep="\t",
-                    header=None,
-                    index_col=None,
-                    encoding="utf-8",
-                )
-            else:
-                _time_series = pd.DataFrame()
         else:
             _time_series = pd.DataFrame()
 

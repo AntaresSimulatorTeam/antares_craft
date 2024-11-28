@@ -1095,7 +1095,6 @@ class TestReadArea:
 
 class TestReadLoad:
     def test_read_load_local(self, local_study_w_areas):
-
         study_path = local_study_w_areas.service.config.study_path
         local_study_object = read_study_local(study_path)
         areas = local_study_object.read_areas()
