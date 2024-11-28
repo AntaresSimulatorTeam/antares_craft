@@ -1137,7 +1137,7 @@ class TestReadLoad:
             file_path = study_path / "input" / "load" / "series" / f"load_{area.id}.txt".format(area_id=area.id)
             _write_file(file_path, expected_conversion)
 
-            load_object = area.read_load()
+            load_object = area.get_load_matrix()
             pd.testing.assert_frame_equal(load_object.astype(str), expected_conversion.astype(str), check_dtype=False)
 
     def test_read_load_empty_local(self, local_study_w_areas):
@@ -1155,5 +1155,5 @@ class TestReadLoad:
             
             file_path = study_path / "input" / "load" / "series" / f"load_{area.id}.txt".format(area_id=area.id)
             _write_file(file_path, expected_conversion)
-            load_object = area.read_load()
+            load_object = area.get_load_matrix()
             pd.testing.assert_frame_equal(load_object, expected_conversion)

@@ -374,5 +374,3 @@ class Area:
     ) -> List[ThermalCluster]:
         return self._thermal_service.read_thermal_clusters(area_id)
 
-    def read_load(self) -> pd.DataFrame:
-        return self._area_service.read_load(self._id)

@@ -13,7 +13,7 @@
 import logging
 import os
 
-from configparser import ConfigParser
+from configparser import ConfigParser, DuplicateSectionError
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
@@ -35,6 +35,7 @@ from antares.tools.ini_tool import IniFile, IniFileTypes
 from antares.tools.matrix_tool import df_read
 from antares.tools.prepro_folder import PreproFolder
 from antares.tools.time_series_tool import TimeSeriesFileType
+from pathlib import Path
 
 
 def _sets_ini_content() -> ConfigParser:
@@ -315,10 +316,25 @@ class AreaLocalService(BaseAreaService):
 
     def delete_st_storages(self, area: Area, storages: List[STStorage]) -> None:
         raise NotImplementedError
+    
+    def _read_timeseries(self, ts_file_type: TimeSeriesFileType, study_path: Path, area_id: Optional[str] = None, constraint_id: Optional[str] = None, time_series: Optional[pd.DataFrame] = None,) -> pd.DataFrame:
+        file_path = study_path / (
+            ts_file_type.value
+            if not (area_id or constraint_id)
+            else ts_file_type.value.format(area_id=area_id, constraint_id=constraint_id)
+        )
 
+        if os.path.getsize(file_path) != 0:
+            _time_series = df_read(file_path)
+        else:
+            _time_series = pd.DataFrame()
+
+        return _time_series
+   
     def get_load_matrix(self, area: Area) -> pd.DataFrame:
-        raise NotImplementedError
-
+        timeseries = self._read_timeseries(TimeSeriesFileType.LOAD, self.config.study_path, area_id=area.id)
+        return timeseries
+    
     def get_solar_matrix(self, area: Area) -> pd.DataFrame:
         raise NotImplementedError
 
@@ -348,20 +364,3 @@ class AreaLocalService(BaseAreaService):
                 )
         return areas
 
-    def _read_timeseries(self, ts_file_type: TimeSeriesFileType, study_path: Path, area_id: Optional[str] = None, constraint_id: Optional[str] = None, time_series: Optional[pd.DataFrame] = None,) -> pd.DataFrame:
-        file_path = study_path / (
-            ts_file_type.value
-            if not (area_id or constraint_id)
-            else ts_file_type.value.format(area_id=area_id, constraint_id=constraint_id)
-        )
-
-        if os.path.getsize(file_path) != 0:
-            _time_series = df_read(file_path)
-        else:
-            _time_series = pd.DataFrame()
-
-        return _time_series
-   
-    def read_load(self, id: str) -> pd.DataFrame:
-        timeseries = self._read_timeseries(TimeSeriesFileType.LOAD, self.config.study_path, area_id=id)
-        return timeseries
