@@ -9,12 +9,12 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
 
 import logging
 import os
 import time
+import typing as t
 
 from configparser import ConfigParser
 from pathlib import Path
@@ -89,7 +89,6 @@ from antares.service.local_services.renewable_local import RenewableLocalService
 from antares.service.local_services.st_storage_local import ShortTermStorageLocalService
 from antares.service.local_services.thermal_local import ThermalLocalService
 from antares.tools.ini_tool import IniFileTypes
-from antares.tools.time_series_tool import TimeSeriesFileType
 
 
 class TestCreateStudy:

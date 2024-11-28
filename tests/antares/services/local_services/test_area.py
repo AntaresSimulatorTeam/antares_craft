@@ -10,9 +10,9 @@
 #
 # This file is part of the Antares project.
 
-import typing as t
-
 import pytest
+
+import typing as t
 
 from configparser import ConfigParser
 from io import StringIO
