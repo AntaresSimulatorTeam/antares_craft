@@ -36,6 +36,10 @@ class TestMatrixAPI:
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
 
+    # =======================
+    #  LOAD
+    # =======================
+
     def test_get_load_matrix_success(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
@@ -69,7 +73,7 @@ class TestMatrixAPI:
             ):
                 self.area.create_load(pd.DataFrame(data=np.ones((8760, 1))))
 
-    def test_upload_wrong_load_matrix_fails(self):
+    def test_upload_wrongly_formatted_load_matrix_fails(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
@@ -78,6 +82,10 @@ class TestMatrixAPI:
                 match=f"Error uploading load matrix for area {self.area.id}: Expected 8760 rows and received 1.",
             ):
                 self.area.create_load(self.matrix)
+
+    # =======================
+    #  WIND
+    # =======================
 
     def test_create_wind_success(self):
         with requests_mock.Mocker() as mocker:
@@ -91,6 +99,10 @@ class TestMatrixAPI:
             self.area.create_wind(series=self.matrix)
 
             assert mocker.request_history[0].url == expected_url
+
+    # =======================
+    #  RESERVES
+    # =======================
 
     def test_create_reserves_success(self):
         with requests_mock.Mocker() as mocker:
@@ -111,6 +123,10 @@ class TestMatrixAPI:
             ):
                 self.area.create_reserves(series=self.matrix)
 
+    # =======================
+    #  SOLAR
+    # =======================
+
     def test_create_solar_success(self):
         with requests_mock.Mocker() as mocker:
             expected_url = (
@@ -124,6 +140,10 @@ class TestMatrixAPI:
             self.area.create_solar(series=self.matrix)
 
             assert mocker.request_history[0].url == expected_url
+
+    # =======================
+    #  MISC GEN
+    # =======================
 
     def test_create_misc_gen_success(self):
         with requests_mock.Mocker() as mocker:
