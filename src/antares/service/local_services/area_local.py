@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import AreaCreationError, CustomError, ThermalCreationError
+from antares.exceptions.exceptions import AreaCreationError, ThermalCreationError
 from antares.model.area import Area, AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
 from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesLocal
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesLocal
