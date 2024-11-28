@@ -26,15 +26,10 @@ from antares.model.binding_constraint import (
 )
 from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.model.link import Link, LinkProperties, LinkUi
-from antares.model.load import Load
-from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
-from antares.model.reserves import Reserves
 from antares.model.settings.study_settings import StudySettings
-from antares.model.solar import Solar
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
-from antares.model.wind import Wind
 
 
 class BaseAreaService(ABC):
@@ -129,7 +124,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_load(self, area: Area, series: Optional[pd.DataFrame]) -> Load:
+    def create_load(self, area: Area, series: pd.DataFrame) -> None:
         """
         Args:
             area: area to create load series matrices
@@ -155,7 +150,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> Wind:
+    def create_wind(self, area: Area, series: pd.DataFrame) -> None:
         """
         Args:
             area: area to create wind series matrices
@@ -165,7 +160,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
+    def create_reserves(self, area: Area, series: pd.DataFrame) -> None:
         """
         Args:
             area: Area to create reserves series matrices
@@ -177,7 +172,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> Solar:
+    def create_solar(self, area: Area, series: pd.DataFrame) -> None:
         """
         Args:
             area: area to create reserves series matrices
@@ -187,7 +182,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
+    def create_misc_gen(self, area: Area, series: pd.DataFrame) -> None:
         """
         Args:
             area: area to create reserves series matrices
@@ -273,23 +268,46 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def upload_load_matrix(self, area: Area, load_matrix: pd.DataFrame) -> None:
-        """
-        Args:
-            area: concerned area.
-            load_matrix: matrix in Dataframe format to write as the load matrix.
-        """
-        # todo: What happens when given an empty DataFrame ? AntaresWeb doesn't handle such a case.
-        pass
-
-    @abstractmethod
     def get_load_matrix(self, area: Area) -> pd.DataFrame:
         """
         Args:
             area: concerned area.
         """
-        # todo: Currently we do not return index and column names because AntaresWeb doesn't send the full information.
-        # Once it will, there will be no change to do in the code on our side.
+        # Currently we do not return index and column names.
+        # Once AntaresWeb will introduce specific endpoint for each matrix it will perhaps change.
+        # Same goes for other endpoints getting input matrices.
+        pass
+
+    @abstractmethod
+    def get_reserves_matrix(self, area: Area) -> pd.DataFrame:
+        """
+        Args:
+            area: concerned area.
+        """
+        pass
+
+    @abstractmethod
+    def get_misc_gen_matrix(self, area: Area) -> pd.DataFrame:
+        """
+        Args:
+            area: concerned area.
+        """
+        pass
+
+    @abstractmethod
+    def get_solar_matrix(self, area: Area) -> pd.DataFrame:
+        """
+        Args:
+            area: concerned area.
+        """
+        pass
+
+    @abstractmethod
+    def get_wind_matrix(self, area: Area) -> pd.DataFrame:
+        """
+        Args:
+            area: concerned area.
+        """
         pass
 
 

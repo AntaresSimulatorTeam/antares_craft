@@ -22,14 +22,9 @@ from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import CustomError
 from antares.model.area import Area, AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
 from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesLocal
-from antares.model.load import Load
-from antares.model.misc_gen import MiscGen
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesLocal
-from antares.model.reserves import Reserves
-from antares.model.solar import Solar
 from antares.model.st_storage import STStorage, STStorageProperties, STStoragePropertiesLocal
 from antares.model.thermal import ThermalCluster, ThermalClusterProperties, ThermalClusterPropertiesLocal
-from antares.model.wind import Wind
 from antares.service.base_services import (
     BaseAreaService,
     BaseRenewableService,
@@ -123,11 +118,9 @@ class AreaLocalService(BaseAreaService):
             self.renewable_service, area_id, renewable_name, local_properties.yield_renewable_cluster_properties()
         )
 
-    def create_load(self, area: Area, series: Optional[pd.DataFrame]) -> Load:
-        series = series if series is not None else pd.DataFrame([])
+    def create_load(self, area: Area, series: pd.DataFrame) -> None:
         self._write_timeseries(series, TimeSeriesFileType.LOAD, area.id)
         PreproFolder.LOAD.save(self.config.study_path, area.id)
-        return Load(time_series=series)
 
     def _write_timeseries(self, series: pd.DataFrame, ts_file_type: TimeSeriesFileType, area_id: str) -> None:
         file_path = self.config.study_path.joinpath(ts_file_type.value.format(area_id=area_id))
@@ -151,27 +144,19 @@ class AreaLocalService(BaseAreaService):
             local_st_storage_properties.yield_st_storage_properties(),
         )
 
-    def create_wind(self, area: Area, series: Optional[pd.DataFrame]) -> Wind:
-        series = series if series is not None else pd.DataFrame([])
+    def create_wind(self, area: Area, series: pd.DataFrame) -> None:
         self._write_timeseries(series, TimeSeriesFileType.WIND, area.id)
         PreproFolder.WIND.save(self.config.study_path, area.id)
-        return Wind(time_series=series)
 
-    def create_reserves(self, area: Area, series: Optional[pd.DataFrame]) -> Reserves:
-        series = series if series is not None else pd.DataFrame([])
+    def create_reserves(self, area: Area, series: pd.DataFrame) -> None:
         self._write_timeseries(series, TimeSeriesFileType.RESERVES, area.id)
-        return Reserves(series)
 
-    def create_solar(self, area: Area, series: Optional[pd.DataFrame]) -> Solar:
-        series = series if series is not None else pd.DataFrame([])
+    def create_solar(self, area: Area, series: pd.DataFrame) -> None:
         self._write_timeseries(series, TimeSeriesFileType.SOLAR, area.id)
         PreproFolder.SOLAR.save(self.config.study_path, area.id)
-        return Solar(time_series=series)
 
-    def create_misc_gen(self, area: Area, series: Optional[pd.DataFrame]) -> MiscGen:
-        series = series if series is not None else pd.DataFrame([])
+    def create_misc_gen(self, area: Area, series: pd.DataFrame) -> None:
         self._write_timeseries(series, TimeSeriesFileType.MISC_GEN, area.id)
-        return MiscGen(series)
 
     def create_hydro(
         self,
@@ -318,10 +303,19 @@ class AreaLocalService(BaseAreaService):
     def delete_st_storages(self, area: Area, storages: List[STStorage]) -> None:
         raise NotImplementedError
 
-    def upload_load_matrix(self, area: Area, load_matrix: pd.DataFrame) -> None:
+    def get_load_matrix(self, area: Area) -> pd.DataFrame:
         raise NotImplementedError
 
-    def get_load_matrix(self, area: Area) -> pd.DataFrame:
+    def get_solar_matrix(self, area: Area) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_wind_matrix(self, area: Area) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_reserves_matrix(self, area: Area) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_misc_gen_matrix(self, area: Area) -> pd.DataFrame:
         raise NotImplementedError
 
     def read_areas(self) -> List[Area]:

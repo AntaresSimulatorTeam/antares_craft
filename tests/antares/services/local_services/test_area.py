@@ -650,7 +650,7 @@ class TestCreateReserves:
         expected_reserves_file_path = area_fr._area_service.config.study_path / "input/reserves/fr.txt"
 
         # When
-        area_fr.create_reserves(None)
+        area_fr.create_reserves(pd.DataFrame())
 
         # Then
         assert reserves_file_path == expected_reserves_file_path
@@ -687,7 +687,7 @@ class TestCreateMiscGen:
         expected_misc_gen_file_path = area_fr._area_service.config.study_path / "input/misc-gen/miscgen-fr.txt"
 
         # When
-        area_fr.create_misc_gen(None)
+        area_fr.create_misc_gen(pd.DataFrame())
 
         # Then
         assert misc_gen_file_path == expected_misc_gen_file_path
@@ -724,7 +724,7 @@ class TestCreateWind:
         expected_wind_file_path = area_fr._area_service.config.study_path / "input/wind/series/wind_fr.txt"
 
         # When
-        area_fr.create_wind(None)
+        area_fr.create_wind(pd.DataFrame())
 
         # Then
         assert wind_file_path == expected_wind_file_path
@@ -846,7 +846,7 @@ class TestCreateSolar:
         expected_solar_file_path = area_fr._area_service.config.study_path / "input/solar/series/solar_fr.txt"
 
         # When
-        area_fr.create_solar(None)
+        area_fr.create_solar(pd.DataFrame())
 
         # Then
         assert solar_file_path == expected_solar_file_path
@@ -969,7 +969,7 @@ class TestCreateLoad:
         expected_load_file_path = area_fr._area_service.config.study_path / "input/load/series/load_fr.txt"
 
         # When
-        area_fr.create_load(None)
+        area_fr.create_load(pd.DataFrame())
 
         # Then
         assert load_file_path == expected_load_file_path

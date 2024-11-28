@@ -19,7 +19,7 @@ from antares.exceptions.exceptions import (
     AreaDeletionError,
     BindingConstraintCreationError,
     ConstraintMatrixUpdateError,
-    LoadMatrixUploadError,
+    MatrixUploadError,
     STStorageMatrixUploadError,
 )
 from antares.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
@@ -61,17 +61,26 @@ class TestWebClient:
         # Case that fails
         wrong_load_matrix = pd.DataFrame(data=[[0]])
         with pytest.raises(
-            LoadMatrixUploadError,
-            match=f"Could not upload load matrix for area {area_fr.id}: Expected 8760 rows and received 1",
+            MatrixUploadError,
+            match=f"Error uploading load matrix for area {area_fr.id}: Expected 8760 rows and received 1",
         ):
-            area_fr.upload_load_matrix(wrong_load_matrix)
+            area_fr.create_load(wrong_load_matrix)
 
         # Case that succeeds
         load_matrix = pd.DataFrame(data=np.zeros((8760, 1)))
-        area_fr.upload_load_matrix(load_matrix)
+        area_fr.create_load(load_matrix)
 
         # tests get load matrix
         assert area_fr.get_load_matrix().equals(load_matrix)
+
+        # asserts solar and wind matrices can be created and read.
+        ts_matrix = pd.DataFrame(data=np.ones((4, 4)))
+
+        area_fr.create_solar(ts_matrix)
+        assert area_fr.get_solar_matrix().equals(ts_matrix)
+
+        area_fr.create_wind(ts_matrix)
+        assert area_fr.get_wind_matrix().equals(ts_matrix)
 
         # tests area creation with ui values
         area_ui = AreaUi(x=100, color_rgb=[255, 0, 0])
