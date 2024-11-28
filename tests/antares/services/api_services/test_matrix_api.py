@@ -124,56 +124,109 @@ class TestMatrixAPI:
     #  RESERVES
     # =======================
 
+    def test_get_reserves_matrix_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/reserves/{self.area.id}"
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            reserves_matrix = self.area.get_reserves_matrix()
+            assert reserves_matrix.equals(self.matrix)
+
     def test_create_reserves_success(self):
         with requests_mock.Mocker() as mocker:
-            expected_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/reserves/area_test"
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=" f"input/reserves/{self.area.id}"
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/reserves/{self.area.id}"
             mocker.post(url, status_code=200)
-            self.area.create_reserves(series=self.matrix)
+            self.area.create_reserves(self.matrix)
 
-            assert mocker.request_history[0].url == expected_url
+    def test_get_reserves_matrix_fails(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/reserves/{self.area.id}"
+            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                MatrixDownloadError,
+                match=f"Error downloading reserves matrix for area {self.area.id}: {self.antares_web_description_msg}",
+            ):
+                self.area.get_reserves_matrix()
 
     def test_create_reserves_fails(self):
         with requests_mock.Mocker() as mocker:
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=" f"input/reserves/{self.area.id}"
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/reserves/{self.area.id}"
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
-
             with pytest.raises(
-                MatrixUploadError, match=f"Error uploading reserves matrix for area {self.area.id}: Mocked Server KO"
+                MatrixUploadError,
+                match=f"Error uploading reserves matrix for area {self.area.id}: {self.antares_web_description_msg}",
             ):
-                self.area.create_reserves(series=self.matrix)
+                self.area.create_reserves(self.matrix)
 
     # =======================
     #  SOLAR
     # =======================
 
+    def test_get_solar_matrix_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/solar/series/solar_{self.area.id}"
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            solar_matrix = self.area.get_solar_matrix()
+            assert solar_matrix.equals(self.matrix)
+
     def test_create_solar_success(self):
         with requests_mock.Mocker() as mocker:
-            expected_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/solar/series/solar_area_test"
-            )
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
-                f"input/solar/series/solar_{self.area.id}"
-            )
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/solar/series/solar_{self.area.id}"
             mocker.post(url, status_code=200)
-            self.area.create_solar(series=self.matrix)
+            self.area.create_solar(self.matrix)
 
-            assert mocker.request_history[0].url == expected_url
+    def test_get_solar_matrix_fails(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/solar/series/solar_{self.area.id}"
+            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                MatrixDownloadError,
+                match=f"Error downloading solar matrix for area {self.area.id}: {self.antares_web_description_msg}",
+            ):
+                self.area.get_solar_matrix()
+
+    def test_create_solar_fails(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/solar/series/solar_{self.area.id}"
+            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                MatrixUploadError,
+                match=f"Error uploading solar matrix for area {self.area.id}: {self.antares_web_description_msg}",
+            ):
+                self.area.create_solar(self.matrix)
 
     # =======================
     #  MISC GEN
     # =======================
 
+    def test_get_misc_gen_matrix_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/misc-gen/miscgen-{self.area.id}"
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            misc_gen_matrix = self.area.get_misc_gen_matrix()
+            assert misc_gen_matrix.equals(self.matrix)
+
     def test_create_misc_gen_success(self):
         with requests_mock.Mocker() as mocker:
-            expected_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/misc-gen/miscgen-area_test"
-            )
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=" f"input/misc-gen/miscgen-{self.area.id}"
-            )
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/misc-gen/miscgen-{self.area.id}"
             mocker.post(url, status_code=200)
-            self.area.create_misc_gen(series=self.matrix)
+            self.area.create_misc_gen(self.matrix)
 
-            assert mocker.request_history[0].url == expected_url
+    def test_get_misc_gen_matrix_fails(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/misc-gen/miscgen-{self.area.id}"
+            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                MatrixDownloadError,
+                match=f"Error downloading misc-gen matrix for area {self.area.id}: {self.antares_web_description_msg}",
+            ):
+                self.area.get_misc_gen_matrix()
+
+    def test_create_misc_gen_fails(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/misc-gen/miscgen-{self.area.id}"
+            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                MatrixUploadError,
+                match=f"Error uploading misc-gen matrix for area {self.area.id}: {self.antares_web_description_msg}",
+            ):
+                self.area.create_misc_gen(self.matrix)
