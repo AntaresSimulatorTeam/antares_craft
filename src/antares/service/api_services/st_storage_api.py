@@ -76,9 +76,8 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
         return dataframe
 
     def read_st_storages(self, area_id: str) -> List[STStorage]:
-        json_storage = self._wrapper.get(
-            self._base_url + "/studies/" + self.study_id + "/areas/" + area_id + "/storages"
-        ).json()
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages"
+        json_storage = self._wrapper.get(url).json()
         storages = []
 
         for storage in json_storage:
