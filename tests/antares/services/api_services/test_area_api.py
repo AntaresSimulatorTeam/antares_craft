@@ -447,3 +447,38 @@ class TestCreateAPI:
             assert actual_thermals[thermal_id].name == expected_area.get_thermals()[thermal_id].name
             assert actual_renewables[renewable_id].name == expected_area.get_renewables()[renewable_id].name
             assert actual_storages[storage_id].name == expected_area.get_st_storages()[storage_id].name
+
+    def test_read_hydro(self):
+        study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
+        area_id = "zone"
+        json_hydro = {
+            "interDailyBreakdown": 1,
+            "intraDailyModulation": 24,
+            "interMonthlyBreakdown": 1,
+            "reservoir": "false",
+            "reservoirCapacity": 0,
+            "followLoad": "true",
+            "useWater": "false",
+            "hardBounds": "false",
+            "initializeReservoirDate": 0,
+            "useHeuristic": "true",
+            "powerToLevel": "false",
+            "useLeeway": "false",
+            "leewayLow": 1,
+            "leewayUp": 1,
+            "pumpingEfficiency": 1
+        }
+        url = f"https://antares.com/api/v1/studies/{study_id_test}/areas/{area_id}/hydro/form"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.get(url, json=json_hydro)
+            area_api = AreaApiService(self.api, study_id_test)
+            hydro_props = HydroProperties(**json_hydro)
+
+            actual_hydro = Hydro(self.api, area_id, hydro_props)
+            expected_hydro = area_api.read_hydro(area_id)
+
+            assert actual_hydro.area_id == expected_hydro.area_id
+            assert actual_hydro.properties == expected_hydro.properties
+            assert actual_hydro.matrices is None
+

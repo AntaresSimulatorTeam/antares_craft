@@ -390,3 +390,9 @@ class Area:
         area_id: str,
     ) -> List[ThermalCluster]:
         return self._thermal_service.read_thermal_clusters(area_id)
+
+    def read_hydro(
+        self,
+        area_id: str,
+    ) -> Hydro:
+        return self._area_service.read_hydro(area_id)

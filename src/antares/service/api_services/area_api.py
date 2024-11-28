@@ -422,7 +422,12 @@ class AreaApiService(BaseAreaService):
         self,
         area_id: str,
     ) -> Hydro:
-        raise NotImplementedError
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
+        json_hydro = self._wrapper.get(url).json()
+
+        hydro_props = HydroProperties(**json_hydro)
+        hydro = Hydro(self, area_id, hydro_props)
+        return hydro
 
     def _create_hydro_series(self, area_id: str, matrices: Dict[HydroMatrixName, pd.DataFrame]) -> None:
         command_body = []
