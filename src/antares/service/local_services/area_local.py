@@ -189,6 +189,12 @@ class AreaLocalService(BaseAreaService):
 
         return Hydro(self, area_id, local_hydro_properties.yield_hydro_properties())
 
+    def read_hydro(
+        self,
+        area_id: str,
+    ) -> Hydro:
+        raise NotImplementedError
+
     def create_area(
         self, area_name: str, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
     ) -> Area:
@@ -201,12 +207,6 @@ class AreaLocalService(BaseAreaService):
         Returns: area name if success or Error if area can not be
         created
         """
-
-    def read_hydro(
-        self,
-        area_id: str,
-    ) -> Hydro:
-        raise NotImplementedError
 
         def _line_exists_in_file(file_content: str, line_to_add: str) -> bool:
             """

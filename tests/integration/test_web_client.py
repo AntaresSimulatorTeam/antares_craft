@@ -32,9 +32,6 @@ from antares.model.settings.study_settings import PlaylistParameters, StudySetti
 from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
 from antares.model.study import create_study_api
 from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
-from antares.service.api_services.renewable_api import RenewableApiService
-from antares.service.api_services.st_storage_api import ShortTermStorageApiService
-from antares.service.api_services.thermal_api import ThermalApiService
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
