@@ -1092,3 +1092,28 @@ class TestReadArea:
         expected_areas = ["at", "it", "fr"]
         for area in actual_areas:
             assert area.id in expected_areas
+
+class TestReadLoad:
+    def test_read_load_local(self, local_study_w_areas):
+
+        study_path = local_study_w_areas.service.config.study_path
+        local_study_object = read_study_local(study_path)
+        areas = local_study_object.read_areas()
+
+        def _write_file(_file_path, _time_series) -> None:
+            _file_path.parent.mkdir(parents=True, exist_ok=True)
+            _time_series.to_csv(file_path, sep="\t", header=False, index=False, encoding="utf-8")
+
+        for area in areas:
+            expected_conversion = pd.DataFrame(
+                    [
+                        [-9999999980506447872, 0, 9999999980506447872],
+                        [0, area.id, 0],
+                    ]
+                , dtype="object")
+            
+            file_path = study_path / "input" / "load" / "series" / f"load_{area.id}.txt".format(area_id=area.id)
+            _write_file(file_path, expected_conversion)
+
+            load_object = area.read_load()
+            pd.testing.assert_frame_equal(load_object.astype(str), expected_conversion.astype(str), check_dtype=False)

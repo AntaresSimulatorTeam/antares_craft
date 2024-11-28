@@ -198,7 +198,7 @@ class Study:
     def service(self) -> BaseStudyService:
         return self._study_service
 
-    def read_areas(self) -> List[Area]:
+    def read_areas(self) -> list[Area]:
         return self._area_service.read_areas()
 
     def get_areas(self) -> MappingProxyType[str, Area]:
