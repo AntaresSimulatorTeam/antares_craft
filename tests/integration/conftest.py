@@ -13,7 +13,6 @@
 import pytest
 
 from antares import create_study_local
-from antares.config.local_configuration import LocalConfiguration
 
 
 @pytest.fixture
