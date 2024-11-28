@@ -91,21 +91,34 @@ class TestMatrixAPI:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/wind/series/wind_{self.area.id}"
             mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
-            wind_matrix = self.area.get_load_matrix()
+            wind_matrix = self.area.get_wind_matrix()
             assert wind_matrix.equals(self.matrix)
 
     def test_create_wind_success(self):
         with requests_mock.Mocker() as mocker:
-            expected_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/" f"raw?path=input/wind/series/wind_area_test"
-            )
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=" f"input/wind/series/wind_{self.area.id}"
-            )
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/wind/series/wind_{self.area.id}"
             mocker.post(url, status_code=200)
-            self.area.create_wind(series=self.matrix)
+            self.area.create_wind(self.matrix)
 
-            assert mocker.request_history[0].url == expected_url
+    def test_get_wind_matrix_fails(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/wind/series/wind_{self.area.id}"
+            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                MatrixDownloadError,
+                match=f"Error downloading wind matrix for area {self.area.id}: {self.antares_web_description_msg}",
+            ):
+                self.area.get_wind_matrix()
+
+    def test_create_wind_fails(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/wind/series/wind_{self.area.id}"
+            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                MatrixUploadError,
+                match=f"Error uploading wind matrix for area {self.area.id}: {self.antares_web_description_msg}",
+            ):
+                self.area.create_wind(self.matrix)
 
     # =======================
     #  RESERVES
