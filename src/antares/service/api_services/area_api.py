@@ -124,6 +124,8 @@ class AreaApiService(BaseAreaService):
             ui_response = AreaUiResponse.model_validate(json_ui)
             ui_properties = AreaUi.model_validate(ui_response.to_craft())
 
+            hydro = self.read_hydro(area_id)
+
         except APIError as e:
             raise AreaCreationError(area_name, e.message) from e
 
@@ -135,6 +137,7 @@ class AreaApiService(BaseAreaService):
             self.renewable_service,
             properties=area_properties,
             ui=ui_properties,
+            hydro=hydro,
         )
 
     def create_thermal_cluster(

@@ -344,8 +344,6 @@ class TestCreateAPI:
             assert actual_storages[storage_id].name == expected_area.get_st_storages()[storage_id].name
 
     def test_read_hydro(self):
-        study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
-        area_id = "zone"
         json_hydro = {
             "interDailyBreakdown": 1,
             "intraDailyModulation": 24,
@@ -363,15 +361,14 @@ class TestCreateAPI:
             "leewayUp": 1,
             "pumpingEfficiency": 1,
         }
-        url = f"https://antares.com/api/v1/studies/{study_id_test}/areas/{area_id}/hydro/form"
+        url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/hydro/form"
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url, json=json_hydro)
-            area_api = AreaApiService(self.api, study_id_test)
             hydro_props = HydroProperties(**json_hydro)
 
-            actual_hydro = Hydro(self.api, area_id, hydro_props)
-            expected_hydro = area_api.read_hydro(area_id)
+            actual_hydro = Hydro(self.api, self.area.id, hydro_props)
+            expected_hydro = self.area.read_hydro()
 
             assert actual_hydro.area_id == expected_hydro.area_id
             assert actual_hydro.properties == expected_hydro.properties
