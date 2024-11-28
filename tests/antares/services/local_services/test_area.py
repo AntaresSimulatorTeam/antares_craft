@@ -1081,7 +1081,6 @@ class TestCreateLoad:
             actual_file_path = study_path.joinpath(Path("input") / "load" / "prepro" / "fr" / f"{file}.txt")
             assert actual_file_path.read_text() == ""
 
-
 class TestReadArea:
     def test_read_areas_local(self, local_study_w_areas):
         study_path = local_study_w_areas.service.config.study_path
@@ -1092,6 +1091,7 @@ class TestReadArea:
         expected_areas = ["at", "it", "fr"]
         for area in actual_areas:
             assert area.id in expected_areas
+
 
 class TestReadLoad:
     def test_read_load_local(self, local_study_w_areas):
@@ -1116,3 +1116,14 @@ class TestReadLoad:
             
             load_object = area.read_load()
             pd.testing.assert_frame_equal(load_object.time_series.astype(str), expected_conversion.astype(str), check_dtype=False)
+
+    def test_read_load_empty_local(self, local_study_w_areas):
+        study_path = local_study_w_areas.service.config.study_path
+        local_study_object = read_study_local(study_path)
+        areas = local_study_object.read_areas()
+
+        for area in areas:
+            expected_conversion = pd.DataFrame([])
+            
+            load_object = area.read_load()
+            pd.testing.assert_frame_equal(load_object.time_series, expected_conversion)

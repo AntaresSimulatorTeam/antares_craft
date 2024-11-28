@@ -346,9 +346,7 @@ class AreaLocalService(BaseAreaService):
             if not (area_id or constraint_id or group_id)
             else ts_file_type.value.format(area_id=area_id, constraint_id=constraint_id, group_id=group_id)
         )
-        if file_path.is_file() and time_series is not None:
-            raise ValueError(f"File {file_path} already exists and a time series was provided.")
-        elif file_path.is_file() and time_series is None:
+        if file_path.is_file() and time_series is None:
             if os.path.getsize(file_path) != 0:
                 _time_series = pd.read_csv(
                     file_path,
