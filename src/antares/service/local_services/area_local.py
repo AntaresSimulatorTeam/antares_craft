@@ -202,12 +202,6 @@ class AreaLocalService(BaseAreaService):
         created
         """
 
-    def read_hydro(
-        self,
-        area_id: str,
-    ) -> Hydro:
-        raise NotImplementedError
-
         def _line_exists_in_file(file_content: str, line_to_add: str) -> bool:
             """
             Args:
