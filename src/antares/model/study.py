@@ -23,7 +23,7 @@ import pandas as pd
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
 from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import APIError, AreaCreationError, StudyCreationError
+from antares.exceptions.exceptions import APIError, StudyCreationError
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
 from antares.model.link import Link, LinkProperties, LinkUi
@@ -31,7 +31,6 @@ from antares.model.settings.study_settings import DefaultStudySettings, StudySet
 from antares.model.settings.time_series import correlation_defaults
 from antares.service.api_services.study_api import _returns_study_settings
 from antares.service.base_services import BaseStudyService
-from antares.service.local_services.study_local import StudyLocalService
 from antares.service.service_factory import ServiceFactory
 from antares.tools.ini_tool import IniFile, IniFileTypes
 
@@ -218,8 +217,6 @@ class Study:
     def create_area(
         self, area_name: str, *, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
     ) -> Area:
-        if area_name in self._areas and isinstance(self._study_service, StudyLocalService):
-            raise AreaCreationError(area_name, f"There is already an area '{area_name}' in the study '{self.name}'")
         area = self._area_service.create_area(area_name, properties, ui)
         self._areas[area.id] = area
         return area
