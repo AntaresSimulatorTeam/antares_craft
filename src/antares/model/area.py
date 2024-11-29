@@ -288,8 +288,17 @@ class Area:
     def get_load_matrix(self) -> pd.DataFrame:
         return self._area_service.get_load_matrix(self)
 
-    def upload_load_matrix(self, load_matrix: pd.DataFrame) -> None:
-        self._area_service.upload_load_matrix(self, load_matrix)
+    def get_wind_matrix(self) -> pd.DataFrame:
+        return self._area_service.get_wind_matrix(self)
+
+    def get_solar_matrix(self) -> pd.DataFrame:
+        return self._area_service.get_solar_matrix(self)
+
+    def get_reserves_matrix(self) -> pd.DataFrame:
+        return self._area_service.get_reserves_matrix(self)
+
+    def get_misc_gen_matrix(self) -> pd.DataFrame:
+        return self._area_service.get_misc_gen_matrix(self)
 
     def delete_thermal_clusters(self, thermal_clusters: List[ThermalCluster]) -> None:
         self._area_service.delete_thermal_clusters(self, thermal_clusters)
