@@ -26,6 +26,7 @@ from antares.exceptions.exceptions import (
 )
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties
+from antares.model.hydro import HydroProperties
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings.general import GeneralParameters
 from antares.model.settings.study_settings import StudySettings
@@ -108,9 +109,10 @@ class TestCreateAPI:
             }
             mocker.get(url1, json={area_name: area_ui}, status_code=201)
             url2 = f"{base_url}/studies/{self.study_id}/areas/{area_name}/properties/form"
+            url3 = f"{base_url}/studies/{self.study_id}/areas/{area_name}/hydro/form"
             mocker.put(url2, status_code=201)
             mocker.get(url2, json=AreaProperties().model_dump(), status_code=200)
-
+            mocker.get(url3, json=HydroProperties().model_dump())
             area = self.study.create_area(area_name)
         assert isinstance(area, Area)
 
