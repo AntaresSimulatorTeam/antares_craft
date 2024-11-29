@@ -14,6 +14,7 @@ import pytest
 import logging
 import os
 import time
+import typing as t
 
 from configparser import ConfigParser
 from pathlib import Path
@@ -84,7 +85,6 @@ from antares.model.settings.thematic_trimming import DefaultThematicTrimmingPara
 from antares.model.study import create_study_local
 from antares.service.local_services.link_local import LinkLocalService
 from antares.tools.ini_tool import IniFileTypes
-from antares.tools.time_series_tool import TimeSeriesFileType
 
 
 class TestCreateStudy:
