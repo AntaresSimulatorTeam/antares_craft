@@ -124,6 +124,8 @@ class AreaApiService(BaseAreaService):
             ui_response = AreaUiResponse.model_validate(json_ui)
             ui_properties = AreaUi.model_validate(ui_response.to_craft())
 
+            hydro = self.read_hydro(area_id)
+
         except APIError as e:
             raise AreaCreationError(area_name, e.message) from e
 
@@ -135,6 +137,7 @@ class AreaApiService(BaseAreaService):
             self.renewable_service,
             properties=area_properties,
             ui=ui_properties,
+            hydro=hydro,
         )
 
     def create_thermal_cluster(
@@ -411,7 +414,13 @@ class AreaApiService(BaseAreaService):
         self,
         area_id: str,
     ) -> Hydro:
-        raise NotImplementedError
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
+        json_hydro = self._wrapper.get(url).json()
+
+        hydro_props = HydroProperties(**json_hydro)
+        hydro = Hydro(self, area_id, hydro_props)
+
+        return hydro
 
     def _create_hydro_series(self, area_id: str, matrices: Dict[HydroMatrixName, pd.DataFrame]) -> None:
         command_body = []

@@ -282,6 +282,7 @@ class Area:
     def create_st_storage(self, st_storage_name: str, properties: Optional[STStorageProperties] = None) -> STStorage:
         storage = self._area_service.create_st_storage(self.id, st_storage_name, properties)
         self._st_storages[storage.id] = storage
+
         return storage
 
     def get_load_matrix(self) -> pd.DataFrame:
@@ -374,3 +375,7 @@ class Area:
     ) -> List[ThermalCluster]:
         return self._thermal_service.read_thermal_clusters(area_id)
 
+    def read_hydro(
+        self,
+    ) -> Hydro:
+        return self._area_service.read_hydro(self.id)
