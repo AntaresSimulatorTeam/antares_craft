@@ -419,6 +419,7 @@ class AreaApiService(BaseAreaService):
 
         hydro_props = HydroProperties(**json_hydro)
         hydro = Hydro(self, area_id, hydro_props)
+
         return hydro
 
     def _create_hydro_series(self, area_id: str, matrices: Dict[HydroMatrixName, pd.DataFrame]) -> None:
