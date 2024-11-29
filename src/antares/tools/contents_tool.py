@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-import configparser
 import json
 import re
 
@@ -19,6 +18,8 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from pydantic import BaseModel
+
+from antares.tools.custom_raw_config_parser import CustomRawConfigParser
 
 # Invalid chars was taken from Antares Simulator (C++).
 _sub_invalid_chars = re.compile(r"[^a-zA-Z0-9_(),& -]+").sub
@@ -118,8 +119,8 @@ class AreaUiResponse(BaseModel):
 
 
 # TODO maybe put sorting functions together
-def sort_ini_sections(ini_to_sort: configparser.ConfigParser) -> configparser.ConfigParser:
-    sorted_ini = configparser.ConfigParser(interpolation=None)
+def sort_ini_sections(ini_to_sort: CustomRawConfigParser) -> CustomRawConfigParser:
+    sorted_ini = CustomRawConfigParser(interpolation=None)
     for section in sorted(ini_to_sort.sections()):
         sorted_ini[section] = ini_to_sort[section]
     return sorted_ini
