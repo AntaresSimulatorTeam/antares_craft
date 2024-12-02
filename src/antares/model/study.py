@@ -171,6 +171,22 @@ def read_study_local(study_directory: Path) -> "Study":
     )
 
 
+def read_study_api(api_config: APIconf, study_id: str) -> "Study":
+    session = api_config.set_up_api_conf()
+    wrapper = RequestWrapper(session)
+    url = f"{api_config.get_host()}/api/v1/studies/{study_id}"
+    json_study = wrapper.get(url).json()
+
+    study_name = json_study.pop("name")
+    study_version = json_study.pop("version")
+    json_study.pop("id")
+
+    study_settings = StudySettings(**json_study)
+    study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings)
+
+    return study
+
+
 class Study:
     def __init__(
         self,

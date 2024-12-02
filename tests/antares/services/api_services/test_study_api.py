@@ -30,7 +30,7 @@ from antares.model.hydro import HydroProperties
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings.general import GeneralParameters
 from antares.model.settings.study_settings import StudySettings
-from antares.model.study import Study, create_study_api
+from antares.model.study import Study, create_study_api, read_study_api
 from antares.service.service_factory import ServiceFactory
 
 
@@ -199,3 +199,51 @@ class TestCreateAPI:
                 match=f"Could not create the binding constraint {constraint_name}: {self.antares_web_description_msg}",
             ):
                 self.study.create_binding_constraint(name=constraint_name)
+
+    def test_read_study_api(self):
+        study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
+        url = f"https://antares.com/api/v1/studies/{study_id_test}"
+        json_study = {
+          "id": "248bbb99-c909-47b7-b239-01f6f6ae7de7",
+          "name": "test_read_areas",
+          "version": 880,
+          "created": "2024-11-12 14:05:17.323686",
+          "updated": "2024-11-13 12:57:41.194491",
+          "type": "rawstudy",
+          "owner": {
+            "id": 2,
+            "name": "test"
+          },
+          "groups": [
+            {
+              "id": "test",
+              "name": "test"
+            }
+          ],
+          "public_mode": "NONE",
+          "workspace": "default",
+          "managed": "true",
+          "archived": "false",
+          "horizon": "null",
+          "scenario": "null",
+          "status": "null",
+          "doc": "null",
+          "folder": "null",
+          "tags": []
+        }
+
+        with requests_mock.Mocker() as mocker:
+            mocker.get(url, json=json_study)
+
+            actual_study = read_study_api(self.api, study_id_test)
+
+            expected_study_name = json_study.pop("name")
+            expected_study_id = json_study.pop("id")
+            expected_study_version = json_study.pop("version")
+            expected_study_settings = StudySettings(**json_study)
+
+            expected_study = Study(expected_study_name, expected_study_version, ServiceFactory(self.api, expected_study_id, expected_study_name), expected_study_settings)
+
+            assert actual_study.name == expected_study.name
+            assert actual_study.version == expected_study.version
+            assert actual_study.service.study_id == expected_study.service.study_id
