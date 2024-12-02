@@ -318,6 +318,14 @@ class AreaLocalService(BaseAreaService):
         raise NotImplementedError
 
     def _read_timeseries(self, ts_file_type: TimeSeriesFileType, study_path: Path, area_id: Optional[str] = None, constraint_id: Optional[str] = None) -> pd.DataFrame:
+
+    def _read_timeseries(
+        self,
+        ts_file_type: TimeSeriesFileType,
+        study_path: Path,
+        area_id: Optional[str] = None,
+        constraint_id: Optional[str] = None,
+    ) -> pd.DataFrame:
         file_path = study_path / (
             ts_file_type.value
             if not (area_id or constraint_id)
@@ -329,10 +337,10 @@ class AreaLocalService(BaseAreaService):
             _time_series = pd.DataFrame()
 
         return _time_series
-   
+
     def get_load_matrix(self, area: Area) -> pd.DataFrame:
         return self._read_timeseries(TimeSeriesFileType.LOAD, self.config.study_path, area_id=area.id)
-    
+
     def get_solar_matrix(self, area: Area) -> pd.DataFrame:
        return self._read_timeseries(TimeSeriesFileType.SOLAR, self.config.study_path, area_id=area.id)
 
