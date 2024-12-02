@@ -12,6 +12,7 @@
 
 import pytest
 
+import os
 import typing as t
 
 from configparser import ConfigParser
@@ -1116,15 +1117,16 @@ class TestReadArea:
             assert area.id in expected_areas
 
 
+def _write_file(_file_path, _time_series) -> None:
+    _file_path.parent.mkdir(parents=True, exist_ok=True)
+    _time_series.to_csv(_file_path, sep="\t", header=False, index=False, encoding="utf-8")
+
 class TestReadLoad:
     def test_read_load_local(self, local_study_w_areas):
         study_path = local_study_w_areas.service.config.study_path
         local_study_object = read_study_local(study_path)
         areas = local_study_object.read_areas()
 
-        def _write_file(_file_path, _time_series) -> None:
-            _file_path.parent.mkdir(parents=True, exist_ok=True)
-            _time_series.to_csv(file_path, sep="\t", header=False, index=False, encoding="utf-8")
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -1137,12 +1139,52 @@ class TestReadLoad:
             file_path = study_path / "input" / "load" / "series" / f"load_{area.id}.txt"
             _write_file(file_path, expected_time_serie)
 
-            load_object = area.get_load_matrix()
-            pd.testing.assert_frame_equal(load_object.astype(str), expected_time_serie.astype(str), check_dtype=False)
+            matrix = area.get_load_matrix()
+            pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
 
         expected_time_serie = pd.DataFrame([])
         for area in areas:
             file_path = study_path / "input" / "load" / "series" / f"load_{area.id}.txt"
             _write_file(file_path, expected_time_serie)
-            load_object = area.get_load_matrix()
-            pd.testing.assert_frame_equal(load_object, expected_time_serie)
+            matrix = area.get_load_matrix()
+            pd.testing.assert_frame_equal(matrix, expected_time_serie)
+
+
+class TestReadRenewable:
+    def test_read_renewable_local(self, local_study_with_renewable):
+        study_path = local_study_with_renewable.service.config.study_path
+        local_study_object = read_study_local(study_path)
+        areas = local_study_object.read_areas()
+
+        expected_time_serie = pd.DataFrame(
+                    [
+                        [-9999999980506447872, 0, 9999999980506447872],
+                        [0, area.id, 0],
+                    ]
+                , dtype="object")
+
+        for area in areas:
+            renewable_list = area.read_renewables(area.id)
+
+            if renewable_list:
+                assert area.id == "fr"
+                assert isinstance(renewable_list, list)
+                assert isinstance(renewable_list[0], RenewableCluster)
+
+            for renewable in renewable_list:
+                assert renewable.name == "renewable cluster"
+                assert renewable.properties.unit_count == 1
+                assert renewable.properties.ts_interpretation.value == "power-generation"
+                assert renewable.properties.nominal_capacity == 0.000000
+                assert renewable.properties.enabled
+                assert renewable.properties.group.value == "Other RES 1"
+
+                # Create folder and file for timeserie.
+                cluster_path = study_path / "input" / "renewables" / "series"/ Path(area.id) /  Path(renewable.id)
+                os.makedirs(cluster_path, exist_ok=True)
+                series_path = cluster_path / 'series.txt'
+                _write_file(series_path, expected_time_serie)
+
+                # Check matrix
+                matrix = area.get_renewable_matrix(renewable)
+                pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
