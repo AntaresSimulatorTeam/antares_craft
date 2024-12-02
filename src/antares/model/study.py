@@ -16,7 +16,7 @@ import time
 
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -130,7 +130,7 @@ InfoTip = Antares Study {version}: {study_name}
     local_settings_file.write_ini_file()
 
     # Create various .ini files for the study
-    ini_files = _create_correlation_ini_files(local_settings, study_directory)
+    _create_correlation_ini_files(local_settings, study_directory)
 
     logging.info(f"Study successfully created: {study_name}")
     return Study(
@@ -138,7 +138,6 @@ InfoTip = Antares Study {version}: {study_name}
         version=version,
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
         settings=local_settings,
-        ini_files=ini_files,
     )
 
 
@@ -195,8 +194,6 @@ class Study:
         version: str,
         service_factory: ServiceFactory,
         settings: Union[StudySettings, StudySettingsLocal, None] = None,
-        # ini_files: Optional[dict[str, IniFile]] = None,
-        **kwargs: Any,
     ):
         self.name = name
         self.version = version
@@ -207,9 +204,6 @@ class Study:
         self._settings = DefaultStudySettings.model_validate(settings if settings is not None else StudySettings())
         self._areas: Dict[str, Area] = dict()
         self._links: Dict[str, Link] = dict()
-        for argument in kwargs:
-            if argument == "ini_files":
-                self._ini_files: dict[str, IniFile] = kwargs[argument] or dict()
 
     @property
     def service(self) -> BaseStudyService:
@@ -314,7 +308,7 @@ def _create_directory_structure(study_path: Path) -> None:
         (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
 
 
-def _create_correlation_ini_files(local_settings: StudySettingsLocal, study_directory: Path) -> dict[str, IniFile]:
+def _create_correlation_ini_files(local_settings: StudySettingsLocal, study_directory: Path) -> None:
     fields_to_check = ["hydro", "load", "solar", "wind"]
     correlation_inis_to_create = [
         (
@@ -324,17 +318,13 @@ def _create_correlation_ini_files(local_settings: StudySettingsLocal, study_dire
         )
         for field in fields_to_check
     ]
-    ini_files = {
-        correlation: IniFile(
+
+    for correlation, file_type, field in correlation_inis_to_create:
+        ini_file = IniFile(
             study_directory,
             file_type,
             ini_contents=correlation_defaults(
                 season_correlation=getattr(local_settings.time_series_parameters, field).season_correlation,
             ),
         )
-        for (correlation, file_type, field) in correlation_inis_to_create
-    }
-
-    for ini_file in ini_files.keys():
-        ini_files[ini_file].write_ini_file()
-    return ini_files
+        ini_file.write_ini_file()
