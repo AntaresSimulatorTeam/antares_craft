@@ -9,10 +9,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import os
+
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 import pandas as pd
+
+from antares.tools.time_series_tool import TimeSeriesFileType
 
 
 def prepare_args_replace_matrix(series: pd.DataFrame, series_path: str) -> Dict:
@@ -36,3 +40,17 @@ def df_save(df: pd.DataFrame, path: Path) -> None:
 
 def df_read(path: Path) -> pd.DataFrame:
     return pd.read_csv(path, sep="\t", header=None)
+
+
+def read_timeseries(ts_file_type: TimeSeriesFileType, study_path: Path, area_id: Optional[str] = None, constraint_id: Optional[str] = None, renewable_id: Optional[str] = None,) -> pd.DataFrame:
+    file_path = study_path / (
+        ts_file_type.value
+        if not (area_id or constraint_id or renewable_id)
+        else ts_file_type.value.format(area_id=area_id, constraint_id=constraint_id, renewable_id=renewable_id)
+    )
+    if os.path.getsize(file_path) != 0:
+        _time_series = df_read(file_path)
+    else:
+        _time_series = pd.DataFrame()
+
+    return _time_series

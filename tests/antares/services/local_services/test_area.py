@@ -1189,7 +1189,7 @@ class TestReadRenewable:
                 _write_file(series_path, expected_time_serie)
 
                 # Check matrix
-                matrix = area.get_renewable_matrix(renewable)
+                matrix = area.get_renewable_matrix(renewable.id)
                 pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
 
 class TestReadSolar:
