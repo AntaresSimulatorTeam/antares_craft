@@ -178,7 +178,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     json_study = wrapper.get(url).json()
 
     study_name = json_study.pop("name")
-    study_version = json_study.pop("version")
+    study_version = str(json_study.pop("version"))
     json_study.pop("id")
 
     study_settings = StudySettings(**json_study)

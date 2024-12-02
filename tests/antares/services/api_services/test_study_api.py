@@ -206,7 +206,7 @@ class TestCreateAPI:
         json_study = {
             "id": "248bbb99-c909-47b7-b239-01f6f6ae7de7",
             "name": "test_read_areas",
-            "version": 880,
+            "version": "880",
             "created": "2024-11-12 14:05:17.323686",
             "updated": "2024-11-13 12:57:41.194491",
             "type": "rawstudy",

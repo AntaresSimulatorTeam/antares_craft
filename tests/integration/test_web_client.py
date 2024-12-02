@@ -30,7 +30,7 @@ from antares.model.settings.advanced_parameters import AdvancedParameters, UnitC
 from antares.model.settings.general import GeneralParameters, Mode
 from antares.model.settings.study_settings import PlaylistParameters, StudySettings
 from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
-from antares.model.study import create_study_api
+from antares.model.study import create_study_api, read_study_api
 from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
@@ -50,6 +50,12 @@ class TestWebClient:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
         study = create_study_api("antares-craft-test", "880", api_config)
+
+        actual_study = read_study_api(api_config, study.service.study_id)
+
+        assert study.service.study_id == actual_study.service.study_id
+        assert study.name == actual_study.name
+        assert study.version == actual_study.version
 
         # tests area creation with default values
         area_name = "FR"
