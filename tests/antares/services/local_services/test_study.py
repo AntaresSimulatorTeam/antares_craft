@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
 
 import logging
@@ -24,7 +23,12 @@ import numpy as np
 import pandas as pd
 
 from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import CustomError, LinkCreationError
+from antares.exceptions.exceptions import (
+    AreaCreationError,
+    BindingConstraintCreationError,
+    CustomError,
+    LinkCreationError,
+)
 from antares.model.area import Area, AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
 from antares.model.binding_constraint import (
     BindingConstraint,
@@ -99,7 +103,7 @@ class TestCreateStudy:
         expected_study_path = tmp_path / "studyTest"
 
         # When
-        create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
+        create_study_local(study_name, version, str(tmp_path.absolute()))
 
         # Then
         assert os.path.exists(expected_study_path)
@@ -147,7 +151,7 @@ author = Unknown
         monkeypatch.setattr(time, "time", lambda: "123")
 
         # When
-        create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
+        create_study_local(study_name, version, str(tmp_path.absolute()))
         with open(expected_study_antares_path, "r") as file:
             actual_content = file.read()
 
@@ -162,19 +166,9 @@ author = Unknown
 
         # When
         with pytest.raises(FileExistsError, match=f"Study {study_name} already exists"):
-            create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
+            create_study_local(study_name, version, str(tmp_path.absolute()))
 
-    def test_solar_correlation_ini_exists(self, local_study_with_hydro):
-        # Given
-        expected_ini_path = local_study_with_hydro.service.config.study_path / "input/solar/prepro/correlation.ini"
-
-        # Then
-        assert expected_ini_path.exists()
-        assert expected_ini_path.is_file()
-        assert local_study_with_hydro._ini_files["solar_correlation"].ini_path == expected_ini_path
-
-    def test_solar_correlation_ini_has_default_values(self, local_study_with_hydro):
-        # Given
+    def test_all_correlation_ini_files_exists(self, local_study):
         expected_ini_content = """[general]
 mode = annual
 
@@ -205,126 +199,15 @@ mode = annual
 [11]
 
 """
-        expected_ini = ConfigParser()
-        actual_ini = local_study_with_hydro._ini_files["solar_correlation"]
+        local_config = t.cast(LocalConfiguration, local_study.service.config)
+        study_path = local_config.study_path
+        for folder in ["hydro", "load", "solar", "wind"]:
+            ini_path = study_path / "input" / folder / "prepro" / "correlation.ini"
+            assert ini_path.exists()
+            assert ini_path.is_file()
 
-        # When
-        expected_ini.read_string(expected_ini_content)
-        with actual_ini.ini_path.open("r") as ini_file:
-            actual_ini_content = ini_file.read()
-
-        # Then
-        assert actual_ini_content == expected_ini_content
-        assert actual_ini.parsed_ini.sections() == expected_ini.sections()
-        assert actual_ini.parsed_ini == expected_ini
-
-    def test_wind_correlation_ini_exists(self, local_study_with_hydro):
-        # Given
-        expected_ini_path = local_study_with_hydro.service.config.study_path / "input/wind/prepro/correlation.ini"
-
-        # Then
-        assert expected_ini_path.exists()
-        assert expected_ini_path.is_file()
-        assert local_study_with_hydro._ini_files["wind_correlation"].ini_path == expected_ini_path
-
-    def test_wind_correlation_ini_has_default_values(self, local_study_with_hydro):
-        # Given
-        expected_ini_content = """[general]
-mode = annual
-
-[annual]
-
-[0]
-
-[1]
-
-[2]
-
-[3]
-
-[4]
-
-[5]
-
-[6]
-
-[7]
-
-[8]
-
-[9]
-
-[10]
-
-[11]
-
-"""
-        expected_ini = ConfigParser()
-        actual_ini = local_study_with_hydro._ini_files["wind_correlation"]
-
-        # When
-        expected_ini.read_string(expected_ini_content)
-        with actual_ini.ini_path.open("r") as ini_file:
-            actual_ini_content = ini_file.read()
-
-        # Then
-        assert actual_ini_content == expected_ini_content
-        assert actual_ini.parsed_ini.sections() == expected_ini.sections()
-        assert actual_ini.parsed_ini == expected_ini
-
-    def test_load_correlation_ini_exists(self, local_study_with_hydro):
-        # Given
-        expected_ini_path = local_study_with_hydro.service.config.study_path / "input/load/prepro/correlation.ini"
-
-        # Then
-        assert expected_ini_path.exists()
-        assert expected_ini_path.is_file()
-        assert local_study_with_hydro._ini_files["load_correlation"].ini_path == expected_ini_path
-
-    def test_load_correlation_ini_has_default_values(self, local_study_with_hydro):
-        # Given
-        expected_ini_content = """[general]
-mode = annual
-
-[annual]
-
-[0]
-
-[1]
-
-[2]
-
-[3]
-
-[4]
-
-[5]
-
-[6]
-
-[7]
-
-[8]
-
-[9]
-
-[10]
-
-[11]
-
-"""
-        expected_ini = ConfigParser()
-        actual_ini = local_study_with_hydro._ini_files["load_correlation"]
-
-        # When
-        expected_ini.read_string(expected_ini_content)
-        with actual_ini.ini_path.open("r") as ini_file:
-            actual_ini_content = ini_file.read()
-
-        # Then
-        assert actual_ini_content == expected_ini_content
-        assert actual_ini.parsed_ini.sections() == expected_ini.sections()
-        assert actual_ini.parsed_ini == expected_ini
+            ini_content = ini_path.read_text(encoding="utf-8")
+            assert ini_content == expected_ini_content
 
 
 class TestStudyProperties:
@@ -480,7 +363,7 @@ class TestStudyProperties:
         playlist_study = create_study_local(
             "test_study",
             "880",
-            LocalConfiguration(tmp_path, "test_study"),
+            str(tmp_path.absolute()),
             StudySettingsLocal(
                 general_parameters=GeneralParametersLocal(nb_years=nb_years, selection_mode=True),
                 playlist_parameters=PlaylistParameters(playlist=[PlaylistData()] * nb_years),
@@ -605,7 +488,7 @@ class TestStudyProperties:
         thematic_trimming_study = create_study_local(
             "test_study",
             "880",
-            LocalConfiguration(tmp_path, "test_study"),
+            str(tmp_path.absolute()),
             StudySettingsLocal(
                 general_parameters=GeneralParametersLocal(thematic_trimming=True),
                 thematic_trimming_parameters=ThematicTrimmingParametersLocal(),
@@ -740,7 +623,7 @@ seed-initial-reservoir-levels = 10005489
         study_version = "880"
         general_parameters = GeneralParametersLocal(thematic_trimming=True)
         thematic_trimming_parameters = ThematicTrimmingParametersLocal(op_cost=False)
-        study_config = LocalConfiguration(tmp_path, study_name)
+        study_path = str(tmp_path.absolute())
         expected_file_content = """[general]
 mode = Economy
 horizon = 
@@ -845,7 +728,7 @@ select_var - = OP. COST
         new_study = create_study_local(
             study_name,
             study_version,
-            study_config,
+            study_path,
             StudySettingsLocal(
                 general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
             ),
@@ -865,7 +748,7 @@ select_var - = OP. COST
         thematic_trimming_parameters = {
             key: not value for key, value in thematic_trimming_parameters.model_dump().items()
         }
-        study_config = LocalConfiguration(tmp_path, study_name)
+        study_path = str(tmp_path.absolute())
         expected_file_content = """[general]
 mode = Economy
 horizon = 
@@ -970,7 +853,7 @@ select_var + = OP. COST
         new_study = create_study_local(
             study_name,
             study_version,
-            study_config,
+            study_path,
             StudySettingsLocal(
                 general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
             ),
@@ -992,7 +875,7 @@ select_var + = OP. COST
             key: not value for key, value in thematic_trimming_parameters.model_dump().items()
         }
 
-        study_config = LocalConfiguration(tmp_path, study_name)
+        study_path = str(tmp_path.absolute())
         expected_file_content = """[general]
 mode = Economy
 horizon = 
@@ -1097,7 +980,7 @@ selected_vars_reset = false
         new_study = create_study_local(
             study_name,
             study_version,
-            study_config,
+            study_path,
             StudySettingsLocal(
                 general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
             ),
@@ -1119,7 +1002,7 @@ selected_vars_reset = false
         thematic_trimming_parameters = ThematicTrimmingParametersLocal.model_validate(
             {key: not value for key, value in thematic_trimming_parameters.model_dump().items()}
         )
-        study_config = LocalConfiguration(tmp_path, study_name)
+        study_path = str(tmp_path.absolute())
         expected_file_content = """[general]
 mode = Economy
 horizon = 
@@ -1228,7 +1111,7 @@ select_var + = OP. COST
         new_study = create_study_local(
             study_name,
             study_version,
-            study_config,
+            study_path,
             StudySettingsLocal(
                 general_parameters=general_parameters,
                 playlist_parameters=playlist_parameters,
@@ -1254,7 +1137,7 @@ select_var + = OP. COST
         thematic_trimming_parameters = ThematicTrimmingParametersLocal.model_validate(
             {key: not value for key, value in thematic_trimming_parameters.model_dump().items()}
         )
-        study_config = LocalConfiguration(tmp_path, study_name)
+        study_path = str(tmp_path.absolute())
         expected_file_content = """[general]
 mode = Economy
 horizon = 
@@ -1363,7 +1246,7 @@ select_var + = OP. COST
         new_study = create_study_local(
             study_name,
             study_version,
-            study_config,
+            study_path,
             StudySettingsLocal(
                 general_parameters=general_parameters,
                 playlist_parameters=playlist_parameters,
@@ -1607,6 +1490,17 @@ layers = 0
         # When
         local_study.create_area(area, ui=area_ui)
         assert local_study.get_areas()[area].ui == area_ui
+
+    def test_creating_duplicate_area_name_errors(self, local_study_w_areas):
+        # Given
+        area_to_create = "fr"
+
+        # Then
+        with pytest.raises(
+            AreaCreationError,
+            match=f"Could not create the area {area_to_create}: There is already an area '{area_to_create}' in the study '{local_study_w_areas.name}'",
+        ):
+            local_study_w_areas.create_area(area_to_create)
 
     def test_areas_have_default_properties(self, tmp_path, local_study_w_areas):
         # Given
@@ -2054,10 +1948,8 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
 
         # Then
         with pytest.raises(
-            CustomError,
-            match="""Link exists already, section already exists in properties.ini:
-
-Section 'it' already exists""",
+            LinkCreationError,
+            match=f"Could not create the link {area_from} / {area_to}: Link exists already between '{area_from}' and '{area_to}'.",
         ):
             local_study_w_links.create_link(
                 area_from=local_study_w_links.get_areas()[area_from],
@@ -2171,6 +2063,17 @@ class TestCreateBindingconstraint:
 
         # Then
         assert isinstance(binding_constraint, BindingConstraint)
+
+    def test_duplicate_name_errors(self, local_study_with_constraint):
+        # Given
+        binding_constraint_name = "test constraint"
+
+        # Then
+        with pytest.raises(
+            BindingConstraintCreationError,
+            match=f"Could not create the binding constraint {binding_constraint_name}: A binding constraint with the name '{binding_constraint_name}' already exists.",
+        ):
+            local_study_with_constraint.create_binding_constraint(name=binding_constraint_name)
 
     def test_constraints_have_default_properties(self, local_study_with_constraint):
         # Given

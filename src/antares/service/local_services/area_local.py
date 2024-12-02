@@ -13,13 +13,14 @@
 import logging
 import os
 
-from configparser import ConfigParser
+from configparser import ConfigParser, DuplicateSectionError
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
 from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import CustomError
+from antares.exceptions.exceptions import AreaCreationError, CustomError, ThermalCreationError
 from antares.model.area import Area, AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
 from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesLocal
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesLocal
@@ -32,6 +33,7 @@ from antares.service.base_services import (
     BaseThermalService,
 )
 from antares.tools.ini_tool import IniFile, IniFileTypes
+from antares.tools.matrix_tool import df_read
 from antares.tools.prepro_folder import PreproFolder
 from antares.tools.time_series_tool import TimeSeriesFileType
 
@@ -79,7 +81,14 @@ class AreaLocalService(BaseAreaService):
         local_thermal_properties = ThermalClusterPropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name=area_id)
-        list_ini.add_section(local_thermal_properties.list_ini_fields)
+        try:
+            list_ini.add_section(local_thermal_properties.list_ini_fields)
+        except DuplicateSectionError:
+            raise ThermalCreationError(
+                thermal_name,
+                area_id,
+                f"A thermal cluster called '{thermal_name}' already exists in area '{area_id}'.",
+            )
         list_ini.write_ini_file(sort_sections=True)
 
         return ThermalCluster(
@@ -169,7 +178,7 @@ class AreaLocalService(BaseAreaService):
         local_hydro_properties = HydroPropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, IniFileTypes.HYDRO_INI)
-        list_ini.add_section(local_hydro_properties.hydro_ini_fields)
+        list_ini.add_section(local_hydro_properties.hydro_ini_fields, append=True)
         list_ini.write_ini_file(sort_section_content=True)
 
         return Hydro(self, area_id, local_hydro_properties.yield_hydro_properties())
@@ -207,6 +216,11 @@ class AreaLocalService(BaseAreaService):
         study_directory = self.config.local_path / self.study_name / "input"
         areas_directory = study_directory / "areas"
         new_area_directory = areas_directory / area_name
+
+        if new_area_directory.is_dir():
+            raise AreaCreationError(
+                area_name, f"There is already an area '{area_name}' in the study '{self.study_name}'"
+            )
 
         # Create "areas" directory if it doesn't exist
         os.makedirs(new_area_directory, exist_ok=True)
@@ -303,8 +317,28 @@ class AreaLocalService(BaseAreaService):
     def delete_st_storages(self, area: Area, storages: List[STStorage]) -> None:
         raise NotImplementedError
 
+    def _read_timeseries(
+        self,
+        ts_file_type: TimeSeriesFileType,
+        study_path: Path,
+        area_id: Optional[str] = None,
+        constraint_id: Optional[str] = None,
+    ) -> pd.DataFrame:
+        file_path = study_path / (
+            ts_file_type.value
+            if not (area_id or constraint_id)
+            else ts_file_type.value.format(area_id=area_id, constraint_id=constraint_id)
+        )
+
+        if os.path.getsize(file_path) != 0:
+            _time_series = df_read(file_path)
+        else:
+            _time_series = pd.DataFrame()
+
+        return _time_series
+
     def get_load_matrix(self, area: Area) -> pd.DataFrame:
-        raise NotImplementedError
+        return self._read_timeseries(TimeSeriesFileType.LOAD, self.config.study_path, area_id=area.id)
 
     def get_solar_matrix(self, area: Area) -> pd.DataFrame:
         raise NotImplementedError
