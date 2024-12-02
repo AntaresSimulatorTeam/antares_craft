@@ -204,32 +204,24 @@ class TestCreateAPI:
         study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
         url = f"https://antares.com/api/v1/studies/{study_id_test}"
         json_study = {
-          "id": "248bbb99-c909-47b7-b239-01f6f6ae7de7",
-          "name": "test_read_areas",
-          "version": 880,
-          "created": "2024-11-12 14:05:17.323686",
-          "updated": "2024-11-13 12:57:41.194491",
-          "type": "rawstudy",
-          "owner": {
-            "id": 2,
-            "name": "test"
-          },
-          "groups": [
-            {
-              "id": "test",
-              "name": "test"
-            }
-          ],
-          "public_mode": "NONE",
-          "workspace": "default",
-          "managed": "true",
-          "archived": "false",
-          "horizon": "null",
-          "scenario": "null",
-          "status": "null",
-          "doc": "null",
-          "folder": "null",
-          "tags": []
+            "id": "248bbb99-c909-47b7-b239-01f6f6ae7de7",
+            "name": "test_read_areas",
+            "version": 880,
+            "created": "2024-11-12 14:05:17.323686",
+            "updated": "2024-11-13 12:57:41.194491",
+            "type": "rawstudy",
+            "owner": {"id": 2, "name": "test"},
+            "groups": [{"id": "test", "name": "test"}],
+            "public_mode": "NONE",
+            "workspace": "default",
+            "managed": "true",
+            "archived": "false",
+            "horizon": "null",
+            "scenario": "null",
+            "status": "null",
+            "doc": "null",
+            "folder": "null",
+            "tags": [],
         }
 
         with requests_mock.Mocker() as mocker:
@@ -242,7 +234,12 @@ class TestCreateAPI:
             expected_study_version = json_study.pop("version")
             expected_study_settings = StudySettings(**json_study)
 
-            expected_study = Study(expected_study_name, expected_study_version, ServiceFactory(self.api, expected_study_id, expected_study_name), expected_study_settings)
+            expected_study = Study(
+                expected_study_name,
+                expected_study_version,
+                ServiceFactory(self.api, expected_study_id, expected_study_name),
+                expected_study_settings,
+            )
 
             assert actual_study.name == expected_study.name
             assert actual_study.version == expected_study.version
