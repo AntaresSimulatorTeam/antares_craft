@@ -317,8 +317,6 @@ class AreaLocalService(BaseAreaService):
     def delete_st_storages(self, area: Area, storages: List[STStorage]) -> None:
         raise NotImplementedError
 
-    def _read_timeseries(self, ts_file_type: TimeSeriesFileType, study_path: Path, area_id: Optional[str] = None, constraint_id: Optional[str] = None) -> pd.DataFrame:
-
     def _read_timeseries(
         self,
         ts_file_type: TimeSeriesFileType,
