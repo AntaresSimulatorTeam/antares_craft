@@ -310,6 +310,7 @@ class BaseAreaService(ABC):
         """
         pass
 
+
 class BaseLinkService(ABC):
     @abstractmethod
     def create_link(

@@ -1104,6 +1104,7 @@ class TestCreateLoad:
             actual_file_path = study_path.joinpath(Path("input") / "load" / "prepro" / "fr" / f"{file}.txt")
             assert actual_file_path.read_text() == ""
 
+
 class TestReadArea:
     def test_read_areas_local(self, local_study_w_areas):
         study_path = local_study_w_areas.service.config.study_path
@@ -1128,12 +1129,13 @@ class TestReadLoad:
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
-                    [
-                        [-9999999980506447872, 0, 9999999980506447872],
-                        [0, area.id, 0],
-                    ]
-                , dtype="object")
-            
+                [
+                    [-9999999980506447872, 0, 9999999980506447872],
+                    [0, area.id, 0],
+                ],
+                dtype="object",
+            )
+
             file_path = study_path / "input" / "load" / "series" / f"load_{area.id}.txt"
             _write_file(file_path, expected_time_serie)
 
