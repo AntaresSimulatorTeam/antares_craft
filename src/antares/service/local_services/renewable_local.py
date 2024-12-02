@@ -10,10 +10,8 @@
 #
 # This file is part of the Antares project.
 
-import os
 
-from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, List
 
 import pandas as pd
 
@@ -21,7 +19,7 @@ from antares.config.local_configuration import LocalConfiguration
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesLocal
 from antares.service.base_services import BaseRenewableService
 from antares.tools.ini_tool import IniFile, IniFileTypes
-from antares.tools.matrix_tool import df_read
+from antares.tools.matrix_tool import read_timeseries
 from antares.tools.time_series_tool import TimeSeriesFileType
 
 
@@ -36,24 +34,13 @@ class RenewableLocalService(BaseRenewableService):
     ) -> RenewableClusterProperties:
         raise NotImplementedError
     
-    def _read_timeseries(self, ts_file_type: TimeSeriesFileType, study_path: Path, area_id: Optional[str] = None, renewable_id: Optional[str] = None) -> pd.DataFrame:
-        file_path = study_path / (
-            ts_file_type.value
-            if not (area_id or renewable_id)
-            else ts_file_type.value.format(area_id=area_id, renewable_id=renewable_id)
-        )
-        if os.path.getsize(file_path) != 0:
-            _time_series = df_read(file_path)
-        else:
-            _time_series = pd.DataFrame()
-
-        return _time_series
 
     def get_renewable_matrix(
         self,
-        renewable: RenewableCluster,
+        renewable_id: str,
+        area_id: str
     ) -> pd.DataFrame:
-        return self._read_timeseries(TimeSeriesFileType.RENEWABLE_DATA_SERIES, self.config.study_path, area_id=renewable.area_id, renewable_id=renewable.id)
+        return read_timeseries(TimeSeriesFileType.RENEWABLE_DATA_SERIES, self.config.study_path, area_id=area_id, renewable_id=renewable_id)
 
 
     def read_renewables(self, area_id: str) -> List[RenewableCluster]:
