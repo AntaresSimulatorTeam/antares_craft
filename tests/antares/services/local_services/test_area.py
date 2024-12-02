@@ -1156,14 +1156,15 @@ class TestReadRenewable:
         local_study_object = read_study_local(study_path)
         areas = local_study_object.read_areas()
 
-        expected_time_serie = pd.DataFrame(
+
+
+        for area in areas:
+            expected_time_serie = pd.DataFrame(
                     [
                         [-9999999980506447872, 0, 9999999980506447872],
                         [0, area.id, 0],
                     ]
                 , dtype="object")
-
-        for area in areas:
             renewable_list = area.read_renewables(area.id)
 
             if renewable_list:
