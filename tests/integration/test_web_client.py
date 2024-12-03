@@ -92,6 +92,14 @@ class TestWebClient:
         assert area_be.ui.x == area_ui.x
         assert area_be.ui.color_rgb == area_ui.color_rgb
 
+        # tests study reading method and comparing ids, name, areas and settings
+        actual_study = read_study_api(api_config, study.service.study_id)
+
+        assert study.service.study_id == actual_study.service.study_id
+        assert study.name == actual_study.name
+        assert study.version == actual_study.version
+        assert study.get_areas()["fr"].id == actual_study.get_areas()["fr"].id
+
         # tests area creation with properties
         properties = AreaProperties()
         properties.energy_cost_spilled = 100
