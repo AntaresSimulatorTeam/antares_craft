@@ -61,15 +61,29 @@ class TestLocalClient:
 
         assert isinstance(fr_nuclear, ThermalCluster)
 
-        # Load
+        # Setup time series for following tests
         time_series_rows = 10  # 365 * 24
         time_series_columns = 1
-        load_time_series = pd.DataFrame(np.around(np.random.rand(time_series_rows, time_series_columns)))
-        fr.create_load(load_time_series)
+        time_series = pd.DataFrame(np.around(np.random.rand(time_series_rows, time_series_columns)))
+
+        # Load
+        fr.create_load(time_series)
 
         assert test_study.service.config.study_path.joinpath(
             TimeSeriesFileType.LOAD.value.format(area_id=fr.id)
         ).is_file()
+
         fr_load = fr.get_load_matrix()
 
-        assert fr_load.equals(load_time_series)
+        assert fr_load.equals(time_series)
+
+        # Solar
+        fr.create_solar(time_series)
+
+        assert test_study.service.config.study_path.joinpath(
+            TimeSeriesFileType.SOLAR.value.format(area_id=fr.id)
+        ).is_file()
+
+        fr_solar = fr.get_solar_matrix()
+
+        assert fr_solar.equals(time_series)
