@@ -33,15 +33,11 @@ class RenewableLocalService(BaseRenewableService):
         self, renewable_cluster: RenewableCluster, properties: RenewableClusterProperties
     ) -> RenewableClusterProperties:
         raise NotImplementedError
-    
 
-    def get_renewable_matrix(
-        self,
-        cluster_id: str,
-        area_id: str
-    ) -> pd.DataFrame:
-        return read_timeseries(TimeSeriesFileType.RENEWABLE_DATA_SERIES, self.config.study_path, area_id=area_id, cluster_id=cluster_id)
-
+    def get_renewable_matrix(self, cluster_id: str, area_id: str) -> pd.DataFrame:
+        return read_timeseries(
+            TimeSeriesFileType.RENEWABLE_DATA_SERIES, self.config.study_path, area_id=area_id, cluster_id=cluster_id
+        )
 
     def read_renewables(self, area_id: str) -> List[RenewableCluster]:
         renewable_dict = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name=area_id).ini_dict
@@ -56,6 +52,12 @@ class RenewableLocalService(BaseRenewableService):
                     nominal_capacity=renewable_dict[renewable_cluster]["nominalcapacity"],
                     ts_interpretation=renewable_dict[renewable_cluster]["ts-interpretation"],
                 )
-                renewables_clusters.append(RenewableCluster(renewable_service=self, area_id=area_id, name=renewable_dict[renewable_cluster]["name"], properties=renewable_properties.yield_renewable_cluster_properties()))
+                renewables_clusters.append(
+                    RenewableCluster(
+                        renewable_service=self,
+                        area_id=area_id,
+                        name=renewable_dict[renewable_cluster]["name"],
+                        properties=renewable_properties.yield_renewable_cluster_properties(),
+                    )
+                )
         return renewables_clusters
-    
