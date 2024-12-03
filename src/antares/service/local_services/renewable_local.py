@@ -10,13 +10,17 @@
 #
 # This file is part of the Antares project.
 
+
 from typing import Any, List
 
 import pandas as pd
 
 from antares.config.local_configuration import LocalConfiguration
-from antares.model.renewable import RenewableCluster, RenewableClusterProperties
+from antares.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesLocal
 from antares.service.base_services import BaseRenewableService
+from antares.tools.ini_tool import IniFile, IniFileTypes
+from antares.tools.matrix_tool import read_timeseries
+from antares.tools.time_series_tool import TimeSeriesFileType
 
 
 class RenewableLocalService(BaseRenewableService):
@@ -29,12 +33,29 @@ class RenewableLocalService(BaseRenewableService):
         self, renewable_cluster: RenewableCluster, properties: RenewableClusterProperties
     ) -> RenewableClusterProperties:
         raise NotImplementedError
+    
 
     def get_renewable_matrix(
         self,
-        renewable: RenewableCluster,
+        cluster_id: str,
+        area_id: str
     ) -> pd.DataFrame:
-        raise NotImplementedError
+        return read_timeseries(TimeSeriesFileType.RENEWABLE_DATA_SERIES, self.config.study_path, area_id=area_id, cluster_id=cluster_id)
+
 
     def read_renewables(self, area_id: str) -> List[RenewableCluster]:
-        raise NotImplementedError
+        renewable_dict = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name=area_id).ini_dict
+        renewables_clusters = []
+        if renewable_dict:
+            for renewable_cluster in renewable_dict:
+                renewable_properties = RenewableClusterPropertiesLocal(
+                    group=renewable_dict[renewable_cluster]["group"],
+                    renewable_name=renewable_dict[renewable_cluster]["name"],
+                    enabled=renewable_dict[renewable_cluster]["enabled"],
+                    unit_count=renewable_dict[renewable_cluster]["unitcount"],
+                    nominal_capacity=renewable_dict[renewable_cluster]["nominalcapacity"],
+                    ts_interpretation=renewable_dict[renewable_cluster]["ts-interpretation"],
+                )
+                renewables_clusters.append(RenewableCluster(renewable_service=self, area_id=area_id, name=renewable_dict[renewable_cluster]["name"], properties=renewable_properties.yield_renewable_cluster_properties()))
+        return renewables_clusters
+    

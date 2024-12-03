@@ -48,6 +48,7 @@ class TimeSeriesFileType(Enum):
     WIND_DATA = "input/wind/prepro/{area_id}/data.txt"
     WIND_K = "input/wind/prepro/{area_id}/k.txt"
     WIND_TRANSLATION = "input/wind/prepro/{area_id}/translation.txt"
+    RENEWABLE_DATA_SERIES = "input/renewables/series/{area_id}/{cluster_id}/series.txt"
 
 
 class TimeSeries:
