@@ -216,7 +216,7 @@ class Study:
         Returns:
         """
         area_list = self._area_service.read_areas()
-        self._areas = {area.id:area for area in area_list}
+        self._areas = {area.id: area for area in area_list}
         return area_list
 
     def get_areas(self) -> MappingProxyType[str, Area]:

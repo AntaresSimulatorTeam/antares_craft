@@ -320,7 +320,7 @@ class AreaLocalService(BaseAreaService):
         return read_timeseries(TimeSeriesFileType.LOAD, self.config.study_path, area_id=area.id)
 
     def get_solar_matrix(self, area: Area) -> pd.DataFrame:
-       return read_timeseries(TimeSeriesFileType.SOLAR, self.config.study_path, area_id=area.id)
+        return read_timeseries(TimeSeriesFileType.SOLAR, self.config.study_path, area_id=area.id)
 
     def get_wind_matrix(self, area: Area) -> pd.DataFrame:
         return read_timeseries(TimeSeriesFileType.WIND, self.config.study_path, area_id=area.id)
@@ -330,7 +330,7 @@ class AreaLocalService(BaseAreaService):
 
     def get_misc_gen_matrix(self, area: Area) -> pd.DataFrame:
         return read_timeseries(TimeSeriesFileType.MISC_GEN, self.config.study_path, area_id=area.id)
-    
+
     def read_areas(self) -> List[Area]:
         local_path = self.config.local_path
         areas_path = local_path / self.study_name / "input" / "areas"

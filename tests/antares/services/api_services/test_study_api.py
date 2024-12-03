@@ -11,10 +11,10 @@
 # This file is part of the Antares project.
 
 
-import re
-
 import pytest
 import requests_mock
+
+import re
 
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
@@ -201,7 +201,6 @@ class TestCreateAPI:
                 self.study.create_binding_constraint(name=constraint_name)
 
     def test_read_study_api(self):
-
         json_study = {
             "id": "22c52f44-4c2a-407b-862b-490887f93dd8",
             "name": "test_read_areas",
@@ -209,12 +208,12 @@ class TestCreateAPI:
         }
 
         json_area = {
-          "zone": {
-            "ui": {"x": 0,"y": 0,"color_r": 230,"color_g": 108, "color_b": 44,"layers": "0"},
-            "layerX": {"0": 0},
-            "layerY": { "0": 0},
-            "layerColor": {"0": "230, 108, 44"}
-          }
+            "zone": {
+                "ui": {"x": 0, "y": 0, "color_r": 230, "color_g": 108, "color_b": 44, "layers": "0"},
+                "layerX": {"0": 0},
+                "layerY": {"0": 0},
+                "layerColor": {"0": "230, 108, 44"},
+            }
         }
 
         json_thermal = [
@@ -256,26 +255,14 @@ class TestCreateAPI:
         ]
 
         json_properties = {
-          "energyCostUnsupplied": 0,
-          "energyCostSpilled": 0,
-          "nonDispatchPower": "true",
-          "dispatchHydroPower": "true",
-          "otherDispatchPower": "true",
-          "filterSynthesis": [
-            "weekly",
-            "daily",
-            "hourly",
-            "monthly",
-            "annual"
-          ],
-          "filterByYear": [
-            "weekly",
-            "daily",
-            "hourly",
-            "monthly",
-            "annual"
-          ],
-          "adequacyPatchMode": "outside"
+            "energyCostUnsupplied": 0,
+            "energyCostSpilled": 0,
+            "nonDispatchPower": "true",
+            "dispatchHydroPower": "true",
+            "otherDispatchPower": "true",
+            "filterSynthesis": ["weekly", "daily", "hourly", "monthly", "annual"],
+            "filterByYear": ["weekly", "daily", "hourly", "monthly", "annual"],
+            "adequacyPatchMode": "outside",
         }
 
         config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
@@ -306,7 +293,7 @@ class TestCreateAPI:
                 expected_study_name,
                 expected_study_version,
                 ServiceFactory(self.api, expected_study_id, expected_study_name),
-                None
+                None,
             )
 
             assert actual_study.name == expected_study.name
