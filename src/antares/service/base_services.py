@@ -522,12 +522,12 @@ class BaseRenewableService(ABC):
 
     @abstractmethod
     def get_renewable_matrix(
-        self, renewable_id: str, area_id: str
+        self, cluster_id: str, area_id: str
     ) -> pd.DataFrame:
         """
         Args:
-            renewable: renewable cluster to retrieve matrix
-
+            cluster_id: renewable cluster id to retrieve matrix
+            area_id: area id to retrieve matrix
         Returns: matrix requested
 
         """

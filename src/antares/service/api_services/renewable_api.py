@@ -51,19 +51,19 @@ class RenewableApiService(BaseRenewableService):
 
         return new_properties
 
-    def get_renewable_matrix(self, renewable_id: str, area_id: str) -> pd.DataFrame:
+    def get_renewable_matrix(self, cluster_id: str, area_id: str) -> pd.DataFrame:
         try:
             path = (
                 PurePosixPath("input")
                 / "renewables"
                 / "series"
                 / f"{area_id}"
-                / f"{renewable_id}"
+                / f"{cluster_id}"
                 / "series"
             )
             return get_matrix(f"{self._base_url}/studies/{self.study_id}/raw?path={path}", self._wrapper)
         except APIError as e:
-            raise RenewableMatrixDownloadError(area_id, renewable_id, e.message) from e
+            raise RenewableMatrixDownloadError(area_id, cluster_id, e.message) from e
 
     def read_renewables(
         self,

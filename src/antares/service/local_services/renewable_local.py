@@ -37,10 +37,10 @@ class RenewableLocalService(BaseRenewableService):
 
     def get_renewable_matrix(
         self,
-        renewable_id: str,
+        cluster_id: str,
         area_id: str
     ) -> pd.DataFrame:
-        return read_timeseries(TimeSeriesFileType.RENEWABLE_DATA_SERIES, self.config.study_path, area_id=area_id, renewable_id=renewable_id)
+        return read_timeseries(TimeSeriesFileType.RENEWABLE_DATA_SERIES, self.config.study_path, area_id=area_id, cluster_id=cluster_id)
 
 
     def read_renewables(self, area_id: str) -> List[RenewableCluster]:
