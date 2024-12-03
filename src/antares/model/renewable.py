@@ -125,5 +125,5 @@ class RenewableCluster:
         new_properties = self._renewable_service.update_renewable_properties(self, properties)
         self._properties = new_properties
 
-    def get_renewable_matrix(self) -> pd.DataFrame:
+    def get_timeseries(self) -> pd.DataFrame:
         return self._renewable_service.get_renewable_matrix(self.id, self.area_id)

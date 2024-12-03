@@ -299,9 +299,6 @@ class Area:
 
     def get_misc_gen_matrix(self) -> pd.DataFrame:
         return self._area_service.get_misc_gen_matrix(self)
-    
-    def get_renewable_matrix(self, renewable_id: str) -> pd.DataFrame:
-        return self._renewable_service.get_renewable_matrix(renewable_id, self.id)
 
     def delete_thermal_clusters(self, thermal_clusters: List[ThermalCluster]) -> None:
         self._area_service.delete_thermal_clusters(self, thermal_clusters)
