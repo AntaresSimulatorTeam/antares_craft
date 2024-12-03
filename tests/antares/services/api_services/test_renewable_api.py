@@ -72,7 +72,7 @@ class TestCreateAPI:
                 f"{self.area.id}/{self.renewable.name}/series"
             )
             mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
-            renewable_matrix = self.renewable.get_renewable_matrix()
+            renewable_matrix = self.renewable.get_timeseries()
             assert renewable_matrix.equals(self.matrix)
 
     def test_get_renewable_matrices_fails(self):
@@ -87,7 +87,7 @@ class TestCreateAPI:
                 match=f"Could not download matrix for cluster {self.renewable.name} inside area {self.area.id}"
                 f": {self.antares_web_description_msg}",
             ):
-                self.renewable.get_renewable_matrix()
+                self.renewable.get_timeseries()
 
     def test_read_renewables(self):
         json_renewable = [
