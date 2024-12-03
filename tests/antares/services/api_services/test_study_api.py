@@ -201,33 +201,25 @@ class TestCreateAPI:
                 self.study.create_binding_constraint(name=constraint_name)
 
     def test_read_study_api(self):
-        study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
-        url = f"https://antares.com/api/v1/studies/{study_id_test}"
+        base_url = "https://antares.com/api/v1"
+        url = f"{base_url}/studies/{self.study_id}"
+        area_url = f"{url}/areas"
         json_study = {
-            "id": "248bbb99-c909-47b7-b239-01f6f6ae7de7",
+            "id": "22c52f44-4c2a-407b-862b-490887f93dd8",
             "name": "test_read_areas",
             "version": "880",
-            "created": "2024-11-12 14:05:17.323686",
-            "updated": "2024-11-13 12:57:41.194491",
-            "type": "rawstudy",
-            "owner": {"id": 2, "name": "test"},
-            "groups": [{"id": "test", "name": "test"}],
-            "public_mode": "NONE",
-            "workspace": "default",
-            "managed": "true",
-            "archived": "false",
-            "horizon": "null",
-            "scenario": "null",
-            "status": "null",
-            "doc": "null",
-            "folder": "null",
-            "tags": [],
         }
+
+        settings = StudySettings()
+        settings.general_parameters = GeneralParameters(mode="Adequacy")
+
+        config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url, json=json_study)
-
-            actual_study = read_study_api(self.api, study_id_test)
+            mocker.get(config_urls, json={})
+            mocker.get(area_url, json={})
+            actual_study = read_study_api(self.api, self.study_id)
 
             expected_study_name = json_study.pop("name")
             expected_study_id = json_study.pop("id")

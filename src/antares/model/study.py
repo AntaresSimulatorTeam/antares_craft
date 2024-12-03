@@ -174,15 +174,17 @@ def read_study_local(study_directory: Path) -> "Study":
 def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     session = api_config.set_up_api_conf()
     wrapper = RequestWrapper(session)
-    url = f"{api_config.get_host()}/api/v1/studies/{study_id}"
-    json_study = wrapper.get(url).json()
+    base_url = f"{api_config.get_host()}/api/v1"
+    json_study = wrapper.get(f"{base_url}/studies/{study_id}").json()
 
     study_name = json_study.pop("name")
     study_version = str(json_study.pop("version"))
     json_study.pop("id")
 
-    study_settings = StudySettings(**json_study)
+    study_settings = _returns_study_settings(base_url, study_id, wrapper, False, None)
     study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings)
+
+    study.read_areas()
 
     return study
 
@@ -210,6 +212,11 @@ class Study:
         return self._study_service
 
     def read_areas(self) -> list[Area]:
+        area_list = self._area_service.read_areas()
+        areas = dict()
+        for area in area_list:
+            areas.update({area.id: area})
+
         return self._area_service.read_areas()
 
     def get_areas(self) -> MappingProxyType[str, Area]:
