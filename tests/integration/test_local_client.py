@@ -87,3 +87,14 @@ class TestLocalClient:
         fr_solar = fr.get_solar_matrix()
 
         assert fr_solar.equals(time_series)
+
+        # Wind
+        fr.create_wind(time_series)
+
+        assert test_study.service.config.study_path.joinpath(
+            TimeSeriesFileType.WIND.value.format(area_id=fr.id)
+        ).is_file()
+
+        fr_wind = fr.get_wind_matrix()
+
+        assert fr_wind.equals(time_series)
