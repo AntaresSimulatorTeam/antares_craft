@@ -19,7 +19,6 @@ from antares import create_study_local
 from antares.exceptions.exceptions import AreaCreationError, LinkCreationError
 from antares.model.area import Area
 from antares.model.link import Link
-from antares.model.load import Load
 from antares.model.study import Study
 from antares.model.thermal import ThermalCluster
 from antares.tools.time_series_tool import TimeSeriesFileType
@@ -63,17 +62,14 @@ class TestLocalClient:
         assert isinstance(fr_nuclear, ThermalCluster)
 
         # Load
-        time_series_rows = 365 * 24
+        time_series_rows = 10  # 365 * 24
         time_series_columns = 1
-        load_time_series = pd.DataFrame(np.ones([time_series_rows, time_series_columns]))
-        fr_load = fr.create_load(load_time_series)
+        load_time_series = pd.DataFrame(np.around(np.random.rand(time_series_rows, time_series_columns)))
+        fr.create_load(load_time_series)
 
-        assert isinstance(fr_load, Load)
+        assert test_study.service.config.study_path.joinpath(
+            TimeSeriesFileType.LOAD.value.format(area_id=fr.id)
+        ).is_file()
+        fr_load = fr.get_load_matrix()
 
-        expected_time_series = "1.0\n" * time_series_rows
-
-        actual_time_series = test_study.service.config.study_path.joinpath(
-            TimeSeriesFileType.LOAD.value.format(area_id="fr")
-        ).read_text()
-
-        assert actual_time_series == expected_time_series
+        assert fr_load.equals(load_time_series)
