@@ -179,7 +179,6 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
 
     study_name = json_study.pop("name")
     study_version = str(json_study.pop("version"))
-    json_study.pop("id")
 
     study_settings = _returns_study_settings(base_url, study_id, wrapper, False, None)
     study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings)
@@ -212,12 +211,13 @@ class Study:
         return self._study_service
 
     def read_areas(self) -> list[Area]:
+        """
+        Syncronize the internal study object with the object written in an antares study
+        Returns:
+        """
         area_list = self._area_service.read_areas()
-        areas = dict()
-        for area in area_list:
-            areas.update({area.id: area})
-
-        return self._area_service.read_areas()
+        self._areas = {area.id:area for area in area_list}
+        return area_list
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))

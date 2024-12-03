@@ -11,10 +11,10 @@
 # This file is part of the Antares project.
 
 
+import re
+
 import pytest
 import requests_mock
-
-import re
 
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
@@ -201,36 +201,112 @@ class TestCreateAPI:
                 self.study.create_binding_constraint(name=constraint_name)
 
     def test_read_study_api(self):
-        base_url = "https://antares.com/api/v1"
-        url = f"{base_url}/studies/{self.study_id}"
-        area_url = f"{url}/areas"
+
         json_study = {
             "id": "22c52f44-4c2a-407b-862b-490887f93dd8",
             "name": "test_read_areas",
             "version": "880",
         }
 
-        settings = StudySettings()
-        settings.general_parameters = GeneralParameters(mode="Adequacy")
+        json_area = {
+          "zone": {
+            "ui": {"x": 0,"y": 0,"color_r": 230,"color_g": 108, "color_b": 44,"layers": "0"},
+            "layerX": {"0": 0},
+            "layerY": { "0": 0},
+            "layerColor": {"0": "230, 108, 44"}
+          }
+        }
+
+        json_thermal = [
+            {
+                "id": "therm_un",
+                "group": "Gas",
+                "name": "therm_un",
+                "enabled": "true",
+                "unitCount": 1,
+                "nominalCapacity": 0,
+            }
+        ]
+
+        json_renewable = [
+            {
+                "id": "test_renouvelable",
+                "group": "Solar Thermal",
+                "name": "test_renouvelable",
+                "enabled": "true",
+                "unitCount": 1,
+                "nominalCapacity": 0,
+                "tsInterpretation": "power-generation",
+            }
+        ]
+
+        json_st_storage = [
+            {
+                "id": "test_storage",
+                "group": "Pondage",
+                "name": "test_storage",
+                "injectionNominalCapacity": 0,
+                "withdrawalNominalCapacity": 0,
+                "reservoirCapacity": 0,
+                "efficiency": 1,
+                "initialLevel": 0.5,
+                "initialLevelOptim": "false",
+                "enabled": "true",
+            }
+        ]
+
+        json_properties = {
+          "energyCostUnsupplied": 0,
+          "energyCostSpilled": 0,
+          "nonDispatchPower": "true",
+          "dispatchHydroPower": "true",
+          "otherDispatchPower": "true",
+          "filterSynthesis": [
+            "weekly",
+            "daily",
+            "hourly",
+            "monthly",
+            "annual"
+          ],
+          "filterByYear": [
+            "weekly",
+            "daily",
+            "hourly",
+            "monthly",
+            "annual"
+          ],
+          "adequacyPatchMode": "outside"
+        }
 
         config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
+
+        base_url = "https://antares.com/api/v1"
+        url = f"{base_url}/studies/{self.study_id}"
+        area_url = f"{url}/areas"
+        area_props_url = f"{area_url}/zone/properties/form"
+        thermal_url = f"{area_url}/zone/clusters/thermal"
+        renewable_url = f"{area_url}/zone/clusters/renewable"
+        storage_url = f"{area_url}/zone/storages"
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url, json=json_study)
             mocker.get(config_urls, json={})
-            mocker.get(area_url, json={})
+            mocker.get(area_url, json=json_area)
+            mocker.get(area_props_url, json=json_properties)
+            mocker.get(renewable_url, json=json_renewable)
+            mocker.get(thermal_url, json=json_thermal)
+            mocker.get(storage_url, json=json_st_storage)
             actual_study = read_study_api(self.api, self.study_id)
 
             expected_study_name = json_study.pop("name")
             expected_study_id = json_study.pop("id")
             expected_study_version = json_study.pop("version")
-            expected_study_settings = StudySettings(**json_study)
 
             expected_study = Study(
                 expected_study_name,
                 expected_study_version,
                 ServiceFactory(self.api, expected_study_id, expected_study_name),
-                expected_study_settings,
+                None
             )
 
             assert actual_study.name == expected_study.name

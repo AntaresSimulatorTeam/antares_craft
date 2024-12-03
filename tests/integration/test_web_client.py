@@ -51,12 +51,6 @@ class TestWebClient:
 
         study = create_study_api("antares-craft-test", "880", api_config)
 
-        actual_study = read_study_api(api_config, study.service.study_id)
-
-        assert study.service.study_id == actual_study.service.study_id
-        assert study.name == actual_study.name
-        assert study.version == actual_study.version
-
         # tests area creation with default values
         area_name = "FR"
         area_fr = study.create_area(area_name)
@@ -97,6 +91,14 @@ class TestWebClient:
         area_ui = area_be.ui
         assert area_ui.x == area_ui.x
         assert area_ui.color_rgb == area_ui.color_rgb
+
+        # tests study reading method and comparing ids, name, areas and settings
+        actual_study = read_study_api(api_config, study.service.study_id)
+
+        assert study.service.study_id == actual_study.service.study_id
+        assert study.name == actual_study.name
+        assert study.version == actual_study.version
+        assert study.get_areas()["fr"].id == actual_study.get_areas()["fr"].id
 
         # tests area creation with properties
         properties = AreaProperties()
