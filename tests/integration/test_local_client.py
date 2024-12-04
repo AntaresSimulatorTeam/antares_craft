@@ -17,8 +17,6 @@ import pandas as pd
 
 from antares import create_study_local
 from antares.exceptions.exceptions import AreaCreationError, LinkCreationError
-from antares.model.area import Area
-from antares.model.link import Link
 from antares.model.area import AdequacyPatchMode, Area, AreaProperties, AreaUi
 from antares.model.commons import FilterOption
 from antares.model.link import Link, LinkProperties, LinkUi
@@ -121,3 +119,22 @@ class TestLocalClient:
         assert area_de.properties.energy_cost_spilled == 123
         assert area_de.properties.adequacy_patch_mode == AdequacyPatchMode.INSIDE
         assert area_de.properties.filter_synthesis == {FilterOption.HOURLY, FilterOption.DAILY}
+
+        # tests link creation with default values
+        link_de_fr = test_study.create_link(area_from=area_de, area_to=fr)
+        assert link_de_fr.area_from == area_de
+        assert link_de_fr.area_to == fr
+        assert link_de_fr.name == f"{area_de.id} / {fr.id}"
+
+        # tests link creation with ui and properties
+        link_ui = LinkUi(colorr=44)
+        link_properties = LinkProperties(hurdles_cost=True)
+        link_properties.filter_year_by_year = [FilterOption.HOURLY]
+        link_be_fr = test_study.create_link(area_from=area_be, area_to=fr, ui=link_ui, properties=link_properties)
+        assert link_be_fr.ui.colorr == 44
+        assert link_be_fr.properties.hurdles_cost
+        assert link_be_fr.properties.filter_year_by_year == {FilterOption.HOURLY}
+
+        # asserts study contains all links and areas
+        assert test_study.get_areas() == {at.id: at, area_be.id: area_be, fr.id: fr, area_de.id: area_de}
+        assert test_study.get_links() == {at_fr.name: at_fr, link_be_fr.name: link_be_fr, link_de_fr.name: link_de_fr}
