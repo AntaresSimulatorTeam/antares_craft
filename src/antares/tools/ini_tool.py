@@ -16,6 +16,7 @@ from typing import Any, Iterable, Optional, Union
 
 from pydantic import BaseModel
 
+from antares.model.binding_constraint import ConstraintTerm
 from antares.tools.custom_raw_config_parser import CustomRawConfigParser
 from antares.tools.model_tools import filter_out_empty_model_fields
 
@@ -91,6 +92,22 @@ class IniFile:
         self._ini_contents.read_dict(new_ini_dict)
 
     @property
+    def ini_dict_binding_constraints(self) -> dict[str, dict[str, str]]:
+        return {
+            section: dict(self._ini_contents[section])
+            for section in self._ini_contents.sections()
+        }
+
+    @ini_dict_binding_constraints.setter
+    def ini_dict_binding_constraints(self, new_ini_dict: dict[str, dict[str, str]]) -> None:
+        """Set INI file contents for binding constraints."""
+        self._ini_contents = CustomRawConfigParser()
+        for index, (section, values) in enumerate(new_ini_dict.items()):
+            self._ini_contents.add_section(str(index))
+            for key, value in values.items():
+                self._ini_contents.set(str(index), key, value)
+
+    @property
     def parsed_ini(self) -> CustomRawConfigParser:
         """Ini contents as a CustomRawConfigParser"""
         return self._ini_contents
@@ -131,6 +148,9 @@ class IniFile:
             parsed_ini.read_file(file)
 
         self._ini_contents = parsed_ini
+
+    def update_binding_constraints_from_ini_file(self) -> None:
+        self.update_from_ini_file()
 
     def write_ini_file(
         self,

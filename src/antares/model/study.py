@@ -287,7 +287,7 @@ class Study:
         binding_constraint = self._binding_constraints_service.create_binding_constraint(
             name, properties, terms, less_term_matrix, equal_term_matrix, greater_term_matrix
         )
-        self._binding_constraints[binding_constraint.name] = binding_constraint
+        self._binding_constraints[binding_constraint.id] = binding_constraint
         return binding_constraint
 
     def update_settings(self, settings: StudySettings) -> None:

@@ -2099,7 +2099,7 @@ class TestCreateBindingconstraint:
         self, local_study_with_constraint, test_constraint, default_constraint_properties
     ):
         # Given
-        expected_ini_contents = """[test constraint]
+        expected_ini_contents = """[0]
 name = test constraint
 id = test constraint
 enabled = true
@@ -2133,7 +2133,7 @@ group = default
             filter_synthesis="monthly",
             group="test group",
         )
-        expected_ini_content = """[test constraint]
+        expected_ini_content = """[0]
 name = test constraint
 id = test constraint
 enabled = true
@@ -2143,7 +2143,7 @@ filter-year-by-year = hourly
 filter-synthesis = hourly
 group = default
 
-[test constraint two]
+[1]
 name = test constraint two
 id = test constraint two
 enabled = false
@@ -2176,7 +2176,7 @@ group = test group
 
     def test_constraint_term_and_ini_have_correct_defaults(self, local_study_with_constraint, test_constraint):
         # Given
-        expected_ini_contents = """[test constraint]
+        expected_ini_contents = """[0]
 name = test constraint
 id = test constraint
 enabled = true
@@ -2200,7 +2200,7 @@ at%fr = 0
         self, local_study_with_constraint, test_constraint
     ):
         # Given
-        expected_ini_contents = """[test constraint]
+        expected_ini_contents = """[0]
 name = test constraint
 id = test constraint
 enabled = true
