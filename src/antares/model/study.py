@@ -171,6 +171,23 @@ def read_study_local(study_directory: Path) -> "Study":
     )
 
 
+def read_study_api(api_config: APIconf, study_id: str) -> "Study":
+    session = api_config.set_up_api_conf()
+    wrapper = RequestWrapper(session)
+    base_url = f"{api_config.get_host()}/api/v1"
+    json_study = wrapper.get(f"{base_url}/studies/{study_id}").json()
+
+    study_name = json_study.pop("name")
+    study_version = str(json_study.pop("version"))
+
+    study_settings = _returns_study_settings(base_url, study_id, wrapper, False, None)
+    study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings)
+
+    study.read_areas()
+
+    return study
+
+
 class Study:
     def __init__(
         self,
@@ -194,7 +211,13 @@ class Study:
         return self._study_service
 
     def read_areas(self) -> list[Area]:
-        return self._area_service.read_areas()
+        """
+        Synchronize the internal study object with the actual object written in an antares study
+        Returns: the synchronized area list
+        """
+        area_list = self._area_service.read_areas()
+        self._areas = {area.id: area for area in area_list}
+        return area_list
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))

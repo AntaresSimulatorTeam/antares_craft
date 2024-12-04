@@ -30,7 +30,7 @@ from antares.model.settings.advanced_parameters import AdvancedParameters, UnitC
 from antares.model.settings.general import GeneralParameters, Mode
 from antares.model.settings.study_settings import PlaylistParameters, StudySettings
 from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
-from antares.model.study import create_study_api
+from antares.model.study import create_study_api, read_study_api
 from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
@@ -218,6 +218,21 @@ class TestWebClient:
         actual_hydro = area_fr.read_hydro()
         assert actual_hydro.area_id == area_fr.id
         assert actual_hydro.properties == area_fr.hydro.properties
+
+        # tests study reading method and comparing ids, name, areas and settings
+        actual_study = read_study_api(api_config, study.service.study_id)
+
+        assert study.service.study_id == actual_study.service.study_id
+        assert study.name == actual_study.name
+        assert study.version == actual_study.version
+        assert list(study.get_areas().keys()) == list(actual_study.get_areas().keys())
+
+        expected_area_fr = study.get_areas()["fr"]
+        actual_area_fr = actual_study.get_areas()["fr"]
+        assert list(expected_area_fr.get_thermals()) == list(actual_area_fr.get_thermals())
+        assert list(expected_area_fr.get_renewables()) == list(actual_area_fr.get_renewables())
+        assert list(expected_area_fr.get_st_storages()) == list(actual_area_fr.get_st_storages())
+        assert study.get_settings() == actual_study.get_settings()
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"

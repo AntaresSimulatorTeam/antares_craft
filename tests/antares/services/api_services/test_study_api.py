@@ -30,7 +30,7 @@ from antares.model.hydro import HydroProperties
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings.general import GeneralParameters
 from antares.model.settings.study_settings import StudySettings
-from antares.model.study import Study, create_study_api
+from antares.model.study import Study, create_study_api, read_study_api
 from antares.service.service_factory import ServiceFactory
 
 
@@ -199,3 +199,54 @@ class TestCreateAPI:
                 match=f"Could not create the binding constraint {constraint_name}: {self.antares_web_description_msg}",
             ):
                 self.study.create_binding_constraint(name=constraint_name)
+
+    def test_read_study_api(self):
+        json_study = {
+            "id": "22c52f44-4c2a-407b-862b-490887f93dd8",
+            "name": "test_read_areas",
+            "version": "880",
+        }
+
+        json_ui = {
+            "zone": {
+                "ui": {"x": 0, "y": 0, "color_r": 230, "color_g": 108, "color_b": 44, "layers": "0"},
+                "layerX": {"0": 0},
+                "layerY": {"0": 0},
+                "layerColor": {"0": "230, 108, 44"},
+            }
+        }
+
+        config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
+
+        base_url = "https://antares.com/api/v1"
+        url = f"{base_url}/studies/{self.study_id}"
+        area_url = f"{url}/areas"
+        area_props_url = f"{area_url}/zone/properties/form"
+        thermal_url = f"{area_url}/zone/clusters/thermal"
+        renewable_url = f"{area_url}/zone/clusters/renewable"
+        storage_url = f"{area_url}/zone/storages"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.get(url, json=json_study)
+            mocker.get(config_urls, json={})
+            mocker.get(area_url, json=json_ui)
+            mocker.get(area_props_url, json={})
+            mocker.get(renewable_url, json=[])
+            mocker.get(thermal_url, json=[])
+            mocker.get(storage_url, json=[])
+            actual_study = read_study_api(self.api, self.study_id)
+
+            expected_study_name = json_study.pop("name")
+            expected_study_id = json_study.pop("id")
+            expected_study_version = json_study.pop("version")
+
+            expected_study = Study(
+                expected_study_name,
+                expected_study_version,
+                ServiceFactory(self.api, expected_study_id, expected_study_name),
+                None,
+            )
+
+            assert actual_study.name == expected_study.name
+            assert actual_study.version == expected_study.version
+            assert actual_study.service.study_id == expected_study.service.study_id
