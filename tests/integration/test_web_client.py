@@ -232,7 +232,7 @@ class TestWebClient:
         assert list(expected_area_fr.get_thermals()) == list(actual_area_fr.get_thermals())
         assert list(expected_area_fr.get_renewables()) == list(actual_area_fr.get_renewables())
         assert list(expected_area_fr.get_st_storages()) == list(actual_area_fr.get_st_storages())
-        assert list(study.get_settings()) == list(actual_study.get_settings())
+        assert study.get_settings() == actual_study.get_settings()
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
