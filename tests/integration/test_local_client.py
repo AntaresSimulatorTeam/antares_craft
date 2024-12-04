@@ -23,7 +23,7 @@ from antares.model.commons import FilterOption
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.study import Study
 from antares.model.thermal import ThermalCluster
-from antares.tools.ini_tool import IniFileTypes
+from antares.tools.ini_tool import IniFile, IniFileTypes
 from antares.tools.time_series_tool import TimeSeriesFileType
 
 
@@ -155,6 +155,13 @@ class TestLocalClient:
         assert link_be_fr.ui.colorr == 44
         assert link_be_fr.properties.hurdles_cost
         assert link_be_fr.properties.filter_year_by_year == {FilterOption.HOURLY}
+        be_link_ini_file = test_study.service.config.study_path.joinpath(
+            IniFileTypes.LINK_PROPERTIES_INI.value.format(area_id=area_be.id)
+        )
+        assert be_link_ini_file.is_file()
+        be_links_in_file = IniFile(test_study.service.config.study_path, IniFileTypes.LINK_PROPERTIES_INI, area_be.id)
+        assert be_links_in_file.ini_dict["fr"]["hurdles-cost"] == "true"
+        assert be_links_in_file.ini_dict["fr"]["filter-year-by-year"] == "hourly"
 
         # asserts study contains all links and areas
         assert test_study.get_areas() == {at.id: at, area_be.id: area_be, fr.id: fr, area_de.id: area_de}
