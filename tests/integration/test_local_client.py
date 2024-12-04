@@ -19,6 +19,9 @@ from antares import create_study_local
 from antares.exceptions.exceptions import AreaCreationError, LinkCreationError
 from antares.model.area import Area
 from antares.model.link import Link
+from antares.model.area import AdequacyPatchMode, Area, AreaProperties, AreaUi
+from antares.model.commons import FilterOption
+from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.study import Study
 from antares.model.thermal import ThermalCluster
 from antares.tools.time_series_tool import TimeSeriesFileType
@@ -98,3 +101,23 @@ class TestLocalClient:
         fr_wind = fr.get_wind_matrix()
 
         assert fr_wind.equals(time_series)
+
+        # tests area creation with ui values
+        area_ui = AreaUi(x=120, color_rgb=[255, 123, 0])
+        area_name = "BE?"
+        area_be = test_study.create_area(area_name, ui=area_ui)
+        assert area_be.name == area_name
+        assert area_be.id == "be"
+        assert area_be.ui.x == area_ui.x
+        assert area_be.ui.color_rgb == area_ui.color_rgb
+
+        # tests area creation with properties
+        properties = AreaProperties()
+        properties.energy_cost_spilled = 123
+        properties.adequacy_patch_mode = AdequacyPatchMode.INSIDE
+        properties.filter_synthesis = [FilterOption.HOURLY, FilterOption.DAILY, FilterOption.HOURLY]
+        area_name = "DE"
+        area_de = test_study.create_area(area_name, properties=properties)
+        assert area_de.properties.energy_cost_spilled == 123
+        assert area_de.properties.adequacy_patch_mode == AdequacyPatchMode.INSIDE
+        assert area_de.properties.filter_synthesis == {FilterOption.HOURLY, FilterOption.DAILY}
