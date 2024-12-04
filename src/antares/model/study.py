@@ -170,14 +170,6 @@ def read_study_local(study_directory: Path) -> "Study":
         service_factory=ServiceFactory(config=local_config, study_name=study_params["caption"]),
     )
 
-def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) -> "Study":
-    factory = ServiceFactory(api_config, study_id)
-    api_service = factory.create_study_service()
-    variant_id = api_service.create_variant(variant_name)
-    variant = None  # TODO: read_study_api(api_config, variant_id)
-
-    return variant
-
 def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     session = api_config.set_up_api_conf()
     wrapper = RequestWrapper(session)
@@ -194,6 +186,13 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
 
     return study
 
+def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) -> "Study":
+    factory = ServiceFactory(api_config, study_id)
+    api_service = factory.create_study_service()
+    variant_id = api_service.create_variant(variant_name)
+    variant = read_study_api(api_config, variant_id)
+
+    return variant
 
 class Study:
     def __init__(
@@ -312,7 +311,7 @@ class Study:
     def create_variant(self, variant_name: str) -> "Study":
         variant_id = self._study_service.create_variant(variant_name)
         config = self._study_service.config
-        variant = None # TODO: read_study_api(config, variant_id)
+        variant = read_study_api(config, variant_id)
 
         return variant
 
