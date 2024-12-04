@@ -140,10 +140,8 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         )
 
         if existing_section:
-            # If constraint exists, update the terms
             existing_terms = current_ini_content[existing_section]
 
-            # Serialize the terms data (this assumes you want to serialize LinkData or ClusterData in `terms`)
             serialized_terms = (
                 {term.id: serialize_term_data(term.data, term.offset, term.weight) for term in terms} if terms else {}
             )
