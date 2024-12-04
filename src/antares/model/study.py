@@ -171,7 +171,12 @@ def read_study_local(study_directory: Path) -> "Study":
     )
 
 def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) -> "Study":
-    pass
+    factory = ServiceFactory(api_config, study_id)
+    api_service = factory.create_study_service()
+    variant_id = api_service.create_variant(variant_name)
+    variant = None  # TODO: read_study_api(api_config, variant_id)
+
+    return variant
 
 def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     session = api_config.set_up_api_conf()
