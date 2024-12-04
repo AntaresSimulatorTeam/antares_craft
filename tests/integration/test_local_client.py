@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
 
 import re
@@ -24,6 +23,7 @@ from antares.model.commons import FilterOption
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.study import Study
 from antares.model.thermal import ThermalCluster
+from antares.tools.ini_tool import IniFileTypes
 from antares.tools.time_series_tool import TimeSeriesFileType
 
 
@@ -117,13 +117,18 @@ class TestLocalClient:
             test_study.create_area(area_name)
 
         # tests area creation with ui values
+        area_name = "BE"
         area_ui = AreaUi(x=120, color_rgb=[255, 123, 0])
-        area_name = "BE?"
         area_be = test_study.create_area(area_name, ui=area_ui)
+
         assert area_be.name == area_name
         assert area_be.id == "be"
         assert area_be.ui.x == area_ui.x
         assert area_be.ui.color_rgb == area_ui.color_rgb
+        be_ui_file = test_study.service.config.study_path.joinpath(
+            IniFileTypes.AREA_UI_INI.value.format(area_id=area_be.id)
+        )
+        assert be_ui_file.is_file()
 
         # tests area creation with properties
         properties = AreaProperties()
