@@ -1498,7 +1498,7 @@ layers = 0
         # Then
         with pytest.raises(
             AreaCreationError,
-            match=f"Could not create the area {area_to_create}: There is already an area '{area_to_create}' in the study '{local_study_w_areas.name}",
+            match=f"Could not create the area {area_to_create}: There is already an area '{area_to_create}' in the study '{local_study_w_areas.name}'",
         ):
             local_study_w_areas.create_area(area_to_create)
 
