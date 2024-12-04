@@ -40,7 +40,7 @@ class RenewableLocalService(BaseRenewableService):
         )
 
     def read_renewables(self, area_id: str) -> List[RenewableCluster]:
-        renewable_dict = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name=area_id).ini_dict
+        renewable_dict = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_id=area_id).ini_dict
         renewables_clusters = []
         if renewable_dict:
             for renewable_cluster in renewable_dict:
