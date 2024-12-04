@@ -12,6 +12,8 @@
 
 import pytest
 
+import re
+
 import numpy as np
 import pandas as pd
 
@@ -99,6 +101,20 @@ class TestLocalClient:
         fr_wind = fr.get_wind_matrix()
 
         assert fr_wind.equals(time_series)
+
+        # Forbidden character errors
+        area_name = "BE?"
+        with pytest.raises(
+            AreaCreationError,
+            match=(
+                re.escape(
+                    f"Could not create the area {area_name}: "
+                    + f"The name {area_name} contains one or more unauthorized characters."
+                    + "\nArea names can only contain: a-z, A-Z, 0-9, (, ), &, _, - and , (comma)."
+                )
+            ),
+        ):
+            test_study.create_area(area_name)
 
         # tests area creation with ui values
         area_ui = AreaUi(x=120, color_rgb=[255, 123, 0])

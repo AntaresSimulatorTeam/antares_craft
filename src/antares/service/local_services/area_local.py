@@ -12,6 +12,7 @@
 
 import logging
 import os
+import re
 
 from configparser import ConfigParser, DuplicateSectionError
 from typing import Any, Dict, List, Optional
@@ -31,6 +32,7 @@ from antares.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
+from antares.tools.contents_tool import transform_name_to_id
 from antares.tools.ini_tool import IniFile, IniFileTypes
 from antares.tools.matrix_tool import read_timeseries
 from antares.tools.prepro_folder import PreproFolder
@@ -200,6 +202,12 @@ class AreaLocalService(BaseAreaService):
         Returns: area name if success or Error if area can not be
         created
         """
+        unauthorized_characters = r"[^a-zA-Z0-9\-_()& ,]+"
+        if re.search(unauthorized_characters, area_name):
+            raise AreaCreationError(
+                area_name=area_name,
+                message=f"The name {area_name} contains one or more unauthorized characters.\nArea names can only contain: a-z, A-Z, 0-9, (, ), &, _, - and , (comma).",
+            )
 
         def _line_exists_in_file(file_content: str, line_to_add: str) -> bool:
             """
@@ -212,9 +220,9 @@ class AreaLocalService(BaseAreaService):
             """
             return line_to_add.strip() in file_content.split("\n")
 
-        study_directory = self.config.local_path / self.study_name / "input"
-        areas_directory = study_directory / "areas"
-        new_area_directory = areas_directory / area_name
+        study_directory = self.config.local_path.joinpath(self.study_name, "input")
+        areas_directory = study_directory.joinpath("areas")
+        new_area_directory = areas_directory.joinpath(transform_name_to_id(area_name))
 
         if new_area_directory.is_dir():
             raise AreaCreationError(
@@ -224,7 +232,7 @@ class AreaLocalService(BaseAreaService):
         # Create "areas" directory if it doesn't exist
         os.makedirs(new_area_directory, exist_ok=True)
 
-        list_path = areas_directory / "list.txt"
+        list_path = areas_directory.joinpath("list.txt")
 
         area_to_add = f"{area_name}\n"
         try:
