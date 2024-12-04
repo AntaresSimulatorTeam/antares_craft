@@ -1498,7 +1498,7 @@ layers = 0
         # Then
         with pytest.raises(
             AreaCreationError,
-            match=f"Could not create the area {area_to_create}: There is already an area '{area_to_create}' in the study '{local_study_w_areas.name}'",
+            match=f"Could not create the area {area_to_create}: There is already an area '{area_to_create}' in the study '{local_study_w_areas.name}",
         ):
             local_study_w_areas.create_area(area_to_create)
 
@@ -2071,7 +2071,7 @@ class TestCreateBindingconstraint:
         # Then
         with pytest.raises(
             BindingConstraintCreationError,
-            match=f"Could not create the binding constraint {binding_constraint_name}: A binding constraint with the name '{binding_constraint_name}' already exists.",
+            match=f"Could not create the binding constraint {binding_constraint_name}: A binding constraint with the name {binding_constraint_name} already exists.",
         ):
             local_study_with_constraint.create_binding_constraint(name=binding_constraint_name)
 
@@ -2099,7 +2099,7 @@ class TestCreateBindingconstraint:
         self, local_study_with_constraint, test_constraint, default_constraint_properties
     ):
         # Given
-        expected_ini_contents = """[0]
+        expected_ini_contents = """[test constraint]
 name = test constraint
 id = test constraint
 enabled = true
@@ -2133,7 +2133,7 @@ group = default
             filter_synthesis="monthly",
             group="test group",
         )
-        expected_ini_content = """[0]
+        expected_ini_content = """[test constraint]
 name = test constraint
 id = test constraint
 enabled = true
@@ -2143,7 +2143,7 @@ filter-year-by-year = hourly
 filter-synthesis = hourly
 group = default
 
-[1]
+[test constraint two]
 name = test constraint two
 id = test constraint two
 enabled = false
@@ -2176,7 +2176,7 @@ group = test group
 
     def test_constraint_term_and_ini_have_correct_defaults(self, local_study_with_constraint, test_constraint):
         # Given
-        expected_ini_contents = """[0]
+        expected_ini_contents = """[test constraint]
 name = test constraint
 id = test constraint
 enabled = true
@@ -2200,7 +2200,7 @@ at%fr = 0
         self, local_study_with_constraint, test_constraint
     ):
         # Given
-        expected_ini_contents = """[0]
+        expected_ini_contents = """[test constraint]
 name = test constraint
 id = test constraint
 enabled = true

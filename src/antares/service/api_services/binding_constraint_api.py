@@ -43,7 +43,6 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         self.study_id = study_id
         self._wrapper = RequestWrapper(self.api_config.set_up_api_conf())
         self._base_url = f"{self.api_config.get_host()}/api/v1"
-        self.binding_constraints = {}
 
     def create_binding_constraint(
         self,
@@ -105,7 +104,6 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise BindingConstraintCreationError(name, e.message) from e
 
         constraint = BindingConstraint(name, self, bc_properties, bc_terms)
-        self.binding_constraints[constraint.id] = constraint
 
         return constraint
 

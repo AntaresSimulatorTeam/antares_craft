@@ -205,6 +205,7 @@ class Study:
         self._settings = DefaultStudySettings.model_validate(settings if settings is not None else StudySettings())
         self._areas: Dict[str, Area] = dict()
         self._links: Dict[str, Link] = dict()
+        self._binding_constraints: Dict[str, BindingConstraint] = dict()
 
     @property
     def service(self) -> BaseStudyService:
@@ -229,7 +230,7 @@ class Study:
         return self._settings
 
     def get_binding_constraints(self) -> MappingProxyType[str, BindingConstraint]:
-        return MappingProxyType(self._binding_constraints_service.binding_constraints)
+        return MappingProxyType(self._binding_constraints)
 
     def create_area(
         self, area_name: str, *, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
@@ -269,9 +270,25 @@ class Study:
         equal_term_matrix: Optional[pd.DataFrame] = None,
         greater_term_matrix: Optional[pd.DataFrame] = None,
     ) -> BindingConstraint:
-        return self._binding_constraints_service.create_binding_constraint(
+        """
+        Create a new binding constraint and store it.
+
+        Args:
+            name (str): The name of the binding constraint.
+            properties (Optional[BindingConstraintProperties]): Optional properties for the constraint.
+            terms (Optional[List[ConstraintTerm]]): Optional list of terms for the constraint.
+            less_term_matrix (Optional[pd.DataFrame]): Optional less-than term matrix.
+            equal_term_matrix (Optional[pd.DataFrame]): Optional equality term matrix.
+            greater_term_matrix (Optional[pd.DataFrame]): Optional greater-than term matrix.
+
+        Returns:
+            BindingConstraint: The created binding constraint.
+        """
+        binding_constraint = self._binding_constraints_service.create_binding_constraint(
             name, properties, terms, less_term_matrix, equal_term_matrix, greater_term_matrix
         )
+        self._binding_constraints[binding_constraint.name] = binding_constraint
+        return binding_constraint
 
     def update_settings(self, settings: StudySettings) -> None:
         new_settings = self._study_service.update_study_settings(settings)
@@ -280,7 +297,7 @@ class Study:
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         self._study_service.delete_binding_constraint(constraint)
-        self._binding_constraints_service.binding_constraints.pop(constraint.id)
+        self._binding_constraints.pop(constraint.id)
 
     def delete(self, children: bool = False) -> None:
         self._study_service.delete(children)
