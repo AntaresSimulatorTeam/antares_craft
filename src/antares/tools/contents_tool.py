@@ -19,6 +19,7 @@ from typing import Any, Dict, Optional
 
 from pydantic import BaseModel
 
+from antares.exceptions.exceptions import InvalidNameError
 from antares.tools.custom_raw_config_parser import CustomRawConfigParser
 
 # Invalid chars was taken from Antares Simulator (C++).
@@ -124,3 +125,9 @@ def sort_ini_sections(ini_to_sort: CustomRawConfigParser) -> CustomRawConfigPars
     for section in sorted(ini_to_sort.sections()):
         sorted_ini[section] = ini_to_sort[section]
     return sorted_ini
+
+
+def check_if_name_is_valid(name: str) -> None:
+    unauthorized_characters = r"[^a-zA-Z0-9\-_()& ,]+"
+    if re.search(unauthorized_characters, name):
+        raise InvalidNameError(name)

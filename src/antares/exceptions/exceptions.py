@@ -54,6 +54,15 @@ class AreaDeletionError(Exception):
         super().__init__(self.message)
 
 
+class InvalidNameError(Exception):
+    def __init__(self, name: str) -> None:
+        self.message = (
+            f"The name {name} contains one or more unauthorized characters."
+            + "\nNames can only contain: a-z, A-Z, 0-9, (, ), &, _, - and , (comma)."
+        )
+        super().__init__(self.message)
+
+
 class LinkCreationError(Exception):
     def __init__(self, area_from: str, area_to: str, message: str) -> None:
         self.message = f"Could not create the link {area_from} / {area_to}: " + message

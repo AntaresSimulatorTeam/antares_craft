@@ -12,7 +12,6 @@
 
 import logging
 import os
-import re
 
 from configparser import ConfigParser, DuplicateSectionError
 from typing import Any, Dict, List, Optional
@@ -32,7 +31,7 @@ from antares.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
-from antares.tools.contents_tool import transform_name_to_id
+from antares.tools.contents_tool import check_if_name_is_valid, transform_name_to_id
 from antares.tools.ini_tool import IniFile, IniFileTypes
 from antares.tools.matrix_tool import read_timeseries
 from antares.tools.prepro_folder import PreproFolder
@@ -77,6 +76,8 @@ class AreaLocalService(BaseAreaService):
         thermal_name: str,
         properties: Optional[ThermalClusterProperties] = None,
     ) -> ThermalCluster:
+        check_if_name_is_valid(thermal_name)
+
         properties = properties or ThermalClusterProperties()
         args = {"thermal_name": thermal_name, **properties.model_dump(mode="json", exclude_none=True)}
         local_thermal_properties = ThermalClusterPropertiesLocal.model_validate(args)
@@ -116,6 +117,8 @@ class AreaLocalService(BaseAreaService):
         properties: Optional[RenewableClusterProperties] = None,
         series: Optional[pd.DataFrame] = None,
     ) -> RenewableCluster:
+        check_if_name_is_valid(renewable_name)
+
         properties = properties or RenewableClusterProperties()
         args = {"renewable_name": renewable_name, **properties.model_dump(mode="json", exclude_none=True)}
         local_properties = RenewableClusterPropertiesLocal.model_validate(args)
@@ -139,6 +142,8 @@ class AreaLocalService(BaseAreaService):
     def create_st_storage(
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
+        check_if_name_is_valid(st_storage_name)
+
         properties = properties or STStorageProperties()
         args = {"st_storage_name": st_storage_name, **properties.model_dump(mode="json", exclude_none=True)}
         local_st_storage_properties = STStoragePropertiesLocal.model_validate(args)
@@ -202,12 +207,7 @@ class AreaLocalService(BaseAreaService):
         Returns: area name if success or Error if area can not be
         created
         """
-        unauthorized_characters = r"[^a-zA-Z0-9\-_()& ,]+"
-        if re.search(unauthorized_characters, area_name):
-            raise AreaCreationError(
-                area_name=area_name,
-                message=f"The name {area_name} contains one or more unauthorized characters.\nArea names can only contain: a-z, A-Z, 0-9, (, ), &, _, - and , (comma).",
-            )
+        check_if_name_is_valid(area_name)
 
         def _line_exists_in_file(file_content: str, line_to_add: str) -> bool:
             """

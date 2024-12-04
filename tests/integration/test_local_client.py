@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 
 from antares import create_study_local
-from antares.exceptions.exceptions import AreaCreationError, LinkCreationError
+from antares.exceptions.exceptions import AreaCreationError, InvalidNameError, LinkCreationError
 from antares.model.area import AdequacyPatchMode, Area, AreaProperties, AreaUi
 from antares.model.commons import FilterOption
 from antares.model.link import Link, LinkProperties, LinkUi
@@ -105,12 +105,11 @@ class TestLocalClient:
         # Forbidden character errors
         area_name = "BE?"
         with pytest.raises(
-            AreaCreationError,
+            InvalidNameError,
             match=(
                 re.escape(
-                    f"Could not create the area {area_name}: "
-                    + f"The name {area_name} contains one or more unauthorized characters."
-                    + "\nArea names can only contain: a-z, A-Z, 0-9, (, ), &, _, - and , (comma)."
+                    f"The name {area_name} contains one or more unauthorized characters."
+                    + "\nNames can only contain: a-z, A-Z, 0-9, (, ), &, _, - and , (comma)."
                 )
             ),
         ):

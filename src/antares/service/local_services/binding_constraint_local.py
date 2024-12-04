@@ -26,6 +26,7 @@ from antares.model.binding_constraint import (
     ConstraintTerm,
 )
 from antares.service.base_services import BaseBindingConstraintService
+from antares.tools.contents_tool import check_if_name_is_valid
 from antares.tools.ini_tool import IniFile, IniFileTypes
 from antares.tools.matrix_tool import df_save
 from antares.tools.time_series_tool import TimeSeriesFileType
@@ -47,6 +48,8 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         equal_term_matrix: Optional[pd.DataFrame] = None,
         greater_term_matrix: Optional[pd.DataFrame] = None,
     ) -> BindingConstraint:
+        check_if_name_is_valid(name)
+
         constraint = BindingConstraint(
             name=name,
             binding_constraint_service=self,
