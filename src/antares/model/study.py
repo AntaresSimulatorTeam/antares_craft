@@ -170,6 +170,8 @@ def read_study_local(study_directory: Path) -> "Study":
         service_factory=ServiceFactory(config=local_config, study_name=study_params["caption"]),
     )
 
+def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) -> "Study":
+    pass
 
 def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     session = api_config.set_up_api_conf()
@@ -301,6 +303,13 @@ class Study:
 
     def delete(self, children: bool = False) -> None:
         self._study_service.delete(children)
+
+    def create_variant(self, variant_name: str) -> "Study":
+        variant_id = self._study_service.create_variant(variant_name)
+        config = self._study_service.config
+        variant = None # TODO: read_study_api(config, variant_id)
+
+        return variant
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:

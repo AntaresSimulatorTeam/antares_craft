@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 from typing import Optional
 
+from antares import create_study_api
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
 from antares.exceptions.exceptions import (
@@ -29,6 +30,7 @@ from antares.model.settings.study_settings import StudySettings
 from antares.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.model.settings.time_series import TimeSeriesParameters
 from antares.service.base_services import BaseStudyService
+from antares.exceptions.exceptions import StudyVariantCreationError
 
 
 def _returns_study_settings(
@@ -104,3 +106,11 @@ class StudyApiService(BaseStudyService):
             self._wrapper.delete(url)
         except APIError as e:
             raise StudyDeletionError(self.study_id, e.message) from e
+
+    def create_variant(self, variant_name: str) -> str:
+        url = f"{self._base_url}/studies/{self.study_id}/variants?name={variant_name}"
+        try :
+            variant_id = self._wrapper.post(url)
+            return variant_id
+        except APIError as e:
+            raise StudyVariantCreationError(self.study_id, e.message) from e

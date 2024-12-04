@@ -507,6 +507,16 @@ class BaseStudyService(ABC):
         """
         pass
 
+    @abstractmethod
+    def create_variant(self, variant_name: str) -> str:
+        """
+        Creates a new variant for the study
+
+        Args:
+            variant_name: the name of the new variant
+        """
+        pass
+
 
 class BaseRenewableService(ABC):
     @abstractmethod

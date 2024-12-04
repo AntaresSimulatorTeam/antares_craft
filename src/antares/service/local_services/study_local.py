@@ -40,3 +40,6 @@ class StudyLocalService(BaseStudyService):
 
     def delete(self, children: bool) -> None:
         raise NotImplementedError
+
+    def create_variant(self, variant_name: str) -> str:
+        raise NotImplementedError
