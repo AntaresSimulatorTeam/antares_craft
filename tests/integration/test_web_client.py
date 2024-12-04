@@ -226,17 +226,20 @@ class TestWebClient:
         assert study.name == actual_study.name
         assert study.version == actual_study.version
         assert list(study.get_areas().keys()) == list(actual_study.get_areas().keys())
+
+        expected_area_fr = study.get_areas()["fr"]
+        actual_area_fr = actual_study.get_areas()["fr"]
         assert (
-            study.get_areas()["fr"].get_thermals().get("cluster_test").id
-            == actual_study.get_areas()["fr"].get_thermals().get("cluster_test").id
+            list(expected_area_fr.get_thermals()) == list(actual_area_fr.get_thermals())
         )
         assert (
-            study.get_areas()["fr"].get_renewables().get("cluster_test").id
-            == actual_study.get_areas()["fr"].get_renewables().get("cluster_test").id
+            list(expected_area_fr.get_renewables()) == list(actual_area_fr.get_renewables())
         )
         assert (
-            study.get_areas()["fr"].get_st_storages().get("cluster_test").id
-            == actual_study.get_areas()["fr"].get_st_storages().get("cluster_test").id
+            list(expected_area_fr.get_st_storages()) == list(actual_area_fr.get_st_storages())
+        )
+        assert (
+            list(study.get_settings()) == list(actual_study.get_settings())
         )
 
         # test short term storage creation with properties

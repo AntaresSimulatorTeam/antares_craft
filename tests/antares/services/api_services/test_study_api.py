@@ -216,55 +216,6 @@ class TestCreateAPI:
             }
         }
 
-        json_thermal = [
-            {
-                "id": "therm_un",
-                "group": "Gas",
-                "name": "therm_un",
-                "enabled": "true",
-                "unitCount": 1,
-                "nominalCapacity": 0,
-            }
-        ]
-
-        json_renewable = [
-            {
-                "id": "test_renouvelable",
-                "group": "Solar Thermal",
-                "name": "test_renouvelable",
-                "enabled": "true",
-                "unitCount": 1,
-                "nominalCapacity": 0,
-                "tsInterpretation": "power-generation",
-            }
-        ]
-
-        json_st_storage = [
-            {
-                "id": "test_storage",
-                "group": "Pondage",
-                "name": "test_storage",
-                "injectionNominalCapacity": 0,
-                "withdrawalNominalCapacity": 0,
-                "reservoirCapacity": 0,
-                "efficiency": 1,
-                "initialLevel": 0.5,
-                "initialLevelOptim": "false",
-                "enabled": "true",
-            }
-        ]
-
-        json_properties = {
-            "energyCostUnsupplied": 0,
-            "energyCostSpilled": 0,
-            "nonDispatchPower": "true",
-            "dispatchHydroPower": "true",
-            "otherDispatchPower": "true",
-            "filterSynthesis": ["weekly", "daily", "hourly", "monthly", "annual"],
-            "filterByYear": ["weekly", "daily", "hourly", "monthly", "annual"],
-            "adequacyPatchMode": "outside",
-        }
-
         config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
 
         base_url = "https://antares.com/api/v1"
@@ -279,10 +230,10 @@ class TestCreateAPI:
             mocker.get(url, json=json_study)
             mocker.get(config_urls, json={})
             mocker.get(area_url, json=json_ui)
-            mocker.get(area_props_url, json=json_properties)
-            mocker.get(renewable_url, json=json_renewable)
-            mocker.get(thermal_url, json=json_thermal)
-            mocker.get(storage_url, json=json_st_storage)
+            mocker.get(area_props_url, json={})
+            mocker.get(renewable_url, json=[])
+            mocker.get(thermal_url, json=[])
+            mocker.get(storage_url, json=[])
             actual_study = read_study_api(self.api, self.study_id)
 
             expected_study_name = json_study.pop("name")
