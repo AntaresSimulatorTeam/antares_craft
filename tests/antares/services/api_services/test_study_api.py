@@ -207,7 +207,7 @@ class TestCreateAPI:
             "version": "880",
         }
 
-        json_area = {
+        json_ui = {
             "zone": {
                 "ui": {"x": 0, "y": 0, "color_r": 230, "color_g": 108, "color_b": 44, "layers": "0"},
                 "layerX": {"0": 0},
@@ -278,7 +278,7 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             mocker.get(url, json=json_study)
             mocker.get(config_urls, json={})
-            mocker.get(area_url, json=json_area)
+            mocker.get(area_url, json=json_ui)
             mocker.get(area_props_url, json=json_properties)
             mocker.get(renewable_url, json=json_renewable)
             mocker.get(thermal_url, json=json_thermal)

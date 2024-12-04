@@ -212,8 +212,8 @@ class Study:
 
     def read_areas(self) -> list[Area]:
         """
-        Syncronize the internal study object with the object written in an antares study
-        Returns:
+        Synchronize the internal study object with the actual object written in an antares study
+        Returns: the synchronized area list
         """
         area_list = self._area_service.read_areas()
         self._areas = {area.id: area for area in area_list}

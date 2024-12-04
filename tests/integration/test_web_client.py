@@ -92,14 +92,6 @@ class TestWebClient:
         assert area_ui.x == area_ui.x
         assert area_ui.color_rgb == area_ui.color_rgb
 
-        # tests study reading method and comparing ids, name, areas and settings
-        actual_study = read_study_api(api_config, study.service.study_id)
-
-        assert study.service.study_id == actual_study.service.study_id
-        assert study.name == actual_study.name
-        assert study.version == actual_study.version
-        assert study.get_areas()["fr"].id == actual_study.get_areas()["fr"].id
-
         # tests area creation with properties
         properties = AreaProperties()
         properties.energy_cost_spilled = 100
@@ -226,6 +218,26 @@ class TestWebClient:
         actual_hydro = area_fr.read_hydro()
         assert actual_hydro.area_id == area_fr.id
         assert actual_hydro.properties == area_fr.hydro.properties
+
+        # tests study reading method and comparing ids, name, areas and settings
+        actual_study = read_study_api(api_config, study.service.study_id)
+
+        assert study.service.study_id == actual_study.service.study_id
+        assert study.name == actual_study.name
+        assert study.version == actual_study.version
+        assert list(study.get_areas().keys()) == list(actual_study.get_areas().keys())
+        assert (
+            study.get_areas()["fr"].get_thermals().get("cluster_test").id
+            == actual_study.get_areas()["fr"].get_thermals().get("cluster_test").id
+        )
+        assert (
+            study.get_areas()["fr"].get_renewables().get("cluster_test").id
+            == actual_study.get_areas()["fr"].get_renewables().get("cluster_test").id
+        )
+        assert (
+            study.get_areas()["fr"].get_st_storages().get("cluster_test").id
+            == actual_study.get_areas()["fr"].get_st_storages().get("cluster_test").id
+        )
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
