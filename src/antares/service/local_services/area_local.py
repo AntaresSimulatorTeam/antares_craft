@@ -79,7 +79,7 @@ class AreaLocalService(BaseAreaService):
         args = {"thermal_name": thermal_name, **properties.model_dump(mode="json", exclude_none=True)}
         local_thermal_properties = ThermalClusterPropertiesLocal.model_validate(args)
 
-        list_ini = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name=area_id)
+        list_ini = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_id=area_id)
         try:
             list_ini.add_section(local_thermal_properties.list_ini_fields)
         except DuplicateSectionError:
@@ -118,7 +118,7 @@ class AreaLocalService(BaseAreaService):
         args = {"renewable_name": renewable_name, **properties.model_dump(mode="json", exclude_none=True)}
         local_properties = RenewableClusterPropertiesLocal.model_validate(args)
 
-        list_ini = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name=area_id)
+        list_ini = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_id=area_id)
         list_ini.add_section(local_properties.ini_fields)
         list_ini.write_ini_file()
 
@@ -141,7 +141,7 @@ class AreaLocalService(BaseAreaService):
         args = {"st_storage_name": st_storage_name, **properties.model_dump(mode="json", exclude_none=True)}
         local_st_storage_properties = STStoragePropertiesLocal.model_validate(args)
 
-        list_ini = IniFile(self.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name=area_id)
+        list_ini = IniFile(self.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_id=area_id)
         list_ini.add_section(local_st_storage_properties.list_ini_fields)
         list_ini.write_ini_file(sort_sections=True)
 
