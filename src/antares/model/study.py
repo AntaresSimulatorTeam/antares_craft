@@ -193,6 +193,7 @@ def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) ->
         api_config: API configuration
         study_id: The id of the study to create a variant of
         variant_name: the name of the new variant
+    Returns: The variant in the form of a Study object
     """
     factory = ServiceFactory(api_config, study_id)
     api_service = factory.create_study_service()
@@ -321,10 +322,15 @@ class Study:
 
         Args:
             variant_name: the name of the new variant
+        Returns: The variant in the form of a Study object
         """
         variant_id = self._study_service.create_variant(variant_name)
         config = self._study_service.config
-        variant = read_study_api(config, variant_id)
+
+        if isinstance(config, APIconf):
+            variant = read_study_api(config, variant_id)
+        else:
+            raise TypeError("Expected config to be of type APIconf")
 
         return variant
 

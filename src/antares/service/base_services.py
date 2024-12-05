@@ -514,6 +514,7 @@ class BaseStudyService(ABC):
 
         Args:
             variant_name: the name of the new variant
+        Returns: id of the variant
         """
         pass
 
