@@ -56,7 +56,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         constraint.properties = constraint.local_properties.yield_binding_constraint_properties()
 
         current_ini_content = self.ini_file.ini_dict_binding_constraints or {}
-        if any(values.get("name") == name for values in current_ini_content.values()):
+        if any(values.get("id") == constraint.id for values in current_ini_content.values()):
             raise BindingConstraintCreationError(
                 constraint_name=name, message=f"A binding constraint with the name {name} already exists."
             )
@@ -158,10 +158,14 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             list[ConstraintTerm]: The updated list of terms.
         """
 
-        new_terms = {
-            **constraint.local_properties.terms,
-            **{term.id: term for term in terms if term.id not in constraint.get_terms()},
-        }
+        new_terms = constraint.local_properties.terms.copy()
+
+        for term in terms:
+            if term.id in constraint.get_terms():
+                raise BindingConstraintCreationError(
+                    constraint_name=constraint.name, message=f"Duplicate term found: {term.id}"
+                )
+            new_terms[term.id] = term
 
         constraint.local_properties.terms = new_terms
 
