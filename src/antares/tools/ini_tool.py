@@ -91,6 +91,19 @@ class IniFile:
         self._ini_contents.read_dict(new_ini_dict)
 
     @property
+    def ini_dict_binding_constraints(self) -> dict[str, dict[str, str]]:
+        return {section: dict(self._ini_contents[section]) for section in self._ini_contents.sections()}
+
+    @ini_dict_binding_constraints.setter
+    def ini_dict_binding_constraints(self, new_ini_dict: dict[str, dict[str, str]]) -> None:
+        """Set INI file contents for binding constraints."""
+        self._ini_contents = CustomRawConfigParser()
+        for index, values in enumerate(new_ini_dict.values()):
+            self._ini_contents.add_section(str(index))
+            for key, value in values.items():
+                self._ini_contents.set(str(index), key, value)
+
+    @property
     def parsed_ini(self) -> CustomRawConfigParser:
         """Ini contents as a CustomRawConfigParser"""
         return self._ini_contents

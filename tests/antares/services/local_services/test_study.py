@@ -2071,7 +2071,7 @@ class TestCreateBindingconstraint:
         # Then
         with pytest.raises(
             BindingConstraintCreationError,
-            match=f"Could not create the binding constraint {binding_constraint_name}: A binding constraint with the name '{binding_constraint_name}' already exists.",
+            match=f"Could not create the binding constraint {binding_constraint_name}: A binding constraint with the name {binding_constraint_name} already exists.",
         ):
             local_study_with_constraint.create_binding_constraint(name=binding_constraint_name)
 
