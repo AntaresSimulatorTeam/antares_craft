@@ -16,6 +16,8 @@ from configparser import DuplicateSectionError
 from types import MappingProxyType
 from typing import Any, Dict, Optional
 
+import pandas as pd
+
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import LinkCreationError
 from antares.model.area import Area
@@ -23,6 +25,8 @@ from antares.model.link import Link, LinkProperties, LinkPropertiesLocal, LinkUi
 from antares.service.base_services import BaseLinkService
 from antares.tools.contents_tool import sort_ini_sections
 from antares.tools.custom_raw_config_parser import CustomRawConfigParser
+from antares.tools.matrix_tool import read_timeseries
+from antares.tools.time_series_tool import TimeSeriesFileType
 
 
 class LinkLocalService(BaseLinkService):
@@ -133,3 +137,38 @@ class LinkLocalService(BaseLinkService):
             "filter-year-by-year",
         ]
         return dict(sorted(ini_dict.items(), key=lambda item: dict_order.index(item[0])))
+
+
+    def get_capacity_direct(
+        self,
+        area_id: str,
+        second_area_id: str,
+    ) -> pd.DataFrame:
+        return read_timeseries(TimeSeriesFileType.LINKS_CAPACITIES_DIRECT, self.config.study_path, area_id=area_id, second_area_id=second_area_id)
+
+
+    def get_capacity_indirect(
+        self,
+        area_id: str,
+        second_area_id: str,
+    ) -> pd.DataFrame:
+        return read_timeseries(TimeSeriesFileType.LINKS_CAPACITIES_INDIRECT, self.config.study_path, area_id=area_id, second_area_id=second_area_id)
+
+
+    def get_parameters(
+        self,
+        area_id: str,
+        second_area_id: str,
+    ) -> pd.DataFrame:
+        return read_timeseries(TimeSeriesFileType.LINKS_PARAMETERS, self.config.study_path, area_id=area_id, second_area_id=second_area_id)
+
+
+    def read_links(self) -> list[Link]:
+        link_path = self.config.study_path / "input" / "links" 
+        link_clusters = []
+        for element in link_path.iterdir():
+            area_from = element.name
+            for content_area in element.iterdir():
+                if content_area.is_file() and content_area.suffix == ".txt" and content_area.stem.endswith("parameters"):
+                    link_clusters.append(Link(area_from=area_from,area_to=content_area.name.replace("_parameters.txt", ""), link_service=self))
+        return link_clusters

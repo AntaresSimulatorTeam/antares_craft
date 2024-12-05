@@ -360,6 +360,10 @@ class BaseLinkService(ABC):
         """
         pass
 
+    @abstractmethod
+    def read_links(self) -> List[Link]:
+        pass
+
 
 class BaseThermalService(ABC):
     @abstractmethod

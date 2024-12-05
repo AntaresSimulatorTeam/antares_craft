@@ -31,12 +31,16 @@ class TimeSeriesFileType(Enum):
     BINDING_CONSTRAINT_EQUAL = "input/bindingconstraints/{constraint_id}_eq.txt"
     BINDING_CONSTRAINT_GREATER = "input/bindingconstraints/{constraint_id}_gt.txt"
     BINDING_CONSTRAINT_LESS = "input/bindingconstraints/{constraint_id}_lt.txt"
+    LINKS_CAPACITIES_DIRECT = "input/links/{area_id}/capacities/{second_area_id}_direct.txt"
+    LINKS_CAPACITIES_INDIRECT = "input/links/{area_id}/capacities/{second_area_id}_indirect.txt"
+    LINKS_PARAMETERS = "input/links/{area_id}/{second_area_id}_parameters.txt"
     LOAD = "input/load/series/load_{area_id}.txt"
     LOAD_CONVERSION = "input/load/prepro/{area_id}/conversion.txt"
     LOAD_DATA = "input/load/prepro/{area_id}/data.txt"
     LOAD_K = "input/load/prepro/{area_id}/k.txt"
     LOAD_TRANSLATION = "input/load/prepro/{area_id}/translation.txt"
     MISC_GEN = "input/misc-gen/miscgen-{area_id}.txt"
+    RENEWABLE_DATA_SERIES = "input/renewables/series/{area_id}/{cluster_id}/series.txt"
     RESERVES = "input/reserves/{area_id}.txt"
     SOLAR = "input/solar/series/solar_{area_id}.txt"
     SOLAR_CONVERSION = "input/solar/prepro/{area_id}/conversion.txt"
@@ -48,7 +52,6 @@ class TimeSeriesFileType(Enum):
     WIND_DATA = "input/wind/prepro/{area_id}/data.txt"
     WIND_K = "input/wind/prepro/{area_id}/k.txt"
     WIND_TRANSLATION = "input/wind/prepro/{area_id}/translation.txt"
-    RENEWABLE_DATA_SERIES = "input/renewables/series/{area_id}/{cluster_id}/series.txt"
 
 
 class TimeSeries:
