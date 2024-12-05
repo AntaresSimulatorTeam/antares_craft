@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 from typing import Optional
 
-from antares import create_study_api
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
 from antares.exceptions.exceptions import (
@@ -110,7 +109,7 @@ class StudyApiService(BaseStudyService):
     def create_variant(self, variant_name: str) -> str:
         url = f"{self._base_url}/studies/{self.study_id}/variants?name={variant_name}"
         try :
-            variant_id = self._wrapper.post(url)
-            return variant_id
+            response = self._wrapper.post(url)
+            return response.text
         except APIError as e:
             raise StudyVariantCreationError(self.study_id, e.message) from e

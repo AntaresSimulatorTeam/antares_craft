@@ -187,6 +187,13 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     return study
 
 def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) -> "Study":
+    """
+    Creates a variant from a study_id
+    Args:
+        api_config: API configuration
+        study_id: The id of the study to create a variant of
+        variant_name: the name of the new variant
+    """
     factory = ServiceFactory(api_config, study_id)
     api_service = factory.create_study_service()
     variant_id = api_service.create_variant(variant_name)
@@ -309,6 +316,12 @@ class Study:
         self._study_service.delete(children)
 
     def create_variant(self, variant_name: str) -> "Study":
+        """
+        Creates a new variant for the study
+
+        Args:
+            variant_name: the name of the new variant
+        """
         variant_id = self._study_service.create_variant(variant_name)
         config = self._study_service.config
         variant = read_study_api(config, variant_id)
