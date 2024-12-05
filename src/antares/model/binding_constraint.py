@@ -91,9 +91,6 @@ class ConstraintTerm(TermOperators):
             return "%".join(sorted((data.area1.lower(), data.area2.lower())))
         return ".".join((data.area.lower(), data.cluster.lower()))
 
-    def serialize_term_data(self) -> Optional[str]:
-        return self.weight_offset()
-
 
 class DefaultBindingConstraintProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     """Default properties for binding constraints

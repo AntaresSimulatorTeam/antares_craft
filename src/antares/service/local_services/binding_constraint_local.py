@@ -123,7 +123,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         if existing_section:
             existing_terms = current_ini_content[existing_section]
 
-            serialized_terms = {term.id: term.serialize_term_data() for term in terms} if terms else {}
+            serialized_terms = {term.id: term.weight_offset() for term in terms} if terms else {}
 
             existing_terms.update(serialized_terms)  # type: ignore
             current_ini_content[existing_section] = existing_terms
