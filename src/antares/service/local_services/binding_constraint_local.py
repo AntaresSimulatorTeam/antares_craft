@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -22,32 +22,13 @@ from antares.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
     BindingConstraintPropertiesLocal,
-    ClusterData,
     ConstraintMatrixName,
     ConstraintTerm,
-    LinkData,
 )
 from antares.service.base_services import BaseBindingConstraintService
 from antares.tools.ini_tool import IniFile, IniFileTypes
 from antares.tools.matrix_tool import df_save
 from antares.tools.time_series_tool import TimeSeriesFileType
-
-
-def serialize_term_data(
-    data: Union[LinkData, ClusterData], offset: Optional[int], weight: Optional[float]
-) -> Union[str, None]:
-    """
-    Serializes the term data to be correctly written in INI.
-    """
-    if isinstance(data, LinkData):
-        if offset is not None:
-            return f"0.000000%{offset}"
-        if weight is not None:
-            return f"{weight}"
-        if weight is None:
-            return "0"
-    else:
-        return None
 
 
 class BindingConstraintLocalService(BaseBindingConstraintService):
@@ -142,27 +123,15 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         if existing_section:
             existing_terms = current_ini_content[existing_section]
 
-            serialized_terms = (
-                {term.id: serialize_term_data(term.data, term.offset, term.weight) for term in terms} if terms else {}
-            )
+            serialized_terms = {term.id: term.serialize_term_data() for term in terms} if terms else {}
 
             existing_terms.update(serialized_terms)  # type: ignore
             current_ini_content[existing_section] = existing_terms
 
             # Persist the updated INI content
-            self.ini_file.ini_dict_binding_constraints = current_ini_content
             self.ini_file.write_ini_file()
         else:
-            terms_dict = (
-                {
-                    term.id: ConstraintTerm(data=term.data, offset=term.offset, weight=term.weight)
-                    if isinstance(term.data, (LinkData, ClusterData))
-                    else term
-                    for term in terms
-                }
-                if terms
-                else {}
-            )
+            terms_dict = {term.id: term for term in terms} if terms else {}
 
             full_properties = BindingConstraintPropertiesLocal(
                 constraint_name=constraint_name,
@@ -205,7 +174,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             terms=terms_values,
         )
 
-        return list(new_terms.values())
+        return terms_values
 
     def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
         raise NotImplementedError

@@ -91,6 +91,19 @@ class ConstraintTerm(TermOperators):
             return "%".join(sorted((data.area1.lower(), data.area2.lower())))
         return ".".join((data.area.lower(), data.cluster.lower()))
 
+    def serialize_term_data(self) -> Optional[str]:
+        """
+        Serializes the term data to be correctly written in INI.
+        """
+        if isinstance(self.data, LinkData):
+            if self.offset is not None:
+                return f"0.000000%{self.offset}"
+            if self.weight is not None:
+                return f"{self.weight}"
+            return "0"
+
+        return None
+
 
 class DefaultBindingConstraintProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     """Default properties for binding constraints
