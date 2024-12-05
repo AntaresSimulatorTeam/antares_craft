@@ -22,7 +22,8 @@ from antares.exceptions.exceptions import (
     BindingConstraintCreationError,
     LinkCreationError,
     StudyCreationError,
-    StudySettingsUpdateError, StudyVariantCreationError,
+    StudySettingsUpdateError,
+    StudyVariantCreationError,
 )
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties
@@ -30,7 +31,7 @@ from antares.model.hydro import HydroProperties
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings.general import GeneralParameters
 from antares.model.settings.study_settings import StudySettings
-from antares.model.study import Study, create_study_api, read_study_api, create_variant_api
+from antares.model.study import Study, create_study_api, create_variant_api, read_study_api
 from antares.service.service_factory import ServiceFactory
 
 
@@ -273,7 +274,6 @@ class TestCreateAPI:
             assert isinstance(variant, Study)
             assert variant.name == variant_name
             assert variant.service.study_id == variant_id
-
 
     def test_create_variant_api_success(self):
         variant_name = "variant_test"

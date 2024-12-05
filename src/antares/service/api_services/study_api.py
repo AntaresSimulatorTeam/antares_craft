@@ -18,6 +18,7 @@ from antares.exceptions.exceptions import (
     BindingConstraintDeletionError,
     StudyDeletionError,
     StudySettingsUpdateError,
+    StudyVariantCreationError,
 )
 from antares.model.binding_constraint import BindingConstraint
 from antares.model.settings.adequacy_patch import AdequacyPatchParameters
@@ -29,7 +30,6 @@ from antares.model.settings.study_settings import StudySettings
 from antares.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.model.settings.time_series import TimeSeriesParameters
 from antares.service.base_services import BaseStudyService
-from antares.exceptions.exceptions import StudyVariantCreationError
 
 
 def _returns_study_settings(
@@ -108,7 +108,7 @@ class StudyApiService(BaseStudyService):
 
     def create_variant(self, variant_name: str) -> str:
         url = f"{self._base_url}/studies/{self.study_id}/variants?name={variant_name}"
-        try :
+        try:
             response = self._wrapper.post(url)
             return response.text
         except APIError as e:
