@@ -200,3 +200,9 @@ class TestLocalClient:
         properties = renewable_onshore.properties
         assert not properties.enabled
         assert properties.group == RenewableClusterGroup.WIND_ON_SHORE
+
+        # test short term storage creation with default values
+        st_storage_name = "cluster_test"
+        storage_fr = fr.create_st_storage(st_storage_name)
+        assert storage_fr.name == st_storage_name
+        assert storage_fr.id == "cluster_test"
