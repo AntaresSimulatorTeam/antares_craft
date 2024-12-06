@@ -21,6 +21,7 @@ from antares.exceptions.exceptions import AreaCreationError, InvalidNameError, L
 from antares.model.area import AdequacyPatchMode, Area, AreaProperties, AreaUi
 from antares.model.commons import FilterOption
 from antares.model.link import Link, LinkProperties, LinkUi
+from antares.model.renewable import RenewableClusterGroup, RenewableClusterProperties
 from antares.model.study import Study
 from antares.model.thermal import ThermalCluster, ThermalClusterGroup, ThermalClusterProperties
 from antares.tools.ini_tool import IniFile, IniFileTypes
@@ -184,3 +185,18 @@ class TestLocalClient:
         properties = thermal_be.properties
         assert properties.efficiency == 55
         assert properties.group == ThermalClusterGroup.GAS
+
+        # test renewable cluster creation with default values
+        renewable_name = "cluster_test"
+        renewable_fr = fr.create_renewable_cluster(renewable_name, None, None)
+        assert renewable_fr.name == renewable_name
+        assert renewable_fr.id == "cluster_test"
+
+        # test renewable cluster creation with properties
+        renewable_name = "wind_onshore"
+        renewable_properties = RenewableClusterProperties(enabled=False)
+        renewable_properties.group = RenewableClusterGroup.WIND_ON_SHORE
+        renewable_onshore = fr.create_renewable_cluster(renewable_name, renewable_properties, None)
+        properties = renewable_onshore.properties
+        assert not properties.enabled
+        assert properties.group == RenewableClusterGroup.WIND_ON_SHORE
