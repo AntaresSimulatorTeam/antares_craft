@@ -51,13 +51,13 @@ class TestLocalClient:
             test_study.create_area("fr")
 
         # Link
-        at_fr = test_study.create_link(area_from=fr, area_to=at)
+        at_fr = test_study.create_link(area_from=fr.id, area_to=at.id)
 
         assert isinstance(at_fr, Link)
 
         ## Cannot link areas that don't exist in the study
         with pytest.raises(LinkCreationError, match="Could not create the link fr / usa: usa does not exist."):
-            test_study.create_link(area_from=fr, area_to=other_area)
+            test_study.create_link(area_from=fr.id, area_to=other_area.id)
 
         # Thermal
         fr_nuclear = fr.create_thermal_cluster("nuclear")
@@ -141,16 +141,16 @@ class TestLocalClient:
         assert area_de.properties.filter_synthesis == {FilterOption.HOURLY, FilterOption.DAILY}
 
         # tests link creation with default values
-        link_de_fr = test_study.create_link(area_from=area_de, area_to=fr)
-        assert link_de_fr.area_from == area_de
-        assert link_de_fr.area_to == fr
+        link_de_fr = test_study.create_link(area_from=area_de.id, area_to=fr.id)
+        assert link_de_fr.area_from == area_de.id
+        assert link_de_fr.area_to == fr.id
         assert link_de_fr.name == f"{area_de.id} / {fr.id}"
 
         # tests link creation with ui and properties
         link_ui = LinkUi(colorr=44)
         link_properties = LinkProperties(hurdles_cost=True)
         link_properties.filter_year_by_year = [FilterOption.HOURLY]
-        link_be_fr = test_study.create_link(area_from=area_be, area_to=fr, ui=link_ui, properties=link_properties)
+        link_be_fr = test_study.create_link(area_from=area_be.id, area_to=fr.id, ui=link_ui, properties=link_properties)
         assert link_be_fr.ui.colorr == 44
         assert link_be_fr.properties.hurdles_cost
         assert link_be_fr.properties.filter_year_by_year == {FilterOption.HOURLY}
