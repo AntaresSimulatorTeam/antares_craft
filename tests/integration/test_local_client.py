@@ -22,7 +22,7 @@ from antares.model.area import AdequacyPatchMode, Area, AreaProperties, AreaUi
 from antares.model.commons import FilterOption
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.study import Study
-from antares.model.thermal import ThermalCluster
+from antares.model.thermal import ThermalCluster, ThermalClusterGroup, ThermalClusterProperties
 from antares.tools.ini_tool import IniFile, IniFileTypes
 from antares.tools.time_series_tool import TimeSeriesFileType
 
@@ -165,3 +165,22 @@ class TestLocalClient:
         # asserts study contains all links and areas
         assert test_study.get_areas() == {at.id: at, area_be.id: area_be, fr.id: fr, area_de.id: area_de}
         assert test_study.get_links() == {at_fr.name: at_fr, link_be_fr.name: link_be_fr, link_de_fr.name: link_de_fr}
+
+        # test thermal cluster creation with default values
+        thermal_name = "Cluster_test %?"
+        with pytest.raises(InvalidNameError):
+            fr.create_thermal_cluster(thermal_name)
+
+        thermal_name = "Cluster_test"
+        thermal_fr = fr.create_thermal_cluster(thermal_name)
+
+        assert thermal_fr.id == "cluster_test"
+
+        # test thermal cluster creation with properties
+        thermal_name = "gaz_be"
+        thermal_properties = ThermalClusterProperties(efficiency=55)
+        thermal_properties.group = ThermalClusterGroup.GAS
+        thermal_be = area_be.create_thermal_cluster(thermal_name, thermal_properties)
+        properties = thermal_be.properties
+        assert properties.efficiency == 55
+        assert properties.group == ThermalClusterGroup.GAS
