@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from unittest.mock import Mock
 
 import pytest
 import requests_mock
@@ -134,27 +134,48 @@ class TestCreateAPI:
             base_url = f"https://antares.com/api/v1/studies/{self.study_id}"
             url = f"{base_url}/links"
             mocker.post(url, status_code=200)
-            area = "area"
-            area_to = "area_to"
+            self.study._areas["area"] = Area(
+                "area",
+                self.study._area_service,
+                Mock(),
+                Mock(),
+                Mock(),
+            )
+            self.study._areas["area_to"] = Area(
+                "area_to",
+                self.study._area_service,
+                Mock(),
+                Mock(),
+                Mock(),
+            )
 
-            raw_url = f"{base_url}/raw?path=input/links/{area}/properties/{area_to}"
+            raw_url = f"{base_url}/raw?path=input/links/area/properties/area_to"
             json_response = {**LinkProperties().model_dump(by_alias=True), **LinkUi().model_dump(by_alias=True)}
             mocker.get(raw_url, json=json_response, status_code=200)
-            link = self.study.create_link(area_from=area, area_to=area_to)
+            link = self.study.create_link(area_from="area", area_to="area_to")
             assert isinstance(link, Link)
 
     def test_create_link_fails(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
-            area_from = "area_from"
-            area_to = "area_to"
+
+            self.study._areas["area_from"] = Area(
+                "area_from",
+                Mock(),
+                Mock(),
+                Mock(),
+                Mock(),
+            )
+            area_to = "area_final"
+
 
             with pytest.raises(
-                LinkCreationError,
-                match=f"Could not create the link {area_from} / {area_to}: {self.antares_web_description_msg}",
+                    LinkCreationError,
+                    match=f"Could not create the link area_from / {area_to}: {area_to} does not exist.",
             ):
-                self.study.create_link(area_from=area_from, area_to=area_to)
+
+                self.study.create_link(area_from="area_from", area_to=area_to)
 
     def test_create_binding_constraint_success(self):
         with requests_mock.Mocker() as mocker:

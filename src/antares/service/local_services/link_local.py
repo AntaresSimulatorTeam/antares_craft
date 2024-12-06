@@ -37,7 +37,6 @@ class LinkLocalService(BaseLinkService):
         area_to: str,
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
-        existing_areas: Optional[MappingProxyType[str, Area]] = None,
     ) -> Link:
         """
         Args:
@@ -54,13 +53,6 @@ class LinkLocalService(BaseLinkService):
             LinkCreationError if an area doesn't exist or existing areas have not been provided
         """
         areas = dict(sorted({area_from: area_from, area_to: area_to}.items()))
-
-        if existing_areas is not None:
-            for area in areas.keys():
-                if area not in existing_areas:
-                    raise LinkCreationError(area_from, area_to, f"{area} does not exist.")
-        else:
-            raise LinkCreationError(area_from, area_to, "Cannot verify existing areas.")
 
         area_from, area_to = areas.values()
 

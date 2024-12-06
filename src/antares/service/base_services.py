@@ -322,7 +322,6 @@ class BaseLinkService(ABC):
         area_to: str,
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
-        existing_areas: Optional[MappingProxyType[str, Area]] = None,
     ) -> Link:
         """
         Args:
