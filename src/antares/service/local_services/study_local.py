@@ -10,12 +10,15 @@
 #
 # This file is part of the Antares project.
 
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.binding_constraint import BindingConstraint
 from antares.model.settings.study_settings import StudySettings
 from antares.service.base_services import BaseStudyService
+
+if TYPE_CHECKING:
+    from antares.model.study import Study
 
 
 class StudyLocalService(BaseStudyService):
@@ -41,5 +44,5 @@ class StudyLocalService(BaseStudyService):
     def delete(self, children: bool) -> None:
         raise NotImplementedError
 
-    def create_variant(self, variant_name: str) -> str:
+    def create_variant(self, variant_name: str) -> "Study":
         raise NotImplementedError

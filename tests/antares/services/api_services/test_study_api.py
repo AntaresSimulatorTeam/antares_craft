@@ -258,7 +258,7 @@ class TestCreateAPI:
             base_url = "https://antares.com/api/v1"
             url = f"{base_url}/studies/{self.study_id}/variants?name={variant_name}"
             variant_id = "variant_id"
-            mocker.post(url, text=variant_id, status_code=201)
+            mocker.post(url, json=variant_id, status_code=201)
 
             variant_url = f"{base_url}/studies/{variant_id}"
             mocker.get(variant_url, json={"id": variant_id, "name": variant_name, "version": "880"}, status_code=200)
@@ -270,33 +270,14 @@ class TestCreateAPI:
             mocker.get(areas_url, json={}, status_code=200)
 
             variant = self.study.create_variant(variant_name)
+            variant_from_api = create_variant_api(self.api, self.study_id, variant_name)
 
             assert isinstance(variant, Study)
+            assert isinstance(variant_from_api, Study)
             assert variant.name == variant_name
+            assert variant_from_api.name == variant_name
             assert variant.service.study_id == variant_id
-
-    def test_create_variant_api_success(self):
-        variant_name = "variant_test"
-        with requests_mock.Mocker() as mocker:
-            base_url = "https://antares.com/api/v1"
-            url = f"{base_url}/studies/{self.study_id}/variants?name={variant_name}"
-            variant_id = "variant_id"
-            mocker.post(url, text=variant_id, status_code=201)
-
-            variant_url = f"{base_url}/studies/{variant_id}"
-            mocker.get(variant_url, json={"id": variant_id, "name": variant_name, "version": "880"}, status_code=200)
-
-            config_urls = re.compile(f"{base_url}/studies/{variant_id}/config/.*")
-            mocker.get(config_urls, json={}, status_code=200)
-
-            areas_url = f"{base_url}/studies/{variant_id}/areas?ui=true"
-            mocker.get(areas_url, json={}, status_code=200)
-
-            variant = create_variant_api(self.api, self.study_id, variant_name)
-
-            assert isinstance(variant, Study)
-            assert variant.name == variant_name
-            assert variant.service.study_id == variant_id
+            assert variant_from_api.service.study_id == variant_id
 
     def test_create_variant_fails(self):
         variant_name = "variant_test"
@@ -309,12 +290,5 @@ class TestCreateAPI:
             with pytest.raises(StudyVariantCreationError, match=error_message):
                 self.study.create_variant(variant_name)
 
-    def test_create_variant_api_fails(self):
-        variant_name = "variant_test"
-        with requests_mock.Mocker() as mocker:
-            base_url = "https://antares.com/api/v1"
-            url = f"{base_url}/studies/{self.study_id}/variants?name={variant_name}"
-            error_message = "Variant creation failed"
-            mocker.post(url, json={"description": error_message}, status_code=404)
             with pytest.raises(StudyVariantCreationError, match=error_message):
                 create_variant_api(self.api, self.study_id, variant_name)

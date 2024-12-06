@@ -462,3 +462,17 @@ class TestWebClient:
         empty_settings = StudySettings()
         new_study.update_settings(empty_settings)
         assert old_settings == new_study.get_settings()
+
+    def test_create_variant(self, antares_web: AntaresWebDesktop):
+        api_config = APIconf(api_host=antares_web.url, token="", verify=False)
+        study = create_study_api("antares-craft-test", "880", api_config)
+
+        variant_name = "variant_test"
+        variant = study.create_variant(variant_name)
+
+        assert variant.name == variant_name
+        assert variant.service.study_id != study.service.study_id
+        assert variant.get_settings() == study.get_settings()
+        assert list(variant.get_areas().keys()) == list(study.get_areas().keys())
+        assert list(variant.get_links().keys()) == list(study.get_links().keys())
+        assert list(variant.get_binding_constraints().keys()) == list(study.get_binding_constraints().keys())

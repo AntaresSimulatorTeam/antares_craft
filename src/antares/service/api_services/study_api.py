@@ -9,7 +9,9 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
+import antares.model.study as study
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
@@ -30,6 +32,9 @@ from antares.model.settings.study_settings import StudySettings
 from antares.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.model.settings.time_series import TimeSeriesParameters
 from antares.service.base_services import BaseStudyService
+
+if TYPE_CHECKING:
+    from antares.model.study import Study
 
 
 def _returns_study_settings(
@@ -106,10 +111,11 @@ class StudyApiService(BaseStudyService):
         except APIError as e:
             raise StudyDeletionError(self.study_id, e.message) from e
 
-    def create_variant(self, variant_name: str) -> str:
+    def create_variant(self, variant_name: str) -> "Study":
         url = f"{self._base_url}/studies/{self.study_id}/variants?name={variant_name}"
         try:
             response = self._wrapper.post(url)
-            return response.text
+            variant_id = response.json()
+            return study.read_study_api(self.config, variant_id)
         except APIError as e:
             raise StudyVariantCreationError(self.study_id, e.message) from e

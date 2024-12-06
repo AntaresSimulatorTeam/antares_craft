@@ -66,7 +66,6 @@ def create_study_api(
         url = f"{base_url}/studies?name={study_name}&version={version}"
         response = wrapper.post(url)
         study_id = response.json()
-
         study_settings = _returns_study_settings(base_url, study_id, wrapper, False, settings)
 
     except APIError as e:
@@ -199,10 +198,8 @@ def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) ->
     """
     factory = ServiceFactory(api_config, study_id)
     api_service = factory.create_study_service()
-    variant_id = api_service.create_variant(variant_name)
-    variant = read_study_api(api_config, variant_id)
 
-    return variant
+    return api_service.create_variant(variant_name)
 
 
 class Study:
@@ -327,15 +324,7 @@ class Study:
             variant_name: the name of the new variant
         Returns: The variant in the form of a Study object
         """
-        variant_id = self._study_service.create_variant(variant_name)
-        config = self._study_service.config
-
-        if isinstance(config, APIconf):
-            variant = read_study_api(config, variant_id)
-        else:
-            raise TypeError("Expected config to be of type APIconf")
-
-        return variant
+        return self._study_service.create_variant(variant_name)
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:
