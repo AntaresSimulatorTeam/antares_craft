@@ -137,8 +137,7 @@ class Link:
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
     ):
-        self._area_from = area_from
-        self._area_to = area_to
+        self._area_from, self._area_to = sorted([area_from, area_to])
         self._link_service = link_service
         self._properties = properties or LinkProperties()
         self._ui = ui or LinkUi()
