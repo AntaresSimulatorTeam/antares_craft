@@ -29,7 +29,7 @@ from antares.exceptions.exceptions import (
     CustomError,
     LinkCreationError,
 )
-from antares.model.area import Area, AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
+from antares.model.area import AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
 from antares.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintFrequency,
@@ -83,11 +83,7 @@ from antares.model.settings.playlist_parameters import PlaylistData, PlaylistPar
 from antares.model.settings.study_settings import DefaultStudySettings, StudySettingsLocal
 from antares.model.settings.thematic_trimming import DefaultThematicTrimmingParameters, ThematicTrimmingParametersLocal
 from antares.model.study import create_study_local
-from antares.service.local_services.area_local import AreaLocalService
 from antares.service.local_services.link_local import LinkLocalService
-from antares.service.local_services.renewable_local import RenewableLocalService
-from antares.service.local_services.st_storage_local import ShortTermStorageLocalService
-from antares.service.local_services.thermal_local import ThermalLocalService
 from antares.tools.ini_tool import IniFileTypes
 
 
@@ -1624,8 +1620,8 @@ class TestCreateLink:
         # When
         area_from, area_to = link_to_create.split("_")
         link_created = local_study_w_areas.create_link(
-            area_from=local_study_w_areas.get_areas()[area_from],
-            area_to=local_study_w_areas.get_areas()[area_to],
+            area_from=area_from,
+            area_to=area_to,
             existing_areas=local_study_w_areas.get_areas(),
         )
 
@@ -1634,23 +1630,15 @@ class TestCreateLink:
     def test_unknown_area_errors(self, tmp_path, local_study_w_areas):
         # Given
         link_to_create = "es_fr"
-        fake_study_name = "nonExistantStudy"
-        fake_config = LocalConfiguration(Path("/fake/path"), fake_study_name)
 
         # When
         area_from, area_to = link_to_create.split("_")
-        area_from = Area(
-            name=area_from,
-            area_service=AreaLocalService(fake_config, fake_study_name),
-            storage_service=ShortTermStorageLocalService(fake_config, fake_study_name),
-            thermal_service=ThermalLocalService(fake_config, fake_study_name),
-            renewable_service=RenewableLocalService(fake_config, fake_study_name),
-        )
-        area_to = local_study_w_areas.get_areas()[area_to]
+        area_from = area_from
+        area_to = area_to
 
         with pytest.raises(
             LinkCreationError,
-            match=f"Could not create the link {area_from.name} / {area_to.name}: {area_from.name} does not exist",
+            match=f"Could not create the link {area_from} / {area_to}: {area_from} does not exist",
         ):
             local_study_w_areas.create_link(
                 area_from=area_from, area_to=area_to, existing_areas=local_study_w_areas.get_areas()
@@ -1658,8 +1646,8 @@ class TestCreateLink:
 
     def test_study_areas_not_provided_errors(self, tmp_path, local_study_w_areas):
         # With
-        area_from = local_study_w_areas.get_areas()["fr"]
-        area_to = local_study_w_areas.get_areas()["it"]
+        area_from = "fr"
+        area_to = "it"
         test_service = LinkLocalService(
             local_study_w_areas.service.config,
             local_study_w_areas.name,
@@ -1667,7 +1655,7 @@ class TestCreateLink:
 
         with pytest.raises(
             LinkCreationError,
-            match=f"Could not create the link {area_from.name} / {area_to.name}: Cannot verify existing areas.",
+            match=f"Could not create the link {area_from} / {area_to}: Cannot verify existing areas.",
         ):
             test_service.create_link(
                 area_from=area_from,
@@ -1685,13 +1673,13 @@ class TestCreateLink:
         # When
         area_from, area_to = link_to_create.split("_")
         link_created = local_study.create_link(
-            area_from=local_study.get_areas()[area_from],
-            area_to=local_study.get_areas()[area_to],
+            area_from=area_from,
+            area_to=area_to,
             existing_areas=local_study.get_areas(),
         )
 
-        assert link_created.area_from.name == "at"
-        assert link_created.area_to.name == "fr"
+        assert link_created.area_from == "at"
+        assert link_created.area_to == "fr"
 
     def test_create_link_sets_ini_content(self, tmp_path, local_study_w_areas):
         # Given
@@ -1717,8 +1705,8 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         area_from, area_to = link_to_create.split("_")
 
         local_study_w_areas.create_link(
-            area_from=local_study_w_areas.get_areas()[area_from],
-            area_to=local_study_w_areas.get_areas()[area_to],
+            area_from="fr",
+            area_to="it",
             existing_areas=local_study_w_areas.get_areas(),
         )
 
@@ -1754,8 +1742,8 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         # When
         area_from, area_to = link_to_create.split("_")
         created_link = local_study_w_areas.create_link(
-            area_from=local_study_w_areas.get_areas()[area_from],
-            area_to=local_study_w_areas.get_areas()[area_to],
+            area_from="fr",
+            area_to="it",
             existing_areas=local_study_w_areas.get_areas(),
         )
         ini_file = tmp_path / local_study_w_areas.name / "input/links" / area_from / "properties.ini"
@@ -1802,8 +1790,8 @@ filter-year-by-year = daily, weekly
         # When
         area_from, area_to = link_to_create.split("_")
         link_created = local_study_w_areas.create_link(
-            area_from=local_study_w_areas.get_areas()[area_from],
-            area_to=local_study_w_areas.get_areas()[area_to],
+            area_from="fr",
+            area_to="it",
             properties=link_properties,
             existing_areas=local_study_w_areas.get_areas(),
         )
@@ -1863,8 +1851,8 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         for link in links_to_create:
             area_from, area_to = link.split("_")
             local_study_w_areas.create_link(
-                area_from=local_study_w_areas.get_areas()[area_from],
-                area_to=local_study_w_areas.get_areas()[area_to],
+                area_from=area_from,
+                area_to=area_to,
                 existing_areas=local_study_w_areas.get_areas(),
             )
 
@@ -1924,8 +1912,8 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         for link in links_to_create:
             area_from, area_to = link.split("_")
             local_study_w_areas.create_link(
-                area_from=local_study_w_areas.get_areas()[area_from],
-                area_to=local_study_w_areas.get_areas()[area_to],
+                area_from=area_from,
+                area_to=area_to,
                 existing_areas=local_study_w_areas.get_areas(),
             )
 
@@ -1952,8 +1940,8 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
             match=f"Could not create the link {area_from} / {area_to}: Link exists already between '{area_from}' and '{area_to}'.",
         ):
             local_study_w_links.create_link(
-                area_from=local_study_w_links.get_areas()[area_from],
-                area_to=local_study_w_links.get_areas()[area_to],
+                area_from=area_from,
+                area_to=area_to,
                 existing_areas=local_study_w_links.get_areas(),
             )
 
@@ -1984,8 +1972,8 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         # When
         area_from, area_to = link_to_create.split(" / ")
         local_study_w_areas.create_link(
-            area_from=local_study_w_areas.get_areas()[area_from],
-            area_to=local_study_w_areas.get_areas()[area_to],
+            area_from=area_from,
+            area_to=area_to,
             existing_areas=local_study_w_areas.get_areas(),
         )
         with open(actual_ini_file, "r") as file:
@@ -2032,8 +2020,8 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         # When
         area_from, area_to = link_to_create.split(" / ")
         created_link = local_study_w_areas.create_link(
-            area_from=local_study_w_areas.get_areas()[area_from],
-            area_to=local_study_w_areas.get_areas()[area_to],
+            area_from=area_from,
+            area_to=area_to,
             properties=expected_properties,
             ui=expected_ui,
             existing_areas=local_study_w_areas.get_areas(),
@@ -2071,7 +2059,7 @@ class TestCreateBindingconstraint:
         # Then
         with pytest.raises(
             BindingConstraintCreationError,
-            match=f"Could not create the binding constraint {binding_constraint_name}: A binding constraint with the name '{binding_constraint_name}' already exists.",
+            match=f"Could not create the binding constraint {binding_constraint_name}: A binding constraint with the name {binding_constraint_name} already exists.",
         ):
             local_study_with_constraint.create_binding_constraint(name=binding_constraint_name)
 

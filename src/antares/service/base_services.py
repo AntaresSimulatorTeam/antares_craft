@@ -12,7 +12,7 @@
 
 from abc import ABC, abstractmethod
 from types import MappingProxyType
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import pandas as pd
 
@@ -30,6 +30,9 @@ from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.settings.study_settings import StudySettings
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
+
+if TYPE_CHECKING:
+    from antares.model.study import Study
 
 
 class BaseAreaService(ABC):
@@ -315,8 +318,8 @@ class BaseLinkService(ABC):
     @abstractmethod
     def create_link(
         self,
-        area_from: Area,
-        area_to: Area,
+        area_from: str,
+        area_to: str,
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
         existing_areas: Optional[MappingProxyType[str, Area]] = None,
@@ -550,6 +553,17 @@ class BaseStudyService(ABC):
     def delete(self, children: bool) -> None:
         """
         Deletes the study and its children if children is True
+        """
+        pass
+
+    @abstractmethod
+    def create_variant(self, variant_name: str) -> "Study":
+        """
+        Creates a new variant for the study
+
+        Args:
+            variant_name: the name of the new variant
+        Returns: the variant
         """
         pass
 

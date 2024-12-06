@@ -32,7 +32,7 @@ class TestCreateAPI:
     )
     area_to = Area(name="area_to", area_service=api, storage_service=api, thermal_service=api, renewable_service=api)
     antares_web_description_msg = "Mocked Server KO"
-    link = Link(area_from, area_to, ServiceFactory(api, study_id).create_link_service())
+    link = Link(area_from.id, area_to.id, ServiceFactory(api, study_id).create_link_service())
 
     def test_update_links_properties_success(self):
         with requests_mock.Mocker() as mocker:
@@ -64,6 +64,7 @@ class TestCreateAPI:
             )
             antares_web_description_msg = "Server KO"
             mocker.get(raw_url, json={"description": antares_web_description_msg}, status_code=404)
+
             with pytest.raises(
                 LinkPropertiesUpdateError,
                 match=f"Could not update properties for link {self.link.name}: {antares_web_description_msg}",
