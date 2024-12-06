@@ -260,8 +260,8 @@ class Study:
     def create_link(
         self,
         *,
-        area_from: Area,
-        area_to: Area,
+        area_from: str,
+        area_to: str,
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
         existing_areas: Optional[MappingProxyType[str, Area]] = None,
