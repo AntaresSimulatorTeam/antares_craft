@@ -13,6 +13,8 @@
 from enum import Enum
 from typing import Mapping, Optional, Set
 
+import pandas as pd
+
 from pydantic import BaseModel
 
 from antares.model.area import Area
@@ -173,5 +175,23 @@ class Link:
         new_ui = self._link_service.update_link_ui(self, ui)
         self._ui = new_ui
         return new_ui
+
+    def get_parameters(self) -> pd.DataFrame:
+        return self._link_service.get_parameters(self._area_to.id, self.area_from.id)
+
+    def create_parameters(self, series: pd.DataFrame) -> None:
+        self._link_service.create_parameters(series)
+
+    def get_capacity_direct(self) -> pd.DataFrame:
+        return self._link_service.get_capacity_direct()
+
+    def create_capacity_direct(self, series: pd.DataFrame) -> None:
+        self._link_service.create_capacity_direct(series)
+
+    def get_capacity_indirect(self) -> pd.DataFrame:
+        return self._link_service.get_capacity_indirect()
+
+    def create_capacity_indirect(self, series: pd.DataFrame) -> None:
+        self._link_service.create_capacity_indirect(series)
 
     # todo: Add matrices

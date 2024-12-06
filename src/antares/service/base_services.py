@@ -360,6 +360,52 @@ class BaseLinkService(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_parameters(self, area_from_id: str, area_to_id: str) -> pd.DataFrame:
+        """
+        Returns: link parameters
+        """
+        pass
+
+    @abstractmethod
+    def create_parameters(self, series: pd.DataFrame) -> None:
+        """
+        Args:
+            area_id:
+            series:
+        """
+        pass
+
+    @abstractmethod
+    def get_capacity_direct(self) -> pd.DataFrame:
+        """
+        Returns: the direct capacity of a link
+        """
+        pass
+
+    @abstractmethod
+    def create_capacity_direct(self, series: pd.DataFrame) -> None:
+        """
+        Args:
+            series:
+        """
+        pass
+
+    @abstractmethod
+    def get_capacity_indirect(self) -> pd.DataFrame:
+        """
+        Returns: the indirect capacity of a link
+        """
+        pass
+
+    @abstractmethod
+    def create_capacity_indirect(self, series: pd.DataFrame) -> None:
+        """
+        Args:
+            series:
+        """
+        pass
+
 
 class BaseThermalService(ABC):
     @abstractmethod

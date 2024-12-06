@@ -13,6 +13,8 @@
 from types import MappingProxyType
 from typing import Optional
 
+import pandas as pd
+
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
 from antares.exceptions.exceptions import (
@@ -163,6 +165,26 @@ class LinkApiService(BaseLinkService):
             raise LinkUiUpdateError(link.name, e.message) from e
 
         return link_ui
+
+    def get_parameters(self, area_from_id: str, area_to_id: str) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def create_parameters(self, series: pd.DataFrame) -> None:
+        # url=f"{self._base_url}/studies/{self.study_id}/raw?input/links/lol/properties"
+
+        raise NotImplementedError
+
+    def get_capacity_direct(self) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def create_capacity_direct(self, series: pd.DataFrame) -> None:
+        raise NotImplementedError
+
+    def get_capacity_indirect(self) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def create_capacity_indirect(self, series: pd.DataFrame) -> None:
+        raise NotImplementedError
 
 
 def _join_filter_values_for_json(json_dict: dict, dict_to_extract: dict) -> dict:
