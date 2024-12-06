@@ -134,22 +134,10 @@ class TestCreateAPI:
             base_url = f"https://antares.com/api/v1/studies/{self.study_id}"
             url = f"{base_url}/links"
             mocker.post(url, status_code=200)
-            area = Area(
-                name="area",
-                area_service=self.api,
-                storage_service=self.api,
-                thermal_service=self.api,
-                renewable_service=self.api,
-            )
-            area_to = Area(
-                name="area_to",
-                area_service=self.api,
-                storage_service=self.api,
-                thermal_service=self.api,
-                renewable_service=self.api,
-            )
+            area = "area"
+            area_to = "area_to"
 
-            raw_url = f"{base_url}/raw?path=input/links/{area.id}/properties/{area_to.id}"
+            raw_url = f"{base_url}/raw?path=input/links/{area}/properties/{area_to}"
             json_response = {**LinkProperties().model_dump(by_alias=True), **LinkUi().model_dump(by_alias=True)}
             mocker.get(raw_url, json=json_response, status_code=200)
             link = self.study.create_link(area_from=area, area_to=area_to)
@@ -159,24 +147,12 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
-            area_from = Area(
-                name="area_from",
-                area_service=self.api,
-                storage_service=self.api,
-                thermal_service=self.api,
-                renewable_service=self.api,
-            )
-            area_to = Area(
-                name="area_to",
-                area_service=self.api,
-                storage_service=self.api,
-                thermal_service=self.api,
-                renewable_service=self.api,
-            )
+            area_from = "area_from"
+            area_to = "area_to"
 
             with pytest.raises(
                 LinkCreationError,
-                match=f"Could not create the link {area_from.id} / {area_to.id}: {self.antares_web_description_msg}",
+                match=f"Could not create the link {area_from} / {area_to}: {self.antares_web_description_msg}",
             ):
                 self.study.create_link(area_from=area_from, area_to=area_to)
 

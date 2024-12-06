@@ -33,8 +33,8 @@ class LinkLocalService(BaseLinkService):
 
     def create_link(
         self,
-        area_from: Area,
-        area_to: Area,
+        area_from: str,
+        area_to: str,
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
         existing_areas: Optional[MappingProxyType[str, Area]] = None,
@@ -53,18 +53,18 @@ class LinkLocalService(BaseLinkService):
         Raises:
             LinkCreationError if an area doesn't exist or existing areas have not been provided
         """
-        areas = dict(sorted({area_from.name: area_from, area_to.name: area_to}.items()))
+        areas = dict(sorted({area_from: area_from, area_to: area_to}.items()))
 
         if existing_areas is not None:
             for area in areas.keys():
                 if area not in existing_areas:
-                    raise LinkCreationError(area_from.name, area_to.name, f"{area} does not exist.")
+                    raise LinkCreationError(area_from, area_to, f"{area} does not exist.")
         else:
-            raise LinkCreationError(area_from.name, area_to.name, "Cannot verify existing areas.")
+            raise LinkCreationError(area_from, area_to, "Cannot verify existing areas.")
 
         area_from, area_to = areas.values()
 
-        link_dir = self.config.study_path / "input/links" / area_from.name
+        link_dir = self.config.study_path / "input/links" / area_from
         os.makedirs(link_dir, exist_ok=True)
 
         local_properties = (
@@ -81,16 +81,16 @@ class LinkLocalService(BaseLinkService):
             with open(properties_ini_file, "r") as ini_file:
                 properties_ini.read_file(ini_file)
         try:
-            properties_ini.add_section(area_to.name)
+            properties_ini.add_section(area_to)
         except DuplicateSectionError:
             raise LinkCreationError(
-                area_from=area_from.name,
-                area_to=area_to.name,
-                message=f"Link exists already between '{area_from.name}' and '{area_to.name}'.",
+                area_from=area_from,
+                area_to=area_to,
+                message=f"Link exists already between '{area_from}' and '{area_to}'.",
             )
         ini_dict = dict(local_properties.ini_fields)
         ini_dict.update(local_ui.ini_fields)
-        properties_ini[area_to.name] = self.sort_link_properties_dict(ini_dict)
+        properties_ini[area_to] = self.sort_link_properties_dict(ini_dict)
 
         properties_ini = sort_ini_sections(properties_ini)
 

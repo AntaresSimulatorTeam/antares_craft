@@ -37,8 +37,8 @@ class LinkApiService(BaseLinkService):
 
     def create_link(
         self,
-        area_from: Area,
-        area_to: Area,
+        area_from: str,
+        area_to: str,
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
         existing_areas: Optional[MappingProxyType[str, Area]] = None,
@@ -60,7 +60,9 @@ class LinkApiService(BaseLinkService):
         """
         base_url = f"{self._base_url}/studies/{self.study_id}"
         # TODO: Currently, AntaresWeb does not have a specific endpoint for links. Once it will, we should change this logic.
-        area1_id, area2_id = sorted([area_from.id, area_to.id])
+
+        area1_id, area2_id = sorted([area_from, area_to])
+
         raw_url = f"{base_url}/raw?path=input/links/{area1_id}/properties/{area2_id}"
 
         try:
@@ -94,13 +96,13 @@ class LinkApiService(BaseLinkService):
             created_properties = LinkProperties.model_validate(json_properties)
 
         except APIError as e:
-            raise LinkCreationError(area_from.id, area_to.id, e.message) from e
+            raise LinkCreationError(area_from, area_to, e.message) from e
 
         return Link(area_from, area_to, self, created_properties, ui)
 
     def delete_link(self, link: Link) -> None:
-        area_from_id = link.area_from.id
-        area_to_id = link.area_to.id
+        area_from_id = link.area_from
+        area_to_id = link.area_to
         url = f"{self._base_url}/studies/{self.study_id}/links/{area_from_id}/{area_to_id}"
         try:
             self._wrapper.delete(url)
@@ -109,7 +111,7 @@ class LinkApiService(BaseLinkService):
 
     def update_link_properties(self, link: Link, properties: LinkProperties) -> LinkProperties:
         # todo: change this code when AntaresWeb will have a real endpoint
-        area1_id, area2_id = sorted([link.area_from.id, link.area_to.id])
+        area1_id, area2_id = sorted([link.area_from, link.area_to])
         raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path=input/links/{area1_id}/properties/{area2_id}"
         try:
             new_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
@@ -141,7 +143,7 @@ class LinkApiService(BaseLinkService):
 
     def update_link_ui(self, link: Link, ui: LinkUi) -> LinkUi:
         # todo: change this code when AntaresWeb will have a real endpoint
-        area1_id, area2_id = sorted([link.area_from.id, link.area_to.id])
+        area1_id, area2_id = sorted([link.area_from, link.area_to])
         raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path=input/links/{area1_id}/properties/{area2_id}"
         try:
             new_ui = ui.model_dump(mode="json", by_alias=True, exclude_none=True)

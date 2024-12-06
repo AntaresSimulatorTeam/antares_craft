@@ -70,19 +70,19 @@ class TestDeleteAPI:
 
     def test_delete_link_success(self):
         with requests_mock.Mocker() as mocker:
-            link = Link(self.area_be, self.area_fr, self.link_service)
+            link = Link(self.area_be.id, self.area_fr.id, self.link_service)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/links/{self.area_be.id}/{self.area_fr.id}"
             mocker.delete(url, status_code=200)
             self.link_service.delete_link(link)
 
     def test_delete_link_fails(self):
         with requests_mock.Mocker() as mocker:
-            link = Link(self.area_fr, self.area_be, self.link_service)
+            link = Link(self.area_fr.name, self.area_be.name, self.link_service)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/links/{self.area_fr.id}/{self.area_be.id}"
             mocker.delete(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 LinkDeletionError,
-                match=f"Could not delete the link {self.area_fr.id} / {self.area_be.id}: {self.antares_web_description_msg}",
+                match=f"Could not delete the link {self.area_fr.name} / {self.area_be.name}: {self.antares_web_description_msg}",
             ):
                 self.link_service.delete_link(link)
 

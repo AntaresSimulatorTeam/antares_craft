@@ -15,7 +15,6 @@ from typing import Mapping, Optional, Set
 
 from pydantic import BaseModel
 
-from antares.model.area import Area
 from antares.model.commons import FilterOption, sort_filter_values
 from antares.tools.alias_generators import to_kebab
 from antares.tools.all_optional_meta import all_optional_model
@@ -132,8 +131,8 @@ class LinkUiLocal(DefaultLinkUi):
 class Link:
     def __init__(  # type: ignore # TODO: Find a way to avoid circular imports
         self,
-        area_from: Area,
-        area_to: Area,
+        area_from: str,
+        area_to: str,
         link_service,
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
@@ -146,14 +145,14 @@ class Link:
 
     @property
     def name(self) -> str:
-        return self._area_from.id + " / " + self._area_to.id
+        return self._area_from + " / " + self._area_to
 
     @property
-    def area_from(self) -> Area:
+    def area_from(self) -> str:
         return self._area_from
 
     @property
-    def area_to(self) -> Area:
+    def area_to(self) -> str:
         return self._area_to
 
     @property
