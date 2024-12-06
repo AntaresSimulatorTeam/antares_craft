@@ -66,7 +66,6 @@ def create_study_api(
         url = f"{base_url}/studies?name={study_name}&version={version}"
         response = wrapper.post(url)
         study_id = response.json()
-
         study_settings = _returns_study_settings(base_url, study_id, wrapper, False, settings)
 
     except APIError as e:
@@ -188,6 +187,21 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     return study
 
 
+def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) -> "Study":
+    """
+    Creates a variant from a study_id
+    Args:
+        api_config: API configuration
+        study_id: The id of the study to create a variant of
+        variant_name: the name of the new variant
+    Returns: The variant in the form of a Study object
+    """
+    factory = ServiceFactory(api_config, study_id)
+    api_service = factory.create_study_service()
+
+    return api_service.create_variant(variant_name)
+
+
 class Study:
     def __init__(
         self,
@@ -301,6 +315,16 @@ class Study:
 
     def delete(self, children: bool = False) -> None:
         self._study_service.delete(children)
+
+    def create_variant(self, variant_name: str) -> "Study":
+        """
+        Creates a new variant for the study
+
+        Args:
+            variant_name: the name of the new variant
+        Returns: The variant in the form of a Study object
+        """
+        return self._study_service.create_variant(variant_name)
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:
