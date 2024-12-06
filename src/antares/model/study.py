@@ -23,7 +23,7 @@ import pandas as pd
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
 from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import APIError, StudyCreationError
+from antares.exceptions.exceptions import APIError, StudyCreationError, LinkCreationError
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
 from antares.model.link import Link, LinkProperties, LinkUi
@@ -264,9 +264,14 @@ class Study:
         area_to: str,
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
-        existing_areas: Optional[MappingProxyType[str, Area]] = None,
     ) -> Link:
-        link = self._link_service.create_link(area_from, area_to, properties, ui, existing_areas)
+        missing_areas = [
+            area for area in [area_from, area_to] if area not in self._areas or not hasattr(self._areas[area], 'id')
+        ]
+        if missing_areas:
+            raise LinkCreationError(area_from, area_to, f"{', '.join(missing_areas)} does not exist.")
+
+        link = self._link_service.create_link(area_from, area_to, properties, ui)
         self._links[link.name] = link
         return link
 
