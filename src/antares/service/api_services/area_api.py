@@ -37,6 +37,7 @@ from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterProperties
+from antares.service.api_services.utils import _upload_series, get_matrix
 from antares.service.base_services import (
     BaseAreaService,
     BaseRenewableService,
@@ -353,37 +354,29 @@ class AreaApiService(BaseAreaService):
 
         return STStorage(self.storage_service, area_id, name, properties)
 
-    def _upload_series(self, area: Area, series: pd.DataFrame, path: str, matrix_type: str) -> None:
-        try:
-            url = f"{self._base_url}/studies/{self.study_id}/raw?path={path}"
-            array_data = series.to_numpy().tolist()
-            self._wrapper.post(url, json=array_data)
-        except APIError as e:
-            raise MatrixUploadError(area.id, matrix_type, e.message) from e
-
     def create_load(self, area: Area, series: pd.DataFrame) -> None:
         series_path = f"input/load/series/load_{area.id}"
         rows_number = series.shape[0]
         expected_rows = 8760
         if rows_number < expected_rows:
             raise MatrixUploadError(area.id, "load", f"Expected {expected_rows} rows and received {rows_number}.")
-        self._upload_series(area, series, series_path, "load")
+        _upload_series(self._base_url, self.study_id, self._wrapper, series, series_path, "load", area)
 
     def create_wind(self, area: Area, series: pd.DataFrame) -> None:
         series_path = f"input/wind/series/wind_{area.id}"
-        self._upload_series(area, series, series_path, "wind")
+        _upload_series(self._base_url, self.study_id, self._wrapper, series, series_path, "wind", area)
 
     def create_reserves(self, area: Area, series: pd.DataFrame) -> None:
         series_path = f"input/reserves/{area.id}"
-        self._upload_series(area, series, series_path, "reserves")
+        _upload_series(self._base_url, self.study_id, self._wrapper, series, series_path, "reserves", area)
 
     def create_solar(self, area: Area, series: pd.DataFrame) -> None:
         series_path = f"input/solar/series/solar_{area.id}"
-        self._upload_series(area, series, series_path, "solar")
+        _upload_series(self._base_url, self.study_id, self._wrapper, series, series_path, "solar", area)
 
     def create_misc_gen(self, area: Area, series: pd.DataFrame) -> None:
         series_path = f"input/misc-gen/miscgen-{area.id}"
-        self._upload_series(area, series, series_path, "misc-gen")
+        _upload_series(self._base_url, self.study_id, self._wrapper, series, series_path, "misc-gen", area)
 
     def create_hydro(
         self,
@@ -520,30 +513,39 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise STStorageDeletionError(area.id, body, e.message) from e
 
-    def get_matrix(self, area_id: str, series_path: str, matrix_type: str) -> pd.DataFrame:
-        try:
-            raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path={series_path}"
-            response = self._wrapper.get(raw_url)
-            json_df = response.json()
-            dataframe = pd.DataFrame(data=json_df["data"], index=json_df["index"], columns=json_df["columns"])
-            return dataframe
-        except APIError as e:
-            raise MatrixDownloadError(area_id, matrix_type, e.message) from e
-
     def get_load_matrix(self, area: Area) -> pd.DataFrame:
-        return self.get_matrix(area.id, f"input/load/series/load_{area.id}", "load")
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/load/series/load_{area.id}", "load")
+        except APIError as e:
+            raise MatrixDownloadError(area.id, "load", e.message)
 
     def get_solar_matrix(self, area: Area) -> pd.DataFrame:
-        return self.get_matrix(area.id, f"input/solar/series/solar_{area.id}", "solar")
+        try:
+            return get_matrix(
+                self._base_url, self.study_id, self._wrapper, f"input/solar/series/solar_{area.id}", "solar"
+            )
+        except APIError as e:
+            raise MatrixDownloadError(area.id, "solar", e.message)
 
     def get_wind_matrix(self, area: Area) -> pd.DataFrame:
-        return self.get_matrix(area.id, f"input/wind/series/wind_{area.id}", "wind")
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/wind/series/wind_{area.id}", "wind")
+        except APIError as e:
+            raise MatrixDownloadError(area.id, "wind", e.message)
 
     def get_reserves_matrix(self, area: Area) -> pd.DataFrame:
-        return self.get_matrix(area.id, f"input/reserves/{area.id}", "reserves")
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/reserves/{area.id}", "reserves")
+        except APIError as e:
+            raise MatrixDownloadError(area.id, "reserves", e.message)
 
     def get_misc_gen_matrix(self, area: Area) -> pd.DataFrame:
-        return self.get_matrix(area.id, f"input/misc-gen/miscgen-{area.id}", "misc-gen")
+        try:
+            return get_matrix(
+                self._base_url, self.study_id, self._wrapper, f"input/misc-gen/miscgen-{area.id}", "misc-gen"
+            )
+        except APIError as e:
+            raise MatrixDownloadError(area.id, "misc-gen", e.message)
 
     def craft_ui(self, url_str: str, area_id: str) -> AreaUi:
         response = self._wrapper.get(url_str)

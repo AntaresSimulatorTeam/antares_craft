@@ -102,3 +102,30 @@ class TestCreateAPI:
                 match=f"Could not update ui for link {self.link.id}: {antares_web_description_msg}",
             ):
                 self.link.update_ui(ui)
+
+    def test_create_parameters_success(self):
+        pass
+
+    def test_create_parameters_fail(self):
+        pass
+
+    def test_create_direct_capacity_success(self):
+        pass
+
+    def test_create_direct_capacity_fail(self):
+        pass
+
+    def test_create_indirect_capacity_success(self):
+        pass
+
+    def test_create_indirect_capacity_fail(self):
+        pass
+
+    def test_get_parameters(self):
+        pass
+
+    def test_get_indirect_capacity(self):
+        pass
+
+    def test_get_direct_capacity(self):
+        pass

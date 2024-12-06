@@ -137,7 +137,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
         try:
             path = PurePosixPath("input") / "bindingconstraints" / f"{constraint.id}_{matrix_name.value}"
-            return get_matrix(f"{self._base_url}/studies/{self.study_id}/raw?path={path}", self._wrapper)
+            return get_matrix(self._base_url, self.study_id, self._wrapper, path.as_posix(), "bindingconstraints")
         except APIError as e:
             raise ConstraintMatrixDownloadError(constraint.id, matrix_name.value, e.message) from e
 
