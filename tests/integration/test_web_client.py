@@ -30,7 +30,7 @@ from antares.model.settings.advanced_parameters import AdvancedParameters, UnitC
 from antares.model.settings.general import GeneralParameters, Mode
 from antares.model.settings.study_settings import PlaylistParameters, StudySettings
 from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
-from antares.model.study import create_study_api, read_study_api
+from antares.model.study import create_study_api, create_variant_api, read_study_api
 from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
@@ -464,14 +464,24 @@ class TestWebClient:
         assert old_settings == new_study.get_settings()
 
         # tests variant creation
-        parent_study = create_study_api("parent-test", "880", api_config)
-
         variant_name = "variant_test"
-        variant = parent_study.create_variant(variant_name)
+        variant_from_api_name = "variant_from_api_test"
+        variant = new_study.create_variant(variant_name)
+        variant_from_api = create_variant_api(api_config, new_study.service.study_id, variant_from_api_name)
 
+        # instance asserts
         assert variant.name == variant_name
-        assert variant.service.study_id != parent_study.service.study_id
-        assert variant.get_settings() == parent_study.get_settings()
-        assert list(variant.get_areas().keys()) == list(parent_study.get_areas().keys())
-        assert list(variant.get_links().keys()) == list(parent_study.get_links().keys())
-        assert list(variant.get_binding_constraints().keys()) == list(parent_study.get_binding_constraints().keys())
+        assert variant.service.study_id != new_study.service.study_id
+        assert variant.get_settings() == new_study.get_settings()
+        assert list(variant.get_areas().keys()) == list(new_study.get_areas().keys())
+        assert list(variant.get_links().keys()) == list(new_study.get_links().keys())
+        assert list(variant.get_binding_constraints().keys()) == list(new_study.get_binding_constraints().keys())
+        # from_api asserts
+        assert variant_from_api.name == variant_from_api_name
+        assert variant_from_api.service.study_id != new_study.service.study_id
+        assert variant_from_api.get_settings() == new_study.get_settings()
+        assert list(variant_from_api.get_areas().keys()) == list(new_study.get_areas().keys())
+        assert list(variant_from_api.get_links().keys()) == list(new_study.get_links().keys())
+        assert list(variant_from_api.get_binding_constraints().keys()) == list(
+            new_study.get_binding_constraints().keys()
+        )
