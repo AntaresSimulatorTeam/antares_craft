@@ -47,7 +47,7 @@ class ThermalLocalService(BaseThermalService):
             time_serie_type = TimeSeriesFileType.THERMAL_DATA
         elif ts_name.value == "CO2Cost":
             time_serie_type = TimeSeriesFileType.THERMAL_CO2
-        elif ts_name.value == "fuelCost":
+        else:
             time_serie_type = TimeSeriesFileType.THERMAL_FUEL
 
         return read_timeseries(
@@ -62,6 +62,7 @@ class ThermalLocalService(BaseThermalService):
         thermal_clusters = []
         if thermal_dict:
             for thermal_cluster in thermal_dict:
+                # TODO refactor this as it is really not clean
                 thermal_properties = ThermalClusterPropertiesLocal(
                     group=thermal_dict[thermal_cluster]["group"],
                     thermal_name=thermal_dict[thermal_cluster]["name"],
@@ -101,12 +102,12 @@ class ThermalLocalService(BaseThermalService):
                     variable_o_m_cost=thermal_dict[thermal_cluster]["variableomcost"],
                 )
 
-            thermal_clusters.append(
-                ThermalCluster(
-                    thermal_service=self,
-                    area_id=area_id,
-                    name=thermal_dict[thermal_cluster]["name"],
-                    properties=thermal_properties.yield_thermal_cluster_properties(),
+                thermal_clusters.append(
+                    ThermalCluster(
+                        thermal_service=self,
+                        area_id=area_id,
+                        name=thermal_dict[thermal_cluster]["name"],
+                        properties=thermal_properties.yield_thermal_cluster_properties(),
+                    )
                 )
-            )
         return thermal_clusters

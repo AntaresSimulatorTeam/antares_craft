@@ -1310,11 +1310,6 @@ class TestReadmisc_gen:
 
 
 class TestReadThermal:
-    def create_file_with_empty_dataframe(self, file_path: str, df: pd.DataFrame):
-        full_path = Path(file_path)
-        full_path.parent.mkdir(parents=True, exist_ok=True)
-        df_save(df, full_path)
-
     def test_read_thermals_local(self, local_study_w_thermal):
         study_path = local_study_w_thermal.service.config.study_path
         local_study_object = read_study_local(study_path)
