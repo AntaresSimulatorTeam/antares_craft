@@ -28,6 +28,7 @@ from antares.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
     CustomError,
+    InvalidNameError,
     LinkCreationError,
 )
 from antares.model.area import AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
@@ -1498,10 +1499,10 @@ layers = 0
 
         # Then
         with pytest.raises(
-            AreaCreationError,
+            InvalidNameError,
             match=re.escape(
                 f"The name {area_name_to_try} contains one or more unauthorized characters."
-                + "\nArea names can only contain: a-z, A-Z, 0-9, (, ), &, _, - and , (comma)."
+                + "\nNames can only contain: a-z, A-Z, 0-9, (, ), &, _, - and , (comma)."
             ),
         ):
             local_study.create_area(area_name_to_try)
@@ -1641,7 +1642,6 @@ class TestCreateLink:
         link_created = local_study_w_areas.create_link(
             area_from=area_from,
             area_to=area_to,
-            existing_areas=local_study_w_areas.get_areas(),
         )
 
         assert isinstance(link_created, Link)
@@ -1677,7 +1677,6 @@ class TestCreateLink:
             test_service.create_link(
                 area_from=area_from,
                 area_to=area_to,
-                existing_areas=None,
             )
 
     def test_create_link_alphabetically(self, tmp_path, local_study):
@@ -1692,7 +1691,6 @@ class TestCreateLink:
         link_created = local_study.create_link(
             area_from=area_from,
             area_to=area_to,
-            existing_areas=local_study.get_areas(),
         )
 
         assert link_created.area_from == "at"
@@ -1724,7 +1722,6 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         local_study_w_areas.create_link(
             area_from="fr",
             area_to="it",
-            existing_areas=local_study_w_areas.get_areas(),
         )
 
         ini_file = tmp_path / local_study_w_areas.name / "input/links" / area_from / "properties.ini"
@@ -1761,7 +1758,6 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         created_link = local_study_w_areas.create_link(
             area_from="fr",
             area_to="it",
-            existing_areas=local_study_w_areas.get_areas(),
         )
         ini_file = tmp_path / local_study_w_areas.name / "input/links" / area_from / "properties.ini"
         actual_ini = ConfigParser()
@@ -1869,7 +1865,6 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
             local_study_w_areas.create_link(
                 area_from=area_from,
                 area_to=area_to,
-                existing_areas=local_study_w_areas.get_areas(),
             )
 
         # Then
@@ -1930,7 +1925,6 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
             local_study_w_areas.create_link(
                 area_from=area_from,
                 area_to=area_to,
-                existing_areas=local_study_w_areas.get_areas(),
             )
 
         # Then
@@ -1958,7 +1952,6 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
             local_study_w_links.create_link(
                 area_from=area_from,
                 area_to=area_to,
-                existing_areas=local_study_w_links.get_areas(),
             )
 
     def test_created_link_has_default_ui_values(self, tmp_path, local_study_w_areas):
@@ -1990,7 +1983,6 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         local_study_w_areas.create_link(
             area_from=area_from,
             area_to=area_to,
-            existing_areas=local_study_w_areas.get_areas(),
         )
         with open(actual_ini_file, "r") as file:
             actual_ini.read_file(file)
