@@ -44,7 +44,6 @@ from antares.model.thermal import (
     ThermalCostGeneration,
 )
 from antares.tools.ini_tool import IniFile, IniFileTypes
-from antares.tools.matrix_tool import df_save
 from antares.tools.time_series_tool import TimeSeriesFileType
 
 
