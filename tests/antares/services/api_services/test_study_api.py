@@ -23,6 +23,7 @@ from antares.exceptions.exceptions import (
     LinkCreationError,
     StudyCreationError,
     StudySettingsUpdateError,
+    StudyVariantCreationError,
 )
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties
@@ -30,7 +31,7 @@ from antares.model.hydro import HydroProperties
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings.general import GeneralParameters
 from antares.model.settings.study_settings import StudySettings
-from antares.model.study import Study, create_study_api
+from antares.model.study import Study, create_study_api, create_variant_api, read_study_api
 from antares.service.service_factory import ServiceFactory
 
 
@@ -133,22 +134,10 @@ class TestCreateAPI:
             base_url = f"https://antares.com/api/v1/studies/{self.study_id}"
             url = f"{base_url}/links"
             mocker.post(url, status_code=200)
-            area = Area(
-                name="area",
-                area_service=self.api,
-                storage_service=self.api,
-                thermal_service=self.api,
-                renewable_service=self.api,
-            )
-            area_to = Area(
-                name="area_to",
-                area_service=self.api,
-                storage_service=self.api,
-                thermal_service=self.api,
-                renewable_service=self.api,
-            )
+            area = "area"
+            area_to = "area_to"
 
-            raw_url = f"{base_url}/raw?path=input/links/{area.id}/properties/{area_to.id}"
+            raw_url = f"{base_url}/raw?path=input/links/{area}/properties/{area_to}"
             json_response = {**LinkProperties().model_dump(by_alias=True), **LinkUi().model_dump(by_alias=True)}
             mocker.get(raw_url, json=json_response, status_code=200)
             link = self.study.create_link(area_from=area, area_to=area_to)
@@ -158,24 +147,12 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
-            area_from = Area(
-                name="area_from",
-                area_service=self.api,
-                storage_service=self.api,
-                thermal_service=self.api,
-                renewable_service=self.api,
-            )
-            area_to = Area(
-                name="area_to",
-                area_service=self.api,
-                storage_service=self.api,
-                thermal_service=self.api,
-                renewable_service=self.api,
-            )
+            area_from = "area_from"
+            area_to = "area_to"
 
             with pytest.raises(
                 LinkCreationError,
-                match=f"Could not create the link {area_from.id} / {area_to.id}: {self.antares_web_description_msg}",
+                match=f"Could not create the link {area_from} / {area_to}: {self.antares_web_description_msg}",
             ):
                 self.study.create_link(area_from=area_from, area_to=area_to)
 
@@ -199,3 +176,95 @@ class TestCreateAPI:
                 match=f"Could not create the binding constraint {constraint_name}: {self.antares_web_description_msg}",
             ):
                 self.study.create_binding_constraint(name=constraint_name)
+
+    def test_read_study_api(self):
+        json_study = {
+            "id": "22c52f44-4c2a-407b-862b-490887f93dd8",
+            "name": "test_read_areas",
+            "version": "880",
+        }
+
+        json_ui = {
+            "zone": {
+                "ui": {"x": 0, "y": 0, "color_r": 230, "color_g": 108, "color_b": 44, "layers": "0"},
+                "layerX": {"0": 0},
+                "layerY": {"0": 0},
+                "layerColor": {"0": "230, 108, 44"},
+            }
+        }
+
+        config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
+
+        base_url = "https://antares.com/api/v1"
+        url = f"{base_url}/studies/{self.study_id}"
+        area_url = f"{url}/areas"
+        area_props_url = f"{area_url}/zone/properties/form"
+        thermal_url = f"{area_url}/zone/clusters/thermal"
+        renewable_url = f"{area_url}/zone/clusters/renewable"
+        storage_url = f"{area_url}/zone/storages"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.get(url, json=json_study)
+            mocker.get(config_urls, json={})
+            mocker.get(area_url, json=json_ui)
+            mocker.get(area_props_url, json={})
+            mocker.get(renewable_url, json=[])
+            mocker.get(thermal_url, json=[])
+            mocker.get(storage_url, json=[])
+            actual_study = read_study_api(self.api, self.study_id)
+
+            expected_study_name = json_study.pop("name")
+            expected_study_id = json_study.pop("id")
+            expected_study_version = json_study.pop("version")
+
+            expected_study = Study(
+                expected_study_name,
+                expected_study_version,
+                ServiceFactory(self.api, expected_study_id, expected_study_name),
+                None,
+            )
+
+            assert actual_study.name == expected_study.name
+            assert actual_study.version == expected_study.version
+            assert actual_study.service.study_id == expected_study.service.study_id
+
+    def test_create_variant_success(self):
+        variant_name = "variant_test"
+        with requests_mock.Mocker() as mocker:
+            base_url = "https://antares.com/api/v1"
+            url = f"{base_url}/studies/{self.study_id}/variants?name={variant_name}"
+            variant_id = "variant_id"
+            mocker.post(url, json=variant_id, status_code=201)
+
+            variant_url = f"{base_url}/studies/{variant_id}"
+            mocker.get(variant_url, json={"id": variant_id, "name": variant_name, "version": "880"}, status_code=200)
+
+            config_urls = re.compile(f"{base_url}/studies/{variant_id}/config/.*")
+            mocker.get(config_urls, json={}, status_code=200)
+
+            areas_url = f"{base_url}/studies/{variant_id}/areas?ui=true"
+            mocker.get(areas_url, json={}, status_code=200)
+
+            variant = self.study.create_variant(variant_name)
+            variant_from_api = create_variant_api(self.api, self.study_id, variant_name)
+
+            assert isinstance(variant, Study)
+            assert isinstance(variant_from_api, Study)
+            assert variant.name == variant_name
+            assert variant_from_api.name == variant_name
+            assert variant.service.study_id == variant_id
+            assert variant_from_api.service.study_id == variant_id
+
+    def test_create_variant_fails(self):
+        variant_name = "variant_test"
+        with requests_mock.Mocker() as mocker:
+            base_url = "https://antares.com/api/v1"
+            url = f"{base_url}/studies/{self.study_id}/variants?name={variant_name}"
+            error_message = "Variant creation failed"
+            mocker.post(url, json={"description": error_message}, status_code=404)
+
+            with pytest.raises(StudyVariantCreationError, match=error_message):
+                self.study.create_variant(variant_name)
+
+            with pytest.raises(StudyVariantCreationError, match=error_message):
+                create_variant_api(self.api, self.study_id, variant_name)

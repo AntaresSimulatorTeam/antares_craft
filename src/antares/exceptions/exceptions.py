@@ -232,6 +232,12 @@ class StudyDeletionError(Exception):
         super().__init__(self.message)
 
 
+class StudyVariantCreationError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not create a variant for {study_name}: " + message
+        super().__init__(self.message)
+
+
 class ThermalMatrixDownloadError(Exception):
     def __init__(self, area_name: str, cluster_name: str, matrix_name: str, message: str) -> None:
         self.message = (

@@ -30,7 +30,7 @@ from antares.model.settings.advanced_parameters import AdvancedParameters, UnitC
 from antares.model.settings.general import GeneralParameters, Mode
 from antares.model.settings.study_settings import PlaylistParameters, StudySettings
 from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
-from antares.model.study import create_study_api
+from antares.model.study import create_study_api, create_variant_api, read_study_api
 from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
@@ -104,16 +104,16 @@ class TestWebClient:
         assert area_de.properties.filter_synthesis == {FilterOption.HOURLY, FilterOption.DAILY}
 
         # tests link creation with default values
-        link_de_fr = study.create_link(area_from=area_de, area_to=area_fr)
-        assert link_de_fr.area_from == area_de
-        assert link_de_fr.area_to == area_fr
+        link_de_fr = study.create_link(area_from=area_de.id, area_to=area_fr.id)
+        assert link_de_fr.area_from == area_de.id
+        assert link_de_fr.area_to == area_fr.id
         assert link_de_fr.name == f"{area_de.id} / {area_fr.id}"
 
         # tests link creation with ui and properties
         link_ui = LinkUi(colorr=44)
         link_properties = LinkProperties(hurdles_cost=True)
         link_properties.filter_year_by_year = [FilterOption.HOURLY]
-        link_be_fr = study.create_link(area_from=area_be, area_to=area_fr, ui=link_ui, properties=link_properties)
+        link_be_fr = study.create_link(area_from=area_be.id, area_to=area_fr.id, ui=link_ui, properties=link_properties)
         assert link_be_fr.ui.colorr == 44
         assert link_be_fr.properties.hurdles_cost
         assert link_be_fr.properties.filter_year_by_year == {FilterOption.HOURLY}
@@ -218,6 +218,21 @@ class TestWebClient:
         actual_hydro = area_fr.read_hydro()
         assert actual_hydro.area_id == area_fr.id
         assert actual_hydro.properties == area_fr.hydro.properties
+
+        # tests study reading method and comparing ids, name, areas and settings
+        actual_study = read_study_api(api_config, study.service.study_id)
+
+        assert study.service.study_id == actual_study.service.study_id
+        assert study.name == actual_study.name
+        assert study.version == actual_study.version
+        assert list(study.get_areas().keys()) == list(actual_study.get_areas().keys())
+
+        expected_area_fr = study.get_areas()["fr"]
+        actual_area_fr = actual_study.get_areas()["fr"]
+        assert list(expected_area_fr.get_thermals()) == list(actual_area_fr.get_thermals())
+        assert list(expected_area_fr.get_renewables()) == list(actual_area_fr.get_renewables())
+        assert list(expected_area_fr.get_st_storages()) == list(actual_area_fr.get_st_storages())
+        assert study.get_settings() == actual_study.get_settings()
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
@@ -447,3 +462,26 @@ class TestWebClient:
         empty_settings = StudySettings()
         new_study.update_settings(empty_settings)
         assert old_settings == new_study.get_settings()
+
+        # tests variant creation
+        variant_name = "variant_test"
+        variant_from_api_name = "variant_from_api_test"
+        variant = new_study.create_variant(variant_name)
+        variant_from_api = create_variant_api(api_config, new_study.service.study_id, variant_from_api_name)
+
+        # instance asserts
+        assert variant.name == variant_name
+        assert variant.service.study_id != new_study.service.study_id
+        assert variant.get_settings() == new_study.get_settings()
+        assert list(variant.get_areas().keys()) == list(new_study.get_areas().keys())
+        assert list(variant.get_links().keys()) == list(new_study.get_links().keys())
+        assert list(variant.get_binding_constraints().keys()) == list(new_study.get_binding_constraints().keys())
+        # from_api asserts
+        assert variant_from_api.name == variant_from_api_name
+        assert variant_from_api.service.study_id != new_study.service.study_id
+        assert variant_from_api.get_settings() == new_study.get_settings()
+        assert list(variant_from_api.get_areas().keys()) == list(new_study.get_areas().keys())
+        assert list(variant_from_api.get_links().keys()) == list(new_study.get_links().keys())
+        assert list(variant_from_api.get_binding_constraints().keys()) == list(
+            new_study.get_binding_constraints().keys()
+        )
