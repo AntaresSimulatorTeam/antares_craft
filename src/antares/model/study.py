@@ -66,7 +66,6 @@ def create_study_api(
         url = f"{base_url}/studies?name={study_name}&version={version}"
         response = wrapper.post(url)
         study_id = response.json()
-
         study_settings = _returns_study_settings(base_url, study_id, wrapper, False, settings)
 
     except APIError as e:
@@ -171,6 +170,38 @@ def read_study_local(study_directory: Path) -> "Study":
     )
 
 
+def read_study_api(api_config: APIconf, study_id: str) -> "Study":
+    session = api_config.set_up_api_conf()
+    wrapper = RequestWrapper(session)
+    base_url = f"{api_config.get_host()}/api/v1"
+    json_study = wrapper.get(f"{base_url}/studies/{study_id}").json()
+
+    study_name = json_study.pop("name")
+    study_version = str(json_study.pop("version"))
+
+    study_settings = _returns_study_settings(base_url, study_id, wrapper, False, None)
+    study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings)
+
+    study.read_areas()
+
+    return study
+
+
+def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) -> "Study":
+    """
+    Creates a variant from a study_id
+    Args:
+        api_config: API configuration
+        study_id: The id of the study to create a variant of
+        variant_name: the name of the new variant
+    Returns: The variant in the form of a Study object
+    """
+    factory = ServiceFactory(api_config, study_id)
+    api_service = factory.create_study_service()
+
+    return api_service.create_variant(variant_name)
+
+
 class Study:
     def __init__(
         self,
@@ -188,16 +219,23 @@ class Study:
         self._settings = DefaultStudySettings.model_validate(settings if settings is not None else StudySettings())
         self._areas: Dict[str, Area] = dict()
         self._links: Dict[str, Link] = dict()
+        self._binding_constraints: Dict[str, BindingConstraint] = dict()
 
     @property
     def service(self) -> BaseStudyService:
         return self._study_service
 
     def read_areas(self) -> list[Area]:
-        return self._area_service.read_areas()
+        """
+        Synchronize the internal study object with the actual object written in an antares study
+        Returns: the synchronized area list
+        """
+        area_list = self._area_service.read_areas()
+        self._areas = {area.id: area for area in area_list}
+        return area_list
     
     def read_links(self) -> list[Link]:
-        return self._link_service.read_links(self._area_service)
+        return self._link_service.read_links()
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
@@ -209,7 +247,7 @@ class Study:
         return self._settings
 
     def get_binding_constraints(self) -> MappingProxyType[str, BindingConstraint]:
-        return MappingProxyType(self._binding_constraints_service.binding_constraints)
+        return MappingProxyType(self._binding_constraints)
 
     def create_area(
         self, area_name: str, *, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
@@ -225,8 +263,8 @@ class Study:
     def create_link(
         self,
         *,
-        area_from: Area,
-        area_to: Area,
+        area_from: str,
+        area_to: str,
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
         existing_areas: Optional[MappingProxyType[str, Area]] = None,
@@ -249,9 +287,25 @@ class Study:
         equal_term_matrix: Optional[pd.DataFrame] = None,
         greater_term_matrix: Optional[pd.DataFrame] = None,
     ) -> BindingConstraint:
-        return self._binding_constraints_service.create_binding_constraint(
+        """
+        Create a new binding constraint and store it.
+
+        Args:
+            name (str): The name of the binding constraint.
+            properties (Optional[BindingConstraintProperties]): Optional properties for the constraint.
+            terms (Optional[List[ConstraintTerm]]): Optional list of terms for the constraint.
+            less_term_matrix (Optional[pd.DataFrame]): Optional less-than term matrix.
+            equal_term_matrix (Optional[pd.DataFrame]): Optional equality term matrix.
+            greater_term_matrix (Optional[pd.DataFrame]): Optional greater-than term matrix.
+
+        Returns:
+            BindingConstraint: The created binding constraint.
+        """
+        binding_constraint = self._binding_constraints_service.create_binding_constraint(
             name, properties, terms, less_term_matrix, equal_term_matrix, greater_term_matrix
         )
+        self._binding_constraints[binding_constraint.id] = binding_constraint
+        return binding_constraint
 
     def update_settings(self, settings: StudySettings) -> None:
         new_settings = self._study_service.update_study_settings(settings)
@@ -260,10 +314,20 @@ class Study:
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         self._study_service.delete_binding_constraint(constraint)
-        self._binding_constraints_service.binding_constraints.pop(constraint.id)
+        self._binding_constraints.pop(constraint.id)
 
     def delete(self, children: bool = False) -> None:
         self._study_service.delete(children)
+
+    def create_variant(self, variant_name: str) -> "Study":
+        """
+        Creates a new variant for the study
+
+        Args:
+            variant_name: the name of the new variant
+        Returns: The variant in the form of a Study object
+        """
+        return self._study_service.create_variant(variant_name)
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:

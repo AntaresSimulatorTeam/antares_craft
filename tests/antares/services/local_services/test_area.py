@@ -1123,12 +1123,12 @@ def _write_file(_file_path, _time_series) -> None:
     _file_path.parent.mkdir(parents=True, exist_ok=True)
     _time_series.to_csv(_file_path, sep="\t", header=False, index=False, encoding="utf-8")
 
+
 class TestReadLoad:
     def test_read_load_local(self, local_study_w_areas):
         study_path = local_study_w_areas.service.config.study_path
         local_study_object = read_study_local(study_path)
         areas = local_study_object.read_areas()
-
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -1159,15 +1159,14 @@ class TestReadRenewable:
         local_study_object = read_study_local(study_path)
         areas = local_study_object.read_areas()
 
-
-
         for area in areas:
             expected_time_serie = pd.DataFrame(
-                    [
-                        [-9999999980506447872, 0, 9999999980506447872],
-                        [0, area.id, 0],
-                    ]
-                , dtype="object")
+                [
+                    [-9999999980506447872, 0, 9999999980506447872],
+                    [0, area.id, 0],
+                ],
+                dtype="object",
+            )
             renewable_list = area.read_renewables(area.id)
 
             if renewable_list:
@@ -1184,9 +1183,9 @@ class TestReadRenewable:
                 assert renewable.properties.group.value == "Other RES 1"
 
                 # Create folder and file for timeserie.
-                cluster_path = study_path / "input" / "renewables" / "series"/ Path(area.id) /  Path(renewable.id)
+                cluster_path = study_path / "input" / "renewables" / "series" / Path(area.id) / Path(renewable.id)
                 os.makedirs(cluster_path, exist_ok=True)
-                series_path = cluster_path / 'series.txt'
+                series_path = cluster_path / "series.txt"
                 _write_file(series_path, expected_time_serie)
 
                 # Check matrix
@@ -1200,14 +1199,14 @@ class TestReadSolar:
         local_study_object = read_study_local(study_path)
         areas = local_study_object.read_areas()
 
-
         for area in areas:
             expected_time_serie = pd.DataFrame(
-                    [
-                        [-9999999980506447872, 0, 9999999980506447872],
-                        [0, area.id, 0],
-                    ]
-                , dtype="object")
+                [
+                    [-9999999980506447872, 0, 9999999980506447872],
+                    [0, area.id, 0],
+                ],
+                dtype="object",
+            )
 
             file_path = study_path / "input" / "solar" / "series" / f"solar_{area.id}.txt"
             _write_file(file_path, expected_time_serie)
@@ -1221,6 +1220,7 @@ class TestReadSolar:
             _write_file(file_path, expected_time_serie)
             matrix = area.get_solar_matrix()
             pd.testing.assert_frame_equal(matrix, expected_time_serie)
+
 
 class TestReadReserves:
     def test_read_reserve_local(self, local_study_w_areas):
@@ -1228,16 +1228,16 @@ class TestReadReserves:
         local_study_object = read_study_local(study_path)
         areas = local_study_object.read_areas()
 
-
         for area in areas:
             expected_time_serie = pd.DataFrame(
-                    [
-                        [-9999999980506447872, 0, 9999999980506447872],
-                        [0, area.id, 0],
-                    ]
-                , dtype="object")
+                [
+                    [-9999999980506447872, 0, 9999999980506447872],
+                    [0, area.id, 0],
+                ],
+                dtype="object",
+            )
 
-            file_path = study_path / "input" / "reserves" /  f"{area.id}.txt"
+            file_path = study_path / "input" / "reserves" / f"{area.id}.txt"
             _write_file(file_path, expected_time_serie)
 
             matrix = area.get_reserves_matrix()
@@ -1245,10 +1245,11 @@ class TestReadReserves:
 
         expected_time_serie = pd.DataFrame([])
         for area in areas:
-            file_path = study_path / "input" / "reserves" /  f"{area.id}.txt"
+            file_path = study_path / "input" / "reserves" / f"{area.id}.txt"
             _write_file(file_path, expected_time_serie)
             matrix = area.get_reserves_matrix()
             pd.testing.assert_frame_equal(matrix, expected_time_serie)
+
 
 class TestReadWind:
     def test_read_wind_local(self, local_study_w_areas):
@@ -1256,15 +1257,15 @@ class TestReadWind:
         local_study_object = read_study_local(study_path)
         areas = local_study_object.read_areas()
 
-
         for area in areas:
             expected_time_serie = pd.DataFrame(
-                    [
-                        [-9999999980506447872, 0, 9999999980506447872],
-                        [0, area.id, 0],
-                    ]
-                , dtype="object")
-            
+                [
+                    [-9999999980506447872, 0, 9999999980506447872],
+                    [0, area.id, 0],
+                ],
+                dtype="object",
+            )
+
             file_path = study_path / "input" / "wind" / "series" / f"wind_{area.id}.txt"
             _write_file(file_path, expected_time_serie)
 
@@ -1277,6 +1278,7 @@ class TestReadWind:
             _write_file(file_path, expected_time_serie)
             matrix = area.get_wind_matrix()
             pd.testing.assert_frame_equal(matrix, expected_time_serie)
+
 
 class TestReadmisc_gen:
     def test_read_misc_gen_local(self, local_study_w_areas):
@@ -1284,15 +1286,15 @@ class TestReadmisc_gen:
         local_study_object = read_study_local(study_path)
         areas = local_study_object.read_areas()
 
-
         for area in areas:
             expected_time_serie = pd.DataFrame(
-                    [
-                        [-9999999980506447872, 0, 9999999980506447872],
-                        [0, area.id, 0],
-                    ]
-                , dtype="object")
-            
+                [
+                    [-9999999980506447872, 0, 9999999980506447872],
+                    [0, area.id, 0],
+                ],
+                dtype="object",
+            )
+
             file_path = study_path / "input" / "misc-gen" / f"miscgen-{area.id}.txt"
             _write_file(file_path, expected_time_serie)
 
@@ -1305,6 +1307,7 @@ class TestReadmisc_gen:
             _write_file(file_path, expected_time_serie)
             matrix = area.get_misc_gen_matrix()
             pd.testing.assert_frame_equal(matrix, expected_time_serie)
+
 
 
 class TestReadLinks:
