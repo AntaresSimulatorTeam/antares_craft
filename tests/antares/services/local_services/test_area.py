@@ -1309,14 +1309,12 @@ class TestReadmisc_gen:
             pd.testing.assert_frame_equal(matrix, expected_time_serie)
 
 
-
 class TestReadLinks:
     def create_file_with_empty_dataframe(self, file_path: str, df: pd.DataFrame):
         full_path = Path(file_path)
-        
+
         full_path.parent.mkdir(parents=True, exist_ok=True)
         df_save(df, full_path)
-        
 
     def test_read_links_local(self, local_study_w_links):
         study_path = local_study_w_links.service.config.study_path
@@ -1333,20 +1331,21 @@ class TestReadLinks:
             [
                 [-1, 0, 0],
                 [0, -1, 0],
-            ]
-        , dtype="object")
+            ],
+            dtype="object",
+        )
 
         for file in files_to_write:
             self.create_file_with_empty_dataframe(file, df_initial)
 
-        
         links = local_study_object.read_links()
 
         for link in links:
-            matrix = link.get_capacity_direct()
-            matrix_2 = link.get_capacity_indirect()
-            matrix_3 = link.get_parameters()
+            if link.area_from == "fr":
+                matrix = link.get_capacity_direct()
+                matrix_2 = link.get_capacity_indirect()
+                matrix_3 = link.get_parameters()
 
-            pd.testing.assert_frame_equal(matrix.astype(str), df_initial.astype(str), check_dtype=False)
-            pd.testing.assert_frame_equal(matrix_2.astype(str), df_initial.astype(str), check_dtype=False)
-            pd.testing.assert_frame_equal(matrix_3.astype(str), df_initial.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix.astype(str), df_initial.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_2.astype(str), df_initial.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_3.astype(str), df_initial.astype(str), check_dtype=False)

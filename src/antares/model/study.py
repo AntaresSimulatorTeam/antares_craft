@@ -233,7 +233,7 @@ class Study:
         area_list = self._area_service.read_areas()
         self._areas = {area.id: area for area in area_list}
         return area_list
-    
+
     def read_links(self) -> list[Link]:
         return self._link_service.read_links()
 

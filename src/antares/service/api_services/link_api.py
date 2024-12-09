@@ -169,6 +169,7 @@ class LinkApiService(BaseLinkService):
     def read_links(self) -> list[Link]:
         raise NotImplementedError
 
+
 def _join_filter_values_for_json(json_dict: dict, dict_to_extract: dict) -> dict:
     for key in dict_to_extract:
         if key in ["filter-synthesis", "filter-year-by-year"]:
@@ -176,4 +177,3 @@ def _join_filter_values_for_json(json_dict: dict, dict_to_extract: dict) -> dict
         else:
             json_dict[key] = dict_to_extract[key]
     return json_dict
-
