@@ -166,6 +166,9 @@ class LinkApiService(BaseLinkService):
 
         return link_ui
 
+    def read_links(self) -> list[Link]:
+        raise NotImplementedError
+
 
 def _join_filter_values_for_json(json_dict: dict, dict_to_extract: dict) -> dict:
     for key in dict_to_extract:
