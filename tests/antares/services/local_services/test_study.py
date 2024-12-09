@@ -28,6 +28,7 @@ from antares.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
     CustomError,
+    InvalidNameError,
     LinkCreationError,
 )
 from antares.model.area import AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
@@ -1496,10 +1497,10 @@ layers = 0
 
         # Then
         with pytest.raises(
-            AreaCreationError,
+            InvalidNameError,
             match=re.escape(
                 f"The name {area_name_to_try} contains one or more unauthorized characters."
-                + "\nArea names can only contain: a-z, A-Z, 0-9, (, ), &, _, - and , (comma)."
+                + "\nNames can only contain: a-z, A-Z, 0-9, (, ), &, _, - and , (comma)."
             ),
         ):
             local_study.create_area(area_name_to_try)
