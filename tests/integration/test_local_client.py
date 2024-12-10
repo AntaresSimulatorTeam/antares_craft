@@ -255,3 +255,10 @@ class TestLocalClient:
         matrix = pd.DataFrame(data=(np.ones((8784, 1))))
         constraint_3 = test_study.create_binding_constraint(name="bc_3", less_term_matrix=matrix, properties=properties)
         assert constraint_3.get_less_term_matrix().equals(matrix)
+
+        # asserts study contains the constraints
+        assert test_study.get_binding_constraints() == {
+            constraint_1.id: constraint_1,
+            constraint_2.id: constraint_2,
+            constraint_3.id: constraint_3,
+        }
