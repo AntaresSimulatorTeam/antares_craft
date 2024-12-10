@@ -313,7 +313,7 @@ class TestCreateAPI:
             LinkCreationError,
             match=f"Could not create the link {area_from} / {area_to}: A link from {area_from} to {area_to} already exists",
         ):
-            self.study.create_link(area_from="area_1", area_to="area_2")
+            self.study.create_link(area_from=area_from, area_to=area_to)
 
     def test_create_link_unknown_area(self):
         area_from = "area_fr"
