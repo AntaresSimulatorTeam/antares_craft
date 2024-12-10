@@ -17,6 +17,7 @@ from types import MappingProxyType
 from typing import Any, Dict, Optional
 
 import pandas as pd
+from antares.tools.ini_tool import IniFile, IniFileTypes
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import LinkCreationError
@@ -70,7 +71,6 @@ class LinkLocalService(BaseLinkService):
 
         link_dir = self.config.study_path / "input/links" / area_from
         os.makedirs(link_dir, exist_ok=True)
-
         local_properties = (
             LinkPropertiesLocal.model_validate(properties.model_dump(mode="json", exclude_none=True))
             if properties
@@ -140,53 +140,71 @@ class LinkLocalService(BaseLinkService):
 
     def get_capacity_direct(
         self,
-        area_id: str,
-        second_area_id: str,
+        area_from: str,
+        area_to: str,
     ) -> pd.DataFrame:
         return read_timeseries(
             TimeSeriesFileType.LINKS_CAPACITIES_DIRECT,
             self.config.study_path,
-            area_id=area_id,
-            second_area_id=second_area_id,
+            area_id=area_from,
+            second_area_id=area_to,
         )
 
     def get_capacity_indirect(
         self,
-        area_id: str,
-        second_area_id: str,
+        area_from: str,
+        area_to: str,
     ) -> pd.DataFrame:
         return read_timeseries(
             TimeSeriesFileType.LINKS_CAPACITIES_INDIRECT,
             self.config.study_path,
-            area_id=area_id,
-            second_area_id=second_area_id,
+            area_id=area_from,
+            second_area_id=area_to,
         )
 
     def get_parameters(
         self,
-        area_id: str,
-        second_area_id: str,
+        area_from: str,
+        area_to: str,
     ) -> pd.DataFrame:
         return read_timeseries(
-            TimeSeriesFileType.LINKS_PARAMETERS, self.config.study_path, area_id=area_id, second_area_id=second_area_id
+            TimeSeriesFileType.LINKS_PARAMETERS, self.config.study_path, area_id=area_from, second_area_id=area_to
         )
 
     def read_links(self) -> list[Link]:
         link_path = self.config.study_path / "input" / "links"
+
         link_clusters = []
+
         for element in link_path.iterdir():
             area_from = element.name
-            for content_area in element.iterdir():
-                if (
-                    content_area.is_file()
-                    and content_area.suffix == ".txt"
-                    and content_area.stem.endswith("parameters")
-                ):
+            links_dict = IniFile(self.config.study_path, IniFileTypes.LINK_PROPERTIES_INI, area_name=area_from).ini_dict
+            # If the properties.ini doesn't exist, we stop the reading process
+            if links_dict:
+                for area_to in links_dict:
+
+                    # Extract and delete from original dictionnary, the ui related properties
+                    ui_fields = ["link-style", "link-width", "colorr", "colorg", "colorb"]
+                    properties_field = {
+                        field: links_dict[area_to].pop(field) for field in ui_fields if field in links_dict[area_to]
+                    }
+
+                    ui_properties = LinkUiLocal.model_validate(properties_field)
+
+                    links_dict[area_to]["filter-synthesis"] = set(links_dict[area_to]["filter-synthesis"].split(", "))
+                    links_dict[area_to]["filter-year-by-year"] = set(
+                        links_dict[area_to]["filter-year-by-year"].split(", ")
+                    )
+
+                    link_properties = LinkPropertiesLocal.model_validate(links_dict[area_to])
+
                     link_clusters.append(
                         Link(
                             area_from=area_from,
-                            area_to=content_area.name.replace("_parameters.txt", ""),
+                            area_to=area_to,
                             link_service=self,
+                            properties=link_properties.yield_link_properties(),
+                            ui=ui_properties.yield_link_ui(),
                         )
                     )
         return link_clusters

@@ -367,6 +367,18 @@ class BaseLinkService(ABC):
     def read_links(self) -> List[Link]:
         pass
 
+    @abstractmethod
+    def get_capacity_direct(self, area_from: str, area_to: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_capacity_indirect(self, area_from: str, area_to: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_parameters(self, area_from: str, area_to: str) -> pd.DataFrame:
+        pass
+
 
 class BaseThermalService(ABC):
     @abstractmethod

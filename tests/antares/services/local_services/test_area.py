@@ -1417,3 +1417,15 @@ class TestReadLinks:
                 pd.testing.assert_frame_equal(matrix.astype(str), df_initial.astype(str), check_dtype=False)
                 pd.testing.assert_frame_equal(matrix_2.astype(str), df_initial.astype(str), check_dtype=False)
                 pd.testing.assert_frame_equal(matrix_3.astype(str), df_initial.astype(str), check_dtype=False)
+            assert link.ui.link_style.value == "plain"
+            assert link.ui.link_width == 1
+            assert link.ui.colorb == 112
+            assert link.ui.colorg == 112
+            assert link.ui.colorr == 112
+            assert link.properties.hurdles_cost == False
+            assert link.properties.loop_flow == False
+            assert link.properties.use_phase_shifter == False
+            assert link.properties.transmission_capacities.value == "enabled"
+            assert link.properties.asset_type.value == "ac"
+            assert isinstance(link.properties.filter_year_by_year, set)
+            assert isinstance(link.properties.filter_synthesis, set)

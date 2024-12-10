@@ -25,6 +25,7 @@ from antares.exceptions.exceptions import (
 from antares.model.area import Area
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.service.base_services import BaseLinkService
+import pandas as pd
 
 
 class LinkApiService(BaseLinkService):
@@ -167,6 +168,15 @@ class LinkApiService(BaseLinkService):
         return link_ui
 
     def read_links(self) -> list[Link]:
+        raise NotImplementedError
+
+    def get_capacity_direct(self, area_from: str, area_to: str) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_capacity_indirect(self, area_from: str, area_to: str) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_parameters(self, area_from: str, area_to: str) -> pd.DataFrame:
         raise NotImplementedError
 
 
