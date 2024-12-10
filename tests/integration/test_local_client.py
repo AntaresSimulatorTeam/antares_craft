@@ -66,7 +66,7 @@ class TestLocalClient:
         assert isinstance(at_fr, Link)
 
         ## Cannot link areas that don't exist in the study
-        with pytest.raises(LinkCreationError, match="Could not create the link fr / usa: usa does not exist."):
+        with pytest.raises(LinkCreationError, match="Could not create the link fr / usa: usa does not exist"):
             test_study.create_link(area_from=fr.id, area_to=other_area.id)
 
         # Thermal
