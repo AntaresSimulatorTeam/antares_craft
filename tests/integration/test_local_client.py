@@ -19,6 +19,7 @@ import pandas as pd
 from antares import create_study_local
 from antares.exceptions.exceptions import AreaCreationError, InvalidNameError, LinkCreationError
 from antares.model.area import AdequacyPatchMode, Area, AreaProperties, AreaUi
+from antares.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
 from antares.model.commons import FilterOption
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.renewable import RenewableClusterGroup, RenewableClusterProperties
@@ -216,3 +217,22 @@ class TestLocalClient:
         properties = battery_fr.properties
         assert properties.reservoir_capacity == 0.5
         assert properties.group == STStorageGroup.BATTERY
+
+        # test binding constraint creation without terms
+        properties = BindingConstraintProperties(enabled=False)
+        properties.group = "group_1"
+        constraint_1 = test_study.create_binding_constraint(name="bc_1", properties=properties)
+        assert constraint_1.name == "bc_1"
+        assert not constraint_1.properties.enabled
+        assert constraint_1.properties.group == "group_1"
+        assert constraint_1.get_terms() == {}
+
+        # test binding constraint creation with terms
+        link_data = LinkData(area1=area_be.id, area2=fr.id)
+        link_term_2 = ConstraintTerm(data=link_data, weight=2)
+        cluster_data = ClusterData(area=fr.id, cluster=thermal_fr.id)
+        cluster_term = ConstraintTerm(data=cluster_data, weight=4.5, offset=3)
+        terms = [link_term_2, cluster_term]
+        constraint_2 = test_study.create_binding_constraint(name="bc_2", terms=terms)
+        assert constraint_2.name == "bc_2"
+        assert constraint_2.get_terms() == {link_term_2.id: link_term_2, cluster_term.id: cluster_term}
