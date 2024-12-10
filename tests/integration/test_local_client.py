@@ -22,6 +22,7 @@ from antares.model.area import AdequacyPatchMode, Area, AreaProperties, AreaUi
 from antares.model.commons import FilterOption
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.renewable import RenewableClusterGroup, RenewableClusterProperties
+from antares.model.st_storage import STStorageGroup, STStorageProperties
 from antares.model.study import Study
 from antares.model.thermal import ThermalCluster, ThermalClusterGroup, ThermalClusterProperties
 from antares.tools.ini_tool import IniFile, IniFileTypes
@@ -206,3 +207,12 @@ class TestLocalClient:
         storage_fr = fr.create_st_storage(st_storage_name)
         assert storage_fr.name == st_storage_name
         assert storage_fr.id == "cluster_test"
+
+        # test short term storage creation with properties
+        st_storage_name = "wind_onshore"
+        storage_properties = STStorageProperties(reservoir_capacity=0.5)
+        storage_properties.group = STStorageGroup.BATTERY
+        battery_fr = fr.create_st_storage(st_storage_name, storage_properties)
+        properties = battery_fr.properties
+        assert properties.reservoir_capacity == 0.5
+        assert properties.group == STStorageGroup.BATTERY
