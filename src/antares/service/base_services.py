@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 
 from abc import ABC, abstractmethod
-from types import MappingProxyType
 from typing import TYPE_CHECKING, Dict, List, Optional
 
 import pandas as pd
@@ -322,7 +321,6 @@ class BaseLinkService(ABC):
         area_to: str,
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
-        existing_areas: Optional[MappingProxyType[str, Area]] = None,
     ) -> Link:
         """
         Args:

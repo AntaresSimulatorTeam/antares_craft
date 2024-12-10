@@ -55,9 +55,7 @@ def local_study_w_links(tmp_path, local_study_w_areas):
     links_to_create = ["fr_at", "at_it", "fr_it"]
     for link in links_to_create:
         area_from, area_to = link.split("_")
-        local_study_w_areas.create_link(
-            area_from=area_from, area_to=area_to, existing_areas=local_study_w_areas.get_areas()
-        )
+        local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
 
     return local_study_w_areas
 
