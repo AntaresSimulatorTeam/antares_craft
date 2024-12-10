@@ -27,6 +27,9 @@ from antares.model.binding_constraint import BindingConstraintProperties, Cluste
 from antares.model.commons import FilterOption
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.renewable import RenewableClusterGroup, RenewableClusterProperties
+from antares.model.settings.general import GeneralParametersLocal, Mode
+from antares.model.settings.playlist_parameters import PlaylistParameters
+from antares.model.settings.study_settings import StudySettingsLocal
 from antares.model.st_storage import STStorageGroup, STStorageProperties
 from antares.model.study import Study
 from antares.model.thermal import ThermalCluster, ThermalClusterGroup, ThermalClusterProperties
@@ -262,3 +265,15 @@ class TestLocalClient:
             constraint_2.id: constraint_2,
             constraint_3.id: constraint_3,
         }
+
+        # test study creation with settings
+        settings = StudySettingsLocal()
+        settings.general_parameters = GeneralParametersLocal(mode="Adequacy")
+        settings.general_parameters.year_by_year = False
+        settings.playlist_parameters = PlaylistParameters()
+        settings.playlist_parameters.playlist = [{"status": False, "weight": 1}]
+        new_study = create_study_local("second_study", "880", tmp_path, settings)
+        settings = new_study.get_settings()
+        assert settings.general_parameters.mode == Mode.ADEQUACY.value
+        assert not settings.general_parameters.year_by_year
+        assert settings.playlist_parameters.model_dump() == {1: {"status": False, "weight": 1}}
