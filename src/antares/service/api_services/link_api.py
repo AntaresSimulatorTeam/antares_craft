@@ -13,6 +13,8 @@
 from types import MappingProxyType
 from typing import Optional
 
+import pandas as pd
+
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
 from antares.exceptions.exceptions import (
@@ -25,7 +27,6 @@ from antares.exceptions.exceptions import (
 from antares.model.area import Area
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.service.base_services import BaseLinkService
-import pandas as pd
 
 
 class LinkApiService(BaseLinkService):

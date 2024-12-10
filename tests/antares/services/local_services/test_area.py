@@ -1422,9 +1422,9 @@ class TestReadLinks:
             assert link.ui.colorb == 112
             assert link.ui.colorg == 112
             assert link.ui.colorr == 112
-            assert link.properties.hurdles_cost == False
-            assert link.properties.loop_flow == False
-            assert link.properties.use_phase_shifter == False
+            assert not link.properties.hurdles_cost
+            assert not link.properties.loop_flow
+            assert not link.properties.use_phase_shifter
             assert link.properties.transmission_capacities.value == "enabled"
             assert link.properties.asset_type.value == "ac"
             assert isinstance(link.properties.filter_year_by_year, set)

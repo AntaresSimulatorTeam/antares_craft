@@ -17,7 +17,6 @@ from types import MappingProxyType
 from typing import Any, Dict, Optional
 
 import pandas as pd
-from antares.tools.ini_tool import IniFile, IniFileTypes
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import LinkCreationError
@@ -26,6 +25,7 @@ from antares.model.link import Link, LinkProperties, LinkPropertiesLocal, LinkUi
 from antares.service.base_services import BaseLinkService
 from antares.tools.contents_tool import sort_ini_sections
 from antares.tools.custom_raw_config_parser import CustomRawConfigParser
+from antares.tools.ini_tool import IniFile, IniFileTypes
 from antares.tools.matrix_tool import read_timeseries
 from antares.tools.time_series_tool import TimeSeriesFileType
 
@@ -182,7 +182,6 @@ class LinkLocalService(BaseLinkService):
             # If the properties.ini doesn't exist, we stop the reading process
             if links_dict:
                 for area_to in links_dict:
-
                     # Extract and delete from original dictionnary, the ui related properties
                     ui_fields = ["link-style", "link-width", "colorr", "colorg", "colorb"]
                     properties_field = {
