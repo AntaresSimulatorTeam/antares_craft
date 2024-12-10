@@ -9,12 +9,12 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from unittest.mock import Mock
-
 import pytest
 import requests_mock
 
 import re
+
+from unittest.mock import Mock
 
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
@@ -169,12 +169,10 @@ class TestCreateAPI:
             )
             area_to = "area_final"
 
-
             with pytest.raises(
-                    LinkCreationError,
-                    match=f"Could not create the link area_from / {area_to}: {area_to} does not exist.",
+                LinkCreationError,
+                match=f"Could not create the link area_from / {area_to}: {area_to} does not exist.",
             ):
-
                 self.study.create_link(area_from="area_from", area_to=area_to)
 
     def test_create_binding_constraint_success(self):
@@ -289,3 +287,35 @@ class TestCreateAPI:
 
             with pytest.raises(StudyVariantCreationError, match=error_message):
                 create_variant_api(self.api, self.study_id, variant_name)
+
+
+    def test_create_link_already_created(self):
+        area_from = "area_1"
+        area_to = "area_2"
+
+        self.study._areas[area_from] = Area(
+            area_from,
+            self.study._area_service,
+            Mock(),
+         Mock(),
+            Mock(),
+        )
+        self.study._areas[area_to] = Area(
+            area_to,
+            self.study._area_service,
+            Mock(),
+            Mock(),
+            Mock(),
+        )
+
+        self.study._links[f"{area_from}/{area_to}"] = Link(area_from, area_to, Mock())
+
+
+        with pytest.raises(
+            LinkCreationError,
+            match=f"Could not create the link area_1 / area_2: A link from {area_from} to {area_to} already exists",
+        ):
+            self.study.create_link(area_from="area_1", area_to="area_2")
+
+
+

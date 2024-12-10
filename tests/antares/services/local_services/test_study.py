@@ -83,7 +83,6 @@ from antares.model.settings.playlist_parameters import PlaylistData, PlaylistPar
 from antares.model.settings.study_settings import DefaultStudySettings, StudySettingsLocal
 from antares.model.settings.thematic_trimming import DefaultThematicTrimmingParameters, ThematicTrimmingParametersLocal
 from antares.model.study import create_study_local
-from antares.service.local_services.link_local import LinkLocalService
 from antares.tools.ini_tool import IniFileTypes
 
 
@@ -1639,10 +1638,7 @@ class TestCreateLink:
             LinkCreationError,
             match=f"Could not create the link {area_from} / {area_to}: {area_from} does not exist",
         ):
-            local_study_w_areas.create_link(
-                area_from=area_from, area_to=area_to
-            )
-
+            local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
 
     def test_create_link_alphabetically(self, tmp_path, local_study):
         # Given
@@ -1767,11 +1763,7 @@ filter-year-by-year = daily, weekly
 
         # When
         area_from, area_to = link_to_create.split("_")
-        link_created = local_study_w_areas.create_link(
-            area_from="fr",
-            area_to="it",
-            properties=link_properties
-        )
+        link_created = local_study_w_areas.create_link(area_from="fr", area_to="it", properties=link_properties)
         created_ini_file = tmp_path / local_study_w_areas.name / "input/links" / area_from / "properties.ini"
         actual_ini = ConfigParser()
         with open(created_ini_file, "r") as file:
@@ -1827,10 +1819,7 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         # When
         for link in links_to_create:
             area_from, area_to = link.split("_")
-            local_study_w_areas.create_link(
-                area_from=area_from,
-                area_to=area_to
-            )
+            local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
 
         # Then
         actual_ini = ConfigParser()
@@ -1887,10 +1876,7 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         # When
         for link in links_to_create:
             area_from, area_to = link.split("_")
-            local_study_w_areas.create_link(
-                area_from=area_from,
-                area_to=area_to
-            )
+            local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
 
         # Then
         actual_ini = ConfigParser()
@@ -1912,7 +1898,7 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         # Then
         with pytest.raises(
             LinkCreationError,
-            match=f"Could not create the link {area_from} / {area_to}: Link exists already between '{area_from}' and '{area_to}'.",
+            match=f"Could not create the link {area_from} / {area_to}: A link from {area_from} to {area_to} already exists",
         ):
             local_study_w_links.create_link(
                 area_from=area_from,
@@ -1945,10 +1931,7 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
 
         # When
         area_from, area_to = link_to_create.split(" / ")
-        local_study_w_areas.create_link(
-            area_from=area_from,
-            area_to=area_to
-        )
+        local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
         with open(actual_ini_file, "r") as file:
             actual_ini.read_file(file)
             file.seek(0)

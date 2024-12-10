@@ -13,12 +13,10 @@
 import os
 
 from configparser import DuplicateSectionError
-from types import MappingProxyType
 from typing import Any, Dict, Optional
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import LinkCreationError
-from antares.model.area import Area
 from antares.model.link import Link, LinkProperties, LinkPropertiesLocal, LinkUi, LinkUiLocal
 from antares.service.base_services import BaseLinkService
 from antares.tools.contents_tool import sort_ini_sections

@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 
 from abc import ABC, abstractmethod
-from types import MappingProxyType
 from typing import TYPE_CHECKING, Dict, List, Optional
 
 import pandas as pd

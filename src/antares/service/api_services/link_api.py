@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-from types import MappingProxyType
 from typing import Optional
 
 from antares.api_conf.api_conf import APIconf
@@ -22,7 +21,6 @@ from antares.exceptions.exceptions import (
     LinkPropertiesUpdateError,
     LinkUiUpdateError,
 )
-from antares.model.area import Area
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.service.base_services import BaseLinkService
 
