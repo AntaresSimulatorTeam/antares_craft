@@ -120,46 +120,6 @@ class BindingConstraintProperties(DefaultBindingConstraintProperties):
     pass
 
 
-class BindingConstraintPropertiesLocal(DefaultBindingConstraintProperties):
-    """
-    Used to create the entries for the bindingconstraints.ini file
-
-    Attributes:
-        constraint_name: The constraint name
-        constraint_id: The constraint id
-        properties (BindingConstraintProperties): The BindingConstraintProperties  to set
-        terms (dict[str, ConstraintTerm]]): The terms applying to the binding constraint
-    """
-
-    constraint_name: str
-    constraint_id: str
-    terms: dict[str, ConstraintTerm] = {}
-
-    @property
-    def list_ini_fields(self) -> dict[str, str]:
-        ini_dict = {
-            "name": self.constraint_name,
-            "id": self.constraint_id,
-            "enabled": f"{self.enabled}".lower(),
-            "type": self.time_step.value,
-            "operator": self.operator.value,
-            "comments": self.comments,
-            "filter-year-by-year": self.filter_year_by_year,
-            "filter-synthesis": self.filter_synthesis,
-            "group": self.group,
-        } | {term_id: term.weight_offset() for term_id, term in self.terms.items()}
-        return {key: value for key, value in ini_dict.items() if value not in [None, ""]}
-
-    def yield_binding_constraint_properties(self) -> BindingConstraintProperties:
-        excludes = {
-            "constraint_name",
-            "constraint_id",
-            "terms",
-            "list_ini_fields",
-        }
-        return BindingConstraintProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
-
-
 class BindingConstraint:
     def __init__(  # type: ignore # TODO: Find a way to avoid circular imports
         self,
@@ -173,9 +133,6 @@ class BindingConstraint:
         self._id = transform_name_to_id(name)
         self._properties = properties or BindingConstraintProperties()
         self._terms = {term.id: term for term in terms} if terms else {}
-        self._local_properties = BindingConstraintPropertiesLocal.model_validate(
-            self._create_local_property_args(self._properties)
-        )
 
     @property
     def name(self) -> str:
@@ -191,24 +148,7 @@ class BindingConstraint:
 
     @properties.setter
     def properties(self, new_properties: BindingConstraintProperties) -> None:
-        self._local_properties = BindingConstraintPropertiesLocal.model_validate(
-            self._create_local_property_args(new_properties)
-        )
         self._properties = new_properties
-
-    def _create_local_property_args(
-        self, properties: BindingConstraintProperties
-    ) -> dict[str, Union[str, dict[str, ConstraintTerm]]]:
-        return {
-            "constraint_name": self._name,
-            "constraint_id": self._id,
-            "terms": self._terms,
-            **properties.model_dump(mode="json", exclude_none=True),
-        }
-
-    @property
-    def local_properties(self) -> BindingConstraintPropertiesLocal:
-        return self._local_properties
 
     def get_terms(self) -> Dict[str, ConstraintTerm]:
         return self._terms
