@@ -13,7 +13,7 @@ from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
-from pydantic import ValidationError
+from pydantic import ValidationError, Field
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import BindingConstraintCreationError, ConstraintTermAdditionError
@@ -45,7 +45,7 @@ class BindingConstraintPropertiesLocal(DefaultBindingConstraintProperties):
 
     constraint_name: str
     constraint_id: str
-    terms: dict[str, ConstraintTerm] = {}
+    terms: dict[str, ConstraintTerm] = Field(default_factory=dict[str, ConstraintTerm])
 
     @property
     def list_ini_fields(self) -> dict[str, str]:
@@ -78,6 +78,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         self.config = config
         self.study_name = study_name
         self.ini_file = IniFile(self.config.study_path, IniFileTypes.BINDING_CONSTRAINTS_INI)
+        self.local_properties: BindingConstraintPropertiesLocal
 
     def create_binding_constraint(
         self,
@@ -94,10 +95,11 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             properties=properties,
             terms=terms,
         )
-        properties = self._create_local_property_args(constraint)
-        constraint.properties = BindingConstraintPropertiesLocal.model_validate(
-            properties
-        )#.yield_binding_constraint_properties()
+
+        self.local_properties = BindingConstraintPropertiesLocal.model_validate(
+            self._create_local_property_args(constraint)
+        )
+        constraint.properties = self.local_properties.yield_binding_constraint_properties()
 
         current_ini_content = self.ini_file.ini_dict_binding_constraints or {}
         if any(values.get("id") == constraint.id for values in current_ini_content.values()):
@@ -117,7 +119,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             "constraint_name": constraint.name,
             "constraint_id": constraint.id,
             "terms": constraint.get_terms(),
-            **constraint.properties.model_dump(mode="json", exclude_none=True),
+            **constraint.properties.model_dump(mode="json", exclude_none=True)
         }
 
     def _store_time_series(
@@ -184,7 +186,12 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             # Persist the updated INI content
             self.ini_file.write_ini_file()
         else:
+            terms_dict = {term.id: term for term in terms} if terms else {}
+
             full_properties = BindingConstraintPropertiesLocal(
+                constraint_name=constraint_name,
+                constraint_id=constraint_id,
+                terms=terms_dict,
                 **properties.model_dump(),
             )
 
@@ -206,12 +213,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             list[ConstraintTerm]: The updated list of terms.
         """
 
-        try:
-            local_properties = BindingConstraintPropertiesLocal.model_validate(constraint.properties)
-        except ValidationError as e:
-            raise ConstraintTermAdditionError(constraint.id, [term.id for term in terms], e.message) from e
-
-        new_terms = local_properties.terms.copy()
+        new_terms = self.local_properties.terms.copy()
 
         for term in terms:
             if term.id in constraint.get_terms():
@@ -220,7 +222,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
                 )
             new_terms[term.id] = term
 
-        local_properties.terms = new_terms
+        self.local_properties.terms = new_terms
 
         terms_values = list(new_terms.values())
 
