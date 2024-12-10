@@ -171,7 +171,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinkCreationError,
-                match=f"Could not create the link area_from / {area_to}: {area_to} does not exist.",
+                match=f"Could not create the link area_from / {area_to}: {area_to} does not exist",
             ):
                 self.study.create_link(area_from="area_from", area_to=area_to)
 
@@ -288,8 +288,7 @@ class TestCreateAPI:
             with pytest.raises(StudyVariantCreationError, match=error_message):
                 create_variant_api(self.api, self.study_id, variant_name)
 
-
-    def test_create_link_already_created(self):
+    def test_create_duplicated_link(self):
         area_from = "area_1"
         area_to = "area_2"
 
@@ -297,7 +296,7 @@ class TestCreateAPI:
             area_from,
             self.study._area_service,
             Mock(),
-         Mock(),
+            Mock(),
             Mock(),
         )
         self.study._areas[area_to] = Area(
@@ -310,12 +309,26 @@ class TestCreateAPI:
 
         self.study._links[f"{area_from}/{area_to}"] = Link(area_from, area_to, Mock())
 
-
         with pytest.raises(
             LinkCreationError,
-            match=f"Could not create the link area_1 / area_2: A link from {area_from} to {area_to} already exists",
+            match=f"Could not create the link {area_from} / {area_to}: A link from {area_from} to {area_to} already exists",
         ):
             self.study.create_link(area_from="area_1", area_to="area_2")
 
+    def test_create_link_unknown_area(self):
+        area_from = "area_fr"
+        area_to = "area_missing"
 
+        self.study._areas[area_from] = Area(
+            area_from,
+            self.study._area_service,
+            Mock(),
+            Mock(),
+            Mock(),
+        )
 
+        with pytest.raises(
+            LinkCreationError,
+            match=f"Could not create the link {area_from} / {area_to}: {area_to} does not exist",
+        ):
+            self.study.create_link(area_from=area_from, area_to=area_to)

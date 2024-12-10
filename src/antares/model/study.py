@@ -265,24 +265,15 @@ class Study:
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
     ) -> Link:
-        missing_areas = [
-            area for area in [area_from, area_to] if area not in self._areas
-        ]
+        missing_areas = [area for area in [area_from, area_to] if area not in self._areas]
         if missing_areas:
-            raise LinkCreationError(area_from, area_to, f"{', '.join(missing_areas)} does not exist.")
+            raise LinkCreationError(area_from, area_to, f"{', '.join(missing_areas)} does not exist")
 
         existing_link = next(
-            (
-                link
-                for link in self._links.values()
-                if link.area_from == area_from and link.area_to == area_to
-            ),
-            None
+            (link for link in self._links.values() if link.area_from == area_from and link.area_to == area_to), None
         )
         if existing_link:
-            raise LinkCreationError(
-                area_from, area_to, f"A link from {area_from} to {area_to} already exists"
-            )
+            raise LinkCreationError(area_from, area_to, f"A link from {area_from} to {area_to} already exists")
 
         link = self._link_service.create_link(area_from, area_to, properties, ui)
         self._links[link.name] = link
