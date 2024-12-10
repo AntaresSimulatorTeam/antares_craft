@@ -17,7 +17,11 @@ import numpy as np
 import pandas as pd
 
 from antares import create_study_local
-from antares.exceptions.exceptions import AreaCreationError, InvalidNameError, LinkCreationError
+from antares.exceptions.exceptions import (
+    AreaCreationError,
+    InvalidNameError,
+    LinkCreationError,
+)
 from antares.model.area import AdequacyPatchMode, Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
 from antares.model.commons import FilterOption
@@ -236,3 +240,18 @@ class TestLocalClient:
         constraint_2 = test_study.create_binding_constraint(name="bc_2", terms=terms)
         assert constraint_2.name == "bc_2"
         assert constraint_2.get_terms() == {link_term_2.id: link_term_2, cluster_term.id: cluster_term}
+
+        # test adding terms to a constraint
+        link_data = LinkData(area1=area_de.id, area2=fr.id)
+        link_term_1 = ConstraintTerm(data=link_data, weight=15)
+        cluster_data = ClusterData(area=area_be.id, cluster=thermal_be.id)
+        cluster_term = ConstraintTerm(data=cluster_data, weight=100)
+        terms = [link_term_1, cluster_term]
+        constraint_1.add_terms(terms)
+        assert constraint_1.get_terms() == {link_term_1.id: link_term_1, cluster_term.id: cluster_term}
+
+        # Case that succeeds
+        properties = BindingConstraintProperties(operator="less")
+        matrix = pd.DataFrame(data=(np.ones((8784, 1))))
+        constraint_3 = test_study.create_binding_constraint(name="bc_3", less_term_matrix=matrix, properties=properties)
+        assert constraint_3.get_less_term_matrix().equals(matrix)

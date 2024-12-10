@@ -30,7 +30,7 @@ from antares.model.binding_constraint import (
 from antares.service.base_services import BaseBindingConstraintService
 from antares.tools.contents_tool import check_if_name_is_valid
 from antares.tools.ini_tool import IniFile, IniFileTypes
-from antares.tools.matrix_tool import df_save
+from antares.tools.matrix_tool import df_read, df_save
 from antares.tools.time_series_tool import TimeSeriesFileType
 
 
@@ -134,24 +134,20 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         greater_term_matrix: Optional[pd.DataFrame],
     ) -> None:
         time_series = []
-        time_series_ids = []
         file_types = []
         # Lesser or greater can happen together when operator is both
         if constraint.properties.operator in (BindingConstraintOperator.LESS, BindingConstraintOperator.BOTH):
             time_series += [self._check_if_empty_ts(constraint.properties.time_step, less_term_matrix)]
-            time_series_ids += [f"{constraint.id.lower()}_lt"]
             file_types += [TimeSeriesFileType.BINDING_CONSTRAINT_LESS]
         if constraint.properties.operator in (BindingConstraintOperator.GREATER, BindingConstraintOperator.BOTH):
             time_series += [self._check_if_empty_ts(constraint.properties.time_step, greater_term_matrix)]
-            time_series_ids += [f"{constraint.id.lower()}_gt"]
             file_types += [TimeSeriesFileType.BINDING_CONSTRAINT_GREATER]
         # Equal is always exclusive
         if constraint.properties.operator == BindingConstraintOperator.EQUAL:
             time_series = [self._check_if_empty_ts(constraint.properties.time_step, equal_term_matrix)]
-            time_series_ids = [f"{constraint.id.lower()}_eq"]
             file_types = [TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL]
 
-        for ts, ts_id, file_type in zip(time_series, time_series_ids, file_types):
+        for ts, file_type in zip(time_series, file_types):
             matrix_path = self.config.study_path.joinpath(file_type.value.format(constraint_id=constraint.id))
             df_save(ts, matrix_path)
 
@@ -240,7 +236,10 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         raise NotImplementedError
 
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
-        raise NotImplementedError
+        file_path = self.config.study_path.joinpath(
+            "input", "bindingconstraints", f"{constraint.id}_{matrix_name.value}.txt"
+        )
+        return df_read(file_path)
 
     def update_constraint_matrix(
         self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName, matrix: pd.DataFrame
