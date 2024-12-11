@@ -599,3 +599,7 @@ class BaseShortTermStorageService(ABC):
     @abstractmethod
     def read_st_storages(self, area_id: str) -> List[STStorage]:
         pass
+
+
+class BaseRunService(ABC):
+    pass
