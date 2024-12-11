@@ -1437,7 +1437,10 @@ layers = 0
             raise CustomError("An error occurred while processing area can not be created")
 
         monkeypatch.setattr("antares.service.local_services.area_local._sets_ini_content", mock_error_in_sets_ini)
-        with pytest.raises(CustomError, match="An error occurred while processing area can not be created"):
+        with pytest.raises(
+            AreaCreationError,
+            match="Could not create the area test: An error occurred while processing area can not be created",
+        ):
             local_study.create_area("test")
 
     def test_create_area_with_custom_ui(self, tmp_path, local_study):
@@ -2228,3 +2231,21 @@ at%fr = 0.000000%1
 
         # Then
         assert actual_time_series.equals(expected_time_series)
+
+    def test_get_constraint_matrix(self, local_study):
+        # Given
+        expected_time_series = pd.DataFrame(np.random.random([365 * 24, 1]))
+        bc_name = "test time series"
+        local_study.create_binding_constraint(
+            name=bc_name,
+            properties=BindingConstraintProperties(
+                operator=BindingConstraintOperator.GREATER, time_step=BindingConstraintFrequency.HOURLY
+            ),
+            greater_term_matrix=expected_time_series,
+        )
+
+        # When
+        actual_time_series = local_study.get_binding_constraints()[bc_name].get_greater_term_matrix()
+
+        # Then
+        assert actual_time_series.round(10).equals(expected_time_series.round(10))

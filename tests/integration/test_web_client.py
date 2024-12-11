@@ -88,9 +88,9 @@ class TestWebClient:
         area_be = study.create_area(area_name, ui=area_ui)
         assert area_be.name == area_name
         assert area_be.id == "be"
-        area_ui = area_be.ui
-        assert area_ui.x == area_ui.x
-        assert area_ui.color_rgb == area_ui.color_rgb
+
+        assert area_be.ui.x == area_ui.x
+        assert area_be.ui.color_rgb == area_ui.color_rgb
 
         # tests area creation with properties
         properties = AreaProperties()

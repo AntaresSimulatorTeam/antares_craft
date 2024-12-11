@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import AreaCreationError, CustomError, ThermalCreationError
+from antares.exceptions.exceptions import AreaCreationError, ThermalCreationError
 from antares.model.area import Area, AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
 from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesLocal
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesLocal
@@ -31,6 +31,7 @@ from antares.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
+from antares.tools.contents_tool import transform_name_to_id
 from antares.tools.ini_tool import IniFile, IniFileTypes
 from antares.tools.matrix_tool import read_timeseries
 from antares.tools.prepro_folder import PreproFolder
@@ -79,7 +80,7 @@ class AreaLocalService(BaseAreaService):
         args = {"thermal_name": thermal_name, **properties.model_dump(mode="json", exclude_none=True)}
         local_thermal_properties = ThermalClusterPropertiesLocal.model_validate(args)
 
-        list_ini = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name=area_id)
+        list_ini = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_id=area_id)
         try:
             list_ini.add_section(local_thermal_properties.list_ini_fields)
         except DuplicateSectionError:
@@ -118,7 +119,7 @@ class AreaLocalService(BaseAreaService):
         args = {"renewable_name": renewable_name, **properties.model_dump(mode="json", exclude_none=True)}
         local_properties = RenewableClusterPropertiesLocal.model_validate(args)
 
-        list_ini = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name=area_id)
+        list_ini = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_id=area_id)
         list_ini.add_section(local_properties.ini_fields)
         list_ini.write_ini_file()
 
@@ -141,7 +142,7 @@ class AreaLocalService(BaseAreaService):
         args = {"st_storage_name": st_storage_name, **properties.model_dump(mode="json", exclude_none=True)}
         local_st_storage_properties = STStoragePropertiesLocal.model_validate(args)
 
-        list_ini = IniFile(self.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name=area_id)
+        list_ini = IniFile(self.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_id=area_id)
         list_ini.add_section(local_st_storage_properties.list_ini_fields)
         list_ini.write_ini_file(sort_sections=True)
 
@@ -212,9 +213,9 @@ class AreaLocalService(BaseAreaService):
             """
             return line_to_add.strip() in file_content.split("\n")
 
-        study_directory = self.config.local_path / self.study_name / "input"
-        areas_directory = study_directory / "areas"
-        new_area_directory = areas_directory / area_name
+        study_directory = self.config.local_path.joinpath(self.study_name, "input")
+        areas_directory = study_directory.joinpath("areas")
+        new_area_directory = areas_directory.joinpath(transform_name_to_id(area_name))
 
         if new_area_directory.is_dir():
             raise AreaCreationError(
@@ -224,7 +225,7 @@ class AreaLocalService(BaseAreaService):
         # Create "areas" directory if it doesn't exist
         os.makedirs(new_area_directory, exist_ok=True)
 
-        list_path = areas_directory / "list.txt"
+        list_path = areas_directory.joinpath("list.txt")
 
         area_to_add = f"{area_name}\n"
         try:
@@ -283,7 +284,7 @@ class AreaLocalService(BaseAreaService):
                 ui_ini.write(ui_ini_file)
 
         except Exception as e:
-            raise CustomError(f"Error during area creation: {e}") from e
+            raise AreaCreationError(area_name, f"{e}") from e
 
         logging.info(f"Area {area_name} created successfully!")
         created_area = Area(
