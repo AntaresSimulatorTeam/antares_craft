@@ -105,9 +105,9 @@ class TestWebClient:
 
         # tests link creation with default values
         link_de_fr = study.create_link(area_from=area_de.id, area_to=area_fr.id)
-        assert link_de_fr.area_from == area_de.id
-        assert link_de_fr.area_to == area_fr.id
-        assert link_de_fr.name == f"{area_de.id} / {area_fr.id}"
+        assert link_de_fr.area_from_id == area_de.id
+        assert link_de_fr.area_to_id == area_fr.id
+        assert link_de_fr.id == f"{area_de.id} / {area_fr.id}"
 
         # tests link creation with ui and properties
         link_ui = LinkUi(colorr=44)
@@ -120,7 +120,7 @@ class TestWebClient:
 
         # asserts study contains all links and areas
         assert study.get_areas() == {area_be.id: area_be, area_fr.id: area_fr, area_de.id: area_de}
-        assert study.get_links() == {link_be_fr.name: link_be_fr, link_de_fr.name: link_de_fr}
+        assert study.get_links() == {link_be_fr.id: link_be_fr, link_de_fr.id: link_de_fr}
 
         # test thermal cluster creation with default values
         thermal_name = "Cluster_test %?"
@@ -407,7 +407,7 @@ class TestWebClient:
 
         # tests link deletion
         study.delete_link(link_de_fr)
-        assert link_de_fr.name not in study.get_links()
+        assert link_de_fr.id not in study.get_links()
 
         # tests thermal cluster deletion
         area_be.delete_thermal_cluster(thermal_be)
