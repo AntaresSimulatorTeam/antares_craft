@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-from types import MappingProxyType
 from typing import Optional
 
 import pandas as pd
@@ -24,7 +23,6 @@ from antares.exceptions.exceptions import (
     LinkPropertiesUpdateError,
     LinkUiUpdateError,
 )
-from antares.model.area import Area
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.service.base_services import BaseLinkService
 
@@ -43,7 +41,6 @@ class LinkApiService(BaseLinkService):
         area_to: str,
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
-        existing_areas: Optional[MappingProxyType[str, Area]] = None,
     ) -> Link:
         """
         Args:
@@ -51,7 +48,6 @@ class LinkApiService(BaseLinkService):
             area_to: area where the link goes to
             properties: link's properties. If not provided, AntaresWeb will use its own default values.
             ui: link's ui characteristics. If not provided, AntaresWeb will use its own default values.
-            existing_areas: existing areas from study
 
         Returns:
             The created link

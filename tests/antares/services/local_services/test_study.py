@@ -83,7 +83,6 @@ from antares.model.settings.playlist_parameters import PlaylistData, PlaylistPar
 from antares.model.settings.study_settings import DefaultStudySettings, StudySettingsLocal
 from antares.model.settings.thematic_trimming import DefaultThematicTrimmingParameters, ThematicTrimmingParametersLocal
 from antares.model.study import create_study_local
-from antares.service.local_services.link_local import LinkLocalService
 from antares.tools.ini_tool import IniFileTypes
 
 
@@ -1622,7 +1621,6 @@ class TestCreateLink:
         link_created = local_study_w_areas.create_link(
             area_from=area_from,
             area_to=area_to,
-            existing_areas=local_study_w_areas.get_areas(),
         )
 
         assert isinstance(link_created, Link)
@@ -1640,28 +1638,7 @@ class TestCreateLink:
             LinkCreationError,
             match=f"Could not create the link {area_from} / {area_to}: {area_from} does not exist",
         ):
-            local_study_w_areas.create_link(
-                area_from=area_from, area_to=area_to, existing_areas=local_study_w_areas.get_areas()
-            )
-
-    def test_study_areas_not_provided_errors(self, tmp_path, local_study_w_areas):
-        # With
-        area_from = "fr"
-        area_to = "it"
-        test_service = LinkLocalService(
-            local_study_w_areas.service.config,
-            local_study_w_areas.name,
-        )
-
-        with pytest.raises(
-            LinkCreationError,
-            match=f"Could not create the link {area_from} / {area_to}: Cannot verify existing areas.",
-        ):
-            test_service.create_link(
-                area_from=area_from,
-                area_to=area_to,
-                existing_areas=None,
-            )
+            local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
 
     def test_create_link_alphabetically(self, tmp_path, local_study):
         # Given
@@ -1675,7 +1652,6 @@ class TestCreateLink:
         link_created = local_study.create_link(
             area_from=area_from,
             area_to=area_to,
-            existing_areas=local_study.get_areas(),
         )
 
         assert link_created.area_from == "at"
@@ -1707,7 +1683,6 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         local_study_w_areas.create_link(
             area_from="fr",
             area_to="it",
-            existing_areas=local_study_w_areas.get_areas(),
         )
 
         ini_file = tmp_path / local_study_w_areas.name / "input/links" / area_from / "properties.ini"
@@ -1744,7 +1719,6 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         created_link = local_study_w_areas.create_link(
             area_from="fr",
             area_to="it",
-            existing_areas=local_study_w_areas.get_areas(),
         )
         ini_file = tmp_path / local_study_w_areas.name / "input/links" / area_from / "properties.ini"
         actual_ini = ConfigParser()
@@ -1789,12 +1763,7 @@ filter-year-by-year = daily, weekly
 
         # When
         area_from, area_to = link_to_create.split("_")
-        link_created = local_study_w_areas.create_link(
-            area_from="fr",
-            area_to="it",
-            properties=link_properties,
-            existing_areas=local_study_w_areas.get_areas(),
-        )
+        link_created = local_study_w_areas.create_link(area_from="fr", area_to="it", properties=link_properties)
         created_ini_file = tmp_path / local_study_w_areas.name / "input/links" / area_from / "properties.ini"
         actual_ini = ConfigParser()
         with open(created_ini_file, "r") as file:
@@ -1850,11 +1819,7 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         # When
         for link in links_to_create:
             area_from, area_to = link.split("_")
-            local_study_w_areas.create_link(
-                area_from=area_from,
-                area_to=area_to,
-                existing_areas=local_study_w_areas.get_areas(),
-            )
+            local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
 
         # Then
         actual_ini = ConfigParser()
@@ -1911,11 +1876,7 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         # When
         for link in links_to_create:
             area_from, area_to = link.split("_")
-            local_study_w_areas.create_link(
-                area_from=area_from,
-                area_to=area_to,
-                existing_areas=local_study_w_areas.get_areas(),
-            )
+            local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
 
         # Then
         actual_ini = ConfigParser()
@@ -1937,12 +1898,11 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         # Then
         with pytest.raises(
             LinkCreationError,
-            match=f"Could not create the link {area_from} / {area_to}: Link exists already between '{area_from}' and '{area_to}'.",
+            match=f"Could not create the link {area_from} / {area_to}: A link from {area_from} to {area_to} already exists",
         ):
             local_study_w_links.create_link(
                 area_from=area_from,
                 area_to=area_to,
-                existing_areas=local_study_w_links.get_areas(),
             )
 
     def test_created_link_has_default_ui_values(self, tmp_path, local_study_w_areas):
@@ -1971,11 +1931,7 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
 
         # When
         area_from, area_to = link_to_create.split(" / ")
-        local_study_w_areas.create_link(
-            area_from=area_from,
-            area_to=area_to,
-            existing_areas=local_study_w_areas.get_areas(),
-        )
+        local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
         with open(actual_ini_file, "r") as file:
             actual_ini.read_file(file)
             file.seek(0)
@@ -2024,7 +1980,6 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
             area_to=area_to,
             properties=expected_properties,
             ui=expected_ui,
-            existing_areas=local_study_w_areas.get_areas(),
         )
         with open(actual_ini_file, "r") as file:
             actual_ini.read_file(file)

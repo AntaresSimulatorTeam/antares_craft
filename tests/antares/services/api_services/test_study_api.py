@@ -9,12 +9,12 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
-
 import pytest
 import requests_mock
 
 import re
+
+from unittest.mock import Mock
 
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
@@ -134,27 +134,46 @@ class TestCreateAPI:
             base_url = f"https://antares.com/api/v1/studies/{self.study_id}"
             url = f"{base_url}/links"
             mocker.post(url, status_code=200)
-            area = "area"
-            area_to = "area_to"
+            self.study._areas["area"] = Area(
+                "area",
+                self.study._area_service,
+                Mock(),
+                Mock(),
+                Mock(),
+            )
+            self.study._areas["area_to"] = Area(
+                "area_to",
+                self.study._area_service,
+                Mock(),
+                Mock(),
+                Mock(),
+            )
 
-            raw_url = f"{base_url}/raw?path=input/links/{area}/properties/{area_to}"
+            raw_url = f"{base_url}/raw?path=input/links/area/properties/area_to"
             json_response = {**LinkProperties().model_dump(by_alias=True), **LinkUi().model_dump(by_alias=True)}
             mocker.get(raw_url, json=json_response, status_code=200)
-            link = self.study.create_link(area_from=area, area_to=area_to)
+            link = self.study.create_link(area_from="area", area_to="area_to")
             assert isinstance(link, Link)
 
     def test_create_link_fails(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
-            area_from = "area_from"
-            area_to = "area_to"
+
+            self.study._areas["area_from"] = Area(
+                "area_from",
+                Mock(),
+                Mock(),
+                Mock(),
+                Mock(),
+            )
+            area_to = "area_final"
 
             with pytest.raises(
                 LinkCreationError,
-                match=f"Could not create the link {area_from} / {area_to}: {self.antares_web_description_msg}",
+                match=f"Could not create the link area_from / {area_to}: {area_to} does not exist",
             ):
-                self.study.create_link(area_from=area_from, area_to=area_to)
+                self.study.create_link(area_from="area_from", area_to=area_to)
 
     def test_create_binding_constraint_success(self):
         with requests_mock.Mocker() as mocker:
@@ -268,3 +287,48 @@ class TestCreateAPI:
 
             with pytest.raises(StudyVariantCreationError, match=error_message):
                 create_variant_api(self.api, self.study_id, variant_name)
+
+    def test_create_duplicated_link(self):
+        area_from = "area_1"
+        area_to = "area_2"
+
+        self.study._areas[area_from] = Area(
+            area_from,
+            self.study._area_service,
+            Mock(),
+            Mock(),
+            Mock(),
+        )
+        self.study._areas[area_to] = Area(
+            area_to,
+            self.study._area_service,
+            Mock(),
+            Mock(),
+            Mock(),
+        )
+
+        self.study._links[f"{area_from}/{area_to}"] = Link(area_from, area_to, Mock())
+
+        with pytest.raises(
+            LinkCreationError,
+            match=f"Could not create the link {area_from} / {area_to}: A link from {area_from} to {area_to} already exists",
+        ):
+            self.study.create_link(area_from=area_from, area_to=area_to)
+
+    def test_create_link_unknown_area(self):
+        area_from = "area_fr"
+        area_to = "area_missing"
+
+        self.study._areas[area_from] = Area(
+            area_from,
+            self.study._area_service,
+            Mock(),
+            Mock(),
+            Mock(),
+        )
+
+        with pytest.raises(
+            LinkCreationError,
+            match=f"Could not create the link {area_from} / {area_to}: {area_to} does not exist",
+        ):
+            self.study.create_link(area_from=area_from, area_to=area_to)
