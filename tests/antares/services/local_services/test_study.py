@@ -35,7 +35,6 @@ from antares.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
-    BindingConstraintPropertiesLocal,
     ConstraintTerm,
 )
 from antares.model.commons import FilterOption
