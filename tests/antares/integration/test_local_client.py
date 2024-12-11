@@ -11,15 +11,12 @@
 # This file is part of the Antares project.
 import pytest
 
-import re
-
 import numpy as np
 import pandas as pd
 
 from antares import create_study_local
 from antares.exceptions.exceptions import (
     AreaCreationError,
-    InvalidNameError,
     LinkCreationError,
 )
 from antares.model.area import AdequacyPatchMode, Area, AreaProperties, AreaUi
@@ -115,19 +112,6 @@ class TestLocalClient:
 
         assert fr_wind.equals(time_series)
 
-        # Forbidden character errors
-        area_name = "BE?"
-        with pytest.raises(
-            InvalidNameError,
-            match=(
-                re.escape(
-                    f"The name {area_name} contains one or more unauthorized characters."
-                    + "\nNames can only contain: a-z, A-Z, 0-9, (, ), &, _, - and , (comma)."
-                )
-            ),
-        ):
-            test_study.create_area(area_name)
-
         # tests area creation with ui values
         area_name = "BE"
         area_ui = AreaUi(x=120, color_rgb=[255, 123, 0])
@@ -180,10 +164,6 @@ class TestLocalClient:
         assert test_study.get_links() == {at_fr.name: at_fr, link_be_fr.name: link_be_fr, link_de_fr.name: link_de_fr}
 
         # test thermal cluster creation with default values
-        thermal_name = "Cluster_test %?"
-        with pytest.raises(InvalidNameError):
-            fr.create_thermal_cluster(thermal_name)
-
         thermal_name = "Cluster_test"
         thermal_fr = fr.create_thermal_cluster(thermal_name)
 

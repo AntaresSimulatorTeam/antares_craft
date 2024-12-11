@@ -13,7 +13,6 @@ import pytest
 
 import logging
 import os
-import re
 import time
 import typing as t
 
@@ -28,7 +27,6 @@ from antares.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
     CustomError,
-    InvalidNameError,
     LinkCreationError,
 )
 from antares.model.area import AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
@@ -1489,21 +1487,6 @@ layers = 0
         # When
         local_study.create_area(area, ui=area_ui)
         assert local_study.get_areas()[area].ui == area_ui
-
-    @pytest.mark.parametrize("invalid_character", [".", "!", "?", "@", "\\", "/", "é"])
-    def test_creating_area_with_invalid_character_in_name_errors(self, local_study, invalid_character):
-        # Given
-        area_name_to_try = "fr" + invalid_character
-
-        # Then
-        with pytest.raises(
-            InvalidNameError,
-            match=re.escape(
-                f"The name {area_name_to_try} contains one or more unauthorized characters."
-                + "\nNames can only contain: a-z, A-Z, 0-9, (, ), &, _, - and , (comma)."
-            ),
-        ):
-            local_study.create_area(area_name_to_try)
 
     def test_creating_duplicate_area_name_errors(self, local_study_w_areas):
         # Given

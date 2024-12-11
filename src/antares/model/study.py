@@ -32,7 +32,6 @@ from antares.model.settings.time_series import correlation_defaults
 from antares.service.api_services.study_api import _returns_study_settings
 from antares.service.base_services import BaseStudyService
 from antares.service.service_factory import ServiceFactory
-from antares.tools.contents_tool import check_if_name_is_valid
 from antares.tools.ini_tool import IniFile, IniFileTypes
 
 """
@@ -92,8 +91,6 @@ def create_study_local(
     Raises:
         FileExistsError if the study already exists in the given location
     """
-    check_if_name_is_valid(study_name)
-
     local_config = LocalConfiguration(Path(parent_directory), study_name)
 
     study_directory = local_config.local_path / study_name
