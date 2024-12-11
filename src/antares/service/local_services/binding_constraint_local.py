@@ -13,10 +13,11 @@ from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
-from pydantic import ValidationError, Field
+
+from pydantic import Field
 
 from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import BindingConstraintCreationError, ConstraintTermAdditionError
+from antares.exceptions.exceptions import BindingConstraintCreationError
 from antares.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintFrequency,
@@ -78,7 +79,6 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         self.config = config
         self.study_name = study_name
         self.ini_file = IniFile(self.config.study_path, IniFileTypes.BINDING_CONSTRAINTS_INI)
-        self.local_properties: BindingConstraintPropertiesLocal
 
     def create_binding_constraint(
         self,
@@ -96,10 +96,8 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             terms=terms,
         )
 
-        self.local_properties = BindingConstraintPropertiesLocal.model_validate(
-            self._create_local_property_args(constraint)
-        )
-        constraint.properties = self.local_properties.yield_binding_constraint_properties()
+        local_properties = self._generate_local_properties(constraint)
+        constraint.properties = local_properties.yield_binding_constraint_properties()
 
         current_ini_content = self.ini_file.ini_dict_binding_constraints or {}
         if any(values.get("id") == constraint.id for values in current_ini_content.values()):
@@ -107,7 +105,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
                 constraint_name=name, message=f"A binding constraint with the name {name} already exists."
             )
 
-        self._write_binding_constraint_ini(constraint.properties, name, name, terms)
+        self._write_binding_constraint_ini(local_properties, name, name, terms)
 
         self._store_time_series(constraint, less_term_matrix, equal_term_matrix, greater_term_matrix)
 
@@ -119,8 +117,11 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             "constraint_name": constraint.name,
             "constraint_id": constraint.id,
             "terms": constraint.get_terms(),
-            **constraint.properties.model_dump(mode="json", exclude_none=True)
+            **constraint.properties.model_dump(mode="json", exclude_none=True),
         }
+
+    def _generate_local_properties(self, constraint: BindingConstraint) -> BindingConstraintPropertiesLocal:
+        return BindingConstraintPropertiesLocal.model_validate(self._create_local_property_args(constraint))
 
     def _store_time_series(
         self,
@@ -158,7 +159,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
     def _write_binding_constraint_ini(
         self,
-        properties: BindingConstraintProperties,
+        local_properties: BindingConstraintPropertiesLocal,
         constraint_name: str,
         constraint_id: str,
         terms: Optional[list[ConstraintTerm]] = None,
@@ -186,14 +187,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             # Persist the updated INI content
             self.ini_file.write_ini_file()
         else:
-            terms_dict = {term.id: term for term in terms} if terms else {}
-
-            full_properties = BindingConstraintPropertiesLocal(
-                constraint_name=constraint_name,
-                constraint_id=constraint_id,
-                terms=terms_dict,
-                **properties.model_dump(),
-            )
+            full_properties = BindingConstraintPropertiesLocal(**local_properties.model_dump())
 
             section_index = len(current_ini_content)
             current_ini_content[str(section_index)] = full_properties.list_ini_fields
@@ -213,7 +207,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             list[ConstraintTerm]: The updated list of terms.
         """
 
-        new_terms = self.local_properties.terms.copy()
+        new_terms = constraint.get_terms().copy()
 
         for term in terms:
             if term.id in constraint.get_terms():
@@ -222,12 +216,13 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
                 )
             new_terms[term.id] = term
 
-        self.local_properties.terms = new_terms
+        local_properties = self._generate_local_properties(constraint)
+        local_properties.terms = new_terms
 
         terms_values = list(new_terms.values())
 
         self._write_binding_constraint_ini(
-            properties=constraint.properties,
+            local_properties=local_properties,
             constraint_name=constraint.name,
             constraint_id=constraint.id,
             terms=terms_values,
