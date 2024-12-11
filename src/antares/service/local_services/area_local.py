@@ -291,7 +291,7 @@ class AreaLocalService(BaseAreaService):
                 ui_ini.write(ui_ini_file)
 
         except Exception as e:
-            raise AreaCreationError(area_name, f"Error during area creation: {e}") from e
+            raise AreaCreationError(area_name, f"{e}") from e
 
         logging.info(f"Area {area_name} created successfully!")
         created_area = Area(

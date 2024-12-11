@@ -1441,7 +1441,7 @@ layers = 0
         monkeypatch.setattr("antares.service.local_services.area_local._sets_ini_content", mock_error_in_sets_ini)
         with pytest.raises(
             AreaCreationError,
-            match="Could not create the area test: Error during area creation: An error occurred while processing area can not be created",
+            match="Could not create the area test: An error occurred while processing area can not be created",
         ):
             local_study.create_area("test")
 
