@@ -35,7 +35,6 @@ from antares.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
-    BindingConstraintPropertiesLocal,
     ConstraintTerm,
 )
 from antares.model.commons import FilterOption
@@ -2229,19 +2228,3 @@ at%fr = 0.000000%1
 
         # Then
         assert actual_time_series.equals(expected_time_series)
-
-    def test_updating_binding_constraint_properties_updates_local(self, local_study_with_constraint, test_constraint):
-        # Given
-        new_properties = BindingConstraintProperties(comments="testing update")
-        local_property_args = {
-            "constraint_name": test_constraint.name,
-            "constraint_id": test_constraint.id,
-            "terms": test_constraint._terms,
-            **new_properties.model_dump(mode="json", exclude_none=True),
-        }
-
-        # When
-        test_constraint.properties = new_properties
-
-        # Then
-        assert test_constraint.local_properties == BindingConstraintPropertiesLocal.model_validate(local_property_args)
