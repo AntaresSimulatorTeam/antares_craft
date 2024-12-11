@@ -15,7 +15,7 @@ from typing import Mapping, Optional, Set
 
 import pandas as pd
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from antares.model.commons import FilterOption, sort_filter_values
 from antares.tools.alias_generators import to_kebab
