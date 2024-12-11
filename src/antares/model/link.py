@@ -76,7 +76,6 @@ class LinkProperties(DefaultLinkProperties):
 
 
 class LinkPropertiesLocal(DefaultLinkProperties):
-
     @property
     def ini_fields(self) -> Mapping[str, str]:
         return {
