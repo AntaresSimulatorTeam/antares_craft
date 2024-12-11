@@ -38,7 +38,7 @@ from antares.tools.time_series_tool import TimeSeriesFileType
 
 
 class TestLocalClient:
-    def test_local_study(self, tmp_path, other_area):
+    def test_local_study(self, tmp_path, unknown_area):
         study_name = "test study"
         study_version = "880"
 
@@ -67,7 +67,7 @@ class TestLocalClient:
 
         ## Cannot link areas that don't exist in the study
         with pytest.raises(LinkCreationError, match="Could not create the link fr / usa: usa does not exist"):
-            test_study.create_link(area_from=fr.id, area_to=other_area.id)
+            test_study.create_link(area_from=fr.id, area_to=unknown_area.id)
 
         # Thermal
         fr_nuclear = fr.create_thermal_cluster("nuclear")
