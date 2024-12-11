@@ -12,16 +12,21 @@
 
 from typing import Optional
 
+import pandas as pd
+
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
 from antares.exceptions.exceptions import (
     APIError,
     LinkCreationError,
     LinkDeletionError,
+    LinkDownloadError,
     LinkPropertiesUpdateError,
     LinkUiUpdateError,
+    LinkUploadError,
 )
 from antares.model.link import Link, LinkProperties, LinkUi
+from antares.service.api_services.utils import get_matrix, upload_series
 from antares.service.base_services import BaseLinkService
 
 
@@ -161,6 +166,52 @@ class LinkApiService(BaseLinkService):
             raise LinkUiUpdateError(link.name, e.message) from e
 
         return link_ui
+
+    def get_parameters(self, area_from_id: str, area_to_id: str) -> pd.DataFrame:
+        try:
+            parameters_path = f"input/links/{area_from_id}/{area_to_id}_parameters"
+            matrix = get_matrix(self._base_url, self.study_id, self._wrapper, parameters_path)
+        except APIError as e:
+            raise LinkDownloadError(f"{area_from_id}/{area_to_id}", "parameters", e.message)
+
+        return matrix
+
+    def create_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        try:
+            series_path = f"input/links/{area_from}/{area_to}_parameters"
+            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+        except APIError as e:
+            raise LinkUploadError(f"{area_from}/{area_to}", "parameters", e.message)
+
+    def get_capacity_direct(self, area_from: str, area_to: str) -> pd.DataFrame:
+        try:
+            series_path = f"input/links/{area_from}/capacities/{area_to}_direct"
+            matrix = get_matrix(self._base_url, self.study_id, self._wrapper, series_path)
+        except APIError as e:
+            raise LinkDownloadError(f"{area_from}/{area_to}", "directcapacity", e.message)
+        return matrix
+
+    def create_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        try:
+            series_path = f"input/links/{area_from}/capacities/{area_to}_direct"
+            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+        except APIError as e:
+            raise LinkUploadError(f"{area_from}/{area_to}", "directcapacity", e.message)
+
+    def get_capacity_indirect(self, area_from: str, area_to: str) -> pd.DataFrame:
+        try:
+            series_path = f"input/links/{area_from}/capacities/{area_to}_indirect"
+            matrix = get_matrix(self._base_url, self.study_id, self._wrapper, series_path)
+        except APIError as e:
+            raise LinkDownloadError(f"{area_from}/{area_to}", "indirectcapacity", e.message)
+        return matrix
+
+    def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        try:
+            series_path = f"input/links/{area_from}/capacities/{area_to}_indirect"
+            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+        except APIError as e:
+            raise LinkUploadError(f"{area_from}/{area_to}", "indirectcapacity", e.message)
 
 
 def _join_filter_values_for_json(json_dict: dict, dict_to_extract: dict) -> dict:

@@ -126,9 +126,9 @@ class AreaLocalService(BaseAreaService):
             self.renewable_service, area_id, renewable_name, local_properties.yield_renewable_cluster_properties()
         )
 
-    def create_load(self, area: Area, series: pd.DataFrame) -> None:
-        self._write_timeseries(series, TimeSeriesFileType.LOAD, area.id)
-        PreproFolder.LOAD.save(self.config.study_path, area.id)
+    def create_load(self, area_id: str, series: pd.DataFrame) -> None:
+        self._write_timeseries(series, TimeSeriesFileType.LOAD, area_id)
+        PreproFolder.LOAD.save(self.config.study_path, area_id)
 
     def _write_timeseries(self, series: pd.DataFrame, ts_file_type: TimeSeriesFileType, area_id: str) -> None:
         file_path = self.config.study_path.joinpath(ts_file_type.value.format(area_id=area_id))
@@ -152,19 +152,19 @@ class AreaLocalService(BaseAreaService):
             local_st_storage_properties.yield_st_storage_properties(),
         )
 
-    def create_wind(self, area: Area, series: pd.DataFrame) -> None:
-        self._write_timeseries(series, TimeSeriesFileType.WIND, area.id)
-        PreproFolder.WIND.save(self.config.study_path, area.id)
+    def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
+        self._write_timeseries(series, TimeSeriesFileType.WIND, area_id)
+        PreproFolder.WIND.save(self.config.study_path, area_id)
 
-    def create_reserves(self, area: Area, series: pd.DataFrame) -> None:
-        self._write_timeseries(series, TimeSeriesFileType.RESERVES, area.id)
+    def create_reserves(self, area_id: str, series: pd.DataFrame) -> None:
+        self._write_timeseries(series, TimeSeriesFileType.RESERVES, area_id)
 
-    def create_solar(self, area: Area, series: pd.DataFrame) -> None:
-        self._write_timeseries(series, TimeSeriesFileType.SOLAR, area.id)
-        PreproFolder.SOLAR.save(self.config.study_path, area.id)
+    def create_solar(self, area_id: str, series: pd.DataFrame) -> None:
+        self._write_timeseries(series, TimeSeriesFileType.SOLAR, area_id)
+        PreproFolder.SOLAR.save(self.config.study_path, area_id)
 
-    def create_misc_gen(self, area: Area, series: pd.DataFrame) -> None:
-        self._write_timeseries(series, TimeSeriesFileType.MISC_GEN, area.id)
+    def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
+        self._write_timeseries(series, TimeSeriesFileType.MISC_GEN, area_id)
 
     def create_hydro(
         self,
@@ -298,38 +298,38 @@ class AreaLocalService(BaseAreaService):
         created_area.create_hydro()
         return created_area
 
-    def delete_area(self, area: Area) -> None:
+    def delete_area(self, area_id: str) -> None:
         raise NotImplementedError
 
-    def update_area_properties(self, area: Area, properties: AreaProperties) -> AreaProperties:
+    def update_area_properties(self, area_id: str, properties: AreaProperties) -> AreaProperties:
         raise NotImplementedError
 
-    def update_area_ui(self, area: Area, ui: AreaUi) -> AreaUi:
+    def update_area_ui(self, area_id: str, ui: AreaUi) -> AreaUi:
         raise NotImplementedError
 
-    def delete_thermal_clusters(self, area: Area, thermal_clusters: List[ThermalCluster]) -> None:
+    def delete_thermal_clusters(self, area_id: str, thermal_clusters: List[ThermalCluster]) -> None:
         raise NotImplementedError
 
-    def delete_renewable_clusters(self, area: Area, renewable_clusters: List[RenewableCluster]) -> None:
+    def delete_renewable_clusters(self, area_id: str, renewable_clusters: List[RenewableCluster]) -> None:
         raise NotImplementedError
 
-    def delete_st_storages(self, area: Area, storages: List[STStorage]) -> None:
+    def delete_st_storages(self, area_id: str, storages: List[STStorage]) -> None:
         raise NotImplementedError
 
-    def get_load_matrix(self, area: Area) -> pd.DataFrame:
-        return read_timeseries(TimeSeriesFileType.LOAD, self.config.study_path, area_id=area.id)
+    def get_load_matrix(self, area_id: str) -> pd.DataFrame:
+        return read_timeseries(TimeSeriesFileType.LOAD, self.config.study_path, area_id=area_id)
 
-    def get_solar_matrix(self, area: Area) -> pd.DataFrame:
-        return read_timeseries(TimeSeriesFileType.SOLAR, self.config.study_path, area_id=area.id)
+    def get_solar_matrix(self, area_id: str) -> pd.DataFrame:
+        return read_timeseries(TimeSeriesFileType.SOLAR, self.config.study_path, area_id=area_id)
 
-    def get_wind_matrix(self, area: Area) -> pd.DataFrame:
-        return read_timeseries(TimeSeriesFileType.WIND, self.config.study_path, area_id=area.id)
+    def get_wind_matrix(self, area_id: str) -> pd.DataFrame:
+        return read_timeseries(TimeSeriesFileType.WIND, self.config.study_path, area_id=area_id)
 
-    def get_reserves_matrix(self, area: Area) -> pd.DataFrame:
-        return read_timeseries(TimeSeriesFileType.RESERVES, self.config.study_path, area_id=area.id)
+    def get_reserves_matrix(self, area_id: str) -> pd.DataFrame:
+        return read_timeseries(TimeSeriesFileType.RESERVES, self.config.study_path, area_id=area_id)
 
-    def get_misc_gen_matrix(self, area: Area) -> pd.DataFrame:
-        return read_timeseries(TimeSeriesFileType.MISC_GEN, self.config.study_path, area_id=area.id)
+    def get_misc_gen_matrix(self, area_id: str) -> pd.DataFrame:
+        return read_timeseries(TimeSeriesFileType.MISC_GEN, self.config.study_path, area_id=area_id)
 
     def read_areas(self) -> List[Area]:
         local_path = self.config.local_path

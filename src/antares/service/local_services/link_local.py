@@ -15,6 +15,8 @@ import os
 from configparser import DuplicateSectionError
 from typing import Any, Dict, Optional
 
+import pandas as pd
+
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import LinkCreationError
 from antares.model.link import Link, LinkProperties, LinkPropertiesLocal, LinkUi, LinkUiLocal
@@ -121,3 +123,21 @@ class LinkLocalService(BaseLinkService):
             "filter-year-by-year",
         ]
         return dict(sorted(ini_dict.items(), key=lambda item: dict_order.index(item[0])))
+
+    def create_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        raise NotImplementedError
+
+    def create_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        raise NotImplementedError
+
+    def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        raise NotImplementedError
+
+    def get_capacity_direct(self, area_from: str, area_to: str) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_capacity_indirect(self, area_from: str, area_to: str) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_parameters(self, area_from_id: str, area_to_id: str) -> pd.DataFrame:
+        raise NotImplementedError
