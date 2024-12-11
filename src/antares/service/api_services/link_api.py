@@ -12,6 +12,8 @@
 
 from typing import Optional
 
+import pandas as pd
+
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
 from antares.exceptions.exceptions import (
@@ -161,6 +163,18 @@ class LinkApiService(BaseLinkService):
             raise LinkUiUpdateError(link.name, e.message) from e
 
         return link_ui
+
+    def read_links(self) -> list[Link]:
+        raise NotImplementedError
+
+    def get_capacity_direct(self, area_from: str, area_to: str) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_capacity_indirect(self, area_from: str, area_to: str) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_parameters(self, area_from: str, area_to: str) -> pd.DataFrame:
+        raise NotImplementedError
 
 
 def _join_filter_values_for_json(json_dict: dict, dict_to_extract: dict) -> dict:
