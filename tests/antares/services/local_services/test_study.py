@@ -1660,8 +1660,8 @@ class TestCreateLink:
             area_to=area_to,
         )
 
-        assert link_created.area_from == "at"
-        assert link_created.area_to == "fr"
+        assert link_created.area_from_id == "at"
+        assert link_created.area_to_id == "fr"
 
     def test_create_link_sets_ini_content(self, tmp_path, local_study_w_areas):
         # Given

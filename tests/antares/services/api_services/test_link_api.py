@@ -67,7 +67,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinkPropertiesUpdateError,
-                match=f"Could not update properties for link {self.link.name}: {antares_web_description_msg}",
+                match=f"Could not update properties for link {self.link.id}: {antares_web_description_msg}",
             ):
                 self.link.update_properties(properties)
 
@@ -99,6 +99,6 @@ class TestCreateAPI:
             mocker.get(raw_url, json={"description": antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 LinkUiUpdateError,
-                match=f"Could not update ui for link {self.link.name}: {antares_web_description_msg}",
+                match=f"Could not update ui for link {self.link.id}: {antares_web_description_msg}",
             ):
                 self.link.update_ui(ui)

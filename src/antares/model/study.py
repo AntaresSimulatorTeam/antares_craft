@@ -268,23 +268,24 @@ class Study:
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
     ) -> Link:
+        sorted_areas = sorted([area_from, area_to])
+        area_from, area_to = sorted_areas
+
         missing_areas = [area for area in [area_from, area_to] if area not in self._areas]
         if missing_areas:
             raise LinkCreationError(area_from, area_to, f"{', '.join(missing_areas)} does not exist")
 
-        existing_link = next(
-            (link for link in self._links.values() if link.area_from == area_from and link.area_to == area_to), None
-        )
-        if existing_link:
+        temp_link = Link(area_from, area_to, link_service=None)
+        if temp_link.id in self._links:
             raise LinkCreationError(area_from, area_to, f"A link from {area_from} to {area_to} already exists")
 
         link = self._link_service.create_link(area_from, area_to, properties, ui)
-        self._links[link.name] = link
+        self._links[link.id] = link
         return link
 
     def delete_link(self, link: Link) -> None:
         self._link_service.delete_link(link)
-        self._links.pop(link.name)
+        self._links.pop(link.id)
 
     def create_binding_constraint(
         self,

@@ -20,6 +20,7 @@ from pydantic import BaseModel
 from antares.model.commons import FilterOption, sort_filter_values
 from antares.tools.alias_generators import to_kebab
 from antares.tools.all_optional_meta import all_optional_model
+from antares.tools.contents_tool import transform_name_to_id
 
 
 class TransmissionCapacities(Enum):
@@ -145,16 +146,16 @@ class Link:
         self._ui = ui or LinkUi()
 
     @property
-    def name(self) -> str:
-        return self._area_from + " / " + self._area_to
+    def id(self) -> str:
+        return self.area_from_id + " / " + self.area_to_id
 
     @property
-    def area_from(self) -> str:
-        return self._area_from
+    def area_from_id(self) -> str:
+        return transform_name_to_id(self._area_from)
 
     @property
-    def area_to(self) -> str:
-        return self._area_to
+    def area_to_id(self) -> str:
+        return transform_name_to_id(self._area_to)
 
     @property
     def properties(self) -> LinkProperties:
