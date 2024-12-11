@@ -62,7 +62,7 @@ class ThermalApiService(BaseThermalService):
                 / f"{thermal_cluster.name.lower()}"
                 / ts_name.value
             )
-            return get_matrix(self._base_url, self.study_id, self._wrapper, path.as_posix(), "thermal")
+            return get_matrix(self._base_url, self.study_id, self._wrapper, path.as_posix())
         except APIError as e:
             raise ThermalMatrixDownloadError(
                 thermal_cluster.area_id, thermal_cluster.name, ts_name.value, e.message

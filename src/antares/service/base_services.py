@@ -120,10 +120,10 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_load(self, area: Area, series: pd.DataFrame) -> None:
+    def create_load(self, area_id: str, series: pd.DataFrame) -> None:
         """
         Args:
-            area: area to create load series matrices
+            area_id: area to create load series matrices
             series: load/series/load_{area_id}.txt
 
         """
@@ -146,20 +146,20 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_wind(self, area: Area, series: pd.DataFrame) -> None:
+    def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
         """
         Args:
-            area: area to create wind series matrices
+            area_id: area to create wind series matrices
             series: wind/series/wind_{area_id}.txt
 
         """
         pass
 
     @abstractmethod
-    def create_reserves(self, area: Area, series: pd.DataFrame) -> None:
+    def create_reserves(self, area_id: str, series: pd.DataFrame) -> None:
         """
         Args:
-            area: Area to create reserves series matrices
+            area_id: str to create reserves series matrices
             series: Pandas dataframe stored in reserves/{area_id}.txt
 
         Returns:
@@ -168,20 +168,20 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_solar(self, area: Area, series: pd.DataFrame) -> None:
+    def create_solar(self, area_id: str, series: pd.DataFrame) -> None:
         """
         Args:
-            area: area to create reserves series matrices
+            area_id: area to create reserves series matrices
             series: solar/series/solar_{area_id}.txt
 
         """
         pass
 
     @abstractmethod
-    def create_misc_gen(self, area: Area, series: pd.DataFrame) -> None:
+    def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
         """
         Args:
-            area: area to create reserves series matrices
+            area_id: area to create reserves series matrices
             series: misc-gen/miscgen-{area_id}.txt
 
         """
@@ -211,63 +211,63 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def update_area_properties(self, area: Area, properties: AreaProperties) -> AreaProperties:
+    def update_area_properties(self, area_id: str, properties: AreaProperties) -> AreaProperties:
         """
         Args:
-            area: concerned area
+            area_id: concerned area
             properties: new properties. Only registered fields will be updated.
         """
         pass
 
     @abstractmethod
-    def update_area_ui(self, area: Area, ui: AreaUi) -> AreaUi:
+    def update_area_ui(self, area_id: str, ui: AreaUi) -> AreaUi:
         """
         Args:
-            area: concerned area
+            area_id: concerned area
             ui: new ui. Only registered fields will be updated.
         """
         pass
 
     @abstractmethod
-    def delete_area(self, area: Area) -> None:
+    def delete_area(self, area_id: str) -> None:
         """
         Args:
-            area: area object to be deleted
+            area_id: area object to be deleted
         """
         pass
 
     @abstractmethod
-    def delete_thermal_clusters(self, area: Area, thermal_clusters: List[ThermalCluster]) -> None:
+    def delete_thermal_clusters(self, area_id: str, thermal_clusters: List[ThermalCluster]) -> None:
         """
         Args:
-            area: area containing the cluster
+            area_id: area containing the cluster
             thermal_clusters: List of thermal clusters object to be deleted
         """
         pass
 
     @abstractmethod
-    def delete_renewable_clusters(self, area: Area, renewable_clusters: List[RenewableCluster]) -> None:
+    def delete_renewable_clusters(self, area_id: str, renewable_clusters: List[RenewableCluster]) -> None:
         """
         Args:
-            area: area containing the cluster
+            area_id: area containing the cluster
             renewable_clusters: List of renewable clusters object to be deleted
         """
         pass
 
     @abstractmethod
-    def delete_st_storages(self, area: Area, storages: List[STStorage]) -> None:
+    def delete_st_storages(self, area_id: str, storages: List[STStorage]) -> None:
         """
         Args:
-            area: area containing the cluster
+            area_id: area containing the cluster
             storages: List of short term storage objects to be deleted
         """
         pass
 
     @abstractmethod
-    def get_load_matrix(self, area: Area) -> pd.DataFrame:
+    def get_load_matrix(self, area_id: str) -> pd.DataFrame:
         """
         Args:
-            area: concerned area.
+            area_id: concerned area.
         """
         # Currently we do not return index and column names.
         # Once AntaresWeb will introduce specific endpoint for each matrix it will perhaps change.
@@ -275,34 +275,34 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def get_reserves_matrix(self, area: Area) -> pd.DataFrame:
+    def get_reserves_matrix(self, area_id: str) -> pd.DataFrame:
         """
         Args:
-            area: concerned area.
+            area_id: concerned area.
         """
         pass
 
     @abstractmethod
-    def get_misc_gen_matrix(self, area: Area) -> pd.DataFrame:
+    def get_misc_gen_matrix(self, area_id: str) -> pd.DataFrame:
         """
         Args:
-            area: concerned area.
+            area_id: concerned area.
         """
         pass
 
     @abstractmethod
-    def get_solar_matrix(self, area: Area) -> pd.DataFrame:
+    def get_solar_matrix(self, area_id: str) -> pd.DataFrame:
         """
         Args:
-            area: concerned area.
+            area_id: concerned area.
         """
         pass
 
     @abstractmethod
-    def get_wind_matrix(self, area: Area) -> pd.DataFrame:
+    def get_wind_matrix(self, area_id: str) -> pd.DataFrame:
         """
         Args:
-            area: concerned area.
+            area_id: concerned area.
         """
         pass
 
@@ -371,40 +371,45 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def create_parameters(self, series: pd.DataFrame) -> None:
+    def create_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         """
         Args:
-            area_id:
+            area_to:
+            area_from:
             series:
         """
         pass
 
     @abstractmethod
-    def get_capacity_direct(self) -> pd.DataFrame:
+    def get_capacity_direct(self, area_from: str, area_to: str) -> pd.DataFrame:
         """
         Returns: the direct capacity of a link
         """
         pass
 
     @abstractmethod
-    def create_capacity_direct(self, series: pd.DataFrame) -> None:
+    def create_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         """
         Args:
+            area_to:
+            area_from:
             series:
         """
         pass
 
     @abstractmethod
-    def get_capacity_indirect(self) -> pd.DataFrame:
+    def get_capacity_indirect(self, area_from: str, area_to: str) -> pd.DataFrame:
         """
         Returns: the indirect capacity of a link
         """
         pass
 
     @abstractmethod
-    def create_capacity_indirect(self, series: pd.DataFrame) -> None:
+    def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         """
         Args:
+            area_to:
+            area_from:
             series:
         """
         pass

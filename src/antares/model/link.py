@@ -175,21 +175,21 @@ class Link:
         return new_ui
 
     def get_parameters(self) -> pd.DataFrame:
-        return self._link_service.get_parameters(self._area_to.id, self.area_from.id)
+        return self._link_service.get_parameters(self.area_from, self._area_to)
 
     def create_parameters(self, series: pd.DataFrame) -> None:
-        self._link_service.create_parameters(series)
+        self._link_service.create_parameters(series, self.area_from, self.area_to)
 
     def get_capacity_direct(self) -> pd.DataFrame:
-        return self._link_service.get_capacity_direct()
+        return self._link_service.get_capacity_direct(self.area_from, self.area_to)
 
     def create_capacity_direct(self, series: pd.DataFrame) -> None:
-        self._link_service.create_capacity_direct(series)
+        self._link_service.create_capacity_direct(series, self.area_from, self.area_to)
 
     def get_capacity_indirect(self) -> pd.DataFrame:
-        return self._link_service.get_capacity_indirect()
+        return self._link_service.get_capacity_indirect(self.area_from, self.area_to)
 
     def create_capacity_indirect(self, series: pd.DataFrame) -> None:
-        self._link_service.create_capacity_indirect(series)
+        self._link_service.create_capacity_indirect(series, self.area_from, self.area_to)
 
     # todo: Add matrices

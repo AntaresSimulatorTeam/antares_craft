@@ -287,22 +287,22 @@ class Area:
         return storage
 
     def get_load_matrix(self) -> pd.DataFrame:
-        return self._area_service.get_load_matrix(self)
+        return self._area_service.get_load_matrix(self.id)
 
     def get_wind_matrix(self) -> pd.DataFrame:
-        return self._area_service.get_wind_matrix(self)
+        return self._area_service.get_wind_matrix(self.id)
 
     def get_solar_matrix(self) -> pd.DataFrame:
-        return self._area_service.get_solar_matrix(self)
+        return self._area_service.get_solar_matrix(self.id)
 
     def get_reserves_matrix(self) -> pd.DataFrame:
-        return self._area_service.get_reserves_matrix(self)
+        return self._area_service.get_reserves_matrix(self.id)
 
     def get_misc_gen_matrix(self) -> pd.DataFrame:
-        return self._area_service.get_misc_gen_matrix(self)
+        return self._area_service.get_misc_gen_matrix(self.id)
 
     def delete_thermal_clusters(self, thermal_clusters: List[ThermalCluster]) -> None:
-        self._area_service.delete_thermal_clusters(self, thermal_clusters)
+        self._area_service.delete_thermal_clusters(self.id, thermal_clusters)
         for cluster in thermal_clusters:
             self._thermals.pop(cluster.id)
 
@@ -335,31 +335,31 @@ class Area:
 
     def create_load(self, series: pd.DataFrame) -> None:
         try:
-            self._area_service.create_load(self, series=series)
+            self._area_service.create_load(self.id, series)
         except APIError as e:
             raise MatrixUploadError(self.id, "load", e.message)
 
     def create_wind(self, series: pd.DataFrame) -> None:
         try:
-            self._area_service.create_wind(self, series=series)
+            self._area_service.create_wind(self.id, series)
         except APIError as e:
             raise MatrixUploadError(self.id, "wind", e.message)
 
     def create_reserves(self, series: pd.DataFrame) -> None:
         try:
-            self._area_service.create_reserves(self, series=series)
+            self._area_service.create_reserves(self.id, series)
         except APIError as e:
             raise MatrixUploadError(self.id, "reserves", e.message)
 
     def create_solar(self, series: pd.DataFrame) -> None:
         try:
-            self._area_service.create_solar(self, series=series)
+            self._area_service.create_solar(self.id, series)
         except APIError as e:
             raise MatrixUploadError(self.id, "solar", e.message)
 
     def create_misc_gen(self, series: pd.DataFrame) -> None:
         try:
-            self._area_service.create_misc_gen(self, series=series)
+            self._area_service.create_misc_gen(self.id, series)
         except APIError as e:
             raise MatrixUploadError(self.id, "misc-gen", e.message)
 
