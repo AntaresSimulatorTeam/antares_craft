@@ -187,10 +187,8 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             # Persist the updated INI content
             self.ini_file.write_ini_file()
         else:
-            full_properties = BindingConstraintPropertiesLocal(**local_properties.model_dump())
-
             section_index = len(current_ini_content)
-            current_ini_content[str(section_index)] = full_properties.list_ini_fields
+            current_ini_content[str(section_index)] = local_properties.list_ini_fields
 
         self.ini_file.ini_dict_binding_constraints = current_ini_content
         self.ini_file.write_ini_file()
