@@ -217,6 +217,7 @@ class Study:
         self._study_service = service_factory.create_study_service()
         self._area_service = service_factory.create_area_service()
         self._link_service = service_factory.create_link_service()
+        self._run_service = service_factory.create_run_service()
         self._binding_constraints_service = service_factory.create_binding_constraints_service()
         self._settings = DefaultStudySettings.model_validate(settings if settings is not None else StudySettings())
         self._areas: Dict[str, Area] = dict()
@@ -345,8 +346,15 @@ class Study:
         """
         return self._study_service.create_variant(variant_name)
 
-    def run_antares_simulation(parameters: Optional[AntaresSimulationParameters] = None) -> Job:
-        pass
+    def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
+        """
+        Runs the Antares simulation.
+
+        This method starts an antares simulation for the current study config and params
+
+        Returns: A job representing the simulation task
+        """
+        return self._run_service.run_antares_simulation()
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:

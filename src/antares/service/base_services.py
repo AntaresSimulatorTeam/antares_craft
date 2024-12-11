@@ -24,6 +24,7 @@ from antares.model.binding_constraint import (
     ConstraintTerm,
 )
 from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
+from antares.model.job import Job
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.settings.study_settings import StudySettings
@@ -602,4 +603,13 @@ class BaseShortTermStorageService(ABC):
 
 
 class BaseRunService(ABC):
-    pass
+    @abstractmethod
+    def run_antares_simulation(self) -> Job:
+        """
+        Runs the Antares simulation.
+
+        This method starts an antares simulation for the current study config and params
+
+        Returns: A job representing the simulation task
+        """
+        pass
