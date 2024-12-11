@@ -9,8 +9,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from typing import Any
+
+from antares.config.local_configuration import LocalConfiguration
 from antares.service.base_services import BaseRunService
 
 
 class RunLocalService(BaseRunService):
-    pass
+    def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.config = config
+        self.study_name = study_name

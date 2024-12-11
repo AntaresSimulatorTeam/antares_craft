@@ -26,7 +26,9 @@ from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import APIError, LinkCreationError, StudyCreationError
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
+from antares.model.job import Job
 from antares.model.link import Link, LinkProperties, LinkUi
+from antares.model.settings.antares_simulation_parameters import AntaresSimulationParameters
 from antares.model.settings.study_settings import DefaultStudySettings, StudySettings, StudySettingsLocal
 from antares.model.settings.time_series import correlation_defaults
 from antares.service.api_services.study_api import _returns_study_settings
@@ -342,6 +344,9 @@ class Study:
         Returns: The variant in the form of a Study object
         """
         return self._study_service.create_variant(variant_name)
+
+    def run_antares_simulation(parameters: Optional[AntaresSimulationParameters] = None) -> Job:
+        pass
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:
