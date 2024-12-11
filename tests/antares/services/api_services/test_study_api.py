@@ -313,3 +313,20 @@ class TestCreateAPI:
             match=f"Could not create the link {area_from} / {area_to}: {area_to} does not exist",
         ):
             self.study.create_link(area_from=area_from, area_to=area_to)
+
+    def test_create_link_same_area(self):
+        area = "area_1"
+
+        self.study._areas[area] = Area(
+            area,
+            self.study._area_service,
+            Mock(),
+            Mock(),
+            Mock(),
+        )
+
+        with pytest.raises(
+            LinkCreationError,
+            match=f"Could not create the link {area} / {area}: A link cannot start and end at the same area",
+        ):
+            self.study.create_link(area_from=area, area_to=area)

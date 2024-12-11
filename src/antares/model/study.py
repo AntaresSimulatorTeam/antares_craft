@@ -268,6 +268,9 @@ class Study:
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
     ) -> Link:
+        if area_from == area_to:
+            raise LinkCreationError(area_from, area_to, "A link cannot start and end at the same area")
+
         sorted_areas = sorted([area_from, area_to])
         area_from, area_to = sorted_areas
 
