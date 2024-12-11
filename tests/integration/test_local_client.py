@@ -37,6 +37,10 @@ from antares.tools.ini_tool import IniFile, IniFileTypes
 
 
 class TestLocalClient:
+    """
+    Testing lifespan of a study in local mode. Creating a study, adding areas, links, clusters and so on.
+    """
+
     def test_local_study(self, tmp_path, unknown_area):
         study_name = "test study"
         study_version = "880"
