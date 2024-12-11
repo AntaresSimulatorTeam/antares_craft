@@ -155,26 +155,6 @@ class TestCreateAPI:
             link = self.study.create_link(area_from="area", area_to="area_to")
             assert isinstance(link, Link)
 
-    def test_create_link_fails(self):
-        with requests_mock.Mocker() as mocker:
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
-            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
-
-            self.study._areas["area_from"] = Area(
-                "area_from",
-                Mock(),
-                Mock(),
-                Mock(),
-                Mock(),
-            )
-            area_to = "area_final"
-
-            with pytest.raises(
-                LinkCreationError,
-                match=f"Could not create the link area_from / {area_to}: {area_to} does not exist",
-            ):
-                self.study.create_link(area_from="area_from", area_to=area_to)
-
     def test_create_binding_constraint_success(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
@@ -289,31 +269,32 @@ class TestCreateAPI:
                 create_variant_api(self.api, self.study_id, variant_name)
 
     def test_create_duplicated_link(self):
-        area_from = "area_1"
-        area_to = "area_2"
+        area_a = "area_a"
+        area_b = "area_b"
 
-        self.study._areas[area_from] = Area(
-            area_from,
+        self.study._areas[area_a] = Area(
+            area_a,
             self.study._area_service,
             Mock(),
             Mock(),
             Mock(),
         )
-        self.study._areas[area_to] = Area(
-            area_to,
+        self.study._areas[area_b] = Area(
+            area_b,
             self.study._area_service,
             Mock(),
             Mock(),
             Mock(),
         )
 
-        self.study._links[f"{area_from}/{area_to}"] = Link(area_from, area_to, Mock())
+        existing_link = Link(area_a, area_b, Mock())
+        self.study._links[existing_link.id] = existing_link
 
         with pytest.raises(
             LinkCreationError,
-            match=f"Could not create the link {area_from} / {area_to}: A link from {area_from} to {area_to} already exists",
+            match=f"Could not create the link {area_a} / {area_b}: A link from {area_a} to {area_b} already exists",
         ):
-            self.study.create_link(area_from=area_from, area_to=area_to)
+            self.study.create_link(area_from=area_b, area_to=area_a)
 
     def test_create_link_unknown_area(self):
         area_from = "area_fr"
@@ -332,3 +313,20 @@ class TestCreateAPI:
             match=f"Could not create the link {area_from} / {area_to}: {area_to} does not exist",
         ):
             self.study.create_link(area_from=area_from, area_to=area_to)
+
+    def test_create_link_same_area(self):
+        area = "area_1"
+
+        self.study._areas[area] = Area(
+            area,
+            self.study._area_service,
+            Mock(),
+            Mock(),
+            Mock(),
+        )
+
+        with pytest.raises(
+            LinkCreationError,
+            match=f"Could not create the link {area} / {area}: A link cannot start and end at the same area",
+        ):
+            self.study.create_link(area_from=area, area_to=area)
