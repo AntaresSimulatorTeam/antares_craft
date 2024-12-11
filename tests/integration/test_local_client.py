@@ -34,7 +34,6 @@ from antares.model.st_storage import STStorageGroup, STStorageProperties
 from antares.model.study import Study
 from antares.model.thermal import ThermalCluster, ThermalClusterGroup, ThermalClusterProperties
 from antares.tools.ini_tool import IniFile, IniFileTypes
-from antares.tools.time_series_tool import TimeSeriesFileType
 
 
 class TestLocalClient:
@@ -83,7 +82,7 @@ class TestLocalClient:
         fr.create_load(time_series)
 
         assert test_study.service.config.study_path.joinpath(
-            TimeSeriesFileType.LOAD.value.format(area_id=fr.id)
+            "input", "load", "series", "load_{area_id}.txt".format(area_id=fr.id)
         ).is_file()
 
         fr_load = fr.get_load_matrix()
@@ -94,7 +93,7 @@ class TestLocalClient:
         fr.create_solar(time_series)
 
         assert test_study.service.config.study_path.joinpath(
-            TimeSeriesFileType.SOLAR.value.format(area_id=fr.id)
+            "input", "solar", "series", "solar_{area_id}.txt".format(area_id=fr.id)
         ).is_file()
 
         fr_solar = fr.get_solar_matrix()
@@ -105,7 +104,7 @@ class TestLocalClient:
         fr.create_wind(time_series)
 
         assert test_study.service.config.study_path.joinpath(
-            TimeSeriesFileType.WIND.value.format(area_id=fr.id)
+            "input", "wind", "series", "wind_{area_id}.txt".format(area_id=fr.id)
         ).is_file()
 
         fr_wind = fr.get_wind_matrix()
