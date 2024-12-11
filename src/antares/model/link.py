@@ -76,14 +76,6 @@ class LinkProperties(DefaultLinkProperties):
 
 
 class LinkPropertiesLocal(DefaultLinkProperties):
-    hurdles_cost: bool = Field(default=False, alias="hurdles-cost")
-    loop_flow: bool = Field(default=False, alias="loop-flow")
-    use_phase_shifter: bool = Field(default=False, alias="use-phase-shifter")
-    transmission_capacities: TransmissionCapacities = Field(
-        default=TransmissionCapacities.ENABLED, alias="transmission-capacities"
-    )
-    asset_type: AssetType = Field(default=AssetType.AC, alias="asset-type")
-    display_comments: bool = Field(default=True, alias="display-comments")
 
     @property
     def ini_fields(self) -> Mapping[str, str]:
@@ -123,12 +115,6 @@ class LinkUi(DefaultLinkUi):
 
 
 class LinkUiLocal(DefaultLinkUi):
-    link_style: LinkStyle = Field(default=LinkStyle.PLAIN, alias="link-style")
-    link_width: float = Field(default=1, alias="link-width")
-    colorr: int = Field(default=112, alias="colorr")
-    colorg: int = Field(default=112, alias="colorg")
-    colorb: int = Field(default=112, alias="colorb")
-
     @property
     def ini_fields(self) -> Mapping[str, str]:
         # todo: can be replaced with alias i believe
