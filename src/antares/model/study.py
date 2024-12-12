@@ -356,6 +356,18 @@ class Study:
         """
         return self._run_service.run_antares_simulation()
 
+    def wait_job_completion(job: Job, time_out: int) -> None:
+        """
+        Waits for the completion of a job
+
+        Args:
+            job: The job to wait for
+            time_out: Time limit for waiting
+
+        Raises: SimulationTimeOutError if exceeded timeout
+        """
+        pass
+
 
 def _verify_study_already_exists(study_directory: Path) -> None:
     if study_directory.exists():

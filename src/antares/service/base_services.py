@@ -613,3 +613,16 @@ class BaseRunService(ABC):
         Returns: A job representing the simulation task
         """
         pass
+
+    @abstractmethod
+    def wait_job_completion(self, job: Job, time_out: int) -> None:
+        """
+        Waits for the completion of a job
+
+        Args:
+            job: The job to wait for
+            time_out: Time limit for waiting
+
+        Raises: SimulationTimeOutError if exceeded timeout
+        """
+        pass

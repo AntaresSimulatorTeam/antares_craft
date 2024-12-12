@@ -41,3 +41,6 @@ class RunApiService(BaseRunService):
         job_info = response.json()
         launcher_params = json.loads(job_info["launcher_params"])
         return Job(job_id, job_info["status"], launcher_params["auto_unzip"])
+
+    def wait_job_completion(self, job: Job, time_out: int) -> None:
+        pass

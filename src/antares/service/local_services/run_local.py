@@ -24,3 +24,6 @@ class RunLocalService(BaseRunService):
 
     def run_antares_simulation(self) -> Job:
         raise NotImplementedError
+
+    def wait_job_completion(self, job: Job, time_out: int) -> None:
+        raise NotImplementedError
