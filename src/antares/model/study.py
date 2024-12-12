@@ -23,7 +23,7 @@ import pandas as pd
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
 from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import APIError, StudyCreationError
+from antares.exceptions.exceptions import APIError, LinkCreationError, StudyCreationError
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
 from antares.model.link import Link, LinkProperties, LinkUi
@@ -234,6 +234,9 @@ class Study:
         self._areas = {area.id: area for area in area_list}
         return area_list
 
+    def read_links(self) -> list[Link]:
+        return self._link_service.read_links()
+
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
 
@@ -264,9 +267,18 @@ class Study:
         area_to: str,
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
-        existing_areas: Optional[MappingProxyType[str, Area]] = None,
     ) -> Link:
-        link = self._link_service.create_link(area_from, area_to, properties, ui, existing_areas)
+        missing_areas = [area for area in [area_from, area_to] if area not in self._areas]
+        if missing_areas:
+            raise LinkCreationError(area_from, area_to, f"{', '.join(missing_areas)} does not exist")
+
+        existing_link = next(
+            (link for link in self._links.values() if link.area_from == area_from and link.area_to == area_to), None
+        )
+        if existing_link:
+            raise LinkCreationError(area_from, area_to, f"A link from {area_from} to {area_to} already exists")
+
+        link = self._link_service.create_link(area_from, area_to, properties, ui)
         self._links[link.name] = link
         return link
 

@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-from types import MappingProxyType
 from typing import Optional
 
 import pandas as pd
@@ -26,7 +25,6 @@ from antares.exceptions.exceptions import (
     LinkUiUpdateError,
     LinkUploadError,
 )
-from antares.model.area import Area
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.service.api_services.utils import get_matrix, upload_series
 from antares.service.base_services import BaseLinkService
@@ -46,7 +44,6 @@ class LinkApiService(BaseLinkService):
         area_to: str,
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
-        existing_areas: Optional[MappingProxyType[str, Area]] = None,
     ) -> Link:
         """
         Args:
@@ -54,7 +51,6 @@ class LinkApiService(BaseLinkService):
             area_to: area where the link goes to
             properties: link's properties. If not provided, AntaresWeb will use its own default values.
             ui: link's ui characteristics. If not provided, AntaresWeb will use its own default values.
-            existing_areas: existing areas from study
 
         Returns:
             The created link
@@ -216,6 +212,10 @@ class LinkApiService(BaseLinkService):
             upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise LinkUploadError(f"{area_from}/{area_to}", "indirectcapacity", e.message)
+
+    def read_links(self) -> list[Link]:
+        raise NotImplementedError
+
 
 
 def _join_filter_values_for_json(json_dict: dict, dict_to_extract: dict) -> dict:

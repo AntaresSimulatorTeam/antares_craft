@@ -55,9 +55,7 @@ def local_study_w_links(tmp_path, local_study_w_areas):
     links_to_create = ["fr_at", "at_it", "fr_it"]
     for link in links_to_create:
         area_from, area_to = link.split("_")
-        local_study_w_areas.create_link(
-            area_from=area_from, area_to=area_to, existing_areas=local_study_w_areas.get_areas()
-        )
+        local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
 
     return local_study_w_areas
 
@@ -112,7 +110,7 @@ def default_thermal_cluster_properties() -> ThermalClusterProperties:
 
 @pytest.fixture
 def actual_thermal_list_ini(local_study_w_thermal) -> IniFile:
-    return IniFile(local_study_w_thermal.service.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name="fr")
+    return IniFile(local_study_w_thermal.service.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_id="fr")
 
 
 @pytest.fixture
@@ -122,7 +120,7 @@ def actual_thermal_areas_ini(local_study_w_thermal) -> IniFile:
 
 @pytest.fixture
 def actual_adequacy_patch_ini(local_study_w_areas) -> IniFile:
-    return IniFile(local_study_w_areas.service.config.study_path, IniFileTypes.AREA_ADEQUACY_PATCH_INI, area_name="fr")
+    return IniFile(local_study_w_areas.service.config.study_path, IniFileTypes.AREA_ADEQUACY_PATCH_INI, area_id="fr")
 
 
 @pytest.fixture
@@ -147,9 +145,7 @@ def default_renewable_cluster_properties() -> RenewableClusterProperties:
 
 @pytest.fixture
 def actual_renewable_list_ini(local_study_with_renewable) -> IniFile:
-    return IniFile(
-        local_study_with_renewable.service.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name="fr"
-    )
+    return IniFile(local_study_with_renewable.service.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_id="fr")
 
 
 @pytest.fixture
@@ -176,7 +172,7 @@ def default_st_storage_properties() -> STStorageProperties:
 @pytest.fixture
 def actual_st_storage_list_ini(local_study_with_st_storage) -> IniFile:
     return IniFile(
-        local_study_with_st_storage.service.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name="fr"
+        local_study_with_st_storage.service.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_id="fr"
     )
 
 
