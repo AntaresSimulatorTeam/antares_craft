@@ -234,6 +234,8 @@ class TestWebClient:
         assert list(expected_area_fr.get_st_storages()) == list(actual_area_fr.get_st_storages())
         assert study.get_settings() == actual_study.get_settings()
 
+        #checking the links between two areas
+
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
         storage_properties = STStorageProperties(reservoir_capacity=0.5)
