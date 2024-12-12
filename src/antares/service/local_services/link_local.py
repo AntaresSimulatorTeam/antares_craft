@@ -55,7 +55,6 @@ class LinkLocalService(BaseLinkService):
         Raises:
             LinkCreationError if an area doesn't exist or existing areas have not been provided
         """
-        area_from, area_to = sorted([area_from, area_to])
 
         link_dir = self.config.study_path / "input/links" / area_from
         os.makedirs(link_dir, exist_ok=True)

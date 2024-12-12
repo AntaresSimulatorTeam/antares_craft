@@ -1409,7 +1409,7 @@ class TestReadLinks:
         links = local_study_object.read_links()
 
         for link in links:
-            if link.area_from == "fr":
+            if link.area_from_id == "fr":
                 matrix = link.get_capacity_direct()
                 matrix_2 = link.get_capacity_indirect()
                 matrix_3 = link.get_parameters()

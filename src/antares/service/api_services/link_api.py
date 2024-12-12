@@ -97,18 +97,18 @@ class LinkApiService(BaseLinkService):
         return Link(area_from, area_to, self, created_properties, ui)
 
     def delete_link(self, link: Link) -> None:
-        area_from_id = link.area_from
-        area_to_id = link.area_to
+        area_from_id = link.area_from_id
+        area_to_id = link.area_to_id
         url = f"{self._base_url}/studies/{self.study_id}/links/{area_from_id}/{area_to_id}"
         try:
             self._wrapper.delete(url)
         except APIError as e:
-            raise LinkDeletionError(link.name, e.message) from e
+            raise LinkDeletionError(link.id, e.message) from e
 
     def update_link_properties(self, link: Link, properties: LinkProperties) -> LinkProperties:
         # todo: change this code when AntaresWeb will have a real endpoint
-        area1_id = link.area_from
-        area2_id = link.area_to
+        area1_id = link.area_from_id
+        area2_id = link.area_to_id
         raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path=input/links/{area1_id}/properties/{area2_id}"
         try:
             new_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
@@ -134,14 +134,14 @@ class LinkApiService(BaseLinkService):
             link_properties = LinkProperties.model_validate(json_response)
 
         except APIError as e:
-            raise LinkPropertiesUpdateError(link.name, e.message) from e
+            raise LinkPropertiesUpdateError(link.id, e.message) from e
 
         return link_properties
 
     def update_link_ui(self, link: Link, ui: LinkUi) -> LinkUi:
         # todo: change this code when AntaresWeb will have a real endpoint
-        area1_id = link.area_from
-        area2_id = link.area_to
+        area1_id = link.area_from_id
+        area2_id = link.area_to_id
         raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path=input/links/{area1_id}/properties/{area2_id}"
         try:
             new_ui = ui.model_dump(mode="json", by_alias=True, exclude_none=True)
@@ -160,7 +160,7 @@ class LinkApiService(BaseLinkService):
             link_ui = LinkUi.model_validate(json_response)
 
         except APIError as e:
-            raise LinkUiUpdateError(link.name, e.message) from e
+            raise LinkUiUpdateError(link.id, e.message) from e
 
         return link_ui
 
