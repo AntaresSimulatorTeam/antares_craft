@@ -166,7 +166,7 @@ class LinkLocalService(BaseLinkService):
 
         for element in link_path.iterdir():
             area_from = element.name
-            links_dict = IniFile(self.config.study_path, IniFileTypes.LINK_PROPERTIES_INI, area_name=area_from).ini_dict
+            links_dict = IniFile(self.config.study_path, IniFileTypes.LINK_PROPERTIES_INI, area_id=area_from).ini_dict
             # If the properties.ini doesn't exist, we stop the reading process
             if links_dict:
                 for area_to in links_dict:
