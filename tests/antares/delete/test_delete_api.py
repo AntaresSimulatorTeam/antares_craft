@@ -56,7 +56,7 @@ class TestDeleteAPI:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area_fr.id}"
             mocker.delete(url, status_code=200)
-            self.area_service.delete_area(area=self.area_fr)
+            self.area_service.delete_area(self.area_fr.id)
 
     def test_delete_area_fails(self):
         with requests_mock.Mocker() as mocker:
@@ -66,7 +66,7 @@ class TestDeleteAPI:
                 AreaDeletionError,
                 match=f"Could not delete the area {self.area_fr.id}: {self.antares_web_description_msg}",
             ):
-                self.area_service.delete_area(area=self.area_fr)
+                self.area_service.delete_area(self.area_fr.id)
 
     def test_delete_link_success(self):
         with requests_mock.Mocker() as mocker:
@@ -91,7 +91,7 @@ class TestDeleteAPI:
             cluster = ThermalCluster(self.thermal_service, self.area_fr.id, "gaz_cluster")
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area_fr.id}/clusters/thermal"
             mocker.delete(url, status_code=200)
-            self.area_service.delete_thermal_clusters(self.area_fr, [cluster])
+            self.area_service.delete_thermal_clusters(self.area_fr.id, [cluster])
 
     def test_delete_thermal_fails(self):
         with requests_mock.Mocker() as mocker:
@@ -103,14 +103,14 @@ class TestDeleteAPI:
                 ThermalDeletionError,
                 match=f"Could not delete the following thermal clusters: gaz_cluster, gaz_cluster_2 inside area fr: {self.antares_web_description_msg}",
             ):
-                self.area_service.delete_thermal_clusters(self.area_fr, [cluster1, cluster2])
+                self.area_service.delete_thermal_clusters(self.area_fr.id, [cluster1, cluster2])
 
     def test_delete_renewable_success(self):
         with requests_mock.Mocker() as mocker:
             cluster = RenewableCluster(self.renewable_service, self.area_fr.id, "gaz_cluster")
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area_fr.id}/clusters/renewable"
             mocker.delete(url, status_code=200)
-            self.area_service.delete_renewable_clusters(self.area_fr, [cluster])
+            self.area_service.delete_renewable_clusters(self.area_fr.id, [cluster])
 
     def test_delete_renewable_fails(self):
         with requests_mock.Mocker() as mocker:
@@ -121,14 +121,14 @@ class TestDeleteAPI:
                 RenewableDeletionError,
                 match=f"Could not delete the following renewable clusters: gaz_cluster inside area fr: {self.antares_web_description_msg}",
             ):
-                self.area_service.delete_renewable_clusters(self.area_fr, [cluster])
+                self.area_service.delete_renewable_clusters(self.area_fr.id, [cluster])
 
     def test_delete_st_storage_success(self):
         with requests_mock.Mocker() as mocker:
             storage = STStorage(self.st_storage_service, self.area_fr.id, "battery_fr")
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area_fr.id}/storages"
             mocker.delete(url, status_code=200)
-            self.area_service.delete_st_storages(self.area_fr, [storage])
+            self.area_service.delete_st_storages(self.area_fr.id, [storage])
 
     def test_delete_st_storage_fails(self):
         with requests_mock.Mocker() as mocker:
@@ -139,7 +139,7 @@ class TestDeleteAPI:
                 STStorageDeletionError,
                 match=f"Could not delete the following short term storages: battery_fr inside area fr: {self.antares_web_description_msg}",
             ):
-                self.area_service.delete_st_storages(self.area_fr, [storage])
+                self.area_service.delete_st_storages(self.area_fr.id, [storage])
 
     def test_delete_binding_constraint_success(self):
         with requests_mock.Mocker() as mocker:
