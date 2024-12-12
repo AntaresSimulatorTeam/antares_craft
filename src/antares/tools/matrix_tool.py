@@ -48,11 +48,14 @@ def read_timeseries(
     area_id: Optional[str] = None,
     constraint_id: Optional[str] = None,
     cluster_id: Optional[str] = None,
+    second_area_id: Optional[str] = None,
 ) -> pd.DataFrame:
     file_path = study_path / (
         ts_file_type.value
-        if not (area_id or constraint_id or cluster_id)
-        else ts_file_type.value.format(area_id=area_id, constraint_id=constraint_id, cluster_id=cluster_id)
+        if not (area_id or constraint_id or cluster_id or second_area_id)
+        else ts_file_type.value.format(
+            area_id=area_id, constraint_id=constraint_id, cluster_id=cluster_id, second_area_id=second_area_id
+        )
     )
     if os.path.getsize(file_path) != 0:
         _time_series = df_read(file_path)

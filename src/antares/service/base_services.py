@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 
 from abc import ABC, abstractmethod
-from types import MappingProxyType
 from typing import TYPE_CHECKING, Dict, List, Optional
 
 import pandas as pd
@@ -322,7 +321,6 @@ class BaseLinkService(ABC):
         area_to: str,
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
-        existing_areas: Optional[MappingProxyType[str, Area]] = None,
     ) -> Link:
         """
         Args:
@@ -364,6 +362,7 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
+
     def get_parameters(self, area_from_id: str, area_to_id: str) -> pd.DataFrame:
         """
         Returns: link parameters
@@ -378,6 +377,8 @@ class BaseLinkService(ABC):
             area_from:
             series:
         """
+
+    def read_links(self) -> List[Link]:
         pass
 
     @abstractmethod
@@ -395,6 +396,7 @@ class BaseLinkService(ABC):
             area_from:
             series:
         """
+        main
         pass
 
     @abstractmethod

@@ -44,6 +44,7 @@ from antares.model.thermal import (
     ThermalCostGeneration,
 )
 from antares.tools.ini_tool import IniFile, IniFileTypes
+from antares.tools.matrix_tool import df_save
 from antares.tools.time_series_tool import TimeSeriesFileType
 
 
@@ -89,7 +90,7 @@ class TestCreateThermalCluster:
     def test_required_ini_files_exist(self, tmp_path, local_study_w_thermal):
         # Given
         expected_list_ini_path = (
-            local_study_w_thermal.service.config.study_path / IniFileTypes.THERMAL_LIST_INI.value.format(area_name="fr")
+            local_study_w_thermal.service.config.study_path / IniFileTypes.THERMAL_LIST_INI.value.format(area_id="fr")
         )
         expected_areas_ini_path = local_study_w_thermal.service.config.study_path / IniFileTypes.THERMAL_AREAS_INI.value
 
@@ -232,7 +233,7 @@ variableomcost = 5.000000
         # When
         local_study_w_areas.get_areas()["fr"].create_thermal_cluster("test thermal cluster", thermal_cluster_properties)
         actual_thermal_list_ini = IniFile(
-            local_study_w_areas.service.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name="fr"
+            local_study_w_areas.service.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_id="fr"
         )
         actual_thermal_list_ini.update_from_ini_file()
         with actual_thermal_list_ini.ini_path.open("r") as actual_list_ini_file:
@@ -324,7 +325,7 @@ class TestCreateRenewablesCluster:
     def test_renewables_list_ini_exists(self, local_study_with_renewable):
         renewables_list_ini = (
             local_study_with_renewable.service.config.study_path
-            / IniFileTypes.RENEWABLES_LIST_INI.value.format(area_name="fr")
+            / IniFileTypes.RENEWABLES_LIST_INI.value.format(area_id="fr")
         )
         assert renewables_list_ini.is_file()
 
@@ -369,7 +370,7 @@ ts-interpretation = production-factor
 
 """
         actual_renewable_list_ini = IniFile(
-            local_study_w_thermal.service.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name="fr"
+            local_study_w_thermal.service.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_id="fr"
         )
 
         # When
@@ -414,7 +415,7 @@ class TestCreateSTStorage:
     def test_st_storage_list_ini_exists(self, local_study_with_st_storage):
         st_storage_list_ini = (
             local_study_with_st_storage.service.config.study_path
-            / IniFileTypes.ST_STORAGE_LIST_INI.value.format(area_name="fr")
+            / IniFileTypes.ST_STORAGE_LIST_INI.value.format(area_id="fr")
         )
         assert st_storage_list_ini.is_file()
 
@@ -463,7 +464,7 @@ enabled = true
 
 """
         actual_st_storage_list_ini = IniFile(
-            local_study_w_areas.service.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name="fr"
+            local_study_w_areas.service.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_id="fr"
         )
 
         # When
@@ -1306,3 +1307,125 @@ class TestReadmisc_gen:
             _write_file(file_path, expected_time_serie)
             matrix = area.get_misc_gen_matrix()
             pd.testing.assert_frame_equal(matrix, expected_time_serie)
+
+
+class TestReadThermal:
+    def test_read_thermals_local(self, local_study_w_thermal):
+        study_path = local_study_w_thermal.service.config.study_path
+        local_study_object = read_study_local(study_path)
+        areas = local_study_object.read_areas()
+
+        for area in areas:
+            expected_time_serie = pd.DataFrame(
+                [
+                    [-9999999980506447872, 0, 9999999980506447872],
+                    [0, area.id, 0],
+                ],
+                dtype="object",
+            )
+
+            thermals_list = area.read_thermal_clusters(area.id)
+
+            if thermals_list:
+                assert area.id == "fr"
+                assert isinstance(thermals_list, list)
+                assert isinstance(thermals_list[0], ThermalCluster)
+
+            for thermal in thermals_list:
+                assert thermal.name == "test thermal cluster"
+                assert thermal.properties.group.value == "Other 1"
+                assert thermal.properties.unit_count == 1
+                assert thermal.properties.efficiency == 100.000000
+                assert thermal.properties.nominal_capacity == 0.000000
+                assert thermal.properties.enabled
+                assert thermal.properties.cost_generation.value == "SetManually"
+
+                # Create folder and file for timeserie.
+                cluster_path = (
+                    study_path / "input" / "thermal" / "series" / Path(area.id) / Path(thermal.properties.group.value)
+                )
+                series_path = cluster_path / "series.txt"
+                os.makedirs(cluster_path, exist_ok=True)
+                _write_file(series_path, expected_time_serie)
+
+                co2_cost_path = cluster_path / "C02Cost.txt"
+                _write_file(co2_cost_path, expected_time_serie)
+
+                fuelCost_path = cluster_path / "fuelCost.txt"
+                _write_file(fuelCost_path, expected_time_serie)
+
+                cluster_path = (
+                    study_path / "input" / "thermal" / "prepro" / Path(area.id) / Path(thermal.properties.group.value)
+                )
+                os.makedirs(cluster_path, exist_ok=True)
+                series_path_1 = cluster_path / "data.txt"
+                series_path_2 = cluster_path / "modulation.txt"
+                _write_file(series_path_1, expected_time_serie)
+                _write_file(series_path_2, expected_time_serie)
+
+                # Check matrix
+                matrix = thermal.get_prepro_data_matrix()
+                matrix_1 = thermal.get_prepro_modulation_matrix()
+                matrix_2 = thermal.get_series_matrix()
+                matrix_3 = thermal.get_co2_cost_matrix()
+                matrix_4 = thermal.get_fuel_cost_matrix()
+
+                pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_1.astype(str), expected_time_serie.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_2.astype(str), expected_time_serie.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_3.astype(str), expected_time_serie.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_4.astype(str), expected_time_serie.astype(str), check_dtype=False)
+
+
+class TestReadLinks:
+    def create_file_with_empty_dataframe(self, file_path: str, df: pd.DataFrame):
+        full_path = Path(file_path)
+
+        full_path.parent.mkdir(parents=True, exist_ok=True)
+        df_save(df, full_path)
+
+    def test_read_links_local(self, local_study_w_links):
+        study_path = local_study_w_links.service.config.study_path
+        local_study_object = read_study_local(study_path)
+
+        files_to_write = []
+        files_to_write.append(study_path / "input" / "links" / "fr" / "at_parameters.txt")
+        files_to_write.append(study_path / "input" / "links" / "fr" / "it_parameters.txt")
+        files_to_write.append(study_path / "input" / "links" / "fr" / "capacities" / "at_direct.txt")
+        files_to_write.append(study_path / "input" / "links" / "fr" / "capacities" / "at_indirect.txt")
+        files_to_write.append(study_path / "input" / "links" / "fr" / "capacities" / "it_direct.txt")
+        files_to_write.append(study_path / "input" / "links" / "fr" / "capacities" / "it_indirect.txt")
+        df_initial = pd.DataFrame(
+            [
+                [-1, 0, 0],
+                [0, -1, 0],
+            ],
+            dtype="object",
+        )
+
+        for file in files_to_write:
+            self.create_file_with_empty_dataframe(file, df_initial)
+
+        links = local_study_object.read_links()
+
+        for link in links:
+            if link.area_from == "fr":
+                matrix = link.get_capacity_direct()
+                matrix_2 = link.get_capacity_indirect()
+                matrix_3 = link.get_parameters()
+
+                pd.testing.assert_frame_equal(matrix.astype(str), df_initial.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_2.astype(str), df_initial.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_3.astype(str), df_initial.astype(str), check_dtype=False)
+            assert link.ui.link_style.value == "plain"
+            assert link.ui.link_width == 1
+            assert link.ui.colorb == 112
+            assert link.ui.colorg == 112
+            assert link.ui.colorr == 112
+            assert not link.properties.hurdles_cost
+            assert not link.properties.loop_flow
+            assert not link.properties.use_phase_shifter
+            assert link.properties.transmission_capacities.value == "enabled"
+            assert link.properties.asset_type.value == "ac"
+            assert isinstance(link.properties.filter_year_by_year, set)
+            assert isinstance(link.properties.filter_synthesis, set)

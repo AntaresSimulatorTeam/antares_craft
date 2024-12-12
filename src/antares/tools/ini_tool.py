@@ -23,7 +23,7 @@ from antares.tools.model_tools import filter_out_empty_model_fields
 class IniFileTypes(Enum):
     """
     The different ini files in an Antares project, files that are created for each area require using
-    format(area_name=<name>) to get the complete path
+    format(area_id=<name>) to get the complete path
     """
 
     # TODO: Commented inis are not yet handled
@@ -33,23 +33,23 @@ class IniFileTypes(Enum):
     # SCENARIO = "settings/scenariobuilder.dat"
     AREAS_SETS_INI = "input/areas/sets.ini"
     AREAS_LIST_TXT = "input/areas/list.txt"
-    AREA_OPTIMIZATION_INI = "input/areas/{area_name}/optimization.ini"
-    AREA_UI_INI = "input/areas/{area_name}/ui.ini"
-    AREA_ADEQUACY_PATCH_INI = "input/areas/{area_name}/adequacy_patch.ini"
+    AREA_OPTIMIZATION_INI = "input/areas/{area_id}/optimization.ini"
+    AREA_UI_INI = "input/areas/{area_id}/ui.ini"
+    AREA_ADEQUACY_PATCH_INI = "input/areas/{area_id}/adequacy_patch.ini"
     BINDING_CONSTRAINTS_INI = "input/bindingconstraints/bindingconstraints.ini"
     HYDRO_CORRELATION_INI = "input/hydro/prepro/correlation.ini"
     HYDRO_INI = "input/hydro/hydro.ini"
-    LINK_PROPERTIES_INI = "input/links/{area_name}/properties.ini"
+    LINK_PROPERTIES_INI = "input/links/{area_id}/properties.ini"
     LOAD_CORRELATION_INI = "input/load/prepro/correlation.ini"
-    LOAD_SETTINGS_INI = "input/load/prepro/{area_name}/settings.ini"
-    RENEWABLES_LIST_INI = "input/renewables/clusters/{area_name}/list.ini"
+    LOAD_SETTINGS_INI = "input/load/prepro/{area_id}/settings.ini"
+    RENEWABLES_LIST_INI = "input/renewables/clusters/{area_id}/list.ini"
     SOLAR_CORRELATION_INI = "input/solar/prepro/correlation.ini"
-    SOLAR_SETTINGS_INI = "input/solar/prepro/{area_name}/settings.ini"
-    ST_STORAGE_LIST_INI = "input/st-storage/clusters/{area_name}/list.ini"
+    SOLAR_SETTINGS_INI = "input/solar/prepro/{area_id}/settings.ini"
+    ST_STORAGE_LIST_INI = "input/st-storage/clusters/{area_id}/list.ini"
     THERMAL_AREAS_INI = "input/thermal/areas.ini"
-    THERMAL_LIST_INI = "input/thermal/clusters/{area_name}/list.ini"
+    THERMAL_LIST_INI = "input/thermal/clusters/{area_id}/list.ini"
     WIND_CORRELATION_INI = "input/wind/prepro/correlation.ini"
-    WIND_SETTINGS_INI = "input/wind/prepro/{area_name}/settings.ini"
+    WIND_SETTINGS_INI = "input/wind/prepro/{area_id}/settings.ini"
 
 
 class IniFile:
@@ -57,14 +57,14 @@ class IniFile:
         self,
         study_path: Path,
         ini_file_type: IniFileTypes,
-        area_name: Optional[str] = None,
+        area_id: Optional[str] = None,
         ini_contents: Union[CustomRawConfigParser, dict[str, dict[str, str]], None] = None,
     ) -> None:
-        if "{area_name}" in ini_file_type.value and not area_name:
-            raise ValueError(f"Area name not provided, ini type {ini_file_type.name} requires 'area_name'")
+        if "{area_id}" in ini_file_type.value and not area_id:
+            raise ValueError(f"Area name not provided, ini type {ini_file_type.name} requires 'area_id'")
         self._full_path = study_path / (
-            ini_file_type.value.format(area_name=area_name)
-            if ("{area_name}" in ini_file_type.value and area_name)
+            ini_file_type.value.format(area_id=area_id)
+            if ("{area_id}" in ini_file_type.value and area_id)
             else ini_file_type.value
         )
         self._file_name = self._full_path.name
