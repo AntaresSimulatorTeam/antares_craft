@@ -12,6 +12,7 @@
 from typing import Any
 
 from antares.config.local_configuration import LocalConfiguration
+from antares.model.job import Job
 from antares.service.base_services import BaseRunService
 
 
@@ -20,3 +21,6 @@ class RunLocalService(BaseRunService):
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
+
+    def run_antares_simulation(self) -> Job:
+        raise NotImplementedError
