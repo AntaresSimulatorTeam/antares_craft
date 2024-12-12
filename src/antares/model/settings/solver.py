@@ -10,14 +10,10 @@
 #
 # This file is part of the Antares project.
 
-from enum import StrEnum, auto
+from enum import Enum
 
 
-class Solver(StrEnum):
-    """
-    Enum class representing different types of solvers
-    """
-
-    COIN = auto()
-    XPRESS = auto()
-    SIRIUS = auto()
+class Solver(Enum):
+    COIN = "coin"
+    XPRESS = "xpress"
+    SIRIUS = "sirius"

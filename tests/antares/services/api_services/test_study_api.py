@@ -377,11 +377,11 @@ class TestCreateAPI:
             job = self.study.run_antares_simulation(parameters)
             assert isinstance(job, Job)
             assert job.job_id == job_id
-            assert job.status == JobStatus.PENDING
+            assert job.status == JobStatus.PENDING.value
 
             self.study.wait_job_completion(job, time_out=10)
 
-            assert job.status == JobStatus.SUCCESS
+            assert job.status == JobStatus.SUCCESS.value
 
             # failing
             response_list.pop()

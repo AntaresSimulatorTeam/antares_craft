@@ -58,7 +58,7 @@ class RunApiService(BaseRunService):
     def wait_job_completion(self, job: Job, time_out: int) -> None:
         start_time = time.time()
         repeat_interval = 5
-        while job.status in (JobStatus.RUNNING, JobStatus.PENDING):
+        while job.status in (JobStatus.RUNNING.value, JobStatus.PENDING.value):
             if time.time() - start_time > time_out:
                 raise SimulationTimeOutError(job.job_id, time_out)
             time.sleep(repeat_interval)

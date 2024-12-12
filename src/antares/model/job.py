@@ -10,14 +10,14 @@
 #
 # This file is part of the Antares project.
 
-from enum import StrEnum, auto
+from enum import Enum
 
 
-class JobStatus(StrEnum):
-    PENDING = auto()
-    RUNNING = auto()
-    SUCCESS = auto()
-    FAILED = auto()
+class JobStatus(Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    SUCCESS = "success"
+    FAILED = "failed"
 
 
 class Job:
