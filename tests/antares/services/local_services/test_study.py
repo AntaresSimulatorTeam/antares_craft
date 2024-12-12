@@ -1433,15 +1433,19 @@ layers = 0
         assert actual_content == ui_ini_content
 
     def test_create_area_with_custom_error(self, monkeypatch, local_study):
+        error_message = "Thine area hath raised en error, thou shalt not pass!"
+
         def mock_error_in_sets_ini():
-            raise CustomError("An error occurred while processing area can not be created")
+            raise CustomError(error_message)
+
+        area_id = "test"
 
         monkeypatch.setattr("antares.service.local_services.area_local._sets_ini_content", mock_error_in_sets_ini)
         with pytest.raises(
             AreaCreationError,
-            match="Could not create the area test: An error occurred while processing area can not be created",
+            match=f"Could not create the area {area_id}: {error_message}",
         ):
-            local_study.create_area("test")
+            local_study.create_area(area_id)
 
     def test_create_area_with_custom_ui(self, tmp_path, local_study):
         # Given
