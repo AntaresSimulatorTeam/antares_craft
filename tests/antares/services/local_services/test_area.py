@@ -44,6 +44,7 @@ from antares.model.thermal import (
     ThermalCostGeneration,
 )
 from antares.tools.ini_tool import IniFile, IniFileTypes
+from antares.tools.matrix_tool import df_save
 from antares.tools.time_series_tool import TimeSeriesFileType
 
 
@@ -1374,3 +1375,57 @@ class TestReadThermal:
                 pd.testing.assert_frame_equal(matrix_2.astype(str), expected_time_serie.astype(str), check_dtype=False)
                 pd.testing.assert_frame_equal(matrix_3.astype(str), expected_time_serie.astype(str), check_dtype=False)
                 pd.testing.assert_frame_equal(matrix_4.astype(str), expected_time_serie.astype(str), check_dtype=False)
+
+
+class TestReadLinks:
+    def create_file_with_empty_dataframe(self, file_path: str, df: pd.DataFrame):
+        full_path = Path(file_path)
+
+        full_path.parent.mkdir(parents=True, exist_ok=True)
+        df_save(df, full_path)
+
+    def test_read_links_local(self, local_study_w_links):
+        study_path = local_study_w_links.service.config.study_path
+        local_study_object = read_study_local(study_path)
+
+        files_to_write = []
+        files_to_write.append(study_path / "input" / "links" / "fr" / "at_parameters.txt")
+        files_to_write.append(study_path / "input" / "links" / "fr" / "it_parameters.txt")
+        files_to_write.append(study_path / "input" / "links" / "fr" / "capacities" / "at_direct.txt")
+        files_to_write.append(study_path / "input" / "links" / "fr" / "capacities" / "at_indirect.txt")
+        files_to_write.append(study_path / "input" / "links" / "fr" / "capacities" / "it_direct.txt")
+        files_to_write.append(study_path / "input" / "links" / "fr" / "capacities" / "it_indirect.txt")
+        df_initial = pd.DataFrame(
+            [
+                [-1, 0, 0],
+                [0, -1, 0],
+            ],
+            dtype="object",
+        )
+
+        for file in files_to_write:
+            self.create_file_with_empty_dataframe(file, df_initial)
+
+        links = local_study_object.read_links()
+
+        for link in links:
+            if link.area_from == "fr":
+                matrix = link.get_capacity_direct()
+                matrix_2 = link.get_capacity_indirect()
+                matrix_3 = link.get_parameters()
+
+                pd.testing.assert_frame_equal(matrix.astype(str), df_initial.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_2.astype(str), df_initial.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_3.astype(str), df_initial.astype(str), check_dtype=False)
+            assert link.ui.link_style.value == "plain"
+            assert link.ui.link_width == 1
+            assert link.ui.colorb == 112
+            assert link.ui.colorg == 112
+            assert link.ui.colorr == 112
+            assert not link.properties.hurdles_cost
+            assert not link.properties.loop_flow
+            assert not link.properties.use_phase_shifter
+            assert link.properties.transmission_capacities.value == "enabled"
+            assert link.properties.asset_type.value == "ac"
+            assert isinstance(link.properties.filter_year_by_year, set)
+            assert isinstance(link.properties.filter_synthesis, set)

@@ -15,12 +15,17 @@ import os
 from configparser import DuplicateSectionError
 from typing import Any, Dict, Optional
 
+import pandas as pd
+
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import LinkCreationError
 from antares.model.link import Link, LinkProperties, LinkPropertiesLocal, LinkUi, LinkUiLocal
 from antares.service.base_services import BaseLinkService
 from antares.tools.contents_tool import sort_ini_sections
 from antares.tools.custom_raw_config_parser import CustomRawConfigParser
+from antares.tools.ini_tool import IniFile, IniFileTypes
+from antares.tools.matrix_tool import read_timeseries
+from antares.tools.time_series_tool import TimeSeriesFileType
 
 
 class LinkLocalService(BaseLinkService):
@@ -54,7 +59,6 @@ class LinkLocalService(BaseLinkService):
 
         link_dir = self.config.study_path / "input/links" / area_from
         os.makedirs(link_dir, exist_ok=True)
-
         local_properties = (
             LinkPropertiesLocal.model_validate(properties.model_dump(mode="json", exclude_none=True))
             if properties
@@ -121,3 +125,73 @@ class LinkLocalService(BaseLinkService):
             "filter-year-by-year",
         ]
         return dict(sorted(ini_dict.items(), key=lambda item: dict_order.index(item[0])))
+
+    def get_capacity_direct(
+        self,
+        area_from: str,
+        area_to: str,
+    ) -> pd.DataFrame:
+        return read_timeseries(
+            TimeSeriesFileType.LINKS_CAPACITIES_DIRECT,
+            self.config.study_path,
+            area_id=area_from,
+            second_area_id=area_to,
+        )
+
+    def get_capacity_indirect(
+        self,
+        area_from: str,
+        area_to: str,
+    ) -> pd.DataFrame:
+        return read_timeseries(
+            TimeSeriesFileType.LINKS_CAPACITIES_INDIRECT,
+            self.config.study_path,
+            area_id=area_from,
+            second_area_id=area_to,
+        )
+
+    def get_parameters(
+        self,
+        area_from: str,
+        area_to: str,
+    ) -> pd.DataFrame:
+        return read_timeseries(
+            TimeSeriesFileType.LINKS_PARAMETERS, self.config.study_path, area_id=area_from, second_area_id=area_to
+        )
+
+    def read_links(self) -> list[Link]:
+        link_path = self.config.study_path / "input" / "links"
+
+        link_clusters = []
+
+        for element in link_path.iterdir():
+            area_from = element.name
+            links_dict = IniFile(self.config.study_path, IniFileTypes.LINK_PROPERTIES_INI, area_id=area_from).ini_dict
+            # If the properties.ini doesn't exist, we stop the reading process
+            if links_dict:
+                for area_to in links_dict:
+                    # Extract and delete from original dictionnary, the ui related properties
+                    ui_fields = ["link-style", "link-width", "colorr", "colorg", "colorb"]
+                    properties_field = {
+                        field: links_dict[area_to].pop(field) for field in ui_fields if field in links_dict[area_to]
+                    }
+
+                    ui_properties = LinkUiLocal.model_validate(properties_field)
+
+                    links_dict[area_to]["filter-synthesis"] = set(links_dict[area_to]["filter-synthesis"].split(", "))
+                    links_dict[area_to]["filter-year-by-year"] = set(
+                        links_dict[area_to]["filter-year-by-year"].split(", ")
+                    )
+
+                    link_properties = LinkPropertiesLocal.model_validate(links_dict[area_to])
+
+                    link_clusters.append(
+                        Link(
+                            area_from=area_from,
+                            area_to=area_to,
+                            link_service=self,
+                            properties=link_properties.yield_link_properties(),
+                            ui=ui_properties.yield_link_ui(),
+                        )
+                    )
+        return link_clusters

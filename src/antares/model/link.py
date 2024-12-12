@@ -13,6 +13,8 @@
 from enum import Enum
 from typing import Mapping, Optional, Set
 
+import pandas as pd
+
 from pydantic import BaseModel
 
 from antares.model.commons import FilterOption, sort_filter_values
@@ -172,4 +174,11 @@ class Link:
         self._ui = new_ui
         return new_ui
 
-    # todo: Add matrices
+    def get_capacity_direct(self) -> pd.DataFrame:
+        return self._link_service.get_capacity_direct(self._area_from, self._area_to)
+
+    def get_capacity_indirect(self) -> pd.DataFrame:
+        return self._link_service.get_capacity_indirect(self._area_from, self._area_to)
+
+    def get_parameters(self) -> pd.DataFrame:
+        return self._link_service.get_parameters(self._area_from, self._area_to)

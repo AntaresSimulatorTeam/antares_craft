@@ -234,6 +234,9 @@ class Study:
         self._areas = {area.id: area for area in area_list}
         return area_list
 
+    def read_links(self) -> list[Link]:
+        return self._link_service.read_links()
+
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
 
