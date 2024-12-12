@@ -13,10 +13,12 @@
 import pytest
 
 from antares import create_study_local
+from antares.model.area import Area
+from antares.model.study import Study
 
 
 @pytest.fixture
-def other_study_with_other_area(tmp_path):
+def other_study_with_other_area(tmp_path) -> Study:
     other_study_name = "other test study"
     study_version = "880"
 
@@ -27,6 +29,6 @@ def other_study_with_other_area(tmp_path):
 
 
 @pytest.fixture
-def unknown_area(other_study_with_other_area):
+def unknown_area(other_study_with_other_area) -> Area:
     usa = other_study_with_other_area.create_area("usa")
     return usa
