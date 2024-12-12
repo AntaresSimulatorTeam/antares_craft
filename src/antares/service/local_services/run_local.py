@@ -9,10 +9,11 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from typing import Any
+from typing import Any, Optional
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.job import Job
+from antares.model.settings.antares_simulation_parameters import AntaresSimulationParameters
 from antares.service.base_services import BaseRunService
 
 
@@ -22,7 +23,7 @@ class RunLocalService(BaseRunService):
         self.config = config
         self.study_name = study_name
 
-    def run_antares_simulation(self) -> Job:
+    def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
         raise NotImplementedError
 
     def wait_job_completion(self, job: Job, time_out: int) -> None:

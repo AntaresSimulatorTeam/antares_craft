@@ -27,6 +27,7 @@ from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.model.job import Job
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
+from antares.model.settings.antares_simulation_parameters import AntaresSimulationParameters
 from antares.model.settings.study_settings import StudySettings
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
@@ -604,7 +605,7 @@ class BaseShortTermStorageService(ABC):
 
 class BaseRunService(ABC):
     @abstractmethod
-    def run_antares_simulation(self) -> Job:
+    def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
         """
         Runs the Antares simulation.
 

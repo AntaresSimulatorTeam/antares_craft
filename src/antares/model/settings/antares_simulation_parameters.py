@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Optional
+from typing import Optional, Union
 
 from antares.model.settings.solver import Solver
 
@@ -29,3 +29,12 @@ class AntaresSimulationParameters:
         self.unzip_output = unzip_output
         self.output_suffix = output_suffix
         self.presolve = presolve
+
+    def to_json(self) -> dict[str, Union[Solver, Optional[int], bool, Optional[str]]]:
+        return {
+            "solver": self.solver,
+            "nb_cpu": self.nb_cpu,
+            "unzip_output": self.unzip_output,
+            "output_suffix": self.output_suffix,
+            "presolve": self.presolve
+        }
