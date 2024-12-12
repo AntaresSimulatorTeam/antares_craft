@@ -356,7 +356,7 @@ class Study:
         """
         return self._run_service.run_antares_simulation()
 
-    def wait_job_completion(job: Job, time_out: int) -> None:
+    def wait_job_completion(self, job: Job, time_out: int) -> None:
         """
         Waits for the completion of a job
 
@@ -366,7 +366,7 @@ class Study:
 
         Raises: SimulationTimeOutError if exceeded timeout
         """
-        pass
+        self._run_service.wait_job_completion(job, time_out)
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:

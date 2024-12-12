@@ -10,11 +10,12 @@
 #
 # This file is part of the Antares project.
 import json
+import time
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
-from antares.exceptions.exceptions import APIError, AntaresSimulationRunningError
-from antares.model.job import Job
+from antares.exceptions.exceptions import APIError, AntaresSimulationRunningError, SimulationTimeOutError
+from antares.model.job import Job, JobStatus
 from antares.service.base_services import BaseRunService
 
 
@@ -43,4 +44,10 @@ class RunApiService(BaseRunService):
         return Job(job_id, job_info["status"], launcher_params["auto_unzip"])
 
     def wait_job_completion(self, job: Job, time_out: int) -> None:
-        pass
+        start_time = time.time()
+        repeat_interval = 5
+        while job.status in (JobStatus.RUNNING, JobStatus.PENDING):
+            if time.time() - start_time > time_out:
+                raise SimulationTimeOutError(job.job_id, time_out)
+            time.sleep(repeat_interval)
+            job = self._get_job_from_id(job.job_id)

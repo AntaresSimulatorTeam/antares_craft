@@ -291,3 +291,8 @@ class AntaresSimulationRunningError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
         self.message = f"Could not run the simulation for study {study_id}: " + message
         super().__init__(self.message)
+
+class SimulationTimeOutError(Exception):
+    def __init__(self, job_id: str, time_out: int, message: str = "Error") -> None:
+        self.message = f"Job {job_id} exceeded timeout of {time_out} seconds" + f" {message}" if message != "Error" else ""
+        super().__init__(self.message)
