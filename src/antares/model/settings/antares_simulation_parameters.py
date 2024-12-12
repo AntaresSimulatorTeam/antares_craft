@@ -18,7 +18,7 @@ from antares.model.settings.solver import Solver
 class AntaresSimulationParameters:
     def __init__(
         self,
-        solver: Solver,
+        solver: Solver = Solver.SIRIUS,
         nb_cpu: Optional[int] = None,
         unzip_output: bool = True,
         output_suffix: Optional[str] = None,
@@ -36,5 +36,5 @@ class AntaresSimulationParameters:
             "nb_cpu": self.nb_cpu,
             "unzip_output": self.unzip_output,
             "output_suffix": self.output_suffix,
-            "presolve": self.presolve
+            "presolve": self.presolve,
         }

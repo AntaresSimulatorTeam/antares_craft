@@ -11,12 +11,17 @@
 # This file is part of the Antares project.
 import json
 import time
+
 from typing import Optional
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
-from antares.exceptions.exceptions import APIError, AntaresSimulationRunningError, SimulationTimeOutError, \
-    AntaresSimulationUnzipError
+from antares.exceptions.exceptions import (
+    AntaresSimulationRunningError,
+    AntaresSimulationUnzipError,
+    APIError,
+    SimulationTimeOutError,
+)
 from antares.model.job import Job, JobStatus
 from antares.model.settings.antares_simulation_parameters import AntaresSimulationParameters
 from antares.service.base_services import BaseRunService
@@ -57,7 +62,9 @@ class RunApiService(BaseRunService):
             if time.time() - start_time > time_out:
                 raise SimulationTimeOutError(job.job_id, time_out)
             time.sleep(repeat_interval)
-            job = self._get_job_from_id(job.job_id)
+            updated_job = self._get_job_from_id(job.job_id)
+            job.status = updated_job.status
+            job.unzip_output = updated_job.unzip_output
 
         if job.unzip_output:
             self._unzip_output(self.study_id, ["UNARCHIVE"])
@@ -75,7 +82,7 @@ class RunApiService(BaseRunService):
                 "from_creation_date_utc": 0,
                 "to_creation_date_utc": 0,
                 "from_completion_date_utc": 0,
-                "to_completion_date_utc": 0
+                "to_completion_date_utc": 0,
             }
             self._wrapper.post(url, json=payload)
         except APIError as e:

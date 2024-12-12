@@ -362,7 +362,7 @@ class Study:
 
         Args:
             job: The job to wait for
-            time_out: Time limit for waiting
+            time_out: Time limit for waiting (seconds)
 
         Raises: SimulationTimeOutError if exceeded timeout
         """
