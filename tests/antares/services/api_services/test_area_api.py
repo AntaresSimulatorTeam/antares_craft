@@ -50,8 +50,9 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/properties/form"
             properties = AreaProperties()
+            properties.energy_cost_spilled = 1
             mocker.put(url, status_code=200)
-            mocker.get(url, json=properties, status_code=200)
+            mocker.get(url, json=properties.model_dump(mode="json"), status_code=200)
             self.area.update_properties(properties=properties)
 
     def test_update_area_properties_fails(self):

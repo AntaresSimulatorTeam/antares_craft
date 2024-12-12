@@ -326,11 +326,11 @@ class Area:
         self.delete_st_storages([storage])
 
     def update_properties(self, properties: AreaProperties) -> None:
-        new_properties = self._area_service.update_area_properties(self, properties)
+        new_properties = self._area_service.update_area_properties(self.id, properties)
         self._properties = new_properties
 
     def update_ui(self, ui: AreaUi) -> None:
-        new_ui = self._area_service.update_area_ui(self, ui)
+        new_ui = self._area_service.update_area_ui(self.id, ui)
         self._ui = new_ui
 
     def create_load(self, series: pd.DataFrame) -> None:
