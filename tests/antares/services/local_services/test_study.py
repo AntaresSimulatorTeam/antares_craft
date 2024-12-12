@@ -35,7 +35,6 @@ from antares.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
-    BindingConstraintPropertiesLocal,
     ConstraintTerm,
 )
 from antares.model.commons import FilterOption
@@ -1434,12 +1433,19 @@ layers = 0
         assert actual_content == ui_ini_content
 
     def test_create_area_with_custom_error(self, monkeypatch, local_study):
+        error_message = "Thine area hath raised en error, thou shalt not pass!"
+
         def mock_error_in_sets_ini():
-            raise CustomError("An error occurred while processing area can not be created")
+            raise CustomError(error_message)
+
+        area_id = "test"
 
         monkeypatch.setattr("antares.service.local_services.area_local._sets_ini_content", mock_error_in_sets_ini)
-        with pytest.raises(CustomError, match="An error occurred while processing area can not be created"):
-            local_study.create_area("test")
+        with pytest.raises(
+            AreaCreationError,
+            match=f"Could not create the area {area_id}: {error_message}",
+        ):
+            local_study.create_area(area_id)
 
     def test_create_area_with_custom_ui(self, tmp_path, local_study):
         # Given
@@ -2230,18 +2236,20 @@ at%fr = 0.000000%1
         # Then
         assert actual_time_series.equals(expected_time_series)
 
-    def test_updating_binding_constraint_properties_updates_local(self, local_study_with_constraint, test_constraint):
+    def test_get_constraint_matrix(self, local_study):
         # Given
-        new_properties = BindingConstraintProperties(comments="testing update")
-        local_property_args = {
-            "constraint_name": test_constraint.name,
-            "constraint_id": test_constraint.id,
-            "terms": test_constraint._terms,
-            **new_properties.model_dump(mode="json", exclude_none=True),
-        }
+        expected_time_series = pd.DataFrame(np.random.random([365 * 24, 1]))
+        bc_name = "test time series"
+        local_study.create_binding_constraint(
+            name=bc_name,
+            properties=BindingConstraintProperties(
+                operator=BindingConstraintOperator.GREATER, time_step=BindingConstraintFrequency.HOURLY
+            ),
+            greater_term_matrix=expected_time_series,
+        )
 
         # When
-        test_constraint.properties = new_properties
+        actual_time_series = local_study.get_binding_constraints()[bc_name].get_greater_term_matrix()
 
         # Then
-        assert test_constraint.local_properties == BindingConstraintPropertiesLocal.model_validate(local_property_args)
+        assert actual_time_series.round(10).equals(expected_time_series.round(10))

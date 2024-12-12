@@ -28,6 +28,9 @@ class PlaylistParameters(BaseModel):
         playlist (list[PlaylistData]): A list of years (in **PlaylistData** format) in the playlist
     """
 
+    class Config:
+        validate_assignment = True
+
     playlist: list[PlaylistData] = Field(default=[], exclude=True)
 
     _playlist_dict_error_msg = "Not a valid playlist dictionary."

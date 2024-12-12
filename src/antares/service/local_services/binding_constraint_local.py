@@ -9,10 +9,12 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
+
+from pydantic import Field
 
 from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import BindingConstraintCreationError
@@ -21,14 +23,54 @@ from antares.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
-    BindingConstraintPropertiesLocal,
     ConstraintMatrixName,
     ConstraintTerm,
+    DefaultBindingConstraintProperties,
 )
 from antares.service.base_services import BaseBindingConstraintService
 from antares.tools.ini_tool import IniFile, IniFileTypes
-from antares.tools.matrix_tool import df_save
+from antares.tools.matrix_tool import df_read, df_save
 from antares.tools.time_series_tool import TimeSeriesFileType
+
+
+class BindingConstraintPropertiesLocal(DefaultBindingConstraintProperties):
+    """
+    Used to create the entries for the bindingconstraints.ini file
+
+    Attributes:
+        constraint_name: The constraint name
+        constraint_id: The constraint id
+        properties (BindingConstraintProperties): The BindingConstraintProperties  to set
+        terms (dict[str, ConstraintTerm]]): The terms applying to the binding constraint
+    """
+
+    constraint_name: str
+    constraint_id: str
+    terms: dict[str, ConstraintTerm] = Field(default_factory=dict[str, ConstraintTerm])
+
+    @property
+    def list_ini_fields(self) -> dict[str, str]:
+        ini_dict = {
+            "name": self.constraint_name,
+            "id": self.constraint_id,
+            "enabled": f"{self.enabled}".lower(),
+            "type": self.time_step.value,
+            "operator": self.operator.value,
+            "comments": self.comments,
+            "filter-year-by-year": self.filter_year_by_year,
+            "filter-synthesis": self.filter_synthesis,
+            "group": self.group,
+        } | {term_id: term.weight_offset() for term_id, term in self.terms.items()}
+        return {key: value for key, value in ini_dict.items() if value not in [None, ""]}
+
+    def yield_binding_constraint_properties(self) -> BindingConstraintProperties:
+        excludes = {
+            "constraint_name",
+            "constraint_id",
+            "terms",
+            "list_ini_fields",
+        }
+        return BindingConstraintProperties(**self.model_dump(mode="json", exclude=excludes))
 
 
 class BindingConstraintLocalService(BaseBindingConstraintService):
@@ -53,7 +95,9 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             properties=properties,
             terms=terms,
         )
-        constraint.properties = constraint.local_properties.yield_binding_constraint_properties()
+
+        local_properties = self._generate_local_properties(constraint)
+        constraint.properties = local_properties.yield_binding_constraint_properties()
 
         current_ini_content = self.ini_file.ini_dict_binding_constraints or {}
         if any(values.get("id") == constraint.id for values in current_ini_content.values()):
@@ -61,11 +105,23 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
                 constraint_name=name, message=f"A binding constraint with the name {name} already exists."
             )
 
-        self._write_binding_constraint_ini(constraint.properties, name, name, terms)
+        self._write_binding_constraint_ini(local_properties, name, name, terms)
 
         self._store_time_series(constraint, less_term_matrix, equal_term_matrix, greater_term_matrix)
 
         return constraint
+
+    @staticmethod
+    def _create_local_property_args(constraint: BindingConstraint) -> dict[str, Union[str, dict[str, ConstraintTerm]]]:
+        return {
+            "constraint_name": constraint.name,
+            "constraint_id": constraint.id,
+            "terms": constraint.get_terms(),
+            **constraint.properties.model_dump(mode="json", exclude_none=True),
+        }
+
+    def _generate_local_properties(self, constraint: BindingConstraint) -> BindingConstraintPropertiesLocal:
+        return BindingConstraintPropertiesLocal.model_validate(self._create_local_property_args(constraint))
 
     def _store_time_series(
         self,
@@ -75,24 +131,20 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         greater_term_matrix: Optional[pd.DataFrame],
     ) -> None:
         time_series = []
-        time_series_ids = []
         file_types = []
         # Lesser or greater can happen together when operator is both
         if constraint.properties.operator in (BindingConstraintOperator.LESS, BindingConstraintOperator.BOTH):
             time_series += [self._check_if_empty_ts(constraint.properties.time_step, less_term_matrix)]
-            time_series_ids += [f"{constraint.id.lower()}_lt"]
             file_types += [TimeSeriesFileType.BINDING_CONSTRAINT_LESS]
         if constraint.properties.operator in (BindingConstraintOperator.GREATER, BindingConstraintOperator.BOTH):
             time_series += [self._check_if_empty_ts(constraint.properties.time_step, greater_term_matrix)]
-            time_series_ids += [f"{constraint.id.lower()}_gt"]
             file_types += [TimeSeriesFileType.BINDING_CONSTRAINT_GREATER]
         # Equal is always exclusive
         if constraint.properties.operator == BindingConstraintOperator.EQUAL:
             time_series = [self._check_if_empty_ts(constraint.properties.time_step, equal_term_matrix)]
-            time_series_ids = [f"{constraint.id.lower()}_eq"]
             file_types = [TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL]
 
-        for ts, ts_id, file_type in zip(time_series, time_series_ids, file_types):
+        for ts, file_type in zip(time_series, file_types):
             matrix_path = self.config.study_path.joinpath(file_type.value.format(constraint_id=constraint.id))
             df_save(ts, matrix_path)
 
@@ -103,7 +155,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
     def _write_binding_constraint_ini(
         self,
-        properties: BindingConstraintProperties,
+        local_properties: BindingConstraintPropertiesLocal,
         constraint_name: str,
         constraint_id: str,
         terms: Optional[list[ConstraintTerm]] = None,
@@ -131,17 +183,8 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             # Persist the updated INI content
             self.ini_file.write_ini_file()
         else:
-            terms_dict = {term.id: term for term in terms} if terms else {}
-
-            full_properties = BindingConstraintPropertiesLocal(
-                constraint_name=constraint_name,
-                constraint_id=constraint_id,
-                terms=terms_dict,
-                **properties.model_dump(),
-            )
-
             section_index = len(current_ini_content)
-            current_ini_content[str(section_index)] = full_properties.list_ini_fields
+            current_ini_content[str(section_index)] = local_properties.list_ini_fields
 
         self.ini_file.ini_dict_binding_constraints = current_ini_content
         self.ini_file.write_ini_file()
@@ -158,7 +201,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             list[ConstraintTerm]: The updated list of terms.
         """
 
-        new_terms = constraint.local_properties.terms.copy()
+        new_terms = constraint.get_terms().copy()
 
         for term in terms:
             if term.id in constraint.get_terms():
@@ -167,12 +210,13 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
                 )
             new_terms[term.id] = term
 
-        constraint.local_properties.terms = new_terms
+        local_properties = self._generate_local_properties(constraint)
+        local_properties.terms = new_terms
 
         terms_values = list(new_terms.values())
 
         self._write_binding_constraint_ini(
-            properties=constraint.properties,
+            local_properties=local_properties,
             constraint_name=constraint.name,
             constraint_id=constraint.id,
             terms=terms_values,
@@ -189,7 +233,10 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         raise NotImplementedError
 
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
-        raise NotImplementedError
+        file_path = self.config.study_path.joinpath(
+            "input", "bindingconstraints", f"{constraint.id}_{matrix_name.value}.txt"
+        )
+        return df_read(file_path)
 
     def update_constraint_matrix(
         self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName, matrix: pd.DataFrame

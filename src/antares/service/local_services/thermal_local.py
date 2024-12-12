@@ -58,7 +58,7 @@ class ThermalLocalService(BaseThermalService):
         )
 
     def read_thermal_clusters(self, area_id: str) -> List[ThermalCluster]:
-        thermal_dict = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name=area_id).ini_dict
+        thermal_dict = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_id=area_id).ini_dict
         thermal_clusters = []
         if thermal_dict:
             for thermal_cluster in thermal_dict:
