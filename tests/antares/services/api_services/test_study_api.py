@@ -21,6 +21,7 @@ from antares.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
     LinkCreationError,
+    SimulationTimeOutError,
     StudyCreationError,
     StudySettingsUpdateError,
     StudyVariantCreationError,
@@ -28,8 +29,11 @@ from antares.exceptions.exceptions import (
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties
 from antares.model.hydro import HydroProperties
+from antares.model.job import Job, JobStatus
 from antares.model.link import Link, LinkProperties, LinkUi
+from antares.model.settings.antares_simulation_parameters import AntaresSimulationParameters
 from antares.model.settings.general import GeneralParameters
+from antares.model.settings.solver import Solver
 from antares.model.settings.study_settings import StudySettings
 from antares.model.study import Study, create_study_api, create_variant_api, read_study_api
 from antares.service.service_factory import ServiceFactory
@@ -330,3 +334,60 @@ class TestCreateAPI:
             match=f"Could not create the link {area} / {area}: A link cannot start and end at the same area",
         ):
             self.study.create_link(area_from=area, area_to=area)
+
+    def test_run_and_wait_antares_simulation(self):
+        parameters = AntaresSimulationParameters(Solver.SIRIUS, nb_cpu=2, unzip_output=True, presolve=False)
+        with requests_mock.Mocker() as mocker:
+            run_url = f"https://antares.com/api/v1/launcher/run/{self.study_id}"
+            job_id = "1234-g6z17"
+            mocker.post(run_url, json={"id": job_id}, status_code=200)
+
+            job_url = f"https://antares.com/api/v1/launcher/jobs/{job_id}"
+            response_list = [
+                {
+                    "json": {
+                        "id": job_id,
+                        "status": "pending",
+                        "launcher_params": '{"nb_cpu": 2, "auto_unzip": true, "presolve": false}',
+                    },
+                    "status_code": 200,
+                },
+                {
+                    "json": {
+                        "id": job_id,
+                        "status": "running",
+                        "launcher_params": '{"nb_cpu": 2, "auto_unzip": true, "presolve": false}',
+                    },
+                    "status_code": 200,
+                },
+                {
+                    "json": {
+                        "id": job_id,
+                        "status": "success",
+                        "launcher_params": '{"nb_cpu": 2, "auto_unzip": true, "presolve": false}',
+                    },
+                    "status_code": 200,
+                },
+            ]
+            mocker.get(job_url, response_list)
+
+            tasks_url = "https://antares.com/api/v1/tasks"
+            mocker.post(tasks_url, status_code=200)
+
+            job = self.study.run_antares_simulation(parameters)
+            assert isinstance(job, Job)
+            assert job.job_id == job_id
+            assert job.status == JobStatus.PENDING
+
+            self.study.wait_job_completion(job, time_out=10)
+
+            assert job.status == JobStatus.SUCCESS
+
+            # failing
+            response_list.pop()
+            mocker.get(job_url, response_list)
+            mocker.post(tasks_url, status_code=200)
+
+            job = self.study.run_antares_simulation(parameters)
+            with pytest.raises(SimulationTimeOutError):
+                self.study.wait_job_completion(job, time_out=2)
