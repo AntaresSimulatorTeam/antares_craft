@@ -396,7 +396,6 @@ class BaseLinkService(ABC):
             area_from:
             series:
         """
-        main
         pass
 
     @abstractmethod
