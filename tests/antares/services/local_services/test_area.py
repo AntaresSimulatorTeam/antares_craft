@@ -89,7 +89,7 @@ class TestCreateThermalCluster:
     def test_required_ini_files_exist(self, tmp_path, local_study_w_thermal):
         # Given
         expected_list_ini_path = (
-            local_study_w_thermal.service.config.study_path / IniFileTypes.THERMAL_LIST_INI.value.format(area_name="fr")
+            local_study_w_thermal.service.config.study_path / IniFileTypes.THERMAL_LIST_INI.value.format(area_id="fr")
         )
         expected_areas_ini_path = local_study_w_thermal.service.config.study_path / IniFileTypes.THERMAL_AREAS_INI.value
 
@@ -232,7 +232,7 @@ variableomcost = 5.000000
         # When
         local_study_w_areas.get_areas()["fr"].create_thermal_cluster("test thermal cluster", thermal_cluster_properties)
         actual_thermal_list_ini = IniFile(
-            local_study_w_areas.service.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name="fr"
+            local_study_w_areas.service.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_id="fr"
         )
         actual_thermal_list_ini.update_from_ini_file()
         with actual_thermal_list_ini.ini_path.open("r") as actual_list_ini_file:
@@ -324,7 +324,7 @@ class TestCreateRenewablesCluster:
     def test_renewables_list_ini_exists(self, local_study_with_renewable):
         renewables_list_ini = (
             local_study_with_renewable.service.config.study_path
-            / IniFileTypes.RENEWABLES_LIST_INI.value.format(area_name="fr")
+            / IniFileTypes.RENEWABLES_LIST_INI.value.format(area_id="fr")
         )
         assert renewables_list_ini.is_file()
 
@@ -369,7 +369,7 @@ ts-interpretation = production-factor
 
 """
         actual_renewable_list_ini = IniFile(
-            local_study_w_thermal.service.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name="fr"
+            local_study_w_thermal.service.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_id="fr"
         )
 
         # When
@@ -414,7 +414,7 @@ class TestCreateSTStorage:
     def test_st_storage_list_ini_exists(self, local_study_with_st_storage):
         st_storage_list_ini = (
             local_study_with_st_storage.service.config.study_path
-            / IniFileTypes.ST_STORAGE_LIST_INI.value.format(area_name="fr")
+            / IniFileTypes.ST_STORAGE_LIST_INI.value.format(area_id="fr")
         )
         assert st_storage_list_ini.is_file()
 
@@ -463,7 +463,7 @@ enabled = true
 
 """
         actual_st_storage_list_ini = IniFile(
-            local_study_w_areas.service.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name="fr"
+            local_study_w_areas.service.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_id="fr"
         )
 
         # When
