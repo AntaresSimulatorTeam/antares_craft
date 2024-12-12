@@ -14,7 +14,8 @@ import time
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
-from antares.exceptions.exceptions import APIError, AntaresSimulationRunningError, SimulationTimeOutError
+from antares.exceptions.exceptions import APIError, AntaresSimulationRunningError, SimulationTimeOutError, \
+    AntaresSimulationUnzipError
 from antares.model.job import Job, JobStatus
 from antares.service.base_services import BaseRunService
 
@@ -51,3 +52,25 @@ class RunApiService(BaseRunService):
                 raise SimulationTimeOutError(job.job_id, time_out)
             time.sleep(repeat_interval)
             job = self._get_job_from_id(job.job_id)
+
+        if job.unzip_output:
+            self._unzip_output(self.study_id, ["UNARCHIVE"])
+
+        return None
+
+    def _unzip_output(self, ref_id: str, type: list[str]) -> None:
+        url = f"{self._base_url}/tasks"
+        try:
+            payload = {
+                "status": [],
+                "name": "string",
+                "type": type,
+                "ref_id": ref_id,
+                "from_creation_date_utc": 0,
+                "to_creation_date_utc": 0,
+                "from_completion_date_utc": 0,
+                "to_completion_date_utc": 0
+            }
+            self._wrapper.post(url, json=payload)
+        except APIError as e:
+            raise AntaresSimulationUnzipError(self.study_id, e.message) from e

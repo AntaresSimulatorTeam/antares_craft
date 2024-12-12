@@ -24,4 +24,4 @@ class Job:
     def __init__(self, job_id: str, status: JobStatus, unzip_output: bool):
         self.job_id = job_id
         self.status = status
-        self.bool = bool
+        self.unzip_output = unzip_output
