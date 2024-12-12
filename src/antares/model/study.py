@@ -268,22 +268,22 @@ class Study:
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
     ) -> Link:
-        sorted_areas = sorted([area_from, area_to])
-        area_from, area_to = sorted_areas
+        temp_link = Link(area_from, area_to, link_service=None)
+        area_from, area_to = sorted([area_from, area_to])
+        area_from_id = temp_link.area_from_id
+        area_to_id = temp_link.area_to_id
 
-        missing_areas = [area for area in [area_from, area_to] if area not in self._areas]
+        if area_from_id == area_to_id:
+            raise LinkCreationError(area_from, area_to, "A link cannot start and end at the same area")
+
+        missing_areas = [area for area in [area_from_id, area_to_id] if area not in self._areas]
         if missing_areas:
             raise LinkCreationError(area_from, area_to, f"{', '.join(missing_areas)} does not exist")
-
-        temp_link = Link(area_from, area_to, link_service=None)
-
-        if temp_link.area_from_id == temp_link.area_to_id:
-            raise LinkCreationError(area_from, area_to, "A link cannot start and end at the same area")
 
         if temp_link.id in self._links:
             raise LinkCreationError(area_from, area_to, f"A link from {area_from} to {area_to} already exists")
 
-        link = self._link_service.create_link(area_from, area_to, properties, ui)
+        link = self._link_service.create_link(area_from_id, area_to_id, properties, ui)
         self._links[link.id] = link
         return link
 

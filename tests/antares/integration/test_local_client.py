@@ -139,9 +139,9 @@ class TestLocalClient:
 
         # tests link creation with default values
         link_de_fr = test_study.create_link(area_from=area_de.id, area_to=fr.id)
-        assert link_de_fr.area_from == area_de.id
-        assert link_de_fr.area_to == fr.id
-        assert link_de_fr.name == f"{area_de.id} / {fr.id}"
+        assert link_de_fr.area_from_id == area_de.id
+        assert link_de_fr.area_to_id == fr.id
+        assert link_de_fr.id == f"{area_de.id} / {fr.id}"
 
         # tests link creation with ui and properties
         link_ui = LinkUi(colorr=44)
@@ -161,7 +161,7 @@ class TestLocalClient:
 
         # asserts study contains all links and areas
         assert test_study.get_areas() == {at.id: at, area_be.id: area_be, fr.id: fr, area_de.id: area_de}
-        assert test_study.get_links() == {at_fr.name: at_fr, link_be_fr.name: link_be_fr, link_de_fr.name: link_de_fr}
+        assert test_study.get_links() == {at_fr.id: at_fr, link_be_fr.id: link_be_fr, link_de_fr.id: link_de_fr}
 
         # test thermal cluster creation with default values
         thermal_name = "Cluster_test"
