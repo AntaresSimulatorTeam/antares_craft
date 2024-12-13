@@ -1430,6 +1430,7 @@ class TestReadLinks:
             assert isinstance(link.properties.filter_year_by_year, set)
             assert isinstance(link.properties.filter_synthesis, set)
 
+
 class TestReadSTstorage:
     def test_read_storage_local(self, local_study_w_thermal):
         # TODO not finished at all, just here to validate area.read_st_storage
@@ -1440,5 +1441,3 @@ class TestReadSTstorage:
         for area in areas:
             with pytest.raises(NotImplementedError):
                 storage_list = area.read_st_storages()
-
-           
