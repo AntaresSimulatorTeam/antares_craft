@@ -9,12 +9,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+
 import pytest
 import requests_mock
 
 import re
 
 from unittest.mock import Mock
+from json import dumps
 
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
@@ -336,7 +338,7 @@ class TestCreateAPI:
             self.study.create_link(area_from=area, area_to=area)
 
     def test_run_and_wait_antares_simulation(self):
-        parameters = AntaresSimulationParameters(Solver.SIRIUS, nb_cpu=2, unzip_output=True, presolve=False)
+        parameters = AntaresSimulationParameters(solver=Solver.COIN, nb_cpu=2, unzip_output=True, presolve=False)
         with requests_mock.Mocker() as mocker:
             run_url = f"https://antares.com/api/v1/launcher/run/{self.study_id}"
             job_id = "1234-g6z17"
@@ -348,7 +350,7 @@ class TestCreateAPI:
                     "json": {
                         "id": job_id,
                         "status": "pending",
-                        "launcher_params": '{"nb_cpu": 2, "auto_unzip": true, "presolve": false}',
+                        "launcher_params": dumps(parameters.model_dump()),
                     },
                     "status_code": 200,
                 },
@@ -356,7 +358,7 @@ class TestCreateAPI:
                     "json": {
                         "id": job_id,
                         "status": "running",
-                        "launcher_params": '{"nb_cpu": 2, "auto_unzip": true, "presolve": false}',
+                        "launcher_params": dumps(parameters.model_dump()),
                     },
                     "status_code": 200,
                 },
@@ -364,7 +366,7 @@ class TestCreateAPI:
                     "json": {
                         "id": job_id,
                         "status": "success",
-                        "launcher_params": '{"nb_cpu": 2, "auto_unzip": true, "presolve": false}',
+                        "launcher_params": dumps(parameters.model_dump()),
                     },
                     "status_code": 200,
                 },

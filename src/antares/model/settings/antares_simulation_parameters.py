@@ -10,31 +10,32 @@
 #
 # This file is part of the Antares project.
 
-from typing import Optional, Union
+from typing import Optional, Union, Any, Dict
+
+from pydantic import BaseModel, Field
 
 from antares.model.settings.solver import Solver
 
 
-class AntaresSimulationParameters:
-    def __init__(
-        self,
-        solver: Solver = Solver.SIRIUS,
-        nb_cpu: Optional[int] = None,
-        unzip_output: bool = True,
-        output_suffix: Optional[str] = None,
-        presolve: bool = False,
-    ):
-        self.solver = solver
-        self.nb_cpu = nb_cpu
-        self.unzip_output = unzip_output
-        self.output_suffix = output_suffix
-        self.presolve = presolve
+class AntaresSimulationParameters(BaseModel):
+    solver: Solver = Solver.SIRIUS
+    nb_cpu: Optional[int] = None
+    unzip_output: bool = Field(True, alias="auto_unzip")
+    output_suffix: Optional[str] = None
+    presolve: bool = False
 
-    def to_json(self) -> dict[str, Union[Solver, Optional[int], bool, Optional[str]]]:
-        return {
-            "solver": self.solver,
-            "nb_cpu": self.nb_cpu,
-            "unzip_output": self.unzip_output,
-            "output_suffix": self.output_suffix,
-            "presolve": self.presolve,
-        }
+    @property
+    def other_options(self) -> str:
+        options = []
+        if self.presolve:
+            options.append("presolve")
+        if self.solver != Solver.SIRIUS:
+            options.append(self.solver.name.lower())
+        return " ".join(options)
+
+    def model_dump(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
+        data = super().model_dump(*args, **kwargs, by_alias=True)
+        data["other_options"] = self.other_options
+        data.pop("solver", None)
+        data.pop("presolve", None)
+        return data
