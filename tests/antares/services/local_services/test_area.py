@@ -1429,3 +1429,16 @@ class TestReadLinks:
             assert link.properties.asset_type.value == "ac"
             assert isinstance(link.properties.filter_year_by_year, set)
             assert isinstance(link.properties.filter_synthesis, set)
+
+class TestReadSTstorage:
+    def test_read_storage_local(self, local_study_w_thermal):
+        # TODO not finished at all, just here to validate area.read_st_storage
+        study_path = local_study_w_thermal.service.config.study_path
+        local_study_object = read_study_local(study_path)
+        areas = local_study_object.read_areas()
+
+        for area in areas:
+            with pytest.raises(NotImplementedError):
+                storage_list = area.read_st_storages()
+
+           
