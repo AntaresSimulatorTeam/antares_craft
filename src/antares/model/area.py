@@ -24,7 +24,6 @@ import pandas as pd
 from pydantic import BaseModel, computed_field
 from pydantic.alias_generators import to_camel
 
-from antares.exceptions.exceptions import APIError, MatrixUploadError
 from antares.model.commons import FilterOption, sort_filter_values
 from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
@@ -334,34 +333,19 @@ class Area:
         self._ui = new_ui
 
     def create_load(self, series: pd.DataFrame) -> None:
-        try:
-            self._area_service.create_load(self.id, series)
-        except APIError as e:
-            raise MatrixUploadError(self.id, "load", e.message)
+        self._area_service.create_load(self.id, series)
 
     def create_wind(self, series: pd.DataFrame) -> None:
-        try:
-            self._area_service.create_wind(self.id, series)
-        except APIError as e:
-            raise MatrixUploadError(self.id, "wind", e.message)
+        self._area_service.create_wind(self.id, series)
 
     def create_reserves(self, series: pd.DataFrame) -> None:
-        try:
-            self._area_service.create_reserves(self.id, series)
-        except APIError as e:
-            raise MatrixUploadError(self.id, "reserves", e.message)
+        self._area_service.create_reserves(self.id, series)
 
     def create_solar(self, series: pd.DataFrame) -> None:
-        try:
-            self._area_service.create_solar(self.id, series)
-        except APIError as e:
-            raise MatrixUploadError(self.id, "solar", e.message)
+        self._area_service.create_solar(self.id, series)
 
     def create_misc_gen(self, series: pd.DataFrame) -> None:
-        try:
-            self._area_service.create_misc_gen(self.id, series)
-        except APIError as e:
-            raise MatrixUploadError(self.id, "misc-gen", e.message)
+        self._area_service.create_misc_gen(self.id, series)
 
     def create_hydro(
         self,

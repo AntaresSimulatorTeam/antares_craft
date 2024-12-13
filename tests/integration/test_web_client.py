@@ -92,14 +92,6 @@ class TestWebClient:
         assert area_be.ui.x == area_ui.x
         assert area_be.ui.color_rgb == area_ui.color_rgb
 
-        # tests study reading method and comparing ids, name, areas and settings
-        actual_study = read_study_api(api_config, study.service.study_id)
-
-        assert study.service.study_id == actual_study.service.study_id
-        assert study.name == actual_study.name
-        assert study.version == actual_study.version
-        assert study.get_areas()["fr"].id == actual_study.get_areas()["fr"].id
-
         # tests area creation with properties
         properties = AreaProperties()
         properties.energy_cost_spilled = 100
@@ -253,8 +245,6 @@ class TestWebClient:
         assert list(expected_area_fr.get_renewables()) == list(actual_area_fr.get_renewables())
         assert list(expected_area_fr.get_st_storages()) == list(actual_area_fr.get_st_storages())
         assert study.get_settings() == actual_study.get_settings()
-
-        # checking the links between two areas
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"

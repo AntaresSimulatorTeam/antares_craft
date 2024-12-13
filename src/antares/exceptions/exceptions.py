@@ -266,7 +266,7 @@ class MatrixDownloadError(Exception):
 
 class LinkUploadError(Exception):
     def __init__(self, link_id: str, matrix_type: str, message: str) -> None:
-        self.message = f"Error uploading {matrix_type} matrix from link {link_id}: {message}"
+        self.message = f"Error uploading {matrix_type} matrix for link {link_id}: {message}"
         super().__init__(self.message)
 
 

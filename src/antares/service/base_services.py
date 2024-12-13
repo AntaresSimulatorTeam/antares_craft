@@ -228,10 +228,10 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def delete_area(self, area_id: str) -> None:
+    def delete_area(self, area: Area) -> None:
         """
         Args:
-            area_id: area object to be deleted
+            area: area object to be deleted
         """
         pass
 
@@ -370,12 +370,7 @@ class BaseLinkService(ABC):
 
     @abstractmethod
     def create_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
-        """
-        Args:
-            area_to:
-            area_from:
-            series:
-        """
+        pass
 
     @abstractmethod
     def read_links(self) -> List[Link]:
