@@ -205,9 +205,9 @@ class TestWebClient:
         assert storage_fr.id == "cluster_test"
 
         # test each list of clusters has the same length and objects by comparing their id
-        thermal_list = area_fr.read_thermal_clusters(area_fr.id)
-        renewable_list = area_fr.read_renewables(area_fr.id)
-        storage_list = area_fr.read_st_storages(area_fr.id)
+        thermal_list = area_fr.read_thermal_clusters()
+        renewable_list = area_fr.read_renewables()
+        storage_list = area_fr.read_st_storages()
 
         assert len(thermal_list) == 2
         assert len(renewable_list) == 2

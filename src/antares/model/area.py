@@ -359,21 +359,18 @@ class Area:
 
     def read_st_storages(
         self,
-        area_id: str,
     ) -> List[STStorage]:
-        return self._storage_service.read_st_storages(area_id)
+        return self._storage_service.read_st_storages(self.id)
 
     def read_renewables(
         self,
-        area_id: str,
     ) -> List[RenewableCluster]:
-        return self._renewable_service.read_renewables(area_id)
+        return self._renewable_service.read_renewables(self.id)
 
     def read_thermal_clusters(
         self,
-        area_id: str,
     ) -> List[ThermalCluster]:
-        return self._thermal_service.read_thermal_clusters(area_id)
+        return self._thermal_service.read_thermal_clusters(self.id)
 
     def read_hydro(
         self,
