@@ -492,12 +492,12 @@ class AreaApiService(BaseAreaService):
 
         return area_ui
 
-    def delete_area(self, area: Area) -> None:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{area.id}"
+    def delete_area(self, area_id: str) -> None:
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}"
         try:
             self._wrapper.delete(url)
         except APIError as e:
-            raise AreaDeletionError(area.id, e.message) from e
+            raise AreaDeletionError(area_id, e.message) from e
 
     def delete_thermal_clusters(self, area_id: str, clusters: List[ThermalCluster]) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/thermal"
