@@ -230,7 +230,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def delete_area(self, area_id: str) -> None:
+    def delete_area(self, area: Area) -> None:
         """
         Args:
             area: area object to be deleted

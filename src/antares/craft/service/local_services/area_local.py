@@ -299,7 +299,7 @@ class AreaLocalService(BaseAreaService):
         created_area.create_hydro()
         return created_area
 
-    def delete_area(self, area_id: str) -> None:
+    def delete_area(self, area: Area) -> None:
         raise NotImplementedError
 
     def update_area_properties(self, area_id: str, properties: AreaProperties) -> AreaProperties:
