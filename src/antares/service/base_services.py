@@ -328,7 +328,6 @@ class BaseLinkService(ABC):
             area_to: area where the link goes to
             properties: link's properties
             ui: link's ui characteristics
-            existing_areas: existing areas from study
 
         Returns:
             The created link
@@ -385,12 +384,6 @@ class BaseLinkService(ABC):
 
     @abstractmethod
     def create_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
-        """
-        Args:
-            area_to:
-            area_from:
-            series:
-        """
         pass
 
     @abstractmethod
@@ -402,12 +395,6 @@ class BaseLinkService(ABC):
 
     @abstractmethod
     def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
-        """
-        Args:
-            area_to:
-            area_from:
-            series:
-        """
         pass
 
 

@@ -133,7 +133,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinkUploadError,
-                match=f"Error uploading parameters matrix for link {self.link.area_from_id}/{self.link.area_to_id}: {antares_web_description_msg}",
+                match=f"Error uploading parameters matrix for link {self.link.area_from_id}/{self.link.area_to_id}",
             ):
                 self.link.create_parameters(self.matrix)
 
@@ -160,7 +160,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinkUploadError,
-                match=f"Error uploading directcapacity matrix for link {self.link.area_from_id}/{self.link.area_to_id}: {antares_web_description_msg}",
+                match=f"Error uploading directcapacity matrix for link {self.link.area_from_id}/{self.link.area_to_id}",
             ):
                 self.link.create_capacity_direct(self.matrix)
 
@@ -182,12 +182,11 @@ class TestCreateAPI:
                 f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
             )
 
-            antares_web_description_msg = "Server KO"
-            mocker.post(raw_url, json={"description": antares_web_description_msg}, status_code=404)
+            mocker.post(raw_url, status_code=404)
 
             with pytest.raises(
                 LinkUploadError,
-                match=f"Error uploading indirectcapacity matrix for link {self.link.area_from_id}/{self.link.area_to_id}: {antares_web_description_msg}",
+                match=f"Error uploading indirectcapacity matrix for link {self.link.area_from_id}/{self.link.area_to_id}",
             ):
                 self.link.create_capacity_indirect(self.matrix)
 
@@ -209,12 +208,11 @@ class TestCreateAPI:
                 f"input/links/{self.area_from.id}/{self.area_to.id}_parameters"
             )
 
-            antares_web_description_msg = "Server KO"
-            mocker.get(raw_url, json={"description": antares_web_description_msg}, status_code=404)
+            mocker.get(raw_url, status_code=404)
 
             with pytest.raises(
                 LinkDownloadError,
-                match=f"Could not download parameters matrix for link {self.area_from.id}/{self.area_to.id}: {antares_web_description_msg}",
+                match=f"Could not download parameters matrix for link {self.area_from.id}/{self.area_to.id}",
             ):
                 self.link.get_parameters()
 
@@ -236,12 +234,11 @@ class TestCreateAPI:
                 f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
             )
 
-            antares_web_description_msg = "Server KO"
-            mocker.get(raw_url, json={"description": antares_web_description_msg}, status_code=404)
+            mocker.get(raw_url, status_code=404)
 
             with pytest.raises(
                 LinkDownloadError,
-                match=f"Could not download indirectcapacity matrix for link {self.area_from.id}/{self.area_to.id}: {antares_web_description_msg}",
+                match=f"Could not download indirectcapacity matrix for link {self.area_from.id}/{self.area_to.id}",
             ):
                 self.link.get_capacity_indirect()
 
@@ -263,11 +260,10 @@ class TestCreateAPI:
                 f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
             )
 
-            antares_web_description_msg = "Server KO"
-            mocker.get(raw_url, json={"description": antares_web_description_msg}, status_code=404)
+            mocker.get(raw_url, status_code=404)
 
             with pytest.raises(
                 LinkDownloadError,
-                match=f"Could not download directcapacity matrix for link {self.area_from.id}/{self.area_to.id}: {antares_web_description_msg}",
+                match=f"Could not download directcapacity matrix for link {self.area_from.id}/{self.area_to.id}",
             ):
                 self.link.get_capacity_direct()

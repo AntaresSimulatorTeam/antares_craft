@@ -167,12 +167,12 @@ class LinkApiService(BaseLinkService):
 
         return link_ui
 
-    def get_parameters(self, area_from: str, area_to_id: str) -> pd.DataFrame:
+    def get_parameters(self, area_from: str, area_to: str) -> pd.DataFrame:
         try:
-            parameters_path = f"input/links/{area_from}/{area_to_id}_parameters"
+            parameters_path = f"input/links/{area_from}/{area_to}_parameters"
             matrix = get_matrix(self._base_url, self.study_id, self._wrapper, parameters_path)
         except APIError as e:
-            raise LinkDownloadError(f"{area_from}/{area_to_id}", "parameters", e.message) from e
+            raise LinkDownloadError(f"{area_from}/{area_to}", "parameters", e.message) from e
 
         return matrix
 
