@@ -71,7 +71,7 @@ class RunApiService(BaseRunService):
         if job.status == JobStatus.FAILED:
             raise SimulationFailedError(self.study_id)
 
-        if job.unzip_output:
+        if job.unzip_output and job.output_id:
             self._wait_unzip_output(self.study_id, ["UNARCHIVE"], job.output_id)
 
         return None
@@ -95,6 +95,7 @@ class RunApiService(BaseRunService):
             output_id = task_name.split("/")[-1].split(" ")[0]
             if output_id == job_output_id:
                 return task["id"]
+        raise AntaresSimulationUnzipError(self.study_id, "Could not find task for unarchiving job")
 
     def _get_task_until_success(self, url: str, repeat_interval: int) -> None:
         task_success = False
