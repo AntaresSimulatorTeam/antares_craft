@@ -16,25 +16,26 @@ import requests_mock
 import re
 
 from json import dumps
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
     LinkCreationError,
+    SimulationFailedError,
     SimulationTimeOutError,
     StudyCreationError,
     StudySettingsUpdateError,
-    StudyVariantCreationError, SimulationFailureError,
+    StudyVariantCreationError,
 )
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties
 from antares.model.hydro import HydroProperties
-from antares.model.simulation import Job, JobStatus, AntaresSimulationParameters, Solver
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings.general import GeneralParameters
 from antares.model.settings.study_settings import StudySettings
+from antares.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
 from antares.model.study import Study, create_study_api, create_variant_api, read_study_api
 from antares.service.service_factory import ServiceFactory
 
@@ -337,15 +338,17 @@ class TestCreateAPI:
 
     def test_run_and_wait_antares_simulation(self):
         parameters = AntaresSimulationParameters(solver=Solver.COIN, nb_cpu=2, unzip_output=True, presolve=False)
-        with requests_mock.Mocker() as mocker:
+
+        # patch simulates the repeating intervals so that we don't have to wait X seconds during the tests
+        with requests_mock.Mocker() as mocker, patch("time.sleep", return_value=None):
             run_url = f"https://antares.com/api/v1/launcher/run/{self.study_id}"
             job_id = "1234-g6z17"
             mocker.post(run_url, json={"id": job_id}, status_code=200)
 
             job_url = f"https://antares.com/api/v1/launcher/jobs/{job_id}"
+            output_id = "2024abcdefg-output"
 
-            # mocker.get() simulates multiple responses sequentially when given a list
-            # since multiple requests are done, each one is mapped one by one to each response in the list
+            # mock can take a list of responses that it maps one by one to each request, since we're doing multiple ones
             response_list = [
                 {
                     "json": {
@@ -368,6 +371,7 @@ class TestCreateAPI:
                         "id": job_id,
                         "status": "success",
                         "launcher_params": dumps(parameters.to_api()),
+                        "output_id": output_id,
                     },
                     "status_code": 200,
                 },
@@ -376,7 +380,7 @@ class TestCreateAPI:
 
             tasks_url = "https://antares.com/api/v1/tasks"
             task_id = "task-5678"
-            mocker.post(tasks_url, json=[{"id": task_id, "name": f"UNARCHIVE/{job_id}"}], status_code=200)
+            mocker.post(tasks_url, json=[{"id": task_id, "name": f"UNARCHIVE/{output_id}"}], status_code=200)
 
             task_url = f"{tasks_url}/{task_id}"
             mocker.get(task_url, json={"result": {"success": True}}, status_code=200)
@@ -390,7 +394,6 @@ class TestCreateAPI:
 
             assert job.status == JobStatus.SUCCESS
 
-            # timeout
             response_list.pop()
             mocker.get(job_url, response_list)
             mocker.post(tasks_url, status_code=200)
@@ -399,18 +402,19 @@ class TestCreateAPI:
             with pytest.raises(SimulationTimeOutError):
                 self.study.wait_job_completion(job, time_out=2)
 
-            # failing
-            response_list.append({
-                "json": {
-                    "id": job_id,
-                    "status": "failure",
-                    "launcher_params": dumps(parameters.to_api()),
-                },
-                "status_code": 200,
-            })
+            response_list.append(
+                {
+                    "json": {
+                        "id": job_id,
+                        "status": "failed",
+                        "launcher_params": dumps(parameters.to_api()),
+                    },
+                    "status_code": 200,
+                }
+            )
             mocker.get(job_url, response_list)
             mocker.post(tasks_url, status_code=200)
 
             job = self.study.run_antares_simulation(parameters)
-            with pytest.raises(SimulationFailureError):
+            with pytest.raises(SimulationFailedError):
                 self.study.wait_job_completion(job, time_out=10)

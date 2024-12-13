@@ -26,10 +26,10 @@ from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import APIError, LinkCreationError, StudyCreationError
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
-from antares.model.simulation import Job, AntaresSimulationParameters
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings.study_settings import DefaultStudySettings, StudySettings, StudySettingsLocal
 from antares.model.settings.time_series import correlation_defaults
+from antares.model.simulation import AntaresSimulationParameters, Job
 from antares.service.api_services.study_api import _returns_study_settings
 from antares.service.base_services import BaseStudyService
 from antares.service.service_factory import ServiceFactory

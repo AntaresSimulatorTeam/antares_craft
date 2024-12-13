@@ -296,17 +296,17 @@ class AntaresSimulationRunningError(Exception):
 
 class SimulationTimeOutError(Exception):
     def __init__(self, job_id: str, time_out: int) -> None:
-        self.message = (
-            f"Job {job_id} exceeded timeout of {time_out} seconds"
-        )
+        self.message = f"Job {job_id} exceeded timeout of {time_out} seconds"
         super().__init__(self.message)
+
 
 class AntaresSimulationUnzipError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
         self.message = f"Could not unzip simulation for study {study_id}: " + message
         super().__init__(self.message)
 
-class SimulationFailureError(Exception):
+
+class SimulationFailedError(Exception):
     def __init__(self, study_id: str) -> None:
         self.message = f"Simulation failed for {study_id}"
         super().__init__(self.message)

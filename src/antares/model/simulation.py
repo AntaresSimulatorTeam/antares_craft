@@ -11,14 +11,16 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Optional, Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
+
 
 class Solver(Enum):
     COIN = "coin"
     XPRESS = "xpress"
     SIRIUS = "sirius"
+
 
 class AntaresSimulationParameters(BaseModel):
     solver: Solver = Solver.SIRIUS
@@ -44,11 +46,17 @@ class AntaresSimulationParameters(BaseModel):
         data.pop("presolve", None)
         return data
 
+
 class JobStatus(Enum):
     PENDING = "pending"
     RUNNING = "running"
     SUCCESS = "success"
     FAILED = "failed"
+
+    @staticmethod
+    def from_str(input: str) -> "JobStatus":
+        return JobStatus.__getitem__(input.upper())
+
 
 class Job(BaseModel):
     job_id: str

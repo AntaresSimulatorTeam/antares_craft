@@ -12,7 +12,7 @@
 import json
 import time
 
-from typing import Optional, Any
+from typing import Any, Optional
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
@@ -20,9 +20,10 @@ from antares.exceptions.exceptions import (
     AntaresSimulationRunningError,
     AntaresSimulationUnzipError,
     APIError,
-    SimulationTimeOutError, SimulationFailureError,
+    SimulationFailedError,
+    SimulationTimeOutError,
 )
-from antares.model.simulation import Job, JobStatus, AntaresSimulationParameters
+from antares.model.simulation import AntaresSimulationParameters, Job, JobStatus
 from antares.service.base_services import BaseRunService
 
 
@@ -51,7 +52,7 @@ class RunApiService(BaseRunService):
         url = f"{self._base_url}/launcher/jobs/{job_id}"
         response = self._wrapper.get(url)
         job_info = response.json()
-        status = job_info["status"]
+        status = JobStatus.from_str(job_info["status"])
         output_id = job_info["output_id"] if status == JobStatus.SUCCESS else None
         launcher_params = json.loads(job_info["launcher_params"])
         return Job(job_id=job_id, status=status, unzip_output=launcher_params["auto_unzip"], output_id=output_id)
@@ -65,9 +66,10 @@ class RunApiService(BaseRunService):
             time.sleep(repeat_interval)
             updated_job = self._get_job_from_id(job.job_id)
             job.status = updated_job.status
+            job.output_id = updated_job.output_id
 
         if job.status == JobStatus.FAILED:
-            raise SimulationFailureError(self.study_id)
+            raise SimulationFailedError(self.study_id)
 
         if job.unzip_output:
             self._wait_unzip_output(self.study_id, ["UNARCHIVE"], job.output_id)
@@ -77,10 +79,7 @@ class RunApiService(BaseRunService):
     def _wait_unzip_output(self, ref_id: str, type: list[str], job_output_id: str) -> None:
         url = f"{self._base_url}/tasks"
         repeat_interval = 2
-        payload = {
-            "type": type,
-            "ref_id": ref_id
-        }
+        payload = {"type": type, "ref_id": ref_id}
         try:
             response = self._wrapper.post(url, json=payload)
             tasks = response.json()
@@ -93,7 +92,7 @@ class RunApiService(BaseRunService):
     def _get_task_id(self, job_output_id: str, tasks: list[dict[str, Any]]) -> str:
         for task in tasks:
             task_name = task["name"]
-            output_id = task_name.split('/')[-1].split(' ')[0]
+            output_id = task_name.split("/")[-1].split(" ")[0]
             if output_id == job_output_id:
                 return task["id"]
 
