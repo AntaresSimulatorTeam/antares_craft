@@ -56,7 +56,7 @@ class TestDeleteAPI:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area_fr.id}"
             mocker.delete(url, status_code=200)
-            self.area_service.delete_area(self.area_fr)
+            self.area_service.delete_area(self.area_fr.id)
 
     def test_delete_area_fails(self):
         with requests_mock.Mocker() as mocker:
@@ -66,7 +66,7 @@ class TestDeleteAPI:
                 AreaDeletionError,
                 match=f"Could not delete the area {self.area_fr.id}: {self.antares_web_description_msg}",
             ):
-                self.area_service.delete_area(self.area_fr)
+                self.area_service.delete_area(self.area_fr.id)
 
     def test_delete_link_success(self):
         with requests_mock.Mocker() as mocker:
