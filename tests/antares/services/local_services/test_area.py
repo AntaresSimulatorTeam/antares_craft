@@ -1167,7 +1167,7 @@ class TestReadRenewable:
                 ],
                 dtype="object",
             )
-            renewable_list = area.read_renewables(area.id)
+            renewable_list = area.read_renewables()
 
             if renewable_list:
                 assert area.id == "fr"
@@ -1324,7 +1324,7 @@ class TestReadThermal:
                 dtype="object",
             )
 
-            thermals_list = area.read_thermal_clusters(area.id)
+            thermals_list = area.read_thermal_clusters()
 
             if thermals_list:
                 assert area.id == "fr"
