@@ -148,7 +148,7 @@ class BaseAreaService(ABC):
     def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
         """
         Args:
-            area_id: id of the selected area to create wind series matrices
+            area_id: area to create wind series matrices
             series: wind/series/wind_{area_id}.txt
 
         """
@@ -158,7 +158,7 @@ class BaseAreaService(ABC):
     def create_reserves(self, area_id: str, series: pd.DataFrame) -> None:
         """
         Args:
-            area_id: Area to create reserves series matrices
+            area_id: str to create reserves series matrices
             series: Pandas dataframe stored in reserves/{area_id}.txt
 
         Returns:
@@ -213,7 +213,7 @@ class BaseAreaService(ABC):
     def update_area_properties(self, area_id: str, properties: AreaProperties) -> AreaProperties:
         """
         Args:
-            area_id: id of the concerned area
+            area_id: concerned area
             properties: new properties. Only registered fields will be updated.
         """
         pass
@@ -222,7 +222,7 @@ class BaseAreaService(ABC):
     def update_area_ui(self, area_id: str, ui: AreaUi) -> AreaUi:
         """
         Args:
-            area_id: id of the concerned area
+            area_id: concerned area
             ui: new ui. Only registered fields will be updated.
         """
         pass
@@ -231,7 +231,7 @@ class BaseAreaService(ABC):
     def delete_area(self, area_id: str) -> None:
         """
         Args:
-            area_id: id of the area object to be deleted
+            area_id: area object to be deleted
         """
         pass
 
@@ -257,7 +257,7 @@ class BaseAreaService(ABC):
     def delete_st_storages(self, area_id: str, storages: List[STStorage]) -> None:
         """
         Args:
-            area: area containing the cluster
+            area_id: area containing the cluster
             storages: List of short term storage objects to be deleted
         """
         pass
@@ -266,7 +266,7 @@ class BaseAreaService(ABC):
     def get_load_matrix(self, area_id: str) -> pd.DataFrame:
         """
         Args:
-            area_id: id of the concerned area.
+            area_id: concerned area.
         """
         # Currently we do not return index and column names.
         # Once AntaresWeb will introduce specific endpoint for each matrix it will perhaps change.
@@ -277,7 +277,7 @@ class BaseAreaService(ABC):
     def get_reserves_matrix(self, area_id: str) -> pd.DataFrame:
         """
         Args:
-            area_id: id of the concerned area.
+            area_id: concerned area.
         """
         pass
 
@@ -285,7 +285,7 @@ class BaseAreaService(ABC):
     def get_misc_gen_matrix(self, area_id: str) -> pd.DataFrame:
         """
         Args:
-            area_id: id of the concerned area.
+            area_id: concerned area.
         """
         pass
 
@@ -293,7 +293,7 @@ class BaseAreaService(ABC):
     def get_solar_matrix(self, area_id: str) -> pd.DataFrame:
         """
         Args:
-            area_id: id of the concerned area.
+            area_id: concerned area.
         """
         pass
 
@@ -301,7 +301,7 @@ class BaseAreaService(ABC):
     def get_wind_matrix(self, area_id: str) -> pd.DataFrame:
         """
         Args:
-            area_id: id of the concerned area.
+            area_id: concerned area.
         """
         pass
 
@@ -362,19 +362,57 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
+
+    def get_parameters(self, area_from_id: str, area_to_id: str) -> pd.DataFrame:
+        """
+        Returns: link parameters
+        """
+        pass
+
+    @abstractmethod
+    def create_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        """
+        Args:
+            area_to:
+            area_from:
+            series:
+        """
+
     def read_links(self) -> List[Link]:
         pass
 
     @abstractmethod
     def get_capacity_direct(self, area_from: str, area_to: str) -> pd.DataFrame:
+        """
+        Returns: the direct capacity of a link
+        """
+        pass
+
+    @abstractmethod
+    def create_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        """
+        Args:
+            area_to:
+            area_from:
+            series:
+        """
         pass
 
     @abstractmethod
     def get_capacity_indirect(self, area_from: str, area_to: str) -> pd.DataFrame:
+        """
+        Returns: the indirect capacity of a link
+        """
         pass
 
     @abstractmethod
-    def get_parameters(self, area_from: str, area_to: str) -> pd.DataFrame:
+    def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        """
+        Args:
+            area_to:
+            area_from:
+            series:
+        """
         pass
 
 
