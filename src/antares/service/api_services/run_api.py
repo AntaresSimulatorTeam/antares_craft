@@ -12,7 +12,7 @@
 import json
 import time
 
-from typing import Optional
+from typing import Optional, Any
 
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
@@ -20,10 +20,9 @@ from antares.exceptions.exceptions import (
     AntaresSimulationRunningError,
     AntaresSimulationUnzipError,
     APIError,
-    SimulationTimeOutError,
+    SimulationTimeOutError, SimulationFailureError,
 )
-from antares.model.job import Job, JobStatus
-from antares.model.settings.antares_simulation_parameters import AntaresSimulationParameters
+from antares.model.simulation import Job, JobStatus, AntaresSimulationParameters
 from antares.service.base_services import BaseRunService
 
 
@@ -39,7 +38,7 @@ class RunApiService(BaseRunService):
         url = f"{self._base_url}/launcher/run/{self.study_id}"
         try:
             if parameters is not None:
-                payload = parameters.model_dump()
+                payload = parameters.to_api()
                 response = self._wrapper.post(url, json=payload)
             else:
                 response = self._wrapper.post(url)
@@ -52,38 +51,56 @@ class RunApiService(BaseRunService):
         url = f"{self._base_url}/launcher/jobs/{job_id}"
         response = self._wrapper.get(url)
         job_info = response.json()
+        status = job_info["status"]
+        output_id = job_info["output_id"] if status == JobStatus.SUCCESS else None
         launcher_params = json.loads(job_info["launcher_params"])
-        return Job(job_id, job_info["status"], launcher_params["auto_unzip"])
+        return Job(job_id=job_id, status=status, unzip_output=launcher_params["auto_unzip"], output_id=output_id)
 
     def wait_job_completion(self, job: Job, time_out: int) -> None:
         start_time = time.time()
         repeat_interval = 5
-        while job.status in (JobStatus.RUNNING.value, JobStatus.PENDING.value):
+        while job.status in (JobStatus.RUNNING, JobStatus.PENDING):
             if time.time() - start_time > time_out:
                 raise SimulationTimeOutError(job.job_id, time_out)
             time.sleep(repeat_interval)
             updated_job = self._get_job_from_id(job.job_id)
             job.status = updated_job.status
-            job.unzip_output = updated_job.unzip_output
+
+        if job.status == JobStatus.FAILED:
+            raise SimulationFailureError(self.study_id)
 
         if job.unzip_output:
-            self._unzip_output(self.study_id, ["UNARCHIVE"])
+            self._wait_unzip_output(self.study_id, ["UNARCHIVE"], job.output_id)
 
         return None
 
-    def _unzip_output(self, ref_id: str, type: list[str]) -> None:
+    def _wait_unzip_output(self, ref_id: str, type: list[str], job_output_id: str) -> None:
         url = f"{self._base_url}/tasks"
+        repeat_interval = 2
+        payload = {
+            "type": type,
+            "ref_id": ref_id
+        }
         try:
-            payload = {
-                "status": [],
-                "name": "string",
-                "type": type,
-                "ref_id": ref_id,
-                "from_creation_date_utc": 0,
-                "to_creation_date_utc": 0,
-                "from_completion_date_utc": 0,
-                "to_completion_date_utc": 0,
-            }
-            self._wrapper.post(url, json=payload)
+            response = self._wrapper.post(url, json=payload)
+            tasks = response.json()
+            task_id = self._get_task_id(job_output_id, tasks)
+            url += f"/{task_id}"
+            self._get_task_until_success(url, repeat_interval)
         except APIError as e:
             raise AntaresSimulationUnzipError(self.study_id, e.message) from e
+
+    def _get_task_id(self, job_output_id: str, tasks: list[dict[str, Any]]) -> str:
+        for task in tasks:
+            task_name = task["name"]
+            output_id = task_name.split('/')[-1].split(' ')[0]
+            if output_id == job_output_id:
+                return task["id"]
+
+    def _get_task_until_success(self, url: str, repeat_interval: int) -> None:
+        task_success = False
+        while not task_success:
+            response = self._wrapper.get(url)
+            task = response.json()
+            task_success = task["result"]["success"]
+            time.sleep(repeat_interval)

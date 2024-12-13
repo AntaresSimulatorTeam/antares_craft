@@ -12,8 +12,7 @@
 from typing import Any, Optional
 
 from antares.config.local_configuration import LocalConfiguration
-from antares.model.job import Job
-from antares.model.settings.antares_simulation_parameters import AntaresSimulationParameters
+from antares.model.simulation import Job, AntaresSimulationParameters
 from antares.service.base_services import BaseRunService
 
 

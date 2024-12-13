@@ -10,12 +10,15 @@
 #
 # This file is part of the Antares project.
 
-from typing import Any, Dict, Optional
+from enum import Enum
+from typing import Optional, Any
 
 from pydantic import BaseModel, Field
 
-from antares.model.settings.solver import Solver
-
+class Solver(Enum):
+    COIN = "coin"
+    XPRESS = "xpress"
+    SIRIUS = "sirius"
 
 class AntaresSimulationParameters(BaseModel):
     solver: Solver = Solver.SIRIUS
@@ -30,12 +33,25 @@ class AntaresSimulationParameters(BaseModel):
         if self.presolve:
             options.append("presolve")
         if self.solver != Solver.SIRIUS:
-            options.append(self.solver.name.lower())
+            options.append(self.solver.name)
         return " ".join(options)
 
-    def model_dump(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
-        data = super().model_dump(*args, **kwargs, by_alias=True)
-        data["other_options"] = self.other_options
+    def to_api(self) -> dict[str, Any]:
+        data = self.model_dump(by_alias=True)
+        if self.other_options:
+            data["other_options"] = self.other_options
         data.pop("solver", None)
         data.pop("presolve", None)
         return data
+
+class JobStatus(Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    SUCCESS = "success"
+    FAILED = "failed"
+
+class Job(BaseModel):
+    job_id: str
+    status: JobStatus
+    unzip_output: bool = True
+    output_id: Optional[str] = None

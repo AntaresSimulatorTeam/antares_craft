@@ -26,9 +26,8 @@ from antares.config.local_configuration import LocalConfiguration
 from antares.exceptions.exceptions import APIError, LinkCreationError, StudyCreationError
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
-from antares.model.job import Job
+from antares.model.simulation import Job, AntaresSimulationParameters
 from antares.model.link import Link, LinkProperties, LinkUi
-from antares.model.settings.antares_simulation_parameters import AntaresSimulationParameters
 from antares.model.settings.study_settings import DefaultStudySettings, StudySettings, StudySettingsLocal
 from antares.model.settings.time_series import correlation_defaults
 from antares.service.api_services.study_api import _returns_study_settings
@@ -350,19 +349,19 @@ class Study:
         """
         Runs the Antares simulation.
 
-        This method starts an antares simulation for the current study config and params
+        This method starts an antares simulation with the given parameters
 
         Returns: A job representing the simulation task
         """
-        return self._run_service.run_antares_simulation()
+        return self._run_service.run_antares_simulation(parameters)
 
-    def wait_job_completion(self, job: Job, time_out: int) -> None:
+    def wait_job_completion(self, job: Job, time_out: int = 172800) -> None:
         """
         Waits for the completion of a job
 
         Args:
             job: The job to wait for
-            time_out: Time limit for waiting (seconds)
+            time_out: Time limit for waiting (seconds), default: 172800s
 
         Raises: SimulationTimeOutError if exceeded timeout
         """
