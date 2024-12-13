@@ -39,7 +39,7 @@ class RunApiService(BaseRunService):
         url = f"{self._base_url}/launcher/run/{self.study_id}"
         try:
             if parameters is not None:
-                payload = parameters.to_json()
+                payload = parameters.model_dump()
                 response = self._wrapper.post(url, json=payload)
             else:
                 response = self._wrapper.post(url)
