@@ -264,6 +264,18 @@ class MatrixDownloadError(Exception):
         super().__init__(self.message)
 
 
+class LinkUploadError(Exception):
+    def __init__(self, area_from_id: str, area_to_id: str, matrix_type: str, message: str) -> None:
+        self.message = f"Error uploading {matrix_type} matrix for link {area_from_id}/{area_to_id}: {message}"
+        super().__init__(self.message)
+
+
+class LinkDownloadError(Exception):
+    def __init__(self, area_from_id: str, area_to_id: str, matrix_type: str, message: str):
+        self.message = f"Could not download {matrix_type} matrix for link {area_from_id}/{area_to_id}: {message}"
+        super().__init__(self.message)
+
+
 class CustomError(Exception):
     def __init__(self, message: str = "Error") -> None:
         self.message = message

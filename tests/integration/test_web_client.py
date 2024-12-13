@@ -147,6 +147,18 @@ class TestWebClient:
         CO2Cost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
         fuelCost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
 
+        # creating parameters and capacities for this link and testing them
+        link_be_fr.create_parameters(series_matrix)
+        link_be_fr.create_capacity_direct(series_matrix)
+        link_be_fr.create_capacity_indirect(series_matrix)
+
+        parameters_matrix = link_be_fr.get_parameters()
+        direct_matrix = link_be_fr.get_capacity_direct()
+        indirect_matrix = link_be_fr.get_capacity_indirect()
+        series_matrix.equals(parameters_matrix)
+        series_matrix.equals(direct_matrix)
+        series_matrix.equals(indirect_matrix)
+
         # Case that succeeds
         thermal_value_be = area_fr.create_thermal_cluster_with_matrices(
             cluster_name=thermal_name,
@@ -428,10 +440,10 @@ class TestWebClient:
             f"to be deleted, because it is referenced in "
             f"the following binding constraints:\n1- 'bc_2'.",
         ):
-            study.delete_area(area_fr)
+            study.delete_area(area_fr.id)
 
         # tests area deletion success
-        study.delete_area(area_de)
+        study.delete_area(area_de.id)
         assert area_de.id not in study.get_areas()
 
         # test study creation with settings

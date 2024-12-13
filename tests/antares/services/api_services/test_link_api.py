@@ -10,12 +10,18 @@
 #
 # This file is part of the Antares project.
 
-
 import pytest
 import requests_mock
 
+import pandas as pd
+
 from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import LinkPropertiesUpdateError, LinkUiUpdateError
+from antares.exceptions.exceptions import (
+    LinkDownloadError,
+    LinkPropertiesUpdateError,
+    LinkUiUpdateError,
+    LinkUploadError,
+)
 from antares.model.area import Area
 from antares.model.commons import FilterOption
 from antares.model.link import Link, LinkProperties, LinkUi
@@ -33,6 +39,7 @@ class TestCreateAPI:
     area_to = Area(name="area_to", area_service=api, storage_service=api, thermal_service=api, renewable_service=api)
     antares_web_description_msg = "Mocked Server KO"
     link = Link(area_from.id, area_to.id, ServiceFactory(api, study_id).create_link_service())
+    matrix = pd.DataFrame(data=[[0]])
 
     def test_update_links_properties_success(self):
         with requests_mock.Mocker() as mocker:
@@ -102,3 +109,161 @@ class TestCreateAPI:
                 match=f"Could not update ui for link {self.link.id}: {antares_web_description_msg}",
             ):
                 self.link.update_ui(ui)
+
+    def test_create_parameters_success(self):
+        with requests_mock.Mocker() as mocker:
+            raw_url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
+                f"input/links/{self.area_from.id}/{self.area_to.id}_parameters"
+            )
+
+            mocker.post(raw_url, status_code=200)
+
+            self.link.create_parameters(self.matrix)
+
+    def test_create_parameters_fail(self):
+        with requests_mock.Mocker() as mocker:
+            raw_url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
+                f"input/links/{self.area_from.id}/{self.area_to.id}_parameters"
+            )
+
+            antares_web_description_msg = "Server KO"
+            mocker.post(raw_url, json={"description": antares_web_description_msg}, status_code=404)
+
+            with pytest.raises(
+                LinkUploadError,
+                match=f"Error uploading parameters matrix for link {self.link.area_from_id}/{self.link.area_to_id}",
+            ):
+                self.link.create_parameters(self.matrix)
+
+    def test_create_direct_capacity_success(self):
+        with requests_mock.Mocker() as mocker:
+            raw_url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
+                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
+            )
+
+            mocker.post(raw_url, status_code=200)
+
+            self.link.create_capacity_direct(self.matrix)
+
+    def test_create_direct_capacity_fail(self):
+        with requests_mock.Mocker() as mocker:
+            raw_url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
+                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
+            )
+
+            antares_web_description_msg = "Server KO"
+            mocker.post(raw_url, json={"description": antares_web_description_msg}, status_code=404)
+
+            with pytest.raises(
+                LinkUploadError,
+                match=f"Error uploading directcapacity matrix for link {self.link.area_from_id}/{self.link.area_to_id}",
+            ):
+                self.link.create_capacity_direct(self.matrix)
+
+    def test_create_indirect_capacity_success(self):
+        with requests_mock.Mocker() as mocker:
+            raw_url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
+                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
+            )
+
+            mocker.post(raw_url, status_code=200)
+
+            self.link.create_capacity_indirect(self.matrix)
+
+    def test_create_indirect_capacity_fail(self):
+        with requests_mock.Mocker() as mocker:
+            raw_url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
+                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
+            )
+
+            mocker.post(raw_url, status_code=404)
+
+            with pytest.raises(
+                LinkUploadError,
+                match=f"Error uploading indirectcapacity matrix for link {self.link.area_from_id}/{self.link.area_to_id}",
+            ):
+                self.link.create_capacity_indirect(self.matrix)
+
+    def test_get_parameters_success(self):
+        with requests_mock.Mocker() as mocker:
+            raw_url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
+                f"input/links/{self.area_from.id}/{self.area_to.id}_parameters"
+            )
+            mocker.get(raw_url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+
+            matrix = self.link.get_parameters()
+            assert matrix.equals(self.matrix)
+
+    def test_get_parameters_fail(self):
+        with requests_mock.Mocker() as mocker:
+            raw_url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
+                f"input/links/{self.area_from.id}/{self.area_to.id}_parameters"
+            )
+
+            mocker.get(raw_url, status_code=404)
+
+            with pytest.raises(
+                LinkDownloadError,
+                match=f"Could not download parameters matrix for link {self.area_from.id}/{self.area_to.id}",
+            ):
+                self.link.get_parameters()
+
+    def test_get_indirect_capacity_success(self):
+        with requests_mock.Mocker() as mocker:
+            raw_url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
+                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
+            )
+            mocker.get(raw_url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+
+            matrix = self.link.get_capacity_indirect()
+            assert matrix.equals(self.matrix)
+
+    def test_get_indirect_capacity_fail(self):
+        with requests_mock.Mocker() as mocker:
+            raw_url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
+                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
+            )
+
+            mocker.get(raw_url, status_code=404)
+
+            with pytest.raises(
+                LinkDownloadError,
+                match=f"Could not download indirectcapacity matrix for link {self.area_from.id}/{self.area_to.id}",
+            ):
+                self.link.get_capacity_indirect()
+
+    def test_get_direct_capacity_success(self):
+        with requests_mock.Mocker() as mocker:
+            raw_url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
+                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
+            )
+            mocker.get(raw_url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+
+            matrix = self.link.get_capacity_direct()
+            assert matrix.equals(self.matrix)
+
+    def test_get_direct_capacity_fail(self):
+        with requests_mock.Mocker() as mocker:
+            raw_url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
+                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
+            )
+
+            mocker.get(raw_url, status_code=404)
+
+            with pytest.raises(
+                LinkDownloadError,
+                match=f"Could not download directcapacity matrix for link {self.area_from.id}/{self.area_to.id}",
+            ):
+                self.link.get_capacity_direct()

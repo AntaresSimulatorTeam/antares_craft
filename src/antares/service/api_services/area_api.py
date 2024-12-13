@@ -37,6 +37,7 @@ from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterProperties
+from antares.service.api_services.utils import get_matrix, upload_series
 from antares.service.base_services import (
     BaseAreaService,
     BaseRenewableService,
@@ -353,37 +354,44 @@ class AreaApiService(BaseAreaService):
 
         return STStorage(self.storage_service, area_id, name, properties)
 
-    def _upload_series(self, area: Area, series: pd.DataFrame, path: str, matrix_type: str) -> None:
+    def create_load(self, area_id: str, series: pd.DataFrame) -> None:
         try:
-            url = f"{self._base_url}/studies/{self.study_id}/raw?path={path}"
-            array_data = series.to_numpy().tolist()
-            self._wrapper.post(url, json=array_data)
+            series_path = f"input/load/series/load_{area_id}"
+            rows_number = series.shape[0]
+            expected_rows = 8760
+            if rows_number < expected_rows:
+                raise MatrixUploadError(area_id, "load", f"Expected {expected_rows} rows and received {rows_number}.")
+            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
-            raise MatrixUploadError(area.id, matrix_type, e.message) from e
+            raise MatrixUploadError(area_id, "load", e.message) from e
 
-    def create_load(self, area: Area, series: pd.DataFrame) -> None:
-        series_path = f"input/load/series/load_{area.id}"
-        rows_number = series.shape[0]
-        expected_rows = 8760
-        if rows_number < expected_rows:
-            raise MatrixUploadError(area.id, "load", f"Expected {expected_rows} rows and received {rows_number}.")
-        self._upload_series(area, series, series_path, "load")
+    def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
+        try:
+            series_path = f"input/wind/series/wind_{area_id}"
+            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+        except APIError as e:
+            raise MatrixUploadError(area_id, "wind", e.message) from e
 
-    def create_wind(self, area: Area, series: pd.DataFrame) -> None:
-        series_path = f"input/wind/series/wind_{area.id}"
-        self._upload_series(area, series, series_path, "wind")
+    def create_reserves(self, area_id: str, series: pd.DataFrame) -> None:
+        try:
+            series_path = f"input/reserves/{area_id}"
+            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+        except APIError as e:
+            raise MatrixUploadError(area_id, "reserves", e.message) from e
 
-    def create_reserves(self, area: Area, series: pd.DataFrame) -> None:
-        series_path = f"input/reserves/{area.id}"
-        self._upload_series(area, series, series_path, "reserves")
+    def create_solar(self, area_id: str, series: pd.DataFrame) -> None:
+        try:
+            series_path = f"input/solar/series/solar_{area_id}"
+            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+        except APIError as e:
+            raise MatrixUploadError(area_id, "solar", e.message) from e
 
-    def create_solar(self, area: Area, series: pd.DataFrame) -> None:
-        series_path = f"input/solar/series/solar_{area.id}"
-        self._upload_series(area, series, series_path, "solar")
-
-    def create_misc_gen(self, area: Area, series: pd.DataFrame) -> None:
-        series_path = f"input/misc-gen/miscgen-{area.id}"
-        self._upload_series(area, series, series_path, "misc-gen")
+    def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
+        try:
+            series_path = f"input/misc-gen/miscgen-{area_id}"
+            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+        except APIError as e:
+            raise MatrixUploadError(area_id, "misc-gen", e.message) from e
 
     def create_hydro(
         self,
@@ -439,37 +447,33 @@ class AreaApiService(BaseAreaService):
 
             self._replace_matrix_request(json_payload)
 
-    def update_area_properties(self, area: Area, properties: AreaProperties) -> AreaProperties:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{area.id}/properties/form"
+    def update_area_properties(self, area_id: str, properties: AreaProperties) -> AreaProperties:
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/properties/form"
         try:
             body = properties.model_dump(mode="json", exclude_none=True)
-            if not body:
-                return area.properties
 
             self._wrapper.put(url, json=body)
             response = self._wrapper.get(url)
             area_properties = AreaProperties.model_validate(response.json())
 
         except APIError as e:
-            raise AreaPropertiesUpdateError(area.id, e.message) from e
+            raise AreaPropertiesUpdateError(area_id, e.message) from e
 
         return area_properties
 
-    def update_area_ui(self, area: Area, ui: AreaUi) -> AreaUi:
+    def update_area_ui(self, area_id: str, ui: AreaUi) -> AreaUi:
         base_url = f"{self._base_url}/studies/{self.study_id}/areas"
         try:
-            url = f"{base_url}/{area.id}/ui"
+            url = f"{base_url}/{area_id}/ui"
             json_content = ui.model_dump(exclude_none=True)
             if "layer" in json_content:
                 layer = json_content["layer"]
                 url += f"?layer={layer}"
                 del json_content["layer"]
-            if not json_content:
-                return area.ui
 
             # Gets current UI
             response = self._wrapper.get(f"{base_url}?type=AREA&ui=true")
-            json_ui = response.json()[area.id]
+            json_ui = response.json()[area_id]
             ui_response = AreaUiResponse.model_validate(json_ui)
             current_ui = ui_response.to_craft()
             del current_ui["layer"]
@@ -479,71 +483,75 @@ class AreaApiService(BaseAreaService):
 
             url = f"{base_url}?type=AREA&ui=true"
             response = self._wrapper.get(url)
-            json_ui = response.json()[area.id]
+            json_ui = response.json()[area_id]
             ui_response = AreaUiResponse.model_validate(json_ui)
             area_ui = AreaUi.model_validate(ui_response.to_craft())
 
         except APIError as e:
-            raise AreaUiUpdateError(area.id, e.message) from e
+            raise AreaUiUpdateError(area_id, e.message) from e
 
         return area_ui
 
-    def delete_area(self, area: Area) -> None:
-        area_id = area.id
+    def delete_area(self, area_id: str) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}"
         try:
             self._wrapper.delete(url)
         except APIError as e:
             raise AreaDeletionError(area_id, e.message) from e
 
-    def delete_thermal_clusters(self, area: Area, clusters: List[ThermalCluster]) -> None:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{area.id}/clusters/thermal"
+    def delete_thermal_clusters(self, area_id: str, clusters: List[ThermalCluster]) -> None:
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/thermal"
         body = [cluster.id for cluster in clusters]
         try:
             self._wrapper.delete(url, json=body)
         except APIError as e:
-            raise ThermalDeletionError(area.id, body, e.message) from e
+            raise ThermalDeletionError(area_id, body, e.message) from e
 
-    def delete_renewable_clusters(self, area: Area, clusters: List[RenewableCluster]) -> None:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{area.id}/clusters/renewable"
+    def delete_renewable_clusters(self, area_id: str, clusters: List[RenewableCluster]) -> None:
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
         body = [cluster.id for cluster in clusters]
         try:
             self._wrapper.delete(url, json=body)
         except APIError as e:
-            raise RenewableDeletionError(area.id, body, e.message) from e
+            raise RenewableDeletionError(area_id, body, e.message) from e
 
-    def delete_st_storages(self, area: Area, storages: List[STStorage]) -> None:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{area.id}/storages"
+    def delete_st_storages(self, area_id: str, storages: List[STStorage]) -> None:
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages"
         body = [storage.id for storage in storages]
         try:
             self._wrapper.delete(url, json=body)
         except APIError as e:
-            raise STStorageDeletionError(area.id, body, e.message) from e
+            raise STStorageDeletionError(area_id, body, e.message) from e
 
-    def get_matrix(self, area_id: str, series_path: str, matrix_type: str) -> pd.DataFrame:
+    def get_load_matrix(self, area_id: str) -> pd.DataFrame:
         try:
-            raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path={series_path}"
-            response = self._wrapper.get(raw_url)
-            json_df = response.json()
-            dataframe = pd.DataFrame(data=json_df["data"], index=json_df["index"], columns=json_df["columns"])
-            return dataframe
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/load/series/load_{area_id}")
         except APIError as e:
-            raise MatrixDownloadError(area_id, matrix_type, e.message) from e
+            raise MatrixDownloadError(area_id, "load", e.message)
 
-    def get_load_matrix(self, area: Area) -> pd.DataFrame:
-        return self.get_matrix(area.id, f"input/load/series/load_{area.id}", "load")
+    def get_solar_matrix(self, area_id: str) -> pd.DataFrame:
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/solar/series/solar_{area_id}")
+        except APIError as e:
+            raise MatrixDownloadError(area_id, "solar", e.message)
 
-    def get_solar_matrix(self, area: Area) -> pd.DataFrame:
-        return self.get_matrix(area.id, f"input/solar/series/solar_{area.id}", "solar")
+    def get_wind_matrix(self, area_id: str) -> pd.DataFrame:
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/wind/series/wind_{area_id}")
+        except APIError as e:
+            raise MatrixDownloadError(area_id, "wind", e.message)
 
-    def get_wind_matrix(self, area: Area) -> pd.DataFrame:
-        return self.get_matrix(area.id, f"input/wind/series/wind_{area.id}", "wind")
+    def get_reserves_matrix(self, area_id: str) -> pd.DataFrame:
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/reserves/{area_id}")
+        except APIError as e:
+            raise MatrixDownloadError(area_id, "reserves", e.message)
 
-    def get_reserves_matrix(self, area: Area) -> pd.DataFrame:
-        return self.get_matrix(area.id, f"input/reserves/{area.id}", "reserves")
-
-    def get_misc_gen_matrix(self, area: Area) -> pd.DataFrame:
-        return self.get_matrix(area.id, f"input/misc-gen/miscgen-{area.id}", "misc-gen")
+    def get_misc_gen_matrix(self, area_id: str) -> pd.DataFrame:
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/misc-gen/miscgen-{area_id}")
+        except APIError as e:
+            raise MatrixDownloadError(area_id, "misc-gen", e.message)
 
     def craft_ui(self, url_str: str, area_id: str) -> AreaUi:
         response = self._wrapper.get(url_str)

@@ -20,10 +20,13 @@ from antares.exceptions.exceptions import (
     APIError,
     LinkCreationError,
     LinkDeletionError,
+    LinkDownloadError,
     LinkPropertiesUpdateError,
     LinkUiUpdateError,
+    LinkUploadError,
 )
 from antares.model.link import Link, LinkProperties, LinkUi
+from antares.service.api_services.utils import get_matrix, upload_series
 from antares.service.base_services import BaseLinkService
 
 
@@ -164,16 +167,53 @@ class LinkApiService(BaseLinkService):
 
         return link_ui
 
-    def read_links(self) -> list[Link]:
-        raise NotImplementedError
+    def get_parameters(self, area_from: str, area_to: str) -> pd.DataFrame:
+        try:
+            parameters_path = f"input/links/{area_from}/{area_to}_parameters"
+            matrix = get_matrix(self._base_url, self.study_id, self._wrapper, parameters_path)
+        except APIError as e:
+            raise LinkDownloadError(area_from, area_to, "parameters", e.message) from e
+
+        return matrix
+
+    def create_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        try:
+            series_path = f"input/links/{area_from}/{area_to}_parameters"
+            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+        except APIError as e:
+            raise LinkUploadError(area_from, area_to, "parameters", e.message) from e
 
     def get_capacity_direct(self, area_from: str, area_to: str) -> pd.DataFrame:
-        raise NotImplementedError
+        try:
+            series_path = f"input/links/{area_from}/capacities/{area_to}_direct"
+            matrix = get_matrix(self._base_url, self.study_id, self._wrapper, series_path)
+        except APIError as e:
+            raise LinkDownloadError(area_from, area_to, "directcapacity", e.message) from e
+        return matrix
+
+    def create_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        try:
+            series_path = f"input/links/{area_from}/capacities/{area_to}_direct"
+            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+        except APIError as e:
+            raise LinkUploadError(area_from, area_to, "directcapacity", e.message) from e
 
     def get_capacity_indirect(self, area_from: str, area_to: str) -> pd.DataFrame:
-        raise NotImplementedError
+        try:
+            series_path = f"input/links/{area_from}/capacities/{area_to}_indirect"
+            matrix = get_matrix(self._base_url, self.study_id, self._wrapper, series_path)
+        except APIError as e:
+            raise LinkDownloadError(area_from, area_to, "indirectcapacity", e.message) from e
+        return matrix
 
-    def get_parameters(self, area_from: str, area_to: str) -> pd.DataFrame:
+    def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        try:
+            series_path = f"input/links/{area_from}/capacities/{area_to}_indirect"
+            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+        except APIError as e:
+            raise LinkUploadError(area_from, area_to, "indirectcapacity", e.message) from e
+
+    def read_links(self) -> list[Link]:
         raise NotImplementedError
 
 

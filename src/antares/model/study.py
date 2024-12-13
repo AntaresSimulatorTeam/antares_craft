@@ -257,7 +257,7 @@ class Study:
         return area
 
     def delete_area(self, area: Area) -> None:
-        self._area_service.delete_area(area)
+        self._area_service.delete_area(area.id)
         self._areas.pop(area.id)
 
     def create_link(

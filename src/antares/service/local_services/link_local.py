@@ -125,6 +125,15 @@ class LinkLocalService(BaseLinkService):
         ]
         return dict(sorted(ini_dict.items(), key=lambda item: dict_order.index(item[0])))
 
+    def create_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        raise NotImplementedError
+
+    def create_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        raise NotImplementedError
+
+    def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        raise NotImplementedError
+
     def get_capacity_direct(
         self,
         area_from: str,

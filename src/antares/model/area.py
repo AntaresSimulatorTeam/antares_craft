@@ -286,22 +286,22 @@ class Area:
         return storage
 
     def get_load_matrix(self) -> pd.DataFrame:
-        return self._area_service.get_load_matrix(self)
+        return self._area_service.get_load_matrix(self.id)
 
     def get_wind_matrix(self) -> pd.DataFrame:
-        return self._area_service.get_wind_matrix(self)
+        return self._area_service.get_wind_matrix(self.id)
 
     def get_solar_matrix(self) -> pd.DataFrame:
-        return self._area_service.get_solar_matrix(self)
+        return self._area_service.get_solar_matrix(self.id)
 
     def get_reserves_matrix(self) -> pd.DataFrame:
-        return self._area_service.get_reserves_matrix(self)
+        return self._area_service.get_reserves_matrix(self.id)
 
     def get_misc_gen_matrix(self) -> pd.DataFrame:
-        return self._area_service.get_misc_gen_matrix(self)
+        return self._area_service.get_misc_gen_matrix(self.id)
 
     def delete_thermal_clusters(self, thermal_clusters: List[ThermalCluster]) -> None:
-        self._area_service.delete_thermal_clusters(self, thermal_clusters)
+        self._area_service.delete_thermal_clusters(self.id, thermal_clusters)
         for cluster in thermal_clusters:
             self._thermals.pop(cluster.id)
 
@@ -309,7 +309,7 @@ class Area:
         self.delete_thermal_clusters([thermal_cluster])
 
     def delete_renewable_clusters(self, renewable_clusters: List[RenewableCluster]) -> None:
-        self._area_service.delete_renewable_clusters(self, renewable_clusters)
+        self._area_service.delete_renewable_clusters(self.id, renewable_clusters)
         for cluster in renewable_clusters:
             self._renewables.pop(cluster.id)
 
@@ -317,7 +317,7 @@ class Area:
         self.delete_renewable_clusters([renewable_cluster])
 
     def delete_st_storages(self, storages: List[STStorage]) -> None:
-        self._area_service.delete_st_storages(self, storages)
+        self._area_service.delete_st_storages(self.id, storages)
         for storage in storages:
             self._st_storages.pop(storage.id)
 
@@ -325,27 +325,27 @@ class Area:
         self.delete_st_storages([storage])
 
     def update_properties(self, properties: AreaProperties) -> None:
-        new_properties = self._area_service.update_area_properties(self, properties)
+        new_properties = self._area_service.update_area_properties(self.id, properties)
         self._properties = new_properties
 
     def update_ui(self, ui: AreaUi) -> None:
-        new_ui = self._area_service.update_area_ui(self, ui)
+        new_ui = self._area_service.update_area_ui(self.id, ui)
         self._ui = new_ui
 
     def create_load(self, series: pd.DataFrame) -> None:
-        self._area_service.create_load(self, series=series)
+        self._area_service.create_load(self.id, series)
 
     def create_wind(self, series: pd.DataFrame) -> None:
-        self._area_service.create_wind(self, series=series)
+        self._area_service.create_wind(self.id, series)
 
     def create_reserves(self, series: pd.DataFrame) -> None:
-        self._area_service.create_reserves(self, series=series)
+        self._area_service.create_reserves(self.id, series)
 
     def create_solar(self, series: pd.DataFrame) -> None:
-        self._area_service.create_solar(self, series=series)
+        self._area_service.create_solar(self.id, series)
 
     def create_misc_gen(self, series: pd.DataFrame) -> None:
-        self._area_service.create_misc_gen(self, series=series)
+        self._area_service.create_misc_gen(self.id, series)
 
     def create_hydro(
         self,
