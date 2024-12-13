@@ -363,35 +363,35 @@ class AreaApiService(BaseAreaService):
                 raise MatrixUploadError(area_id, "load", f"Expected {expected_rows} rows and received {rows_number}.")
             upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
-            raise MatrixUploadError(area_id, "load", e.message)
+            raise MatrixUploadError(area_id, "load", e.message) from e
 
     def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/wind/series/wind_{area_id}"
             upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
-            raise MatrixUploadError(area_id, "wind", e.message)
+            raise MatrixUploadError(area_id, "wind", e.message) from e
 
     def create_reserves(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/reserves/{area_id}"
             upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
-            raise MatrixUploadError(area_id, "reserves", e.message)
+            raise MatrixUploadError(area_id, "reserves", e.message) from e
 
     def create_solar(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/solar/series/solar_{area_id}"
             upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
-            raise MatrixUploadError(area_id, "solar", e.message)
+            raise MatrixUploadError(area_id, "solar", e.message) from e
 
     def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/misc-gen/miscgen-{area_id}"
             upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
-            raise MatrixUploadError(area_id, "misc-gen", e.message)
+            raise MatrixUploadError(area_id, "misc-gen", e.message) from e
 
     def create_hydro(
         self,
