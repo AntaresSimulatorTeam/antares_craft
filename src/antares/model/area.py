@@ -310,7 +310,7 @@ class Area:
         self.delete_thermal_clusters([thermal_cluster])
 
     def delete_renewable_clusters(self, renewable_clusters: List[RenewableCluster]) -> None:
-        self._area_service.delete_renewable_clusters(self, renewable_clusters)
+        self._area_service.delete_renewable_clusters(self.id, renewable_clusters)
         for cluster in renewable_clusters:
             self._renewables.pop(cluster.id)
 
@@ -318,7 +318,7 @@ class Area:
         self.delete_renewable_clusters([renewable_cluster])
 
     def delete_st_storages(self, storages: List[STStorage]) -> None:
-        self._area_service.delete_st_storages(self, storages)
+        self._area_service.delete_st_storages(self.id, storages)
         for storage in storages:
             self._st_storages.pop(storage.id)
 
