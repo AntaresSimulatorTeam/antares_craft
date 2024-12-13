@@ -134,7 +134,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinkUploadError,
-                match=f"Error uploading parameters matrix from link {self.link.area_from}/{self.link.area_to}: {antares_web_description_msg}",
+                match=f"Error uploading parameters matrix from link {self.link.area_from_id}/{self.link.area_to_id}: {antares_web_description_msg}",
             ):
                 self.link.create_parameters(pd.DataFrame(data=np.ones((8760, 1))))
 
@@ -161,7 +161,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinkUploadError,
-                match=f"Error uploading directcapacity matrix from link {self.link.area_from}/{self.link.area_to}: {antares_web_description_msg}",
+                match=f"Error uploading directcapacity matrix from link {self.link.area_from_id}/{self.link.area_to_id}: {antares_web_description_msg}",
             ):
                 self.link.create_capacity_direct(pd.DataFrame(data=np.ones((8760, 1))))
 
@@ -188,7 +188,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinkUploadError,
-                match=f"Error uploading indirectcapacity matrix from link {self.link.area_from}/{self.link.area_to}: {antares_web_description_msg}",
+                match=f"Error uploading indirectcapacity matrix from link {self.link.area_from_id}/{self.link.area_to_id}: {antares_web_description_msg}",
             ):
                 self.link.create_capacity_indirect(pd.DataFrame(data=np.ones((8760, 1))))
 
