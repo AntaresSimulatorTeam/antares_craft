@@ -377,6 +377,7 @@ class BaseLinkService(ABC):
             series:
         """
 
+    @abstractmethod
     def read_links(self) -> List[Link]:
         pass
 
