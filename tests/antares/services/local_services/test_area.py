@@ -1440,4 +1440,4 @@ class TestReadSTstorage:
 
         for area in areas:
             with pytest.raises(NotImplementedError):
-                storage_list = area.read_st_storages()
+                area.read_st_storages()
