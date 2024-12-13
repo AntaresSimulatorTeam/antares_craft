@@ -362,7 +362,7 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def get_parameters(self, area_from_id: str, area_to_id: str) -> pd.DataFrame:
+    def get_parameters(self, area_from: str, area_to: str) -> pd.DataFrame:
         """
         Returns: link parameters
         """
