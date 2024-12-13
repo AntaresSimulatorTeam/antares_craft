@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Optional, Union, Any, Dict
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 

@@ -15,8 +15,8 @@ import requests_mock
 
 import re
 
-from unittest.mock import Mock
 from json import dumps
+from unittest.mock import Mock
 
 from antares.api_conf.api_conf import APIconf
 from antares.exceptions.exceptions import (
