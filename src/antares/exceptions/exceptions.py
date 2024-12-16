@@ -300,6 +300,12 @@ class SimulationTimeOutError(Exception):
         super().__init__(self.message)
 
 
+class TaskTimeOutError(Exception):
+    def __init__(self, task_id: str, time_out: int) -> None:
+        self.message = f"Task {task_id} exceeded timeout of {time_out} seconds"
+        super().__init__(self.message)
+
+
 class AntaresSimulationUnzipError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
         self.message = f"Could not unzip simulation for study {study_id}: " + message

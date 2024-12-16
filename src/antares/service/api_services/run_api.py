@@ -22,6 +22,7 @@ from antares.exceptions.exceptions import (
     APIError,
     SimulationFailedError,
     SimulationTimeOutError,
+    TaskTimeOutError,
 )
 from antares.model.simulation import AntaresSimulationParameters, Job, JobStatus
 from antares.service.base_services import BaseRunService
@@ -43,7 +44,7 @@ class RunApiService(BaseRunService):
                 response = self._wrapper.post(url, json=payload)
             else:
                 response = self._wrapper.post(url)
-            job_id = response.json()["id"]
+            job_id = response.json()["job_id"]
             return self._get_job_from_id(job_id)
         except APIError as e:
             raise AntaresSimulationRunningError(self.study_id, e.message) from e
@@ -53,43 +54,48 @@ class RunApiService(BaseRunService):
         response = self._wrapper.get(url)
         job_info = response.json()
         status = JobStatus.from_str(job_info["status"])
-        output_id = job_info["output_id"] if status == JobStatus.SUCCESS else None
         launcher_params = json.loads(job_info["launcher_params"])
+        output_id = job_info["output_id"] if status == JobStatus.SUCCESS else None
         return Job(job_id=job_id, status=status, unzip_output=launcher_params["auto_unzip"], output_id=output_id)
 
     def wait_job_completion(self, job: Job, time_out: int) -> None:
         start_time = time.time()
         repeat_interval = 5
+        if job.status == JobStatus.SUCCESS:
+            self._update_job(job)
+
         while job.status in (JobStatus.RUNNING, JobStatus.PENDING):
             if time.time() - start_time > time_out:
                 raise SimulationTimeOutError(job.job_id, time_out)
             time.sleep(repeat_interval)
-            updated_job = self._get_job_from_id(job.job_id)
-            job.status = updated_job.status
-            job.output_id = updated_job.output_id
+            self._update_job(job)
 
-        if job.status == JobStatus.FAILED:
+        if job.status == JobStatus.FAILED or not job.output_id:
             raise SimulationFailedError(self.study_id)
 
-        if job.unzip_output and job.output_id:
-            self._wait_unzip_output(self.study_id, ["UNARCHIVE"], job.output_id)
+        if job.unzip_output:
+            self._wait_unzip_output(self.study_id, job.output_id, time_out)
 
         return None
 
-    def _wait_unzip_output(self, ref_id: str, type: list[str], job_output_id: str) -> None:
+    def _update_job(self, job: Job) -> None:
+        updated_job = self._get_job_from_id(job.job_id)
+        job.status = updated_job.status
+        job.output_id = updated_job.output_id
+
+    def _wait_unzip_output(self, ref_id: str, job_output_id: str, time_out: int) -> None:
         url = f"{self._base_url}/tasks"
         repeat_interval = 2
-        payload = {"type": type, "ref_id": ref_id}
+        payload = {"type": ["UNARCHIVE"], "ref_id": ref_id}
         try:
             response = self._wrapper.post(url, json=payload)
             tasks = response.json()
-            task_id = self._get_task_id(job_output_id, tasks)
-            url += f"/{task_id}"
-            self._get_task_until_success(url, repeat_interval)
+            task_id = self._get_unarchiving_task_id(job_output_id, tasks)
+            self._wait_task_completion(task_id, repeat_interval, time_out)
         except APIError as e:
             raise AntaresSimulationUnzipError(self.study_id, e.message) from e
 
-    def _get_task_id(self, job_output_id: str, tasks: list[dict[str, Any]]) -> str:
+    def _get_unarchiving_task_id(self, job_output_id: str, tasks: list[dict[str, Any]]) -> str:
         for task in tasks:
             task_name = task["name"]
             output_id = task_name.split("/")[-1].split(" ")[0]
@@ -97,10 +103,18 @@ class RunApiService(BaseRunService):
                 return task["id"]
         raise AntaresSimulationUnzipError(self.study_id, "Could not find task for unarchiving job")
 
-    def _get_task_until_success(self, url: str, repeat_interval: int) -> None:
-        task_success = False
-        while not task_success:
+    def _wait_task_completion(self, task_id: str, repeat_interval: int, time_out: int) -> None:
+        url = f"{self._base_url}/tasks/{task_id}"
+
+        start_time = time.time()
+        task_result = None
+        while not task_result:
+            if time.time() - start_time > time_out:
+                raise TaskTimeOutError(task_id, time_out)
             response = self._wrapper.get(url)
             task = response.json()
-            task_success = task["result"]["success"]
+            task_result = task["result"]
             time.sleep(repeat_interval)
+
+        if not task_result["success"]:
+            raise SimulationFailedError(self.study_id)

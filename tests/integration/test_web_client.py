@@ -74,7 +74,7 @@ class TestWebClient:
         assert area_fr.get_load_matrix().equals(load_matrix)
 
         # asserts solar and wind matrices can be created and read.
-        ts_matrix = pd.DataFrame(data=np.ones((4, 4)))
+        ts_matrix = pd.DataFrame(data=np.ones((8760, 4)))
 
         area_fr.create_solar(ts_matrix)
         assert area_fr.get_solar_matrix().equals(ts_matrix)
@@ -440,10 +440,10 @@ class TestWebClient:
             f"to be deleted, because it is referenced in "
             f"the following binding constraints:\n1- 'bc_2'.",
         ):
-            study.delete_area(area_fr.id)
+            study.delete_area(area_fr)
 
         # tests area deletion success
-        study.delete_area(area_de.id)
+        study.delete_area(area_de)
         assert area_de.id not in study.get_areas()
 
         # test study creation with settings
@@ -497,3 +497,16 @@ class TestWebClient:
         assert list(variant_from_api.get_binding_constraints().keys()) == list(
             new_study.get_binding_constraints().keys()
         )
+
+        # ===== test run study simulation and wait job completion ======
+        # parameters = AntaresSimulationParameters(nb_cpu=4, unzip_output=True)
+        #
+        # job = study.run_antares_simulation(parameters)
+        # assert isinstance(job, Job)
+        # assert job.status == JobStatus.PENDING
+        #
+        # study.wait_job_completion(job, time_out=60)
+        # assert job.status == JobStatus.SUCCESS
+        #
+        # assert job.output_id is not None
+        # assert job.unzip_output is True
