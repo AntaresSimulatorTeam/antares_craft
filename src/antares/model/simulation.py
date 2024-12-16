@@ -25,7 +25,7 @@ class Solver(Enum):
 class AntaresSimulationParameters(BaseModel):
     solver: Solver = Solver.SIRIUS
     nb_cpu: Optional[int] = None
-    unzip_output: bool = Field(True, alias="auto_unzip")
+    unzip_output: bool = Field(alias="auto_unzip", default=True)
     output_suffix: Optional[str] = None
     presolve: bool = False
 
@@ -61,5 +61,5 @@ class JobStatus(Enum):
 class Job(BaseModel):
     job_id: str
     status: JobStatus
-    unzip_output: bool = True
     output_id: Optional[str] = None
+    parameters: AntaresSimulationParameters

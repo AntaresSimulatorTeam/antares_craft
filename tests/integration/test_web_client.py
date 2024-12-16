@@ -510,4 +510,5 @@ class TestWebClient:
         assert job.status == JobStatus.SUCCESS
 
         assert job.output_id is not None
-        assert job.unzip_output is True
+        assert job.parameters == parameters
+        assert job.parameters.unzip_output is True
