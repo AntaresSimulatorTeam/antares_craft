@@ -319,6 +319,6 @@ class AntaresSimulationUnzipError(Exception):
 
 
 class SimulationFailedError(Exception):
-    def __init__(self, study_id: str) -> None:
-        self.message = f"Simulation failed for {study_id}"
+    def __init__(self, study_id: str, job_id: str) -> None:
+        self.message = f"Simulation failed for {study_id} and job {job_id}"
         super().__init__(self.message)

@@ -55,7 +55,7 @@ class RunApiService(BaseRunService):
         response = self._wrapper.get(url)
         job_info = response.json()
         status = JobStatus.from_str(job_info["status"])
-        output_id = job_info["output_id"] if status == JobStatus.SUCCESS else None
+        output_id = job_info.get("output_id")
         return Job(job_id=job_id, status=status, parameters=parameters, output_id=output_id)
 
     def wait_job_completion(self, job: Job, time_out: int) -> None:
@@ -71,13 +71,13 @@ class RunApiService(BaseRunService):
             self._update_job(job)
 
         if job.status == JobStatus.FAILED or not job.output_id:
-            raise SimulationFailedError(self.study_id)
+            raise SimulationFailedError(self.study_id, job.job_id)
 
         if job.parameters.unzip_output:
             try:
                 self._wait_unzip_output(self.study_id, job, time_out)
-            except (TaskFailedError, AntaresSimulationUnzipError) as e:
-                raise SimulationFailedError(self.study_id) from e
+            except AntaresSimulationUnzipError as e:
+                raise SimulationFailedError(self.study_id, job.job_id) from e
 
         return None
 
@@ -95,10 +95,8 @@ class RunApiService(BaseRunService):
             tasks = response.json()
             task_id = self._get_unarchiving_task_id(job, tasks)
             self._wait_task_completion(task_id, repeat_interval, time_out)
-        except APIError as e:
+        except (APIError, TaskFailedError) as e:
             raise AntaresSimulationUnzipError(self.study_id, job.job_id, e.message) from e
-        except TaskFailedError as e:
-            raise e
 
     def _get_unarchiving_task_id(self, job: Job, tasks: list[dict[str, Any]]) -> str:
         for task in tasks:
