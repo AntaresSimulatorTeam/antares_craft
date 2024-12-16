@@ -500,7 +500,7 @@ class TestWebClient:
         )
 
         # ===== test run study simulation and wait job completion ======
-        parameters = AntaresSimulationParameters(nb_cpu=4, unzip_output=True)
+        parameters = AntaresSimulationParameters(nb_cpu=4)
 
         job = study.run_antares_simulation(parameters)
         assert isinstance(job, Job)
