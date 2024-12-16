@@ -286,3 +286,39 @@ class ConfigurationError(Exception):
     def __init__(self, message: str = "Error") -> None:
         self.message = "Unsupported configuration type" + f" {message}" if message != "Error" else ""
         super().__init__(self.message)
+
+
+class AntaresSimulationRunningError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not run the simulation for study {study_id}: " + message
+        super().__init__(self.message)
+
+
+class SimulationTimeOutError(Exception):
+    def __init__(self, job_id: str, time_out: int) -> None:
+        self.message = f"Job {job_id} exceeded timeout of {time_out} seconds"
+        super().__init__(self.message)
+
+
+class TaskTimeOutError(Exception):
+    def __init__(self, task_id: str, time_out: int) -> None:
+        self.message = f"Task {task_id} exceeded timeout of {time_out} seconds"
+        super().__init__(self.message)
+
+
+class TaskFailedError(Exception):
+    def __init__(self, task_id: str) -> None:
+        self.message = f"Task {task_id} failed"
+        super().__init__(self.message)
+
+
+class AntaresSimulationUnzipError(Exception):
+    def __init__(self, study_id: str, job_id: str, message: str) -> None:
+        self.message = f"Could not unzip simulation for study {study_id} and job {job_id}: " + message
+        super().__init__(self.message)
+
+
+class SimulationFailedError(Exception):
+    def __init__(self, study_id: str, job_id: str) -> None:
+        self.message = f"Simulation failed for {study_id} and job {job_id}"
+        super().__init__(self.message)

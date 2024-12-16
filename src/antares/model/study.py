@@ -29,6 +29,7 @@ from antares.model.binding_constraint import BindingConstraint, BindingConstrain
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.settings.study_settings import DefaultStudySettings, StudySettings, StudySettingsLocal
 from antares.model.settings.time_series import correlation_defaults
+from antares.model.simulation import AntaresSimulationParameters, Job
 from antares.service.api_services.study_api import _returns_study_settings
 from antares.service.base_services import BaseStudyService
 from antares.service.service_factory import ServiceFactory
@@ -215,6 +216,7 @@ class Study:
         self._study_service = service_factory.create_study_service()
         self._area_service = service_factory.create_area_service()
         self._link_service = service_factory.create_link_service()
+        self._run_service = service_factory.create_run_service()
         self._binding_constraints_service = service_factory.create_binding_constraints_service()
         self._settings = DefaultStudySettings.model_validate(settings if settings is not None else StudySettings())
         self._areas: Dict[str, Area] = dict()
@@ -342,6 +344,28 @@ class Study:
         Returns: The variant in the form of a Study object
         """
         return self._study_service.create_variant(variant_name)
+
+    def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
+        """
+        Runs the Antares simulation.
+
+        This method starts an antares simulation with the given parameters
+
+        Returns: A job representing the simulation task
+        """
+        return self._run_service.run_antares_simulation(parameters)
+
+    def wait_job_completion(self, job: Job, time_out: int = 172800) -> None:
+        """
+        Waits for the completion of a job
+
+        Args:
+            job: The job to wait for
+            time_out: Time limit for waiting (seconds), default: 172800s
+
+        Raises: SimulationTimeOutError if exceeded timeout
+        """
+        self._run_service.wait_job_completion(job, time_out)
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:

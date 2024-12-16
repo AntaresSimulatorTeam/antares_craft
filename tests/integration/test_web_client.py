@@ -29,6 +29,7 @@ from antares.model.renewable import RenewableClusterGroup, RenewableClusterPrope
 from antares.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
 from antares.model.settings.general import GeneralParameters, Mode
 from antares.model.settings.study_settings import PlaylistParameters, StudySettings
+from antares.model.simulation import AntaresSimulationParameters, Job, JobStatus
 from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
 from antares.model.study import create_study_api, create_variant_api, read_study_api
 from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
@@ -74,7 +75,7 @@ class TestWebClient:
         assert area_fr.get_load_matrix().equals(load_matrix)
 
         # asserts solar and wind matrices can be created and read.
-        ts_matrix = pd.DataFrame(data=np.ones((4, 4)))
+        ts_matrix = pd.DataFrame(data=np.ones((8760, 4)))
 
         area_fr.create_solar(ts_matrix)
         assert area_fr.get_solar_matrix().equals(ts_matrix)
@@ -141,9 +142,9 @@ class TestWebClient:
 
         # test thermal cluster creation with prepro_modulation matrices
         thermal_name = "matrices_be"
-        prepro_modulation_matrix = pd.DataFrame(data=np.ones((8760, 4)))
+        prepro_modulation_matrix = pd.DataFrame(data=np.ones((8760, 6)))
         modulation_matrix = pd.DataFrame(data=np.ones((8760, 4)))
-        series_matrix = pd.DataFrame(data=np.ones((8760, 4)))
+        series_matrix = pd.DataFrame(data=np.ones((8760, 6)))
         CO2Cost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
         fuelCost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
 
@@ -440,10 +441,10 @@ class TestWebClient:
             f"to be deleted, because it is referenced in "
             f"the following binding constraints:\n1- 'bc_2'.",
         ):
-            study.delete_area(area_fr.id)
+            study.delete_area(area_fr)
 
         # tests area deletion success
-        study.delete_area(area_de.id)
+        study.delete_area(area_de)
         assert area_de.id not in study.get_areas()
 
         # test study creation with settings
@@ -497,3 +498,17 @@ class TestWebClient:
         assert list(variant_from_api.get_binding_constraints().keys()) == list(
             new_study.get_binding_constraints().keys()
         )
+
+        # ===== test run study simulation and wait job completion ======
+        parameters = AntaresSimulationParameters(nb_cpu=4)
+
+        job = study.run_antares_simulation(parameters)
+        assert isinstance(job, Job)
+        assert job.status == JobStatus.PENDING
+
+        study.wait_job_completion(job, time_out=60)
+        assert job.status == JobStatus.SUCCESS
+
+        assert job.output_id is not None
+        assert job.parameters == parameters
+        assert job.parameters.unzip_output is True

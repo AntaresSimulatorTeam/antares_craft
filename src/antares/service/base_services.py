@@ -27,6 +27,7 @@ from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.model.link import Link, LinkProperties, LinkUi
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.settings.study_settings import StudySettings
+from antares.model.simulation import AntaresSimulationParameters, Job
 from antares.model.st_storage import STStorage, STStorageProperties
 from antares.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
 
@@ -598,4 +599,30 @@ class BaseShortTermStorageService(ABC):
 
     @abstractmethod
     def read_st_storages(self, area_id: str) -> List[STStorage]:
+        pass
+
+
+class BaseRunService(ABC):
+    @abstractmethod
+    def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
+        """
+        Runs the Antares simulation.
+
+        This method starts an antares simulation for the current study config and params
+
+        Returns: A job representing the simulation task
+        """
+        pass
+
+    @abstractmethod
+    def wait_job_completion(self, job: Job, time_out: int) -> None:
+        """
+        Waits for the completion of a job
+
+        Args:
+            job: The job to wait for
+            time_out: Time limit for waiting (seconds)
+
+        Raises: SimulationTimeOutError if exceeded timeout
+        """
         pass

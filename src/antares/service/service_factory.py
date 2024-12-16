@@ -17,6 +17,7 @@ from antares.service.api_services.area_api import AreaApiService
 from antares.service.api_services.binding_constraint_api import BindingConstraintApiService
 from antares.service.api_services.link_api import LinkApiService
 from antares.service.api_services.renewable_api import RenewableApiService
+from antares.service.api_services.run_api import RunApiService
 from antares.service.api_services.st_storage_api import ShortTermStorageApiService
 from antares.service.api_services.study_api import StudyApiService
 from antares.service.api_services.thermal_api import ThermalApiService
@@ -25,6 +26,7 @@ from antares.service.base_services import (
     BaseBindingConstraintService,
     BaseLinkService,
     BaseRenewableService,
+    BaseRunService,
     BaseShortTermStorageService,
     BaseStudyService,
     BaseThermalService,
@@ -33,6 +35,7 @@ from antares.service.local_services.area_local import AreaLocalService
 from antares.service.local_services.binding_constraint_local import BindingConstraintLocalService
 from antares.service.local_services.link_local import LinkLocalService
 from antares.service.local_services.renewable_local import RenewableLocalService
+from antares.service.local_services.run_local import RunLocalService
 from antares.service.local_services.st_storage_local import ShortTermStorageLocalService
 from antares.service.local_services.study_local import StudyLocalService
 from antares.service.local_services.thermal_local import ThermalLocalService
@@ -124,3 +127,12 @@ class ServiceFactory:
         else:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
         return short_term_storage_service
+
+    def create_run_service(self) -> BaseRunService:
+        if isinstance(self.config, APIconf):
+            run_service: BaseRunService = RunApiService(self.config, self.study_id)
+        elif isinstance(self.config, LocalConfiguration):
+            run_service = RunLocalService(self.config, self.study_name)
+        else:
+            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
+        return run_service
