@@ -29,6 +29,7 @@ from antares.model.renewable import RenewableClusterGroup, RenewableClusterPrope
 from antares.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
 from antares.model.settings.general import GeneralParameters, Mode
 from antares.model.settings.study_settings import PlaylistParameters, StudySettings
+from antares.model.simulation import AntaresSimulationParameters, Job, JobStatus
 from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
 from antares.model.study import create_study_api, create_variant_api, read_study_api
 from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
@@ -141,9 +142,9 @@ class TestWebClient:
 
         # test thermal cluster creation with prepro_modulation matrices
         thermal_name = "matrices_be"
-        prepro_modulation_matrix = pd.DataFrame(data=np.ones((8760, 4)))
+        prepro_modulation_matrix = pd.DataFrame(data=np.ones((8760, 6)))
         modulation_matrix = pd.DataFrame(data=np.ones((8760, 4)))
-        series_matrix = pd.DataFrame(data=np.ones((8760, 4)))
+        series_matrix = pd.DataFrame(data=np.ones((8760, 6)))
         CO2Cost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
         fuelCost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
 
@@ -499,14 +500,14 @@ class TestWebClient:
         )
 
         # ===== test run study simulation and wait job completion ======
-        # parameters = AntaresSimulationParameters(nb_cpu=4, unzip_output=True)
-        #
-        # job = study.run_antares_simulation(parameters)
-        # assert isinstance(job, Job)
-        # assert job.status == JobStatus.PENDING
-        #
-        # study.wait_job_completion(job, time_out=60)
-        # assert job.status == JobStatus.SUCCESS
-        #
-        # assert job.output_id is not None
-        # assert job.unzip_output is True
+        parameters = AntaresSimulationParameters(nb_cpu=4, unzip_output=True)
+
+        job = study.run_antares_simulation(parameters)
+        assert isinstance(job, Job)
+        assert job.status == JobStatus.PENDING
+
+        study.wait_job_completion(job, time_out=60)
+        assert job.status == JobStatus.SUCCESS
+
+        assert job.output_id is not None
+        assert job.unzip_output is True
