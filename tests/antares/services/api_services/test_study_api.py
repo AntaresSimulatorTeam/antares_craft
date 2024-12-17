@@ -631,8 +631,8 @@ class TestCreateAPI:
 
             self.study.read_outputs()
 
-            output1 = self.study._outputs.get(response[0].get("name"))
-            output2 = self.study._outputs.get(response[1].get("name"))
+            output1 = self.study.get_output(response[0].get("name"))
+            output2 = self.study.get_output(response[1].get("name"))
             assert output1 != None
             assert output2 != None
             assert output1.archived == response[0].get("archived")
