@@ -16,6 +16,7 @@ from antares.config.local_configuration import LocalConfiguration
 from antares.service.api_services.area_api import AreaApiService
 from antares.service.api_services.binding_constraint_api import BindingConstraintApiService
 from antares.service.api_services.link_api import LinkApiService
+from antares.service.api_services.output_api import OutputApiService
 from antares.service.api_services.renewable_api import RenewableApiService
 from antares.service.api_services.run_api import RunApiService
 from antares.service.api_services.st_storage_api import ShortTermStorageApiService
@@ -29,11 +30,12 @@ from antares.service.base_services import (
     BaseRunService,
     BaseShortTermStorageService,
     BaseStudyService,
-    BaseThermalService,
+    BaseThermalService, BaseOutputService,
 )
 from antares.service.local_services.area_local import AreaLocalService
 from antares.service.local_services.binding_constraint_local import BindingConstraintLocalService
 from antares.service.local_services.link_local import LinkLocalService
+from antares.service.local_services.output_local import OutputLocalService
 from antares.service.local_services.renewable_local import RenewableLocalService
 from antares.service.local_services.run_local import RunLocalService
 from antares.service.local_services.st_storage_local import ShortTermStorageLocalService
@@ -136,3 +138,12 @@ class ServiceFactory:
         else:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
         return run_service
+
+    def create_output_service(self) -> BaseOutputService:
+        if isinstance(self.config, APIconf):
+            output_service: BaseOutputService = OutputApiService(self.config, self.study_id)
+        elif isinstance(self.config, LocalConfiguration):
+            output_service = OutputLocalService(self.config, self.study_name)
+        else:
+            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
+        return output_service

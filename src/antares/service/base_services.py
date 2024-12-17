@@ -25,6 +25,7 @@ from antares.model.binding_constraint import (
 )
 from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.model.link import Link, LinkProperties, LinkUi
+from antares.model.output import Output
 from antares.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.model.settings.study_settings import StudySettings
 from antares.model.simulation import AntaresSimulationParameters, Job
@@ -624,5 +625,15 @@ class BaseRunService(ABC):
             time_out: Time limit for waiting (seconds)
 
         Raises: SimulationTimeOutError if exceeded timeout
+        """
+        pass
+
+class BaseOutputService(ABC):
+    @abstractmethod
+    def read_outputs(self) -> list[Output]:
+        """
+        Gets the output list of a study
+
+        Returns: Output list
         """
         pass
