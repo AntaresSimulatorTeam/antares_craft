@@ -499,7 +499,7 @@ class TestWebClient:
             new_study.get_binding_constraints().keys()
         )
 
-        # ===== Test outputs (Part 1) =====
+        # ===== Test outputs (Part 1 - before simulation) =====
 
         assert len(study.read_outputs()) == 0
 
@@ -520,8 +520,9 @@ class TestWebClient:
 
         # ===== Test outputs (Part 2 - after simulation) =====
 
-        study.read_outputs()
+        output = study.read_outputs()[0]
         outputs = study.get_outputs()
-        assert len(outputs) > 0
+        assert len(outputs) == 1
+        assert outputs.get(output.name).archived == False
         study_with_outputs = read_study_api(api_config, study._study_service.study_id)
         assert study_with_outputs.get_outputs() == outputs

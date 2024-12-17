@@ -9,6 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+
+
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
 from antares.exceptions.exceptions import APIError, OutputsRetrievalError
@@ -29,9 +31,8 @@ class OutputApiService(BaseOutputService):
         try:
             response = self._wrapper.get(url)
             outputs_json_list = response.json()
-            outputs_list: list[Output] = list()
-            for output in outputs_json_list:
-                outputs_list.append(Output(name=output["name"], archived=output["archived"]))
-            return outputs_list
+            if isinstance(outputs_json_list, dict):
+                outputs_json_list = [outputs_json_list]
+            return [Output(name=output["name"], archived=output["archived"]) for output in outputs_json_list]
         except APIError as e:
             raise OutputsRetrievalError(self.study_id, e.message)

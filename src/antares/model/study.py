@@ -381,15 +381,15 @@ class Study:
         self._outputs = {output.name: output for output in outputs}
         return outputs
 
-    def get_outputs(self) -> dict[str, Output]:
+    def get_outputs(self) -> MappingProxyType[str, Output]:
         """
         Get outputs of current study
 
-        Returns: (output_id, Output) dictionary
+        Returns: read-only proxy of the (output_id, Output) mapping
         """
-        return self._outputs.copy()
+        return MappingProxyType(self._outputs)
 
-    def get_output(self, output_id: str) -> Optional[Output]:
+    def get_output(self, output_id: str) -> Output:
         """
         Get a specific output
 
@@ -397,8 +397,10 @@ class Study:
             output_id: id of the output to get
 
         Returns: Output with the output_id
+
+        Raises: KeyError if it doesn't exist
         """
-        return self._outputs.get(output_id)
+        return self._outputs["output_id"]
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:
