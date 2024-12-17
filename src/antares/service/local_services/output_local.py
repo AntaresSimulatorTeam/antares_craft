@@ -11,8 +11,6 @@
 # This file is part of the Antares project.
 from typing import Any
 
-from pandas import DataFrame
-
 from antares.config.local_configuration import LocalConfiguration
 from antares.model.output import Output
 from antares.service.base_services import BaseOutputService
