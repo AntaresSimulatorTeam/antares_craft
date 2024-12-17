@@ -378,7 +378,7 @@ class Study:
         Returns: Output list
         """
         outputs = self._output_service.read_outputs()
-        self._outputs = {output.name : output for output in outputs}
+        self._outputs = {output.name: output for output in outputs}
         return outputs
 
     def get_outputs(self) -> dict[str, Output]:
