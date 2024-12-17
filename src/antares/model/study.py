@@ -400,7 +400,7 @@ class Study:
 
         Raises: KeyError if it doesn't exist
         """
-        return self._outputs["output_id"]
+        return self._outputs[f"{output_id}"]
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:
