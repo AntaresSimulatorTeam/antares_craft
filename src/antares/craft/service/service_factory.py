@@ -31,7 +31,7 @@ from antares.craft.service.base_services import (
     BaseRunService,
     BaseShortTermStorageService,
     BaseStudyService,
-    BaseThermalService,
+    BaseThermalService, BaseOutputService,
 )
 from antares.craft.service.local_services.area_local import AreaLocalService
 from antares.craft.service.local_services.binding_constraint_local import BindingConstraintLocalService
