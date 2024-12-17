@@ -631,6 +631,7 @@ class TestCreateAPI:
 
             self.study.read_outputs()
 
+            assert len(self.study.get_outputs()) == 2
             output1 = self.study.get_output(response[0].get("name"))
             output2 = self.study.get_output(response[1].get("name"))
             assert output1 != None
