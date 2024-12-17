@@ -26,6 +26,3 @@ class OutputLocalService(BaseOutputService):
 
     def read_outputs(self) -> list[Output]:
         raise NotImplementedError
-
-    def get_matrix(self, path: str) -> DataFrame:
-        raise NotImplementedError
