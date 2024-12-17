@@ -185,6 +185,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings)
 
     study.read_areas()
+    study.read_outputs()
 
     return study
 
@@ -376,7 +377,15 @@ class Study:
 
         Returns: Output list
         """
-        return self._output_service.read_outputs()
+        outputs = self._output_service.read_outputs()
+        self._outputs = {output.name : output for output in outputs}
+        return outputs
+
+    def get_outputs(self) -> dict[str, Output]:
+        return self._outputs.copy()
+
+    def get_output(self, output_id: str) -> Optional[Output]:
+        return self._outputs.get(output_id)
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:

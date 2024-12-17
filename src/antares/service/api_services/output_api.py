@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 from antares.api_conf.api_conf import APIconf
 from antares.api_conf.request_wrapper import RequestWrapper
+from antares.exceptions.exceptions import APIError, OutputsRetrievalError
 from antares.model.output import Output
 from antares.service.base_services import BaseOutputService
 
@@ -24,4 +25,13 @@ class OutputApiService(BaseOutputService):
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
     def read_outputs(self) -> list[Output]:
-        pass
+        url = f"{self._base_url}/studies/{self.study_id}/outputs"
+        try:
+            response = self._wrapper.get(url)
+            outputs_json_list = response.json()
+            outputs_list: list[Output] = list()
+            for output in outputs_json_list:
+                outputs_list.append(Output(name=output["name"], archived=output["archived"]))
+            return outputs_list
+        except APIError as e:
+            raise OutputsRetrievalError(self.study_id, e.message)

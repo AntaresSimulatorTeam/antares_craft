@@ -322,3 +322,8 @@ class SimulationFailedError(Exception):
     def __init__(self, study_id: str, job_id: str) -> None:
         self.message = f"Simulation failed for {study_id} and job {job_id}"
         super().__init__(self.message)
+
+class OutputsRetrievalError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not get outputs for {study_id}: " + message
+        super().__init__(self.message)

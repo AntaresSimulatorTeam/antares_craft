@@ -512,3 +512,9 @@ class TestWebClient:
         assert job.output_id is not None
         assert job.parameters == parameters
         assert job.parameters.unzip_output is True
+
+
+        # ===== Test outputs =====
+
+        outputs = study.read_outputs()
+        print()
