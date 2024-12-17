@@ -224,7 +224,7 @@ class Study:
         self._areas: Dict[str, Area] = dict()
         self._links: Dict[str, Link] = dict()
         self._binding_constraints: Dict[str, BindingConstraint] = dict()
-        self._outputs : dict[str, Output] = dict()
+        self._outputs: dict[str, Output] = dict()
 
     @property
     def service(self) -> BaseStudyService:
@@ -369,6 +369,14 @@ class Study:
         Raises: SimulationTimeOutError if exceeded timeout
         """
         self._run_service.wait_job_completion(job, time_out)
+
+    def read_outputs(self) -> list[Output]:
+        """
+        Get outputs for current study
+
+        Returns: Output list
+        """
+        return self._output_service.read_outputs()
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:

@@ -26,11 +26,12 @@ from antares.service.base_services import (
     BaseAreaService,
     BaseBindingConstraintService,
     BaseLinkService,
+    BaseOutputService,
     BaseRenewableService,
     BaseRunService,
     BaseShortTermStorageService,
     BaseStudyService,
-    BaseThermalService, BaseOutputService,
+    BaseThermalService,
 )
 from antares.service.local_services.area_local import AreaLocalService
 from antares.service.local_services.binding_constraint_local import BindingConstraintLocalService

@@ -628,6 +628,7 @@ class BaseRunService(ABC):
         """
         pass
 
+
 class BaseOutputService(ABC):
     @abstractmethod
     def read_outputs(self) -> list[Output]:
