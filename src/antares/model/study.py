@@ -373,7 +373,7 @@ class Study:
 
     def read_outputs(self) -> list[Output]:
         """
-        Get outputs for current study
+        Load outputs into current study
 
         Returns: Output list
         """
@@ -382,9 +382,22 @@ class Study:
         return outputs
 
     def get_outputs(self) -> dict[str, Output]:
+        """
+        Get outputs of current study
+
+        Returns: (output_id, Output) dictionary
+        """
         return self._outputs.copy()
 
     def get_output(self, output_id: str) -> Optional[Output]:
+        """
+        Get a specific output
+
+        Args:
+            output_id: id of the output to get
+
+        Returns: Output with the output_id
+        """
         return self._outputs.get(output_id)
 
 
