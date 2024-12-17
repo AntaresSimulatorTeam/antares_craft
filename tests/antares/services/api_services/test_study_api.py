@@ -27,7 +27,7 @@ from antares.exceptions.exceptions import (
     SimulationTimeOutError,
     StudyCreationError,
     StudySettingsUpdateError,
-    StudyVariantCreationError,
+    StudyVariantCreationError, OutputsRetrievalError,
 )
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties
@@ -638,3 +638,10 @@ class TestCreateAPI:
             assert output2 != None
             assert output1.archived == response[0].get("archived")
             assert output2.archived == response[1].get("archived")
+
+            # ===== FAILING TEST =====
+            error_message = f"Couldn't get outputs for study {self.study_id}"
+            mocker.get(run_url, json={"description": error_message}, status_code=404)
+            with pytest.raises(OutputsRetrievalError, match=error_message):
+                self.study.read_outputs()
+
