@@ -53,6 +53,184 @@ class TestCreateAPI:
         ServiceFactory(api, study_id).create_thermal_service(),
         ServiceFactory(api, study_id).create_renewable_service(),
     )
+    json_output = [
+        {
+            "name": "20241217-1114eco",
+            "type": "economy",
+            "settings": {
+                "general": {
+                    "mode": "Economy",
+                    "horizon": "",
+                    "nbyears": 1,
+                    "simulation.start": 1,
+                    "simulation.end": 365,
+                    "january.1st": "Monday",
+                    "first-month-in-year": "january",
+                    "first.weekday": "Monday",
+                    "leapyear": False,
+                    "year-by-year": False,
+                    "derated": False,
+                    "custom-scenario": False,
+                    "user-playlist": False,
+                    "thematic-trimming": False,
+                    "geographic-trimming": False,
+                    "generate": "",
+                    "nbtimeseriesload": 1,
+                    "nbtimeserieshydro": 1,
+                    "nbtimeserieswind": 1,
+                    "nbtimeseriesthermal": 1,
+                    "nbtimeseriessolar": 1,
+                    "refreshtimeseries": "",
+                    "intra-modal": "",
+                    "inter-modal": "",
+                    "refreshintervalload": 100,
+                    "refreshintervalhydro": 100,
+                    "refreshintervalwind": 100,
+                    "refreshintervalthermal": 100,
+                    "refreshintervalsolar": 100,
+                    "readonly": False,
+                },
+                "input": {"import": ""},
+                "output": {"synthesis": True, "storenewset": False, "archives": ""},
+                "optimization": {
+                    "simplex-range": "week",
+                    "transmission-capacities": "local-values",
+                    "link-type": "local",
+                    "include-constraints": True,
+                    "include-hurdlecosts": True,
+                    "include-tc-minstablepower": True,
+                    "include-tc-min-ud-time": True,
+                    "include-dayahead": True,
+                    "include-strategicreserve": True,
+                    "include-spinningreserve": True,
+                    "include-primaryreserve": True,
+                    "include-exportmps": False,
+                    "include-exportstructure": False,
+                    "include-unfeasible-problem-behavior": "error-verbose",
+                },
+                "otherPreferences": {
+                    "initial-reservoir-levels": "cold start",
+                    "hydro-heuristic-policy": "accommodate rule curves",
+                    "hydro-pricing-mode": "fast",
+                    "power-fluctuations": "free modulations",
+                    "shedding-strategy": "share margins",
+                    "shedding-policy": "shave peaks",
+                    "unit-commitment-mode": "fast",
+                    "number-of-cores-mode": "medium",
+                    "renewable-generation-modelling": "clusters",
+                    "day-ahead-reserve-management": "global",
+                },
+                "advancedParameters": {"accuracy-on-correlation": "", "adequacy-block-size": 100},
+                "seedsMersenneTwister": {
+                    "seed-tsgen-wind": 5489,
+                    "seed-tsgen-load": 1005489,
+                    "seed-tsgen-hydro": 2005489,
+                    "seed-tsgen-thermal": 3005489,
+                    "seed-tsgen-solar": 4005489,
+                    "seed-tsnumbers": 5005489,
+                    "seed-unsupplied-energy-costs": 6005489,
+                    "seed-spilled-energy-costs": 7005489,
+                    "seed-thermal-costs": 8005489,
+                    "seed-hydro-costs": 9005489,
+                    "seed-initial-reservoir-levels": 10005489,
+                },
+                "playlist": [],
+            },
+            "completionDate": "",
+            "referenceStatus": False,
+            "synchronized": False,
+            "status": "",
+            "archived": False,
+        },
+        {
+            "name": "20241217-1115eco-sdqsd",
+            "type": "economy",
+            "settings": {
+                "general": {
+                    "mode": "Economy",
+                    "horizon": "",
+                    "nbyears": 1,
+                    "simulation.start": 1,
+                    "simulation.end": 365,
+                    "january.1st": "Monday",
+                    "first-month-in-year": "january",
+                    "first.weekday": "Monday",
+                    "leapyear": False,
+                    "year-by-year": False,
+                    "derated": False,
+                    "custom-scenario": False,
+                    "user-playlist": False,
+                    "thematic-trimming": False,
+                    "geographic-trimming": False,
+                    "generate": "",
+                    "nbtimeseriesload": 1,
+                    "nbtimeserieshydro": 1,
+                    "nbtimeserieswind": 1,
+                    "nbtimeseriesthermal": 1,
+                    "nbtimeseriessolar": 1,
+                    "refreshtimeseries": "",
+                    "intra-modal": "",
+                    "inter-modal": "",
+                    "refreshintervalload": 100,
+                    "refreshintervalhydro": 100,
+                    "refreshintervalwind": 100,
+                    "refreshintervalthermal": 100,
+                    "refreshintervalsolar": 100,
+                    "readonly": False,
+                },
+                "input": {"import": ""},
+                "output": {"synthesis": True, "storenewset": False, "archives": ""},
+                "optimization": {
+                    "simplex-range": "week",
+                    "transmission-capacities": "local-values",
+                    "link-type": "local",
+                    "include-constraints": True,
+                    "include-hurdlecosts": True,
+                    "include-tc-minstablepower": True,
+                    "include-tc-min-ud-time": True,
+                    "include-dayahead": True,
+                    "include-strategicreserve": True,
+                    "include-spinningreserve": True,
+                    "include-primaryreserve": True,
+                    "include-exportmps": False,
+                    "include-exportstructure": False,
+                    "include-unfeasible-problem-behavior": "error-verbose",
+                },
+                "otherPreferences": {
+                    "initial-reservoir-levels": "cold start",
+                    "hydro-heuristic-policy": "accommodate rule curves",
+                    "hydro-pricing-mode": "fast",
+                    "power-fluctuations": "free modulations",
+                    "shedding-strategy": "share margins",
+                    "shedding-policy": "shave peaks",
+                    "unit-commitment-mode": "fast",
+                    "number-of-cores-mode": "medium",
+                    "renewable-generation-modelling": "clusters",
+                    "day-ahead-reserve-management": "global",
+                },
+                "advancedParameters": {"accuracy-on-correlation": "", "adequacy-block-size": 100},
+                "seedsMersenneTwister": {
+                    "seed-tsgen-wind": 5489,
+                    "seed-tsgen-load": 1005489,
+                    "seed-tsgen-hydro": 2005489,
+                    "seed-tsgen-thermal": 3005489,
+                    "seed-tsgen-solar": 4005489,
+                    "seed-tsnumbers": 5005489,
+                    "seed-unsupplied-energy-costs": 6005489,
+                    "seed-spilled-energy-costs": 7005489,
+                    "seed-thermal-costs": 8005489,
+                    "seed-hydro-costs": 9005489,
+                    "seed-initial-reservoir-levels": 10005489,
+                },
+                "playlist": [],
+            },
+            "completionDate": "",
+            "referenceStatus": False,
+            "synchronized": False,
+            "status": "",
+            "archived": False,
+        },
+    ]
 
     def test_create_study_test_ok(self) -> None:
         with requests_mock.Mocker() as mocker:
@@ -207,6 +385,7 @@ class TestCreateAPI:
         thermal_url = f"{area_url}/zone/clusters/thermal"
         renewable_url = f"{area_url}/zone/clusters/renewable"
         storage_url = f"{area_url}/zone/storages"
+        output_url = f"{url}/outputs"
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url, json=json_study)
@@ -216,6 +395,7 @@ class TestCreateAPI:
             mocker.get(renewable_url, json=[])
             mocker.get(thermal_url, json=[])
             mocker.get(storage_url, json=[])
+            mocker.get(output_url, json=self.json_output)
             actual_study = read_study_api(self.api, self.study_id)
 
             expected_study_name = json_study.pop("name")
@@ -249,6 +429,9 @@ class TestCreateAPI:
 
             areas_url = f"{base_url}/studies/{variant_id}/areas?ui=true"
             mocker.get(areas_url, json={}, status_code=200)
+
+            output_url = f"{base_url}/studies/{variant_id}/outputs"
+            mocker.get(output_url, json=self.json_output, status_code=200)
 
             variant = self.study.create_variant(variant_name)
             variant_from_api = create_variant_api(self.api, self.study_id, variant_name)
@@ -431,196 +614,17 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             run_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs"
 
-            response = [
-                {
-                    "name": "20241217-1114eco",
-                    "type": "economy",
-                    "settings": {
-                        "general": {
-                            "mode": "Economy",
-                            "horizon": "",
-                            "nbyears": 1,
-                            "simulation.start": 1,
-                            "simulation.end": 365,
-                            "january.1st": "Monday",
-                            "first-month-in-year": "january",
-                            "first.weekday": "Monday",
-                            "leapyear": False,
-                            "year-by-year": False,
-                            "derated": False,
-                            "custom-scenario": False,
-                            "user-playlist": False,
-                            "thematic-trimming": False,
-                            "geographic-trimming": False,
-                            "generate": "",
-                            "nbtimeseriesload": 1,
-                            "nbtimeserieshydro": 1,
-                            "nbtimeserieswind": 1,
-                            "nbtimeseriesthermal": 1,
-                            "nbtimeseriessolar": 1,
-                            "refreshtimeseries": "",
-                            "intra-modal": "",
-                            "inter-modal": "",
-                            "refreshintervalload": 100,
-                            "refreshintervalhydro": 100,
-                            "refreshintervalwind": 100,
-                            "refreshintervalthermal": 100,
-                            "refreshintervalsolar": 100,
-                            "readonly": False,
-                        },
-                        "input": {"import": ""},
-                        "output": {"synthesis": True, "storenewset": False, "archives": ""},
-                        "optimization": {
-                            "simplex-range": "week",
-                            "transmission-capacities": "local-values",
-                            "link-type": "local",
-                            "include-constraints": True,
-                            "include-hurdlecosts": True,
-                            "include-tc-minstablepower": True,
-                            "include-tc-min-ud-time": True,
-                            "include-dayahead": True,
-                            "include-strategicreserve": True,
-                            "include-spinningreserve": True,
-                            "include-primaryreserve": True,
-                            "include-exportmps": False,
-                            "include-exportstructure": False,
-                            "include-unfeasible-problem-behavior": "error-verbose",
-                        },
-                        "otherPreferences": {
-                            "initial-reservoir-levels": "cold start",
-                            "hydro-heuristic-policy": "accommodate rule curves",
-                            "hydro-pricing-mode": "fast",
-                            "power-fluctuations": "free modulations",
-                            "shedding-strategy": "share margins",
-                            "shedding-policy": "shave peaks",
-                            "unit-commitment-mode": "fast",
-                            "number-of-cores-mode": "medium",
-                            "renewable-generation-modelling": "clusters",
-                            "day-ahead-reserve-management": "global",
-                        },
-                        "advancedParameters": {"accuracy-on-correlation": "", "adequacy-block-size": 100},
-                        "seedsMersenneTwister": {
-                            "seed-tsgen-wind": 5489,
-                            "seed-tsgen-load": 1005489,
-                            "seed-tsgen-hydro": 2005489,
-                            "seed-tsgen-thermal": 3005489,
-                            "seed-tsgen-solar": 4005489,
-                            "seed-tsnumbers": 5005489,
-                            "seed-unsupplied-energy-costs": 6005489,
-                            "seed-spilled-energy-costs": 7005489,
-                            "seed-thermal-costs": 8005489,
-                            "seed-hydro-costs": 9005489,
-                            "seed-initial-reservoir-levels": 10005489,
-                        },
-                        "playlist": [],
-                    },
-                    "completionDate": "",
-                    "referenceStatus": False,
-                    "synchronized": False,
-                    "status": "",
-                    "archived": False,
-                },
-                {
-                    "name": "20241217-1115eco-sdqsd",
-                    "type": "economy",
-                    "settings": {
-                        "general": {
-                            "mode": "Economy",
-                            "horizon": "",
-                            "nbyears": 1,
-                            "simulation.start": 1,
-                            "simulation.end": 365,
-                            "january.1st": "Monday",
-                            "first-month-in-year": "january",
-                            "first.weekday": "Monday",
-                            "leapyear": False,
-                            "year-by-year": False,
-                            "derated": False,
-                            "custom-scenario": False,
-                            "user-playlist": False,
-                            "thematic-trimming": False,
-                            "geographic-trimming": False,
-                            "generate": "",
-                            "nbtimeseriesload": 1,
-                            "nbtimeserieshydro": 1,
-                            "nbtimeserieswind": 1,
-                            "nbtimeseriesthermal": 1,
-                            "nbtimeseriessolar": 1,
-                            "refreshtimeseries": "",
-                            "intra-modal": "",
-                            "inter-modal": "",
-                            "refreshintervalload": 100,
-                            "refreshintervalhydro": 100,
-                            "refreshintervalwind": 100,
-                            "refreshintervalthermal": 100,
-                            "refreshintervalsolar": 100,
-                            "readonly": False,
-                        },
-                        "input": {"import": ""},
-                        "output": {"synthesis": True, "storenewset": False, "archives": ""},
-                        "optimization": {
-                            "simplex-range": "week",
-                            "transmission-capacities": "local-values",
-                            "link-type": "local",
-                            "include-constraints": True,
-                            "include-hurdlecosts": True,
-                            "include-tc-minstablepower": True,
-                            "include-tc-min-ud-time": True,
-                            "include-dayahead": True,
-                            "include-strategicreserve": True,
-                            "include-spinningreserve": True,
-                            "include-primaryreserve": True,
-                            "include-exportmps": False,
-                            "include-exportstructure": False,
-                            "include-unfeasible-problem-behavior": "error-verbose",
-                        },
-                        "otherPreferences": {
-                            "initial-reservoir-levels": "cold start",
-                            "hydro-heuristic-policy": "accommodate rule curves",
-                            "hydro-pricing-mode": "fast",
-                            "power-fluctuations": "free modulations",
-                            "shedding-strategy": "share margins",
-                            "shedding-policy": "shave peaks",
-                            "unit-commitment-mode": "fast",
-                            "number-of-cores-mode": "medium",
-                            "renewable-generation-modelling": "clusters",
-                            "day-ahead-reserve-management": "global",
-                        },
-                        "advancedParameters": {"accuracy-on-correlation": "", "adequacy-block-size": 100},
-                        "seedsMersenneTwister": {
-                            "seed-tsgen-wind": 5489,
-                            "seed-tsgen-load": 1005489,
-                            "seed-tsgen-hydro": 2005489,
-                            "seed-tsgen-thermal": 3005489,
-                            "seed-tsgen-solar": 4005489,
-                            "seed-tsnumbers": 5005489,
-                            "seed-unsupplied-energy-costs": 6005489,
-                            "seed-spilled-energy-costs": 7005489,
-                            "seed-thermal-costs": 8005489,
-                            "seed-hydro-costs": 9005489,
-                            "seed-initial-reservoir-levels": 10005489,
-                        },
-                        "playlist": [],
-                    },
-                    "completionDate": "",
-                    "referenceStatus": False,
-                    "synchronized": False,
-                    "status": "",
-                    "archived": False,
-                },
-            ]
-
-            mocker.get(run_url, json=response, status_code=200)
+            mocker.get(run_url, json=self.json_output, status_code=200)
 
             self.study.read_outputs()
 
             assert len(self.study.get_outputs()) == 2
-            output1 = self.study.get_output(response[0].get("name"))
-            output2 = self.study.get_output(response[1].get("name"))
+            output1 = self.study.get_output(self.json_output[0].get("name"))
+            output2 = self.study.get_output(self.json_output[1].get("name"))
             assert output1 is not None
             assert output2 is not None
-            assert output1.archived == response[0].get("archived")
-            assert output2.archived == response[1].get("archived")
+            assert output1.archived == self.json_output[0].get("archived")
+            assert output2.archived == self.json_output[1].get("archived")
 
             # ===== FAILING TEST =====
             error_message = f"Couldn't get outputs for study {self.study_id}"
