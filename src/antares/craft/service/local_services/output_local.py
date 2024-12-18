@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 from typing import Any
+
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
