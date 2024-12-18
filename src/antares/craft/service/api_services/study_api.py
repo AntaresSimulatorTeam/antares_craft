@@ -18,6 +18,7 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
     BindingConstraintDeletionError,
+    OutputsRetrievalError,
     StudyDeletionError,
     StudySettingsUpdateError,
     StudyVariantCreationError,
@@ -119,3 +120,14 @@ class StudyApiService(BaseStudyService):
             return study.read_study_api(self.config, variant_id)
         except APIError as e:
             raise StudyVariantCreationError(self.study_id, e.message) from e
+
+    def read_outputs(self, output_service: "BaseOutputService") -> list[Output]:
+        url = f"{self._base_url}/studies/{self.study_id}/outputs"
+        try:
+            response = self._wrapper.get(url)
+            outputs_json_list = response.json()
+            return [
+                Output(output_service, name=output["name"], archived=output["archived"]) for output in outputs_json_list
+            ]
+        except APIError as e:
+            raise OutputsRetrievalError(self.study_id, e.message)

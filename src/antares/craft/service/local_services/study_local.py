@@ -46,3 +46,6 @@ class StudyLocalService(BaseStudyService):
 
     def create_variant(self, variant_name: str) -> "Study":
         raise NotImplementedError
+
+    def read_outputs(self, output_service: "BaseOutputService") -> list[Output]:
+        raise NotImplementedError

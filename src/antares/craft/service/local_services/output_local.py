@@ -23,8 +23,5 @@ class OutputLocalService(BaseOutputService):
         self.config = config
         self.study_name = study_name
 
-    def read_outputs(self) -> list[Output]:
-        raise NotImplementedError
-
     def get_matrix(self, path: str) -> pd.DataFrame:
         raise NotImplementedError
