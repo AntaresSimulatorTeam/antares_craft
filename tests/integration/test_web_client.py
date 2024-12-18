@@ -526,3 +526,7 @@ class TestWebClient:
         assert not outputs.get(output.name).archived
         study_with_outputs = read_study_api(api_config, study._study_service.study_id)
         assert study_with_outputs.get_outputs() == outputs
+
+        # ===== Output get_matrix =====
+
+        output.get_matrix("mc-all/grid/links")

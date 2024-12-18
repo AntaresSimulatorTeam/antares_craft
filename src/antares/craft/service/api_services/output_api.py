@@ -27,5 +27,4 @@ class OutputApiService(BaseOutputService):
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
     def get_matrix(self, path: str) -> pd.DataFrame:
-        # do something with the path
         return get_matrix(self._base_url, self.study_id, self._wrapper, path)
