@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from typing import Any
-from pandas import DataFrame
+import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.output import Output
@@ -23,4 +23,7 @@ class OutputLocalService(BaseOutputService):
         self.study_name = study_name
 
     def read_outputs(self) -> list[Output]:
+        raise NotImplementedError
+
+    def get_matrix(self, path: str) -> pd.DataFrame:
         raise NotImplementedError

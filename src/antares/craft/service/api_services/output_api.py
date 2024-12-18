@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
@@ -34,3 +34,7 @@ class OutputApiService(BaseOutputService):
             return [Output(name=output["name"], archived=output["archived"]) for output in outputs_json_list]
         except APIError as e:
             raise OutputsRetrievalError(self.study_id, e.message)
+
+    def get_matrix(self, path: str) -> pd.DataFrame:
+        # do something with the path
+        return get_matrix(self._base_url, self.study_id, self._wrapper, path)
