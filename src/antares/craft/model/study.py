@@ -402,6 +402,17 @@ class Study:
         """
         return self._outputs[output_id]
 
+    def get_matrix(self, path: str) -> pd.DataFrame:
+        """
+        Gets an output matrix from a path
+
+        Args:
+            path: the path to the matrix
+
+        Returns: Pandas DataFrame
+        """
+        return self._output_service.get_matrix(path)
+
 
 def _verify_study_already_exists(study_directory: Path) -> None:
     if study_directory.exists():

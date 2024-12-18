@@ -638,3 +638,15 @@ class BaseOutputService(ABC):
         Returns: Output list
         """
         pass
+
+    @abstractmethod
+    def get_matrix(self, path: str) -> pd.DataFrame:
+        """
+        Gets an output matrix from a path
+
+        Args:
+            path: the path to the matrix
+
+        Returns: Pandas DataFrame
+        """
+        pass
