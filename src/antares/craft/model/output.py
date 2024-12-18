@@ -29,8 +29,9 @@ class Output(BaseModel):
         Gets the matrix of the output
 
         Args:
-            path: output path
+            path: output path, eg: "mc-all/areas/south/values-hourly"
 
         Returns: Pandas DataFrame
         """
-        return self._output_service.get_matrix(path)
+        full_path = f"output/{self.name}/economy/{path}"
+        return self._output_service.get_matrix(full_path)
