@@ -9,9 +9,28 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from typing import Any
+
+import pandas as pd
+
 from pydantic import BaseModel
 
 
 class Output(BaseModel):
     name: str
     archived: bool
+
+    def __init__(self, output_service, **kwargs: Any):  # type: ignore
+        super().__init__(**kwargs)
+        self._output_service = output_service
+
+    def get_matrix(self, path: str) -> pd.DataFrame:
+        """
+        Gets the matrix of the output
+
+        Args:
+            path: output path
+
+        Returns: Pandas DataFrame
+        """
+        return self._output_service.get_matrix(path)

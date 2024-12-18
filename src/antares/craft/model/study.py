@@ -219,8 +219,8 @@ class Study:
         self._area_service = service_factory.create_area_service()
         self._link_service = service_factory.create_link_service()
         self._run_service = service_factory.create_run_service()
-        self._output_service = service_factory.create_output_service()
         self._binding_constraints_service = service_factory.create_binding_constraints_service()
+        self._output_service = service_factory.create_output_service()
         self._settings = DefaultStudySettings.model_validate(settings if settings is not None else StudySettings())
         self._areas: Dict[str, Area] = dict()
         self._links: Dict[str, Link] = dict()
@@ -377,7 +377,7 @@ class Study:
 
         Returns: Output list
         """
-        outputs = self._output_service.read_outputs()
+        outputs = self._study_service.read_outputs(self._output_service)
         self._outputs = {output.name: output for output in outputs}
         return outputs
 
@@ -401,17 +401,6 @@ class Study:
         Raises: KeyError if it doesn't exist
         """
         return self._outputs[output_id]
-
-    def get_matrix(self, path: str) -> pd.DataFrame:
-        """
-        Gets an output matrix from a path
-
-        Args:
-            path: the path to the matrix
-
-        Returns: Pandas DataFrame
-        """
-        return self._output_service.get_matrix(path)
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:

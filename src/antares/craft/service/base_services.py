@@ -557,6 +557,15 @@ class BaseStudyService(ABC):
         """
         pass
 
+    @abstractmethod
+    def read_outputs(self, output_service: "BaseOutputService") -> list[Output]:
+        """
+        Gets the output list of a study
+
+        Returns: Output list
+        """
+        pass
+
 
 class BaseRenewableService(ABC):
     @abstractmethod
@@ -631,21 +640,12 @@ class BaseRunService(ABC):
 
 class BaseOutputService(ABC):
     @abstractmethod
-    def read_outputs(self) -> list[Output]:
-        """
-        Gets the output list of a study
-
-        Returns: Output list
-        """
-        pass
-
-    @abstractmethod
     def get_matrix(self, path: str) -> pd.DataFrame:
         """
-        Gets an output matrix from a path
+        Gets the matrix of the output
 
         Args:
-            path: the path to the matrix
+            path: output path
 
         Returns: Pandas DataFrame
         """

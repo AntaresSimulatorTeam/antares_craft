@@ -26,15 +26,6 @@ class OutputApiService(BaseOutputService):
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
-    def read_outputs(self) -> list[Output]:
-        url = f"{self._base_url}/studies/{self.study_id}/outputs"
-        try:
-            response = self._wrapper.get(url)
-            outputs_json_list = response.json()
-            return [Output(name=output["name"], archived=output["archived"]) for output in outputs_json_list]
-        except APIError as e:
-            raise OutputsRetrievalError(self.study_id, e.message)
-
     def get_matrix(self, path: str) -> pd.DataFrame:
         # do something with the path
         return get_matrix(self._base_url, self.study_id, self._wrapper, path)
