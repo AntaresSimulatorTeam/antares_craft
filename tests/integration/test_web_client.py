@@ -499,7 +499,12 @@ class TestWebClient:
             new_study.get_binding_constraints().keys()
         )
 
-        # ===== test run study simulation and wait job completion ======
+        # ===== Test outputs (Part 1 - before simulation) =====
+
+        assert len(study.read_outputs()) == 0
+
+        # ===== Test run study simulation and wait job completion ======
+
         parameters = AntaresSimulationParameters(nb_cpu=4)
 
         job = study.run_antares_simulation(parameters)
@@ -512,3 +517,12 @@ class TestWebClient:
         assert job.output_id is not None
         assert job.parameters == parameters
         assert job.parameters.unzip_output is True
+
+        # ===== Test outputs (Part 2 - after simulation) =====
+
+        output = study.read_outputs()[0]
+        outputs = study.get_outputs()
+        assert len(outputs) == 1
+        assert not outputs.get(output.name).archived
+        study_with_outputs = read_study_api(api_config, study._study_service.study_id)
+        assert study_with_outputs.get_outputs() == outputs

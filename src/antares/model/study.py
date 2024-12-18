@@ -27,6 +27,7 @@ from antares.exceptions.exceptions import APIError, LinkCreationError, StudyCrea
 from antares.model.area import Area, AreaProperties, AreaUi
 from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
 from antares.model.link import Link, LinkProperties, LinkUi
+from antares.model.output import Output
 from antares.model.settings.study_settings import DefaultStudySettings, StudySettings, StudySettingsLocal
 from antares.model.settings.time_series import correlation_defaults
 from antares.model.simulation import AntaresSimulationParameters, Job
@@ -184,6 +185,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings)
 
     study.read_areas()
+    study.read_outputs()
 
     return study
 
@@ -217,11 +219,13 @@ class Study:
         self._area_service = service_factory.create_area_service()
         self._link_service = service_factory.create_link_service()
         self._run_service = service_factory.create_run_service()
+        self._output_service = service_factory.create_output_service()
         self._binding_constraints_service = service_factory.create_binding_constraints_service()
         self._settings = DefaultStudySettings.model_validate(settings if settings is not None else StudySettings())
         self._areas: Dict[str, Area] = dict()
         self._links: Dict[str, Link] = dict()
         self._binding_constraints: Dict[str, BindingConstraint] = dict()
+        self._outputs: dict[str, Output] = dict()
 
     @property
     def service(self) -> BaseStudyService:
@@ -366,6 +370,37 @@ class Study:
         Raises: SimulationTimeOutError if exceeded timeout
         """
         self._run_service.wait_job_completion(job, time_out)
+
+    def read_outputs(self) -> list[Output]:
+        """
+        Load outputs into current study
+
+        Returns: Output list
+        """
+        outputs = self._output_service.read_outputs()
+        self._outputs = {output.name: output for output in outputs}
+        return outputs
+
+    def get_outputs(self) -> MappingProxyType[str, Output]:
+        """
+        Get outputs of current study
+
+        Returns: read-only proxy of the (output_id, Output) mapping
+        """
+        return MappingProxyType(self._outputs)
+
+    def get_output(self, output_id: str) -> Output:
+        """
+        Get a specific output
+
+        Args:
+            output_id: id of the output to get
+
+        Returns: Output with the output_id
+
+        Raises: KeyError if it doesn't exist
+        """
+        return self._outputs[output_id]
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:

@@ -23,6 +23,7 @@ from antares.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
     LinkCreationError,
+    OutputsRetrievalError,
     SimulationFailedError,
     SimulationTimeOutError,
     StudyCreationError,
@@ -206,6 +207,7 @@ class TestCreateAPI:
         thermal_url = f"{area_url}/zone/clusters/thermal"
         renewable_url = f"{area_url}/zone/clusters/renewable"
         storage_url = f"{area_url}/zone/storages"
+        output_url = f"{url}/outputs"
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url, json=json_study)
@@ -215,6 +217,10 @@ class TestCreateAPI:
             mocker.get(renewable_url, json=[])
             mocker.get(thermal_url, json=[])
             mocker.get(storage_url, json=[])
+            mocker.get(
+                output_url,
+                json=[],
+            )
             actual_study = read_study_api(self.api, self.study_id)
 
             expected_study_name = json_study.pop("name")
@@ -248,6 +254,13 @@ class TestCreateAPI:
 
             areas_url = f"{base_url}/studies/{variant_id}/areas?ui=true"
             mocker.get(areas_url, json={}, status_code=200)
+
+            output_url = f"{base_url}/studies/{variant_id}/outputs"
+            mocker.get(
+                output_url,
+                json=[],
+                status_code=200,
+            )
 
             variant = self.study.create_variant(variant_name)
             variant_from_api = create_variant_api(self.api, self.study_id, variant_name)
@@ -425,3 +438,37 @@ class TestCreateAPI:
             job = self.study.run_antares_simulation(parameters)
             with pytest.raises(SimulationFailedError):
                 self.study.wait_job_completion(job, time_out=10)
+
+    def test_read_outputs(self):
+        with requests_mock.Mocker() as mocker:
+            run_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs"
+
+            json_output = [
+                {
+                    "name": "20241217-1115eco-sdqsd",
+                    "type": "economy",
+                    "settings": {},
+                    "archived": False,
+                },
+                {
+                    "name": "20241217-1115eco-abcd",
+                    "type": "economy",
+                    "settings": {},
+                    "archived": True,
+                },
+            ]
+            mocker.get(run_url, json=json_output, status_code=200)
+
+            self.study.read_outputs()
+
+            assert len(self.study.get_outputs()) == 2
+            output1 = self.study.get_output(json_output[0].get("name"))
+            output2 = self.study.get_output(json_output[1].get("name"))
+            assert output1.archived == json_output[0].get("archived")
+            assert output2.archived == json_output[1].get("archived")
+
+            # ===== FAILING TEST =====
+            error_message = f"Couldn't get outputs for study {self.study_id}"
+            mocker.get(run_url, json={"description": error_message}, status_code=404)
+            with pytest.raises(OutputsRetrievalError, match=error_message):
+                self.study.read_outputs()
