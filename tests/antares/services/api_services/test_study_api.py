@@ -219,12 +219,7 @@ class TestCreateAPI:
             mocker.get(storage_url, json=[])
             mocker.get(
                 output_url,
-                json={
-                    "name": "20241217-1115eco-sdqsd",
-                    "type": "economy",
-                    "settings": {},
-                    "archived": False,
-                },
+                json=[],
             )
             actual_study = read_study_api(self.api, self.study_id)
 
@@ -263,12 +258,7 @@ class TestCreateAPI:
             output_url = f"{base_url}/studies/{variant_id}/outputs"
             mocker.get(
                 output_url,
-                json={
-                    "name": "20241217-1115eco-sdqsd",
-                    "type": "economy",
-                    "settings": {},
-                    "archived": False,
-                },
+                json=[],
                 status_code=200,
             )
 
@@ -474,8 +464,6 @@ class TestCreateAPI:
             assert len(self.study.get_outputs()) == 2
             output1 = self.study.get_output(json_output[0].get("name"))
             output2 = self.study.get_output(json_output[1].get("name"))
-            assert output1 is not None
-            assert output2 is not None
             assert output1.archived == json_output[0].get("archived")
             assert output2.archived == json_output[1].get("archived")
 

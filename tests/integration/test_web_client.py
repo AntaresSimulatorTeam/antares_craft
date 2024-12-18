@@ -523,6 +523,6 @@ class TestWebClient:
         output = study.read_outputs()[0]
         outputs = study.get_outputs()
         assert len(outputs) == 1
-        assert outputs.get(output.name).archived is not False
+        assert outputs.get(output.name).archived
         study_with_outputs = read_study_api(api_config, study._study_service.study_id)
         assert study_with_outputs.get_outputs() == outputs
