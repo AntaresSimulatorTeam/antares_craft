@@ -24,7 +24,7 @@ from antares.craft.exceptions.exceptions import (
     ConstraintMatrixUpdateError,
     ConstraintPropertiesUpdateError,
     ConstraintTermAdditionError,
-    ConstraintTermDeletionError,
+    ConstraintTermDeletionError, ConstraintRetrievalError,
 )
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -170,3 +170,10 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise ConstraintTermAdditionError(constraint.id, [term.id for term in terms], e.message) from e
 
         return new_terms
+
+    def read_binding_constraints(self) -> list[BindingConstraint]:
+        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints"
+        try:
+            response = self._wrapper.get(url)
+        except APIError as e:
+            raise ConstraintRetrievalError(self.study_id, e.message) from e

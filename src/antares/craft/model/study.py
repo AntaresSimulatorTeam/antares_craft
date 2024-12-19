@@ -221,9 +221,9 @@ class Study:
         self._run_service = service_factory.create_run_service()
         self._binding_constraints_service = service_factory.create_binding_constraints_service()
         self._settings = DefaultStudySettings.model_validate(settings if settings is not None else StudySettings())
-        self._areas: Dict[str, Area] = dict()
-        self._links: Dict[str, Link] = dict()
-        self._binding_constraints: Dict[str, BindingConstraint] = dict()
+        self._areas: dict[str, Area] = dict()
+        self._links: dict[str, Link] = dict()
+        self._binding_constraints: dict[str, BindingConstraint] = dict()
         self._outputs: dict[str, Output] = dict()
 
     @property
@@ -326,6 +326,11 @@ class Study:
         self._binding_constraints[binding_constraint.id] = binding_constraint
         return binding_constraint
 
+    def read_binding_constraints(self):
+        constraints = self._binding_constraints_service.read_binding_constraints()
+        self._binding_constraints = {constraint.id: constraint for constraint in constraints}
+        return constraints
+
     def update_settings(self, settings: StudySettings) -> None:
         new_settings = self._study_service.update_study_settings(settings)
         if new_settings:
@@ -400,7 +405,6 @@ class Study:
         Raises: KeyError if it doesn't exist
         """
         return self._outputs[output_id]
-
 
 def _verify_study_already_exists(study_directory: Path) -> None:
     if study_directory.exists():
