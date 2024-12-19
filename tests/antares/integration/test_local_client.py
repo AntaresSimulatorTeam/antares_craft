@@ -14,23 +14,20 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from antares import create_study_local
-from antares.exceptions.exceptions import (
-    AreaCreationError,
-    LinkCreationError,
-)
-from antares.model.area import AdequacyPatchMode, Area, AreaProperties, AreaUi
-from antares.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
-from antares.model.commons import FilterOption
-from antares.model.link import Link, LinkProperties, LinkUi
-from antares.model.renewable import RenewableClusterGroup, RenewableClusterProperties
-from antares.model.settings.general import GeneralParametersLocal, Mode
-from antares.model.settings.playlist_parameters import PlaylistParameters
-from antares.model.settings.study_settings import StudySettingsLocal
-from antares.model.st_storage import STStorageGroup, STStorageProperties
-from antares.model.study import Study
-from antares.model.thermal import ThermalCluster, ThermalClusterGroup, ThermalClusterProperties
-from antares.tools.ini_tool import IniFile, IniFileTypes
+from antares.craft import create_study_local
+from antares.craft.exceptions.exceptions import AreaCreationError, LinkCreationError
+from antares.craft.model.area import AdequacyPatchMode, Area, AreaProperties, AreaUi
+from antares.craft.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
+from antares.craft.model.commons import FilterOption
+from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties
+from antares.craft.model.settings.general import GeneralParametersLocal, Mode
+from antares.craft.model.settings.playlist_parameters import PlaylistParameters
+from antares.craft.model.settings.study_settings import StudySettingsLocal
+from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
+from antares.craft.model.study import Study
+from antares.craft.model.thermal import ThermalCluster, ThermalClusterGroup, ThermalClusterProperties
+from antares.craft.tools.ini_tool import IniFile, IniFileTypes
 
 
 class TestLocalClient:

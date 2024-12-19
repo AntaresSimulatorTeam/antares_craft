@@ -18,8 +18,8 @@ import re
 from json import dumps
 from unittest.mock import Mock, patch
 
-from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import (
+from antares.craft.api_conf.api_conf import APIconf
+from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
     LinkCreationError,
@@ -30,15 +30,15 @@ from antares.exceptions.exceptions import (
     StudySettingsUpdateError,
     StudyVariantCreationError,
 )
-from antares.model.area import Area, AreaProperties, AreaUi
-from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties
-from antares.model.hydro import HydroProperties
-from antares.model.link import Link, LinkProperties, LinkUi
-from antares.model.settings.general import GeneralParameters
-from antares.model.settings.study_settings import StudySettings
-from antares.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
-from antares.model.study import Study, create_study_api, create_variant_api, read_study_api
-from antares.service.service_factory import ServiceFactory
+from antares.craft.model.area import Area, AreaProperties, AreaUi
+from antares.craft.model.binding_constraint import BindingConstraint, BindingConstraintProperties
+from antares.craft.model.hydro import HydroProperties
+from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.model.settings.general import GeneralParameters
+from antares.craft.model.settings.study_settings import StudySettings
+from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
+from antares.craft.model.study import Study, create_study_api, create_variant_api, read_study_api
+from antares.craft.service.service_factory import ServiceFactory
 
 
 class TestCreateAPI:

@@ -15,11 +15,11 @@ import requests_mock
 import numpy as np
 import pandas as pd
 
-from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import MatrixDownloadError, MatrixUploadError
-from antares.model.area import Area
-from antares.service.api_services.area_api import AreaApiService
-from antares.service.service_factory import ServiceFactory
+from antares.craft.api_conf.api_conf import APIconf
+from antares.craft.exceptions.exceptions import MatrixDownloadError, MatrixUploadError
+from antares.craft.model.area import Area
+from antares.craft.service.api_services.area_api import AreaApiService
+from antares.craft.service.service_factory import ServiceFactory
 
 
 class TestMatrixAPI:

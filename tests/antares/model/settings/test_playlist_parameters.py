@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 import pytest
 
-from antares.model.settings.playlist_parameters import PlaylistData, PlaylistParameters
+from antares.craft.model.settings.playlist_parameters import PlaylistData, PlaylistParameters
 
 
 class TestCreatePlaylistParameters:

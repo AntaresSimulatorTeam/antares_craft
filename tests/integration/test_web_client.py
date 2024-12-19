@@ -14,25 +14,25 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import (
+from antares.craft.api_conf.api_conf import APIconf
+from antares.craft.exceptions.exceptions import (
     AreaDeletionError,
     BindingConstraintCreationError,
     ConstraintMatrixUpdateError,
     MatrixUploadError,
     STStorageMatrixUploadError,
 )
-from antares.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
-from antares.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
-from antares.model.link import LinkProperties, LinkStyle, LinkUi
-from antares.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
-from antares.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
-from antares.model.settings.general import GeneralParameters, Mode
-from antares.model.settings.study_settings import PlaylistParameters, StudySettings
-from antares.model.simulation import AntaresSimulationParameters, Job, JobStatus
-from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
-from antares.model.study import create_study_api, create_variant_api, read_study_api
-from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
+from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
+from antares.craft.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
+from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
+from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
+from antares.craft.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
+from antares.craft.model.settings.general import GeneralParameters, Mode
+from antares.craft.model.settings.study_settings import PlaylistParameters, StudySettings
+from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
+from antares.craft.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
+from antares.craft.model.study import create_study_api, create_variant_api, read_study_api
+from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 

@@ -13,25 +13,25 @@ import pytest
 
 import pandas as pd
 
-from antares.model.area import Area
-from antares.model.binding_constraint import (
+from antares.craft.model.area import Area
+from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
 )
-from antares.model.hydro import HydroProperties
-from antares.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
-from antares.model.st_storage import STStorageGroup, STStorageProperties
-from antares.model.study import Study, create_study_local
-from antares.model.thermal import (
+from antares.craft.model.hydro import HydroProperties
+from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
+from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
+from antares.craft.model.study import Study, create_study_local
+from antares.craft.model.thermal import (
     LawOption,
     LocalTSGenerationBehavior,
     ThermalClusterGroup,
     ThermalClusterProperties,
     ThermalCostGeneration,
 )
-from antares.tools.ini_tool import IniFile, IniFileTypes
+from antares.craft.tools.ini_tool import IniFile, IniFileTypes
 
 
 @pytest.fixture

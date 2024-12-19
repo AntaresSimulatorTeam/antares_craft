@@ -22,24 +22,24 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import (
+from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
     CustomError,
     LinkCreationError,
 )
-from antares.model.area import AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
-from antares.model.binding_constraint import (
+from antares.craft.model.area import AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
+from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
     ConstraintTerm,
 )
-from antares.model.commons import FilterOption
-from antares.model.hydro import Hydro
-from antares.model.link import (
+from antares.craft.model.commons import FilterOption
+from antares.craft.model.hydro import Hydro
+from antares.craft.model.link import (
     AssetType,
     Link,
     LinkProperties,
@@ -49,11 +49,11 @@ from antares.model.link import (
     LinkUiLocal,
     TransmissionCapacities,
 )
-from antares.model.settings.adequacy_patch import (
+from antares.craft.model.settings.adequacy_patch import (
     DefaultAdequacyPatchParameters,
     PriceTakingOrder,
 )
-from antares.model.settings.advanced_parameters import (
+from antares.craft.model.settings.advanced_parameters import (
     AdvancedParametersLocal,
     HydroHeuristicPolicy,
     HydroPricingMode,
@@ -64,25 +64,28 @@ from antares.model.settings.advanced_parameters import (
     SimulationCore,
     UnitCommitmentMode,
 )
-from antares.model.settings.general import (
+from antares.craft.model.settings.general import (
     BuildingMode,
     GeneralParametersLocal,
     Mode,
     Month,
     WeekDay,
 )
-from antares.model.settings.optimization import (
+from antares.craft.model.settings.optimization import (
     ExportMPS,
     OptimizationParametersLocal,
     OptimizationTransmissionCapacities,
     SimplexOptimizationRange,
     UnfeasibleProblemBehavior,
 )
-from antares.model.settings.playlist_parameters import PlaylistData, PlaylistParameters
-from antares.model.settings.study_settings import DefaultStudySettings, StudySettingsLocal
-from antares.model.settings.thematic_trimming import DefaultThematicTrimmingParameters, ThematicTrimmingParametersLocal
-from antares.model.study import create_study_local
-from antares.tools.ini_tool import IniFileTypes
+from antares.craft.model.settings.playlist_parameters import PlaylistData, PlaylistParameters
+from antares.craft.model.settings.study_settings import DefaultStudySettings, StudySettingsLocal
+from antares.craft.model.settings.thematic_trimming import (
+    DefaultThematicTrimmingParameters,
+    ThematicTrimmingParametersLocal,
+)
+from antares.craft.model.study import create_study_local
+from antares.craft.tools.ini_tool import IniFileTypes
 
 
 class TestCreateStudy:
@@ -1440,7 +1443,7 @@ layers = 0
 
         area_id = "test"
 
-        monkeypatch.setattr("antares.service.local_services.area_local._sets_ini_content", mock_error_in_sets_ini)
+        monkeypatch.setattr("antares.craft.service.local_services.area_local._sets_ini_content", mock_error_in_sets_ini)
         with pytest.raises(
             AreaCreationError,
             match=f"Could not create the area {area_id}: {error_message}",
