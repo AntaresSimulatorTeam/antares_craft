@@ -25,6 +25,7 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
 from antares.craft.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
 from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
+from antares.craft.model.output import AggregationEntry, Frequency, McType, ObjectType, QueryFile
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
 from antares.craft.model.settings.general import GeneralParameters, Mode
@@ -529,8 +530,14 @@ class TestWebClient:
 
         # ===== Output get_matrix =====
 
-        output.get_matrix("mc-all/grid/links")
-        aggregation_entry = AggregationEntry(
-            query_file=QueryFile.VALUES, frequency=Frequency.DAILY, mc_years="", type_ids="", columns_names=""
-        )
-        output.aggregate_values(aggregation_entry, McType.ALL, ObjectType.LINKS)
+        matrix = output.get_matrix("mc-all/grid/links")
+
+        assert isinstance(matrix, pd.DataFrame)
+        assert not matrix.empty
+
+        # ===== Output aggregate_values =====
+        aggregation_entry = AggregationEntry(query_file=QueryFile.VALUES, frequency=Frequency.DAILY)
+        aggregated_matrix = output.aggregate_values(aggregation_entry, McType.ALL, ObjectType.LINKS)
+
+        assert isinstance(aggregated_matrix, pd.DataFrame)
+        assert not aggregated_matrix.empty

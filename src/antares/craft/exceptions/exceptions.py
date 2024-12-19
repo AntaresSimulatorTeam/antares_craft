@@ -12,7 +12,7 @@
 
 from typing import List
 
-from antares.model.output import McType, ObjectType
+from antares.craft.model.output import McType, ObjectType
 
 
 class InvalidChoiceError(ValueError):
