@@ -472,3 +472,16 @@ class TestCreateAPI:
             mocker.get(run_url, json={"description": error_message}, status_code=404)
             with pytest.raises(OutputsRetrievalError, match=error_message):
                 self.study.read_outputs()
+
+    def test_get_matrix(self):
+        with requests_mock.Mocker() as mocker:
+            run_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs"
+
+            json_output = [
+                {
+                    "name": "20241217-1115eco-sdqsd",
+                    "type": "economy",
+                    "settings": {},
+                    "archived": False,
+                }
+            ]
