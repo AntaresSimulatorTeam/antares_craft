@@ -25,3 +25,8 @@ class OutputLocalService(BaseOutputService):
 
     def get_matrix(self, path: str) -> pd.DataFrame:
         raise NotImplementedError
+
+    def aggregate_values(
+        self, output_id: str, aggregation_entry: AggregationEntry, mc_type: McType, object_type: ObjectType
+    ) -> pd.DataFrame:
+        raise NotImplementedError

@@ -650,3 +650,19 @@ class BaseOutputService(ABC):
         Returns: Pandas DataFrame
         """
         pass
+
+    @abstractmethod
+    def aggregate_values(
+        self, output_id: str, aggregation_entry: AggregationEntry, mc_type: McType, object_type: ObjectType
+    ) -> pd.DataFrame:
+        """
+        Creates a matrix of aggregated raw data
+
+        Args:
+            output_id: id of the output
+            aggregation_entry: input for the /aggregate endpoint
+            mc_type: all or ind (enum)
+            object_type: links or areas (enum)
+
+        Returns: Pandas DataFrame corresponding to the aggregated raw data
+        """

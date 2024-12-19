@@ -12,6 +12,8 @@
 
 from typing import List
 
+from antares.model.output import McType, ObjectType
+
 
 class InvalidChoiceError(ValueError):
     def __init__(self, message: str = "Invalid choice") -> None:
@@ -327,4 +329,13 @@ class SimulationFailedError(Exception):
 class OutputsRetrievalError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
         self.message = f"Could not get outputs for {study_id}: " + message
+        super().__init__(self.message)
+
+
+class AggregateCreationError(Exception):
+    def __init__(self, study_id: str, output_id: str, mc_type: McType, object_type: ObjectType, message: str) -> None:
+        self.message = (
+            f"Could not create {mc_type.value}/{object_type.value} aggregate for study {study_id}, output {output_id}: "
+            + message
+        )
         super().__init__(self.message)

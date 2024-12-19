@@ -530,3 +530,7 @@ class TestWebClient:
         # ===== Output get_matrix =====
 
         output.get_matrix("mc-all/grid/links")
+        aggregation_entry = AggregationEntry(
+            query_file=QueryFile.VALUES, frequency=Frequency.DAILY, mc_years="", type_ids="", columns_names=""
+        )
+        output.aggregate_values(aggregation_entry, McType.ALL, ObjectType.LINKS)
