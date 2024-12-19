@@ -13,8 +13,8 @@
 import pytest
 import requests_mock
 
-from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import (
+from antares.craft.api_conf.api_conf import APIconf
+from antares.craft.exceptions.exceptions import (
     AreaDeletionError,
     BindingConstraintDeletionError,
     ConstraintTermDeletionError,
@@ -23,19 +23,19 @@ from antares.exceptions.exceptions import (
     STStorageDeletionError,
     ThermalDeletionError,
 )
-from antares.model.area import Area
-from antares.model.binding_constraint import BindingConstraint
-from antares.model.link import Link
-from antares.model.renewable import RenewableCluster
-from antares.model.st_storage import STStorage
-from antares.model.thermal import ThermalCluster
-from antares.service.api_services.area_api import AreaApiService
-from antares.service.api_services.binding_constraint_api import BindingConstraintApiService
-from antares.service.api_services.link_api import LinkApiService
-from antares.service.api_services.renewable_api import RenewableApiService
-from antares.service.api_services.st_storage_api import ShortTermStorageApiService
-from antares.service.api_services.study_api import StudyApiService
-from antares.service.api_services.thermal_api import ThermalApiService
+from antares.craft.model.area import Area
+from antares.craft.model.binding_constraint import BindingConstraint
+from antares.craft.model.link import Link
+from antares.craft.model.renewable import RenewableCluster
+from antares.craft.model.st_storage import STStorage
+from antares.craft.model.thermal import ThermalCluster
+from antares.craft.service.api_services.area_api import AreaApiService
+from antares.craft.service.api_services.binding_constraint_api import BindingConstraintApiService
+from antares.craft.service.api_services.link_api import LinkApiService
+from antares.craft.service.api_services.renewable_api import RenewableApiService
+from antares.craft.service.api_services.st_storage_api import ShortTermStorageApiService
+from antares.craft.service.api_services.study_api import StudyApiService
+from antares.craft.service.api_services.thermal_api import ThermalApiService
 
 
 class TestDeleteAPI:

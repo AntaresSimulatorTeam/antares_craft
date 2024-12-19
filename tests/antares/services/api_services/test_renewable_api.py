@@ -15,13 +15,13 @@ import requests_mock
 
 import pandas as pd
 
-from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import RenewableMatrixDownloadError, RenewablePropertiesUpdateError
-from antares.model.area import Area
-from antares.model.renewable import RenewableCluster, RenewableClusterProperties
-from antares.service.api_services.area_api import AreaApiService
-from antares.service.api_services.renewable_api import RenewableApiService
-from antares.service.service_factory import ServiceFactory
+from antares.craft.api_conf.api_conf import APIconf
+from antares.craft.exceptions.exceptions import RenewableMatrixDownloadError, RenewablePropertiesUpdateError
+from antares.craft.model.area import Area
+from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
+from antares.craft.service.api_services.area_api import AreaApiService
+from antares.craft.service.api_services.renewable_api import RenewableApiService
+from antares.craft.service.service_factory import ServiceFactory
 
 
 class TestCreateAPI:

@@ -22,19 +22,19 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import ThermalCreationError
-from antares.model.hydro import Hydro
-from antares.model.renewable import (
+from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.exceptions.exceptions import ThermalCreationError
+from antares.craft.model.hydro import Hydro
+from antares.craft.model.renewable import (
     RenewableCluster,
     RenewableClusterGroup,
     RenewableClusterProperties,
     RenewableClusterPropertiesLocal,
     TimeSeriesInterpretation,
 )
-from antares.model.st_storage import STStorage, STStorageGroup, STStorageProperties, STStoragePropertiesLocal
-from antares.model.study import read_study_local
-from antares.model.thermal import (
+from antares.craft.model.st_storage import STStorage, STStorageGroup, STStorageProperties, STStoragePropertiesLocal
+from antares.craft.model.study import read_study_local
+from antares.craft.model.thermal import (
     LawOption,
     LocalTSGenerationBehavior,
     ThermalCluster,
@@ -43,9 +43,9 @@ from antares.model.thermal import (
     ThermalClusterPropertiesLocal,
     ThermalCostGeneration,
 )
-from antares.tools.ini_tool import IniFile, IniFileTypes
-from antares.tools.matrix_tool import df_save
-from antares.tools.time_series_tool import TimeSeriesFileType
+from antares.craft.tools.ini_tool import IniFile, IniFileTypes
+from antares.craft.tools.matrix_tool import df_save
+from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
 
 class TestCreateThermalCluster:

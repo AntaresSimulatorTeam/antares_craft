@@ -13,7 +13,7 @@
 import numpy as np
 import pandas as pd
 
-from antares.tools.matrix_tool import prepare_args_replace_matrix
+from antares.craft.tools.matrix_tool import prepare_args_replace_matrix
 
 
 def test_prepare_args():

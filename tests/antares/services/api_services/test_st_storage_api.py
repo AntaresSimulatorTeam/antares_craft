@@ -15,17 +15,17 @@ import requests_mock
 
 import pandas as pd
 
-from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import (
+from antares.craft.api_conf.api_conf import APIconf
+from antares.craft.exceptions.exceptions import (
     STStorageMatrixDownloadError,
     STStorageMatrixUploadError,
     STStoragePropertiesUpdateError,
 )
-from antares.model.area import Area
-from antares.model.st_storage import STStorage, STStorageProperties
-from antares.service.api_services.area_api import AreaApiService
-from antares.service.api_services.st_storage_api import ShortTermStorageApiService
-from antares.service.service_factory import ServiceFactory
+from antares.craft.model.area import Area
+from antares.craft.model.st_storage import STStorage, STStorageProperties
+from antares.craft.service.api_services.area_api import AreaApiService
+from antares.craft.service.api_services.st_storage_api import ShortTermStorageApiService
+from antares.craft.service.service_factory import ServiceFactory
 
 
 class TestCreateAPI:

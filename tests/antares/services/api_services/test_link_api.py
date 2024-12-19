@@ -15,18 +15,18 @@ import requests_mock
 
 import pandas as pd
 
-from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import (
+from antares.craft.api_conf.api_conf import APIconf
+from antares.craft.exceptions.exceptions import (
     LinkDownloadError,
     LinkPropertiesUpdateError,
     LinkUiUpdateError,
     LinkUploadError,
 )
-from antares.model.area import Area
-from antares.model.commons import FilterOption
-from antares.model.link import Link, LinkProperties, LinkUi
-from antares.model.study import Study
-from antares.service.service_factory import ServiceFactory
+from antares.craft.model.area import Area
+from antares.craft.model.commons import FilterOption
+from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.model.study import Study
+from antares.craft.service.service_factory import ServiceFactory
 
 
 class TestCreateAPI:

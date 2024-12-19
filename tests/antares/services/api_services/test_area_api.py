@@ -15,21 +15,21 @@ import requests_mock
 import numpy as np
 import pandas as pd
 
-from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import (
+from antares.craft.api_conf.api_conf import APIconf
+from antares.craft.exceptions.exceptions import (
     AreaPropertiesUpdateError,
     AreaUiUpdateError,
     RenewableCreationError,
     STStorageCreationError,
     ThermalCreationError,
 )
-from antares.model.area import Area, AreaProperties, AreaUi
-from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
-from antares.model.renewable import RenewableCluster, RenewableClusterProperties
-from antares.model.st_storage import STStorage, STStorageProperties
-from antares.model.thermal import ThermalCluster, ThermalClusterProperties
-from antares.service.api_services.area_api import AreaApiService
-from antares.service.service_factory import ServiceFactory
+from antares.craft.model.area import Area, AreaProperties, AreaUi
+from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
+from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
+from antares.craft.model.st_storage import STStorage, STStorageProperties
+from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
+from antares.craft.service.api_services.area_api import AreaApiService
+from antares.craft.service.service_factory import ServiceFactory
 
 
 class TestCreateAPI:

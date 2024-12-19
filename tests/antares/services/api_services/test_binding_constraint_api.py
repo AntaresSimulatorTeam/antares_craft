@@ -15,12 +15,12 @@ import requests_mock
 
 import pandas as pd
 
-from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import ConstraintMatrixDownloadError, ConstraintPropertiesUpdateError
-from antares.model.area import Area
-from antares.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintMatrixName
-from antares.model.study import Study
-from antares.service.service_factory import ServiceFactory
+from antares.craft.api_conf.api_conf import APIconf
+from antares.craft.exceptions.exceptions import ConstraintMatrixDownloadError, ConstraintPropertiesUpdateError
+from antares.craft.model.area import Area
+from antares.craft.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintMatrixName
+from antares.craft.model.study import Study
+from antares.craft.service.service_factory import ServiceFactory
 
 
 @pytest.fixture
