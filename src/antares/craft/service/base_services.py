@@ -25,7 +25,7 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.craft.model.link import Link, LinkProperties, LinkUi
-from antares.craft.model.output import Output
+from antares.craft.model.output import AggregationEntry, McType, ObjectType, Output
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
@@ -557,6 +557,15 @@ class BaseStudyService(ABC):
         """
         pass
 
+    @abstractmethod
+    def read_outputs(self, output_service: "BaseOutputService") -> list[Output]:
+        """
+        Gets the output list of a study
+
+        Returns: Output list
+        """
+        pass
+
 
 class BaseRenewableService(ABC):
     @abstractmethod
@@ -631,10 +640,29 @@ class BaseRunService(ABC):
 
 class BaseOutputService(ABC):
     @abstractmethod
-    def read_outputs(self) -> list[Output]:
+    def get_matrix(self, path: str) -> pd.DataFrame:
         """
-        Gets the output list of a study
+        Gets the matrix of the output
 
-        Returns: Output list
+        Args:
+            path: output path
+
+        Returns: Pandas DataFrame
         """
         pass
+
+    @abstractmethod
+    def aggregate_values(
+        self, output_id: str, aggregation_entry: AggregationEntry, mc_type: McType, object_type: ObjectType
+    ) -> pd.DataFrame:
+        """
+        Creates a matrix of aggregated raw data
+
+        Args:
+            output_id: id of the output
+            aggregation_entry: input for the /aggregate endpoint
+            mc_type: all or ind (enum)
+            object_type: links or areas (enum)
+
+        Returns: Pandas DataFrame corresponding to the aggregated raw data
+        """
