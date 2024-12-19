@@ -53,6 +53,7 @@ class AggregationEntry(BaseModel):
         type_ids: which links/areas to be selected (ex: "be - fr"). If empty, all are selected (comma separated)
         columns_names: names or regexes (if query_file is of type details) to select columns (comma separated)
     """
+
     query_file: QueryFile
     frequency: Frequency
     mc_years: str = ""

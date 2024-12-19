@@ -24,6 +24,7 @@ from antares.craft.exceptions.exceptions import (
     StudyVariantCreationError,
 )
 from antares.craft.model.binding_constraint import BindingConstraint
+from antares.craft.model.output import Output
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters
 from antares.craft.model.settings.general import GeneralParameters
@@ -32,7 +33,7 @@ from antares.craft.model.settings.playlist_parameters import PlaylistData, Playl
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.model.settings.time_series import TimeSeriesParameters
-from antares.craft.service.base_services import BaseStudyService
+from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 
 if TYPE_CHECKING:
     from antares.craft.model.study import Study
@@ -121,7 +122,7 @@ class StudyApiService(BaseStudyService):
         except APIError as e:
             raise StudyVariantCreationError(self.study_id, e.message) from e
 
-    def read_outputs(self, output_service: "BaseOutputService") -> list[Output]:
+    def read_outputs(self, output_service: BaseOutputService) -> list[Output]:
         url = f"{self._base_url}/studies/{self.study_id}/outputs"
         try:
             response = self._wrapper.get(url)
