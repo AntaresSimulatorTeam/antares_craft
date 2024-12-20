@@ -61,6 +61,9 @@ class LinkData(BaseModel):
     area1: str
     area2: str
 
+    def to_query(self):
+        return f"{self.area1}%{self.area2}"
+
 
 class ClusterData(BaseModel):
     """
@@ -69,6 +72,9 @@ class ClusterData(BaseModel):
 
     area: str
     cluster: str
+
+    def to_query(self):
+        return f"{self.area}.{self.cluster}"
 
 
 class ConstraintTerm(TermOperators):
