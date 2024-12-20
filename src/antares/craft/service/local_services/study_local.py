@@ -27,6 +27,7 @@ class StudyLocalService(BaseStudyService):
         super().__init__(**kwargs)
         self._config = config
         self._study_name = study_name
+        self._output_service: Optional[BaseOutputService] = None
 
     @property
     def study_id(self) -> str:
@@ -35,6 +36,13 @@ class StudyLocalService(BaseStudyService):
     @property
     def config(self) -> LocalConfiguration:
         return self._config
+
+    @property
+    def output_service(self) -> Optional[BaseOutputService]:
+        return self._output_service
+
+    def set_output_service(self, output_service: BaseOutputService) -> None:
+        self._output_service = output_service
 
     def update_study_settings(self, settings: StudySettings) -> Optional[StudySettings]:
         raise NotImplementedError
@@ -48,5 +56,5 @@ class StudyLocalService(BaseStudyService):
     def create_variant(self, variant_name: str) -> "Study":
         raise NotImplementedError
 
-    def read_outputs(self, output_service: BaseOutputService) -> list[Output]:
+    def read_outputs(self) -> list[Output]:
         raise NotImplementedError

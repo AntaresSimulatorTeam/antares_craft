@@ -534,6 +534,8 @@ class TestWebClient:
 
         assert isinstance(matrix, pd.DataFrame)
         assert not matrix.empty
+        assert "upstream" in matrix
+        assert "downstream" in matrix
 
         # ===== Output aggregate_values =====
         aggregation_entry = AggregationEntry(query_file=QueryFile.VALUES, frequency=Frequency.DAILY)
@@ -541,3 +543,4 @@ class TestWebClient:
 
         assert isinstance(aggregated_matrix, pd.DataFrame)
         assert not aggregated_matrix.empty
+        assert aggregated_matrix.shape == (364, 30)

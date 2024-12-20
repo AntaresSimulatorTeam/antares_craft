@@ -12,8 +12,6 @@
 
 from typing import List
 
-from antares.craft.model.output import McType, ObjectType
-
 
 class InvalidChoiceError(ValueError):
     def __init__(self, message: str = "Invalid choice") -> None:
@@ -333,9 +331,8 @@ class OutputsRetrievalError(Exception):
 
 
 class AggregateCreationError(Exception):
-    def __init__(self, study_id: str, output_id: str, mc_type: McType, object_type: ObjectType, message: str) -> None:
+    def __init__(self, study_id: str, output_id: str, mc_type: str, object_type: str, message: str) -> None:
         self.message = (
-            f"Could not create {mc_type.value}/{object_type.value} aggregate for study {study_id}, output {output_id}: "
-            + message
+            f"Could not create {mc_type}/{object_type} aggregate for study {study_id}, output {output_id}: " + message
         )
         super().__init__(self.message)

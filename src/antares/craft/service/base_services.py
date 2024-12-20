@@ -558,12 +558,16 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
-    def read_outputs(self, output_service: "BaseOutputService") -> list[Output]:
+    def read_outputs(self) -> list[Output]:
         """
         Gets the output list of a study
 
         Returns: Output list
         """
+        pass
+
+    @abstractmethod
+    def set_output_service(self, output_service: "BaseOutputService") -> None:
         pass
 
 

@@ -220,7 +220,6 @@ class Study:
         self._link_service = service_factory.create_link_service()
         self._run_service = service_factory.create_run_service()
         self._binding_constraints_service = service_factory.create_binding_constraints_service()
-        self._output_service = service_factory.create_output_service()
         self._settings = DefaultStudySettings.model_validate(settings if settings is not None else StudySettings())
         self._areas: Dict[str, Area] = dict()
         self._links: Dict[str, Link] = dict()
@@ -377,7 +376,7 @@ class Study:
 
         Returns: Output list
         """
-        outputs = self._study_service.read_outputs(self._output_service)
+        outputs = self._study_service.read_outputs()
         self._outputs = {output.name: output for output in outputs}
         return outputs
 

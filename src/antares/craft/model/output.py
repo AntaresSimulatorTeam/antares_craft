@@ -14,13 +14,14 @@ from typing import Any
 
 import pandas as pd
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class QueryFile(Enum):
     VALUES = "values"
+    ID = "id"
     DETAILS = "details"
-    DETAILS_STSTORAGE = "details-STstorage"
+    DETAILS_ST_STORAGE = "details-STstorage"
     DETAILS_RES = "details-res"
 
 
@@ -50,31 +51,42 @@ class AggregationEntry(BaseModel):
         query_file: The file to query.
         frequency: "hourly", "daily", "weekly", "monthly", "annual"
         mc_years: Monte Carlo years to include in the query. If left empty, all years are included.
-        type_ids: which links/areas to be selected (ex: "be - fr"). If empty, all are selected (comma separated)
-        columns_names: names or regexes (if query_file is of type details) to select columns (comma separated)
+        type_ids: which links/areas to be selected (ex: "be - fr"). If empty, all are selected
+        columns_names: names or regexes (if query_file is of type details) to select columns
     """
 
     query_file: QueryFile
     frequency: Frequency
-    mc_years: str = ""
-    type_ids: str = ""
-    columns_names: str = ""
+    mc_years: list[str] = Field(default_factory=list)
+    type_ids: list[str] = Field(default_factory=list)
+    columns_names: list[str] = Field(default_factory=list)
 
-    def to_query(self, object_type: ObjectType) -> str:
-        mc_years = f"&mc_years={self.mc_years}" if self.mc_years else ""
-        type_ids = f"&{object_type.value}_ids={self.type_ids}" if self.type_ids else ""
-        columns_names = f"&columns_names={self.columns_names}" if self.columns_names else ""
+    def to_api_query(self, object_type: ObjectType) -> str:
+        mc_years = f"&mc_years={','.join(self.mc_years)}" if self.mc_years else ""
+        type_ids = f"&{object_type.value}_ids={','.join(self.type_ids)}" if self.type_ids else ""
+        columns_names = f"&columns_names={','.join(self.columns_names)}" if self.columns_names else ""
 
         return f"query_file={self.query_file.value}&frequency={self.frequency.value}{mc_years}{type_ids}{columns_names}&format=csv"
 
 
-class Output(BaseModel):
-    name: str
-    archived: bool
-
-    def __init__(self, output_service, **kwargs: Any):  # type: ignore
-        super().__init__(**kwargs)
+class Output:
+    def __init__(self, name: str, archived: bool, output_service):  # type: ignore
+        self._name = name
+        self._archived = archived
         self._output_service = output_service
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, Output):
+            return self._name == other._name and self._archived == other._archived
+        return False
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def archived(self) -> bool:
+        return self._archived
 
     def get_matrix(self, path: str) -> pd.DataFrame:
         """

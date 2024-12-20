@@ -14,6 +14,7 @@ import requests_mock
 
 import re
 
+from io import StringIO
 from json import dumps
 from unittest.mock import Mock, patch
 
@@ -35,11 +36,12 @@ from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import BindingConstraint, BindingConstraintProperties
 from antares.craft.model.hydro import HydroProperties
 from antares.craft.model.link import Link, LinkProperties, LinkUi
-from antares.craft.model.output import AggregationEntry, Frequency, McType, ObjectType, QueryFile
+from antares.craft.model.output import AggregationEntry, Frequency, McType, ObjectType, Output, QueryFile
 from antares.craft.model.settings.general import GeneralParameters
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
 from antares.craft.model.study import Study, create_study_api, create_variant_api, read_study_api
+from antares.craft.service.api_services.output_api import OutputApiService
 from antares.craft.service.service_factory import ServiceFactory
 
 
@@ -475,35 +477,36 @@ class TestCreateAPI:
             with pytest.raises(OutputsRetrievalError, match=error_message):
                 self.study.read_outputs()
 
-            # ==== get_matrix() ====
-
-            matrix_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=output/{output1.name}/economy/mc-all/grid/links"
+    def test_output_get_matrix(self):
+        with requests_mock.Mocker() as mocker:
+            output = Output(
+                name="test-output", output_service=OutputApiService(self.api, self.study_id), archived=False
+            )
+            matrix_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=output/{output.name}/economy/mc-all/grid/links"
             matrix_output = {"columns": ["upstream", "downstream"], "data": [["be", "fr"]]}
             mocker.get(matrix_url, json=matrix_output)
 
-            matrix = output1.get_matrix("mc-all/grid/links")
+            matrix = output.get_matrix("mc-all/grid/links")
+            expected_matrix = pd.DataFrame(data=matrix_output["data"], columns=matrix_output["columns"])
             assert isinstance(matrix, pd.DataFrame)
-            assert matrix.shape[1] == len(matrix_output["columns"])
-            assert list(matrix.columns) == matrix_output["columns"]
-            assert matrix.shape[0] == len(matrix_output["data"])
-            assert matrix.iloc[0].tolist() == matrix_output["data"][0]
+            assert matrix.equals(expected_matrix)
 
-            # ==== aggregate_values ====
-
-            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-all/{output1.name}?query_file=values&frequency=annual&format=csv"
+    def test_output_aggregate_values(self):
+        with requests_mock.Mocker() as mocker:
+            output = Output(
+                name="test-output", output_service=OutputApiService(self.api, self.study_id), archived=False
+            )
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
             aggregate_output = """
-link,timeId,FLOW LIN. EXP,FLOW LIN. STD
-be - fr,1,0.000000,0.000000
-be - fr,2,0.000000,0.000000
-            """
+            link,timeId,FLOW LIN. EXP,FLOW LIN. STD
+            be - fr,1,0.000000,0.000000
+            be - fr,2,0.000000,0.000000
+                        """
             mocker.get(aggregate_url, text=aggregate_output)
 
             aggregation_entry = AggregationEntry(query_file=QueryFile.VALUES, frequency=Frequency.ANNUAL)
-            aggregated_matrix = output1.aggregate_values(aggregation_entry, McType.ALL, ObjectType.LINKS)
+            aggregated_matrix = output.aggregate_values(aggregation_entry, McType.ALL, ObjectType.LINKS)
+            expected_matrix = pd.read_csv(StringIO(aggregate_output))
 
             assert isinstance(aggregated_matrix, pd.DataFrame)
-            assert aggregated_matrix.shape[1] == 4
-            assert list(aggregated_matrix.columns) == ["link", "timeId", "FLOW LIN. EXP", "FLOW LIN. STD"]
-            assert aggregated_matrix.shape[0] == 2
-            assert aggregated_matrix.iloc[0].tolist() == ["be - fr", 1, 0.0, 0.0]
-            assert aggregated_matrix.iloc[1].tolist() == ["be - fr", 2, 0.0, 0.0]
+            assert aggregated_matrix.equals(expected_matrix)
