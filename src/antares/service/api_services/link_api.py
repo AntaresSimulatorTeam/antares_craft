@@ -214,7 +214,32 @@ class LinkApiService(BaseLinkService):
             raise LinkUploadError(area_from, area_to, "indirectcapacity", e.message) from e
 
     def read_links(self) -> list[Link]:
-        raise NotImplementedError
+        url = f"{self._base_url}/studies/{self.study_id}/links"
+        json_links = self._wrapper.get(url).json()
+        links = []
+
+        for link in json_links:
+            link_area_from_id = link.pop("area1")
+            link_area_to_id = link.pop("area2")
+
+            link_style = link.pop("linkStyle")
+            link_width = link.pop("linkWidth")
+            color_r = link.pop("colorr")
+            color_g = link.pop("colorg")
+            color_b = link.pop("colorb")
+
+            link_ui = LinkUi(
+                link_style=link_style, link_width=link_width, colorr=color_r, colorg=color_g, colorb=color_b
+            )
+
+            link_properties = LinkProperties(**link)
+            link_object = Link(link_area_from_id, link_area_to_id, self, link_properties, link_ui)
+
+            links.append(link_object)
+
+        links.sort(key=lambda link_obj: link_obj.area_from_id)
+
+        return links
 
 
 def _join_filter_values_for_json(json_dict: dict, dict_to_extract: dict) -> dict:

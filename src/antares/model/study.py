@@ -183,6 +183,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings)
 
     study.read_areas()
+    study.read_links()
 
     return study
 
@@ -235,6 +236,8 @@ class Study:
         return area_list
 
     def read_links(self) -> list[Link]:
+        link_list = self._link_service.read_links()
+        self._links = {link.id: link for link in link_list}
         return self._link_service.read_links()
 
     def get_areas(self) -> MappingProxyType[str, Area]:
