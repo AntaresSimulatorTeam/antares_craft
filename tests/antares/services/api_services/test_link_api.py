@@ -267,3 +267,13 @@ class TestCreateAPI:
                 match=f"Could not download directcapacity matrix for link {self.area_from.id}/{self.area_to.id}",
             ):
                 self.link.get_capacity_direct()
+
+    def test_read_links(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
+            mocker.get(url, json=[])
+            self.study.get_links()
+
+            actual_link_list = self.study.read_links()
+
+            assert len(actual_link_list) == 1
