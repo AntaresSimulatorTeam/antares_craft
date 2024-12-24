@@ -185,7 +185,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings)
 
     study.read_areas()
-    study.read_links()
+    study.read_outputs()
 
     return study
 

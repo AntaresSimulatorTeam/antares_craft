@@ -14,7 +14,6 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from antares.craft import create_study_local
 from antares.craft.exceptions.exceptions import AreaCreationError, LinkCreationError
 from antares.craft.model.area import AdequacyPatchMode, Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
@@ -25,7 +24,7 @@ from antares.craft.model.settings.general import GeneralParametersLocal, Mode
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettingsLocal
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
-from antares.craft.model.study import Study
+from antares.craft.model.study import Study, create_study_local
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterGroup, ThermalClusterProperties
 from antares.craft.tools.ini_tool import IniFile, IniFileTypes
 
