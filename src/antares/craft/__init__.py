@@ -10,6 +10,20 @@
 #
 # This file is part of the Antares project.
 
-from antares.craft.model.study import create_study_api, create_study_local
+import pandas as pd
 
-__all__ = ["create_study_api", "create_study_local"]
+from antares.api_conf.request_wrapper import RequestWrapper
+
+
+def upload_series(base_url: str, study_id: str, wrapper: RequestWrapper, series: pd.DataFrame, path: str) -> None:
+    url = f"{base_url}/studies/{study_id}/raw?path={path}"
+    array_data = series.to_numpy().tolist()
+    wrapper.post(url, json=array_data)
+
+
+def get_matrix(base_url: str, study_id: str, wrapper: RequestWrapper, series_path: str) -> pd.DataFrame:
+    raw_url = f"{base_url}/studies/{study_id}/raw?path={series_path}"
+    response = wrapper.get(raw_url)
+    json_df = response.json()
+    dataframe = pd.DataFrame(data=json_df["data"], index=json_df["index"], columns=json_df["columns"])
+    return dataframe
