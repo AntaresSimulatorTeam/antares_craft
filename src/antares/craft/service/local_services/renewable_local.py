@@ -45,12 +45,12 @@ class RenewableLocalService(BaseRenewableService):
         if renewable_dict:
             for renewable_cluster in renewable_dict:
                 renewable_properties = RenewableClusterPropertiesLocal(
-                    group=renewable_dict[renewable_cluster]["group"],
-                    renewable_name=renewable_dict[renewable_cluster]["name"],
-                    enabled=renewable_dict[renewable_cluster]["enabled"],
-                    unit_count=renewable_dict[renewable_cluster]["unitcount"],
-                    nominal_capacity=renewable_dict[renewable_cluster]["nominalcapacity"],
-                    ts_interpretation=renewable_dict[renewable_cluster]["ts-interpretation"],
+                    group=renewable_dict[renewable_cluster].get("group"),
+                    renewable_name=renewable_dict[renewable_cluster].get("name"),
+                    enabled=renewable_dict[renewable_cluster].get("enabled"),
+                    unit_count=renewable_dict[renewable_cluster].get("unitcount"),
+                    nominal_capacity=renewable_dict[renewable_cluster].get("nominalcapacity"),
+                    ts_interpretation=renewable_dict[renewable_cluster].get("ts-interpretation"),
                 )
                 renewables_clusters.append(
                     RenewableCluster(

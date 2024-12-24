@@ -338,6 +338,44 @@ class AreaLocalService(BaseAreaService):
         areas = []
         for element in areas_path.iterdir():
             if element.is_dir():
+                optimization_dict = IniFile(
+                    self.config.study_path, IniFileTypes.AREA_OPTIMIZATION_INI, area_id=element.name
+                ).ini_dict
+                area_adequacy_dict = IniFile(
+                    self.config.study_path, IniFileTypes.AREA_ADEQUACY_PATCH_INI, area_id=element.name
+                ).ini_dict
+                ui_dict = IniFile(self.config.study_path, IniFileTypes.AREA_UI_INI, area_id=element.name).ini_dict
+                area_properties = AreaPropertiesLocal(
+                    non_dispatch_power=optimization_dict["nodal optimization"].get("non-dispatchable-power"),
+                    dispatch_hydro_power=optimization_dict["nodal optimization"].get("dispatchable-hydro-power"),
+                    other_dispatch_power=optimization_dict["nodal optimization"].get("other-dispatchable-power"),
+                    spread_unsupplied_energy_cost=optimization_dict["nodal optimization"].get(
+                        "spread-unsupplied-energy-cost"
+                    ),
+                    spread_spilled_energy_cost=optimization_dict["nodal optimization"].get(
+                        "spread-spilled-energy-cost"
+                    ),
+                    energy_cost_unsupplied=optimization_dict["nodal optimization"].get(
+                        "average-unsupplied-energy-cost"
+                    ),
+                    energy_cost_spilled=optimization_dict["nodal optimization"].get("average-spilled-energy-cost"),
+                    filter_synthesis=set(optimization_dict["filtering"].get("filter-synthesis").split(", ")),
+                    filter_by_year=set(optimization_dict["filtering"].get("filter-year-by-year").split(", ")),
+                    adequacy_patch_mode=area_adequacy_dict["adequacy-patch"].get("adequacy-patch-mode"),
+                )
+                ui_properties = AreaUi(
+                    layer=ui_dict["ui"].get("layer"),
+                    x=ui_dict["ui"].get("x"),
+                    y=ui_dict["ui"].get("y"),
+                    color_rgb=[
+                        ui_dict["ui"].get("color_r", 0),
+                        ui_dict["ui"].get("color_g", 0),
+                        ui_dict["ui"].get("color_b", 0),
+                    ],
+                    layer_x=ui_dict["ui"].get("layerX"),
+                    layer_y=ui_dict["ui"].get("layerY"),
+                    layer_color=ui_dict["ui"].get("layerColor"),
+                )
                 areas.append(
                     Area(
                         name=element.name,
@@ -345,6 +383,8 @@ class AreaLocalService(BaseAreaService):
                         storage_service=self.storage_service,
                         thermal_service=self.thermal_service,
                         renewable_service=self.renewable_service,
+                        properties=area_properties.yield_area_properties(),
+                        ui=ui_properties,
                     )
                 )
         return areas
