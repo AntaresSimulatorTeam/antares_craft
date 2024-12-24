@@ -269,7 +269,7 @@ class TestCreateAPI:
                 self.link.get_capacity_direct()
 
     def test_read_links(self):
-
+        #Test not working, wip
 
         area_from_test = Area("area_from_test", self.api, self.api, self.api, self.api)
         area_to_test = Area("area_to_test", self.api, self.api, self.api, self.api)

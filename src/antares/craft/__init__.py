@@ -12,7 +12,7 @@
 
 import pandas as pd
 
-from antares.api_conf.request_wrapper import RequestWrapper
+from antares.craft.api_conf.request_wrapper import RequestWrapper
 
 
 def upload_series(base_url: str, study_id: str, wrapper: RequestWrapper, series: pd.DataFrame, path: str) -> None:
