@@ -269,11 +269,34 @@ class TestCreateAPI:
                 self.link.get_capacity_direct()
 
     def test_read_links(self):
+
+
+        area_from_test = Area("area_from_test", self.api, self.api, self.api, self.api)
+        area_to_test = Area("area_to_test", self.api, self.api, self.api, self.api)
+
+        url_read_links = f"https://antares.com/api/v1/studies/{self.study_id}/links"
+        url_create_area_from = f"https://antares.com/api/v1/studies/{self.study_id}/areas"
+        url_properties_area_from = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{area_from_test.id}/properties/form"
+        url_create_area_to = f"https://antares.com/api/v1/studies/{self.study_id}/{area_from_test.id}/properties/form"
+        url_properties_area_to = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{area_to_test.id}/properties/form"
+        url_area_to_ui = f""
+        url_area_from_ui = f""
+
+        test_area_from = self.study.create_area(area_name=area_from_test.name, properties=area_from_test.properties, ui=area_from_test.ui)
+        test_area_to = self.study.create_area(area_name=area_to_test.name, properties=area_to_test.properties, ui=area_to_test.ui)
+
+        test_link = Link(test_area_from.id, test_area_to.id, ServiceFactory(self.api, self.study_id).create_link_service())
+        self.study.create_link(area_from=test_link.area_from_id, area_to=test_link.area_to_id, properties=test_link.properties, ui=test_link.ui)
+
         with requests_mock.Mocker() as mocker:
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
-            mocker.get(url, json=[])
-            self.study.get_links()
-
+            mocker.post(url_create_area_from, json={})
+            mocker.post(url_properties_area_from, json={})
+            mocker.post(url_create_area_to, json={})
+            mocker.post(url_properties_area_to, json={})
+            mocker.post(url_area_to_ui, json={})
+            mocker.get(url_read_links, json=[])
+            expected_link_list = self.study.get_links()
             actual_link_list = self.study.read_links()
-
-            assert len(actual_link_list) == 1
+            print(f"Longueur actuelle: {len(actual_link_list)}")
+            print(f"Longueur attendue: {len(expected_link_list)}")
+            assert len(actual_link_list) == len(expected_link_list)
