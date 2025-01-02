@@ -506,7 +506,7 @@ class TestCreateAPI:
             )
 
             # aggregate_values_areas_mc_ind
-            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/ind/{output.name}?query_file=values&frequency=annual&format=csv"
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/mc-ind/{output.name}?query_file=values&frequency=annual&format=csv"
             aggregate_output = """
             link,timeId,FLOW LIN. EXP,FLOW LIN. STD
             be - fr,1,0.000000,0.000000
@@ -520,7 +520,7 @@ class TestCreateAPI:
             assert aggregated_matrix.equals(expected_matrix)
 
             # aggregate_values_links_mc_ind
-            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/ind/{output.name}?query_file=values&frequency=annual&format=csv"
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-ind/{output.name}?query_file=values&frequency=annual&format=csv"
             mocker.get(aggregate_url, text=aggregate_output)
             aggregation_entry = AggregationEntry(query_file=MCIndLinks.VALUES, frequency=Frequency.ANNUAL)
             aggregated_matrix = output.aggregate_values_links_mc_ind(aggregation_entry)
@@ -529,7 +529,7 @@ class TestCreateAPI:
             assert aggregated_matrix.equals(expected_matrix)
 
             # aggregate_values_areas_mc_all
-            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/all/{output.name}?query_file=values&frequency=annual&format=csv"
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
             mocker.get(aggregate_url, text=aggregate_output)
             aggregation_entry = AggregationEntry(query_file=MCAllAreas.VALUES, frequency=Frequency.ANNUAL)
             aggregated_matrix = output.aggregate_values_areas_mc_all(aggregation_entry)
@@ -538,7 +538,7 @@ class TestCreateAPI:
             assert aggregated_matrix.equals(expected_matrix)
 
             # aggregate_values_links_mc_all
-            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/all/{output.name}?query_file=values&frequency=annual&format=csv"
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
             mocker.get(aggregate_url, text=aggregate_output)
             aggregation_entry = AggregationEntry(query_file=MCAllLinks.VALUES, frequency=Frequency.ANNUAL)
             aggregated_matrix = output.aggregate_values_links_mc_all(aggregation_entry)
