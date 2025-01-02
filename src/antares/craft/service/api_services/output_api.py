@@ -16,7 +16,7 @@ import pandas as pd
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import AggregateCreationError, APIError
-from antares.craft.model.output import AggregationEntry, McType, ObjectType
+from antares.craft.model.output import AggregationEntry
 from antares.craft.service.api_services.utils import get_matrix
 from antares.craft.service.base_services import BaseOutputService
 
@@ -33,11 +33,11 @@ class OutputApiService(BaseOutputService):
         return get_matrix(self._base_url, self.study_id, self._wrapper, path)
 
     def aggregate_values(
-        self, output_id: str, aggregation_entry: AggregationEntry, mc_type: McType, object_type: ObjectType
+        self, output_id: str, aggregation_entry: AggregationEntry, object_type: str, mc_type: str
     ) -> pd.DataFrame:
-        url = f"{self._base_url}/studies/{self.study_id}/{object_type.value}/aggregate/{mc_type.value}/{output_id}?{aggregation_entry.to_api_query(object_type)}"
+        url = f"{self._base_url}/studies/{self.study_id}/{object_type}/aggregate/{mc_type}/{output_id}?{aggregation_entry.to_api_query(object_type)}"
         try:
             response = self._wrapper.get(url)
             return pd.read_csv(StringIO(response.text))
         except APIError as e:
-            raise AggregateCreationError(self.study_id, output_id, mc_type.value, object_type.value, e.message)
+            raise AggregateCreationError(self.study_id, output_id, mc_type, object_type, e.message)

@@ -36,7 +36,15 @@ from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import BindingConstraint, BindingConstraintProperties
 from antares.craft.model.hydro import HydroProperties
 from antares.craft.model.link import Link, LinkProperties, LinkUi
-from antares.craft.model.output import AggregationEntry, Frequency, McType, ObjectType, Output, QueryFile
+from antares.craft.model.output import (
+    AggregationEntry,
+    Frequency,
+    MCAllAreas,
+    MCAllLinks,
+    MCIndAreas,
+    MCIndLinks,
+    Output,
+)
 from antares.craft.model.settings.general import GeneralParameters
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
@@ -496,17 +504,44 @@ class TestCreateAPI:
             output = Output(
                 name="test-output", output_service=OutputApiService(self.api, self.study_id), archived=False
             )
-            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
+
+            # aggregate_values_areas_mc_ind
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/ind/{output.name}?query_file=values&frequency=annual&format=csv"
             aggregate_output = """
             link,timeId,FLOW LIN. EXP,FLOW LIN. STD
             be - fr,1,0.000000,0.000000
             be - fr,2,0.000000,0.000000
-                        """
+            """
             mocker.get(aggregate_url, text=aggregate_output)
-
-            aggregation_entry = AggregationEntry(query_file=QueryFile.VALUES, frequency=Frequency.ANNUAL)
-            aggregated_matrix = output.aggregate_values(aggregation_entry, McType.ALL, ObjectType.LINKS)
+            aggregation_entry = AggregationEntry(query_file=MCIndAreas.VALUES, frequency=Frequency.ANNUAL)
+            aggregated_matrix = output.aggregate_values_areas_mc_ind(aggregation_entry)
             expected_matrix = pd.read_csv(StringIO(aggregate_output))
+            assert isinstance(aggregated_matrix, pd.DataFrame)
+            assert aggregated_matrix.equals(expected_matrix)
 
+            # aggregate_values_links_mc_ind
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/ind/{output.name}?query_file=values&frequency=annual&format=csv"
+            mocker.get(aggregate_url, text=aggregate_output)
+            aggregation_entry = AggregationEntry(query_file=MCIndLinks.VALUES, frequency=Frequency.ANNUAL)
+            aggregated_matrix = output.aggregate_values_links_mc_ind(aggregation_entry)
+            expected_matrix = pd.read_csv(StringIO(aggregate_output))
+            assert isinstance(aggregated_matrix, pd.DataFrame)
+            assert aggregated_matrix.equals(expected_matrix)
+
+            # aggregate_values_areas_mc_all
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/all/{output.name}?query_file=values&frequency=annual&format=csv"
+            mocker.get(aggregate_url, text=aggregate_output)
+            aggregation_entry = AggregationEntry(query_file=MCAllAreas.VALUES, frequency=Frequency.ANNUAL)
+            aggregated_matrix = output.aggregate_values_areas_mc_all(aggregation_entry)
+            expected_matrix = pd.read_csv(StringIO(aggregate_output))
+            assert isinstance(aggregated_matrix, pd.DataFrame)
+            assert aggregated_matrix.equals(expected_matrix)
+
+            # aggregate_values_links_mc_all
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/all/{output.name}?query_file=values&frequency=annual&format=csv"
+            mocker.get(aggregate_url, text=aggregate_output)
+            aggregation_entry = AggregationEntry(query_file=MCAllLinks.VALUES, frequency=Frequency.ANNUAL)
+            aggregated_matrix = output.aggregate_values_links_mc_all(aggregation_entry)
+            expected_matrix = pd.read_csv(StringIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)

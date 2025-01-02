@@ -25,7 +25,7 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.craft.model.link import Link, LinkProperties, LinkUi
-from antares.craft.model.output import AggregationEntry, McType, ObjectType, Output
+from antares.craft.model.output import AggregationEntry, Output
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
@@ -657,7 +657,7 @@ class BaseOutputService(ABC):
 
     @abstractmethod
     def aggregate_values(
-        self, output_id: str, aggregation_entry: AggregationEntry, mc_type: McType, object_type: ObjectType
+        self, output_id: str, aggregation_entry: AggregationEntry, object_type: str, mc_type: str
     ) -> pd.DataFrame:
         """
         Creates a matrix of aggregated raw data

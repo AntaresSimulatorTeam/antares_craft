@@ -14,7 +14,7 @@ from typing import Any
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.output import AggregationEntry, McType, ObjectType
+from antares.craft.model.output import AggregationEntry
 from antares.craft.service.base_services import BaseOutputService
 
 
@@ -28,6 +28,6 @@ class OutputLocalService(BaseOutputService):
         raise NotImplementedError
 
     def aggregate_values(
-        self, output_id: str, aggregation_entry: AggregationEntry, mc_type: McType, object_type: ObjectType
+        self, output_id: str, aggregation_entry: AggregationEntry, object_type: str, mc_type: str
     ) -> pd.DataFrame:
         raise NotImplementedError
