@@ -35,7 +35,7 @@ class OutputApiService(BaseOutputService):
     def aggregate_values(
         self, output_id: str, aggregation_entry: AggregationEntry, object_type: str, mc_type: str
     ) -> pd.DataFrame:
-        url = f"{self._base_url}/studies/{self.study_id}/{object_type}/aggregate/{mc_type}/{output_id}?{aggregation_entry.to_api_query(object_type)}"
+        url = f"{self._base_url}/studies/{self.study_id}/{object_type}/aggregate/mc-{mc_type}/{output_id}?{aggregation_entry.to_api_query(object_type)}"
         try:
             response = self._wrapper.get(url)
             return pd.read_csv(StringIO(response.text))

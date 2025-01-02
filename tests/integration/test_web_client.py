@@ -25,7 +25,7 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
 from antares.craft.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
 from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
-from antares.craft.model.output import AggregationEntry, Frequency, McType, ObjectType, QueryFile
+from antares.craft.model.output import AggregationEntry, Frequency, MCAllLinks
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
 from antares.craft.model.settings.general import GeneralParameters, Mode
@@ -538,9 +538,9 @@ class TestWebClient:
         assert "downstream" in matrix
 
         # ===== Output aggregate_values =====
-        aggregation_entry = AggregationEntry(query_file=QueryFile.VALUES, frequency=Frequency.DAILY)
-        aggregated_matrix = output.aggregate_values(aggregation_entry, McType.ALL, ObjectType.LINKS)
 
+        aggregation_entry = AggregationEntry(query_file=MCAllLinks.VALUES, frequency=Frequency.DAILY)
+        aggregated_matrix = output.aggregate_values_links_mc_all(aggregation_entry)
         assert isinstance(aggregated_matrix, pd.DataFrame)
         assert not aggregated_matrix.empty
         assert aggregated_matrix.shape == (364, 30)
