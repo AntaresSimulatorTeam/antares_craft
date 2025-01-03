@@ -1116,6 +1116,9 @@ class TestReadArea:
         actual_areas = local_study_object.read_areas()
         expected_areas = ["at", "it", "fr"]
         for area in actual_areas:
+            assert area.ui.color_rgb == [230, 108, 44]
+            assert area.properties.energy_cost_spilled == 0.0
+            assert area.properties.energy_cost_unsupplied == 0.0
             assert area.id in expected_areas
 
 
