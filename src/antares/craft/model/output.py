@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from enum import Enum
-from typing import Any, Union
+from typing import Union
 
 import pandas as pd
 
@@ -79,11 +79,6 @@ class Output:
         self._name = name
         self._archived = archived
         self._output_service = output_service
-
-    def __eq__(self, other: Any) -> bool:
-        if isinstance(other, Output):
-            return self._name == other._name and self._archived == other._archived
-        return False
 
     @property
     def name(self) -> str:

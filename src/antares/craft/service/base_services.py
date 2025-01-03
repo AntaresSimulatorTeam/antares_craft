@@ -664,9 +664,10 @@ class BaseOutputService(ABC):
 
         Args:
             output_id: id of the output
-            aggregation_entry: input for the /aggregate endpoint
+            aggregation_entry: input (query_file, frequency, mc_years, ..)
             mc_type: all or ind (enum)
             object_type: links or areas (enum)
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
+        pass
