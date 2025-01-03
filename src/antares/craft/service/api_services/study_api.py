@@ -18,11 +18,13 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
     BindingConstraintDeletionError,
+    OutputsRetrievalError,
     StudyDeletionError,
     StudySettingsUpdateError,
     StudyVariantCreationError,
 )
 from antares.craft.model.binding_constraint import BindingConstraint
+from antares.craft.model.output import Output
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters
 from antares.craft.model.settings.general import GeneralParameters
@@ -31,7 +33,7 @@ from antares.craft.model.settings.playlist_parameters import PlaylistData, Playl
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.model.settings.time_series import TimeSeriesParameters
-from antares.craft.service.base_services import BaseStudyService
+from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 
 if TYPE_CHECKING:
     from antares.craft.model.study import Study
@@ -81,6 +83,7 @@ class StudyApiService(BaseStudyService):
         self._study_id = study_id
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
+        self._output_service: Optional[BaseOutputService] = None
 
     @property
     def study_id(self) -> str:
@@ -89,6 +92,13 @@ class StudyApiService(BaseStudyService):
     @property
     def config(self) -> APIconf:
         return self._config
+
+    @property
+    def output_service(self) -> Optional[BaseOutputService]:
+        return self._output_service
+
+    def set_output_service(self, output_service: BaseOutputService) -> None:
+        self._output_service = output_service
 
     def update_study_settings(self, settings: StudySettings) -> Optional[StudySettings]:
         try:
@@ -119,3 +129,15 @@ class StudyApiService(BaseStudyService):
             return study.read_study_api(self.config, variant_id)
         except APIError as e:
             raise StudyVariantCreationError(self.study_id, e.message) from e
+
+    def read_outputs(self) -> list[Output]:
+        url = f"{self._base_url}/studies/{self.study_id}/outputs"
+        try:
+            response = self._wrapper.get(url)
+            outputs_json_list = response.json()
+            return [
+                Output(output_service=self.output_service, name=output["name"], archived=output["archived"])
+                for output in outputs_json_list
+            ]
+        except APIError as e:
+            raise OutputsRetrievalError(self.study_id, e.message)

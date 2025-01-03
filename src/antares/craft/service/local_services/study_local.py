@@ -14,8 +14,9 @@ from typing import TYPE_CHECKING, Any, Optional
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.binding_constraint import BindingConstraint
+from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings
-from antares.craft.service.base_services import BaseStudyService
+from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 
 if TYPE_CHECKING:
     from antares.craft.model.study import Study
@@ -26,6 +27,7 @@ class StudyLocalService(BaseStudyService):
         super().__init__(**kwargs)
         self._config = config
         self._study_name = study_name
+        self._output_service: Optional[BaseOutputService] = None
 
     @property
     def study_id(self) -> str:
@@ -34,6 +36,13 @@ class StudyLocalService(BaseStudyService):
     @property
     def config(self) -> LocalConfiguration:
         return self._config
+
+    @property
+    def output_service(self) -> Optional[BaseOutputService]:
+        return self._output_service
+
+    def set_output_service(self, output_service: BaseOutputService) -> None:
+        self._output_service = output_service
 
     def update_study_settings(self, settings: StudySettings) -> Optional[StudySettings]:
         raise NotImplementedError
@@ -45,4 +54,7 @@ class StudyLocalService(BaseStudyService):
         raise NotImplementedError
 
     def create_variant(self, variant_name: str) -> "Study":
+        raise NotImplementedError
+
+    def read_outputs(self) -> list[Output]:
         raise NotImplementedError
