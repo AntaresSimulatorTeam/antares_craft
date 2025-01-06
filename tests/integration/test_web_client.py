@@ -547,5 +547,5 @@ class TestWebClient:
         assert aggregated_matrix.shape == (364, 30)
         assert aggregated_matrix["link"].apply(lambda x: x == "be - fr").all()
         expected_values = list(range(1, 101))
-        matrix_values = aggregated_matrix.loc[0:99, 'timeId'].tolist()
+        matrix_values = aggregated_matrix.loc[0:99, "timeId"].tolist()
         assert expected_values == matrix_values
