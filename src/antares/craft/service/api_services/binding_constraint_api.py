@@ -175,5 +175,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints"
         try:
             response = self._wrapper.get(url)
+            constraints_json = response.json()
+            create_bindin
         except APIError as e:
             raise ConstraintRetrievalError(self.study_id, e.message) from e
