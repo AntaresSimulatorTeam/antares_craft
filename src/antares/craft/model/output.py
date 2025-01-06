@@ -80,11 +80,6 @@ class Output:
         self._archived = archived
         self._output_service = output_service
 
-    def __eq__(self, other: Any) -> bool:
-        if isinstance(other, Output):
-            return self._name == other._name and self._archived == other._archived
-        return False
-
     @property
     def name(self) -> str:
         return self._name

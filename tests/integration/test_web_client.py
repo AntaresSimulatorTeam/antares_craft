@@ -13,6 +13,7 @@ import pytest
 
 import numpy as np
 import pandas as pd
+from pandas import DataFrame
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
@@ -525,19 +526,21 @@ class TestWebClient:
         assert len(outputs) == 1
         assert not outputs.get(output.name).archived
         study_with_outputs = read_study_api(api_config, study._study_service.study_id)
-        assert study_with_outputs.get_outputs() == outputs
+        outputs_from_api = study_with_outputs.get_outputs()
+        assert all(
+            outputs_from_api[output].name == outputs[output].name and outputs_from_api[output].archived == outputs[
+                output].archived
+            for output in outputs_from_api
+        )
 
         # ===== Output get_matrix =====
 
         matrix = output.get_matrix("mc-all/grid/links")
 
         assert isinstance(matrix, pd.DataFrame)
-        assert not matrix.empty
-        assert matrix.shape == (1, 2)
-        assert "upstream" in matrix
-        assert "downstream" in matrix
-        assert matrix.loc[0, "upstream"] == "be"
-        assert matrix.loc[0, "downstream"] == "fr"
+        data = {'upstream': ['be'], 'downstream': ['fr']}
+        expected_matrix = pd.DataFrame(data)
+        assert matrix.equals(expected_matrix)
 
         # ===== Output aggregate_values =====
 
