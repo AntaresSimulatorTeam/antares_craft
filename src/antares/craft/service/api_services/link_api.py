@@ -232,6 +232,15 @@ class LinkApiService(BaseLinkService):
                 link_style=link_style, link_width=link_width, colorr=color_r, colorg=color_g, colorb=color_b
             )
 
+            mapping = {"hurdlesCost":"hurdles-cost", "loopFlow":"loop-flow",
+                       "usePhaseShifter":"use-phase-shifter", "transmissionCapacities":"transmission-capacities",
+                       "displayComments":"display-comments", "filterSynthesis":"filter-synthesis",
+                       "filterYearByYear":"filter-year-by-year", "assetType":"asset-type"}
+
+
+            link = {mapping.get(k, k): v for k, v in link.items()}
+            link["filter-synthesis"] = set(link["filter-synthesis"].split(", "))
+            link["filter-year-by-year"] = set(link["filter-year-by-year"].split(", "))
             link_properties = LinkProperties(**link)
             link_object = Link(link_area_from_id, link_area_to_id, self, link_properties, link_ui)
 

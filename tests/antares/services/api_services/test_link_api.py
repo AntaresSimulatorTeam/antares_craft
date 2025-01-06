@@ -31,13 +31,34 @@ from antares.craft.service.service_factory import ServiceFactory
 
 @pytest.fixture
 def expected_link():
-    area_from_name = "test_from"
-    area_to_name = "test_to"
+    area_from_name = "zone1 auto"
+    area_to_name = "zone4auto"
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
     link_service = ServiceFactory(api, study_id).create_link_service()
-
-    return Link(area_from=area_from_name, area_to=area_to_name, link_service=link_service, properties=None)
+    properties = {
+        "hurdles-cost": False,
+        "loop-flow": False,
+        "use-phase-shifter": False,
+        "transmission-capacities": "enabled",
+        "asset-type": "ac",
+        "display-comments": True,
+        "colorr": 112,
+        "colorb": 112,
+        "colorg": 112,
+        "linkWidth": 1,
+        "linkStyle": "plain",
+        "filter-synthesis": set("hourly, daily, weekly, monthly, annual".split(", ")),
+        "filter-year-by-year": set("hourly, daily, weekly, monthly, annual".split(", ")),
+    }
+    color_r=properties.pop("colorr")
+    color_b=properties.pop("colorb")
+    color_g=properties.pop("colorg")
+    link_width=properties.pop("linkWidth")
+    link_style=properties.pop("linkStyle")
+    link_properties = LinkProperties(**properties)
+    link_ui= LinkUi(colorg=color_g,colorb=color_b,colorr=color_r,link_style=link_style,link_width=link_width)
+    return Link(area_from=area_from_name, area_to=area_to_name, link_service=link_service, properties=link_properties, ui=link_ui)
 
 
 class TestCreateAPI:
@@ -286,12 +307,12 @@ class TestCreateAPI:
 
         json_links = [
             {
-                "hurdlesCost": "false",
-                "loopFlow": "false",
-                "usePhaseShifter": "false",
+                "hurdlesCost": False,
+                "loopFlow": False,
+                "usePhaseShifter": False,
                 "transmissionCapacities": "enabled",
                 "assetType": "ac",
-                "displayComments": "true",
+                "displayComments": True,
                 "colorr": 112,
                 "colorb": 112,
                 "colorg": 112,
@@ -309,6 +330,6 @@ class TestCreateAPI:
             expected_link_list = [expected_link]
             mocker.get(url_read_links, json=json_links)
             actual_link_list = self.study.read_links()
-            print(f"Longueur actuelle: {len(actual_link_list)}")
-            print(f"Longueur attendue: {len(expected_link_list)}")
             assert len(actual_link_list) == len(expected_link_list)
+            assert expected_link_list[0].id == actual_link_list[0].id
+            assert expected_link_list[0].properties == actual_link_list[0].properties
