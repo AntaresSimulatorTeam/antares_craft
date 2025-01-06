@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 import pandas as pd
 
