@@ -25,8 +25,18 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.area import Area
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import Link, LinkProperties, LinkUi
-from antares.craft.model.study import Study
+from antares.craft.model.study import Study, create_study_api
 from antares.craft.service.service_factory import ServiceFactory
+
+@pytest.fixture
+def expected_link():
+    area_from_name = "test_from"
+    area_to_name = "test_to"
+    api = APIconf("https://antares.com", "token", verify=False)
+    study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
+    link_service = ServiceFactory(api, study_id).create_link_service()
+
+    return Link(area_from=area_from_name, area_to=area_to_name, link_service=link_service, properties=None)
 
 
 class TestCreateAPI:
@@ -268,37 +278,36 @@ class TestCreateAPI:
             ):
                 self.link.get_capacity_direct()
 
-    def test_read_links(self):
+
+    def test_read_links(self, expected_link):
         #Test not working, wip
 
-        area_from_test = Area("area_from_test", self.api, self.api, self.api, self.api)
-        area_to_test = Area("area_to_test", self.api, self.api, self.api, self.api)
-
         url_read_links = f"https://antares.com/api/v1/studies/{self.study_id}/links"
-        url_create_area_from = f"https://antares.com/api/v1/studies/{self.study_id}/areas"
-        url_properties_area_from = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{area_from_test.id}/properties/form"
-        url_create_area_to = f"https://antares.com/api/v1/studies/{self.study_id}/{area_from_test.id}/properties/form"
-        url_properties_area_to = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{area_to_test.id}/properties/form"
-        url_area_to_ui = ""
-        url_area_from_ui = ""
 
-
+        json_links = [
+            {
+                "hurdlesCost": "false",
+                "loopFlow": "false",
+                "usePhaseShifter": "false",
+                "transmissionCapacities": "enabled",
+                "assetType": "ac",
+                "displayComments": "true",
+                "colorr": 112,
+                "colorb": 112,
+                "colorg": 112,
+                "linkWidth": 1,
+                "linkStyle": "plain",
+                "filterSynthesis": "hourly, daily, weekly, monthly, annual",
+                "filterYearByYear": "hourly, daily, weekly, monthly, annual",
+                "area1": "zone1 auto",
+                "area2": "zone4auto"
+            }
+        ]
 
         with requests_mock.Mocker() as mocker:
-            mocker.post(url_create_area_from, json={})
-            test_area_from = self.study.create_area(area_name=area_from_test.name, properties=area_from_test.properties, ui=area_from_test.ui)
-            test_area_to = self.study.create_area(area_name=area_to_test.name, properties=area_to_test.properties, ui=area_to_test.ui)
-
-            test_link = Link(test_area_from.id, test_area_to.id,
-                             ServiceFactory(self.api, self.study_id).create_link_service())
-            self.study.create_link(area_from=test_link.area_from_id, area_to=test_link.area_to_id,
-                properties=test_link.properties, ui=test_link.ui)
-            #mocker.post(url_properties_area_from, json={})
-            #mocker.post(url_create_area_to, json={})
-            #mocker.post(url_properties_area_to, json={})
-            #mocker.post(url_area_to_ui, json={})
-           #mocker.get(url_read_links, json=[])
-            expected_link_list = self.study.get_links()
+            mocker.get(url_read_links, json=json_links)
+            expected_link_list = [expected_link]
+            mocker.get(url_read_links, json=json_links)
             actual_link_list = self.study.read_links()
             print(f"Longueur actuelle: {len(actual_link_list)}")
             print(f"Longueur attendue: {len(expected_link_list)}")
