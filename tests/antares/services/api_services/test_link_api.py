@@ -25,8 +25,9 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.area import Area
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import Link, LinkProperties, LinkUi
-from antares.craft.model.study import Study, create_study_api
+from antares.craft.model.study import Study
 from antares.craft.service.service_factory import ServiceFactory
+
 
 @pytest.fixture
 def expected_link():
@@ -278,9 +279,8 @@ class TestCreateAPI:
             ):
                 self.link.get_capacity_direct()
 
-
     def test_read_links(self, expected_link):
-        #Test not working, wip
+        # Test not working, wip
 
         url_read_links = f"https://antares.com/api/v1/studies/{self.study_id}/links"
 
@@ -300,7 +300,7 @@ class TestCreateAPI:
                 "filterSynthesis": "hourly, daily, weekly, monthly, annual",
                 "filterYearByYear": "hourly, daily, weekly, monthly, annual",
                 "area1": "zone1 auto",
-                "area2": "zone4auto"
+                "area2": "zone4auto",
             }
         ]
 
