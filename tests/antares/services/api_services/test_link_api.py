@@ -279,22 +279,25 @@ class TestCreateAPI:
         url_properties_area_from = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{area_from_test.id}/properties/form"
         url_create_area_to = f"https://antares.com/api/v1/studies/{self.study_id}/{area_from_test.id}/properties/form"
         url_properties_area_to = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{area_to_test.id}/properties/form"
-        url_area_to_ui = f""
-        url_area_from_ui = f""
+        url_area_to_ui = ""
+        url_area_from_ui = ""
 
-        test_area_from = self.study.create_area(area_name=area_from_test.name, properties=area_from_test.properties, ui=area_from_test.ui)
-        test_area_to = self.study.create_area(area_name=area_to_test.name, properties=area_to_test.properties, ui=area_to_test.ui)
 
-        test_link = Link(test_area_from.id, test_area_to.id, ServiceFactory(self.api, self.study_id).create_link_service())
-        self.study.create_link(area_from=test_link.area_from_id, area_to=test_link.area_to_id, properties=test_link.properties, ui=test_link.ui)
 
         with requests_mock.Mocker() as mocker:
             mocker.post(url_create_area_from, json={})
-            mocker.post(url_properties_area_from, json={})
-            mocker.post(url_create_area_to, json={})
-            mocker.post(url_properties_area_to, json={})
-            mocker.post(url_area_to_ui, json={})
-            mocker.get(url_read_links, json=[])
+            test_area_from = self.study.create_area(area_name=area_from_test.name, properties=area_from_test.properties, ui=area_from_test.ui)
+            test_area_to = self.study.create_area(area_name=area_to_test.name, properties=area_to_test.properties, ui=area_to_test.ui)
+
+            test_link = Link(test_area_from.id, test_area_to.id,
+                             ServiceFactory(self.api, self.study_id).create_link_service())
+            self.study.create_link(area_from=test_link.area_from_id, area_to=test_link.area_to_id,
+                properties=test_link.properties, ui=test_link.ui)
+            #mocker.post(url_properties_area_from, json={})
+            #mocker.post(url_create_area_to, json={})
+            #mocker.post(url_properties_area_to, json={})
+            #mocker.post(url_area_to_ui, json={})
+           #mocker.get(url_read_links, json=[])
             expected_link_list = self.study.get_links()
             actual_link_list = self.study.read_links()
             print(f"Longueur actuelle: {len(actual_link_list)}")
