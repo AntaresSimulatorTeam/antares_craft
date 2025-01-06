@@ -25,7 +25,7 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.craft.model.link import Link, LinkProperties, LinkUi
-from antares.craft.model.output import Output
+from antares.craft.model.output import AggregationEntry, Output
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
@@ -557,6 +557,19 @@ class BaseStudyService(ABC):
         """
         pass
 
+    @abstractmethod
+    def read_outputs(self) -> list[Output]:
+        """
+        Gets the output list of a study
+
+        Returns: Output list
+        """
+        pass
+
+    @abstractmethod
+    def set_output_service(self, output_service: "BaseOutputService") -> None:
+        pass
+
 
 class BaseRenewableService(ABC):
     @abstractmethod
@@ -631,10 +644,31 @@ class BaseRunService(ABC):
 
 class BaseOutputService(ABC):
     @abstractmethod
-    def read_outputs(self) -> list[Output]:
+    def get_matrix(self, output_id: str, file_path: str) -> pd.DataFrame:
         """
-        Gets the output list of a study
+        Gets the matrix of the output
 
-        Returns: Output list
+        Args:
+            output_id: id of the output
+            file_path: output path
+
+        Returns: Pandas DataFrame
+        """
+        pass
+
+    @abstractmethod
+    def aggregate_values(
+        self, output_id: str, aggregation_entry: AggregationEntry, object_type: str, mc_type: str
+    ) -> pd.DataFrame:
+        """
+        Creates a matrix of aggregated raw data
+
+        Args:
+            output_id: id of the output
+            aggregation_entry: input (query_file, frequency, mc_years, ..)
+            mc_type: all or ind (enum)
+            object_type: links or areas (enum)
+
+        Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
         pass

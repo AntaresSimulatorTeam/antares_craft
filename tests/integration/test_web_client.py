@@ -525,4 +525,29 @@ class TestWebClient:
         assert len(outputs) == 1
         assert not outputs.get(output.name).archived
         study_with_outputs = read_study_api(api_config, study._study_service.study_id)
-        assert study_with_outputs.get_outputs() == outputs
+        outputs_from_api = study_with_outputs.get_outputs()
+        assert all(
+            outputs_from_api[output].name == outputs[output].name
+            and outputs_from_api[output].archived == outputs[output].archived
+            for output in outputs_from_api
+        )
+
+        # ===== Output get_matrix =====
+
+        matrix = output.get_matrix("mc-all/grid/links")
+
+        assert isinstance(matrix, pd.DataFrame)
+        data = {"upstream": ["be"], "downstream": ["fr"]}
+        expected_matrix = pd.DataFrame(data)
+        assert matrix.equals(expected_matrix)
+
+        # ===== Output aggregate_values =====
+
+        aggregated_matrix = output.aggregate_links_mc_all("values", "daily")
+        assert isinstance(aggregated_matrix, pd.DataFrame)
+        assert not aggregated_matrix.empty
+        assert aggregated_matrix.shape == (364, 30)
+        assert aggregated_matrix["link"].apply(lambda x: x == "be - fr").all()
+        expected_values = list(range(1, 101))
+        matrix_values = aggregated_matrix.loc[0:99, "timeId"].tolist()
+        assert expected_values == matrix_values

@@ -9,14 +9,16 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
 import requests_mock
 
 import re
 
+from io import StringIO
 from json import dumps
 from unittest.mock import Mock, patch
+
+import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
@@ -34,10 +36,14 @@ from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import BindingConstraint, BindingConstraintProperties
 from antares.craft.model.hydro import HydroProperties
 from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.model.output import (
+    Output,
+)
 from antares.craft.model.settings.general import GeneralParameters
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
 from antares.craft.model.study import Study, create_study_api, create_variant_api, read_study_api
+from antares.craft.service.api_services.output_api import OutputApiService
 from antares.craft.service.service_factory import ServiceFactory
 
 
@@ -472,3 +478,60 @@ class TestCreateAPI:
             mocker.get(run_url, json={"description": error_message}, status_code=404)
             with pytest.raises(OutputsRetrievalError, match=error_message):
                 self.study.read_outputs()
+
+    def test_output_get_matrix(self):
+        with requests_mock.Mocker() as mocker:
+            output = Output(
+                name="test-output", output_service=OutputApiService(self.api, self.study_id), archived=False
+            )
+            matrix_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=output/{output.name}/economy/mc-all/grid/links"
+            matrix_output = {"columns": ["upstream", "downstream"], "data": [["be", "fr"]]}
+            mocker.get(matrix_url, json=matrix_output)
+
+            matrix = output.get_matrix("mc-all/grid/links")
+            expected_matrix = pd.DataFrame(data=matrix_output["data"], columns=matrix_output["columns"])
+            assert isinstance(matrix, pd.DataFrame)
+            assert matrix.equals(expected_matrix)
+
+    def test_output_aggregate_values(self):
+        with requests_mock.Mocker() as mocker:
+            output = Output(
+                name="test-output", output_service=OutputApiService(self.api, self.study_id), archived=False
+            )
+
+            # aggregate_values_areas_mc_ind
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/mc-ind/{output.name}?query_file=values&frequency=annual&format=csv"
+            aggregate_output = """
+            link,timeId,FLOW LIN. EXP,FLOW LIN. STD
+            be - fr,1,0.000000,0.000000
+            be - fr,2,0.000000,0.000000
+            """
+            mocker.get(aggregate_url, text=aggregate_output)
+            aggregated_matrix = output.aggregate_areas_mc_ind("values", "annual")
+            expected_matrix = pd.read_csv(StringIO(aggregate_output))
+            assert isinstance(aggregated_matrix, pd.DataFrame)
+            assert aggregated_matrix.equals(expected_matrix)
+
+            # aggregate_values_links_mc_ind
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-ind/{output.name}?query_file=values&frequency=annual&format=csv"
+            mocker.get(aggregate_url, text=aggregate_output)
+            aggregated_matrix = output.aggregate_links_mc_ind("values", "annual", columns_names=["fr"])
+            expected_matrix = pd.read_csv(StringIO(aggregate_output))
+            assert isinstance(aggregated_matrix, pd.DataFrame)
+            assert aggregated_matrix.equals(expected_matrix)
+
+            # aggregate_values_areas_mc_all
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
+            mocker.get(aggregate_url, text=aggregate_output)
+            aggregated_matrix = output.aggregate_areas_mc_all("values", "annual")
+            expected_matrix = pd.read_csv(StringIO(aggregate_output))
+            assert isinstance(aggregated_matrix, pd.DataFrame)
+            assert aggregated_matrix.equals(expected_matrix)
+
+            # aggregate_values_links_mc_all
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
+            mocker.get(aggregate_url, text=aggregate_output)
+            aggregated_matrix = output.aggregate_links_mc_all("values", "annual")
+            expected_matrix = pd.read_csv(StringIO(aggregate_output))
+            assert isinstance(aggregated_matrix, pd.DataFrame)
+            assert aggregated_matrix.equals(expected_matrix)

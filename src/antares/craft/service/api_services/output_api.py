@@ -9,12 +9,15 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from io import StringIO
 
+import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
-from antares.craft.exceptions.exceptions import APIError, OutputsRetrievalError
-from antares.craft.model.output import Output
+from antares.craft.exceptions.exceptions import AggregateCreationError, APIError
+from antares.craft.model.output import AggregationEntry
+from antares.craft.service.api_services.utils import get_matrix
 from antares.craft.service.base_services import BaseOutputService
 
 
@@ -26,11 +29,16 @@ class OutputApiService(BaseOutputService):
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
-    def read_outputs(self) -> list[Output]:
-        url = f"{self._base_url}/studies/{self.study_id}/outputs"
+    def get_matrix(self, output_id: str, file_path: str) -> pd.DataFrame:
+        full_path = f"output/{output_id}/economy/{file_path}"
+        return get_matrix(self._base_url, self.study_id, self._wrapper, full_path)
+
+    def aggregate_values(
+        self, output_id: str, aggregation_entry: AggregationEntry, object_type: str, mc_type: str
+    ) -> pd.DataFrame:
+        url = f"{self._base_url}/studies/{self.study_id}/{object_type}/aggregate/mc-{mc_type}/{output_id}?{aggregation_entry.to_api_query(object_type)}"
         try:
             response = self._wrapper.get(url)
-            outputs_json_list = response.json()
-            return [Output(name=output["name"], archived=output["archived"]) for output in outputs_json_list]
+            return pd.read_csv(StringIO(response.text))
         except APIError as e:
-            raise OutputsRetrievalError(self.study_id, e.message)
+            raise AggregateCreationError(self.study_id, output_id, mc_type, object_type, e.message)
