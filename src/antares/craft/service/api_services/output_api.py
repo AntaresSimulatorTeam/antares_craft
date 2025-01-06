@@ -29,8 +29,9 @@ class OutputApiService(BaseOutputService):
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
-    def get_matrix(self, path: str) -> pd.DataFrame:
-        return get_matrix(self._base_url, self.study_id, self._wrapper, path)
+    def get_matrix(self, output_id: str, file_path: str) -> pd.DataFrame:
+        full_path = f"output/{output_id}/economy/{file_path}"
+        return get_matrix(self._base_url, self.study_id, self._wrapper, full_path)
 
     def aggregate_values(
         self, output_id: str, aggregation_entry: AggregationEntry, object_type: str, mc_type: str

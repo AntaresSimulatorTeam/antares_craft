@@ -24,7 +24,7 @@ class OutputLocalService(BaseOutputService):
         self.config = config
         self.study_name = study_name
 
-    def get_matrix(self, path: str) -> pd.DataFrame:
+    def get_matrix(self, output_id: str, file_path: str) -> pd.DataFrame:
         raise NotImplementedError
 
     def aggregate_values(

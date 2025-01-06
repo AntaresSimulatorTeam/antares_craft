@@ -37,12 +37,6 @@ from antares.craft.model.binding_constraint import BindingConstraint, BindingCon
 from antares.craft.model.hydro import HydroProperties
 from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import (
-    AggregationEntry,
-    Frequency,
-    MCAllAreas,
-    MCAllLinks,
-    MCIndAreas,
-    MCIndLinks,
     Output,
 )
 from antares.craft.model.settings.general import GeneralParameters
@@ -513,8 +507,7 @@ class TestCreateAPI:
             be - fr,2,0.000000,0.000000
             """
             mocker.get(aggregate_url, text=aggregate_output)
-            aggregation_entry = AggregationEntry(query_file=MCIndAreas.VALUES, frequency=Frequency.ANNUAL)
-            aggregated_matrix = output.aggregate_values_areas_mc_ind(aggregation_entry)
+            aggregated_matrix = output.aggregate_areas_mc_ind("values", "annual")
             expected_matrix = pd.read_csv(StringIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)
@@ -522,8 +515,7 @@ class TestCreateAPI:
             # aggregate_values_links_mc_ind
             aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-ind/{output.name}?query_file=values&frequency=annual&format=csv"
             mocker.get(aggregate_url, text=aggregate_output)
-            aggregation_entry = AggregationEntry(query_file=MCIndLinks.VALUES, frequency=Frequency.ANNUAL)
-            aggregated_matrix = output.aggregate_values_links_mc_ind(aggregation_entry)
+            aggregated_matrix = output.aggregate_links_mc_ind("values", "annual", columns_names=["fr"])
             expected_matrix = pd.read_csv(StringIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)
@@ -531,8 +523,7 @@ class TestCreateAPI:
             # aggregate_values_areas_mc_all
             aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
             mocker.get(aggregate_url, text=aggregate_output)
-            aggregation_entry = AggregationEntry(query_file=MCAllAreas.VALUES, frequency=Frequency.ANNUAL)
-            aggregated_matrix = output.aggregate_values_areas_mc_all(aggregation_entry)
+            aggregated_matrix = output.aggregate_areas_mc_all("values", "annual")
             expected_matrix = pd.read_csv(StringIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)
@@ -540,8 +531,7 @@ class TestCreateAPI:
             # aggregate_values_links_mc_all
             aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
             mocker.get(aggregate_url, text=aggregate_output)
-            aggregation_entry = AggregationEntry(query_file=MCAllLinks.VALUES, frequency=Frequency.ANNUAL)
-            aggregated_matrix = output.aggregate_values_links_mc_all(aggregation_entry)
+            aggregated_matrix = output.aggregate_links_mc_all("values", "annual")
             expected_matrix = pd.read_csv(StringIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)

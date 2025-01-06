@@ -10,11 +10,11 @@
 #
 # This file is part of the Antares project.
 from enum import Enum
-from typing import Union
+from typing import Any, Optional, Union
 
 import pandas as pd
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class MCIndAreas(Enum):
@@ -62,9 +62,9 @@ class AggregationEntry(BaseModel):
 
     query_file: Union[MCAllAreas, MCIndAreas, MCAllLinks, MCIndLinks]
     frequency: Frequency
-    mc_years: list[str] = Field(default_factory=list)
-    type_ids: list[str] = Field(default_factory=list)
-    columns_names: list[str] = Field(default_factory=list)
+    mc_years: Optional[list[str]] = None
+    type_ids: Optional[list[str]] = None
+    columns_names: Optional[list[str]] = None
 
     def to_api_query(self, object_type: str) -> str:
         mc_years = f"&mc_years={','.join(self.mc_years)}" if self.mc_years else ""
@@ -79,6 +79,11 @@ class Output:
         self._name = name
         self._archived = archived
         self._output_service = output_service
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, Output):
+            return self._name == other._name and self._archived == other._archived
+        return False
 
     @property
     def name(self) -> str:
@@ -97,49 +102,112 @@ class Output:
 
         Returns: Pandas DataFrame
         """
-        full_path = f"output/{self.name}/economy/{path}"
-        return self._output_service.get_matrix(full_path)
+        return self._output_service.get_matrix(self.name, path)
 
-    def aggregate_values_areas_mc_ind(self, aggregation_entry: AggregationEntry) -> pd.DataFrame:
+    def aggregate_areas_mc_ind(
+        self,
+        query_file: str,
+        frequency: str,
+        mc_years: Optional[list[str]] = None,
+        areas_ids: Optional[list[str]] = None,
+        columns_names: Optional[list[str]] = None,
+    ) -> pd.DataFrame:
         """
         Creates a matrix of aggregated raw data for areas with mc-ind
 
         Args:
-            aggregation_entry: input for the /aggregate endpoint
+            query_file: values from McIndAreas
+            frequency: values from Frequency
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
+        aggregation_entry = AggregationEntry(
+            query_file=MCIndAreas(query_file),
+            frequency=Frequency(frequency),
+            mc_years=mc_years,
+            type_ids=areas_ids,
+            columns_names=columns_names,
+        )
+
         return self._output_service.aggregate_values(self.name, aggregation_entry, "areas", "ind")
 
-    def aggregate_values_links_mc_ind(self, aggregation_entry: AggregationEntry) -> pd.DataFrame:
+    def aggregate_links_mc_ind(
+        self,
+        query_file: str,
+        frequency: str,
+        mc_years: Optional[list[str]] = None,
+        areas_ids: Optional[list[str]] = None,
+        columns_names: Optional[list[str]] = None,
+    ) -> pd.DataFrame:
         """
         Creates a matrix of aggregated raw data for links with mc-ind
 
         Args:
-            aggregation_entry: input for the /aggregate endpoint
+            query_file: values from McIndLinks
+            frequency: values from Frequency
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
+        aggregation_entry = AggregationEntry(
+            query_file=MCIndLinks(query_file),
+            frequency=Frequency(frequency),
+            mc_years=mc_years,
+            type_ids=areas_ids,
+            columns_names=columns_names,
+        )
+
         return self._output_service.aggregate_values(self.name, aggregation_entry, "links", "ind")
 
-    def aggregate_values_areas_mc_all(self, aggregation_entry: AggregationEntry) -> pd.DataFrame:
+    def aggregate_areas_mc_all(
+        self,
+        query_file: str,
+        frequency: str,
+        mc_years: Optional[list[str]] = None,
+        areas_ids: Optional[list[str]] = None,
+        columns_names: Optional[list[str]] = None,
+    ) -> pd.DataFrame:
         """
         Creates a matrix of aggregated raw data for areas with mc-all
 
         Args:
-            aggregation_entry: input for the /aggregate endpoint
+            query_file: values from McAllAreas
+            frequency: values from Frequency
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
+        aggregation_entry = AggregationEntry(
+            query_file=MCAllAreas(query_file),
+            frequency=Frequency(frequency),
+            mc_years=mc_years,
+            type_ids=areas_ids,
+            columns_names=columns_names,
+        )
+
         return self._output_service.aggregate_values(self.name, aggregation_entry, "areas", "all")
 
-    def aggregate_values_links_mc_all(self, aggregation_entry: AggregationEntry) -> pd.DataFrame:
+    def aggregate_links_mc_all(
+        self,
+        query_file: str,
+        frequency: str,
+        mc_years: Optional[list[str]] = None,
+        areas_ids: Optional[list[str]] = None,
+        columns_names: Optional[list[str]] = None,
+    ) -> pd.DataFrame:
         """
         Creates a matrix of aggregated raw data for links with mc-all
 
         Args:
-            aggregation_entry: input for the /aggregate endpoint
+            query_file: values from McAllLinks
+            frequency: values from Frequency
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
+        aggregation_entry = AggregationEntry(
+            query_file=MCAllLinks(query_file),
+            frequency=Frequency(frequency),
+            mc_years=mc_years,
+            type_ids=areas_ids,
+            columns_names=columns_names,
+        )
+
         return self._output_service.aggregate_values(self.name, aggregation_entry, "links", "all")

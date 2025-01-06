@@ -25,7 +25,6 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
 from antares.craft.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
 from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
-from antares.craft.model.output import AggregationEntry, Frequency, MCAllLinks
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
 from antares.craft.model.settings.general import GeneralParameters, Mode
@@ -534,13 +533,19 @@ class TestWebClient:
 
         assert isinstance(matrix, pd.DataFrame)
         assert not matrix.empty
+        assert matrix.shape == (1, 2)
         assert "upstream" in matrix
         assert "downstream" in matrix
+        assert matrix.loc[0, "upstream"] == "be"
+        assert matrix.loc[0, "downstream"] == "fr"
 
         # ===== Output aggregate_values =====
 
-        aggregation_entry = AggregationEntry(query_file=MCAllLinks.VALUES, frequency=Frequency.DAILY)
-        aggregated_matrix = output.aggregate_values_links_mc_all(aggregation_entry)
+        aggregated_matrix = output.aggregate_links_mc_all("values", "daily")
         assert isinstance(aggregated_matrix, pd.DataFrame)
         assert not aggregated_matrix.empty
         assert aggregated_matrix.shape == (364, 30)
+        assert aggregated_matrix["link"].apply(lambda x: x == "be - fr").all()
+        expected_values = list(range(1, 101))
+        matrix_values = aggregated_matrix.loc[0:99, 'timeId'].tolist()
+        assert expected_values == matrix_values

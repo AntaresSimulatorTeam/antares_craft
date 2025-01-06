@@ -644,12 +644,13 @@ class BaseRunService(ABC):
 
 class BaseOutputService(ABC):
     @abstractmethod
-    def get_matrix(self, path: str) -> pd.DataFrame:
+    def get_matrix(self, output_id: str, file_path: str) -> pd.DataFrame:
         """
         Gets the matrix of the output
 
         Args:
-            path: output path
+            output_id: id of the output
+            file_path: output path
 
         Returns: Pandas DataFrame
         """
