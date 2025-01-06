@@ -551,3 +551,8 @@ class TestWebClient:
         expected_values = list(range(1, 101))
         matrix_values = aggregated_matrix.loc[0:99, "timeId"].tolist()
         assert expected_values == matrix_values
+
+        # ===== Test read binding constraints =====
+
+        constraints = study.read_binding_constraints()
+        print(1)
