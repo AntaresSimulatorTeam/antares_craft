@@ -61,7 +61,7 @@ class LinkData(BaseModel):
     area1: str
     area2: str
 
-    def to_query(self):
+    def to_query(self) -> str:
         return f"{self.area1}%{self.area2}"
 
 
@@ -73,7 +73,7 @@ class ClusterData(BaseModel):
     area: str
     cluster: str
 
-    def to_query(self):
+    def to_query(self) -> str:
         return f"{self.area}.{self.cluster}"
 
 

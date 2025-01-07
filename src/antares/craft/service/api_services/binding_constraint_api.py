@@ -23,8 +23,9 @@ from antares.craft.exceptions.exceptions import (
     ConstraintMatrixDownloadError,
     ConstraintMatrixUpdateError,
     ConstraintPropertiesUpdateError,
+    ConstraintRetrievalError,
     ConstraintTermAdditionError,
-    ConstraintTermDeletionError, ConstraintRetrievalError,
+    ConstraintTermDeletionError,
 )
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -176,6 +177,16 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         try:
             response = self._wrapper.get(url)
             constraints_json = response.json()
-            create_bindin
+            return [
+                BindingConstraint(
+                    constraint["name"],
+                    self,
+                    BindingConstraintProperties.model_validate(
+                        {k: v for k, v in constraint.items() if k not in ["terms", "id", "name"]}
+                    ),
+                    [ConstraintTerm.model_validate(term) for term in constraint["terms"]],
+                )
+                for constraint in constraints_json
+            ]
         except APIError as e:
             raise ConstraintRetrievalError(self.study_id, e.message) from e

@@ -555,4 +555,4 @@ class TestWebClient:
         # ===== Test read binding constraints =====
 
         constraints = study.read_binding_constraints()
-        print(1)
+        print(constraints)

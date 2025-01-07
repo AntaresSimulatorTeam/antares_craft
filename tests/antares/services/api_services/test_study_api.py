@@ -480,8 +480,9 @@ class TestCreateAPI:
                 self.study.read_outputs()
 
     def test_read_constraints(self):
-        with requests_mock.Mocker() as mocker:
-            run_url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
+        pass
+        # with requests_mock.Mocker() as mocker:
+        #     run_url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
 
     def test_output_get_matrix(self):
         with requests_mock.Mocker() as mocker:
