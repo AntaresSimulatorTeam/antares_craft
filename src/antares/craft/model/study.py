@@ -16,7 +16,7 @@ import time
 
 from pathlib import Path
 from types import MappingProxyType
-from typing import Dict, List, Optional, Union
+from typing import List, Optional, Union
 
 import pandas as pd
 
@@ -326,7 +326,7 @@ class Study:
         self._binding_constraints[binding_constraint.id] = binding_constraint
         return binding_constraint
 
-    def read_binding_constraints(self):
+    def read_binding_constraints(self) -> list[BindingConstraint]:
         constraints = self._binding_constraints_service.read_binding_constraints()
         self._binding_constraints = {constraint.id: constraint for constraint in constraints}
         return constraints
@@ -405,6 +405,7 @@ class Study:
         Raises: KeyError if it doesn't exist
         """
         return self._outputs[output_id]
+
 
 def _verify_study_already_exists(study_directory: Path) -> None:
     if study_directory.exists():

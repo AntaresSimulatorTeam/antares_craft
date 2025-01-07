@@ -2240,8 +2240,8 @@ at%fr = 0.000000%1
         assert actual_time_series.equals(expected_time_series)
 
     def test_get_constraint_matrix(self, local_study):
-        # Giveni
-        expected_time_seres = pd.DataFrame(np.random.random([365 * 24, 1]))
+        # Given
+        expected_time_series = pd.DataFrame(np.random.random([365 * 24, 1]))
         bc_name = "test time series"
         local_study.create_binding_constraint(
             name=bc_name,

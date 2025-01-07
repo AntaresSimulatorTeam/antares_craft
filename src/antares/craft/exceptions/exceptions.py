@@ -329,11 +329,11 @@ class OutputsRetrievalError(Exception):
         self.message = f"Could not get outputs for {study_id}: " + message
         super().__init__(self.message)
 
+
 class ConstraintRetrievalError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
         self.message = f"Could not get binding constraints for {study_id}: " + message
         super().__init__(self.message)
-
 
 
 class AggregateCreationError(Exception):
