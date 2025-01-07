@@ -307,8 +307,6 @@ class TestCreateAPI:
                 self.link.get_capacity_direct()
 
     def test_read_links(self, expected_link):
-        # Test not working, wip
-
         url_read_links = f"https://antares.com/api/v1/studies/{self.study_id}/links"
 
         json_links = [

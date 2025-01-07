@@ -216,9 +216,15 @@ class LinkApiService(BaseLinkService):
     def read_links(self) -> list[Link]:
         url = f"{self._base_url}/studies/{self.study_id}/links"
         json_links = self._wrapper.get(url).json()
-        links = []
+        links = self.read_study_links(json_links)
 
-        for link in json_links:
+        links.sort(key=lambda link_obj: link_obj.area_from_id)
+
+        return links
+
+    def read_study_links(self, link_list: list) -> list[Link]:
+        links = []
+        for link in link_list:
             link_area_from_id = link.pop("area1")
             link_area_to_id = link.pop("area2")
 
@@ -250,8 +256,6 @@ class LinkApiService(BaseLinkService):
             link_object = Link(link_area_from_id, link_area_to_id, self, link_properties, link_ui)
 
             links.append(link_object)
-
-        links.sort(key=lambda link_obj: link_obj.area_from_id)
 
         return links
 
