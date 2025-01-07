@@ -1,3 +1,9 @@
+v0.1.4 (2025-01-07)
+-------------------
+
+- Allow read_areas method to read area parameters and ui
+- Add output functionalities (get_matrix, aggregate_values)
+
 v0.1.3 (2024-12-19)
 -------------------
 
