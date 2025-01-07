@@ -51,14 +51,20 @@ def expected_link():
         "filter-synthesis": set("hourly, daily, weekly, monthly, annual".split(", ")),
         "filter-year-by-year": set("hourly, daily, weekly, monthly, annual".split(", ")),
     }
-    color_r=properties.pop("colorr")
-    color_b=properties.pop("colorb")
-    color_g=properties.pop("colorg")
-    link_width=properties.pop("linkWidth")
-    link_style=properties.pop("linkStyle")
+    color_r = properties.pop("colorr")
+    color_b = properties.pop("colorb")
+    color_g = properties.pop("colorg")
+    link_width = properties.pop("linkWidth")
+    link_style = properties.pop("linkStyle")
     link_properties = LinkProperties(**properties)
-    link_ui= LinkUi(colorg=color_g,colorb=color_b,colorr=color_r,link_style=link_style,link_width=link_width)
-    return Link(area_from=area_from_name, area_to=area_to_name, link_service=link_service, properties=link_properties, ui=link_ui)
+    link_ui = LinkUi(colorg=color_g, colorb=color_b, colorr=color_r, link_style=link_style, link_width=link_width)
+    return Link(
+        area_from=area_from_name,
+        area_to=area_to_name,
+        link_service=link_service,
+        properties=link_properties,
+        ui=link_ui,
+    )
 
 
 class TestCreateAPI:
