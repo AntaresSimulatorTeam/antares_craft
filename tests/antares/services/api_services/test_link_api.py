@@ -339,3 +339,4 @@ class TestCreateAPI:
             assert len(actual_link_list) == len(expected_link_list)
             assert expected_link_list[0].id == actual_link_list[0].id
             assert expected_link_list[0].properties == actual_link_list[0].properties
+            assert expected_link_list[0].ui == actual_link_list[0].ui
