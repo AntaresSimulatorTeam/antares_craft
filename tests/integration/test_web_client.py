@@ -23,7 +23,12 @@ from antares.craft.exceptions.exceptions import (
     STStorageMatrixUploadError,
 )
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
-from antares.craft.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
+from antares.craft.model.binding_constraint import (
+    BindingConstraintProperties,
+    ClusterData,
+    ConstraintTerm,
+    LinkData,
+)
 from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
@@ -554,5 +559,5 @@ class TestWebClient:
 
         # ===== Test read binding constraints =====
 
-        constraints = study.read_binding_constraints()
+        constraints = study.read_binding_constraints(cluster_name="cluster_test")
         print(constraints)

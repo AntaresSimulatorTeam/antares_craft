@@ -21,6 +21,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
+    BindingConstraintReadingFilters,
     ConstraintMatrixName,
     ConstraintTerm,
     DefaultBindingConstraintProperties,
@@ -242,5 +243,5 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     ) -> None:
         raise NotImplementedError
 
-    def read_binding_constraints(self) -> list[BindingConstraint]:
+    def read_binding_constraints(self, filters: BindingConstraintReadingFilters) -> list[BindingConstraint]:
         raise NotImplementedError

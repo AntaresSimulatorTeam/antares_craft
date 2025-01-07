@@ -61,9 +61,6 @@ class LinkData(BaseModel):
     area1: str
     area2: str
 
-    def to_query(self) -> str:
-        return f"{self.area1}%{self.area2}"
-
 
 class ClusterData(BaseModel):
     """
@@ -72,9 +69,6 @@ class ClusterData(BaseModel):
 
     area: str
     cluster: str
-
-    def to_query(self) -> str:
-        return f"{self.area}.{self.cluster}"
 
 
 class ConstraintTerm(TermOperators):
@@ -123,6 +117,13 @@ class DefaultBindingConstraintProperties(BaseModel, extra="forbid", populate_by_
 @all_optional_model
 class BindingConstraintProperties(DefaultBindingConstraintProperties):
     pass
+
+
+class BindingConstraintReadingFilters(BindingConstraintProperties):
+    area_name: Optional[str] = None
+    cluster_name: Optional[str] = None
+    link_id: Optional[str] = None
+    cluster_id: Optional[str] = None
 
 
 class BindingConstraint:
