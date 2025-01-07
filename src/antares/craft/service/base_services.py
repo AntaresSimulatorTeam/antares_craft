@@ -20,6 +20,7 @@ from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintProperties,
+    BindingConstraintReadingFilters,
     ConstraintMatrixName,
     ConstraintTerm,
 )
@@ -510,7 +511,7 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def read_binding_constraints(self) -> list[BindingConstraint]:
+    def read_binding_constraints(self, filters: BindingConstraintReadingFilters) -> list[BindingConstraint]:
         """
         Loads binding constraints into study
 

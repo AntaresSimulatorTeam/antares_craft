@@ -25,7 +25,14 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import APIError, LinkCreationError, StudyCreationError
 from antares.craft.model.area import Area, AreaProperties, AreaUi
-from antares.craft.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
+from antares.craft.model.binding_constraint import (
+    BindingConstraint,
+    BindingConstraintFrequency,
+    BindingConstraintOperator,
+    BindingConstraintProperties,
+    BindingConstraintReadingFilters,
+    ConstraintTerm,
+)
 from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import DefaultStudySettings, StudySettings, StudySettingsLocal
@@ -326,8 +333,36 @@ class Study:
         self._binding_constraints[binding_constraint.id] = binding_constraint
         return binding_constraint
 
-    def read_binding_constraints(self) -> list[BindingConstraint]:
-        constraints = self._binding_constraints_service.read_binding_constraints()
+    def read_binding_constraints(
+        self,
+        enabled: Optional[bool] = None,
+        time_step: Optional[BindingConstraintFrequency] = None,
+        operator: Optional[BindingConstraintOperator] = None,
+        comments: Optional[str] = None,
+        filter_year_by_year: Optional[str] = None,
+        filter_synthesis: Optional[str] = None,
+        group: Optional[str] = None,
+        area_name: Optional[str] = None,
+        cluster_name: Optional[str] = None,
+        link_id: Optional[str] = None,
+        cluster_id: Optional[str] = None,
+    ) -> list[BindingConstraint]:
+        filters = BindingConstraintReadingFilters.model_validate(
+            {
+                "enabled": enabled,
+                "time_step": time_step,
+                "operator": operator,
+                "comments": comments,
+                "filter_year_by_year": filter_year_by_year,
+                "filter_synthesis": filter_synthesis,
+                "group": group,
+                "area_name": area_name,
+                "cluster_name": cluster_name,
+                "link_id": link_id,
+                "cluster_id": cluster_id,
+            }
+        )
+        constraints = self._binding_constraints_service.read_binding_constraints(filters)
         self._binding_constraints = {constraint.id: constraint for constraint in constraints}
         return constraints
 

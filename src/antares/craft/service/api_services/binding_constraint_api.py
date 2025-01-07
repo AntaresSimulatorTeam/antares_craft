@@ -30,6 +30,7 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintProperties,
+    BindingConstraintReadingFilters,
     ConstraintMatrixName,
     ConstraintTerm,
 )
@@ -172,8 +173,12 @@ class BindingConstraintApiService(BaseBindingConstraintService):
 
         return new_terms
 
-    def read_binding_constraints(self) -> list[BindingConstraint]:
+    def read_binding_constraints(self, filters: BindingConstraintReadingFilters) -> list[BindingConstraint]:
+        params = filters.model_dump(exclude_none=True)
+        query_string = "&".join(f"{k}={v}" for k, v in params.items())
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints"
+        if query_string:
+            url += f"?{query_string}"
         try:
             response = self._wrapper.get(url)
             constraints_json = response.json()
