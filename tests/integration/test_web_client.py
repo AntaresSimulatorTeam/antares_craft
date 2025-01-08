@@ -24,6 +24,8 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
 from antares.craft.model.binding_constraint import (
+    BindingConstraintFrequency,
+    BindingConstraintOperator,
     BindingConstraintProperties,
     ClusterData,
     ConstraintTerm,
@@ -559,5 +561,34 @@ class TestWebClient:
 
         # ===== Test read binding constraints =====
 
+        # add a disabled constraint for filtering purposes
+        link_data = LinkData(area1="be", area2="fr")
+        study.create_binding_constraint(
+            name="bc_1",
+            terms=[ConstraintTerm(data=link_data, weight=2.0)],
+            properties=BindingConstraintProperties(enabled=False),
+        )
+
         constraints = study.read_binding_constraints(cluster_name="cluster_test")
-        print(constraints)
+
+        assert len(constraints) > 0
+        constraint = constraints[0]
+        assert constraint.id == "bc_2"
+        assert constraint.name == "bc_2"
+        assert constraint.properties.enabled is True
+        assert constraint.properties.time_step == BindingConstraintFrequency.HOURLY
+        assert constraint.properties.operator == BindingConstraintOperator.EQUAL
+        assert constraint.properties.group == "default"
+        assert len(constraint.get_terms()) == 1
+
+        # ===== terms ======
+        cluster_term = constraint.get_terms()["fr.cluster_test"]
+        assert cluster_term.data.area == "fr"
+        assert cluster_term.data.cluster == "cluster_test"
+        assert cluster_term.weight == 4.5
+        assert cluster_term.offset == 3
+
+        # ===== filter test ======
+        constraints = study.read_binding_constraints(enabled=False)
+        assert len(constraints) == 1
+        assert constraints[0].properties.enabled is False

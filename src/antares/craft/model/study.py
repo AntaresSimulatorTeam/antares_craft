@@ -193,6 +193,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
 
     study.read_areas()
     study.read_outputs()
+    study.read_binding_constraints()
 
     return study
 
