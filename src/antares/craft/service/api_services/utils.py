@@ -25,5 +25,9 @@ def get_matrix(base_url: str, study_id: str, wrapper: RequestWrapper, series_pat
     raw_url = f"{base_url}/studies/{study_id}/raw?path={series_path}"
     response = wrapper.get(raw_url)
     json_df = response.json()
-    dataframe = pd.DataFrame(data=json_df["data"], index=json_df["index"], columns=json_df["columns"])
+
+    if "index" in json_df:
+        dataframe = pd.DataFrame(data=json_df["data"], index=json_df["index"], columns=json_df["columns"])
+    else:
+        dataframe = pd.DataFrame(data=json_df["data"], columns=json_df["columns"])
     return dataframe

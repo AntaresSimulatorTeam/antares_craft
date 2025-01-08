@@ -103,12 +103,15 @@ class ServiceFactory:
         return binding_constraint_service
 
     def create_study_service(self) -> BaseStudyService:
+        study_service: BaseStudyService
         if isinstance(self.config, APIconf):
-            study_service: BaseStudyService = StudyApiService(self.config, self.study_id)
+            study_service = StudyApiService(self.config, self.study_id)
         elif isinstance(self.config, LocalConfiguration):
             study_service = StudyLocalService(self.config, self.study_name)
         else:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
+
+        study_service.set_output_service(self.create_output_service())
         return study_service
 
     def create_renewable_service(self) -> BaseRenewableService:

@@ -16,7 +16,7 @@ import time
 
 from pathlib import Path
 from types import MappingProxyType
-from typing import Dict, List, Optional, Union
+from typing import List, Optional, Union
 
 import pandas as pd
 
@@ -25,7 +25,11 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import APIError, LinkCreationError, StudyCreationError
 from antares.craft.model.area import Area, AreaProperties, AreaUi
-from antares.craft.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintTerm
+from antares.craft.model.binding_constraint import (
+    BindingConstraint,
+    BindingConstraintProperties,
+    ConstraintTerm,
+)
 from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import DefaultStudySettings, StudySettings, StudySettingsLocal
@@ -186,6 +190,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
 
     study.read_areas()
     study.read_outputs()
+    study.read_binding_constraints()
 
     return study
 
@@ -219,12 +224,11 @@ class Study:
         self._area_service = service_factory.create_area_service()
         self._link_service = service_factory.create_link_service()
         self._run_service = service_factory.create_run_service()
-        self._output_service = service_factory.create_output_service()
         self._binding_constraints_service = service_factory.create_binding_constraints_service()
         self._settings = DefaultStudySettings.model_validate(settings if settings is not None else StudySettings())
-        self._areas: Dict[str, Area] = dict()
-        self._links: Dict[str, Link] = dict()
-        self._binding_constraints: Dict[str, BindingConstraint] = dict()
+        self._areas: dict[str, Area] = dict()
+        self._links: dict[str, Link] = dict()
+        self._binding_constraints: dict[str, BindingConstraint] = dict()
         self._outputs: dict[str, Output] = dict()
 
     @property
@@ -329,6 +333,11 @@ class Study:
         self._binding_constraints[binding_constraint.id] = binding_constraint
         return binding_constraint
 
+    def read_binding_constraints(self) -> list[BindingConstraint]:
+        constraints = self._binding_constraints_service.read_binding_constraints()
+        self._binding_constraints = {constraint.id: constraint for constraint in constraints}
+        return constraints
+
     def update_settings(self, settings: StudySettings) -> None:
         new_settings = self._study_service.update_study_settings(settings)
         if new_settings:
@@ -379,7 +388,7 @@ class Study:
 
         Returns: Output list
         """
-        outputs = self._output_service.read_outputs()
+        outputs = self._study_service.read_outputs()
         self._outputs = {output.name: output for output in outputs}
         return outputs
 

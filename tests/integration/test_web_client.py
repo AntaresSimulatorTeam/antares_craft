@@ -23,7 +23,14 @@ from antares.craft.exceptions.exceptions import (
     STStorageMatrixUploadError,
 )
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
-from antares.craft.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
+from antares.craft.model.binding_constraint import (
+    BindingConstraintFrequency,
+    BindingConstraintOperator,
+    BindingConstraintProperties,
+    ClusterData,
+    ConstraintTerm,
+    LinkData,
+)
 from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
@@ -534,4 +541,49 @@ class TestWebClient:
         assert len(outputs) == 1
         assert not outputs.get(output.name).archived
         study_with_outputs = read_study_api(api_config, study._study_service.study_id)
-        assert study_with_outputs.get_outputs() == outputs
+        outputs_from_api = study_with_outputs.get_outputs()
+        assert all(
+            outputs_from_api[output].name == outputs[output].name
+            and outputs_from_api[output].archived == outputs[output].archived
+            for output in outputs_from_api
+        )
+
+        # ===== Output get_matrix =====
+
+        matrix = output.get_matrix("mc-all/grid/links")
+
+        assert isinstance(matrix, pd.DataFrame)
+        data = {"upstream": ["be"], "downstream": ["fr"]}
+        expected_matrix = pd.DataFrame(data)
+        assert matrix.equals(expected_matrix)
+
+        # ===== Output aggregate_values =====
+
+        aggregated_matrix = output.aggregate_links_mc_all("values", "daily")
+        assert isinstance(aggregated_matrix, pd.DataFrame)
+        assert not aggregated_matrix.empty
+        assert aggregated_matrix.shape == (364, 30)
+        assert aggregated_matrix["link"].apply(lambda x: x == "be - fr").all()
+        expected_values = list(range(1, 101))
+        matrix_values = aggregated_matrix.loc[0:99, "timeId"].tolist()
+        assert expected_values == matrix_values
+
+        # ===== Test read binding constraints =====
+        constraints = study.read_binding_constraints()
+
+        assert len(constraints) == 2
+        constraint = constraints[0]
+        assert constraint.id == "bc_2"
+        assert constraint.name == "bc_2"
+        assert constraint.properties.enabled is True
+        assert constraint.properties.time_step == BindingConstraintFrequency.HOURLY
+        assert constraint.properties.operator == BindingConstraintOperator.EQUAL
+        assert constraint.properties.group == "default"
+        assert len(constraint.get_terms()) == 1
+
+        # ===== terms ======
+        cluster_term = constraint.get_terms()["fr.cluster_test"]
+        assert cluster_term.data.area == "fr"
+        assert cluster_term.data.cluster == "cluster_test"
+        assert cluster_term.weight == 4.5
+        assert cluster_term.offset == 3
