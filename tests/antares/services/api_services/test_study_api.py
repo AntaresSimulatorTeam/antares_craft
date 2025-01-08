@@ -597,3 +597,36 @@ class TestCreateAPI:
             expected_matrix = pd.read_csv(StringIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)
+
+    def test_delete_output(self):
+        output_name = "test_output"
+        with requests_mock.Mocker() as mocker:
+            delete_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs/{output_name}"
+            mocker.delete(delete_url, status_code=200)
+
+            self.study._outputs[output_name] = Output(name=output_name, archived=False, output_service=Mock())
+            self.study.delete_output(output_name)
+
+            assert output_name not in self.study.get_outputs()
+
+    def test_delete_outputs(self):
+        with requests_mock.Mocker() as mocker:
+            outputs_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs"
+            outputs_json = [
+                {"name": "output1", "archived": False},
+                {"name": "output2", "archived": True},
+            ]
+            mocker.get(outputs_url, json=outputs_json, status_code=200)
+
+            delete_url1 = f"https://antares.com/api/v1/studies/{self.study_id}/outputs/output1"
+            delete_url2 = f"https://antares.com/api/v1/studies/{self.study_id}/outputs/output2"
+            mocker.delete(delete_url1, status_code=200)
+            mocker.delete(delete_url2, status_code=200)
+
+            self.study._outputs = {
+                "output1": Output(name="output1", archived=False, output_service=Mock()),
+                "output2": Output(name="output2", archived=True, output_service=Mock()),
+            }
+            self.study.delete_outputs()
+
+            assert len(self.study.get_outputs()) == 0
