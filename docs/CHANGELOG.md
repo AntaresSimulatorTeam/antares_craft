@@ -1,3 +1,8 @@
+v0.1.5 (2025-01-08)
+-------------------
+
+- Concatenate .md files for single Readme at pypi.org 
+
 v0.1.4 (2025-01-07)
 -------------------
 
