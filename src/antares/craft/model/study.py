@@ -419,6 +419,7 @@ class Study:
         self._study_service.delete_output(output_name)
         self._outputs.pop(output_name)
 
+
 def _verify_study_already_exists(study_directory: Path) -> None:
     if study_directory.exists():
         raise FileExistsError(f"Study {study_directory.name} already exists.")

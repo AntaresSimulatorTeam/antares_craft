@@ -18,10 +18,11 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
     BindingConstraintDeletionError,
+    OutputDeletionError,
     OutputsRetrievalError,
     StudyDeletionError,
     StudySettingsUpdateError,
-    StudyVariantCreationError, OutputDeletionError,
+    StudyVariantCreationError,
 )
 from antares.craft.model.binding_constraint import BindingConstraint
 from antares.craft.model.output import Output

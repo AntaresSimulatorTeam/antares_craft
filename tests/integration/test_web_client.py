@@ -582,8 +582,12 @@ class TestWebClient:
         # ===== Output deletion =====
 
         # run two new simulations for creating more outputs
-        study.wait_job_completion(study.run_antares_simulation(AntaresSimulationParameters(output_suffix="2")), time_out=60)
-        study.wait_job_completion(study.run_antares_simulation(AntaresSimulationParameters(output_suffix="3")), time_out=60)
+        study.wait_job_completion(
+            study.run_antares_simulation(AntaresSimulationParameters(output_suffix="2")), time_out=60
+        )
+        study.wait_job_completion(
+            study.run_antares_simulation(AntaresSimulationParameters(output_suffix="3")), time_out=60
+        )
         study.read_outputs()
 
         # delete_output

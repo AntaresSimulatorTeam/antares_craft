@@ -329,8 +329,9 @@ class OutputsRetrievalError(Exception):
         self.message = f"Could not get outputs for {study_id}: " + message
         super().__init__(self.message)
 
+
 class OutputDeletionError(Exception):
-    def __init__(self, study_id: str, output_name:str, message: str) -> None:
+    def __init__(self, study_id: str, output_name: str, message: str) -> None:
         self.message = f"Could not delete the output {output_name} from study {study_id}: " + message
         super().__init__(self.message)
 
