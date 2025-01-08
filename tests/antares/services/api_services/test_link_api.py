@@ -29,7 +29,7 @@ from antares.craft.model.study import Study
 from antares.craft.service.service_factory import ServiceFactory
 
 
-@pytest.fixture
+@pytest.fixture()
 def expected_link():
     area_from_name = "zone1 auto"
     area_to_name = "zone4auto"
@@ -58,13 +58,7 @@ def expected_link():
     link_style = properties.pop("linkStyle")
     link_properties = LinkProperties(**properties)
     link_ui = LinkUi(colorg=color_g, colorb=color_b, colorr=color_r, link_style=link_style, link_width=link_width)
-    return Link(
-        area_from=area_from_name,
-        area_to=area_to_name,
-        link_service=link_service,
-        properties=link_properties,
-        ui=link_ui,
-    )
+    return Link(area_from_name, area_to_name, link_service, link_properties, link_ui)
 
 
 class TestCreateAPI:
@@ -330,7 +324,6 @@ class TestCreateAPI:
         ]
 
         with requests_mock.Mocker() as mocker:
-            mocker.get(url_read_links, json=json_links)
             expected_link_list = [expected_link]
             mocker.get(url_read_links, json=json_links)
             actual_link_list = self.study.read_links()
