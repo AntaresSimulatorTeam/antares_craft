@@ -122,6 +122,7 @@ class LinkLocalService(BaseLinkService):
             "display-comments",
             "filter-synthesis",
             "filter-year-by-year",
+            "comments",
         ]
         return dict(sorted(ini_dict.items(), key=lambda item: dict_order.index(item[0])))
 
