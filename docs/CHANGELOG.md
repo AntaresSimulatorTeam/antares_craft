@@ -1,3 +1,8 @@
+v0.1.6 (2025-01-08)
+-------------------
+
+- Fix concatenate CONCATENATED_README.md files for single Readme at pypi.org 
+
 v0.1.5 (2025-01-08)
 -------------------
 
