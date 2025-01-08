@@ -36,6 +36,3 @@ jobs:
       - name: Performs Windows tests
         if: matrix.os == 'windows-latest'
         run: tox -e 3.9-test
-
-      - name: Build README
-        run: tox -e build-readme

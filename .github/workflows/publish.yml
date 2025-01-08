@@ -27,12 +27,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install build
+          python -m pip install tox
+      
+      - name: Build README
+        run: tox -e build-readme
+
       - name: Build Python 🐍 packages
         run: python -m build
+
       - name: Publish distribution 📦 to PyPI
         # Upload packages only on a tagged commit
         if: startsWith(github.ref, 'refs/tags')
