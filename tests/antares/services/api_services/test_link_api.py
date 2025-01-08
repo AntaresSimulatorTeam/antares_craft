@@ -19,8 +19,9 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
     LinkDownloadError,
     LinkPropertiesUpdateError,
+    LinksRetrievalError,
     LinkUiUpdateError,
-    LinkUploadError, LinksRetrievalError,
+    LinkUploadError,
 )
 from antares.craft.model.area import Area
 from antares.craft.model.commons import FilterOption
@@ -339,6 +340,6 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinksRetrievalError,
-                match=f"Could not retrieve links from study {self.study_id} : {self.antares_web_description_msg}"
+                match=f"Could not retrieve links from study {self.study_id} : {self.antares_web_description_msg}",
             ):
                 self.study.read_links()
