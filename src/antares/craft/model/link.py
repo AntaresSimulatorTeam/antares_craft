@@ -68,7 +68,7 @@ class DefaultLinkProperties(BaseModel, extra="forbid", populate_by_name=True, al
         FilterOption.MONTHLY,
         FilterOption.ANNUAL,
     }
-    comments: str
+    comments: str = ""
 
 
 @all_optional_model
