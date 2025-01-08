@@ -1,3 +1,8 @@
+v0.1.7 (2025-01-08)
+-------------------
+
+- move doc generation from ci.yml to publish.yml
+
 v0.1.6 (2025-01-08)
 -------------------
 
