@@ -538,7 +538,7 @@ class TestCreateAPI:
             constraints_url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
             error_message = "Error while reading constraints"
             mocker.get(constraints_url, json={"description": error_message}, status_code=404)
-            with pytest.raises(ConstraintRetrievalError):
+            with pytest.raises(ConstraintRetrievalError, match="Error while reading constraints"):
                 self.study.read_binding_constraints()
 
     def test_output_get_matrix(self):

@@ -177,7 +177,8 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         try:
             response = self._wrapper.get(url)
             constraints_json = response.json()
-            return [
+
+            constraints = [
                 BindingConstraint(
                     constraint["name"],
                     self,
@@ -188,5 +189,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
                 )
                 for constraint in constraints_json
             ]
+            constraints.sort(key=lambda constraint: constraint.id)
+            return constraints
         except APIError as e:
             raise ConstraintRetrievalError(self.study_id, e.message) from e

@@ -562,7 +562,7 @@ class TestWebClient:
         # ===== Test read binding constraints =====
         constraints = study.read_binding_constraints()
 
-        assert len(constraints) > 0
+        assert len(constraints) == 2
         constraint = constraints[0]
         assert constraint.id == "bc_2"
         assert constraint.name == "bc_2"
