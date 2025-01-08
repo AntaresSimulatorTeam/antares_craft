@@ -119,13 +119,6 @@ class BindingConstraintProperties(DefaultBindingConstraintProperties):
     pass
 
 
-class BindingConstraintReadingFilters(BindingConstraintProperties):
-    area_name: Optional[str] = None
-    cluster_name: Optional[str] = None
-    link_id: Optional[str] = None
-    cluster_id: Optional[str] = None
-
-
 class BindingConstraint:
     def __init__(  # type: ignore # TODO: Find a way to avoid circular imports
         self,
