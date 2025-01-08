@@ -20,7 +20,7 @@ from antares.craft.exceptions.exceptions import (
     LinkDownloadError,
     LinkPropertiesUpdateError,
     LinkUiUpdateError,
-    LinkUploadError,
+    LinkUploadError, LinksRetrievalError,
 )
 from antares.craft.model.area import Area
 from antares.craft.model.commons import FilterOption
@@ -214,7 +214,7 @@ class TestCreateAPI:
                 f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
             )
 
-            mocker.post(raw_url, status_code=404)
+            mocker.post(raw_url, json={"description": self.antares_web_description_msg}, status_code=404)
 
             with pytest.raises(
                 LinkUploadError,
@@ -240,7 +240,7 @@ class TestCreateAPI:
                 f"input/links/{self.area_from.id}/{self.area_to.id}_parameters"
             )
 
-            mocker.get(raw_url, status_code=404)
+            mocker.get(raw_url, json={"description": self.antares_web_description_msg}, status_code=404)
 
             with pytest.raises(
                 LinkDownloadError,
@@ -266,7 +266,7 @@ class TestCreateAPI:
                 f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
             )
 
-            mocker.get(raw_url, status_code=404)
+            mocker.get(raw_url, json={"description": self.antares_web_description_msg}, status_code=404)
 
             with pytest.raises(
                 LinkDownloadError,
@@ -292,7 +292,7 @@ class TestCreateAPI:
                 f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
             )
 
-            mocker.get(raw_url, status_code=404)
+            mocker.get(raw_url, json={"description": self.antares_web_description_msg}, status_code=404)
 
             with pytest.raises(
                 LinkDownloadError,
@@ -324,10 +324,21 @@ class TestCreateAPI:
         ]
 
         with requests_mock.Mocker() as mocker:
-            expected_link_list = [expected_link]
             mocker.get(url_read_links, json=json_links)
             actual_link_list = self.study.read_links()
-            assert len(actual_link_list) == len(expected_link_list)
-            assert expected_link_list[0].id == actual_link_list[0].id
-            assert expected_link_list[0].properties == actual_link_list[0].properties
-            assert expected_link_list[0].ui == actual_link_list[0].ui
+            assert len(actual_link_list) == 1
+            actual_link = actual_link_list[0]
+            assert expected_link.id == actual_link.id
+            assert expected_link.properties == actual_link.properties
+            assert expected_link.ui == actual_link.ui
+
+    def test_read_links_fail(self):
+        with requests_mock.Mocker() as mocker:
+            raw_url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
+            mocker.get(raw_url, json={"description": self.antares_web_description_msg}, status_code=404)
+
+            with pytest.raises(
+                LinksRetrievalError,
+                match=f"Could not retrieve links from study {self.study_id} : {self.antares_web_description_msg}"
+            ):
+                self.study.read_links()

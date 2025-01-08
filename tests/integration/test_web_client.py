@@ -394,11 +394,12 @@ class TestWebClient:
 
         # assert study got all links
         links = study.read_links()
+        assert len(links) == 2
         test_link_be_fr = links[0]
         test_link_de_fr = links[1]
         assert test_link_be_fr.id == link_be_fr.id
+        assert test_link_be_fr.properties == link_be_fr.properties
         assert test_link_de_fr.id == link_de_fr.id
-        assert len(links) == 2
 
         # tests renewable properties update
         new_props = RenewableClusterProperties()
