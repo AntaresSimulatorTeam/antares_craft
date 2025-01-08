@@ -64,10 +64,10 @@ class AntaresWebDesktop:
         It also kills the AntaresWebDesktop instance.
         """
         session = requests.Session()
-        res = session.get(self.url + "/v1/studies")
+        res = session.get(self.url + "/api/v1/studies")
         studies = res.json()
         for study in studies:
-            session.delete(self.url + f"/v1/studies/{study}?children=True")
+            session.delete(self.url + f"/api/v1/studies/{study}?children=True")
         self.process.terminate()
         self.process.wait()
         pids = subprocess.run(["pgrep AntaresWeb"], capture_output=True, shell=True).stdout.split()
