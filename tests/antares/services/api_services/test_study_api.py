@@ -24,13 +24,14 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
+    ConstraintRetrievalError,
     LinkCreationError,
     OutputsRetrievalError,
     SimulationFailedError,
     SimulationTimeOutError,
     StudyCreationError,
     StudySettingsUpdateError,
-    StudyVariantCreationError, ConstraintRetrievalError,
+    StudyVariantCreationError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -532,53 +533,10 @@ class TestCreateAPI:
             assert term.weight == 1.0
             assert term.offset == 0
 
-    def test_read_constraints(self):
-        with requests_mock.Mocker() as mocker:
-            constraints_url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
-            json_constraints = [
-                {
-                    "id": "bc_1",
-                    "name": "bc_1",
-                    "enabled": True,
-                    "time_step": "hourly",
-                    "operator": "less",
-                    "comments": "",
-                    "filter_year_by_year": "hourly",
-                    "filter_synthesis": "hourly",
-                    "group": "default",
-                    "terms": [
-                        {
-                            "data": {"area1": "area_a", "area2": "area_b"},
-                            "weight": 1.0,
-                            "offset": 0,
-                            "id": "area_a%area_b",
-                        }
-                    ],
-                }
-            ]
-            mocker.get(constraints_url, json=json_constraints, status_code=200)
-
-            constraints = self.study.read_binding_constraints()
-
-            assert len(constraints) == 1
-            constraint = constraints[0]
-            assert constraint.id == "bc_1"
-            assert constraint.name == "bc_1"
-            assert constraint.properties.enabled is True
-            assert constraint.properties.time_step == BindingConstraintFrequency.HOURLY
-            assert constraint.properties.operator == BindingConstraintOperator.LESS
-            assert constraint.properties.group == "default"
-            assert len(constraint.get_terms()) == 1
-            term = constraint.get_terms()["area_a%area_b"]
-            assert term.data.area1 == "area_a"
-            assert term.data.area2 == "area_b"
-            assert term.weight == 1.0
-            assert term.offset == 0
-
     def test_read_constraints_fails(self):
         with requests_mock.Mocker() as mocker:
             constraints_url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
-            error_message = f"Error while reading constraints"
+            error_message = "Error while reading constraints"
             mocker.get(constraints_url, json={"description": error_message}, status_code=404)
             with pytest.raises(ConstraintRetrievalError):
                 self.study.read_binding_constraints()
