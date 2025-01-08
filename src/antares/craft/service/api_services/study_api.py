@@ -21,7 +21,7 @@ from antares.craft.exceptions.exceptions import (
     OutputsRetrievalError,
     StudyDeletionError,
     StudySettingsUpdateError,
-    StudyVariantCreationError,
+    StudyVariantCreationError, OutputDeletionError,
 )
 from antares.craft.model.binding_constraint import BindingConstraint
 from antares.craft.model.output import Output
@@ -143,7 +143,19 @@ class StudyApiService(BaseStudyService):
             raise OutputsRetrievalError(self.study_id, e.message)
 
     def delete_outputs(self) -> None:
-        pass
+        outputs_url = f"{self._base_url}/studies/{self.study_id}/outputs"
+        try:
+            response = self._wrapper.get(outputs_url)
+            outputs_json_list = response.json()
+            for output in outputs_json_list:
+                output_name = output["name"]
+                self.delete_output(output_name)
+        except APIError as e:
+            raise OutputsRetrievalError(self.study_id, e.message)
 
     def delete_output(self, output_name: str) -> None:
-        pass
+        url = f"{self._base_url}/studies/{self.study_id}/outputs/{output_name}"
+        try:
+            self._wrapper.delete(url)
+        except APIError as e:
+            raise OutputDeletionError(self.study_id, output_name, e.message) from e
