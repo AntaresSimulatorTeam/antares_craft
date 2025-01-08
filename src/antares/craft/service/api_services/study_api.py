@@ -148,6 +148,8 @@ class StudyApiService(BaseStudyService):
         try:
             response = self._wrapper.get(outputs_url)
             outputs_json_list = response.json()
+            if not outputs_json_list:
+                raise OutputsRetrievalError(self.study_id, "No outputs to delete.")
             for output in outputs_json_list:
                 output_name = output["name"]
                 self.delete_output(output_name)

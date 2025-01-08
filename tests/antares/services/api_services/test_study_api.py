@@ -26,6 +26,7 @@ from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
     ConstraintRetrievalError,
     LinkCreationError,
+    OutputDeletionError,
     OutputsRetrievalError,
     SimulationFailedError,
     SimulationTimeOutError,
@@ -609,6 +610,13 @@ class TestCreateAPI:
 
             assert output_name not in self.study.get_outputs()
 
+            # failing
+            error_message = "Output deletion failed"
+            mocker.delete(delete_url, json={"description": error_message}, status_code=404)
+
+            with pytest.raises(OutputDeletionError, match=error_message):
+                self.study.delete_output(output_name)
+
     def test_delete_outputs(self):
         with requests_mock.Mocker() as mocker:
             outputs_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs"
@@ -630,3 +638,9 @@ class TestCreateAPI:
             self.study.delete_outputs()
 
             assert len(self.study.get_outputs()) == 0
+
+            # failing
+            error_message = "Output deletion failed"
+            mocker.get(outputs_url, json={"description": error_message}, status_code=404)
+            with pytest.raises(OutputsRetrievalError, match=error_message):
+                self.study.delete_outputs()
