@@ -509,6 +509,15 @@ class BaseBindingConstraintService(ABC):
         """
         pass
 
+    @abstractmethod
+    def read_binding_constraints(self) -> list[BindingConstraint]:
+        """
+        Loads binding constraints into study
+
+        Returns: the list of binding constraints that have been fetched
+        """
+        pass
+
 
 class BaseStudyService(ABC):
     @property

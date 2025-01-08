@@ -23,7 +23,14 @@ from antares.craft.exceptions.exceptions import (
     STStorageMatrixUploadError,
 )
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
-from antares.craft.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
+from antares.craft.model.binding_constraint import (
+    BindingConstraintFrequency,
+    BindingConstraintOperator,
+    BindingConstraintProperties,
+    ClusterData,
+    ConstraintTerm,
+    LinkData,
+)
 from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
@@ -551,3 +558,23 @@ class TestWebClient:
         expected_values = list(range(1, 101))
         matrix_values = aggregated_matrix.loc[0:99, "timeId"].tolist()
         assert expected_values == matrix_values
+
+        # ===== Test read binding constraints =====
+        constraints = study.read_binding_constraints()
+
+        assert len(constraints) == 2
+        constraint = constraints[0]
+        assert constraint.id == "bc_2"
+        assert constraint.name == "bc_2"
+        assert constraint.properties.enabled is True
+        assert constraint.properties.time_step == BindingConstraintFrequency.HOURLY
+        assert constraint.properties.operator == BindingConstraintOperator.EQUAL
+        assert constraint.properties.group == "default"
+        assert len(constraint.get_terms()) == 1
+
+        # ===== terms ======
+        cluster_term = constraint.get_terms()["fr.cluster_test"]
+        assert cluster_term.data.area == "fr"
+        assert cluster_term.data.cluster == "cluster_test"
+        assert cluster_term.weight == 4.5
+        assert cluster_term.offset == 3
