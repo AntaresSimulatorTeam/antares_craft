@@ -411,6 +411,11 @@ class Study:
         """
         return self._outputs[output_id]
 
+    def delete_outputs(self) -> None:
+        self._study_service.delete_outputs()
+
+    def delete_output(self, output_name: str) -> None:
+        self._study_service.delete_output(output_name)
 
 def _verify_study_already_exists(study_directory: Path) -> None:
     if study_directory.exists():

@@ -141,3 +141,9 @@ class StudyApiService(BaseStudyService):
             ]
         except APIError as e:
             raise OutputsRetrievalError(self.study_id, e.message)
+
+    def delete_outputs(self) -> None:
+        pass
+
+    def delete_output(self, output_name: str) -> None:
+        pass
