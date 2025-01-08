@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Optional
+from typing import Any, Optional
 
 import pandas as pd
 
@@ -22,6 +22,7 @@ from antares.craft.exceptions.exceptions import (
     LinkDeletionError,
     LinkDownloadError,
     LinkPropertiesUpdateError,
+    LinksRetrievalError,
     LinkUiUpdateError,
     LinkUploadError,
 )
@@ -214,47 +215,49 @@ class LinkApiService(BaseLinkService):
             raise LinkUploadError(area_from, area_to, "indirectcapacity", e.message) from e
 
     def read_links(self) -> list[Link]:
-        url = f"{self._base_url}/studies/{self.study_id}/links"
-        json_links = self._wrapper.get(url).json()
-        links = self.read_study_links(json_links)
+        try:
+            url = f"{self._base_url}/studies/{self.study_id}/links"
+            json_links = self._wrapper.get(url).json()
+            links = self.read_study_links(json_links)
 
-        links.sort(key=lambda link_obj: link_obj.area_from_id)
-
+            links.sort(key=lambda link_obj: link_obj.area_from_id)
+        except APIError as e:
+            raise LinksRetrievalError(self.study_id, e.message) from e
         return links
+
+    def read_link(self, link: dict[str, Any]) -> Link:
+        link_area_from_id = link.pop("area1")
+        link_area_to_id = link.pop("area2")
+
+        link_style = link.pop("linkStyle")
+        link_width = link.pop("linkWidth")
+        color_r = link.pop("colorr")
+        color_g = link.pop("colorg")
+        color_b = link.pop("colorb")
+
+        link_ui = LinkUi(link_style=link_style, link_width=link_width, colorr=color_r, colorg=color_g, colorb=color_b)
+
+        mapping = {
+            "hurdlesCost": "hurdles-cost",
+            "loopFlow": "loop-flow",
+            "usePhaseShifter": "use-phase-shifter",
+            "transmissionCapacities": "transmission-capacities",
+            "displayComments": "display-comments",
+            "filterSynthesis": "filter-synthesis",
+            "filterYearByYear": "filter-year-by-year",
+            "assetType": "asset-type",
+        }
+
+        link = {mapping.get(k, k): v for k, v in link.items()}
+        link["filter-synthesis"] = set(link["filter-synthesis"].split(", "))
+        link["filter-year-by-year"] = set(link["filter-year-by-year"].split(", "))
+        link_properties = LinkProperties(**link)
+        return Link(link_area_from_id, link_area_to_id, self, link_properties, link_ui)
 
     def read_study_links(self, link_list: list) -> list[Link]:
         links = []
         for link in link_list:
-            link_area_from_id = link.pop("area1")
-            link_area_to_id = link.pop("area2")
-
-            link_style = link.pop("linkStyle")
-            link_width = link.pop("linkWidth")
-            color_r = link.pop("colorr")
-            color_g = link.pop("colorg")
-            color_b = link.pop("colorb")
-
-            link_ui = LinkUi(
-                link_style=link_style, link_width=link_width, colorr=color_r, colorg=color_g, colorb=color_b
-            )
-
-            mapping = {
-                "hurdlesCost": "hurdles-cost",
-                "loopFlow": "loop-flow",
-                "usePhaseShifter": "use-phase-shifter",
-                "transmissionCapacities": "transmission-capacities",
-                "displayComments": "display-comments",
-                "filterSynthesis": "filter-synthesis",
-                "filterYearByYear": "filter-year-by-year",
-                "assetType": "asset-type",
-            }
-
-            link = {mapping.get(k, k): v for k, v in link.items()}
-            link["filter-synthesis"] = set(link["filter-synthesis"].split(", "))
-            link["filter-year-by-year"] = set(link["filter-year-by-year"].split(", "))
-            link_properties = LinkProperties(**link)
-            link_object = Link(link_area_from_id, link_area_to_id, self, link_properties, link_ui)
-
+            link_object = self.read_link(link)
             links.append(link_object)
 
         return links
