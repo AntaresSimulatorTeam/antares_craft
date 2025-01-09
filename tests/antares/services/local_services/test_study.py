@@ -1683,6 +1683,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 """
 
@@ -1717,6 +1718,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 """
         expected_ini = ConfigParser()
@@ -1765,6 +1767,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = daily, weekly
+comments = 
 
 """
         expected_ini = ConfigParser()
@@ -1804,6 +1807,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 [it]
 hurdles-cost = false
@@ -1819,6 +1823,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 """
         expected_ini = ConfigParser()
@@ -1861,6 +1866,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 [it]
 hurdles-cost = false
@@ -1876,6 +1882,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 """
         expected_ini = ConfigParser()
@@ -1933,6 +1940,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 """
         expected_ini = ConfigParser()
@@ -1970,6 +1978,7 @@ colorb = 0
 display-comments = true
 filter-synthesis = hourly, weekly, monthly
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 """
         expected_ini = ConfigParser()

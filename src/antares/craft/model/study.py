@@ -245,6 +245,8 @@ class Study:
         return area_list
 
     def read_links(self) -> list[Link]:
+        link_list = self._link_service.read_links()
+        self._links = {link.id: link for link in link_list}
         return self._link_service.read_links()
 
     def get_areas(self) -> MappingProxyType[str, Area]:

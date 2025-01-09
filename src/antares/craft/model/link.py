@@ -68,6 +68,7 @@ class DefaultLinkProperties(BaseModel, extra="forbid", populate_by_name=True, al
         FilterOption.MONTHLY,
         FilterOption.ANNUAL,
     }
+    comments: str = ""
 
 
 @all_optional_model
@@ -89,6 +90,7 @@ class LinkPropertiesLocal(DefaultLinkProperties):
             "filter-year-by-year": ", ".join(
                 filter_value for filter_value in sort_filter_values(self.filter_year_by_year)
             ),
+            "comments": f"{self.comments}".lower(),
         }
 
     def yield_link_properties(self) -> LinkProperties:

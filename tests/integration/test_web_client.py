@@ -399,6 +399,15 @@ class TestWebClient:
         thermal_fr.update_properties(new_props)
         assert thermal_fr.properties.group == ThermalClusterGroup.NUCLEAR
 
+        # assert study got all links
+        links = study.read_links()
+        assert len(links) == 2
+        test_link_be_fr = links[0]
+        test_link_de_fr = links[1]
+        assert test_link_be_fr.id == link_be_fr.id
+        assert test_link_be_fr.properties == link_be_fr.properties
+        assert test_link_de_fr.id == link_de_fr.id
+
         # tests renewable properties update
         new_props = RenewableClusterProperties()
         new_props.ts_interpretation = TimeSeriesInterpretation.POWER_GENERATION

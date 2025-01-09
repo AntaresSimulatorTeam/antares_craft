@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Optional
+from typing import Any, Optional
 
 import pandas as pd
 
@@ -22,6 +22,7 @@ from antares.craft.exceptions.exceptions import (
     LinkDeletionError,
     LinkDownloadError,
     LinkPropertiesUpdateError,
+    LinksRetrievalError,
     LinkUiUpdateError,
     LinkUploadError,
 )
@@ -214,7 +215,47 @@ class LinkApiService(BaseLinkService):
             raise LinkUploadError(area_from, area_to, "indirectcapacity", e.message) from e
 
     def read_links(self) -> list[Link]:
-        raise NotImplementedError
+        try:
+            url = f"{self._base_url}/studies/{self.study_id}/links"
+            json_links = self._wrapper.get(url).json()
+            links = []
+            for link in json_links:
+                link_object = self.convert_api_link_to_internal_link(link)
+                links.append(link_object)
+
+            links.sort(key=lambda link_obj: link_obj.area_from_id)
+        except APIError as e:
+            raise LinksRetrievalError(self.study_id, e.message) from e
+        return links
+
+    def convert_api_link_to_internal_link(self, api_link: dict[str, Any]) -> Link:
+        link_area_from_id = api_link.pop("area1")
+        link_area_to_id = api_link.pop("area2")
+
+        link_style = api_link.pop("linkStyle")
+        link_width = api_link.pop("linkWidth")
+        color_r = api_link.pop("colorr")
+        color_g = api_link.pop("colorg")
+        color_b = api_link.pop("colorb")
+
+        link_ui = LinkUi(link_style=link_style, link_width=link_width, colorr=color_r, colorg=color_g, colorb=color_b)
+
+        mapping = {
+            "hurdlesCost": "hurdles-cost",
+            "loopFlow": "loop-flow",
+            "usePhaseShifter": "use-phase-shifter",
+            "transmissionCapacities": "transmission-capacities",
+            "displayComments": "display-comments",
+            "filterSynthesis": "filter-synthesis",
+            "filterYearByYear": "filter-year-by-year",
+            "assetType": "asset-type",
+        }
+
+        api_link = {mapping.get(k, k): v for k, v in api_link.items()}
+        api_link["filter-synthesis"] = set(api_link["filter-synthesis"].split(", "))
+        api_link["filter-year-by-year"] = set(api_link["filter-year-by-year"].split(", "))
+        link_properties = LinkProperties(**api_link)
+        return Link(link_area_from_id, link_area_to_id, self, link_properties, link_ui)
 
 
 def _join_filter_values_for_json(json_dict: dict, dict_to_extract: dict) -> dict:
