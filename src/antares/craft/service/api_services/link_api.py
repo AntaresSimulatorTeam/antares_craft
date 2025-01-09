@@ -218,22 +218,25 @@ class LinkApiService(BaseLinkService):
         try:
             url = f"{self._base_url}/studies/{self.study_id}/links"
             json_links = self._wrapper.get(url).json()
-            links = self.read_study_links(json_links)
+            links = []
+            for link in json_links:
+                link_object = self.convert_api_link_to_internal_link(link)
+                links.append(link_object)
 
             links.sort(key=lambda link_obj: link_obj.area_from_id)
         except APIError as e:
             raise LinksRetrievalError(self.study_id, e.message) from e
         return links
 
-    def read_link(self, link: dict[str, Any]) -> Link:
-        link_area_from_id = link.pop("area1")
-        link_area_to_id = link.pop("area2")
+    def convert_api_link_to_internal_link(self, api_link: dict[str, Any]) -> Link:
+        link_area_from_id = api_link.pop("area1")
+        link_area_to_id = api_link.pop("area2")
 
-        link_style = link.pop("linkStyle")
-        link_width = link.pop("linkWidth")
-        color_r = link.pop("colorr")
-        color_g = link.pop("colorg")
-        color_b = link.pop("colorb")
+        link_style = api_link.pop("linkStyle")
+        link_width = api_link.pop("linkWidth")
+        color_r = api_link.pop("colorr")
+        color_g = api_link.pop("colorg")
+        color_b = api_link.pop("colorb")
 
         link_ui = LinkUi(link_style=link_style, link_width=link_width, colorr=color_r, colorg=color_g, colorb=color_b)
 
@@ -248,19 +251,11 @@ class LinkApiService(BaseLinkService):
             "assetType": "asset-type",
         }
 
-        link = {mapping.get(k, k): v for k, v in link.items()}
-        link["filter-synthesis"] = set(link["filter-synthesis"].split(", "))
-        link["filter-year-by-year"] = set(link["filter-year-by-year"].split(", "))
-        link_properties = LinkProperties(**link)
+        api_link = {mapping.get(k, k): v for k, v in api_link.items()}
+        api_link["filter-synthesis"] = set(api_link["filter-synthesis"].split(", "))
+        api_link["filter-year-by-year"] = set(api_link["filter-year-by-year"].split(", "))
+        link_properties = LinkProperties(**api_link)
         return Link(link_area_from_id, link_area_to_id, self, link_properties, link_ui)
-
-    def read_study_links(self, link_list: list) -> list[Link]:
-        links = []
-        for link in link_list:
-            link_object = self.read_link(link)
-            links.append(link_object)
-
-        return links
 
 
 def _join_filter_values_for_json(json_dict: dict, dict_to_extract: dict) -> dict:
