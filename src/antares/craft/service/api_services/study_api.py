@@ -18,6 +18,7 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
     BindingConstraintDeletionError,
+    OutputDeletionError,
     OutputsRetrievalError,
     StudyDeletionError,
     StudySettingsUpdateError,
@@ -141,3 +142,23 @@ class StudyApiService(BaseStudyService):
             ]
         except APIError as e:
             raise OutputsRetrievalError(self.study_id, e.message)
+
+    def delete_outputs(self) -> None:
+        outputs_url = f"{self._base_url}/studies/{self.study_id}/outputs"
+        try:
+            response = self._wrapper.get(outputs_url)
+            outputs_json_list = response.json()
+            if not outputs_json_list:
+                raise OutputsRetrievalError(self.study_id, "No outputs to delete.")
+            for output in outputs_json_list:
+                output_name = output["name"]
+                self.delete_output(output_name)
+        except APIError as e:
+            raise OutputsRetrievalError(self.study_id, e.message)
+
+    def delete_output(self, output_name: str) -> None:
+        url = f"{self._base_url}/studies/{self.study_id}/outputs/{output_name}"
+        try:
+            self._wrapper.delete(url)
+        except APIError as e:
+            raise OutputDeletionError(self.study_id, output_name, e.message) from e

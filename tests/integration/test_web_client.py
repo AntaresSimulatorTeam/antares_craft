@@ -578,3 +578,24 @@ class TestWebClient:
         assert cluster_term.data.cluster == "cluster_test"
         assert cluster_term.weight == 4.5
         assert cluster_term.offset == 3
+
+        # ===== Output deletion =====
+
+        # run two new simulations for creating more outputs
+        study.wait_job_completion(
+            study.run_antares_simulation(AntaresSimulationParameters(output_suffix="2")), time_out=60
+        )
+        study.wait_job_completion(
+            study.run_antares_simulation(AntaresSimulationParameters(output_suffix="3")), time_out=60
+        )
+        assert len(study.read_outputs()) == 3
+
+        # delete_output
+        study.delete_output(output.name)
+        assert output.name not in study.get_outputs()
+        assert len(study.read_outputs()) == 2
+
+        # delete_outputs
+        study.delete_outputs()
+        assert len(study.get_outputs()) == 0
+        assert len(study.read_outputs()) == 0
