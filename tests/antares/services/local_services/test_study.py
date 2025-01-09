@@ -9,12 +9,12 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
 
 import logging
 import os
 import time
+import typing as t
 
 from configparser import ConfigParser
 from pathlib import Path
@@ -22,20 +22,24 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.config.local_configuration import LocalConfiguration
-from antares.exceptions.exceptions import CustomError, LinkCreationError
-from antares.model.area import Area, AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
-from antares.model.binding_constraint import (
+from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.exceptions.exceptions import (
+    AreaCreationError,
+    BindingConstraintCreationError,
+    CustomError,
+    LinkCreationError,
+)
+from antares.craft.model.area import AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
+from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
-    BindingConstraintPropertiesLocal,
     ConstraintTerm,
 )
-from antares.model.commons import FilterOption
-from antares.model.hydro import Hydro
-from antares.model.link import (
+from antares.craft.model.commons import FilterOption
+from antares.craft.model.hydro import Hydro
+from antares.craft.model.link import (
     AssetType,
     Link,
     LinkProperties,
@@ -45,11 +49,11 @@ from antares.model.link import (
     LinkUiLocal,
     TransmissionCapacities,
 )
-from antares.model.settings.adequacy_patch import (
+from antares.craft.model.settings.adequacy_patch import (
     DefaultAdequacyPatchParameters,
     PriceTakingOrder,
 )
-from antares.model.settings.advanced_parameters import (
+from antares.craft.model.settings.advanced_parameters import (
     AdvancedParametersLocal,
     HydroHeuristicPolicy,
     HydroPricingMode,
@@ -60,31 +64,28 @@ from antares.model.settings.advanced_parameters import (
     SimulationCore,
     UnitCommitmentMode,
 )
-from antares.model.settings.general import (
+from antares.craft.model.settings.general import (
     BuildingMode,
     GeneralParametersLocal,
     Mode,
     Month,
     WeekDay,
 )
-from antares.model.settings.optimization import (
+from antares.craft.model.settings.optimization import (
     ExportMPS,
     OptimizationParametersLocal,
     OptimizationTransmissionCapacities,
     SimplexOptimizationRange,
     UnfeasibleProblemBehavior,
 )
-from antares.model.settings.playlist_parameters import PlaylistData, PlaylistParameters
-from antares.model.settings.study_settings import DefaultStudySettings, StudySettingsLocal
-from antares.model.settings.thematic_trimming import DefaultThematicTrimmingParameters, ThematicTrimmingParametersLocal
-from antares.model.study import create_study_local
-from antares.service.local_services.area_local import AreaLocalService
-from antares.service.local_services.link_local import LinkLocalService
-from antares.service.local_services.renewable_local import RenewableLocalService
-from antares.service.local_services.st_storage_local import ShortTermStorageLocalService
-from antares.service.local_services.thermal_local import ThermalLocalService
-from antares.tools.ini_tool import IniFileTypes
-from antares.tools.time_series_tool import TimeSeriesFileType
+from antares.craft.model.settings.playlist_parameters import PlaylistData, PlaylistParameters
+from antares.craft.model.settings.study_settings import DefaultStudySettings, StudySettingsLocal
+from antares.craft.model.settings.thematic_trimming import (
+    DefaultThematicTrimmingParameters,
+    ThematicTrimmingParametersLocal,
+)
+from antares.craft.model.study import create_study_local
+from antares.craft.tools.ini_tool import IniFileTypes
 
 
 class TestCreateStudy:
@@ -99,7 +100,7 @@ class TestCreateStudy:
         expected_study_path = tmp_path / "studyTest"
 
         # When
-        create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
+        create_study_local(study_name, version, str(tmp_path.absolute()))
 
         # Then
         assert os.path.exists(expected_study_path)
@@ -147,41 +148,24 @@ author = Unknown
         monkeypatch.setattr(time, "time", lambda: "123")
 
         # When
-        create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
+        create_study_local(study_name, version, str(tmp_path.absolute()))
         with open(expected_study_antares_path, "r") as file:
             actual_content = file.read()
 
         # Then
         assert actual_content == antares_content
 
-    def test_verify_study_already_exists_error(self, monkeypatch, tmp_path, caplog):
+    def test_verify_study_already_exists_error(self, tmp_path):
         # Given
         study_name = "studyTest"
         version = "850"
-
-        def mock_verify_study_already_exists(study_directory):
-            raise FileExistsError(f"Failed to create study. Study {study_directory} already exists")
-
-        monkeypatch.setattr("antares.model.study._verify_study_already_exists", mock_verify_study_already_exists)
+        (tmp_path / study_name).mkdir(parents=True, exist_ok=True)
 
         # When
-        with caplog.at_level(logging.ERROR):
-            with pytest.raises(
-                FileExistsError, match=f"Failed to create study. Study {tmp_path}/{study_name} already exists"
-            ):
-                create_study_local(study_name, version, LocalConfiguration(tmp_path, study_name))
+        with pytest.raises(FileExistsError, match=f"Study {study_name} already exists"):
+            create_study_local(study_name, version, str(tmp_path.absolute()))
 
-    def test_solar_correlation_ini_exists(self, local_study_with_hydro):
-        # Given
-        expected_ini_path = local_study_with_hydro.service.config.study_path / "input/solar/prepro/correlation.ini"
-
-        # Then
-        assert expected_ini_path.exists()
-        assert expected_ini_path.is_file()
-        assert local_study_with_hydro._ini_files["solar_correlation"].ini_path == expected_ini_path
-
-    def test_solar_correlation_ini_has_default_values(self, local_study_with_hydro):
-        # Given
+    def test_all_correlation_ini_files_exists(self, local_study):
         expected_ini_content = """[general]
 mode = annual
 
@@ -212,126 +196,15 @@ mode = annual
 [11]
 
 """
-        expected_ini = ConfigParser()
-        actual_ini = local_study_with_hydro._ini_files["solar_correlation"]
+        local_config = t.cast(LocalConfiguration, local_study.service.config)
+        study_path = local_config.study_path
+        for folder in ["hydro", "load", "solar", "wind"]:
+            ini_path = study_path / "input" / folder / "prepro" / "correlation.ini"
+            assert ini_path.exists()
+            assert ini_path.is_file()
 
-        # When
-        expected_ini.read_string(expected_ini_content)
-        with actual_ini.ini_path.open("r") as ini_file:
-            actual_ini_content = ini_file.read()
-
-        # Then
-        assert actual_ini_content == expected_ini_content
-        assert actual_ini.parsed_ini.sections() == expected_ini.sections()
-        assert actual_ini.parsed_ini == expected_ini
-
-    def test_wind_correlation_ini_exists(self, local_study_with_hydro):
-        # Given
-        expected_ini_path = local_study_with_hydro.service.config.study_path / "input/wind/prepro/correlation.ini"
-
-        # Then
-        assert expected_ini_path.exists()
-        assert expected_ini_path.is_file()
-        assert local_study_with_hydro._ini_files["wind_correlation"].ini_path == expected_ini_path
-
-    def test_wind_correlation_ini_has_default_values(self, local_study_with_hydro):
-        # Given
-        expected_ini_content = """[general]
-mode = annual
-
-[annual]
-
-[0]
-
-[1]
-
-[2]
-
-[3]
-
-[4]
-
-[5]
-
-[6]
-
-[7]
-
-[8]
-
-[9]
-
-[10]
-
-[11]
-
-"""
-        expected_ini = ConfigParser()
-        actual_ini = local_study_with_hydro._ini_files["wind_correlation"]
-
-        # When
-        expected_ini.read_string(expected_ini_content)
-        with actual_ini.ini_path.open("r") as ini_file:
-            actual_ini_content = ini_file.read()
-
-        # Then
-        assert actual_ini_content == expected_ini_content
-        assert actual_ini.parsed_ini.sections() == expected_ini.sections()
-        assert actual_ini.parsed_ini == expected_ini
-
-    def test_load_correlation_ini_exists(self, local_study_with_hydro):
-        # Given
-        expected_ini_path = local_study_with_hydro.service.config.study_path / "input/load/prepro/correlation.ini"
-
-        # Then
-        assert expected_ini_path.exists()
-        assert expected_ini_path.is_file()
-        assert local_study_with_hydro._ini_files["load_correlation"].ini_path == expected_ini_path
-
-    def test_load_correlation_ini_has_default_values(self, local_study_with_hydro):
-        # Given
-        expected_ini_content = """[general]
-mode = annual
-
-[annual]
-
-[0]
-
-[1]
-
-[2]
-
-[3]
-
-[4]
-
-[5]
-
-[6]
-
-[7]
-
-[8]
-
-[9]
-
-[10]
-
-[11]
-
-"""
-        expected_ini = ConfigParser()
-        actual_ini = local_study_with_hydro._ini_files["load_correlation"]
-
-        # When
-        expected_ini.read_string(expected_ini_content)
-        with actual_ini.ini_path.open("r") as ini_file:
-            actual_ini_content = ini_file.read()
-
-        # Then
-        assert actual_ini_content == expected_ini_content
-        assert actual_ini.parsed_ini.sections() == expected_ini.sections()
-        assert actual_ini.parsed_ini == expected_ini
+            ini_content = ini_path.read_text(encoding="utf-8")
+            assert ini_content == expected_ini_content
 
 
 class TestStudyProperties:
@@ -487,7 +360,7 @@ class TestStudyProperties:
         playlist_study = create_study_local(
             "test_study",
             "880",
-            LocalConfiguration(tmp_path, "test_study"),
+            str(tmp_path.absolute()),
             StudySettingsLocal(
                 general_parameters=GeneralParametersLocal(nb_years=nb_years, selection_mode=True),
                 playlist_parameters=PlaylistParameters(playlist=[PlaylistData()] * nb_years),
@@ -612,7 +485,7 @@ class TestStudyProperties:
         thematic_trimming_study = create_study_local(
             "test_study",
             "880",
-            LocalConfiguration(tmp_path, "test_study"),
+            str(tmp_path.absolute()),
             StudySettingsLocal(
                 general_parameters=GeneralParametersLocal(thematic_trimming=True),
                 thematic_trimming_parameters=ThematicTrimmingParametersLocal(),
@@ -747,7 +620,7 @@ seed-initial-reservoir-levels = 10005489
         study_version = "880"
         general_parameters = GeneralParametersLocal(thematic_trimming=True)
         thematic_trimming_parameters = ThematicTrimmingParametersLocal(op_cost=False)
-        study_config = LocalConfiguration(tmp_path, study_name)
+        study_path = str(tmp_path.absolute())
         expected_file_content = """[general]
 mode = Economy
 horizon = 
@@ -852,7 +725,7 @@ select_var - = OP. COST
         new_study = create_study_local(
             study_name,
             study_version,
-            study_config,
+            study_path,
             StudySettingsLocal(
                 general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
             ),
@@ -872,7 +745,7 @@ select_var - = OP. COST
         thematic_trimming_parameters = {
             key: not value for key, value in thematic_trimming_parameters.model_dump().items()
         }
-        study_config = LocalConfiguration(tmp_path, study_name)
+        study_path = str(tmp_path.absolute())
         expected_file_content = """[general]
 mode = Economy
 horizon = 
@@ -977,7 +850,7 @@ select_var + = OP. COST
         new_study = create_study_local(
             study_name,
             study_version,
-            study_config,
+            study_path,
             StudySettingsLocal(
                 general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
             ),
@@ -999,7 +872,7 @@ select_var + = OP. COST
             key: not value for key, value in thematic_trimming_parameters.model_dump().items()
         }
 
-        study_config = LocalConfiguration(tmp_path, study_name)
+        study_path = str(tmp_path.absolute())
         expected_file_content = """[general]
 mode = Economy
 horizon = 
@@ -1104,7 +977,7 @@ selected_vars_reset = false
         new_study = create_study_local(
             study_name,
             study_version,
-            study_config,
+            study_path,
             StudySettingsLocal(
                 general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
             ),
@@ -1126,7 +999,7 @@ selected_vars_reset = false
         thematic_trimming_parameters = ThematicTrimmingParametersLocal.model_validate(
             {key: not value for key, value in thematic_trimming_parameters.model_dump().items()}
         )
-        study_config = LocalConfiguration(tmp_path, study_name)
+        study_path = str(tmp_path.absolute())
         expected_file_content = """[general]
 mode = Economy
 horizon = 
@@ -1235,7 +1108,7 @@ select_var + = OP. COST
         new_study = create_study_local(
             study_name,
             study_version,
-            study_config,
+            study_path,
             StudySettingsLocal(
                 general_parameters=general_parameters,
                 playlist_parameters=playlist_parameters,
@@ -1261,7 +1134,7 @@ select_var + = OP. COST
         thematic_trimming_parameters = ThematicTrimmingParametersLocal.model_validate(
             {key: not value for key, value in thematic_trimming_parameters.model_dump().items()}
         )
-        study_config = LocalConfiguration(tmp_path, study_name)
+        study_path = str(tmp_path.absolute())
         expected_file_content = """[general]
 mode = Economy
 horizon = 
@@ -1370,7 +1243,7 @@ select_var + = OP. COST
         new_study = create_study_local(
             study_name,
             study_version,
-            study_config,
+            study_path,
             StudySettingsLocal(
                 general_parameters=general_parameters,
                 playlist_parameters=playlist_parameters,
@@ -1562,16 +1435,20 @@ layers = 0
         # Then
         assert actual_content == ui_ini_content
 
-    def test_create_area_with_custom_error(self, monkeypatch, caplog, local_study):
-        # Given
-        caplog.set_level(logging.INFO)
+    def test_create_area_with_custom_error(self, monkeypatch, local_study):
+        error_message = "Thine area hath raised en error, thou shalt not pass!"
 
         def mock_error_in_sets_ini():
-            raise CustomError("An error occurred while processing area can not be created")
+            raise CustomError(error_message)
 
-        monkeypatch.setattr("antares.service.local_services.area_local._sets_ini_content", mock_error_in_sets_ini)
-        with pytest.raises(CustomError, match="An error occurred while processing area can not be created"):
-            local_study.create_area("test")
+        area_id = "test"
+
+        monkeypatch.setattr("antares.craft.service.local_services.area_local._sets_ini_content", mock_error_in_sets_ini)
+        with pytest.raises(
+            AreaCreationError,
+            match=f"Could not create the area {area_id}: {error_message}",
+        ):
+            local_study.create_area(area_id)
 
     def test_create_area_with_custom_ui(self, tmp_path, local_study):
         # Given
@@ -1617,6 +1494,17 @@ layers = 0
         # When
         local_study.create_area(area, ui=area_ui)
         assert local_study.get_areas()[area].ui == area_ui
+
+    def test_creating_duplicate_area_name_errors(self, local_study_w_areas):
+        # Given
+        area_to_create = "fr"
+
+        # Then
+        with pytest.raises(
+            AreaCreationError,
+            match=f"Could not create the area {area_to_create}: There is already an area '{area_to_create}' in the study '{local_study_w_areas.name}'",
+        ):
+            local_study_w_areas.create_area(area_to_create)
 
     def test_areas_have_default_properties(self, tmp_path, local_study_w_areas):
         # Given
@@ -1740,9 +1628,8 @@ class TestCreateLink:
         # When
         area_from, area_to = link_to_create.split("_")
         link_created = local_study_w_areas.create_link(
-            area_from=local_study_w_areas.get_areas()[area_from],
-            area_to=local_study_w_areas.get_areas()[area_to],
-            existing_areas=local_study_w_areas.get_areas(),
+            area_from=area_from,
+            area_to=area_to,
         )
 
         assert isinstance(link_created, Link)
@@ -1750,46 +1637,17 @@ class TestCreateLink:
     def test_unknown_area_errors(self, tmp_path, local_study_w_areas):
         # Given
         link_to_create = "es_fr"
-        fake_study_name = "nonExistantStudy"
-        fake_config = LocalConfiguration(Path("/fake/path"), fake_study_name)
 
         # When
         area_from, area_to = link_to_create.split("_")
-        area_from = Area(
-            name=area_from,
-            area_service=AreaLocalService(fake_config, fake_study_name),
-            storage_service=ShortTermStorageLocalService(fake_config, fake_study_name),
-            thermal_service=ThermalLocalService(fake_config, fake_study_name),
-            renewable_service=RenewableLocalService(fake_config, fake_study_name),
-        )
-        area_to = local_study_w_areas.get_areas()[area_to]
+        area_from = area_from
+        area_to = area_to
 
         with pytest.raises(
             LinkCreationError,
-            match=f"Could not create the link {area_from.name} / {area_to.name}: {area_from.name} does not exist",
+            match=f"Could not create the link {area_from} / {area_to}: {area_from} does not exist",
         ):
-            local_study_w_areas.create_link(
-                area_from=area_from, area_to=area_to, existing_areas=local_study_w_areas.get_areas()
-            )
-
-    def test_study_areas_not_provided_errors(self, tmp_path, local_study_w_areas):
-        # With
-        area_from = local_study_w_areas.get_areas()["fr"]
-        area_to = local_study_w_areas.get_areas()["it"]
-        test_service = LinkLocalService(
-            local_study_w_areas.service.config,
-            local_study_w_areas.name,
-        )
-
-        with pytest.raises(
-            LinkCreationError,
-            match=f"Could not create the link {area_from.name} / {area_to.name}: Cannot verify existing areas.",
-        ):
-            test_service.create_link(
-                area_from=area_from,
-                area_to=area_to,
-                existing_areas=None,
-            )
+            local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
 
     def test_create_link_alphabetically(self, tmp_path, local_study):
         # Given
@@ -1801,13 +1659,12 @@ class TestCreateLink:
         # When
         area_from, area_to = link_to_create.split("_")
         link_created = local_study.create_link(
-            area_from=local_study.get_areas()[area_from],
-            area_to=local_study.get_areas()[area_to],
-            existing_areas=local_study.get_areas(),
+            area_from=area_from,
+            area_to=area_to,
         )
 
-        assert link_created.area_from.name == "at"
-        assert link_created.area_to.name == "fr"
+        assert link_created.area_from_id == "at"
+        assert link_created.area_to_id == "fr"
 
     def test_create_link_sets_ini_content(self, tmp_path, local_study_w_areas):
         # Given
@@ -1826,6 +1683,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 """
 
@@ -1833,9 +1691,8 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         area_from, area_to = link_to_create.split("_")
 
         local_study_w_areas.create_link(
-            area_from=local_study_w_areas.get_areas()[area_from],
-            area_to=local_study_w_areas.get_areas()[area_to],
-            existing_areas=local_study_w_areas.get_areas(),
+            area_from="fr",
+            area_to="it",
         )
 
         ini_file = tmp_path / local_study_w_areas.name / "input/links" / area_from / "properties.ini"
@@ -1861,6 +1718,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 """
         expected_ini = ConfigParser()
@@ -1870,9 +1728,8 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         # When
         area_from, area_to = link_to_create.split("_")
         created_link = local_study_w_areas.create_link(
-            area_from=local_study_w_areas.get_areas()[area_from],
-            area_to=local_study_w_areas.get_areas()[area_to],
-            existing_areas=local_study_w_areas.get_areas(),
+            area_from="fr",
+            area_to="it",
         )
         ini_file = tmp_path / local_study_w_areas.name / "input/links" / area_from / "properties.ini"
         actual_ini = ConfigParser()
@@ -1910,6 +1767,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = daily, weekly
+comments = 
 
 """
         expected_ini = ConfigParser()
@@ -1917,12 +1775,7 @@ filter-year-by-year = daily, weekly
 
         # When
         area_from, area_to = link_to_create.split("_")
-        link_created = local_study_w_areas.create_link(
-            area_from=local_study_w_areas.get_areas()[area_from],
-            area_to=local_study_w_areas.get_areas()[area_to],
-            properties=link_properties,
-            existing_areas=local_study_w_areas.get_areas(),
-        )
+        link_created = local_study_w_areas.create_link(area_from="fr", area_to="it", properties=link_properties)
         created_ini_file = tmp_path / local_study_w_areas.name / "input/links" / area_from / "properties.ini"
         actual_ini = ConfigParser()
         with open(created_ini_file, "r") as file:
@@ -1954,6 +1807,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 [it]
 hurdles-cost = false
@@ -1969,6 +1823,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 """
         expected_ini = ConfigParser()
@@ -1978,11 +1833,7 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         # When
         for link in links_to_create:
             area_from, area_to = link.split("_")
-            local_study_w_areas.create_link(
-                area_from=local_study_w_areas.get_areas()[area_from],
-                area_to=local_study_w_areas.get_areas()[area_to],
-                existing_areas=local_study_w_areas.get_areas(),
-            )
+            local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
 
         # Then
         actual_ini = ConfigParser()
@@ -2015,6 +1866,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 [it]
 hurdles-cost = false
@@ -2030,6 +1882,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 """
         expected_ini = ConfigParser()
@@ -2039,11 +1892,7 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         # When
         for link in links_to_create:
             area_from, area_to = link.split("_")
-            local_study_w_areas.create_link(
-                area_from=local_study_w_areas.get_areas()[area_from],
-                area_to=local_study_w_areas.get_areas()[area_to],
-                existing_areas=local_study_w_areas.get_areas(),
-            )
+            local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
 
         # Then
         actual_ini = ConfigParser()
@@ -2064,15 +1913,12 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
 
         # Then
         with pytest.raises(
-            CustomError,
-            match="""Link exists already, section already exists in properties.ini:
-
-Section 'it' already exists""",
+            LinkCreationError,
+            match=f"Could not create the link {area_from} / {area_to}: A link from {area_from} to {area_to} already exists",
         ):
             local_study_w_links.create_link(
-                area_from=local_study_w_links.get_areas()[area_from],
-                area_to=local_study_w_links.get_areas()[area_to],
-                existing_areas=local_study_w_links.get_areas(),
+                area_from=area_from,
+                area_to=area_to,
             )
 
     def test_created_link_has_default_ui_values(self, tmp_path, local_study_w_areas):
@@ -2094,6 +1940,7 @@ colorb = 112
 display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 """
         expected_ini = ConfigParser()
@@ -2101,11 +1948,7 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
 
         # When
         area_from, area_to = link_to_create.split(" / ")
-        local_study_w_areas.create_link(
-            area_from=local_study_w_areas.get_areas()[area_from],
-            area_to=local_study_w_areas.get_areas()[area_to],
-            existing_areas=local_study_w_areas.get_areas(),
-        )
+        local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
         with open(actual_ini_file, "r") as file:
             actual_ini.read_file(file)
             file.seek(0)
@@ -2135,6 +1978,7 @@ colorb = 0
 display-comments = true
 filter-synthesis = hourly, weekly, monthly
 filter-year-by-year = hourly, daily, weekly, monthly, annual
+comments = 
 
 """
         expected_ini = ConfigParser()
@@ -2150,11 +1994,10 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
         # When
         area_from, area_to = link_to_create.split(" / ")
         created_link = local_study_w_areas.create_link(
-            area_from=local_study_w_areas.get_areas()[area_from],
-            area_to=local_study_w_areas.get_areas()[area_to],
+            area_from=area_from,
+            area_to=area_to,
             properties=expected_properties,
             ui=expected_ui,
-            existing_areas=local_study_w_areas.get_areas(),
         )
         with open(actual_ini_file, "r") as file:
             actual_ini.read_file(file)
@@ -2181,6 +2024,17 @@ class TestCreateBindingconstraint:
 
         # Then
         assert isinstance(binding_constraint, BindingConstraint)
+
+    def test_duplicate_name_errors(self, local_study_with_constraint):
+        # Given
+        binding_constraint_name = "test constraint"
+
+        # Then
+        with pytest.raises(
+            BindingConstraintCreationError,
+            match=f"Could not create the binding constraint {binding_constraint_name}: A binding constraint with the name {binding_constraint_name} already exists.",
+        ):
+            local_study_with_constraint.create_binding_constraint(name=binding_constraint_name)
 
     def test_constraints_have_default_properties(self, local_study_with_constraint):
         # Given
@@ -2327,68 +2181,6 @@ at%fr = 0.000000%1
 
         assert actual_ini_content == expected_ini_contents
 
-    def test_binding_constraint_with_timeseries_stores_ts_file(self, local_study_with_hydro):
-        # Given
-        ts_matrix = pd.DataFrame(np.zeros([365 * 24, 2]))
-
-        # When
-        constraints = {
-            "lesser":
-            # Less than timeseries
-            local_study_with_hydro.create_binding_constraint(
-                name="test constraint - less",
-                properties=BindingConstraintProperties(
-                    operator=BindingConstraintOperator.LESS,
-                ),
-                less_term_matrix=ts_matrix,
-            ),
-            "equal":
-            # Equal timeseries
-            local_study_with_hydro.create_binding_constraint(
-                name="test constraint - equal",
-                properties=BindingConstraintProperties(
-                    operator=BindingConstraintOperator.EQUAL,
-                ),
-                equal_term_matrix=ts_matrix,
-            ),
-            "greater":
-            # Greater than timeseries
-            local_study_with_hydro.create_binding_constraint(
-                name="test constraint - greater",
-                properties=BindingConstraintProperties(
-                    operator=BindingConstraintOperator.GREATER,
-                ),
-                greater_term_matrix=ts_matrix,
-            ),
-            "both":
-            # Greater than timeseries
-            local_study_with_hydro.create_binding_constraint(
-                name="test constraint - both",
-                properties=BindingConstraintProperties(
-                    operator=BindingConstraintOperator.BOTH,
-                ),
-                less_term_matrix=ts_matrix,
-                greater_term_matrix=ts_matrix,
-            ),
-        }
-
-        # Then
-        assert local_study_with_hydro._binding_constraints_service.time_series[
-            f"{constraints['lesser'].id.lower()}_lt"
-        ].local_file.file_path.is_file()
-        assert local_study_with_hydro._binding_constraints_service.time_series[
-            f"{constraints['equal'].id.lower()}_eq"
-        ].local_file.file_path.is_file()
-        assert local_study_with_hydro._binding_constraints_service.time_series[
-            f"{constraints['greater'].id.lower()}_gt"
-        ].local_file.file_path.is_file()
-        assert local_study_with_hydro._binding_constraints_service.time_series[
-            f"{constraints['both'].id.lower()}_lt"
-        ].local_file.file_path.is_file()
-        assert local_study_with_hydro._binding_constraints_service.time_series[
-            f"{constraints['both'].id.lower()}_gt"
-        ].local_file.file_path.is_file()
-
     def test_binding_constraints_have_correct_default_time_series(self, test_constraint, local_study_with_constraint):
         # Given
         expected_time_series_hourly = pd.DataFrame(np.zeros([365 * 24 + 24, 1]))
@@ -2411,87 +2203,65 @@ at%fr = 0.000000%1
                 operator=BindingConstraintOperator.BOTH, time_step=BindingConstraintFrequency.HOURLY
             ),
         )
-        expected_pre_created_ts_file = (
-            local_study_with_constraint.service.config.study_path
-            / TimeSeriesFileType.BINDING_CONSTRAINT_LESS.value.format(constraint_id=test_constraint.id)
-        )
-
-        # When
-        with local_study_with_constraint._binding_constraints_service.time_series[
-            f"{test_constraint.id}_lt"
-        ].local_file.file_path.open("r") as pre_created_file:
-            actual_time_series_pre_created = pd.read_csv(pre_created_file, header=None)
-        with local_study_with_constraint._binding_constraints_service.time_series[
-            "test greater_gt"
-        ].local_file.file_path.open("r") as greater_file:
-            actual_time_series_greater = pd.read_csv(greater_file, header=None)
-        with local_study_with_constraint._binding_constraints_service.time_series[
-            "test equal_eq"
-        ].local_file.file_path.open("r") as equal_file:
-            actual_time_series_equal = pd.read_csv(equal_file, header=None)
-        with local_study_with_constraint._binding_constraints_service.time_series[
-            "test both_gt"
-        ].local_file.file_path.open("r") as both_greater_file:
-            actual_time_series_both_greater = pd.read_csv(both_greater_file, header=None)
-        with local_study_with_constraint._binding_constraints_service.time_series[
-            "test both_lt"
-        ].local_file.file_path.open("r") as both_lesser_file:
-            actual_time_series_both_lesser = pd.read_csv(both_lesser_file, header=None)
 
         # Then
-        # Verify that file names are created correctly
-        assert (
-            local_study_with_constraint._binding_constraints_service.time_series[
-                f"{test_constraint.id}_lt"
-            ].local_file.file_path
-            == expected_pre_created_ts_file
-        )
-        # Verify that default file contents are the correct and expected
-        assert actual_time_series_pre_created.equals(expected_time_series_hourly)
+        local_config = t.cast(LocalConfiguration, local_study_with_constraint.service.config)
+        study_path = local_config.study_path
+
+        actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test greater_gt.txt")
+        actual_time_series_greater = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
         assert actual_time_series_greater.equals(expected_time_series_daily_weekly)
+
+        actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test equal_eq.txt")
+        actual_time_series_equal = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
         assert actual_time_series_equal.equals(expected_time_series_daily_weekly)
-        assert actual_time_series_both_greater.equals(expected_time_series_hourly)
+
+        actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / f"{test_constraint.id}_lt.txt")
+        actual_time_series_pre_created = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
+        assert actual_time_series_pre_created.equals(expected_time_series_hourly)
+
+        actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test both_lt.txt")
+        actual_time_series_both_lesser = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
         assert actual_time_series_both_lesser.equals(expected_time_series_hourly)
 
-    def test_submitted_time_series_is_saved(self, local_study_with_constraint):
+        actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test both_gt.txt")
+        actual_time_series_both_greater = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
+        assert actual_time_series_both_greater.equals(expected_time_series_hourly)
+
+    def test_submitted_time_series_is_saved(self, local_study):
         # Given
         expected_time_series = pd.DataFrame(np.ones([3, 1]))
-        local_study_with_constraint.create_binding_constraint(
-            name="test time series",
+        bc_name = "test time series"
+        local_study.create_binding_constraint(
+            name=bc_name,
             properties=BindingConstraintProperties(
                 operator=BindingConstraintOperator.GREATER, time_step=BindingConstraintFrequency.HOURLY
             ),
             greater_term_matrix=expected_time_series,
         )
-        expected_file_contents = """1.0
-1.0
-1.0
-"""
 
-        # When
-        with local_study_with_constraint._binding_constraints_service.time_series[
-            "test time series_gt"
-        ].local_file.file_path.open("r") as time_series_file:
-            actual_time_series = pd.read_csv(time_series_file, header=None)
-            time_series_file.seek(0)
-            actual_file_contents = time_series_file.read()
+        local_config = t.cast(LocalConfiguration, local_study.service.config)
+        study_path = local_config.study_path
+        actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / f"{bc_name}_gt.txt")
+        actual_time_series = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
 
         # Then
         assert actual_time_series.equals(expected_time_series)
-        assert actual_file_contents == expected_file_contents
 
-    def test_updating_binding_constraint_properties_updates_local(self, local_study_with_constraint, test_constraint):
+    def test_get_constraint_matrix(self, local_study):
         # Given
-        new_properties = BindingConstraintProperties(comments="testing update")
-        local_property_args = {
-            "constraint_name": test_constraint.name,
-            "constraint_id": test_constraint.id,
-            "terms": test_constraint._terms,
-            **new_properties.model_dump(mode="json", exclude_none=True),
-        }
+        expected_time_series = pd.DataFrame(np.random.random([365 * 24, 1]))
+        bc_name = "test time series"
+        local_study.create_binding_constraint(
+            name=bc_name,
+            properties=BindingConstraintProperties(
+                operator=BindingConstraintOperator.GREATER, time_step=BindingConstraintFrequency.HOURLY
+            ),
+            greater_term_matrix=expected_time_series,
+        )
 
         # When
-        test_constraint.properties = new_properties
+        actual_time_series = local_study.get_binding_constraints()[bc_name].get_greater_term_matrix()
 
         # Then
-        assert test_constraint.local_properties == BindingConstraintPropertiesLocal.model_validate(local_property_args)
+        assert actual_time_series.round(10).equals(expected_time_series.round(10))

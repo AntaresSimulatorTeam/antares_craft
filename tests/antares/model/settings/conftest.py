@@ -12,7 +12,7 @@
 
 import pytest
 
-from antares.model.settings.playlist_parameters import PlaylistData, PlaylistParameters
+from antares.craft.model.settings.playlist_parameters import PlaylistData, PlaylistParameters
 
 
 @pytest.fixture

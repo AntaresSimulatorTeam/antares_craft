@@ -9,60 +9,55 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
 
-from antares.config.local_configuration import LocalConfiguration
-from antares.model.area import Area
-from antares.model.binding_constraint import (
+import pandas as pd
+
+from antares.craft.model.area import Area, AreaPropertiesLocal
+from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
 )
-from antares.model.hydro import HydroProperties
-from antares.model.load import Load
-from antares.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
-from antares.model.solar import Solar
-from antares.model.st_storage import STStorageGroup, STStorageProperties
-from antares.model.study import Study, create_study_local
-from antares.model.thermal import (
+from antares.craft.model.hydro import HydroProperties
+from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
+from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
+from antares.craft.model.study import Study, create_study_local
+from antares.craft.model.thermal import (
     LawOption,
     LocalTSGenerationBehavior,
     ThermalClusterGroup,
     ThermalClusterProperties,
     ThermalCostGeneration,
 )
-from antares.model.wind import Wind
-from antares.tools.ini_tool import IniFile, IniFileTypes
+from antares.craft.tools.ini_tool import IniFile, IniFileTypes
 
 
 @pytest.fixture
 def local_study(tmp_path) -> Study:
     study_name = "studyTest"
     study_version = "880"
-    return create_study_local(study_name, study_version, LocalConfiguration(tmp_path, study_name))
+    return create_study_local(study_name, study_version, str(tmp_path.absolute()))
 
 
 @pytest.fixture
 def local_study_w_areas(tmp_path, local_study) -> Study:
     areas_to_create = ["fr", "it"]
     for area in areas_to_create:
-        local_study.create_area(area)
+        area_properties = AreaPropertiesLocal(energy_cost_spilled="0.000000", energy_cost_unsupplied="0.000000")
+        local_study.create_area(area, properties=area_properties)
     return local_study
 
 
-@pytest.fixture()
+@pytest.fixture
 def local_study_w_links(tmp_path, local_study_w_areas):
     local_study_w_areas.create_area("at")
     links_to_create = ["fr_at", "at_it", "fr_it"]
     for link in links_to_create:
         area_from, area_to = link.split("_")
-        local_study_w_areas.create_link(
-            area_from=local_study_w_areas.get_areas()[area_from],
-            area_to=local_study_w_areas.get_areas()[area_to],
-            existing_areas=local_study_w_areas.get_areas(),
-        )
+        local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
+
     return local_study_w_areas
 
 
@@ -116,7 +111,7 @@ def default_thermal_cluster_properties() -> ThermalClusterProperties:
 
 @pytest.fixture
 def actual_thermal_list_ini(local_study_w_thermal) -> IniFile:
-    return IniFile(local_study_w_thermal.service.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_name="fr")
+    return IniFile(local_study_w_thermal.service.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_id="fr")
 
 
 @pytest.fixture
@@ -126,7 +121,7 @@ def actual_thermal_areas_ini(local_study_w_thermal) -> IniFile:
 
 @pytest.fixture
 def actual_adequacy_patch_ini(local_study_w_areas) -> IniFile:
-    return IniFile(local_study_w_areas.service.config.study_path, IniFileTypes.AREA_ADEQUACY_PATCH_INI, area_name="fr")
+    return IniFile(local_study_w_areas.service.config.study_path, IniFileTypes.AREA_ADEQUACY_PATCH_INI, area_id="fr")
 
 
 @pytest.fixture
@@ -151,9 +146,7 @@ def default_renewable_cluster_properties() -> RenewableClusterProperties:
 
 @pytest.fixture
 def actual_renewable_list_ini(local_study_with_renewable) -> IniFile:
-    return IniFile(
-        local_study_with_renewable.service.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_name="fr"
-    )
+    return IniFile(local_study_with_renewable.service.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_id="fr")
 
 
 @pytest.fixture
@@ -180,7 +173,7 @@ def default_st_storage_properties() -> STStorageProperties:
 @pytest.fixture
 def actual_st_storage_list_ini(local_study_with_st_storage) -> IniFile:
     return IniFile(
-        local_study_with_st_storage.service.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_name="fr"
+        local_study_with_st_storage.service.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_id="fr"
     )
 
 
@@ -222,18 +215,18 @@ def area_fr(local_study_with_hydro) -> Area:
 
 
 @pytest.fixture
-def fr_solar(area_fr) -> Solar:
-    return area_fr.create_solar(None)
+def fr_solar(area_fr) -> None:
+    return area_fr.create_solar(pd.DataFrame())
 
 
 @pytest.fixture
-def fr_wind(area_fr) -> Wind:
-    return area_fr.create_wind(None)
+def fr_wind(area_fr) -> None:
+    return area_fr.create_wind(pd.DataFrame())
 
 
 @pytest.fixture
-def fr_load(area_fr) -> Load:
-    return area_fr.create_load(None)
+def fr_load(area_fr) -> None:
+    return area_fr.create_load(pd.DataFrame())
 
 
 @pytest.fixture

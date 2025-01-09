@@ -15,11 +15,13 @@ import requests_mock
 
 import pandas as pd
 
-from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import RenewableMatrixDownloadError, RenewablePropertiesUpdateError
-from antares.model.area import Area
-from antares.model.renewable import RenewableCluster, RenewableClusterProperties
-from antares.service.service_factory import ServiceFactory
+from antares.craft.api_conf.api_conf import APIconf
+from antares.craft.exceptions.exceptions import RenewableMatrixDownloadError, RenewablePropertiesUpdateError
+from antares.craft.model.area import Area
+from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
+from antares.craft.service.api_services.area_api import AreaApiService
+from antares.craft.service.api_services.renewable_api import RenewableApiService
+from antares.craft.service.service_factory import ServiceFactory
 
 
 class TestCreateAPI:
@@ -70,7 +72,7 @@ class TestCreateAPI:
                 f"{self.area.id}/{self.renewable.name}/series"
             )
             mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
-            renewable_matrix = self.renewable.get_renewable_matrix()
+            renewable_matrix = self.renewable.get_timeseries()
             assert renewable_matrix.equals(self.matrix)
 
     def test_get_renewable_matrices_fails(self):
@@ -85,4 +87,42 @@ class TestCreateAPI:
                 match=f"Could not download matrix for cluster {self.renewable.name} inside area {self.area.id}"
                 f": {self.antares_web_description_msg}",
             ):
-                self.renewable.get_renewable_matrix()
+                self.renewable.get_timeseries()
+
+    def test_read_renewables(self):
+        json_renewable = [
+            {
+                "id": "test_renouvelable",
+                "group": "Solar Thermal",
+                "name": "test_renouvelable",
+                "enabled": "true",
+                "unitCount": 1,
+                "nominalCapacity": 0,
+                "tsInterpretation": "power-generation",
+            }
+        ]
+
+        study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
+        area_id = "zone"
+        url = f"https://antares.com/api/v1/studies/{study_id_test}/areas/{area_id}/"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.get(url + "clusters/renewable", json=json_renewable)
+            area_api = AreaApiService(self.api, study_id_test)
+            renewable_api = RenewableApiService(self.api, study_id_test)
+
+            actual_renewable_list = renewable_api.read_renewables(area_id)
+
+            renewable_id = json_renewable[0].pop("id")
+            renewable_name = json_renewable[0].pop("name")
+
+            renewable_props = RenewableClusterProperties(**json_renewable[0])
+            expected_renewable = RenewableCluster(
+                area_api.renewable_service, renewable_id, renewable_name, renewable_props
+            )
+
+            assert len(actual_renewable_list) == 1
+            actual_renewable = actual_renewable_list[0]
+
+            assert expected_renewable.id == actual_renewable.id
+            assert expected_renewable.name == actual_renewable.name

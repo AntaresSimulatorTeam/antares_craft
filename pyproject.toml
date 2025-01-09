@@ -4,20 +4,23 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "antares_craft"
-version = "0.0.1"
-description = """Antares Craft python library is currently under construction. When completed it will allow to \
-create, update and read antares studies."""
-readme = "README.md"
+version = "0.1.7"
+description = """Antares Craft python library under construction. It will allow to create, update and read antares studies."""
+readme = "CONCATENATED_README.md"
 license = {file = "LICENSE"}
 authors = [
     {name="Sylvain Leclerc"},
     {name="Tatiana Vargas"},
-    {name="Martin Behlthle"},
+    {name="Martin Belthle"},
     {name="Sigurd Borge"}
 ]
 requires-python = ">=3.9"
 dependencies = [
-
+    "configparser~=5.0.2",
+    "numpy~=1.26.4",
+    "pandas~=2.2.2",
+    "pydantic~=2.7.1",
+    "requests~=2.32.0"
 ]
 classifiers = [
 #    Classifiers here: https://pypi.org/classifiers/

@@ -15,26 +15,23 @@ import requests_mock
 import numpy as np
 import pandas as pd
 
-from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import (
+from antares.craft.api_conf.api_conf import APIconf
+from antares.craft.exceptions.exceptions import (
     AreaPropertiesUpdateError,
     AreasRetrievalError,
     AreaUiUpdateError,
-    LoadMatrixDownloadError,
-    LoadMatrixUploadError,
-    MatrixUploadError,
     RenewableCreationError,
     STStorageCreationError,
     ThermalCreationError,
 )
-from antares.model.area import Area, AreaProperties, AreaUi
-from antares.model.hydro import Hydro, HydroMatrixName, HydroProperties
-from antares.model.renewable import RenewableCluster, RenewableClusterProperties
-from antares.model.st_storage import STStorage, STStorageProperties
-from antares.model.study import Study
-from antares.model.thermal import ThermalCluster, ThermalClusterProperties
-from antares.service.api_services.area_api import AreaApiService
-from antares.service.service_factory import ServiceFactory
+from antares.craft.model.area import Area, AreaProperties, AreaUi
+from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
+from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
+from antares.craft.model.st_storage import STStorage, STStorageProperties
+from antares.craft.model.study import Study
+from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
+from antares.craft.service.api_services.area_api import AreaApiService
+from antares.craft.service.service_factory import ServiceFactory
 
 
 class TestCreateAPI:
@@ -56,8 +53,9 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/properties/form"
             properties = AreaProperties()
+            properties.energy_cost_spilled = 1
             mocker.put(url, status_code=200)
-            mocker.get(url, json=properties, status_code=200)
+            mocker.get(url, json=properties.model_dump(mode="json"), status_code=200)
             self.area.update_properties(properties=properties)
 
     def test_update_area_properties_fails(self):
@@ -229,108 +227,6 @@ class TestCreateAPI:
             assert len(mocker.request_history) == 2
             assert isinstance(hydro, Hydro)
 
-    def test_get_load_matrix_success(self):
-        with requests_mock.Mocker() as mocker:
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
-            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
-            load_matrix = self.area.get_load_matrix()
-            assert load_matrix.equals(self.matrix)
-
-    def test_get_load_matrix_fails(self):
-        with requests_mock.Mocker() as mocker:
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
-            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
-            with pytest.raises(
-                LoadMatrixDownloadError,
-                match=f"Could not download load matrix for area {self.area.id}: {self.antares_web_description_msg}",
-            ):
-                self.area.get_load_matrix()
-
-    def test_upload_load_matrix_success(self):
-        with requests_mock.Mocker() as mocker:
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
-            mocker.post(url, status_code=200)
-            self.area.upload_load_matrix(pd.DataFrame(data=np.ones((8760, 1))))
-
-    def test_upload_load_matrix_fails(self):
-        with requests_mock.Mocker() as mocker:
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
-            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
-            with pytest.raises(
-                LoadMatrixUploadError,
-                match=f"Could not upload load matrix for area {self.area.id}: {self.antares_web_description_msg}",
-            ):
-                self.area.upload_load_matrix(pd.DataFrame(data=np.ones((8760, 1))))
-
-    def test_upload_wrong_load_matrix_fails(self):
-        with requests_mock.Mocker() as mocker:
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
-            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
-            with pytest.raises(
-                LoadMatrixUploadError,
-                match=f"Could not upload load matrix for area {self.area.id}: Expected 8760 rows and received 1.",
-            ):
-                self.area.upload_load_matrix(self.matrix)
-
-    def test_create_wind_success(self):
-        with requests_mock.Mocker() as mocker:
-            expected_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/" f"raw?path=input/wind/series/wind_area_test"
-            )
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=" f"input/wind/series/wind_{self.area.id}"
-            )
-            mocker.post(url, status_code=200)
-            self.area.create_wind(series=self.matrix)
-
-            assert mocker.request_history[0].url == expected_url
-
-    def test_create_reserves_success(self):
-        with requests_mock.Mocker() as mocker:
-            expected_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/reserves/area_test"
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=" f"input/reserves/{self.area.id}"
-            mocker.post(url, status_code=200)
-            self.area.create_reserves(series=self.matrix)
-
-            assert mocker.request_history[0].url == expected_url
-
-    def test_create_reserves_fails(self):
-        with requests_mock.Mocker() as mocker:
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=" f"input/reserves/{self.area.id}"
-            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
-
-            with pytest.raises(
-                MatrixUploadError, match=f"Error uploading matrix for area {self.area.id}: Mocked Server KO"
-            ):
-                self.area.create_reserves(series=self.matrix)
-
-    def test_create_solar_success(self):
-        with requests_mock.Mocker() as mocker:
-            expected_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/solar/series/solar_area_test"
-            )
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
-                f"input/solar/series/solar_{self.area.id}"
-            )
-            mocker.post(url, status_code=200)
-            self.area.create_solar(series=self.matrix)
-
-            assert mocker.request_history[0].url == expected_url
-
-    def test_create_misc_gen_success(self):
-        with requests_mock.Mocker() as mocker:
-            expected_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/misc-gen/miscgen-area_test"
-            )
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=" f"input/misc-gen/miscgen-{self.area.id}"
-            )
-            mocker.post(url, status_code=200)
-            self.area.create_misc_gen(series=self.matrix)
-
-            assert mocker.request_history[0].url == expected_url
-
     def test_read_areas_success(self):
         area_id = "zone"
         url = f"https://antares.com/api/v1/studies/{self.study_id}/areas"
@@ -356,37 +252,6 @@ class TestCreateAPI:
                 "enabled": "true",
                 "unitCount": 1,
                 "nominalCapacity": 0,
-                "genTs": "use global",
-                "minStablePower": 0,
-                "minUpTime": 1,
-                "minDownTime": 1,
-                "mustRun": "false",
-                "spinning": 0,
-                "volatilityForced": 0,
-                "volatilityPlanned": 0,
-                "lawForced": "uniform",
-                "lawPlanned": "uniform",
-                "marginalCost": 0,
-                "spreadCost": 0,
-                "fixedCost": 0,
-                "startupCost": 0,
-                "marketBidCost": 0,
-                "co2": 0,
-                "nh3": 0,
-                "so2": 0,
-                "nox": 0,
-                "pm25": 0,
-                "pm5": 0,
-                "pm10": 0,
-                "nmvoc": 0,
-                "op1": 0,
-                "op2": 0,
-                "op3": 0,
-                "op4": 0,
-                "op5": 0,
-                "costGeneration": "SetManually",
-                "efficiency": 100,
-                "variableOMCost": 0,
             }
         ]
         json_renewable = [
@@ -471,7 +336,6 @@ class TestCreateAPI:
 
             assert len(actual_area_list) == 1
             actual_area = actual_area_list[0]
-            # assert actual_area == expected_area by performing various tests
             assert actual_area.id == expected_area.id
             assert actual_area.name == expected_area.name
             actual_thermals = actual_area.get_thermals()
@@ -494,3 +358,34 @@ class TestCreateAPI:
                 + self.antares_web_description_msg,
             ):
                 self.study.read_areas()
+
+    def test_read_hydro(self):
+        json_hydro = {
+            "interDailyBreakdown": 1,
+            "intraDailyModulation": 24,
+            "interMonthlyBreakdown": 1,
+            "reservoir": "false",
+            "reservoirCapacity": 0,
+            "followLoad": "true",
+            "useWater": "false",
+            "hardBounds": "false",
+            "initializeReservoirDate": 0,
+            "useHeuristic": "true",
+            "powerToLevel": "false",
+            "useLeeway": "false",
+            "leewayLow": 1,
+            "leewayUp": 1,
+            "pumpingEfficiency": 1,
+        }
+        url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/hydro/form"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.get(url, json=json_hydro)
+            hydro_props = HydroProperties(**json_hydro)
+
+            actual_hydro = Hydro(self.api, self.area.id, hydro_props)
+            expected_hydro = self.area.read_hydro()
+
+            assert actual_hydro.area_id == expected_hydro.area_id
+            assert actual_hydro.properties == expected_hydro.properties
+            assert actual_hydro.matrices is None

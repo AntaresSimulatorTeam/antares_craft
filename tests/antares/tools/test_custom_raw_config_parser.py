@@ -12,7 +12,7 @@
 
 from pathlib import Path
 
-from antares.tools.custom_raw_config_parser import CustomRawConfigParser
+from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
 
 
 class TestCustomRawConfigParser:

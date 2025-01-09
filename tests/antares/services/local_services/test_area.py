@@ -10,23 +10,31 @@
 #
 # This file is part of the Antares project.
 
+import pytest
+
+import os
+import typing as t
+
 from configparser import ConfigParser
 from io import StringIO
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-from antares.model.hydro import Hydro
-from antares.model.renewable import (
+from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.exceptions.exceptions import ThermalCreationError
+from antares.craft.model.hydro import Hydro
+from antares.craft.model.renewable import (
     RenewableCluster,
     RenewableClusterGroup,
     RenewableClusterProperties,
     RenewableClusterPropertiesLocal,
     TimeSeriesInterpretation,
 )
-from antares.model.st_storage import STStorage, STStorageGroup, STStorageProperties, STStoragePropertiesLocal
-from antares.model.study import read_study_local
-from antares.model.thermal import (
+from antares.craft.model.st_storage import STStorage, STStorageGroup, STStorageProperties, STStoragePropertiesLocal
+from antares.craft.model.study import read_study_local
+from antares.craft.model.thermal import (
     LawOption,
     LocalTSGenerationBehavior,
     ThermalCluster,
@@ -35,8 +43,9 @@ from antares.model.thermal import (
     ThermalClusterPropertiesLocal,
     ThermalCostGeneration,
 )
-from antares.tools.ini_tool import IniFile, IniFileTypes
-from antares.tools.time_series_tool import TimeSeriesFileType
+from antares.craft.tools.ini_tool import IniFile, IniFileTypes
+from antares.craft.tools.matrix_tool import df_save
+from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
 
 class TestCreateThermalCluster:
@@ -47,6 +56,18 @@ class TestCreateThermalCluster:
         # When
         created_thermal = local_study_w_areas.get_areas()["fr"].create_thermal_cluster(thermal_name)
         assert isinstance(created_thermal, ThermalCluster)
+
+    def test_duplicate_name_errors(self, local_study_w_thermal):
+        # Given
+        area_name = "fr"
+        thermal_name = "test thermal cluster"
+
+        # Then
+        with pytest.raises(
+            ThermalCreationError,
+            match=f"Could not create the thermal cluster {thermal_name} inside area {area_name}: A thermal cluster called '{thermal_name}' already exists in area '{area_name}'.",
+        ):
+            local_study_w_thermal.get_areas()[area_name].create_thermal_cluster(thermal_name)
 
     def test_has_default_properties(self, local_study_w_thermal):
         assert (
@@ -69,7 +90,7 @@ class TestCreateThermalCluster:
     def test_required_ini_files_exist(self, tmp_path, local_study_w_thermal):
         # Given
         expected_list_ini_path = (
-            local_study_w_thermal.service.config.study_path / IniFileTypes.THERMAL_LIST_INI.value.format(area_name="fr")
+            local_study_w_thermal.service.config.study_path / IniFileTypes.THERMAL_LIST_INI.value.format(area_id="fr")
         )
         expected_areas_ini_path = local_study_w_thermal.service.config.study_path / IniFileTypes.THERMAL_AREAS_INI.value
 
@@ -128,7 +149,7 @@ variableomcost = 0.000000
         assert actual_list_ini_contents == expected_list_ini_contents
         assert actual_thermal_list_ini.parsed_ini == expected_list_ini
 
-    def test_list_ini_has_custom_properties(self, tmp_path, local_study_w_areas, actual_thermal_list_ini):
+    def test_list_ini_has_custom_properties(self, tmp_path, local_study_w_areas):
         # Given
         expected_list_ini_contents = """[test thermal cluster]
 group = Nuclear
@@ -211,7 +232,9 @@ variableomcost = 5.000000
 
         # When
         local_study_w_areas.get_areas()["fr"].create_thermal_cluster("test thermal cluster", thermal_cluster_properties)
-
+        actual_thermal_list_ini = IniFile(
+            local_study_w_areas.service.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_id="fr"
+        )
         actual_thermal_list_ini.update_from_ini_file()
         with actual_thermal_list_ini.ini_path.open("r") as actual_list_ini_file:
             actual_list_ini_contents = actual_list_ini_file.read()
@@ -302,7 +325,7 @@ class TestCreateRenewablesCluster:
     def test_renewables_list_ini_exists(self, local_study_with_renewable):
         renewables_list_ini = (
             local_study_with_renewable.service.config.study_path
-            / IniFileTypes.RENEWABLES_LIST_INI.value.format(area_name="fr")
+            / IniFileTypes.RENEWABLES_LIST_INI.value.format(area_id="fr")
         )
         assert renewables_list_ini.is_file()
 
@@ -330,7 +353,7 @@ ts-interpretation = power-generation
         assert actual_renewable_list_ini.parsed_ini.sections() == expected_renewables_list_ini.sections()
         assert actual_renewable_list_ini.parsed_ini == expected_renewables_list_ini
 
-    def test_renewable_cluster_and_ini_have_custom_properties(self, local_study_w_thermal, actual_renewable_list_ini):
+    def test_renewable_cluster_and_ini_have_custom_properties(self, local_study_w_thermal):
         # Given
         props = RenewableClusterProperties(
             group=RenewableClusterGroup.WIND_OFF_SHORE, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
@@ -346,6 +369,9 @@ unitcount = 1
 ts-interpretation = production-factor
 
 """
+        actual_renewable_list_ini = IniFile(
+            local_study_w_thermal.service.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_id="fr"
+        )
 
         # When
         local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
@@ -389,7 +415,7 @@ class TestCreateSTStorage:
     def test_st_storage_list_ini_exists(self, local_study_with_st_storage):
         st_storage_list_ini = (
             local_study_with_st_storage.service.config.study_path
-            / IniFileTypes.ST_STORAGE_LIST_INI.value.format(area_name="fr")
+            / IniFileTypes.ST_STORAGE_LIST_INI.value.format(area_id="fr")
         )
         assert st_storage_list_ini.is_file()
 
@@ -420,7 +446,7 @@ enabled = true
         assert actual_st_storage_list_ini.parsed_ini.sections() == expected_st_storage_list_ini.sections()
         assert actual_st_storage_list_ini.parsed_ini == expected_st_storage_list_ini
 
-    def test_st_storage_and_ini_have_custom_properties(self, local_study_with_st_storage, actual_st_storage_list_ini):
+    def test_st_storage_and_ini_have_custom_properties(self, local_study_w_areas):
         # Given
         props = STStorageProperties(group=STStorageGroup.BATTERY, reservoir_capacity=12.345)
         args = {"st_storage_name": "short term storage", **props.model_dump(mode="json", exclude_none=True)}
@@ -437,9 +463,12 @@ initialleveloptim = false
 enabled = true
 
 """
+        actual_st_storage_list_ini = IniFile(
+            local_study_w_areas.service.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_id="fr"
+        )
 
         # When
-        local_study_with_st_storage.get_areas()["fr"].create_st_storage(
+        local_study_w_areas.get_areas()["fr"].create_st_storage(
             st_storage_name=custom_properties.st_storage_name,
             properties=custom_properties.yield_st_storage_properties(),
         )
@@ -447,7 +476,7 @@ enabled = true
             actual_st_storage_list_ini_content = st_storage_list_ini_file.read()
 
         assert (
-            local_study_with_st_storage.get_areas()["fr"].get_st_storages()["short term storage"].properties
+            local_study_w_areas.get_areas()["fr"].get_st_storages()["short term storage"].properties
             == custom_properties.yield_st_storage_properties()
         )
         assert actual_st_storage_list_ini_content == expected_st_storage_list_ini_content
@@ -646,7 +675,7 @@ class TestCreateReserves:
         expected_reserves_file_path = area_fr._area_service.config.study_path / "input/reserves/fr.txt"
 
         # When
-        area_fr.create_reserves(None)
+        area_fr.create_reserves(pd.DataFrame())
 
         # Then
         assert reserves_file_path == expected_reserves_file_path
@@ -683,7 +712,7 @@ class TestCreateMiscGen:
         expected_misc_gen_file_path = area_fr._area_service.config.study_path / "input/misc-gen/miscgen-fr.txt"
 
         # When
-        area_fr.create_misc_gen(None)
+        area_fr.create_misc_gen(pd.DataFrame())
 
         # Then
         assert misc_gen_file_path == expected_misc_gen_file_path
@@ -720,7 +749,7 @@ class TestCreateWind:
         expected_wind_file_path = area_fr._area_service.config.study_path / "input/wind/series/wind_fr.txt"
 
         # When
-        area_fr.create_wind(None)
+        area_fr.create_wind(pd.DataFrame())
 
         # Then
         assert wind_file_path == expected_wind_file_path
@@ -754,7 +783,6 @@ class TestCreateWind:
         # Then
         assert expected_ini_path.exists()
         assert expected_ini_path.is_file()
-        assert expected_ini_path == fr_wind.prepro.settings.ini_path
 
     def test_conversion_txt_exists(self, area_fr, fr_wind):
         # Given
@@ -765,9 +793,8 @@ class TestCreateWind:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_wind.prepro.conversion.local_file.file_path == expected_file_path
 
-    def test_conversion_txt_has_correct_default_values(self, area_fr, fr_wind):
+    def test_conversion_txt_has_correct_default_values(self, local_study, fr_wind):
         # Given
         expected_file_contents = """-9999999980506447872\t0\t9999999980506447872
 0\t0\t0
@@ -776,13 +803,13 @@ class TestCreateWind:
         expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None).astype(str)
 
         # When
-        with fr_wind.prepro.conversion.local_file.file_path.open("r") as fr_wind_file:
-            actual_file_contents = fr_wind_file.read()
-        actual_file_data = fr_wind.prepro.conversion.time_series.astype(str)
+        local_config = t.cast(LocalConfiguration, local_study.service.config)
+        study_path = local_config.study_path
+        actual_file_path = study_path.joinpath(Path("input") / "wind" / "prepro" / "fr" / "conversion.txt")
+        actual_data = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=str)
 
         # Then
-        assert actual_file_data.equals(expected_file_data)
-        assert actual_file_contents == expected_file_contents
+        assert actual_data.equals(expected_file_data)
 
     def test_data_txt_exists(self, area_fr, fr_wind):
         # Given
@@ -793,33 +820,19 @@ class TestCreateWind:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_wind.prepro.data.local_file.file_path == expected_file_path
 
-    def test_data_txt_has_correct_default_values(self, area_fr, fr_wind):
+    def test_data_txt_has_correct_default_values(self, local_study, fr_wind):
         # Given
-        expected_file_contents = """1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-"""
-        expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None)
-
-        # When
-        with fr_wind.prepro.data.local_file.file_path.open("r") as fr_wind_file:
-            actual_file_contents = fr_wind_file.read()
-        actual_file_data = fr_wind.prepro.data.time_series
+        expected_file_data = pd.DataFrame(np.ones([12, 6]), dtype=int)
+        expected_file_data[2] = 0
 
         # Then
-        assert actual_file_data.equals(expected_file_data)
-        assert actual_file_contents == expected_file_contents
+        local_config = t.cast(LocalConfiguration, local_study.service.config)
+        study_path = local_config.study_path
+        actual_file_path = study_path.joinpath(Path("input") / "wind" / "prepro" / "fr" / "data.txt")
+        actual_data = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=int)
+        # For some reason the equality check fails on windows, so we check it in a different way
+        assert actual_data.to_dict() == expected_file_data.to_dict()
 
     def test_k_txt_exists(self, area_fr, fr_wind):
         # Given
@@ -830,18 +843,13 @@ class TestCreateWind:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_wind.prepro.k.local_file.file_path == expected_file_path
 
-    def test_k_txt_is_empty_by_default(self, area_fr, fr_wind):
-        # Given
-        expected_file_contents = """"""
-
-        # When
-        with fr_wind.prepro.k.local_file.file_path.open("r") as fr_wind_file:
-            actual_file_contents = fr_wind_file.read()
-
-        # Then
-        assert actual_file_contents == expected_file_contents
+    def test_k_and_translation_txt_is_empty_by_default(self, local_study, fr_wind):
+        local_config = t.cast(LocalConfiguration, local_study.service.config)
+        study_path = local_config.study_path
+        for file in ["k", "translation"]:
+            actual_file_path = study_path.joinpath(Path("input") / "wind" / "prepro" / "fr" / f"{file}.txt")
+            assert actual_file_path.read_text() == ""
 
     def test_translation_txt_exists(self, area_fr, fr_wind):
         # Given
@@ -852,18 +860,6 @@ class TestCreateWind:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_wind.prepro.translation.local_file.file_path == expected_file_path
-
-    def test_translation_txt_is_empty_by_default(self, area_fr, fr_wind):
-        # Given
-        expected_file_contents = """"""
-
-        # When
-        with fr_wind.prepro.translation.local_file.file_path.open("r") as fr_wind_file:
-            actual_file_contents = fr_wind_file.read()
-
-        # Then
-        assert actual_file_contents == expected_file_contents
 
 
 class TestCreateSolar:
@@ -875,7 +871,7 @@ class TestCreateSolar:
         expected_solar_file_path = area_fr._area_service.config.study_path / "input/solar/series/solar_fr.txt"
 
         # When
-        area_fr.create_solar(None)
+        area_fr.create_solar(pd.DataFrame())
 
         # Then
         assert solar_file_path == expected_solar_file_path
@@ -909,7 +905,6 @@ class TestCreateSolar:
         # Then
         assert expected_ini_path.exists()
         assert expected_ini_path.is_file()
-        assert expected_ini_path == fr_solar.prepro.settings.ini_path
 
     def test_conversion_txt_exists(self, area_fr, fr_solar):
         # Given
@@ -920,9 +915,8 @@ class TestCreateSolar:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_solar.prepro.conversion.local_file.file_path == expected_file_path
 
-    def test_conversion_txt_has_correct_default_values(self, area_fr, fr_solar):
+    def test_conversion_txt_has_correct_default_values(self, local_study, fr_solar):
         # Given
         expected_file_contents = """-9999999980506447872\t0\t9999999980506447872
 0\t0\t0
@@ -931,13 +925,13 @@ class TestCreateSolar:
         expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None).astype(str)
 
         # When
-        with fr_solar.prepro.conversion.local_file.file_path.open("r") as fr_solar_file:
-            actual_file_contents = fr_solar_file.read()
-        actual_file_data = fr_solar.prepro.conversion.time_series.astype(str)
+        local_config = t.cast(LocalConfiguration, local_study.service.config)
+        study_path = local_config.study_path
+        actual_file_path = study_path.joinpath(Path("input") / "solar" / "prepro" / "fr" / "conversion.txt")
+        actual_data = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=str)
 
         # Then
-        assert actual_file_data.equals(expected_file_data)
-        assert actual_file_contents == expected_file_contents
+        assert actual_data.equals(expected_file_data)
 
     def test_data_txt_exists(self, area_fr, fr_solar):
         # Given
@@ -948,33 +942,19 @@ class TestCreateSolar:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_solar.prepro.data.local_file.file_path == expected_file_path
 
-    def test_data_txt_has_correct_default_values(self, area_fr, fr_solar):
+    def test_data_txt_has_correct_default_values(self, local_study, fr_solar):
         # Given
-        expected_file_contents = """1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-"""
-        expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None)
-
-        # When
-        with fr_solar.prepro.data.local_file.file_path.open("r") as fr_solar_file:
-            actual_file_contents = fr_solar_file.read()
-        actual_file_data = fr_solar.prepro.data.time_series
+        expected_file_data = pd.DataFrame(np.ones([12, 6]), dtype=int)
+        expected_file_data[2] = 0
 
         # Then
-        assert actual_file_data.equals(expected_file_data)
-        assert actual_file_contents == expected_file_contents
+        local_config = t.cast(LocalConfiguration, local_study.service.config)
+        study_path = local_config.study_path
+        actual_file_path = study_path.joinpath(Path("input") / "solar" / "prepro" / "fr" / "data.txt")
+        actual_data = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=int)
+        # For some reason the equality check fails on windows, so we check it in a different way
+        assert actual_data.to_dict() == expected_file_data.to_dict()
 
     def test_k_txt_exists(self, area_fr, fr_solar):
         # Given
@@ -985,18 +965,13 @@ class TestCreateSolar:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_solar.prepro.k.local_file.file_path == expected_file_path
 
-    def test_k_txt_is_empty_by_default(self, area_fr, fr_solar):
-        # Given
-        expected_file_contents = """"""
-
-        # When
-        with fr_solar.prepro.k.local_file.file_path.open("r") as fr_solar_file:
-            actual_file_contents = fr_solar_file.read()
-
-        # Then
-        assert actual_file_contents == expected_file_contents
+    def test_k_and_translation_txt_is_empty_by_default(self, local_study, fr_solar):
+        local_config = t.cast(LocalConfiguration, local_study.service.config)
+        study_path = local_config.study_path
+        for file in ["k", "translation"]:
+            actual_file_path = study_path.joinpath(Path("input") / "solar" / "prepro" / "fr" / f"{file}.txt")
+            assert actual_file_path.read_text() == ""
 
     def test_translation_txt_exists(self, area_fr, fr_solar):
         # Given
@@ -1008,18 +983,6 @@ class TestCreateSolar:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_solar.prepro.translation.local_file.file_path == expected_file_path
-
-    def test_translation_txt_is_empty_by_default(self, area_fr, fr_solar):
-        # Given
-        expected_file_contents = """"""
-
-        # When
-        with fr_solar.prepro.translation.local_file.file_path.open("r") as fr_solar_file:
-            actual_file_contents = fr_solar_file.read()
-
-        # Then
-        assert actual_file_contents == expected_file_contents
 
 
 class TestCreateLoad:
@@ -1031,7 +994,7 @@ class TestCreateLoad:
         expected_load_file_path = area_fr._area_service.config.study_path / "input/load/series/load_fr.txt"
 
         # When
-        area_fr.create_load(None)
+        area_fr.create_load(pd.DataFrame())
 
         # Then
         assert load_file_path == expected_load_file_path
@@ -1065,7 +1028,6 @@ class TestCreateLoad:
         # Then
         assert expected_ini_path.exists()
         assert expected_ini_path.is_file()
-        assert expected_ini_path == fr_load.prepro.settings.ini_path
 
     def test_conversion_txt_exists(self, area_fr, fr_load):
         # Given
@@ -1076,9 +1038,8 @@ class TestCreateLoad:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_load.prepro.conversion.local_file.file_path == expected_file_path
 
-    def test_conversion_txt_has_correct_default_values(self, area_fr, fr_load):
+    def test_conversion_txt_has_correct_default_values(self, local_study, fr_load):
         # Given
         expected_file_contents = """-9999999980506447872\t0\t9999999980506447872
 0\t0\t0
@@ -1087,13 +1048,13 @@ class TestCreateLoad:
         expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None).astype(str)
 
         # When
-        with fr_load.prepro.conversion.local_file.file_path.open("r") as fr_load_file:
-            actual_file_contents = fr_load_file.read()
-        actual_file_data = fr_load.prepro.conversion.time_series.astype(str)
+        local_config = t.cast(LocalConfiguration, local_study.service.config)
+        study_path = local_config.study_path
+        actual_file_path = study_path.joinpath(Path("input") / "load" / "prepro" / "fr" / "conversion.txt")
+        actual_data = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=str)
 
         # Then
-        assert actual_file_data.equals(expected_file_data)
-        assert actual_file_contents == expected_file_contents
+        assert actual_data.equals(expected_file_data)
 
     def test_data_txt_exists(self, area_fr, fr_load):
         # Given
@@ -1104,33 +1065,19 @@ class TestCreateLoad:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_load.prepro.data.local_file.file_path == expected_file_path
 
-    def test_data_txt_has_correct_default_values(self, area_fr, fr_load):
+    def test_data_txt_has_correct_default_values(self, local_study, fr_load):
         # Given
-        expected_file_contents = """1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-1\t1\t0\t1\t1\t1
-"""
-        expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None)
-
-        # When
-        with fr_load.prepro.data.local_file.file_path.open("r") as fr_load_file:
-            actual_file_contents = fr_load_file.read()
-        actual_file_data = fr_load.prepro.data.time_series
+        expected_file_data = pd.DataFrame(np.ones([12, 6]), dtype=int)
+        expected_file_data[2] = 0
 
         # Then
-        assert actual_file_data.equals(expected_file_data)
-        assert actual_file_contents == expected_file_contents
+        local_config = t.cast(LocalConfiguration, local_study.service.config)
+        study_path = local_config.study_path
+        actual_file_path = study_path.joinpath(Path("input") / "load" / "prepro" / "fr" / "data.txt")
+        actual_data = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=int)
+        # For some reason the equality check fails on windows, so we check it in a different way
+        assert actual_data.to_dict() == expected_file_data.to_dict()
 
     def test_k_txt_exists(self, area_fr, fr_load):
         # Given
@@ -1141,18 +1088,6 @@ class TestCreateLoad:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_load.prepro.k.local_file.file_path == expected_file_path
-
-    def test_k_txt_is_empty_by_default(self, area_fr, fr_load):
-        # Given
-        expected_file_contents = """"""
-
-        # When
-        with fr_load.prepro.k.local_file.file_path.open("r") as fr_load_file:
-            actual_file_contents = fr_load_file.read()
-
-        # Then
-        assert actual_file_contents == expected_file_contents
 
     def test_translation_txt_exists(self, area_fr, fr_load):
         # Given
@@ -1163,18 +1098,13 @@ class TestCreateLoad:
         # Then
         assert expected_file_path.exists()
         assert expected_file_path.is_file()
-        assert fr_load.prepro.translation.local_file.file_path == expected_file_path
 
-    def test_translation_txt_is_empty_by_default(self, area_fr, fr_load):
-        # Given
-        expected_file_contents = """"""
-
-        # When
-        with fr_load.prepro.translation.local_file.file_path.open("r") as fr_load_file:
-            actual_file_contents = fr_load_file.read()
-
-        # Then
-        assert actual_file_contents == expected_file_contents
+    def test_k_and_translation_txt_is_empty_by_default(self, local_study, fr_load):
+        local_config = t.cast(LocalConfiguration, local_study.service.config)
+        study_path = local_config.study_path
+        for file in ["k", "translation"]:
+            actual_file_path = study_path.joinpath(Path("input") / "load" / "prepro" / "fr" / f"{file}.txt")
+            assert actual_file_path.read_text() == ""
 
 
 class TestReadArea:
@@ -1186,4 +1116,331 @@ class TestReadArea:
         actual_areas = local_study_object.read_areas()
         expected_areas = ["at", "it", "fr"]
         for area in actual_areas:
+            assert area.ui.color_rgb == [230, 108, 44]
+            assert area.properties.energy_cost_spilled == 0.0
+            assert area.properties.energy_cost_unsupplied == 0.0
             assert area.id in expected_areas
+
+
+def _write_file(_file_path, _time_series) -> None:
+    _file_path.parent.mkdir(parents=True, exist_ok=True)
+    _time_series.to_csv(_file_path, sep="\t", header=False, index=False, encoding="utf-8")
+
+
+class TestReadLoad:
+    def test_read_load_local(self, local_study_w_areas):
+        study_path = local_study_w_areas.service.config.study_path
+        local_study_object = read_study_local(study_path)
+        areas = local_study_object.read_areas()
+
+        for area in areas:
+            expected_time_serie = pd.DataFrame(
+                [
+                    [-9999999980506447872, 0, 9999999980506447872],
+                    [0, area.id, 0],
+                ],
+                dtype="object",
+            )
+
+            file_path = study_path / "input" / "load" / "series" / f"load_{area.id}.txt"
+            _write_file(file_path, expected_time_serie)
+
+            matrix = area.get_load_matrix()
+            pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
+
+        expected_time_serie = pd.DataFrame([])
+        for area in areas:
+            file_path = study_path / "input" / "load" / "series" / f"load_{area.id}.txt"
+            _write_file(file_path, expected_time_serie)
+            matrix = area.get_load_matrix()
+            pd.testing.assert_frame_equal(matrix, expected_time_serie)
+
+
+class TestReadRenewable:
+    def test_read_renewable_local(self, local_study_with_renewable):
+        study_path = local_study_with_renewable.service.config.study_path
+        local_study_object = read_study_local(study_path)
+        areas = local_study_object.read_areas()
+
+        for area in areas:
+            expected_time_serie = pd.DataFrame(
+                [
+                    [-9999999980506447872, 0, 9999999980506447872],
+                    [0, area.id, 0],
+                ],
+                dtype="object",
+            )
+            renewable_list = area.read_renewables()
+
+            if renewable_list:
+                assert area.id == "fr"
+                assert isinstance(renewable_list, list)
+                assert isinstance(renewable_list[0], RenewableCluster)
+
+            for renewable in renewable_list:
+                assert renewable.name == "renewable cluster"
+                assert renewable.properties.unit_count == 1
+                assert renewable.properties.ts_interpretation.value == "power-generation"
+                assert renewable.properties.nominal_capacity == 0.000000
+                assert renewable.properties.enabled
+                assert renewable.properties.group.value == "Other RES 1"
+
+                # Create folder and file for timeserie.
+                cluster_path = study_path / "input" / "renewables" / "series" / Path(area.id) / Path(renewable.id)
+                os.makedirs(cluster_path, exist_ok=True)
+                series_path = cluster_path / "series.txt"
+                _write_file(series_path, expected_time_serie)
+
+                # Check matrix
+                matrix = renewable.get_timeseries()
+                pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
+
+
+class TestReadSolar:
+    def test_read_solar_local(self, local_study_w_areas):
+        study_path = local_study_w_areas.service.config.study_path
+        local_study_object = read_study_local(study_path)
+        areas = local_study_object.read_areas()
+
+        for area in areas:
+            expected_time_serie = pd.DataFrame(
+                [
+                    [-9999999980506447872, 0, 9999999980506447872],
+                    [0, area.id, 0],
+                ],
+                dtype="object",
+            )
+
+            file_path = study_path / "input" / "solar" / "series" / f"solar_{area.id}.txt"
+            _write_file(file_path, expected_time_serie)
+
+            matrix = area.get_solar_matrix()
+            pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
+
+        expected_time_serie = pd.DataFrame([])
+        for area in areas:
+            file_path = study_path / "input" / "solar" / "series" / f"solar_{area.id}.txt"
+            _write_file(file_path, expected_time_serie)
+            matrix = area.get_solar_matrix()
+            pd.testing.assert_frame_equal(matrix, expected_time_serie)
+
+
+class TestReadReserves:
+    def test_read_reserve_local(self, local_study_w_areas):
+        study_path = local_study_w_areas.service.config.study_path
+        local_study_object = read_study_local(study_path)
+        areas = local_study_object.read_areas()
+
+        for area in areas:
+            expected_time_serie = pd.DataFrame(
+                [
+                    [-9999999980506447872, 0, 9999999980506447872],
+                    [0, area.id, 0],
+                ],
+                dtype="object",
+            )
+
+            file_path = study_path / "input" / "reserves" / f"{area.id}.txt"
+            _write_file(file_path, expected_time_serie)
+
+            matrix = area.get_reserves_matrix()
+            pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
+
+        expected_time_serie = pd.DataFrame([])
+        for area in areas:
+            file_path = study_path / "input" / "reserves" / f"{area.id}.txt"
+            _write_file(file_path, expected_time_serie)
+            matrix = area.get_reserves_matrix()
+            pd.testing.assert_frame_equal(matrix, expected_time_serie)
+
+
+class TestReadWind:
+    def test_read_wind_local(self, local_study_w_areas):
+        study_path = local_study_w_areas.service.config.study_path
+        local_study_object = read_study_local(study_path)
+        areas = local_study_object.read_areas()
+
+        for area in areas:
+            expected_time_serie = pd.DataFrame(
+                [
+                    [-9999999980506447872, 0, 9999999980506447872],
+                    [0, area.id, 0],
+                ],
+                dtype="object",
+            )
+
+            file_path = study_path / "input" / "wind" / "series" / f"wind_{area.id}.txt"
+            _write_file(file_path, expected_time_serie)
+
+            matrix = area.get_wind_matrix()
+            pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
+
+        expected_time_serie = pd.DataFrame([])
+        for area in areas:
+            file_path = study_path / "input" / "wind" / "series" / f"wind_{area.id}.txt"
+            _write_file(file_path, expected_time_serie)
+            matrix = area.get_wind_matrix()
+            pd.testing.assert_frame_equal(matrix, expected_time_serie)
+
+
+class TestReadmisc_gen:
+    def test_read_misc_gen_local(self, local_study_w_areas):
+        study_path = local_study_w_areas.service.config.study_path
+        local_study_object = read_study_local(study_path)
+        areas = local_study_object.read_areas()
+
+        for area in areas:
+            expected_time_serie = pd.DataFrame(
+                [
+                    [-9999999980506447872, 0, 9999999980506447872],
+                    [0, area.id, 0],
+                ],
+                dtype="object",
+            )
+
+            file_path = study_path / "input" / "misc-gen" / f"miscgen-{area.id}.txt"
+            _write_file(file_path, expected_time_serie)
+
+            matrix = area.get_misc_gen_matrix()
+            pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
+
+        expected_time_serie = pd.DataFrame([])
+        for area in areas:
+            file_path = study_path / "input" / "misc-gen" / f"miscgen-{area.id}.txt"
+            _write_file(file_path, expected_time_serie)
+            matrix = area.get_misc_gen_matrix()
+            pd.testing.assert_frame_equal(matrix, expected_time_serie)
+
+
+class TestReadThermal:
+    def test_read_thermals_local(self, local_study_w_thermal):
+        study_path = local_study_w_thermal.service.config.study_path
+        local_study_object = read_study_local(study_path)
+        areas = local_study_object.read_areas()
+
+        for area in areas:
+            expected_time_serie = pd.DataFrame(
+                [
+                    [-9999999980506447872, 0, 9999999980506447872],
+                    [0, area.id, 0],
+                ],
+                dtype="object",
+            )
+
+            thermals_list = area.read_thermal_clusters()
+
+            if thermals_list:
+                assert area.id == "fr"
+                assert isinstance(thermals_list, list)
+                assert isinstance(thermals_list[0], ThermalCluster)
+
+            for thermal in thermals_list:
+                assert thermal.name == "test thermal cluster"
+                assert thermal.properties.group.value == "Other 1"
+                assert thermal.properties.unit_count == 1
+                assert thermal.properties.efficiency == 100.000000
+                assert thermal.properties.nominal_capacity == 0.000000
+                assert thermal.properties.enabled
+                assert thermal.properties.cost_generation.value == "SetManually"
+
+                # Create folder and file for timeserie.
+                cluster_path = (
+                    study_path / "input" / "thermal" / "series" / Path(area.id) / Path(thermal.properties.group.value)
+                )
+                series_path = cluster_path / "series.txt"
+                os.makedirs(cluster_path, exist_ok=True)
+                _write_file(series_path, expected_time_serie)
+
+                co2_cost_path = cluster_path / "C02Cost.txt"
+                _write_file(co2_cost_path, expected_time_serie)
+
+                fuelCost_path = cluster_path / "fuelCost.txt"
+                _write_file(fuelCost_path, expected_time_serie)
+
+                cluster_path = (
+                    study_path / "input" / "thermal" / "prepro" / Path(area.id) / Path(thermal.properties.group.value)
+                )
+                os.makedirs(cluster_path, exist_ok=True)
+                series_path_1 = cluster_path / "data.txt"
+                series_path_2 = cluster_path / "modulation.txt"
+                _write_file(series_path_1, expected_time_serie)
+                _write_file(series_path_2, expected_time_serie)
+
+                # Check matrix
+                matrix = thermal.get_prepro_data_matrix()
+                matrix_1 = thermal.get_prepro_modulation_matrix()
+                matrix_2 = thermal.get_series_matrix()
+                matrix_3 = thermal.get_co2_cost_matrix()
+                matrix_4 = thermal.get_fuel_cost_matrix()
+
+                pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_1.astype(str), expected_time_serie.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_2.astype(str), expected_time_serie.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_3.astype(str), expected_time_serie.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_4.astype(str), expected_time_serie.astype(str), check_dtype=False)
+
+
+class TestReadLinks:
+    def create_file_with_empty_dataframe(self, file_path: str, df: pd.DataFrame):
+        full_path = Path(file_path)
+
+        full_path.parent.mkdir(parents=True, exist_ok=True)
+        df_save(df, full_path)
+
+    def test_read_links_local(self, local_study_w_links):
+        study_path = local_study_w_links.service.config.study_path
+        local_study_object = read_study_local(study_path)
+
+        files_to_write = []
+        files_to_write.append(study_path / "input" / "links" / "fr" / "at_parameters.txt")
+        files_to_write.append(study_path / "input" / "links" / "fr" / "it_parameters.txt")
+        files_to_write.append(study_path / "input" / "links" / "fr" / "capacities" / "at_direct.txt")
+        files_to_write.append(study_path / "input" / "links" / "fr" / "capacities" / "at_indirect.txt")
+        files_to_write.append(study_path / "input" / "links" / "fr" / "capacities" / "it_direct.txt")
+        files_to_write.append(study_path / "input" / "links" / "fr" / "capacities" / "it_indirect.txt")
+        df_initial = pd.DataFrame(
+            [
+                [-1, 0, 0],
+                [0, -1, 0],
+            ],
+            dtype="object",
+        )
+
+        for file in files_to_write:
+            self.create_file_with_empty_dataframe(file, df_initial)
+
+        links = local_study_object.read_links()
+
+        for link in links:
+            if link.area_from_id == "fr":
+                matrix = link.get_capacity_direct()
+                matrix_2 = link.get_capacity_indirect()
+                matrix_3 = link.get_parameters()
+
+                pd.testing.assert_frame_equal(matrix.astype(str), df_initial.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_2.astype(str), df_initial.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_3.astype(str), df_initial.astype(str), check_dtype=False)
+            assert link.ui.link_style.value == "plain"
+            assert link.ui.link_width == 1
+            assert link.ui.colorb == 112
+            assert link.ui.colorg == 112
+            assert link.ui.colorr == 112
+            assert not link.properties.hurdles_cost
+            assert not link.properties.loop_flow
+            assert not link.properties.use_phase_shifter
+            assert link.properties.transmission_capacities.value == "enabled"
+            assert link.properties.asset_type.value == "ac"
+            assert isinstance(link.properties.filter_year_by_year, set)
+            assert isinstance(link.properties.filter_synthesis, set)
+
+
+class TestReadSTstorage:
+    def test_read_storage_local(self, local_study_w_thermal):
+        # TODO not finished at all, just here to validate area.read_st_storage
+        study_path = local_study_w_thermal.service.config.study_path
+        local_study_object = read_study_local(study_path)
+        areas = local_study_object.read_areas()
+
+        for area in areas:
+            with pytest.raises(NotImplementedError):
+                area.read_st_storages()

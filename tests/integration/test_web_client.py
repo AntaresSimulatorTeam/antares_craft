@@ -14,25 +14,32 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from antares.api_conf.api_conf import APIconf
-from antares.exceptions.exceptions import (
+from antares.craft.api_conf.api_conf import APIconf
+from antares.craft.exceptions.exceptions import (
     AreaDeletionError,
     BindingConstraintCreationError,
     ConstraintMatrixUpdateError,
-    LoadMatrixUploadError,
+    MatrixUploadError,
     STStorageMatrixUploadError,
 )
-from antares.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
-from antares.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
-from antares.model.link import LinkProperties, LinkStyle, LinkUi
-from antares.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
-from antares.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
-from antares.model.settings.general import GeneralParameters, Mode
-from antares.model.settings.study_settings import PlaylistParameters, StudySettings
-from antares.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
-from antares.model.study import create_study_api
-from antares.model.thermal import ThermalClusterGroup, ThermalClusterProperties
-from antares.service.api_services.area_api import AreaApiService
+from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
+from antares.craft.model.binding_constraint import (
+    BindingConstraintFrequency,
+    BindingConstraintOperator,
+    BindingConstraintProperties,
+    ClusterData,
+    ConstraintTerm,
+    LinkData,
+)
+from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
+from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
+from antares.craft.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
+from antares.craft.model.settings.general import GeneralParameters, Mode
+from antares.craft.model.settings.study_settings import PlaylistParameters, StudySettings
+from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
+from antares.craft.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
+from antares.craft.model.study import create_study_api, create_variant_api, read_study_api
+from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
@@ -52,8 +59,6 @@ class TestWebClient:
 
         study = create_study_api("antares-craft-test", "880", api_config)
 
-        area_api = AreaApiService(api_config, study.service.study_id)
-
         # tests area creation with default values
         area_name = "FR"
         area_fr = study.create_area(area_name)
@@ -64,17 +69,26 @@ class TestWebClient:
         # Case that fails
         wrong_load_matrix = pd.DataFrame(data=[[0]])
         with pytest.raises(
-            LoadMatrixUploadError,
-            match=f"Could not upload load matrix for area {area_fr.id}: Expected 8760 rows and received 1",
+            MatrixUploadError,
+            match=f"Error uploading load matrix for area {area_fr.id}: Expected 8760 rows and received 1",
         ):
-            area_fr.upload_load_matrix(wrong_load_matrix)
+            area_fr.create_load(wrong_load_matrix)
 
         # Case that succeeds
         load_matrix = pd.DataFrame(data=np.zeros((8760, 1)))
-        area_fr.upload_load_matrix(load_matrix)
+        area_fr.create_load(load_matrix)
 
         # tests get load matrix
         assert area_fr.get_load_matrix().equals(load_matrix)
+
+        # asserts solar and wind matrices can be created and read.
+        ts_matrix = pd.DataFrame(data=np.ones((8760, 4)))
+
+        area_fr.create_solar(ts_matrix)
+        assert area_fr.get_solar_matrix().equals(ts_matrix)
+
+        area_fr.create_wind(ts_matrix)
+        assert area_fr.get_wind_matrix().equals(ts_matrix)
 
         # tests area creation with ui values
         area_ui = AreaUi(x=100, color_rgb=[255, 0, 0])
@@ -82,9 +96,9 @@ class TestWebClient:
         area_be = study.create_area(area_name, ui=area_ui)
         assert area_be.name == area_name
         assert area_be.id == "be"
-        area_ui = area_be.ui
-        assert area_ui.x == area_ui.x
-        assert area_ui.color_rgb == area_ui.color_rgb
+
+        assert area_be.ui.x == area_ui.x
+        assert area_be.ui.color_rgb == area_ui.color_rgb
 
         # tests area creation with properties
         properties = AreaProperties()
@@ -98,23 +112,23 @@ class TestWebClient:
         assert area_de.properties.filter_synthesis == {FilterOption.HOURLY, FilterOption.DAILY}
 
         # tests link creation with default values
-        link_de_fr = study.create_link(area_from=area_de, area_to=area_fr)
-        assert link_de_fr.area_from == area_de
-        assert link_de_fr.area_to == area_fr
-        assert link_de_fr.name == f"{area_de.id} / {area_fr.id}"
+        link_de_fr = study.create_link(area_from=area_de.id, area_to=area_fr.id)
+        assert link_de_fr.area_from_id == area_de.id
+        assert link_de_fr.area_to_id == area_fr.id
+        assert link_de_fr.id == f"{area_de.id} / {area_fr.id}"
 
         # tests link creation with ui and properties
         link_ui = LinkUi(colorr=44)
         link_properties = LinkProperties(hurdles_cost=True)
         link_properties.filter_year_by_year = [FilterOption.HOURLY]
-        link_be_fr = study.create_link(area_from=area_be, area_to=area_fr, ui=link_ui, properties=link_properties)
+        link_be_fr = study.create_link(area_from=area_be.id, area_to=area_fr.id, ui=link_ui, properties=link_properties)
         assert link_be_fr.ui.colorr == 44
         assert link_be_fr.properties.hurdles_cost
         assert link_be_fr.properties.filter_year_by_year == {FilterOption.HOURLY}
 
         # asserts study contains all links and areas
         assert study.get_areas() == {area_be.id: area_be, area_fr.id: area_fr, area_de.id: area_de}
-        assert study.get_links() == {link_be_fr.name: link_be_fr, link_de_fr.name: link_de_fr}
+        assert study.get_links() == {link_be_fr.id: link_be_fr, link_de_fr.id: link_de_fr}
 
         # test thermal cluster creation with default values
         thermal_name = "Cluster_test %?"
@@ -135,11 +149,23 @@ class TestWebClient:
 
         # test thermal cluster creation with prepro_modulation matrices
         thermal_name = "matrices_be"
-        prepro_modulation_matrix = pd.DataFrame(data=np.ones((8760, 4)))
+        prepro_modulation_matrix = pd.DataFrame(data=np.ones((8760, 6)))
         modulation_matrix = pd.DataFrame(data=np.ones((8760, 4)))
-        series_matrix = pd.DataFrame(data=np.ones((8760, 4)))
+        series_matrix = pd.DataFrame(data=np.ones((8760, 6)))
         CO2Cost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
         fuelCost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
+
+        # creating parameters and capacities for this link and testing them
+        link_be_fr.create_parameters(series_matrix)
+        link_be_fr.create_capacity_direct(series_matrix)
+        link_be_fr.create_capacity_indirect(series_matrix)
+
+        parameters_matrix = link_be_fr.get_parameters()
+        direct_matrix = link_be_fr.get_capacity_direct()
+        indirect_matrix = link_be_fr.get_capacity_indirect()
+        series_matrix.equals(parameters_matrix)
+        series_matrix.equals(direct_matrix)
+        series_matrix.equals(indirect_matrix)
 
         # Case that succeeds
         thermal_value_be = area_fr.create_thermal_cluster_with_matrices(
@@ -186,6 +212,48 @@ class TestWebClient:
         assert storage_fr.name == st_storage_name
         assert storage_fr.id == "cluster_test"
 
+        # test each list of clusters has the same length and objects by comparing their id
+        thermal_list = area_fr.read_thermal_clusters()
+        renewable_list = area_fr.read_renewables()
+        storage_list = area_fr.read_st_storages()
+
+        assert len(thermal_list) == 2
+        assert len(renewable_list) == 2
+        assert len(storage_list) == 1
+
+        actual_thermal_cluster_1 = thermal_list[0]
+        actual_thermal_cluster_2 = thermal_list[1]
+        assert actual_thermal_cluster_1.id == thermal_fr.id
+        assert actual_thermal_cluster_2.id == thermal_value_be.id
+
+        actual_renewable_1 = renewable_list[0]
+        actual_renewable_2 = renewable_list[1]
+        assert actual_renewable_1.id == renewable_fr.id
+        assert actual_renewable_2.id == renewable_onshore.id
+
+        actual_storage = storage_list[0]
+        assert actual_storage.id == storage_fr.id
+
+        # test actual_hydro has the same datas (id, properties and matrices) than area_fr hydro
+        actual_hydro = area_fr.read_hydro()
+        assert actual_hydro.area_id == area_fr.id
+        assert actual_hydro.properties == area_fr.hydro.properties
+
+        # tests study reading method and comparing ids, name, areas and settings
+        actual_study = read_study_api(api_config, study.service.study_id)
+
+        assert study.service.study_id == actual_study.service.study_id
+        assert study.name == actual_study.name
+        assert study.version == actual_study.version
+        assert list(study.get_areas().keys()) == list(actual_study.get_areas().keys())
+
+        expected_area_fr = study.get_areas()["fr"]
+        actual_area_fr = actual_study.get_areas()["fr"]
+        assert list(expected_area_fr.get_thermals()) == list(actual_area_fr.get_thermals())
+        assert list(expected_area_fr.get_renewables()) == list(actual_area_fr.get_renewables())
+        assert list(expected_area_fr.get_st_storages()) == list(actual_area_fr.get_st_storages())
+        assert study.get_settings() == actual_study.get_settings()
+
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
         storage_properties = STStorageProperties(reservoir_capacity=0.5)
@@ -196,7 +264,7 @@ class TestWebClient:
         assert properties.group == STStorageGroup.BATTERY
 
         # test reading list of areas
-        area_list = area_api.read_areas()
+        area_list = study.read_areas()
         assert len(area_list) == 3
         # asserts areas are sorted by id
         assert area_list[0].id == area_be.id
@@ -331,6 +399,15 @@ class TestWebClient:
         thermal_fr.update_properties(new_props)
         assert thermal_fr.properties.group == ThermalClusterGroup.NUCLEAR
 
+        # assert study got all links
+        links = study.read_links()
+        assert len(links) == 2
+        test_link_be_fr = links[0]
+        test_link_de_fr = links[1]
+        assert test_link_be_fr.id == link_be_fr.id
+        assert test_link_be_fr.properties == link_be_fr.properties
+        assert test_link_de_fr.id == link_de_fr.id
+
         # tests renewable properties update
         new_props = RenewableClusterProperties()
         new_props.ts_interpretation = TimeSeriesInterpretation.POWER_GENERATION
@@ -359,7 +436,7 @@ class TestWebClient:
 
         # tests link deletion
         study.delete_link(link_de_fr)
-        assert link_de_fr.name not in study.get_links()
+        assert link_de_fr.id not in study.get_links()
 
         # tests thermal cluster deletion
         area_be.delete_thermal_cluster(thermal_be)
@@ -414,3 +491,120 @@ class TestWebClient:
         empty_settings = StudySettings()
         new_study.update_settings(empty_settings)
         assert old_settings == new_study.get_settings()
+
+        # tests variant creation
+        variant_name = "variant_test"
+        variant_from_api_name = "variant_from_api_test"
+        variant = new_study.create_variant(variant_name)
+        variant_from_api = create_variant_api(api_config, new_study.service.study_id, variant_from_api_name)
+
+        # instance asserts
+        assert variant.name == variant_name
+        assert variant.service.study_id != new_study.service.study_id
+        assert variant.get_settings() == new_study.get_settings()
+        assert list(variant.get_areas().keys()) == list(new_study.get_areas().keys())
+        assert list(variant.get_links().keys()) == list(new_study.get_links().keys())
+        assert list(variant.get_binding_constraints().keys()) == list(new_study.get_binding_constraints().keys())
+        # from_api asserts
+        assert variant_from_api.name == variant_from_api_name
+        assert variant_from_api.service.study_id != new_study.service.study_id
+        assert variant_from_api.get_settings() == new_study.get_settings()
+        assert list(variant_from_api.get_areas().keys()) == list(new_study.get_areas().keys())
+        assert list(variant_from_api.get_links().keys()) == list(new_study.get_links().keys())
+        assert list(variant_from_api.get_binding_constraints().keys()) == list(
+            new_study.get_binding_constraints().keys()
+        )
+
+        # ===== Test outputs (Part 1 - before simulation) =====
+
+        assert len(study.read_outputs()) == 0
+
+        # ===== Test run study simulation and wait job completion ======
+
+        parameters = AntaresSimulationParameters(nb_cpu=4)
+
+        job = study.run_antares_simulation(parameters)
+        assert isinstance(job, Job)
+        assert job.status == JobStatus.PENDING
+
+        study.wait_job_completion(job, time_out=60)
+        assert job.status == JobStatus.SUCCESS
+
+        assert job.output_id is not None
+        assert job.parameters == parameters
+        assert job.parameters.unzip_output is True
+
+        # ===== Test outputs (Part 2 - after simulation) =====
+
+        output = study.read_outputs()[0]
+        outputs = study.get_outputs()
+        assert len(outputs) == 1
+        assert not outputs.get(output.name).archived
+        study_with_outputs = read_study_api(api_config, study._study_service.study_id)
+        outputs_from_api = study_with_outputs.get_outputs()
+        assert all(
+            outputs_from_api[output].name == outputs[output].name
+            and outputs_from_api[output].archived == outputs[output].archived
+            for output in outputs_from_api
+        )
+
+        # ===== Output get_matrix =====
+
+        matrix = output.get_matrix("mc-all/grid/links")
+
+        assert isinstance(matrix, pd.DataFrame)
+        data = {"upstream": ["be"], "downstream": ["fr"]}
+        expected_matrix = pd.DataFrame(data)
+        assert matrix.equals(expected_matrix)
+
+        # ===== Output aggregate_values =====
+
+        aggregated_matrix = output.aggregate_links_mc_all("values", "daily")
+        assert isinstance(aggregated_matrix, pd.DataFrame)
+        assert not aggregated_matrix.empty
+        assert aggregated_matrix.shape == (364, 30)
+        assert aggregated_matrix["link"].apply(lambda x: x == "be - fr").all()
+        expected_values = list(range(1, 101))
+        matrix_values = aggregated_matrix.loc[0:99, "timeId"].tolist()
+        assert expected_values == matrix_values
+
+        # ===== Test read binding constraints =====
+        constraints = study.read_binding_constraints()
+
+        assert len(constraints) == 2
+        constraint = constraints[0]
+        assert constraint.id == "bc_2"
+        assert constraint.name == "bc_2"
+        assert constraint.properties.enabled is True
+        assert constraint.properties.time_step == BindingConstraintFrequency.HOURLY
+        assert constraint.properties.operator == BindingConstraintOperator.EQUAL
+        assert constraint.properties.group == "default"
+        assert len(constraint.get_terms()) == 1
+
+        # ===== terms ======
+        cluster_term = constraint.get_terms()["fr.cluster_test"]
+        assert cluster_term.data.area == "fr"
+        assert cluster_term.data.cluster == "cluster_test"
+        assert cluster_term.weight == 4.5
+        assert cluster_term.offset == 3
+
+        # ===== Output deletion =====
+
+        # run two new simulations for creating more outputs
+        study.wait_job_completion(
+            study.run_antares_simulation(AntaresSimulationParameters(output_suffix="2")), time_out=60
+        )
+        study.wait_job_completion(
+            study.run_antares_simulation(AntaresSimulationParameters(output_suffix="3")), time_out=60
+        )
+        assert len(study.read_outputs()) == 3
+
+        # delete_output
+        study.delete_output(output.name)
+        assert output.name not in study.get_outputs()
+        assert len(study.read_outputs()) == 2
+
+        # delete_outputs
+        study.delete_outputs()
+        assert len(study.get_outputs()) == 0
+        assert len(study.read_outputs()) == 0
