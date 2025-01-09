@@ -608,8 +608,8 @@ class TestCreateAPI:
             mocker.delete(delete_url, status_code=200)
 
             self.study.read_outputs()
+            assert output_name in self.study.get_outputs()
             self.study.delete_output(output_name)
-
             assert output_name not in self.study.get_outputs()
 
             # failing
