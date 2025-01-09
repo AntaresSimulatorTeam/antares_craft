@@ -17,7 +17,7 @@ electrical demand (load), generation fleet (clusters),
 """
 
 from types import MappingProxyType
-from typing import Any, Dict, List, Mapping, Optional, Set
+from typing import Any, Dict, list, Mapping, Optional, Set
 
 import pandas as pd
 
@@ -123,7 +123,7 @@ class AreaUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=t
     layer: Optional[int] = None
     x: Optional[int] = None
     y: Optional[int] = None
-    color_rgb: Optional[List[int]] = None
+    color_rgb: Optional[list[int]] = None
 
     layer_x: Optional[Dict[int, int]] = None
     layer_y: Optional[Dict[int, int]] = None
@@ -299,7 +299,7 @@ class Area:
     def get_misc_gen_matrix(self) -> pd.DataFrame:
         return self._area_service.get_misc_gen_matrix(self.id)
 
-    def delete_thermal_clusters(self, thermal_clusters: List[ThermalCluster]) -> None:
+    def delete_thermal_clusters(self, thermal_clusters: list[ThermalCluster]) -> None:
         self._area_service.delete_thermal_clusters(self.id, thermal_clusters)
         for cluster in thermal_clusters:
             self._thermals.pop(cluster.id)
@@ -307,7 +307,7 @@ class Area:
     def delete_thermal_cluster(self, thermal_cluster: ThermalCluster) -> None:
         self.delete_thermal_clusters([thermal_cluster])
 
-    def delete_renewable_clusters(self, renewable_clusters: List[RenewableCluster]) -> None:
+    def delete_renewable_clusters(self, renewable_clusters: list[RenewableCluster]) -> None:
         self._area_service.delete_renewable_clusters(self.id, renewable_clusters)
         for cluster in renewable_clusters:
             self._renewables.pop(cluster.id)
@@ -315,7 +315,7 @@ class Area:
     def delete_renewable_cluster(self, renewable_cluster: RenewableCluster) -> None:
         self.delete_renewable_clusters([renewable_cluster])
 
-    def delete_st_storages(self, storages: List[STStorage]) -> None:
+    def delete_st_storages(self, storages: list[STStorage]) -> None:
         self._area_service.delete_st_storages(self.id, storages)
         for storage in storages:
             self._st_storages.pop(storage.id)
@@ -358,20 +358,35 @@ class Area:
 
     def read_st_storages(
         self,
-    ) -> List[STStorage]:
+    ) -> list[STStorage]:
         return self._storage_service.read_st_storages(self.id)
 
     def read_renewables(
         self,
-    ) -> List[RenewableCluster]:
+    ) -> list[RenewableCluster]:
         return self._renewable_service.read_renewables(self.id)
 
     def read_thermal_clusters(
         self,
-    ) -> List[ThermalCluster]:
+    ) -> list[ThermalCluster]:
         return self._thermal_service.read_thermal_clusters(self.id)
 
     def read_hydro(
         self,
     ) -> Hydro:
         return self._area_service.read_hydro(self.id)
+
+    def get_maxpower(self) -> pd.DataFrame:
+        return self._area_service.get_maxpower()
+
+    def get_reservoir(self) -> pd.DataFrame:
+        return self._area_service.get_reservoir()
+
+    def get_inflow_pattern(self) -> pd.DataFrame:
+        return self._area_service.get_inflow_pattern()
+
+    def get_credit_modulations(self) -> pd.DataFrame:
+        return self._area_service.get_credit_modulations()
+
+    def get_water_values(self) -> pd.DataFrame:
+        return self._area_service.get_water_values()

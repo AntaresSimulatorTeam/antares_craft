@@ -605,3 +605,18 @@ class AreaApiService(BaseAreaService):
         # sort area list to ensure reproducibility
         area_list.sort(key=lambda area: area.id)
         return area_list
+
+    def get_maxpower(self) -> pd.DataFrame:
+        pass
+
+    def get_reservoir(self) -> pd.DataFrame:
+        pass
+
+    def get_inflow_pattern(self) -> pd.DataFrame:
+        pass
+
+    def get_credit_modulations(self) -> pd.DataFrame:
+        pass
+
+    def get_water_values(self) -> pd.DataFrame:
+        pass
