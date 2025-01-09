@@ -572,8 +572,6 @@ class AreaApiService(BaseAreaService):
         try:
             json_resp = self._wrapper.get(base_api_url + "?" + ui_url).json()
             for area in json_resp:
-
-
                 area_url = base_api_url + "/" + f"{area}/"
 
                 json_properties = self._wrapper.get(area_url + url_properties_form).json()
@@ -581,18 +579,17 @@ class AreaApiService(BaseAreaService):
                 ui_response = self.craft_ui(f"{base_api_url}?type=AREA&{ui_url}", area)
 
                 assert self.renewable_service is not None
-                    assert self.thermal_service is not None
-                    assert self.storage_service is not None
+                assert self.thermal_service is not None
+                assert self.storage_service is not None
 
                 renewables = self.renewable_service.read_renewables(area)
-                    thermals = self.thermal_service.read_thermal_clusters(area)
-                    st_storages = self.storage_service.read_st_storages(area)
+                thermals = self.thermal_service.read_thermal_clusters(area)
+                st_storages = self.storage_service.read_st_storages(area)
 
-                    dict_renewables = {renewable.id: renewable for renewable in
-                    renewables}
+                dict_renewables = {renewable.id: renewable for renewable in renewables}
 
                 dict_thermals = {thermal.id: thermal for thermal in thermals}
-                    dict_st_storage = {storage.id: storage for storage in st_storages}
+                dict_st_storage = {storage.id: storage for storage in st_storages}
 
                 area_obj = Area(
                     area,
