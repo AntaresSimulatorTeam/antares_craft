@@ -633,10 +633,11 @@ class TestCreateAPI:
             mocker.delete(delete_url1, status_code=200)
             mocker.delete(delete_url2, status_code=200)
 
-            mocker.get(outputs_url, json=[
-                {"name": "output1", "archived": False},
-                {"name": "output2", "archived": True}
-            ], status_code=200)
+            mocker.get(
+                outputs_url,
+                json=[{"name": "output1", "archived": False}, {"name": "output2", "archived": True}],
+                status_code=200,
+            )
             assert len(self.study.read_outputs()) == 2
 
             self.study.delete_outputs()
