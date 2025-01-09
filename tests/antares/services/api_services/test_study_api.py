@@ -643,7 +643,7 @@ class TestCreateAPI:
             self.study.delete_outputs()
             assert len(self.study.get_outputs()) == 0
 
-            #failing (nothing to delete)
+            # failing (nothing to delete)
             error_message = "Outputs deletion failed"
             mocker.get(outputs_url, json={"description": error_message}, status_code=404)
             with pytest.raises(OutputsRetrievalError, match=error_message):
