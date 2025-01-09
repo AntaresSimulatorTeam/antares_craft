@@ -11,8 +11,10 @@
 # This file is part of the Antares project.
 from typing import Any
 
+import pandas as pd
+
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.output import Output
+from antares.craft.model.output import AggregationEntry
 from antares.craft.service.base_services import BaseOutputService
 
 
@@ -22,5 +24,10 @@ class OutputLocalService(BaseOutputService):
         self.config = config
         self.study_name = study_name
 
-    def read_outputs(self) -> list[Output]:
+    def get_matrix(self, output_id: str, file_path: str) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def aggregate_values(
+        self, output_id: str, aggregation_entry: AggregationEntry, object_type: str, mc_type: str
+    ) -> pd.DataFrame:
         raise NotImplementedError

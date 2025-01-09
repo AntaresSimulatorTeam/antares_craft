@@ -1,3 +1,24 @@
+v0.1.7 (2025-01-08)
+-------------------
+
+- move doc generation from ci.yml to publish.yml
+
+v0.1.6 (2025-01-08)
+-------------------
+
+- Fix concatenate CONCATENATED_README.md files for single Readme at pypi.org 
+
+v0.1.5 (2025-01-08)
+-------------------
+
+- Concatenate .md files for single Readme at pypi.org 
+
+v0.1.4 (2025-01-07)
+-------------------
+
+- Allow read_areas method to read area parameters and ui
+- Add output functionalities (get_matrix, aggregate_values)
+
 v0.1.3 (2024-12-19)
 -------------------
 

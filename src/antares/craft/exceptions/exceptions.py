@@ -334,3 +334,17 @@ class OutputsRetrievalError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
         self.message = f"Could not get outputs for {study_id}: " + message
         super().__init__(self.message)
+
+
+class ConstraintRetrievalError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not get binding constraints for {study_id}: " + message
+        super().__init__(self.message)
+
+
+class AggregateCreationError(Exception):
+    def __init__(self, study_id: str, output_id: str, mc_type: str, object_type: str, message: str) -> None:
+        self.message = (
+            f"Could not create {mc_type}/{object_type} aggregate for study {study_id}, output {output_id}: " + message
+        )
+        super().__init__(self.message)

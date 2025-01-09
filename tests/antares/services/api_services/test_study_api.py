@@ -9,19 +9,22 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
 import requests_mock
 
 import re
 
+from io import StringIO
 from json import dumps
 from unittest.mock import Mock, patch
+
+import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
+    ConstraintRetrievalError,
     LinkCreationError,
     OutputsRetrievalError,
     SimulationFailedError,
@@ -31,13 +34,22 @@ from antares.craft.exceptions.exceptions import (
     StudyVariantCreationError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaUi
-from antares.craft.model.binding_constraint import BindingConstraint, BindingConstraintProperties
+from antares.craft.model.binding_constraint import (
+    BindingConstraint,
+    BindingConstraintFrequency,
+    BindingConstraintOperator,
+    BindingConstraintProperties,
+)
 from antares.craft.model.hydro import HydroProperties
 from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.model.output import (
+    Output,
+)
 from antares.craft.model.settings.general import GeneralParameters
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
 from antares.craft.model.study import Study, create_study_api, create_variant_api, read_study_api
+from antares.craft.service.api_services.output_api import OutputApiService
 from antares.craft.service.service_factory import ServiceFactory
 
 
@@ -208,6 +220,7 @@ class TestCreateAPI:
         renewable_url = f"{area_url}/zone/clusters/renewable"
         storage_url = f"{area_url}/zone/storages"
         output_url = f"{url}/outputs"
+        constraints_url = f"{base_url}/studies/{self.study_id}/bindingconstraints"
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url, json=json_study)
@@ -221,6 +234,7 @@ class TestCreateAPI:
                 output_url,
                 json=[],
             )
+            mocker.get(constraints_url, json=[])
             actual_study = read_study_api(self.api, self.study_id)
 
             expected_study_name = json_study.pop("name")
@@ -261,6 +275,9 @@ class TestCreateAPI:
                 json=[],
                 status_code=200,
             )
+
+            constraints_url = f"{base_url}/studies/{variant_id}/bindingconstraints"
+            mocker.get(constraints_url, json=[], status_code=200)
 
             variant = self.study.create_variant(variant_name)
             variant_from_api = create_variant_api(self.api, self.study_id, variant_name)
@@ -472,3 +489,111 @@ class TestCreateAPI:
             mocker.get(run_url, json={"description": error_message}, status_code=404)
             with pytest.raises(OutputsRetrievalError, match=error_message):
                 self.study.read_outputs()
+
+    def test_read_constraints(self):
+        with requests_mock.Mocker() as mocker:
+            constraints_url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
+            json_constraints = [
+                {
+                    "id": "bc_1",
+                    "name": "bc_1",
+                    "enabled": True,
+                    "time_step": "hourly",
+                    "operator": "less",
+                    "comments": "",
+                    "filter_year_by_year": "hourly",
+                    "filter_synthesis": "hourly",
+                    "group": "default",
+                    "terms": [
+                        {
+                            "data": {"area1": "area_a", "area2": "area_b"},
+                            "weight": 1.0,
+                            "offset": 0,
+                            "id": "area_a%area_b",
+                        }
+                    ],
+                }
+            ]
+            mocker.get(constraints_url, json=json_constraints, status_code=200)
+
+            constraints = self.study.read_binding_constraints()
+
+            assert len(constraints) == 1
+            constraint = constraints[0]
+            assert constraint.id == "bc_1"
+            assert constraint.name == "bc_1"
+            assert constraint.properties.enabled is True
+            assert constraint.properties.time_step == BindingConstraintFrequency.HOURLY
+            assert constraint.properties.operator == BindingConstraintOperator.LESS
+            assert constraint.properties.group == "default"
+            assert len(constraint.get_terms()) == 1
+            term = constraint.get_terms()["area_a%area_b"]
+            assert term.data.area1 == "area_a"
+            assert term.data.area2 == "area_b"
+            assert term.weight == 1.0
+            assert term.offset == 0
+
+    def test_read_constraints_fails(self):
+        with requests_mock.Mocker() as mocker:
+            constraints_url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
+            error_message = "Error while reading constraints"
+            mocker.get(constraints_url, json={"description": error_message}, status_code=404)
+            with pytest.raises(ConstraintRetrievalError, match="Error while reading constraints"):
+                self.study.read_binding_constraints()
+
+    def test_output_get_matrix(self):
+        with requests_mock.Mocker() as mocker:
+            output = Output(
+                name="test-output", output_service=OutputApiService(self.api, self.study_id), archived=False
+            )
+            matrix_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=output/{output.name}/economy/mc-all/grid/links"
+            matrix_output = {"columns": ["upstream", "downstream"], "data": [["be", "fr"]]}
+            mocker.get(matrix_url, json=matrix_output)
+
+            matrix = output.get_matrix("mc-all/grid/links")
+            expected_matrix = pd.DataFrame(data=matrix_output["data"], columns=matrix_output["columns"])
+            assert isinstance(matrix, pd.DataFrame)
+            assert matrix.equals(expected_matrix)
+
+    def test_output_aggregate_values(self):
+        with requests_mock.Mocker() as mocker:
+            output = Output(
+                name="test-output", output_service=OutputApiService(self.api, self.study_id), archived=False
+            )
+
+            # aggregate_values_areas_mc_ind
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/mc-ind/{output.name}?query_file=values&frequency=annual&format=csv"
+            aggregate_output = """
+            link,timeId,FLOW LIN. EXP,FLOW LIN. STD
+            be - fr,1,0.000000,0.000000
+            be - fr,2,0.000000,0.000000
+            """
+            mocker.get(aggregate_url, text=aggregate_output)
+            aggregated_matrix = output.aggregate_areas_mc_ind("values", "annual")
+            expected_matrix = pd.read_csv(StringIO(aggregate_output))
+            assert isinstance(aggregated_matrix, pd.DataFrame)
+            assert aggregated_matrix.equals(expected_matrix)
+
+            # aggregate_values_links_mc_ind
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-ind/{output.name}?query_file=values&frequency=annual&format=csv"
+            mocker.get(aggregate_url, text=aggregate_output)
+            aggregated_matrix = output.aggregate_links_mc_ind("values", "annual", columns_names=["fr"])
+            expected_matrix = pd.read_csv(StringIO(aggregate_output))
+            assert isinstance(aggregated_matrix, pd.DataFrame)
+            assert aggregated_matrix.equals(expected_matrix)
+
+            # aggregate_values_areas_mc_all
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
+            mocker.get(aggregate_url, text=aggregate_output)
+            aggregated_matrix = output.aggregate_areas_mc_all("values", "annual")
+            expected_matrix = pd.read_csv(StringIO(aggregate_output))
+            assert isinstance(aggregated_matrix, pd.DataFrame)
+            assert aggregated_matrix.equals(expected_matrix)
+
+            # aggregate_values_links_mc_all
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
+            mocker.get(aggregate_url, text=aggregate_output)
+            aggregated_matrix = output.aggregate_links_mc_all("values", "annual")
+            expected_matrix = pd.read_csv(StringIO(aggregate_output))
+            assert isinstance(aggregated_matrix, pd.DataFrame)
+            assert aggregated_matrix.equals(expected_matrix)
