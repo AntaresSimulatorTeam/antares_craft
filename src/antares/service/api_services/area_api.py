@@ -22,6 +22,7 @@ from antares.exceptions.exceptions import (
     AreaCreationError,
     AreaDeletionError,
     AreaPropertiesUpdateError,
+    AreasRetrievalError,
     AreaUiUpdateError,
     HydroCreationError,
     LoadMatrixDownloadError,
@@ -561,60 +562,64 @@ class AreaApiService(BaseAreaService):
         url_renewable = "clusters/renewable"
         url_st_storage = "storages"
         url_properties_form = "properties/form"
+        try:
+            json_resp = self._wrapper.get(base_api_url + "?" + ui_url).json()
+            for area in json_resp:
+                thermals = dict()
+                renewables = dict()
+                st_storage = dict()
 
-        json_resp = self._wrapper.get(base_api_url + "?" + ui_url).json()
-        for area in json_resp:
-            thermals = dict()
-            renewables = dict()
-            st_storage = dict()
+                area_url = base_api_url + "/" + f"{area}/"
+                json_thermal = self._wrapper.get(area_url + url_thermal).json()
+                json_renewable = self._wrapper.get(area_url + url_renewable).json()
+                json_st_storage = self._wrapper.get(area_url + url_st_storage).json()
+                json_properties = self._wrapper.get(area_url + url_properties_form).json()
 
-            area_url = base_api_url + "/" + f"{area}/"
-            json_thermal = self._wrapper.get(area_url + url_thermal).json()
-            json_renewable = self._wrapper.get(area_url + url_renewable).json()
-            json_st_storage = self._wrapper.get(area_url + url_st_storage).json()
-            json_properties = self._wrapper.get(area_url + url_properties_form).json()
+                ui_response = self.craft_ui(f"{base_api_url}?type=AREA&{ui_url}", area)
 
-            ui_response = self.craft_ui(f"{base_api_url}?type=AREA&{ui_url}", area)
+                for thermal in json_thermal:
+                    id_therm = thermal.pop("id")
+                    name = thermal.pop("name")
 
-            for thermal in json_thermal:
-                id_therm = thermal.pop("id")
-                name = thermal.pop("name")
+                    thermal_props = ThermalClusterProperties(**thermal)
+                    therm_cluster = ThermalCluster(self.thermal_service, area, name, thermal_props)
+                    thermals.update({id_therm: therm_cluster})
 
-                thermal_props = ThermalClusterProperties(**thermal)
-                therm_cluster = ThermalCluster(self.thermal_service, area, name, thermal_props)
-                thermals.update({id_therm: therm_cluster})
+                for renewable in json_renewable:
+                    id_renew = renewable.pop("id")
+                    name = renewable.pop("name")
 
-            for renewable in json_renewable:
-                id_renew = renewable.pop("id")
-                name = renewable.pop("name")
+                    renew_props = RenewableClusterProperties(**renewable)
+                    renew_cluster = RenewableCluster(self.renewable_service, area, name, renew_props)
+                    renewables.update({id_renew: renew_cluster})
 
-                renew_props = RenewableClusterProperties(**renewable)
-                renew_cluster = RenewableCluster(self.renewable_service, area, name, renew_props)
-                renewables.update({id_renew: renew_cluster})
+                for storage in json_st_storage:
+                    id_storage = storage.pop("id")
+                    name = storage.pop("name")
 
-            for storage in json_st_storage:
-                id_storage = storage.pop("id")
-                name = storage.pop("name")
+                    storage_props = STStorageProperties(**storage)
+                    st_storage_cl = STStorage(self.storage_service, area, name, storage_props)
+                    st_storage.update({id_storage: st_storage_cl})
 
-                storage_props = STStorageProperties(**storage)
-                st_storage_cl = STStorage(self.storage_service, area, name, storage_props)
-                st_storage.update({id_storage: st_storage_cl})
+                area_obj = Area(
+                    area,
+                    self,
+                    self.storage_service,
+                    self.thermal_service,
+                    self.renewable_service,
+                    renewables=renewables,
+                    thermals=thermals,
+                    st_storages=st_storage,
+                    properties=json_properties,
+                    ui=ui_response,
+                )
 
-            area_obj = Area(
-                area,
-                self,
-                self.storage_service,
-                self.thermal_service,
-                self.renewable_service,
-                renewables=renewables,
-                thermals=thermals,
-                st_storages=st_storage,
-                properties=json_properties,
-                ui=ui_response,
-            )
+                area_list.append(area_obj)
 
-            area_list.append(area_obj)
+            # sort area list to ensure reproducibility
+            area_list.sort(key=lambda area: area.id)
 
-        # sort area list to ensure reproducibility
-        area_list.sort(key=lambda area: area.id)
+        except APIError as e:
+            raise AreasRetrievalError(self.study_id, e.message) from e
+
         return area_list

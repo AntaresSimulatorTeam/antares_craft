@@ -54,6 +54,12 @@ class AreaDeletionError(Exception):
         super().__init__(self.message)
 
 
+class AreasRetrievalError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not retrieve the areas from the study {study_id} : " + message
+        super().__init__(self.message)
+
+
 class LinkCreationError(Exception):
     def __init__(self, area_from: str, area_to: str, message: str) -> None:
         self.message = f"Could not create the link {area_from} / {area_to}: " + message
