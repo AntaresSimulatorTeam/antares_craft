@@ -26,6 +26,7 @@ from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
     ConstraintRetrievalError,
     LinkCreationError,
+    OutputDeletionError,
     OutputsRetrievalError,
     SimulationFailedError,
     SimulationTimeOutError,
@@ -597,3 +598,53 @@ class TestCreateAPI:
             expected_matrix = pd.read_csv(StringIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)
+
+    def test_delete_output(self):
+        output_name = "test_output"
+        with requests_mock.Mocker() as mocker:
+            outputs_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs"
+            delete_url = f"{outputs_url}/{output_name}"
+            mocker.get(outputs_url, json=[{"name": output_name, "archived": False}], status_code=200)
+            mocker.delete(delete_url, status_code=200)
+
+            self.study.read_outputs()
+            assert output_name in self.study.get_outputs()
+            self.study.delete_output(output_name)
+            assert output_name not in self.study.get_outputs()
+
+            # failing
+            error_message = f"Output {output_name} deletion failed"
+            mocker.delete(delete_url, json={"description": error_message}, status_code=404)
+
+            with pytest.raises(OutputDeletionError, match=error_message):
+                self.study.delete_output(output_name)
+
+    def test_delete_outputs(self):
+        with requests_mock.Mocker() as mocker:
+            outputs_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs"
+            outputs_json = [
+                {"name": "output1", "archived": False},
+                {"name": "output2", "archived": True},
+            ]
+            mocker.get(outputs_url, json=outputs_json, status_code=200)
+
+            delete_url1 = f"https://antares.com/api/v1/studies/{self.study_id}/outputs/output1"
+            delete_url2 = f"https://antares.com/api/v1/studies/{self.study_id}/outputs/output2"
+            mocker.delete(delete_url1, status_code=200)
+            mocker.delete(delete_url2, status_code=200)
+
+            mocker.get(
+                outputs_url,
+                json=[{"name": "output1", "archived": False}, {"name": "output2", "archived": True}],
+                status_code=200,
+            )
+            assert len(self.study.read_outputs()) == 2
+
+            self.study.delete_outputs()
+            assert len(self.study.get_outputs()) == 0
+
+            # failing (nothing to delete)
+            error_message = "Outputs deletion failed"
+            mocker.get(outputs_url, json={"description": error_message}, status_code=404)
+            with pytest.raises(OutputsRetrievalError, match=error_message):
+                self.study.delete_outputs()

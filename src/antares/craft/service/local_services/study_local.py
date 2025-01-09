@@ -58,3 +58,9 @@ class StudyLocalService(BaseStudyService):
 
     def read_outputs(self) -> list[Output]:
         raise NotImplementedError
+
+    def delete_outputs(self) -> None:
+        raise NotImplementedError
+
+    def delete_output(self, output_name: str) -> None:
+        raise NotImplementedError
