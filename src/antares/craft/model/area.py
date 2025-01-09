@@ -17,7 +17,7 @@ electrical demand (load), generation fleet (clusters),
 """
 
 from types import MappingProxyType
-from typing import Any, Dict, Mapping, Optional, Set
+from typing import Any, Mapping, Optional
 
 import pandas as pd
 
@@ -55,14 +55,14 @@ class DefaultAreaProperties(BaseModel, extra="forbid", populate_by_name=True):
     non_dispatch_power: bool = True
     dispatch_hydro_power: bool = True
     other_dispatch_power: bool = True
-    filter_synthesis: Set[FilterOption] = {
+    filter_synthesis: set[FilterOption] = {
         FilterOption.HOURLY,
         FilterOption.DAILY,
         FilterOption.WEEKLY,
         FilterOption.MONTHLY,
         FilterOption.ANNUAL,
     }
-    filter_by_year: Set[FilterOption] = {
+    filter_by_year: set[FilterOption] = {
         FilterOption.HOURLY,
         FilterOption.DAILY,
         FilterOption.WEEKLY,
@@ -125,9 +125,9 @@ class AreaUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=t
     y: Optional[int] = None
     color_rgb: Optional[list[int]] = None
 
-    layer_x: Optional[Dict[int, int]] = None
-    layer_y: Optional[Dict[int, int]] = None
-    layer_color: Optional[Dict[int, str]] = None
+    layer_x: Optional[dict[int, int]] = None
+    layer_y: Optional[dict[int, int]] = None
+    layer_color: Optional[dict[int, str]] = None
 
 
 class AreaUiLocal(BaseModel):
@@ -153,7 +153,7 @@ class AreaUiLocal(BaseModel):
 
     @computed_field  # type: ignore[misc]
     @property
-    def ui(self) -> Dict[str, Optional[int]]:
+    def ui(self) -> dict[str, Optional[int]]:
         return dict(
             x=self._x,
             y=self._y,
@@ -165,17 +165,17 @@ class AreaUiLocal(BaseModel):
 
     @computed_field  # type: ignore[misc]
     @property
-    def layerX(self) -> Dict[int, int]:
+    def layerX(self) -> dict[int, int]:
         return self._layer_x
 
     @computed_field  # type: ignore[misc]
     @property
-    def layerY(self) -> Dict[int, int]:
+    def layerY(self) -> dict[int, int]:
         return self._layer_y
 
     @computed_field  # type: ignore[misc]
     @property
-    def layerColor(self) -> Dict[int, str]:
+    def layerColor(self) -> dict[int, str]:
         return self._layer_color
 
     def yield_area_ui(self) -> AreaUi:
@@ -199,9 +199,9 @@ class Area:
         thermal_service,
         renewable_service,
         *,
-        renewables: Optional[Dict[str, RenewableCluster]] = None,
-        thermals: Optional[Dict[str, ThermalCluster]] = None,
-        st_storages: Optional[Dict[str, STStorage]] = None,
+        renewables: Optional[dict[str, RenewableCluster]] = None,
+        thermals: Optional[dict[str, ThermalCluster]] = None,
+        st_storages: Optional[dict[str, STStorage]] = None,
         hydro: Optional[Hydro] = None,
         properties: Optional[AreaProperties] = None,
         ui: Optional[AreaUi] = None,
@@ -349,7 +349,7 @@ class Area:
     def create_hydro(
         self,
         properties: Optional[HydroProperties] = None,
-        matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
+        matrices: Optional[dict[HydroMatrixName, pd.DataFrame]] = None,
     ) -> Hydro:
         # todo: is it necessary to create allocation or correlation ?
         hydro = self._area_service.create_hydro(self.id, properties, matrices)
