@@ -588,7 +588,7 @@ class TestWebClient:
         study.wait_job_completion(
             study.run_antares_simulation(AntaresSimulationParameters(output_suffix="3")), time_out=60
         )
-        study.read_outputs()
+        assert len(study.read_outputs()) == 3
 
         # delete_output
         study.delete_output(output.name)

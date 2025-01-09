@@ -602,16 +602,18 @@ class TestCreateAPI:
     def test_delete_output(self):
         output_name = "test_output"
         with requests_mock.Mocker() as mocker:
-            delete_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs/{output_name}"
+            outputs_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs"
+            delete_url = f"{outputs_url}/{output_name}"
+            mocker.get(outputs_url, json=[{"name": output_name, "archived": False}], status_code=200)
             mocker.delete(delete_url, status_code=200)
 
-            self.study._outputs[output_name] = Output(name=output_name, archived=False, output_service=Mock())
+            self.study.read_outputs()
             self.study.delete_output(output_name)
 
             assert output_name not in self.study.get_outputs()
 
             # failing
-            error_message = "Output deletion failed"
+            error_message = f"Output {output_name} deletion failed"
             mocker.delete(delete_url, json={"description": error_message}, status_code=404)
 
             with pytest.raises(OutputDeletionError, match=error_message):
@@ -631,16 +633,17 @@ class TestCreateAPI:
             mocker.delete(delete_url1, status_code=200)
             mocker.delete(delete_url2, status_code=200)
 
-            self.study._outputs = {
-                "output1": Output(name="output1", archived=False, output_service=Mock()),
-                "output2": Output(name="output2", archived=True, output_service=Mock()),
-            }
-            self.study.delete_outputs()
+            mocker.get(outputs_url, json=[
+                {"name": "output1", "archived": False},
+                {"name": "output2", "archived": True}
+            ], status_code=200)
+            assert len(self.study.read_outputs()) == 2
 
+            self.study.delete_outputs()
             assert len(self.study.get_outputs()) == 0
 
             # failing
-            error_message = "Output deletion failed"
+            error_message = "Outputs deletion failed"
             mocker.get(outputs_url, json={"description": error_message}, status_code=404)
             with pytest.raises(OutputsRetrievalError, match=error_message):
                 self.study.delete_outputs()
