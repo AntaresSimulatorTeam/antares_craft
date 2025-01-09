@@ -17,7 +17,7 @@ electrical demand (load), generation fleet (clusters),
 """
 
 from types import MappingProxyType
-from typing import Any, Dict, list, Mapping, Optional, Set
+from typing import Any, Dict, Mapping, Optional, Set
 
 import pandas as pd
 
