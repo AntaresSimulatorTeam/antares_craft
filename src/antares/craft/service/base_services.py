@@ -596,6 +596,9 @@ class BaseStudyService(ABC):
         """
         pass
 
+    @abstractmethod
+    def generate_thermal_timeseries(self) -> None:
+        pass
 
 class BaseRenewableService(ABC):
     @abstractmethod

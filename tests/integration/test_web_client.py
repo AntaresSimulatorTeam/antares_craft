@@ -608,3 +608,7 @@ class TestWebClient:
         study.delete_outputs()
         assert len(study.get_outputs()) == 0
         assert len(study.read_outputs()) == 0
+
+
+        # ===== Generate thermal timeseries =====
+        study.generate_thermal_timeseries()
