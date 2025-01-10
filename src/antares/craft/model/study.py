@@ -177,6 +177,7 @@ def read_study_local(study_directory: Path) -> "Study":
         name=study_params["caption"],
         version=study_params["version"],
         service_factory=ServiceFactory(config=local_config, study_name=study_params["caption"]),
+        path=study_directory.parent,
     )
 
 
@@ -188,9 +189,10 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
 
     study_name = json_study.pop("name")
     study_version = str(json_study.pop("version"))
+    path = json_study.pop("folder") if "folder" in json_study else None
 
     study_settings = _returns_study_settings(base_url, study_id, wrapper, False, None)
-    study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings)
+    study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings, path)
 
     study.read_areas()
     study.read_outputs()
