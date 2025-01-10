@@ -627,8 +627,3 @@ class TestWebClient:
         study.delete_outputs()
         assert len(study.get_outputs()) == 0
         assert len(study.read_outputs()) == 0
-
-        # areas = study.get_areas()
-        # for area_id, area in areas.items():
-        #     for cluster in area.get_thermals().values():
-        #         area._thermal_service.update_thermal_properties(cluster, ThermalClusterProperties(nominal_capacity=1000))

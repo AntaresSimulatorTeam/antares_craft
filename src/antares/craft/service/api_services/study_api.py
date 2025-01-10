@@ -24,7 +24,7 @@ from antares.craft.exceptions.exceptions import (
     StudySettingsUpdateError,
     StudyVariantCreationError,
     TaskFailedError,
-    ThermalTimeseriesGenerationError,
+    ThermalTimeseriesGenerationError, TaskTimeOutError,
 )
 from antares.craft.model.binding_constraint import BindingConstraint
 from antares.craft.model.output import Output
@@ -172,5 +172,5 @@ class StudyApiService(BaseStudyService):
             response = self._wrapper.put(url)
             task_id = response.json()
             wait_task_completion(self._base_url, self._wrapper, task_id)
-        except (APIError, TaskFailedError) as e:
+        except (APIError, TaskFailedError, TaskTimeOutError) as e:
             raise ThermalTimeseriesGenerationError(self.study_id, e.message)
