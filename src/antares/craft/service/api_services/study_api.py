@@ -171,6 +171,6 @@ class StudyApiService(BaseStudyService):
         try:
             response = self._wrapper.put(url)
             task_id = response.json()
-            wait_task_completion(self._base_url, self._wrapper, task_id, 5, 172800)
+            wait_task_completion(self._base_url, self._wrapper, task_id)
         except (APIError, TaskFailedError) as e:
             raise ThermalTimeseriesGenerationError(self.study_id, e.message)
