@@ -152,7 +152,10 @@ class TestWebClient:
             thermal_timeseries,
             pd.DataFrame,
         )
-        assert thermal_timeseries.shape == (1, 8760)
+        assert thermal_timeseries.shape == (8760, 1)
+        assert (
+            (thermal_timeseries == 1000).all().all()
+        )  # first all() returns a one column matrix with booleans, second all() checks that they're all true
 
         # test thermal cluster creation with properties
         thermal_name = "gaz_be"
