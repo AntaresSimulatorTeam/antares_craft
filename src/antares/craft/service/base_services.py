@@ -314,6 +314,26 @@ class BaseAreaService(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_maxpower(self) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_reservoir(self) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_inflow_pattern(self) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_credit_modulations(self) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_water_values(self) -> pd.DataFrame:
+        pass
+
 
 class BaseLinkService(ABC):
     @abstractmethod

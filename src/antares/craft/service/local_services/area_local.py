@@ -388,3 +388,18 @@ class AreaLocalService(BaseAreaService):
                     )
                 )
         return areas
+
+    def get_maxpower(self) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_reservoir(self) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_inflow_pattern(self) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_water_values(self) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def get_credit_modulations(self) -> pd.DataFrame:
+        raise NotImplementedError
