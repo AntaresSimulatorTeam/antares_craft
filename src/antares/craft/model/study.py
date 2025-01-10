@@ -429,6 +429,9 @@ class Study:
         self._study_service.delete_output(output_name)
         self._outputs.pop(output_name)
 
+    def move(self, destination_folder: Path) -> None:
+        self._study_service.move_study(destination_folder)
+
     def generate_thermal_timeseries(self) -> None:
         self._study_service.generate_thermal_timeseries()
 

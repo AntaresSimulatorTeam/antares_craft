@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
 import antares.craft.model.study as study
@@ -166,6 +167,9 @@ class StudyApiService(BaseStudyService):
             self._wrapper.delete(url)
         except APIError as e:
             raise OutputDeletionError(self.study_id, output_name, e.message) from e
+
+    def move_study(self, new_parent_folder: Path) -> None:
+        raise NotImplementedError
 
     def generate_thermal_timeseries(self) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/timeseries/generate"
