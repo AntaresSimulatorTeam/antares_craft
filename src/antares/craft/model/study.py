@@ -14,7 +14,7 @@ import logging
 import os
 import time
 
-from pathlib import Path
+from pathlib import Path, PurePath
 from types import MappingProxyType
 from typing import List, Optional, Union
 
@@ -217,9 +217,11 @@ class Study:
         version: str,
         service_factory: ServiceFactory,
         settings: Union[StudySettings, StudySettingsLocal, None] = None,
+        path: Union[str, PurePath, None] = None,
     ):
         self.name = name
         self.version = version
+        self.path = PurePath(path) if path is not None else PurePath(".")
         self._study_service = service_factory.create_study_service()
         self._area_service = service_factory.create_area_service()
         self._link_service = service_factory.create_link_service()
