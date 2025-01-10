@@ -74,11 +74,36 @@ class TestCreateAPI:
             mocker.post(expected_url, json=self.study_id, status_code=200)
             config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
             mocker.get(config_urls, json={}, status_code=200)
+            expected_url_path = f"https://antares.com/api/v1/studies/{self.study_id}"
+            mocker.get(
+                expected_url_path,
+                json={
+                    "id": f"{self.study_id}",
+                    "name": f"{self.study.name}",
+                    "version": f"{self.study.version}",
+                    "created": "2025-01-06 10:05:13.899702",
+                    "updated": "2025-01-06 10:05:13.899703",
+                    "type": "rawstudy",
+                    "owner": {"id": 1, "name": "admin"},
+                    "groups": [],
+                    "public_mode": "NONE",
+                    "workspace": "default",
+                    "managed": True,
+                    "archived": False,
+                    "horizon": None,
+                    "scenario": None,
+                    "status": None,
+                    "doc": None,
+                    "folder": None,
+                    "tags": [],
+                },
+                status_code=200,
+            )
             # When
             study = create_study_api("TestStudy", "880", self.api)
 
             # Then
-            assert len(mocker.request_history) == 8
+            assert len(mocker.request_history) == 9
             assert mocker.request_history[0].url == expected_url
             assert isinstance(study, Study)
 

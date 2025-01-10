@@ -73,10 +73,13 @@ def create_study_api(
         response = wrapper.post(url)
         study_id = response.json()
         study_settings = _returns_study_settings(base_url, study_id, wrapper, False, settings)
+        url = f"{base_url}/studies/{study_id}"
+        json_study = wrapper.get(url).json()
+        path = json_study.pop("folder") if "folder" in json_study else None
 
     except APIError as e:
         raise StudyCreationError(study_name, e.message) from e
-    return Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
+    return Study(study_name, version, ServiceFactory(api_config, study_id), study_settings, path)
 
 
 def create_study_local(
@@ -143,6 +146,7 @@ InfoTip = Antares Study {version}: {study_name}
         version=version,
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
         settings=local_settings,
+        path=parent_directory,
     )
 
 
