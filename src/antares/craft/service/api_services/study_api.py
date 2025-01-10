@@ -22,6 +22,7 @@ from antares.craft.exceptions.exceptions import (
     OutputDeletionError,
     OutputsRetrievalError,
     StudyDeletionError,
+    StudyMoveError,
     StudySettingsUpdateError,
     StudyVariantCreationError,
     TaskFailedError,
@@ -169,7 +170,11 @@ class StudyApiService(BaseStudyService):
             raise OutputDeletionError(self.study_id, output_name, e.message) from e
 
     def move_study(self, new_parent_folder: Path) -> None:
-        raise NotImplementedError
+        url = f"{self._base_url}/studies/{self.study_id}/move?folder_dest={new_parent_folder}"
+        try:
+            self._wrapper.put(url)
+        except APIError as e:
+            raise StudyMoveError(self.study_id, e.message) from e
 
     def generate_thermal_timeseries(self) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/timeseries/generate"

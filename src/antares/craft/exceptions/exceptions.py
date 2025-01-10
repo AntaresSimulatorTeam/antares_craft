@@ -250,6 +250,12 @@ class StudyVariantCreationError(Exception):
         super().__init__(self.message)
 
 
+class StudyMoveError(Exception):
+    def __init__(self, new_folder_name: str, message: str) -> None:
+        self.message = f"Could not move the study to folder {new_folder_name}: " + message
+        super().__init__(self.message)
+
+
 class ThermalMatrixDownloadError(Exception):
     def __init__(self, area_name: str, cluster_name: str, matrix_name: str, message: str) -> None:
         self.message = (
