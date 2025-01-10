@@ -22,7 +22,6 @@ from antares.craft.exceptions.exceptions import (
     SimulationFailedError,
     SimulationTimeOutError,
     TaskFailedError,
-    TaskTimeOutError,
 )
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
 from antares.craft.service.api_services.utils import wait_task_completion

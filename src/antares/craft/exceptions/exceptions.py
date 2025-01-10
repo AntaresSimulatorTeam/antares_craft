@@ -361,6 +361,7 @@ class AggregateCreationError(Exception):
         )
         super().__init__(self.message)
 
+
 class ThermalTimeseriesGenerationError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
         self.message = f"Could not generate thermal timeseries for study {study_id}: " + message

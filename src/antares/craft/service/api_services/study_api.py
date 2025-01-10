@@ -22,7 +22,9 @@ from antares.craft.exceptions.exceptions import (
     OutputsRetrievalError,
     StudyDeletionError,
     StudySettingsUpdateError,
-    StudyVariantCreationError, ThermalTimeseriesGenerationError, TaskFailedError,
+    StudyVariantCreationError,
+    TaskFailedError,
+    ThermalTimeseriesGenerationError,
 )
 from antares.craft.model.binding_constraint import BindingConstraint
 from antares.craft.model.output import Output

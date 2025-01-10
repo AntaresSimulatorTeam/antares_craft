@@ -14,7 +14,7 @@ import time
 import pandas as pd
 
 from antares.craft.api_conf.request_wrapper import RequestWrapper
-from antares.craft.exceptions.exceptions import TaskTimeOutError, TaskFailedError
+from antares.craft.exceptions.exceptions import TaskFailedError, TaskTimeOutError
 
 
 def upload_series(base_url: str, study_id: str, wrapper: RequestWrapper, series: pd.DataFrame, path: str) -> None:
@@ -34,7 +34,10 @@ def get_matrix(base_url: str, study_id: str, wrapper: RequestWrapper, series_pat
         dataframe = pd.DataFrame(data=json_df["data"], columns=json_df["columns"])
     return dataframe
 
-def wait_task_completion(base_url: str, wrapper: RequestWrapper, task_id: str, repeat_interval: int, time_out: int) -> None:
+
+def wait_task_completion(
+    base_url: str, wrapper: RequestWrapper, task_id: str, repeat_interval: int, time_out: int
+) -> None:
     url = f"{base_url}/tasks/{task_id}"
 
     start_time = time.time()

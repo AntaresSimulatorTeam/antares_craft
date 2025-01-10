@@ -600,6 +600,7 @@ class BaseStudyService(ABC):
     def generate_thermal_timeseries(self) -> None:
         pass
 
+
 class BaseRenewableService(ABC):
     @abstractmethod
     def update_renewable_properties(

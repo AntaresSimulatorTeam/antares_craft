@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
+from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     AreaDeletionError,
     BindingConstraintCreationError,
@@ -40,6 +41,7 @@ from antares.craft.model.simulation import AntaresSimulationParameters, Job, Job
 from antares.craft.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
 from antares.craft.model.study import create_study_api, create_variant_api, read_study_api
 from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
+from antares.craft.service.api_services.utils import get_matrix
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
@@ -132,11 +134,25 @@ class TestWebClient:
 
         # test thermal cluster creation with default values
         thermal_name = "Cluster_test %?"
-        thermal_fr = area_fr.create_thermal_cluster(thermal_name)
+        thermal_fr = area_fr.create_thermal_cluster(thermal_name, ThermalClusterProperties(nominal_capacity=1000))
         assert thermal_fr.name == thermal_name.lower()
         # AntaresWeb has id issues for thermal/renewable clusters,
         # so we force the name in lowercase to avoid issues.
         assert thermal_fr.id == "cluster_test"
+
+        # ===== Test generate thermal timeseries =====
+        study.generate_thermal_timeseries()
+        thermal_timeseries = get_matrix(
+            f"{api_config.get_host()}/api/v1",
+            study.service.study_id,
+            RequestWrapper(api_config.set_up_api_conf()),
+            "input/thermal/series/fr/cluster_test/series",
+        )
+        assert isinstance(
+            thermal_timeseries,
+            pd.DataFrame,
+        )
+        assert thermal_timeseries.shape == (1, 8760)
 
         # test thermal cluster creation with properties
         thermal_name = "gaz_be"
@@ -609,6 +625,7 @@ class TestWebClient:
         assert len(study.get_outputs()) == 0
         assert len(study.read_outputs()) == 0
 
-
-        # ===== Generate thermal timeseries =====
-        study.generate_thermal_timeseries()
+        # areas = study.get_areas()
+        # for area_id, area in areas.items():
+        #     for cluster in area.get_thermals().values():
+        #         area._thermal_service.update_thermal_properties(cluster, ThermalClusterProperties(nominal_capacity=1000))
