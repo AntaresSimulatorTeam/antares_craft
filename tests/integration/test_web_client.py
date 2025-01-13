@@ -142,12 +142,7 @@ class TestWebClient:
 
         # ===== Test generate thermal timeseries =====
         study.generate_thermal_timeseries()
-        thermal_timeseries = get_matrix(
-            f"{api_config.get_host()}/api/v1",
-            study.service.study_id,
-            RequestWrapper(api_config.set_up_api_conf()),
-            "input/thermal/series/fr/cluster_test/series",
-        )
+        thermal_timeseries = thermal_fr.get_series_matrix()
         assert isinstance(
             thermal_timeseries,
             pd.DataFrame,
