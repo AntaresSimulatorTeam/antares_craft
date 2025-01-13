@@ -15,7 +15,6 @@ import numpy as np
 import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
-from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     AreaDeletionError,
     BindingConstraintCreationError,
@@ -41,7 +40,6 @@ from antares.craft.model.simulation import AntaresSimulationParameters, Job, Job
 from antares.craft.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
 from antares.craft.model.study import create_study_api, create_variant_api, read_study_api
 from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
-from antares.craft.service.api_services.utils import get_matrix
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
