@@ -173,7 +173,8 @@ class StudyApiService(BaseStudyService):
         url = f"{self._base_url}/studies/{self.study_id}/move?folder_dest={new_parent_path}"
         try:
             self._wrapper.put(url)
-            return PurePath(new_parent_path) / f"{self.study_id}"
+            json_study = self._wrapper.get(f"{self._base_url}/studies/{self.study_id}").json()
+            return PurePath(json_study.pop("folder"))
         except APIError as e:
             raise StudyMoveError(self.study_id, new_parent_path.as_posix(), e.message) from e
 

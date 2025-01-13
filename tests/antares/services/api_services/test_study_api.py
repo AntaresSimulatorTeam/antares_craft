@@ -667,7 +667,9 @@ class TestCreateAPI:
         new_path = Path("/new/path/test")
         with requests_mock.Mocker() as mocker:
             move_url = f"https://antares.com/api/v1/studies/{self.study_id}/move?folder_dest={new_path}"
+            study_url = f"https://antares.com/api/v1/studies/{self.study_id}"
             mocker.put(move_url, status_code=200)
+            mocker.get(study_url, json={"folder": f"/new/path/test/{self.study_id}"}, status_code=200)
 
             assert self.study.path == PurePath(".")
             self.study.move(new_path)

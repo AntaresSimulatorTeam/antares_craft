@@ -82,7 +82,7 @@ def create_study_api(
             study.move(parent_path)
             url = f"{base_url}/studies/{study_id}"
             json_study = wrapper.get(url).json()
-            study.path = json_study.pop("folder")
+            study.path = PurePath(json_study.pop("folder"))
         return study
     except (APIError, StudyMoveError) as e:
         raise StudyCreationError(study_name, e.message) from e
@@ -196,9 +196,12 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     study_name = json_study.pop("name")
     study_version = str(json_study.pop("version"))
     path = json_study.pop("folder")
+    pure_path = PurePath(path) if path else PurePath(".")
 
     study_settings = _returns_study_settings(base_url, study_id, wrapper, False, None)
-    study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings, path)
+    study = Study(
+        study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings, pure_path
+    )
 
     study.read_areas()
     study.read_outputs()
