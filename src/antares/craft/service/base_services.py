@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from abc import ABC, abstractmethod
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import TYPE_CHECKING, Dict, List, Optional
 
 import pandas as pd
@@ -568,9 +568,11 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
-    def move_study(self, new_parent_folder: Path) -> None:
+    def move_study(self, new_parent_path: Path) -> PurePath:
         """
-        Moves the study to the new parent folder
+        Moves the study to the new parent path
+
+        Returns: the new path
         """
         pass
 

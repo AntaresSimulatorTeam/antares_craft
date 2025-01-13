@@ -83,21 +83,7 @@ class TestCreateAPI:
                     "id": f"{self.study_id}",
                     "name": f"{self.study.name}",
                     "version": f"{self.study.version}",
-                    "created": "2025-01-06 10:05:13.899702",
-                    "updated": "2025-01-06 10:05:13.899703",
-                    "type": "rawstudy",
-                    "owner": {"id": 1, "name": "admin"},
-                    "groups": [],
-                    "public_mode": "NONE",
-                    "workspace": "default",
-                    "managed": True,
-                    "archived": False,
-                    "horizon": None,
-                    "scenario": None,
-                    "status": None,
-                    "doc": None,
                     "folder": None,
-                    "tags": [],
                 },
                 status_code=200,
             )
@@ -105,7 +91,7 @@ class TestCreateAPI:
             study = create_study_api("TestStudy", "880", self.api)
 
             # Then
-            assert len(mocker.request_history) == 9
+            assert len(mocker.request_history) == 8
             assert mocker.request_history[0].url == expected_url
             assert isinstance(study, Study)
 

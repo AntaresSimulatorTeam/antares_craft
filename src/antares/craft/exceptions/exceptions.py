@@ -251,8 +251,8 @@ class StudyVariantCreationError(Exception):
 
 
 class StudyMoveError(Exception):
-    def __init__(self, new_folder_name: str, message: str) -> None:
-        self.message = f"Could not move the study to folder {new_folder_name}: " + message
+    def __init__(self, study_id: str, new_folder_name: str, message: str) -> None:
+        self.message = f"Could not move the study {study_id} to folder {new_folder_name}: " + message
         super().__init__(self.message)
 
 
