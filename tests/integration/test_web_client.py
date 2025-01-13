@@ -11,6 +11,8 @@
 # This file is part of the Antares project.
 import pytest
 
+from pathlib import Path, PurePath
+
 import numpy as np
 import pandas as pd
 
@@ -620,3 +622,14 @@ class TestWebClient:
         study.delete_outputs()
         assert len(study.get_outputs()) == 0
         assert len(study.read_outputs()) == 0
+
+        # ===== Test study moving =====
+
+        new_path = Path("/new/path/test")
+        assert study.path == PurePath(".")
+        study.move(new_path)
+        assert study.path == PurePath(new_path) / f"{study.service.study_id}"
+
+        moved_study = read_study_api(api_config, study.service.study_id)
+        assert moved_study.path == study.path
+        assert moved_study.name == study.name

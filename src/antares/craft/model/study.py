@@ -431,6 +431,7 @@ class Study:
 
     def move(self, destination_folder: Path) -> None:
         self._study_service.move_study(destination_folder)
+        self.path = PurePath(destination_folder) / f"{self.service.study_id}"
 
 
     def generate_thermal_timeseries(self) -> None:
