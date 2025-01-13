@@ -214,6 +214,7 @@ class TestCreateAPI:
             "id": "22c52f44-4c2a-407b-862b-490887f93dd8",
             "name": "test_read_areas",
             "version": "880",
+            "folder": None,
         }
 
         json_ui = {
@@ -276,7 +277,11 @@ class TestCreateAPI:
             mocker.post(url, json=variant_id, status_code=201)
 
             variant_url = f"{base_url}/studies/{variant_id}"
-            mocker.get(variant_url, json={"id": variant_id, "name": variant_name, "version": "880"}, status_code=200)
+            mocker.get(
+                variant_url,
+                json={"id": variant_id, "name": variant_name, "version": "880", "folder": None},
+                status_code=200,
+            )
 
             config_urls = re.compile(f"{base_url}/studies/{variant_id}/config/.*")
             mocker.get(config_urls, json={}, status_code=200)
