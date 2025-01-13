@@ -91,7 +91,7 @@ def create_study_api(
 def create_study_local(
     study_name: str,
     version: str,
-    study_directory: str,
+    parent_directory: str,
     settings: StudySettingsLocal = StudySettingsLocal(),
 ) -> "Study":
     """
@@ -100,13 +100,13 @@ def create_study_local(
     Args:
         study_name: antares study name to be created
         version: antares version for study
-        study_directory: Local directory to store the study in.
+        parent_directory: Local directory to store the study in.
         settings: study settings. If not provided, AntaresCraft will use its default values.
 
     Raises:
         FileExistsError if the study already exists in the given location
     """
-    local_config = LocalConfiguration(Path(study_directory), study_name)
+    local_config = LocalConfiguration(Path(parent_directory), study_name)
 
     study_directory = local_config.local_path / study_name
 
@@ -183,7 +183,7 @@ def read_study_local(study_directory: Path) -> "Study":
         name=study_params["caption"],
         version=study_params["version"],
         service_factory=ServiceFactory(config=local_config, study_name=study_params["caption"]),
-        path=study_directory.parent,
+        path=study_directory,
     )
 
 
