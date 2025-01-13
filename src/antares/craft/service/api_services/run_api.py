@@ -22,9 +22,9 @@ from antares.craft.exceptions.exceptions import (
     SimulationFailedError,
     SimulationTimeOutError,
     TaskFailedError,
-    TaskTimeOutError,
 )
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
+from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseRunService
 
 
@@ -94,7 +94,7 @@ class RunApiService(BaseRunService):
             response = self._wrapper.post(url, json=payload)
             tasks = response.json()
             task_id = self._get_unarchiving_task_id(job, tasks)
-            self._wait_task_completion(task_id, repeat_interval, time_out)
+            wait_task_completion(self._base_url, self._wrapper, task_id, repeat_interval, time_out)
         except (APIError, TaskFailedError) as e:
             raise AntaresSimulationUnzipError(self.study_id, job.job_id, e.message) from e
 
@@ -105,19 +105,3 @@ class RunApiService(BaseRunService):
             if output_id == job.output_id:
                 return task["id"]
         raise AntaresSimulationUnzipError(self.study_id, job.job_id, "Could not find task for unarchiving job")
-
-    def _wait_task_completion(self, task_id: str, repeat_interval: int, time_out: int) -> None:
-        url = f"{self._base_url}/tasks/{task_id}"
-
-        start_time = time.time()
-        task_result = None
-        while not task_result:
-            if time.time() - start_time > time_out:
-                raise TaskTimeOutError(task_id, time_out)
-            response = self._wrapper.get(url)
-            task = response.json()
-            task_result = task["result"]
-            time.sleep(repeat_interval)
-
-        if not task_result["success"]:
-            raise TaskFailedError(task_id)

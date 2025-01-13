@@ -59,7 +59,7 @@ class ThermalApiService(BaseThermalService):
                 / "thermal"
                 / keyword
                 / f"{thermal_cluster.area_id}"
-                / f"{thermal_cluster.name.lower()}"
+                / f"{thermal_cluster.id.lower()}"
                 / ts_name.value
             )
             return get_matrix(self._base_url, self.study_id, self._wrapper, path.as_posix())

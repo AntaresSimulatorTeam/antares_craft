@@ -64,3 +64,6 @@ class StudyLocalService(BaseStudyService):
 
     def delete_output(self, output_name: str) -> None:
         raise NotImplementedError
+
+    def generate_thermal_timeseries(self) -> None:
+        raise NotImplementedError

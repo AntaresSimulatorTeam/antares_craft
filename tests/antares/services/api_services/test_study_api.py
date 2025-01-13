@@ -33,6 +33,7 @@ from antares.craft.exceptions.exceptions import (
     StudyCreationError,
     StudySettingsUpdateError,
     StudyVariantCreationError,
+    ThermalTimeseriesGenerationError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -648,3 +649,24 @@ class TestCreateAPI:
             mocker.get(outputs_url, json={"description": error_message}, status_code=404)
             with pytest.raises(OutputsRetrievalError, match=error_message):
                 self.study.delete_outputs()
+
+    def test_generate_thermal_timeseries_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/generate"
+            task_id = "task-5678"
+            mocker.put(url, json=task_id, status_code=200)
+
+            task_url = f"https://antares.com/api/v1/tasks/{task_id}"
+            mocker.get(task_url, json={"result": {"success": True}}, status_code=200)
+
+            with patch("antares.craft.service.api_services.utils.wait_task_completion", return_value=None):
+                self.study.generate_thermal_timeseries()
+
+    def test_generate_thermal_timeseries_failure(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/generate"
+            error_message = f"Thermal timeseries generation failed for study {self.study_id}"
+            mocker.put(url, json={"description": error_message}, status_code=404)
+
+            with pytest.raises(ThermalTimeseriesGenerationError, match=error_message):
+                self.study.generate_thermal_timeseries()

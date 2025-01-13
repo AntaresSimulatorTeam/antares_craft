@@ -23,6 +23,9 @@ from antares.craft.exceptions.exceptions import (
     StudyDeletionError,
     StudySettingsUpdateError,
     StudyVariantCreationError,
+    TaskFailedError,
+    TaskTimeOutError,
+    ThermalTimeseriesGenerationError,
 )
 from antares.craft.model.binding_constraint import BindingConstraint
 from antares.craft.model.output import Output
@@ -34,6 +37,7 @@ from antares.craft.model.settings.playlist_parameters import PlaylistData, Playl
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.model.settings.time_series import TimeSeriesParameters
+from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 
 if TYPE_CHECKING:
@@ -162,3 +166,12 @@ class StudyApiService(BaseStudyService):
             self._wrapper.delete(url)
         except APIError as e:
             raise OutputDeletionError(self.study_id, output_name, e.message) from e
+
+    def generate_thermal_timeseries(self) -> None:
+        url = f"{self._base_url}/studies/{self.study_id}/timeseries/generate"
+        try:
+            response = self._wrapper.put(url)
+            task_id = response.json()
+            wait_task_completion(self._base_url, self._wrapper, task_id)
+        except (APIError, TaskFailedError, TaskTimeOutError) as e:
+            raise ThermalTimeseriesGenerationError(self.study_id, e.message)
