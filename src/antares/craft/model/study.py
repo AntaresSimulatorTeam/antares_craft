@@ -50,7 +50,11 @@ _study_path if stored in a disk
 
 
 def create_study_api(
-    study_name: str, version: str, api_config: APIconf, settings: Optional[StudySettings] = None, parent_path: Optional[Path] = None
+    study_name: str,
+    version: str,
+    api_config: APIconf,
+    settings: Optional[StudySettings] = None,
+    parent_path: Optional[Path] = None,
 ) -> "Study":
     """
     Args:
@@ -225,7 +229,7 @@ class Study:
         version: str,
         service_factory: ServiceFactory,
         settings: Union[StudySettings, StudySettingsLocal, None] = None,
-        path: PurePath = PurePath(".")
+        path: PurePath = PurePath("."),
     ):
         self.name = name
         self.version = version
