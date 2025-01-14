@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from pathlib import Path, PurePath
 from typing import TYPE_CHECKING, Optional
 
 import antares.craft.model.study as study
@@ -21,6 +22,7 @@ from antares.craft.exceptions.exceptions import (
     OutputDeletionError,
     OutputsRetrievalError,
     StudyDeletionError,
+    StudyMoveError,
     StudySettingsUpdateError,
     StudyVariantCreationError,
     TaskFailedError,
@@ -166,6 +168,16 @@ class StudyApiService(BaseStudyService):
             self._wrapper.delete(url)
         except APIError as e:
             raise OutputDeletionError(self.study_id, output_name, e.message) from e
+
+    def move_study(self, new_parent_path: Path) -> PurePath:
+        url = f"{self._base_url}/studies/{self.study_id}/move?folder_dest={new_parent_path}"
+        try:
+            self._wrapper.put(url)
+            json_study = self._wrapper.get(f"{self._base_url}/studies/{self.study_id}").json()
+            folder = json_study.pop("folder")
+            return PurePath(folder) if folder else PurePath(".")
+        except APIError as e:
+            raise StudyMoveError(self.study_id, new_parent_path.as_posix(), e.message) from e
 
     def generate_thermal_timeseries(self) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/timeseries/generate"

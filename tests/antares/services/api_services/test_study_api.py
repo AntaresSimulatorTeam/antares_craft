@@ -16,6 +16,7 @@ import re
 
 from io import StringIO
 from json import dumps
+from pathlib import Path, PurePath
 from unittest.mock import Mock, patch
 
 import pandas as pd
@@ -31,6 +32,7 @@ from antares.craft.exceptions.exceptions import (
     SimulationFailedError,
     SimulationTimeOutError,
     StudyCreationError,
+    StudyMoveError,
     StudySettingsUpdateError,
     StudyVariantCreationError,
     ThermalTimeseriesGenerationError,
@@ -74,6 +76,17 @@ class TestCreateAPI:
             mocker.post(expected_url, json=self.study_id, status_code=200)
             config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
             mocker.get(config_urls, json={}, status_code=200)
+            expected_url_path = f"https://antares.com/api/v1/studies/{self.study_id}"
+            mocker.get(
+                expected_url_path,
+                json={
+                    "id": f"{self.study_id}",
+                    "name": f"{self.study.name}",
+                    "version": f"{self.study.version}",
+                    "folder": None,
+                },
+                status_code=200,
+            )
             # When
             study = create_study_api("TestStudy", "880", self.api)
 
@@ -201,6 +214,7 @@ class TestCreateAPI:
             "id": "22c52f44-4c2a-407b-862b-490887f93dd8",
             "name": "test_read_areas",
             "version": "880",
+            "folder": None,
         }
 
         json_ui = {
@@ -263,7 +277,11 @@ class TestCreateAPI:
             mocker.post(url, json=variant_id, status_code=201)
 
             variant_url = f"{base_url}/studies/{variant_id}"
-            mocker.get(variant_url, json={"id": variant_id, "name": variant_name, "version": "880"}, status_code=200)
+            mocker.get(
+                variant_url,
+                json={"id": variant_id, "name": variant_name, "version": "880", "folder": None},
+                status_code=200,
+            )
 
             config_urls = re.compile(f"{base_url}/studies/{variant_id}/config/.*")
             mocker.get(config_urls, json={}, status_code=200)
@@ -649,6 +667,24 @@ class TestCreateAPI:
             mocker.get(outputs_url, json={"description": error_message}, status_code=404)
             with pytest.raises(OutputsRetrievalError, match=error_message):
                 self.study.delete_outputs()
+
+    def test_move_study(self):
+        new_path = Path("/new/path/test")
+        with requests_mock.Mocker() as mocker:
+            move_url = f"https://antares.com/api/v1/studies/{self.study_id}/move?folder_dest={new_path}"
+            study_url = f"https://antares.com/api/v1/studies/{self.study_id}"
+            mocker.put(move_url, status_code=200)
+            mocker.get(study_url, json={"folder": f"/new/path/test/{self.study_id}"}, status_code=200)
+
+            assert self.study.path == PurePath(".")
+            self.study.move(new_path)
+            assert self.study.path == PurePath(new_path) / f"{self.study_id}"
+
+            # Failing
+            error_message = "Study move failed"
+            mocker.put(move_url, json={"description": error_message}, status_code=404)
+            with pytest.raises(StudyMoveError, match=error_message):
+                self.study.move(new_path)
 
     def test_generate_thermal_timeseries_success(self):
         with requests_mock.Mocker() as mocker:
