@@ -82,7 +82,8 @@ def create_study_api(
             study.move(parent_path)
             url = f"{base_url}/studies/{study_id}"
             json_study = wrapper.get(url).json()
-            study.path = PurePath(json_study.pop("folder"))
+            folder = json_study.pop("folder")
+            study.path = PurePath(folder) if folder else PurePath(".")
         return study
     except (APIError, StudyMoveError) as e:
         raise StudyCreationError(study_name, e.message) from e
