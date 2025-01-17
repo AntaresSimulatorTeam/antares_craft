@@ -356,9 +356,7 @@ class AreaLocalService(BaseAreaService):
                     spread_spilled_energy_cost=optimization_dict["nodal optimization"].get(
                         "spread-spilled-energy-cost"
                     ),
-                    energy_cost_unsupplied=thermal_area_dict["unserverdenergycost"].get(
-                        element.name
-                    ),
+                    energy_cost_unsupplied=thermal_area_dict["unserverdenergycost"].get(element.name),
                     energy_cost_spilled=thermal_area_dict["spilledenergycost"].get(element.name),
                     filter_synthesis=set(optimization_dict["filtering"].get("filter-synthesis").split(", ")),
                     filter_by_year=set(optimization_dict["filtering"].get("filter-year-by-year").split(", ")),
