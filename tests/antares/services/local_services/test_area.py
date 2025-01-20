@@ -1157,7 +1157,6 @@ lu = 10.000000
         area_fr = local_study_object.get_areas()["fr"]
         assert area_fr.properties.energy_cost_unsupplied == 10000
         assert area_fr.properties.energy_cost_spilled == 10
-        
 
 
 def _write_file(_file_path, _time_series) -> None:
