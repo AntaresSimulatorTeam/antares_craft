@@ -31,6 +31,7 @@ from antares.craft.model.binding_constraint import (
     ConstraintTerm,
     LinkData,
 )
+from antares.craft.model.hydro import HydroMatrixName, HydroProperties
 from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
@@ -491,6 +492,28 @@ class TestWebClient:
         empty_settings = StudySettings()
         new_study.update_settings(empty_settings)
         assert old_settings == new_study.get_settings()
+
+        series = pd.DataFrame(data=np.ones((365,1)))
+        matrices_hydro = {
+            HydroMatrixName.COMMON_WATER_VALUES: series,
+            HydroMatrixName.COMMON_RESERVOIR: series,
+            HydroMatrixName.COMMON_MAX_POWER: series,
+            HydroMatrixName.COMMON_INFLOW_PATTERN: series,
+            HydroMatrixName.COMMON_CREDIT_MODULATIONS: series,
+        }
+
+        # test each hydro matrices returns the good values
+        actual_reservoir_matrix = area_fr.get_reservoir()
+        actual_maxpower_matrix = area_fr.get_maxpower()
+        actual_inflow_matrix = area_fr.get_inflow_pattern()
+        actual_water_matrix = area_fr.get_water_values()
+        actual_credit_matrix = area_fr.get_credit_modulations()
+
+        actual_reservoir_matrix.equals(series)
+        actual_maxpower_matrix.equals(series)
+        actual_inflow_matrix.equals(series)
+        actual_water_matrix.equals(series)
+        actual_credit_matrix.equals(series)
 
         # tests variant creation
         variant_name = "variant_test"

@@ -606,17 +606,32 @@ class AreaApiService(BaseAreaService):
         area_list.sort(key=lambda area: area.id)
         return area_list
 
-    def get_maxpower(self) -> pd.DataFrame:
-        raise NotImplementedError
+    def get_maxpower(self, area_id: str) -> pd.DataFrame:
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/hydro/common/capacity/maxpower_{area_id}")
+        except APIError as e:
+            raise MatrixDownloadError(area_id, "maxpower", e.message) from e
 
-    def get_reservoir(self) -> pd.DataFrame:
-        raise NotImplementedError
+    def get_reservoir(self, area_id: str) -> pd.DataFrame:
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/hydro/common/capacity/reservoir_{area_id}")
+        except APIError as e:
+            raise MatrixDownloadError(area_id, "reservoir", e.message) from e
 
-    def get_inflow_pattern(self) -> pd.DataFrame:
-        raise NotImplementedError
+    def get_inflow_pattern(self, area_id: str) -> pd.DataFrame:
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/hydro/common/capacity/inflowPattern_{area_id}")
+        except APIError as e:
+            raise MatrixDownloadError(area_id, "inflow_pattern", e.message) from e
 
-    def get_water_values(self) -> pd.DataFrame:
-        raise NotImplementedError
+    def get_water_values(self, area_id: str) -> pd.DataFrame:
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/hydro/common/capacity/waterValues_{area_id}")
+        except APIError as e:
+            raise MatrixDownloadError(area_id, "water_values", e.message) from e
 
-    def get_credit_modulations(self) -> pd.DataFrame:
-        raise NotImplementedError
+    def get_credit_modulations(self, area_id: str) -> pd.DataFrame:
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/hydro/common/capacity/creditmodulations_{area_id}")
+        except APIError as e:
+            raise MatrixDownloadError(area_id, "credit_modulations", e.message) from e

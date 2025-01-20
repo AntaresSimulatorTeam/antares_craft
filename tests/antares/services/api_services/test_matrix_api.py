@@ -230,3 +230,109 @@ class TestMatrixAPI:
                 match=f"Error uploading misc-gen matrix for area {self.area.id}: {self.antares_web_description_msg}",
             ):
                 self.area.create_misc_gen(self.matrix)
+
+    # =======================
+    #  MAXPOWER
+    # =======================
+
+    def test_get_maxpower_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/common/capacity/maxpower_{self.area.id}"
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            matrix_maxpower=self.area.get_maxpower()
+            assert matrix_maxpower.equals(self.matrix)
+
+    def test_get_maxpower_fail(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/common/capacity/maxpower_{self.area.id}"
+            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                MatrixDownloadError,
+                match=f"Error downloading maxpower matrix for area {self.area.id}: {self.antares_web_description_msg}"
+            ):
+                self.area.get_maxpower()
+
+    # =======================
+    #  RESERVOIR
+    # =======================
+
+    def test_get_reservoir_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/common/capacity/reservoir_{self.area.id}"
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            reservoir_matrix = self.area.get_reservoir()
+            assert reservoir_matrix.equals(self.matrix)
+
+    def test_get_reservoir_fail(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/common/capacity/reservoir_{self.area.id}"
+            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                MatrixDownloadError,
+                match=f"Error downloading reservoir matrix for area {self.area.id}: {self.antares_web_description_msg}"
+            ):
+                self.area.get_reservoir()
+
+
+    # =======================
+    #  INFLOW PATTERNS
+    # =======================
+
+    def test_get_inflow_pattern_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/common/capacity/inflowPattern_{self.area.id}"
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            inflow_matrix = self.area.get_inflow_pattern()
+            assert inflow_matrix.equals(self.matrix)
+
+    def test_get_inflow_pattern_fail(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/common/capacity/inflowPattern_{self.area.id}"
+            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                MatrixDownloadError,
+                match=f"Error downloading inflow_pattern matrix for area {self.area.id}: {self.antares_web_description_msg}"
+            ):
+                self.area.get_inflow_pattern()
+
+    # =======================
+    #  WATER VALUES
+    # =======================
+
+    def test_get_water_values_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/common/capacity/waterValues_{self.area.id}"
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            water_values_matrix = self.area.get_water_values()
+            assert water_values_matrix.equals(self.matrix)
+
+    def test_get_water_values_fail(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/common/capacity/waterValues_{self.area.id}"
+            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                MatrixDownloadError,
+                match=f"Error downloading water_values matrix for area {self.area.id}: {self.antares_web_description_msg}"
+            ):
+                self.area.get_water_values()
+
+    # =======================
+    #  CREDIT MODULATIONS
+    # =======================
+
+    def test_get_credit_modulations_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/common/capacity/creditmodulations_{self.area.id}"
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            credit_matrix = self.area.get_credit_modulations()
+            assert credit_matrix.equals(self.matrix)
+
+    def test_get_credit_modulations_fail(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/common/capacity/creditmodulations_{self.area.id}"
+            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                MatrixDownloadError,
+                match=f"Error downloading credit_modulations matrix for area {self.area.id}: {self.antares_web_description_msg}"
+            ):
+                self.area.get_credit_modulations()
