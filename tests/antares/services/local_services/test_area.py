@@ -1111,15 +1111,15 @@ class TestReadArea:
     # Modify configuration file of an existing file
     def _modify_config(self, file_path: Path, section: str, option: str, value: float):
         config = ConfigParser()
-        
+
         config.read(file_path)
-        
+
         if not config.has_section(section):
             config.add_section(section)
-        
+
         config.set(section, option, str(value))
-        
-        with open(file_path, 'w', encoding ="utf-8") as configfile:
+
+        with open(file_path, "w", encoding="utf-8") as configfile:
             config.write(configfile)
 
     def test_read_areas_local(self, local_study_w_areas):
@@ -1150,6 +1150,7 @@ class TestReadArea:
                 assert area.properties.energy_cost_spilled == 1.8
                 assert area.properties.energy_cost_unsupplied == 1.2
                 break
+
 
 def _write_file(_file_path, _time_series) -> None:
     _file_path.parent.mkdir(parents=True, exist_ok=True)
