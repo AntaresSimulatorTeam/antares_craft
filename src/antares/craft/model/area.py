@@ -89,8 +89,6 @@ class AreaPropertiesLocal(DefaultAreaProperties, alias_generator=to_space):
             "other-dispatchable-power": f"{self.other_dispatch_power}".lower(),
             "spread-unsupplied-energy-cost": f"{self.spread_unsupplied_energy_cost:.6f}",
             "spread-spilled-energy-cost": f"{self.spread_spilled_energy_cost:.6f}",
-            "average-unsupplied-energy-cost": f"{self.energy_cost_unsupplied:.6f}",
-            "average-spilled-energy-cost": f"{self.energy_cost_spilled:.6f}",
         }
 
     @property

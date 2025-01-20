@@ -269,12 +269,8 @@ class AreaLocalService(BaseAreaService):
                 areas_ini.add_section({"unserverdenergycost": {}})
                 areas_ini.add_section({"spilledenergycost": {}})
                 areas_ini.write_ini_file()
-            areas_ini.parsed_ini["unserverdenergycost"][area_name] = local_properties.nodal_optimization[
-                "average-unsupplied-energy-cost"
-            ]
-            areas_ini.parsed_ini["spilledenergycost"][area_name] = local_properties.nodal_optimization[
-                "average-spilled-energy-cost"
-            ]
+            areas_ini.parsed_ini["unserverdenergycost"][area_name] = "0.000000"
+            areas_ini.parsed_ini["spilledenergycost"][area_name] = "0.000000"
             areas_ini.write_ini_file()
 
             local_ui = AreaUiLocal(ui) if ui else AreaUiLocal()
@@ -345,6 +341,7 @@ class AreaLocalService(BaseAreaService):
                     self.config.study_path, IniFileTypes.AREA_ADEQUACY_PATCH_INI, area_id=element.name
                 ).ini_dict
                 ui_dict = IniFile(self.config.study_path, IniFileTypes.AREA_UI_INI, area_id=element.name).ini_dict
+                thermal_area_dict = IniFile(self.config.study_path, IniFileTypes.THERMAL_AREAS_INI).ini_dict
                 area_properties = AreaPropertiesLocal(
                     non_dispatch_power=optimization_dict["nodal optimization"].get("non-dispatchable-power"),
                     dispatch_hydro_power=optimization_dict["nodal optimization"].get("dispatchable-hydro-power"),
@@ -355,10 +352,8 @@ class AreaLocalService(BaseAreaService):
                     spread_spilled_energy_cost=optimization_dict["nodal optimization"].get(
                         "spread-spilled-energy-cost"
                     ),
-                    energy_cost_unsupplied=optimization_dict["nodal optimization"].get(
-                        "average-unsupplied-energy-cost"
-                    ),
-                    energy_cost_spilled=optimization_dict["nodal optimization"].get("average-spilled-energy-cost"),
+                    energy_cost_unsupplied=thermal_area_dict["unserverdenergycost"].get(element.name),
+                    energy_cost_spilled=thermal_area_dict["spilledenergycost"].get(element.name),
                     filter_synthesis=set(optimization_dict["filtering"].get("filter-synthesis").split(", ")),
                     filter_by_year=set(optimization_dict["filtering"].get("filter-year-by-year").split(", ")),
                     adequacy_patch_mode=area_adequacy_dict["adequacy-patch"].get("adequacy-patch-mode"),
