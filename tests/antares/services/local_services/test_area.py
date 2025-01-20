@@ -1108,6 +1108,20 @@ class TestCreateLoad:
 
 
 class TestReadArea:
+    # Modify configuration file of an existing file
+    def _modify_config(self, file_path: Path, section: str, option: str, value: float):
+        config = ConfigParser()
+        
+        config.read(file_path)
+        
+        if not config.has_section(section):
+            config.add_section(section)
+        
+        config.set(section, option, str(value))
+        
+        with open(file_path, 'w', encoding ="utf-8") as configfile:
+            config.write(configfile)
+
     def test_read_areas_local(self, local_study_w_areas):
         study_path = local_study_w_areas.service.config.study_path
 
@@ -1121,6 +1135,21 @@ class TestReadArea:
             assert area.properties.energy_cost_unsupplied == 0.0
             assert area.id in expected_areas
 
+    def test_read_areas_thermal_file(self, local_study_w_areas):
+        study_path = local_study_w_areas.service.config.study_path
+
+        local_study_object = read_study_local(study_path)
+        optimization_path = study_path / "input" / "thermal" / "areas.ini"
+
+        self._modify_config(optimization_path, "unserverdenergycost", "fr", 1.2)
+        self._modify_config(optimization_path, "spilledenergycost", "fr", 1.8)
+        actual_areas = local_study_object.read_areas()
+
+        for area in actual_areas:
+            if area.id == "fr":
+                assert area.properties.energy_cost_spilled == 1.8
+                assert area.properties.energy_cost_unsupplied == 1.2
+                break
 
 def _write_file(_file_path, _time_series) -> None:
     _file_path.parent.mkdir(parents=True, exist_ok=True)
