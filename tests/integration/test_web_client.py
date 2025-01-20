@@ -31,7 +31,6 @@ from antares.craft.model.binding_constraint import (
     ConstraintTerm,
     LinkData,
 )
-from antares.craft.model.hydro import HydroMatrixName, HydroProperties
 from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
@@ -493,14 +492,7 @@ class TestWebClient:
         new_study.update_settings(empty_settings)
         assert old_settings == new_study.get_settings()
 
-        series = pd.DataFrame(data=np.ones((365,1)))
-        matrices_hydro = {
-            HydroMatrixName.COMMON_WATER_VALUES: series,
-            HydroMatrixName.COMMON_RESERVOIR: series,
-            HydroMatrixName.COMMON_MAX_POWER: series,
-            HydroMatrixName.COMMON_INFLOW_PATTERN: series,
-            HydroMatrixName.COMMON_CREDIT_MODULATIONS: series,
-        }
+        series = pd.DataFrame(data=np.ones((365, 1)))
 
         # test each hydro matrices returns the good values
         actual_reservoir_matrix = area_fr.get_reservoir()
