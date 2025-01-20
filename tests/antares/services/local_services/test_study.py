@@ -1335,8 +1335,6 @@ dispatchable-hydro-power = true
 other-dispatchable-power = true
 spread-unsupplied-energy-cost = 0.000000
 spread-spilled-energy-cost = 0.000000
-average-unsupplied-energy-cost = 0.000000
-average-spilled-energy-cost = 0.000000
 
 [filtering]
 filter-synthesis = hourly, daily, weekly, monthly, annual
