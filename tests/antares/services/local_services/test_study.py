@@ -1378,8 +1378,6 @@ dispatchable-hydro-power = false
 other-dispatchable-power = true
 spread-unsupplied-energy-cost = 0.000000
 spread-spilled-energy-cost = 0.000000
-average-unsupplied-energy-cost = 1.040000
-average-spilled-energy-cost = 1.000000
 
 [filtering]
 filter-synthesis = hourly, daily, weekly, monthly, annual
@@ -1513,8 +1511,6 @@ layers = 0
                 "other-dispatchable-power": "true",
                 "spread-unsupplied-energy-cost": "0.000000",
                 "spread-spilled-energy-cost": "0.000000",
-                "average-unsupplied-energy-cost": "0.000000",
-                "average-spilled-energy-cost": "0.000000",
             },
             "filtering": {
                 "filter-synthesis": "hourly, daily, weekly, monthly, annual",
@@ -1545,8 +1541,6 @@ layers = 0
                 "other-dispatchable-power": "true",
                 "spread-unsupplied-energy-cost": "1.000000",
                 "spread-spilled-energy-cost": "0.000000",
-                "average-unsupplied-energy-cost": "0.000000",
-                "average-spilled-energy-cost": "3.500000",
             },
             "filtering": {
                 "filter-synthesis": "hourly, daily, weekly, monthly, annual",

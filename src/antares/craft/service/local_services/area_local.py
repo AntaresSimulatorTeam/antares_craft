@@ -269,12 +269,8 @@ class AreaLocalService(BaseAreaService):
                 areas_ini.add_section({"unserverdenergycost": {}})
                 areas_ini.add_section({"spilledenergycost": {}})
                 areas_ini.write_ini_file()
-            areas_ini.parsed_ini["unserverdenergycost"][area_name] = local_properties.nodal_optimization[
-                "average-unsupplied-energy-cost"
-            ]
-            areas_ini.parsed_ini["spilledenergycost"][area_name] = local_properties.nodal_optimization[
-                "average-spilled-energy-cost"
-            ]
+            areas_ini.parsed_ini["unserverdenergycost"][area_name] = "0.000000"
+            areas_ini.parsed_ini["spilledenergycost"][area_name] = "0.000000"
             areas_ini.write_ini_file()
 
             local_ui = AreaUiLocal(ui) if ui else AreaUiLocal()
