@@ -26,7 +26,6 @@ from antares.craft.model.area import (
     AreaPropertiesLocal,
     AreaUi,
     AreaUiLocal,
-    DefaultAreaProperties,
 )
 from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesLocal
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesLocal
