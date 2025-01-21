@@ -603,6 +603,7 @@ class AreaApiService(BaseAreaService):
                     self.storage_service,
                     self.thermal_service,
                     self.renewable_service,
+                    self.hydro_service,
                     renewables=dict_renewables,
                     thermals=dict_thermals,
                     st_storages=dict_st_storage,
