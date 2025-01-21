@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 
 from abc import ABC, abstractmethod
+from pathlib import Path, PurePath
 from typing import TYPE_CHECKING, Dict, List, Optional
 
 import pandas as pd
@@ -593,6 +594,15 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
+    def move_study(self, new_parent_path: Path) -> PurePath:
+        """
+        Moves the study to the new parent path
+
+        Returns: the new path
+        """
+        pass
+
+    @abstractmethod
     def read_outputs(self) -> list[Output]:
         """
         Gets the output list of a study
@@ -620,6 +630,10 @@ class BaseStudyService(ABC):
         Args:
             output_name: To be deleted output
         """
+        pass
+
+    @abstractmethod
+    def generate_thermal_timeseries(self) -> None:
         pass
 
 

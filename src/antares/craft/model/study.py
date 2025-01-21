@@ -14,7 +14,7 @@ import logging
 import os
 import time
 
-from pathlib import Path
+from pathlib import Path, PurePath
 from types import MappingProxyType
 from typing import List, Optional, Union
 
@@ -23,7 +23,7 @@ import pandas as pd
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import APIError, LinkCreationError, StudyCreationError
+from antares.craft.exceptions.exceptions import APIError, LinkCreationError, StudyCreationError, StudyMoveError
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -50,7 +50,11 @@ _study_path if stored in a disk
 
 
 def create_study_api(
-    study_name: str, version: str, api_config: APIconf, settings: Optional[StudySettings] = None
+    study_name: str,
+    version: str,
+    api_config: APIconf,
+    settings: Optional[StudySettings] = None,
+    parent_path: Optional[Path] = None,
 ) -> "Study":
     """
     Args:
@@ -73,10 +77,16 @@ def create_study_api(
         response = wrapper.post(url)
         study_id = response.json()
         study_settings = _returns_study_settings(base_url, study_id, wrapper, False, settings)
-
-    except APIError as e:
+        study = Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
+        if parent_path:
+            study.move(parent_path)
+            url = f"{base_url}/studies/{study_id}"
+            json_study = wrapper.get(url).json()
+            folder = json_study.pop("folder")
+            study.path = PurePath(folder) if folder else PurePath(".")
+        return study
+    except (APIError, StudyMoveError) as e:
         raise StudyCreationError(study_name, e.message) from e
-    return Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
 
 
 def create_study_local(
@@ -143,6 +153,7 @@ InfoTip = Antares Study {version}: {study_name}
         version=version,
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
         settings=local_settings,
+        path=study_directory,
     )
 
 
@@ -173,6 +184,7 @@ def read_study_local(study_directory: Path) -> "Study":
         name=study_params["caption"],
         version=study_params["version"],
         service_factory=ServiceFactory(config=local_config, study_name=study_params["caption"]),
+        path=study_directory,
     )
 
 
@@ -184,9 +196,13 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
 
     study_name = json_study.pop("name")
     study_version = str(json_study.pop("version"))
+    path = json_study.pop("folder")
+    pure_path = PurePath(path) if path else PurePath(".")
 
     study_settings = _returns_study_settings(base_url, study_id, wrapper, False, None)
-    study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings)
+    study = Study(
+        study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings, pure_path
+    )
 
     study.read_areas()
     study.read_outputs()
@@ -217,9 +233,11 @@ class Study:
         version: str,
         service_factory: ServiceFactory,
         settings: Union[StudySettings, StudySettingsLocal, None] = None,
+        path: PurePath = PurePath("."),
     ):
         self.name = name
         self.version = version
+        self.path = path
         self._study_service = service_factory.create_study_service()
         self._area_service = service_factory.create_area_service()
         self._link_service = service_factory.create_link_service()
@@ -420,6 +438,12 @@ class Study:
     def delete_output(self, output_name: str) -> None:
         self._study_service.delete_output(output_name)
         self._outputs.pop(output_name)
+
+    def move(self, parent_path: Path) -> None:
+        self.path = self._study_service.move_study(parent_path)
+
+    def generate_thermal_timeseries(self) -> None:
+        self._study_service.generate_thermal_timeseries()
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:

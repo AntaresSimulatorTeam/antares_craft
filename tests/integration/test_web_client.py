@@ -11,6 +11,8 @@
 # This file is part of the Antares project.
 import pytest
 
+from pathlib import Path, PurePath
+
 import numpy as np
 import pandas as pd
 
@@ -132,11 +134,23 @@ class TestWebClient:
 
         # test thermal cluster creation with default values
         thermal_name = "Cluster_test %?"
-        thermal_fr = area_fr.create_thermal_cluster(thermal_name)
+        thermal_fr = area_fr.create_thermal_cluster(thermal_name, ThermalClusterProperties(nominal_capacity=1000))
         assert thermal_fr.name == thermal_name.lower()
         # AntaresWeb has id issues for thermal/renewable clusters,
         # so we force the name in lowercase to avoid issues.
         assert thermal_fr.id == "cluster_test"
+
+        # ===== Test generate thermal timeseries =====
+        study.generate_thermal_timeseries()
+        thermal_timeseries = thermal_fr.get_series_matrix()
+        assert isinstance(
+            thermal_timeseries,
+            pd.DataFrame,
+        )
+        assert thermal_timeseries.shape == (8760, 1)
+        assert (
+            (thermal_timeseries == 1000).all().all()
+        )  # first all() returns a one column matrix with booleans, second all() checks that they're all true
 
         # test thermal cluster creation with properties
         thermal_name = "gaz_be"
@@ -623,3 +637,14 @@ class TestWebClient:
         study.delete_outputs()
         assert len(study.get_outputs()) == 0
         assert len(study.read_outputs()) == 0
+
+        # ===== Test study moving =====
+
+        new_path = Path("/new/path/test")
+        assert study.path == PurePath(".")
+        study.move(new_path)
+        assert study.path == PurePath(new_path) / f"{study.service.study_id}"
+
+        moved_study = read_study_api(api_config, study.service.study_id)
+        assert moved_study.path == study.path
+        assert moved_study.name == study.name

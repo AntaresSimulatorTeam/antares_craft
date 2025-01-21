@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from pathlib import Path, PurePath
 from typing import TYPE_CHECKING, Any, Optional
 
 from antares.craft.config.local_configuration import LocalConfiguration
@@ -63,4 +63,10 @@ class StudyLocalService(BaseStudyService):
         raise NotImplementedError
 
     def delete_output(self, output_name: str) -> None:
+        raise NotImplementedError
+
+    def move_study(self, new_parent_path: Path) -> PurePath:
+        raise NotImplementedError
+
+    def generate_thermal_timeseries(self) -> None:
         raise NotImplementedError

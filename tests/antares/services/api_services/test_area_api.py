@@ -18,6 +18,7 @@ import pandas as pd
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
     AreaPropertiesUpdateError,
+    AreasRetrievalError,
     AreaUiUpdateError,
     RenewableCreationError,
     STStorageCreationError,
@@ -27,6 +28,7 @@ from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
+from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.area_api import AreaApiService
 from antares.craft.service.service_factory import ServiceFactory
@@ -46,6 +48,7 @@ class TestCreateAPI:
     area_api = AreaApiService(api, "248bbb99-c909-47b7-b239-01f6f6ae7de7")
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
+    study = Study("TestStudy", "880", ServiceFactory(api, study_id))
 
     def test_update_area_properties_success(self):
         with requests_mock.Mocker() as mocker:
@@ -225,10 +228,9 @@ class TestCreateAPI:
             assert len(mocker.request_history) == 2
             assert isinstance(hydro, Hydro)
 
-    def test_read_areas(self):
-        study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
+    def test_read_areas_success(self):
         area_id = "zone"
-        url = f"https://antares.com/api/v1/studies/{study_id_test}/areas"
+        url = f"https://antares.com/api/v1/studies/{self.study_id}/areas"
         ui_url = url + "?ui=true"
         url_thermal = url + f"/{area_id}/clusters/thermal"
         url_renewable = url + f"/{area_id}/clusters/renewable"
@@ -296,26 +298,28 @@ class TestCreateAPI:
             mocker.get(url_st_storage, json=json_st_storage)
             mocker.get(url_properties_form, json=json_properties)
 
-            area_api = AreaApiService(self.api, study_id_test)
-            area_api.thermal_service = ServiceFactory(self.api, study_id_test).create_thermal_service()
-            area_api.renewable_service = ServiceFactory(self.api, study_id_test).create_renewable_service()
-            area_api.storage_service = ServiceFactory(self.api, study_id_test).create_st_storage_service()
-            actual_area_list = area_api.read_areas()
-            area_ui = area_api.craft_ui(url + "?type=AREA&ui=true", "zone")
-            thermal_id = json_thermal[0].pop("id")
-            thermal_name = json_thermal[0].pop("name")
-            renewable_id = json_renewable[0].pop("id")
-            renewable_name = json_renewable[0].pop("name")
-            storage_id = json_st_storage[0].pop("id")
-            storage_name = json_st_storage[0].pop("name")
+            actual_area_list = self.study.read_areas()
+            area_ui = self.area_api.craft_ui(url + "?type=AREA&ui=true", "zone")
 
-            thermal_props = ThermalClusterProperties(**json_thermal[0])
+            thermal_ = json_thermal[0]
+            thermal_id = thermal_.pop("id")
+            thermal_name = thermal_.pop("name")
+
+            renewable_ = json_renewable[0]
+            renewable_id = renewable_.pop("id")
+            renewable_name = renewable_.pop("name")
+
+            storage_ = json_st_storage[0]
+            storage_id = storage_.pop("id")
+            storage_name = storage_.pop("name")
+
+            thermal_props = ThermalClusterProperties(**thermal_)
             thermal_cluster = ThermalCluster(self.area_api.thermal_service, thermal_id, thermal_name, thermal_props)
-            renewable_props = RenewableClusterProperties(**json_renewable[0])
+            renewable_props = RenewableClusterProperties(**renewable_)
             renewable_cluster = RenewableCluster(
                 self.area_api.renewable_service, renewable_id, renewable_name, renewable_props
             )
-            storage_props = STStorageProperties(**json_st_storage[0])
+            storage_props = STStorageProperties(**storage_)
             st_storage = STStorage(self.area_api.storage_service, storage_id, storage_name, storage_props)
 
             expected_area = Area(
@@ -345,6 +349,17 @@ class TestCreateAPI:
             assert actual_thermals[thermal_id].name == expected_area.get_thermals()[thermal_id].name
             assert actual_renewables[renewable_id].name == expected_area.get_renewables()[renewable_id].name
             assert actual_storages[storage_id].name == expected_area.get_st_storages()[storage_id].name
+
+    def test_read_areas_fail(self):
+        with requests_mock.Mocker() as mocker:
+            url_areas = f"https://antares.com/api/v1/studies/{self.study_id}/areas"
+            mocker.get(url_areas, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                AreasRetrievalError,
+                match=f"Could not retrieve the areas from the study {self.study_id} : "
+                + self.antares_web_description_msg,
+            ):
+                self.study.read_areas()
 
     def test_read_hydro(self):
         json_hydro = {

@@ -21,6 +21,7 @@ from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     AreaDeletionError,
     AreaPropertiesUpdateError,
+    AreasRetrievalError,
     AreaUiUpdateError,
     HydroCreationError,
     MatrixDownloadError,
@@ -574,41 +575,47 @@ class AreaApiService(BaseAreaService):
         base_api_url = f"{self._base_url}/studies/{self.study_id}/areas"
         ui_url = "ui=true"
         url_properties_form = "properties/form"
-        json_resp = self._wrapper.get(base_api_url + "?" + ui_url).json()
-        for area in json_resp:
-            area_url = base_api_url + "/" + f"{area}/"
-            json_properties = self._wrapper.get(area_url + url_properties_form).json()
+        try:
+            json_resp = self._wrapper.get(base_api_url + "?" + ui_url).json()
+            for area in json_resp:
+                area_url = base_api_url + "/" + f"{area}/"
 
-            ui_response = self.craft_ui(f"{base_api_url}?type=AREA&{ui_url}", area)
+                json_properties = self._wrapper.get(area_url + url_properties_form).json()
 
-            assert self.renewable_service is not None
-            assert self.thermal_service is not None
-            assert self.storage_service is not None
+                ui_response = self.craft_ui(f"{base_api_url}?type=AREA&{ui_url}", area)
 
-            renewables = self.renewable_service.read_renewables(area)
-            thermals = self.thermal_service.read_thermal_clusters(area)
-            st_storages = self.storage_service.read_st_storages(area)
+                assert self.renewable_service is not None
+                assert self.thermal_service is not None
+                assert self.storage_service is not None
 
-            dict_renewables = {renewable.id: renewable for renewable in renewables}
-            dict_thermals = {thermal.id: thermal for thermal in thermals}
-            dict_st_storage = {storage.id: storage for storage in st_storages}
+                renewables = self.renewable_service.read_renewables(area)
+                thermals = self.thermal_service.read_thermal_clusters(area)
+                st_storages = self.storage_service.read_st_storages(area)
 
-            area_obj = Area(
-                area,
-                self,
-                self.storage_service,
-                self.thermal_service,
-                self.renewable_service,
-                self.hydro_service,
-                renewables=dict_renewables,
-                thermals=dict_thermals,
-                st_storages=dict_st_storage,
-                properties=json_properties,
-                ui=ui_response,
-            )
+                dict_renewables = {renewable.id: renewable for renewable in renewables}
 
-            area_list.append(area_obj)
+                dict_thermals = {thermal.id: thermal for thermal in thermals}
+                dict_st_storage = {storage.id: storage for storage in st_storages}
 
-        # sort area list to ensure reproducibility
-        area_list.sort(key=lambda area: area.id)
+                area_obj = Area(
+                    area,
+                    self,
+                    self.storage_service,
+                    self.thermal_service,
+                    self.renewable_service,
+                    renewables=dict_renewables,
+                    thermals=dict_thermals,
+                    st_storages=dict_st_storage,
+                    properties=json_properties,
+                    ui=ui_response,
+                )
+
+                area_list.append(area_obj)
+
+            # sort area list to ensure reproducibility
+            area_list.sort(key=lambda area: area.id)
+
+        except APIError as e:
+            raise AreasRetrievalError(self.study_id, e.message) from e
+
         return area_list
