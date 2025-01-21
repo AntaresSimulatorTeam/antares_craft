@@ -1117,9 +1117,31 @@ class TestReadArea:
         expected_areas = ["at", "it", "fr"]
         for area in actual_areas:
             assert area.ui.color_rgb == [230, 108, 44]
-            assert area.properties.energy_cost_spilled == 0.0
-            assert area.properties.energy_cost_unsupplied == 0.0
+            assert area.properties.energy_cost_spilled == 1.0
+            assert area.properties.energy_cost_unsupplied == 0.5
             assert area.id in expected_areas
+
+    def test_read_areas_thermal_file(self, local_study_w_areas):
+        study_path = local_study_w_areas.service.config.study_path
+
+        local_study_object = read_study_local(study_path)
+        optimization_path = study_path / "input" / "thermal" / "areas.ini"
+
+        antares_content = """[unserverdenergycost]
+fr = 10000.000000
+it = 10000.000000
+
+[spilledenergycost]
+fr = 10.000000
+it = 10000.000000
+    """
+        with open(optimization_path, "w", encoding="utf-8") as antares_file:
+            antares_file.write(antares_content)
+
+        local_study_object.read_areas()
+        area_fr = local_study_object.get_areas()["fr"]
+        assert area_fr.properties.energy_cost_unsupplied == 10000
+        assert area_fr.properties.energy_cost_spilled == 10
 
 
 def _write_file(_file_path, _time_series) -> None:
