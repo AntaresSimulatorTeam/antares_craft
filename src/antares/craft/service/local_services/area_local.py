@@ -281,10 +281,8 @@ class AreaLocalService(BaseAreaService):
                 areas_ini.add_section({"spilledenergycost": {}})
                 areas_ini.write_ini_file()
 
-            default_area = DefaultAreaProperties()
-            areas_ini.parsed_ini["unserverdenergycost"][area_name] = str(default_area.energy_cost_unsupplied)
-            areas_ini.parsed_ini["spilledenergycost"][area_name] = str(default_area.energy_cost_spilled)
-
+            areas_ini.parsed_ini["unserverdenergycost"][area_name] = str(local_properties.energy_cost_unsupplied)
+            areas_ini.parsed_ini["spilledenergycost"][area_name] = str(local_properties.energy_cost_spilled)
             areas_ini.write_ini_file()
 
             local_ui = AreaUiLocal(ui) if ui else AreaUiLocal()

@@ -1117,8 +1117,8 @@ class TestReadArea:
         expected_areas = ["at", "it", "fr"]
         for area in actual_areas:
             assert area.ui.color_rgb == [230, 108, 44]
-            assert area.properties.energy_cost_spilled == 0.0
-            assert area.properties.energy_cost_unsupplied == 0.0
+            assert area.properties.energy_cost_spilled == 1.0
+            assert area.properties.energy_cost_unsupplied == 0.5
             assert area.id in expected_areas
 
     def test_read_areas_thermal_file(self, local_study_w_areas):

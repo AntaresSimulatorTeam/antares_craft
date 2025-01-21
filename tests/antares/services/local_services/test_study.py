@@ -1564,13 +1564,13 @@ layers = 0
     def test_areas_ini_has_correct_default_content(self, actual_thermal_areas_ini):
         # Given
         expected_areas_ini_contents = """[unserverdenergycost]
-fr = 0.0
-it = 0.0
+fr = 0.5
+it = 0.5
 at = 0.0
 
 [spilledenergycost]
-fr = 0.0
-it = 0.0
+fr = 1.0
+it = 1.0
 at = 0.0
 
 """
