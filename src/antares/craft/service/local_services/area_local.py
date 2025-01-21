@@ -34,6 +34,7 @@ from antares.craft.model.st_storage import STStorage, STStorageProperties, STSto
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties, ThermalClusterPropertiesLocal
 from antares.craft.service.base_services import (
     BaseAreaService,
+    BaseHydroService,
     BaseRenewableService,
     BaseShortTermStorageService,
     BaseThermalService,
@@ -76,6 +77,9 @@ class AreaLocalService(BaseAreaService):
 
     def set_renewable_service(self, renewable_service: BaseRenewableService) -> None:
         self.renewable_service = renewable_service
+
+    def set_hydro_service(self, hydro_service: "BaseHydroService") -> None:
+        self.hydro_service = hydro_service
 
     def create_thermal_cluster(
         self,
@@ -299,6 +303,7 @@ class AreaLocalService(BaseAreaService):
             storage_service=self.storage_service,
             thermal_service=self.thermal_service,
             renewable_service=self.renewable_service,
+            hydro_service=self.hydro_service,
             properties=local_properties.yield_area_properties(),
             ui=local_ui.yield_area_ui(),
         )
@@ -388,6 +393,7 @@ class AreaLocalService(BaseAreaService):
                         storage_service=self.storage_service,
                         thermal_service=self.thermal_service,
                         renewable_service=self.renewable_service,
+                        hydro_service=self.hydro_service,
                         properties=area_properties.yield_area_properties(),
                         ui=ui_properties,
                     )

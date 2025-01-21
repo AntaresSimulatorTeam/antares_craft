@@ -51,6 +51,10 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
+    def set_hydro_service(self, hydro_service: "BaseHydroService") -> None:
+        pass
+
+    @abstractmethod
     def create_area(
         self, area_name: str, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
     ) -> Area:
@@ -190,29 +194,6 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_hydro(
-        self,
-        area_id: str,
-        properties: Optional[HydroProperties],
-        matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]],
-    ) -> Hydro:
-        """
-        Args:
-            area_id: area in which hydro will be created
-            properties: hydro properties
-            matrices: matrices for hydro to be created
-
-        """
-        pass
-
-    @abstractmethod
-    def read_hydro(
-        self,
-        area_id: str,
-    ) -> Hydro:
-        pass
-
-    @abstractmethod
     def update_area_properties(self, area_id: str, properties: AreaProperties) -> AreaProperties:
         """
         Args:
@@ -313,6 +294,51 @@ class BaseAreaService(ABC):
         """
         Returns: Returns a list of areas
         """
+        pass
+
+    @abstractmethod
+    def create_hydro(
+        self,
+        area_id: str,
+        properties: Optional[HydroProperties],
+        matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]],
+    ) -> Hydro:
+        """
+        Args:
+            area_id: area in which hydro will be created
+            properties: hydro properties
+            matrices: matrices for hydro to be created
+
+        """
+        pass
+
+    @abstractmethod
+    def read_hydro(
+        self,
+        area_id: str,
+    ) -> Hydro:
+        pass
+
+
+class BaseHydroService(ABC):
+    @abstractmethod
+    def get_maxpower(self, area_id: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_reservoir(self, area_id: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_inflow_pattern(self, area_id: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_credit_modulations(self, area_id: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_water_values(self, area_id: str) -> pd.DataFrame:
         pass
 
 

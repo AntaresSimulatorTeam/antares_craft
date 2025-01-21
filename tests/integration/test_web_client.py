@@ -506,6 +506,21 @@ class TestWebClient:
         new_study.update_settings(empty_settings)
         assert old_settings == new_study.get_settings()
 
+        series = pd.DataFrame(data=np.ones((365, 1)))
+
+        # test each hydro matrices returns the good values
+        actual_reservoir_matrix = area_fr.hydro.get_reservoir()
+        actual_maxpower_matrix = area_fr.hydro.get_maxpower()
+        actual_inflow_matrix = area_fr.hydro.get_inflow_pattern()
+        actual_water_matrix = area_fr.hydro.get_water_values()
+        actual_credit_matrix = area_fr.hydro.get_credit_modulations()
+
+        actual_reservoir_matrix.equals(series)
+        actual_maxpower_matrix.equals(series)
+        actual_inflow_matrix.equals(series)
+        actual_water_matrix.equals(series)
+        actual_credit_matrix.equals(series)
+
         # tests variant creation
         variant_name = "variant_test"
         variant_from_api_name = "variant_from_api_test"

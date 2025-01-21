@@ -15,6 +15,7 @@ from antares.craft.config.base_configuration import BaseConfiguration
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.service.api_services.area_api import AreaApiService
 from antares.craft.service.api_services.binding_constraint_api import BindingConstraintApiService
+from antares.craft.service.api_services.hydro_api import HydroApiService
 from antares.craft.service.api_services.link_api import LinkApiService
 from antares.craft.service.api_services.output_api import OutputApiService
 from antares.craft.service.api_services.renewable_api import RenewableApiService
@@ -25,6 +26,7 @@ from antares.craft.service.api_services.thermal_api import ThermalApiService
 from antares.craft.service.base_services import (
     BaseAreaService,
     BaseBindingConstraintService,
+    BaseHydroService,
     BaseLinkService,
     BaseOutputService,
     BaseRenewableService,
@@ -35,6 +37,7 @@ from antares.craft.service.base_services import (
 )
 from antares.craft.service.local_services.area_local import AreaLocalService
 from antares.craft.service.local_services.binding_constraint_local import BindingConstraintLocalService
+from antares.craft.service.local_services.hydro_local import HydroLocalService
 from antares.craft.service.local_services.link_local import LinkLocalService
 from antares.craft.service.local_services.output_local import OutputLocalService
 from antares.craft.service.local_services.renewable_local import RenewableLocalService
@@ -58,17 +61,21 @@ class ServiceFactory:
             storage_service: BaseShortTermStorageService = ShortTermStorageApiService(self.config, self.study_id)
             thermal_service: BaseThermalService = ThermalApiService(self.config, self.study_id)
             renewable_service: BaseRenewableService = RenewableApiService(self.config, self.study_id)
+            hydro_service: BaseHydroService = HydroApiService(self.config, self.study_id)
             area_service.set_storage_service(storage_service)
             area_service.set_thermal_service(thermal_service)
             area_service.set_renewable_service(renewable_service)
+            area_service.set_hydro_service(hydro_service)
         elif isinstance(self.config, LocalConfiguration):
             area_service = AreaLocalService(self.config, self.study_name)
             storage_service = ShortTermStorageLocalService(self.config, self.study_name)
             thermal_service = ThermalLocalService(self.config, self.study_name)
             renewable_service = RenewableLocalService(self.config, self.study_name)
+            hydro_service = HydroLocalService(self.config, self.study_name)
             area_service.set_storage_service(storage_service)
             area_service.set_thermal_service(thermal_service)
             area_service.set_renewable_service(renewable_service)
+            area_service.set_hydro_service(hydro_service)
         else:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
         return area_service
@@ -151,3 +158,12 @@ class ServiceFactory:
         else:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
         return output_service
+
+    def create_hydro_service(self) -> BaseHydroService:
+        if isinstance(self.config, APIconf):
+            hydro_service: BaseHydroService = HydroApiService(self.config, self.study_id)
+        elif isinstance(self.config, LocalConfiguration):
+            hydro_service = HydroLocalService(self.config, self.study_name)
+        else:
+            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
+        return hydro_service
