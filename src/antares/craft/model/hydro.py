@@ -113,3 +113,18 @@ class Hydro:
     @property
     def matrices(self) -> Optional[Dict[HydroMatrixName, pd.DataFrame]]:
         return self._matrices
+
+    def get_maxpower(self) -> pd.DataFrame:
+        return self._service.get_maxpower(self.area_id)
+
+    def get_reservoir(self) -> pd.DataFrame:
+        return self._service.get_reservoir(self.area_id)
+
+    def get_inflow_pattern(self) -> pd.DataFrame:
+        return self._service.get_inflow_pattern(self.area_id)
+
+    def get_credit_modulations(self) -> pd.DataFrame:
+        return self._service.get_credit_modulations(self.area_id)
+
+    def get_water_values(self) -> pd.DataFrame:
+        return self._service.get_water_values(self.area_id)

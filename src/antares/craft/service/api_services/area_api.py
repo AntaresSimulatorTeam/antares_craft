@@ -423,7 +423,7 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise HydroCreationError(area_id, e.message) from e
 
-        return Hydro(self, area_id, properties)
+        return Hydro(self.hydro_service, area_id, properties)
 
     def read_hydro(
         self,
@@ -433,7 +433,7 @@ class AreaApiService(BaseAreaService):
         json_hydro = self._wrapper.get(url).json()
 
         hydro_props = HydroProperties(**json_hydro)
-        hydro = Hydro(self, area_id, hydro_props)
+        hydro = Hydro(self.hydro_service, area_id, hydro_props)
 
         return hydro
 

@@ -377,18 +377,3 @@ class Area:
         self,
     ) -> Hydro:
         return self._area_service.read_hydro(self.id)
-
-    def get_maxpower(self) -> pd.DataFrame:
-        return self._hydro_service.get_maxpower(self.id)
-
-    def get_reservoir(self) -> pd.DataFrame:
-        return self._hydro_service.get_reservoir(self.id)
-
-    def get_inflow_pattern(self) -> pd.DataFrame:
-        return self._hydro_service.get_inflow_pattern(self.id)
-
-    def get_credit_modulations(self) -> pd.DataFrame:
-        return self._hydro_service.get_credit_modulations(self.id)
-
-    def get_water_values(self) -> pd.DataFrame:
-        return self._hydro_service.get_water_values(self.id)
