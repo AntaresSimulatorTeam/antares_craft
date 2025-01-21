@@ -509,11 +509,11 @@ class TestWebClient:
         series = pd.DataFrame(data=np.ones((365, 1)))
 
         # test each hydro matrices returns the good values
-        actual_reservoir_matrix = area_fr.get_reservoir()
-        actual_maxpower_matrix = area_fr.get_maxpower()
-        actual_inflow_matrix = area_fr.get_inflow_pattern()
-        actual_water_matrix = area_fr.get_water_values()
-        actual_credit_matrix = area_fr.get_credit_modulations()
+        actual_reservoir_matrix = area_fr.hydro.get_reservoir()
+        actual_maxpower_matrix = area_fr.hydro.get_maxpower()
+        actual_inflow_matrix = area_fr.hydro.get_inflow_pattern()
+        actual_water_matrix = area_fr.hydro.get_water_values()
+        actual_credit_matrix = area_fr.hydro.get_credit_modulations()
 
         actual_reservoir_matrix.equals(series)
         actual_maxpower_matrix.equals(series)
