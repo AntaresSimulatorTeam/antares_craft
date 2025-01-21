@@ -50,6 +50,10 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
+    def set_hydro_service(self, hydro_service: "BaseHydroService") -> None:
+        pass
+
+    @abstractmethod
     def create_area(
         self, area_name: str, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
     ) -> Area:

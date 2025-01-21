@@ -33,6 +33,7 @@ class TestCreateAPI:
         ServiceFactory(api, study_id).create_st_storage_service(),
         ServiceFactory(api, study_id).create_thermal_service(),
         ServiceFactory(api, study_id).create_renewable_service(),
+        ServiceFactory(api, study_id).create_hydro_service(),
     )
     renewable = RenewableCluster(ServiceFactory(api, study_id).create_renewable_service(), area.id, "onshore_fr")
     antares_web_description_msg = "Mocked Server KO"

@@ -67,9 +67,21 @@ class TestCreateAPI:
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
     study = Study("study_test", "870", ServiceFactory(api, study_id))
     area_from = Area(
-        name="area_from", area_service=api, storage_service=api, thermal_service=api, renewable_service=api
+        name="area_from",
+        area_service=api,
+        storage_service=api,
+        thermal_service=api,
+        renewable_service=api,
+        hydro_service=api,
     )
-    area_to = Area(name="area_to", area_service=api, storage_service=api, thermal_service=api, renewable_service=api)
+    area_to = Area(
+        name="area_to",
+        area_service=api,
+        storage_service=api,
+        thermal_service=api,
+        renewable_service=api,
+        hydro_service=api,
+    )
     antares_web_description_msg = "Mocked Server KO"
     link = Link(area_from.id, area_to.id, ServiceFactory(api, study_id).create_link_service())
     matrix = pd.DataFrame(data=[[0]])

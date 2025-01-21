@@ -61,17 +61,21 @@ class ServiceFactory:
             storage_service: BaseShortTermStorageService = ShortTermStorageApiService(self.config, self.study_id)
             thermal_service: BaseThermalService = ThermalApiService(self.config, self.study_id)
             renewable_service: BaseRenewableService = RenewableApiService(self.config, self.study_id)
+            hydro_service: BaseHydroService = HydroApiService(self.config, self.study_id)
             area_service.set_storage_service(storage_service)
             area_service.set_thermal_service(thermal_service)
             area_service.set_renewable_service(renewable_service)
+            area_service.set_hydro_service(hydro_service)
         elif isinstance(self.config, LocalConfiguration):
             area_service = AreaLocalService(self.config, self.study_name)
             storage_service = ShortTermStorageLocalService(self.config, self.study_name)
             thermal_service = ThermalLocalService(self.config, self.study_name)
             renewable_service = RenewableLocalService(self.config, self.study_name)
+            hydro_service = HydroLocalService(self.config, self.study_name)
             area_service.set_storage_service(storage_service)
             area_service.set_thermal_service(thermal_service)
             area_service.set_renewable_service(renewable_service)
+            area_service.set_hydro_service(hydro_service)
         else:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
         return area_service

@@ -5,8 +5,9 @@ from antares.craft.service.base_services import BaseHydroService
 
 
 class HydroLocalService(BaseHydroService):
-    def __init__(self, config: LocalConfiguration, area_id: str):
-        raise NotImplementedError()
+    def __init__(self, config: LocalConfiguration, study_name: str):
+        self.config = config
+        self.study_name = study_name
 
     def get_maxpower(self, area_id: str) -> pd.DataFrame:
         raise NotImplementedError()

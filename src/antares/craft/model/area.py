@@ -198,6 +198,7 @@ class Area:
         storage_service,
         thermal_service,
         renewable_service,
+        hydro_service,
         *,
         renewables: Optional[Dict[str, RenewableCluster]] = None,
         thermals: Optional[Dict[str, ThermalCluster]] = None,
@@ -212,6 +213,7 @@ class Area:
         self._storage_service = storage_service
         self._thermal_service = thermal_service
         self._renewable_service = renewable_service
+        self._hydro_service = hydro_service
         self._renewables = renewables or dict()
         self._thermals = thermals or dict()
         self._st_storages = st_storages or dict()
@@ -377,16 +379,16 @@ class Area:
         return self._area_service.read_hydro(self.id)
 
     def get_maxpower(self) -> pd.DataFrame:
-        return self._area_service.get_maxpower(self.id)
+        return self._hydro_service.get_maxpower(self.id)
 
     def get_reservoir(self) -> pd.DataFrame:
-        return self._area_service.get_reservoir(self.id)
+        return self._hydro_service.get_reservoir(self.id)
 
     def get_inflow_pattern(self) -> pd.DataFrame:
-        return self._area_service.get_inflow_pattern(self.id)
+        return self._hydro_service.get_inflow_pattern(self.id)
 
     def get_credit_modulations(self) -> pd.DataFrame:
-        return self._area_service.get_credit_modulations(self.id)
+        return self._hydro_service.get_credit_modulations(self.id)
 
     def get_water_values(self) -> pd.DataFrame:
-        return self._area_service.get_water_values(self.id)
+        return self._hydro_service.get_water_values(self.id)

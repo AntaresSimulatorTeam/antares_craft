@@ -41,6 +41,7 @@ class TestCreateAPI:
         ServiceFactory(api, study_id).create_st_storage_service(),
         ServiceFactory(api, study_id).create_thermal_service(),
         ServiceFactory(api, study_id).create_renewable_service(),
+        ServiceFactory(api, study_id).create_hydro_service(),
     )
     area_api = AreaApiService(api, "248bbb99-c909-47b7-b239-01f6f6ae7de7")
     antares_web_description_msg = "Mocked Server KO"
@@ -323,6 +324,7 @@ class TestCreateAPI:
                 self.area_api.storage_service,
                 self.area_api.thermal_service,
                 self.area_api.renewable_service,
+                hydro_service=None,
                 thermals={thermal_id: thermal_cluster},
                 renewables={renewable_id: renewable_cluster},
                 st_storages={storage_id: st_storage},

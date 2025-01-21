@@ -65,6 +65,7 @@ class TestCreateAPI:
         ServiceFactory(api, study_id).create_st_storage_service(),
         ServiceFactory(api, study_id).create_thermal_service(),
         ServiceFactory(api, study_id).create_renewable_service(),
+        ServiceFactory(api, study_id).create_hydro_service(),
     )
 
     def test_create_study_test_ok(self) -> None:
@@ -159,10 +160,12 @@ class TestCreateAPI:
                 Mock(),
                 Mock(),
                 Mock(),
+                Mock(),
             )
             self.study._areas["area_to"] = Area(
                 "area_to",
                 self.study._area_service,
+                Mock(),
                 Mock(),
                 Mock(),
                 Mock(),
@@ -314,10 +317,12 @@ class TestCreateAPI:
             Mock(),
             Mock(),
             Mock(),
+            Mock(),
         )
         self.study._areas[area_b] = Area(
             area_b,
             self.study._area_service,
+            Mock(),
             Mock(),
             Mock(),
             Mock(),
@@ -342,6 +347,7 @@ class TestCreateAPI:
             Mock(),
             Mock(),
             Mock(),
+            Mock(),
         )
 
         with pytest.raises(
@@ -356,6 +362,7 @@ class TestCreateAPI:
         self.study._areas[area] = Area(
             area,
             self.study._area_service,
+            Mock(),
             Mock(),
             Mock(),
             Mock(),

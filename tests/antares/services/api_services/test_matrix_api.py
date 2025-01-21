@@ -18,7 +18,6 @@ import pandas as pd
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import MatrixDownloadError, MatrixUploadError
 from antares.craft.model.area import Area
-from antares.craft.service.api_services.area_api import AreaApiService
 from antares.craft.service.service_factory import ServiceFactory
 
 
@@ -31,8 +30,8 @@ class TestMatrixAPI:
         ServiceFactory(api, study_id).create_st_storage_service(),
         ServiceFactory(api, study_id).create_thermal_service(),
         ServiceFactory(api, study_id).create_renewable_service(),
+        ServiceFactory(api, study_id).create_hydro_service(),
     )
-    area_api = AreaApiService(api, "248bbb99-c909-47b7-b239-01f6f6ae7de7")
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
 

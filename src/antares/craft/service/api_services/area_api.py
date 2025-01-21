@@ -40,6 +40,7 @@ from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import (
     BaseAreaService,
+    BaseHydroService,
     BaseRenewableService,
     BaseShortTermStorageService,
     BaseThermalService,
@@ -58,6 +59,7 @@ class AreaApiService(BaseAreaService):
         self.storage_service: Optional[BaseShortTermStorageService] = None
         self.thermal_service: Optional[BaseThermalService] = None
         self.renewable_service: Optional[BaseRenewableService] = None
+        self.hydro_service: Optional[BaseHydroService] = None
 
     def set_storage_service(self, storage_service: BaseShortTermStorageService) -> None:
         self.storage_service = storage_service
@@ -67,6 +69,9 @@ class AreaApiService(BaseAreaService):
 
     def set_renewable_service(self, renewable_service: BaseRenewableService) -> None:
         self.renewable_service = renewable_service
+
+    def set_hydro_service(self, hydro_service: "BaseHydroService") -> None:
+        self.hydro_service = hydro_service
 
     def create_area(
         self, area_name: str, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
@@ -136,6 +141,7 @@ class AreaApiService(BaseAreaService):
             self.storage_service,
             self.thermal_service,
             self.renewable_service,
+            self.hydro_service,
             properties=area_properties,
             ui=ui_properties,
             hydro=hydro,
@@ -593,6 +599,7 @@ class AreaApiService(BaseAreaService):
                 self.storage_service,
                 self.thermal_service,
                 self.renewable_service,
+                self.hydro_service,
                 renewables=dict_renewables,
                 thermals=dict_thermals,
                 st_storages=dict_st_storage,
@@ -605,43 +612,3 @@ class AreaApiService(BaseAreaService):
         # sort area list to ensure reproducibility
         area_list.sort(key=lambda area: area.id)
         return area_list
-
-    def get_maxpower(self, area_id: str) -> pd.DataFrame:
-        try:
-            return get_matrix(
-                self._base_url, self.study_id, self._wrapper, f"input/hydro/common/capacity/maxpower_{area_id}"
-            )
-        except APIError as e:
-            raise MatrixDownloadError(area_id, "maxpower", e.message) from e
-
-    def get_reservoir(self, area_id: str) -> pd.DataFrame:
-        try:
-            return get_matrix(
-                self._base_url, self.study_id, self._wrapper, f"input/hydro/common/capacity/reservoir_{area_id}"
-            )
-        except APIError as e:
-            raise MatrixDownloadError(area_id, "reservoir", e.message) from e
-
-    def get_inflow_pattern(self, area_id: str) -> pd.DataFrame:
-        try:
-            return get_matrix(
-                self._base_url, self.study_id, self._wrapper, f"input/hydro/common/capacity/inflowPattern_{area_id}"
-            )
-        except APIError as e:
-            raise MatrixDownloadError(area_id, "inflow_pattern", e.message) from e
-
-    def get_water_values(self, area_id: str) -> pd.DataFrame:
-        try:
-            return get_matrix(
-                self._base_url, self.study_id, self._wrapper, f"input/hydro/common/capacity/waterValues_{area_id}"
-            )
-        except APIError as e:
-            raise MatrixDownloadError(area_id, "water_values", e.message) from e
-
-    def get_credit_modulations(self, area_id: str) -> pd.DataFrame:
-        try:
-            return get_matrix(
-                self._base_url, self.study_id, self._wrapper, f"input/hydro/common/capacity/creditmodulations_{area_id}"
-            )
-        except APIError as e:
-            raise MatrixDownloadError(area_id, "credit_modulations", e.message) from e
