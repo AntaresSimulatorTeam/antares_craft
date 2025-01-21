@@ -20,7 +20,14 @@ import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import AreaCreationError, ThermalCreationError
-from antares.craft.model.area import Area, AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
+from antares.craft.model.area import (
+    Area,
+    AreaProperties,
+    AreaPropertiesLocal,
+    AreaUi,
+    AreaUiLocal,
+    DefaultAreaProperties,
+)
 from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesLocal
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesLocal
 from antares.craft.model.st_storage import STStorage, STStorageProperties, STStoragePropertiesLocal
@@ -269,8 +276,11 @@ class AreaLocalService(BaseAreaService):
                 areas_ini.add_section({"unserverdenergycost": {}})
                 areas_ini.add_section({"spilledenergycost": {}})
                 areas_ini.write_ini_file()
-            areas_ini.parsed_ini["unserverdenergycost"][area_name] = "0.000000"
-            areas_ini.parsed_ini["spilledenergycost"][area_name] = "0.000000"
+
+            default_area = DefaultAreaProperties()
+            areas_ini.parsed_ini["unserverdenergycost"][area_name] = str(default_area.energy_cost_unsupplied)
+            areas_ini.parsed_ini["spilledenergycost"][area_name] = str(default_area.energy_cost_spilled)
+
             areas_ini.write_ini_file()
 
             local_ui = AreaUiLocal(ui) if ui else AreaUiLocal()

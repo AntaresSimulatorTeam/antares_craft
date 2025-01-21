@@ -1128,31 +1128,16 @@ class TestReadArea:
         optimization_path = study_path / "input" / "thermal" / "areas.ini"
 
         antares_content = """[unserverdenergycost]
-at = 10000.000000
-be = 10000.000000
-ch = 10000.000000
-de = 10000.000000
-es = 10000.000000
 fr = 10000.000000
-gb = 10000.000000
-ie = 10000.000000
 it = 10000.000000
-lu = 10000.000000
 
 [spilledenergycost]
-at = 10.000000
-be = 10.000000
-ch = 10.000000
-de = 10.000000
-es = 10.000000
 fr = 10.000000
-gb = 10.000000
-ie = 10.000000
-it = 10.000000
-lu = 10.000000
+it = 10000.000000
     """
         with open(optimization_path, "w", encoding="utf-8") as antares_file:
             antares_file.write(antares_content)
+
         local_study_object.read_areas()
         area_fr = local_study_object.get_areas()["fr"]
         assert area_fr.properties.energy_cost_unsupplied == 10000
