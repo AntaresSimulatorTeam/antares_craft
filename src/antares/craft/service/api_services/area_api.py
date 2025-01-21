@@ -41,6 +41,7 @@ from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import (
     BaseAreaService,
+    BaseHydroService,
     BaseRenewableService,
     BaseShortTermStorageService,
     BaseThermalService,
@@ -59,6 +60,7 @@ class AreaApiService(BaseAreaService):
         self.storage_service: Optional[BaseShortTermStorageService] = None
         self.thermal_service: Optional[BaseThermalService] = None
         self.renewable_service: Optional[BaseRenewableService] = None
+        self.hydro_service: Optional[BaseHydroService] = None
 
     def set_storage_service(self, storage_service: BaseShortTermStorageService) -> None:
         self.storage_service = storage_service
@@ -68,6 +70,9 @@ class AreaApiService(BaseAreaService):
 
     def set_renewable_service(self, renewable_service: BaseRenewableService) -> None:
         self.renewable_service = renewable_service
+
+    def set_hydro_service(self, hydro_service: "BaseHydroService") -> None:
+        self.hydro_service = hydro_service
 
     def create_area(
         self, area_name: str, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
@@ -137,6 +142,7 @@ class AreaApiService(BaseAreaService):
             self.storage_service,
             self.thermal_service,
             self.renewable_service,
+            self.hydro_service,
             properties=area_properties,
             ui=ui_properties,
             hydro=hydro,
@@ -417,7 +423,7 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise HydroCreationError(area_id, e.message) from e
 
-        return Hydro(self, area_id, properties)
+        return Hydro(self.hydro_service, area_id, properties)
 
     def read_hydro(
         self,
@@ -427,7 +433,7 @@ class AreaApiService(BaseAreaService):
         json_hydro = self._wrapper.get(url).json()
 
         hydro_props = HydroProperties(**json_hydro)
-        hydro = Hydro(self, area_id, hydro_props)
+        hydro = Hydro(self.hydro_service, area_id, hydro_props)
 
         return hydro
 
@@ -597,6 +603,7 @@ class AreaApiService(BaseAreaService):
                     self.storage_service,
                     self.thermal_service,
                     self.renewable_service,
+                    self.hydro_service,
                     renewables=dict_renewables,
                     thermals=dict_thermals,
                     st_storages=dict_st_storage,

@@ -15,9 +15,11 @@ import json
 from typing import Any, Iterable, Mapping, Optional, Union
 
 import requests
+import urllib3
 
 from antares.craft.exceptions.exceptions import APIError
 
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 DATA_TYPE = Union[
     Iterable[bytes],
     str,

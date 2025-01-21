@@ -31,6 +31,7 @@ from antares.craft.model.st_storage import STStorage
 from antares.craft.model.thermal import ThermalCluster
 from antares.craft.service.api_services.area_api import AreaApiService
 from antares.craft.service.api_services.binding_constraint_api import BindingConstraintApiService
+from antares.craft.service.api_services.hydro_api import HydroApiService
 from antares.craft.service.api_services.link_api import LinkApiService
 from antares.craft.service.api_services.renewable_api import RenewableApiService
 from antares.craft.service.api_services.st_storage_api import ShortTermStorageApiService
@@ -46,8 +47,9 @@ class TestDeleteAPI:
     thermal_service = ThermalApiService(api, study_id)
     renewable_service = RenewableApiService(api, study_id)
     st_storage_service = ShortTermStorageApiService(api, study_id)
-    area_fr = Area("fr", area_service, st_storage_service, thermal_service, renewable_service)
-    area_be = Area("be", area_service, st_storage_service, thermal_service, renewable_service)
+    hydro_service = HydroApiService(api, study_id)
+    area_fr = Area("fr", area_service, st_storage_service, thermal_service, renewable_service, hydro_service)
+    area_be = Area("be", area_service, st_storage_service, thermal_service, renewable_service, hydro_service)
     link_service = LinkApiService(api, study_id)
     constraint_service = BindingConstraintApiService(api, study_id)
     antares_web_description_msg = "Mocked Server KO"
