@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from typing import Dict
 
 import pytest
 import requests_mock
@@ -20,8 +19,9 @@ import pandas as pd
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import MatrixDownloadError, MatrixUploadError
 from antares.craft.model.area import Area
-from antares.craft.model.hydro import HydroProperties, Hydro, HydroMatrixName
+from antares.craft.model.hydro import Hydro, HydroMatrixName
 from antares.craft.service.service_factory import ServiceFactory
+
 
 @pytest.fixture()
 def expected_hydro():
@@ -39,8 +39,11 @@ def expected_hydro():
     }
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
-    hydro = Hydro(ServiceFactory(api, study_id).create_hydro_service(), "area_test", properties=None, matrices=matrices_hydro)
+    hydro = Hydro(
+        ServiceFactory(api, study_id).create_hydro_service(), "area_test", properties=None, matrices=matrices_hydro
+    )
     return hydro
+
 
 class TestMatrixAPI:
     api = APIconf("https://antares.com", "token", verify=False)
@@ -56,7 +59,6 @@ class TestMatrixAPI:
 
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
-
 
     # =======================
     #  LOAD
