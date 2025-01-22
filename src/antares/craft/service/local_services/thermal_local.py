@@ -22,7 +22,7 @@ from antares.craft.model.thermal import (
     ThermalClusterPropertiesLocal,
 )
 from antares.craft.service.base_services import BaseThermalService
-from antares.craft.tools.ini_tool import IniFile, IniFileTypes
+from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
@@ -58,7 +58,9 @@ class ThermalLocalService(BaseThermalService):
         )
 
     def read_thermal_clusters(self, area_id: str) -> List[ThermalCluster]:
-        thermal_dict = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_id=area_id).ini_dict
+        thermal_dict = IniFile(
+            self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id
+        ).ini_dict
         thermal_clusters = []
         if thermal_dict:
             for thermal_cluster in thermal_dict:

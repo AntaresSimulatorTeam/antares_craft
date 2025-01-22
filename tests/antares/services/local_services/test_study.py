@@ -85,7 +85,7 @@ from antares.craft.model.settings.thematic_trimming import (
     ThematicTrimmingParametersLocal,
 )
 from antares.craft.model.study import create_study_local
-from antares.craft.tools.ini_tool import IniFileTypes
+from antares.craft.tools.ini_tool import InitializationFilesTypes
 
 
 class TestCreateStudy:
@@ -608,7 +608,7 @@ seed-initial-reservoir-levels = 10005489
 """
 
         # When
-        actual_generaldata_ini_file = local_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_generaldata_ini_file = local_study.service.config.study_path / InitializationFilesTypes.GENERAL.value
         actual_file_content = actual_generaldata_ini_file.read_text()
 
         # Then
@@ -730,7 +730,7 @@ select_var - = OP. COST
                 general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
             ),
         )
-        actual_generaldata_ini_file = new_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_generaldata_ini_file = new_study.service.config.study_path / InitializationFilesTypes.GENERAL.value
         actual_file_content = actual_generaldata_ini_file.read_text()
 
         # Then
@@ -855,7 +855,7 @@ select_var + = OP. COST
                 general_parameters=general_parameters, thematic_trimming_parameters=thematic_trimming_parameters
             ),
         )
-        actual_generaldata_ini_file = new_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_generaldata_ini_file = new_study.service.config.study_path / InitializationFilesTypes.GENERAL.value
         actual_file_content = actual_generaldata_ini_file.read_text()
 
         # Then
@@ -983,7 +983,7 @@ selected_vars_reset = false
             ),
         )
 
-        actual_generaldata_ini_file_path = new_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_generaldata_ini_file_path = new_study.service.config.study_path / InitializationFilesTypes.GENERAL.value
         actual_file_content = actual_generaldata_ini_file_path.read_text()
 
         # Then
@@ -1116,7 +1116,9 @@ select_var + = OP. COST
             ),
         )
 
-        actual_general_parameters_file_path = new_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_general_parameters_file_path = (
+            new_study.service.config.study_path / InitializationFilesTypes.GENERAL.value
+        )
         actual_file_content = actual_general_parameters_file_path.read_text()
 
         # Then
@@ -1251,7 +1253,7 @@ select_var + = OP. COST
             ),
         )
 
-        actual_general_ini_file_path = new_study.service.config.study_path / IniFileTypes.GENERAL.value
+        actual_general_ini_file_path = new_study.service.config.study_path / InitializationFilesTypes.GENERAL.value
         actual_file_content = actual_general_ini_file_path.read_text()
 
         # Then
@@ -1259,6 +1261,23 @@ select_var + = OP. COST
 
 
 class TestCreateArea:
+    def test_initialization_when_creating_area(self, tmp_path, local_study):
+        study_path = Path(local_study.path)
+        area_id = "test_files"
+        local_study.create_area(area_id)
+
+        expected_paths = [
+            study_path / f"input/reserves/{area_id}.txt",
+            study_path / f"input/misc-gen/miscgen-{area_id}.txt",
+            study_path / f"input/links/{area_id}/properties.ini",
+            study_path / f"input/load/series/load_{area_id}.txt",
+            study_path / f"input/solar/series/solar_{area_id}.txt",
+            study_path / f"input/wind/series/wind_{area_id}.txt",
+        ]
+
+        for expected_path in expected_paths:
+            assert expected_path.is_file(), f"File not created: {expected_path}"
+
     def test_areas_sets_ini_content(self, tmp_path, local_study):
         # Given
         expected_sets_path = tmp_path / local_study.name / "input" / "areas" / "sets.ini"
@@ -2066,7 +2085,8 @@ group = default
 
         # When
         actual_ini_path = (
-            local_study_with_constraint.service.config.study_path / IniFileTypes.BINDING_CONSTRAINTS_INI.value
+            local_study_with_constraint.service.config.study_path
+            / InitializationFilesTypes.BINDING_CONSTRAINTS_INI.value
         )
         with actual_ini_path.open("r") as file:
             actual_ini_content = file.read()
@@ -2114,7 +2134,8 @@ group = test group
             name="test constraint two", properties=custom_constraint_properties
         )
         actual_file_path = (
-            local_study_with_constraint.service.config.study_path / IniFileTypes.BINDING_CONSTRAINTS_INI.value
+            local_study_with_constraint.service.config.study_path
+            / InitializationFilesTypes.BINDING_CONSTRAINTS_INI.value
         )
         with actual_file_path.open("r") as file:
             actual_ini_content = file.read()

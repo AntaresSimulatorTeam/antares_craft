@@ -26,7 +26,7 @@ from antares.craft.model.settings.study_settings import StudySettingsLocal
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
 from antares.craft.model.study import Study, create_study_local
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterGroup, ThermalClusterProperties
-from antares.craft.tools.ini_tool import IniFile, IniFileTypes
+from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
 class TestLocalClient:
@@ -118,7 +118,7 @@ class TestLocalClient:
         assert area_be.ui.x == area_ui.x
         assert area_be.ui.color_rgb == area_ui.color_rgb
         be_ui_file = test_study.service.config.study_path.joinpath(
-            IniFileTypes.AREA_UI_INI.value.format(area_id=area_be.id)
+            InitializationFilesTypes.AREA_UI_INI.value.format(area_id=area_be.id)
         )
         assert be_ui_file.is_file()
 
@@ -148,10 +148,12 @@ class TestLocalClient:
         assert link_be_fr.properties.hurdles_cost
         assert link_be_fr.properties.filter_year_by_year == {FilterOption.HOURLY}
         be_link_ini_file = test_study.service.config.study_path.joinpath(
-            IniFileTypes.LINK_PROPERTIES_INI.value.format(area_id=area_be.id)
+            InitializationFilesTypes.LINK_PROPERTIES_INI.value.format(area_id=area_be.id)
         )
         assert be_link_ini_file.is_file()
-        be_links_in_file = IniFile(test_study.service.config.study_path, IniFileTypes.LINK_PROPERTIES_INI, area_be.id)
+        be_links_in_file = IniFile(
+            test_study.service.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, area_be.id
+        )
         assert be_links_in_file.ini_dict["fr"]["hurdles-cost"] == "true"
         assert be_links_in_file.ini_dict["fr"]["filter-year-by-year"] == "hourly"
 

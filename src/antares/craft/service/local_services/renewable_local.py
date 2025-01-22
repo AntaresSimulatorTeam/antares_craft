@@ -18,7 +18,7 @@ import pandas as pd
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesLocal
 from antares.craft.service.base_services import BaseRenewableService
-from antares.craft.tools.ini_tool import IniFile, IniFileTypes
+from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
@@ -40,7 +40,9 @@ class RenewableLocalService(BaseRenewableService):
         )
 
     def read_renewables(self, area_id: str) -> List[RenewableCluster]:
-        renewable_dict = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_id=area_id).ini_dict
+        renewable_dict = IniFile(
+            self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id
+        ).ini_dict
         renewables_clusters = []
         if renewable_dict:
             for renewable_cluster in renewable_dict:

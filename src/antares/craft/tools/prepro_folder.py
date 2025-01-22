@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.craft.tools.ini_tool import IniFile, IniFileTypes
+from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import df_save
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
@@ -26,7 +26,7 @@ class PreproFolder(Enum):
     WIND = "wind"
 
     def save(self, study_path: Path, area_id: str) -> None:
-        IniFile(study_path, IniFileTypes.__getitem__(f"{self.value.upper()}_SETTINGS_INI"), area_id)
+        IniFile(study_path, InitializationFilesTypes.__getitem__(f"{self.value.upper()}_SETTINGS_INI"), area_id)
 
         conversion = TimeSeriesFileType.__getitem__(f"{self.value.upper()}_CONVERSION").value.format(area_id=area_id)
         conversion_path = study_path.joinpath(conversion)

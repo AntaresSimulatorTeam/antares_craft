@@ -19,9 +19,10 @@ from antares.craft.tools.model_tools import filter_out_empty_model_fields
 from pydantic import BaseModel
 
 
-class IniFileTypes(Enum):
+class InitializationFilesTypes(Enum):
     """
-    The different ini files in an Antares project, files that are created for each area require using
+    The different initialization files (ini or txt) in an Antares project,
+    files that are created for each area require using
     format(area_id=<name>) to get the complete path
     """
 
@@ -36,8 +37,18 @@ class IniFileTypes(Enum):
     AREA_UI_INI = "input/areas/{area_id}/ui.ini"
     AREA_ADEQUACY_PATCH_INI = "input/areas/{area_id}/adequacy_patch.ini"
     BINDING_CONSTRAINTS_INI = "input/bindingconstraints/bindingconstraints.ini"
+
     HYDRO_CORRELATION_INI = "input/hydro/prepro/correlation.ini"
     HYDRO_INI = "input/hydro/hydro.ini"
+    HYDRO_CAPACITY_CM_TXT = "input/hydro/common/capacity/creditmodulations_{area_id}.txt"
+    HYDRO_CAPACITY_RE_TXT = "input/hydro/common/capacity/reservoir_{area_id}.txt"
+    HYDRO_CAPACITY_WV_TXT = "input/hydro/common/capacity/waterValues_{area_id}.txt"
+    HYDRO_CAPACITY_IP_TXT = "input/hydro/common/capacity/inflowPattern_{area_id}.txt"
+    HYDRO_SERIES_ROR_TXT = "input/hydro/series/{area_id}/ror.txt"
+    HYDRO_SERIES_MOD_TXT = "input/hydro/series/{area_id}/mod.txt"
+    HYDRO_SERIES_MIN_GEN_TXT = "input/hydro/series/{area_id}/mingen.txt"
+    HYDRO_COMMON_MAX_POWER = "input/hydro/common/capacity/maxpower_{area_id}.txt"
+
     LINK_PROPERTIES_INI = "input/links/{area_id}/properties.ini"
     LOAD_CORRELATION_INI = "input/load/prepro/correlation.ini"
     LOAD_SETTINGS_INI = "input/load/prepro/{area_id}/settings.ini"
@@ -45,17 +56,23 @@ class IniFileTypes(Enum):
     SOLAR_CORRELATION_INI = "input/solar/prepro/correlation.ini"
     SOLAR_SETTINGS_INI = "input/solar/prepro/{area_id}/settings.ini"
     ST_STORAGE_LIST_INI = "input/st-storage/clusters/{area_id}/list.ini"
+
     THERMAL_AREAS_INI = "input/thermal/areas.ini"
     THERMAL_LIST_INI = "input/thermal/clusters/{area_id}/list.ini"
+    THERMAL_PREPRO_MODULATION = "input/thermal/prepro/{area_id}/cluster/modulation.txt"
+    THERMAL_PREPRO_DATA = "input/thermal/prepro/{area_id}/cluster/data.txt"
+    THERMAL_SERIES = "input/thermal/series/{area_id}/cluster/series.txt"
+
     WIND_CORRELATION_INI = "input/wind/prepro/correlation.ini"
     WIND_SETTINGS_INI = "input/wind/prepro/{area_id}/settings.ini"
+    WIND_SERIES = "input/wind/series/wind_{area_id}.txt"
 
 
 class IniFile:
     def __init__(
         self,
         study_path: Path,
-        ini_file_type: IniFileTypes,
+        ini_file_type: InitializationFilesTypes,
         area_id: Optional[str] = None,
         ini_contents: Union[CustomRawConfigParser, dict[str, dict[str, str]], None] = None,
     ) -> None:
@@ -170,6 +187,38 @@ class IniFile:
         for section in ini_to_sort.sections():
             sorted_ini[section] = {key: value for (key, value) in sorted(list(ini_to_sort[section].items()))}
         return sorted_ini
+
+    @classmethod
+    def create_hydro_initialization_files_for_area(cls, study_path: Path, area_id: str) -> None:
+        """
+        Creates IniFile instances for HYDRO_CAPACITY files
+
+        Args:
+            study_path (Path): The base path for the study.
+            area_id (str): The area ID.
+
+        Returns:
+            list[IniFile]: A list of IniFile instances for the capacity files.
+        """
+        capacity_files = [
+            InitializationFilesTypes.HYDRO_CAPACITY_CM_TXT,
+            InitializationFilesTypes.HYDRO_CAPACITY_RE_TXT,
+            InitializationFilesTypes.HYDRO_CAPACITY_WV_TXT,
+            InitializationFilesTypes.HYDRO_CAPACITY_IP_TXT,
+            InitializationFilesTypes.HYDRO_SERIES_ROR_TXT,
+            InitializationFilesTypes.HYDRO_SERIES_MOD_TXT,
+            InitializationFilesTypes.HYDRO_SERIES_MIN_GEN_TXT,
+            InitializationFilesTypes.HYDRO_COMMON_MAX_POWER,
+        ]
+
+        for file_type in capacity_files:
+            cls(study_path=study_path, ini_file_type=file_type, area_id=area_id)
+
+    @classmethod
+    def create_link_ini_for_area(cls, study_path: Path, area_id: str) -> None:
+        property_file = InitializationFilesTypes.LINK_PROPERTIES_INI
+
+        cls(study_path=study_path, ini_file_type=property_file, area_id=area_id)
 
 
 def merge_dicts_for_ini(dict_a: dict[str, Any], dict_b: dict[str, Any]) -> dict:
