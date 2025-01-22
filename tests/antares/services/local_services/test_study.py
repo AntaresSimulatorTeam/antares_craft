@@ -1261,7 +1261,7 @@ select_var + = OP. COST
 
 
 class TestCreateArea:
-    def test_areas_initialization_files_reserves_misc_gen_others(self, tmp_path, local_study):
+    def test_initialization_when_creating_area(self, tmp_path, local_study):
         study_path = Path(local_study.path)
         area_id = "test_files"
         local_study.create_area(area_id)

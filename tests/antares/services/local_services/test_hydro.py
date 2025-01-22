@@ -51,7 +51,7 @@ class TestCreateHydro:
                 study_path / f"input/hydro/common/capacity/creditmodulations_{area_id}.txt",
                 study_path / f"input/hydro/common/capacity/reservoir_{area_id}.txt",
                 study_path / f"input/hydro/common/capacity/waterValues_{area_id}.txt",
-                study_path / f"input/hydro/common/capacity/InflowPattern_{area_id}.txt",
+                study_path / f"input/hydro/common/capacity/inflowPattern_{area_id}.txt",
                 study_path / f"input/hydro/series/{area_id}/ror.txt",
                 study_path / f"input/hydro/series/{area_id}/mod.txt",
                 study_path / f"input/hydro/series/{area_id}/mingen.txt",

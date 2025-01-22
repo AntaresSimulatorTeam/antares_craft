@@ -43,7 +43,7 @@ class InitializationFilesTypes(Enum):
     HYDRO_CAPACITY_CM_TXT = "input/hydro/common/capacity/creditmodulations_{area_id}.txt"
     HYDRO_CAPACITY_RE_TXT = "input/hydro/common/capacity/reservoir_{area_id}.txt"
     HYDRO_CAPACITY_WV_TXT = "input/hydro/common/capacity/waterValues_{area_id}.txt"
-    HYDRO_CAPACITY_IP_TXT = "input/hydro/common/capacity/InflowPattern_{area_id}.txt"
+    HYDRO_CAPACITY_IP_TXT = "input/hydro/common/capacity/inflowPattern_{area_id}.txt"
     HYDRO_SERIES_ROR_TXT = "input/hydro/series/{area_id}/ror.txt"
     HYDRO_SERIES_MOD_TXT = "input/hydro/series/{area_id}/mod.txt"
     HYDRO_SERIES_MIN_GEN_TXT = "input/hydro/series/{area_id}/mingen.txt"
@@ -189,7 +189,7 @@ class IniFile:
         return sorted_ini
 
     @classmethod
-    def create_hydro_initialization_files_for_area(cls, study_path: Path, area_id: str) -> list["IniFile"]:
+    def create_hydro_initialization_files_for_area(cls, study_path: Path, area_id: str) -> None:
         """
         Creates IniFile instances for HYDRO_CAPACITY files
 
@@ -211,13 +211,14 @@ class IniFile:
             InitializationFilesTypes.HYDRO_COMMON_MAX_POWER,
         ]
 
-        return [cls(study_path=study_path, ini_file_type=file_type, area_id=area_id) for file_type in capacity_files]
+        for file_type in capacity_files:
+            cls(study_path=study_path, ini_file_type=file_type, area_id=area_id)
 
     @classmethod
-    def create_link_ini_for_area(cls, study_path: Path, area_id: str) -> "IniFile":
+    def create_link_ini_for_area(cls, study_path: Path, area_id: str) -> None:
         property_file = InitializationFilesTypes.LINK_PROPERTIES_INI
 
-        return cls(study_path=study_path, ini_file_type=property_file, area_id=area_id)
+        cls(study_path=study_path, ini_file_type=property_file, area_id=area_id)
 
 
 def merge_dicts_for_ini(dict_a: dict[str, Any], dict_b: dict[str, Any]) -> dict:
