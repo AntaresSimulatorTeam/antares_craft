@@ -26,7 +26,7 @@ from antares.craft.model.binding_constraint import (
     DefaultBindingConstraintProperties,
 )
 from antares.craft.service.base_services import BaseBindingConstraintService
-from antares.craft.tools.ini_tool import IniFile, IniFileTypes
+from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import df_read, df_save
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 from pydantic import Field
@@ -77,7 +77,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
-        self.ini_file = IniFile(self.config.study_path, IniFileTypes.BINDING_CONSTRAINTS_INI)
+        self.ini_file = IniFile(self.config.study_path, InitializationFilesTypes.BINDING_CONSTRAINTS_INI)
 
     def create_binding_constraint(
         self,

@@ -23,7 +23,7 @@ from antares.craft.model.link import Link, LinkProperties, LinkPropertiesLocal, 
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.tools.contents_tool import sort_ini_sections
 from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
-from antares.craft.tools.ini_tool import IniFile, IniFileTypes
+from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
@@ -175,7 +175,9 @@ class LinkLocalService(BaseLinkService):
 
         for element in link_path.iterdir():
             area_from = element.name
-            links_dict = IniFile(self.config.study_path, IniFileTypes.LINK_PROPERTIES_INI, area_id=area_from).ini_dict
+            links_dict = IniFile(
+                self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, area_id=area_from
+            ).ini_dict
             # If the properties.ini doesn't exist, we stop the reading process
             if links_dict:
                 for area_to in links_dict:

@@ -39,7 +39,7 @@ from antares.craft.service.base_services import (
     BaseThermalService,
 )
 from antares.craft.tools.contents_tool import transform_name_to_id
-from antares.craft.tools.ini_tool import IniFile, IniFileTypes
+from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
 from antares.craft.tools.prepro_folder import PreproFolder
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
@@ -90,7 +90,10 @@ class AreaLocalService(BaseAreaService):
         args = {"thermal_name": thermal_name, **properties.model_dump(mode="json", exclude_none=True)}
         local_thermal_properties = ThermalClusterPropertiesLocal.model_validate(args)
 
-        list_ini = IniFile(self.config.study_path, IniFileTypes.THERMAL_LIST_INI, area_id=area_id)
+        list_ini = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id)
+        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_PREPRO_MODULATION, area_id=area_id)
+        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_PREPRO_DATA, area_id=area_id)
+        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_SERIES, area_id=area_id)
         try:
             list_ini.add_section(local_thermal_properties.list_ini_fields)
         except DuplicateSectionError:
@@ -129,7 +132,7 @@ class AreaLocalService(BaseAreaService):
         args = {"renewable_name": renewable_name, **properties.model_dump(mode="json", exclude_none=True)}
         local_properties = RenewableClusterPropertiesLocal.model_validate(args)
 
-        list_ini = IniFile(self.config.study_path, IniFileTypes.RENEWABLES_LIST_INI, area_id=area_id)
+        list_ini = IniFile(self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id)
         list_ini.add_section(local_properties.ini_fields)
         list_ini.write_ini_file()
 
@@ -152,7 +155,7 @@ class AreaLocalService(BaseAreaService):
         args = {"st_storage_name": st_storage_name, **properties.model_dump(mode="json", exclude_none=True)}
         local_st_storage_properties = STStoragePropertiesLocal.model_validate(args)
 
-        list_ini = IniFile(self.config.study_path, IniFileTypes.ST_STORAGE_LIST_INI, area_id=area_id)
+        list_ini = IniFile(self.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area_id)
         list_ini.add_section(local_st_storage_properties.list_ini_fields)
         list_ini.write_ini_file(sort_sections=True)
 
@@ -187,9 +190,11 @@ class AreaLocalService(BaseAreaService):
         args = {"area_id": area_id, **properties.model_dump(mode="json", exclude_none=True)}
         local_hydro_properties = HydroPropertiesLocal.model_validate(args)
 
-        list_ini = IniFile(self.config.study_path, IniFileTypes.HYDRO_INI)
+        list_ini = IniFile(self.config.study_path, InitializationFilesTypes.HYDRO_INI)
         list_ini.add_section(local_hydro_properties.hydro_ini_fields, append=True)
         list_ini.write_ini_file(sort_section_content=True)
+
+        IniFile.create_hydro_initialization_files_for_area(self.config.study_path, area_id)
 
         return Hydro(self, area_id, local_hydro_properties.yield_hydro_properties())
 
@@ -255,7 +260,7 @@ class AreaLocalService(BaseAreaService):
             # TODO: Handle districts in sets.ini later
             sets_ini_content = _sets_ini_content()
 
-            with (self.config.study_path / IniFileTypes.AREAS_SETS_INI.value).open("w") as sets_ini:
+            with (self.config.study_path / InitializationFilesTypes.AREAS_SETS_INI.value).open("w") as sets_ini:
                 sets_ini_content.write(sets_ini)
 
             local_properties = (
@@ -264,7 +269,9 @@ class AreaLocalService(BaseAreaService):
                 else AreaPropertiesLocal()
             )
 
-            adequacy_patch_ini = IniFile(self.config.study_path, IniFileTypes.AREA_ADEQUACY_PATCH_INI, area_name)
+            adequacy_patch_ini = IniFile(
+                self.config.study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_name
+            )
             adequacy_patch_ini.add_section(local_properties.adequacy_patch())
             adequacy_patch_ini.write_ini_file()
 
@@ -274,7 +281,7 @@ class AreaLocalService(BaseAreaService):
             with open(new_area_directory / "optimization.ini", "w") as optimization_ini_file:
                 optimization_ini.write(optimization_ini_file)
 
-            areas_ini = IniFile(self.config.study_path, IniFileTypes.THERMAL_AREAS_INI)
+            areas_ini = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_AREAS_INI)
             if not areas_ini.ini_dict:
                 areas_ini.add_section({"unserverdenergycost": {}})
                 areas_ini.add_section({"spilledenergycost": {}})
@@ -289,6 +296,14 @@ class AreaLocalService(BaseAreaService):
             ui_ini.read_dict(local_ui.model_dump(exclude_none=True))
             with open(new_area_directory / "ui.ini", "w") as ui_ini_file:
                 ui_ini.write(ui_ini_file)
+
+            empty_df = pd.DataFrame()
+            self.create_reserves(area_name, empty_df)
+            self.create_misc_gen(area_name, empty_df)
+            self.create_load(area_name, empty_df)
+            self.create_solar(area_name, empty_df)
+            self.create_wind(area_name, empty_df)
+            IniFile.create_link_ini_for_area(self.config.study_path, area_name)
 
         except Exception as e:
             raise AreaCreationError(area_name, f"{e}") from e
@@ -347,13 +362,15 @@ class AreaLocalService(BaseAreaService):
         for element in areas_path.iterdir():
             if element.is_dir():
                 optimization_dict = IniFile(
-                    self.config.study_path, IniFileTypes.AREA_OPTIMIZATION_INI, area_id=element.name
+                    self.config.study_path, InitializationFilesTypes.AREA_OPTIMIZATION_INI, area_id=element.name
                 ).ini_dict
                 area_adequacy_dict = IniFile(
-                    self.config.study_path, IniFileTypes.AREA_ADEQUACY_PATCH_INI, area_id=element.name
+                    self.config.study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_id=element.name
                 ).ini_dict
-                ui_dict = IniFile(self.config.study_path, IniFileTypes.AREA_UI_INI, area_id=element.name).ini_dict
-                thermal_area_dict = IniFile(self.config.study_path, IniFileTypes.THERMAL_AREAS_INI).ini_dict
+                ui_dict = IniFile(
+                    self.config.study_path, InitializationFilesTypes.AREA_UI_INI, area_id=element.name
+                ).ini_dict
+                thermal_area_dict = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_AREAS_INI).ini_dict
                 area_properties = AreaPropertiesLocal(
                     non_dispatch_power=optimization_dict["nodal optimization"].get("non-dispatchable-power"),
                     dispatch_hydro_power=optimization_dict["nodal optimization"].get("dispatchable-hydro-power"),

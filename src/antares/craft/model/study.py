@@ -38,7 +38,7 @@ from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.service.api_services.study_api import _returns_study_settings
 from antares.craft.service.base_services import BaseStudyService
 from antares.craft.service.service_factory import ServiceFactory
-from antares.craft.tools.ini_tool import IniFile, IniFileTypes
+from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 """
 The study module defines the data model for antares study.
@@ -140,7 +140,7 @@ InfoTip = Antares Study {version}: {study_name}
         desktop_ini_file.write(desktop_ini_content)
 
     local_settings = StudySettingsLocal.model_validate(settings)
-    local_settings_file = IniFile(study_directory, IniFileTypes.GENERAL)
+    local_settings_file = IniFile(study_directory, InitializationFilesTypes.GENERAL)
     local_settings_file.ini_dict = local_settings.model_dump(exclude_none=True, by_alias=True)
     local_settings_file.write_ini_file()
 
@@ -174,7 +174,7 @@ def read_study_local(study_directory: Path) -> "Study":
 
     _directory_not_exists(study_directory)
 
-    study_antares = IniFile(study_directory, IniFileTypes.ANTARES)
+    study_antares = IniFile(study_directory, InitializationFilesTypes.ANTARES)
 
     study_params = study_antares.ini_dict["antares"]
 
@@ -480,7 +480,7 @@ def _create_correlation_ini_files(local_settings: StudySettingsLocal, study_dire
     correlation_inis_to_create = [
         (
             field + "_correlation",
-            getattr(IniFileTypes, field.upper() + "_CORRELATION_INI"),
+            getattr(InitializationFilesTypes, field.upper() + "_CORRELATION_INI"),
             field,
         )
         for field in fields_to_check
