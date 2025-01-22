@@ -1,3 +1,9 @@
+v0.1.8_RC1 (2025-01-22)
+-------------------
+
+- bug fixes for missing files when creating area
+- wrong properties corrected (spread-unsupplied-energy-cost and spread-spilled-energy-cost)
+
 v0.1.7 (2025-01-08)
 -------------------
 
