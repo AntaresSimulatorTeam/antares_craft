@@ -128,5 +128,10 @@ class RenewableCluster:
     def get_timeseries(self) -> pd.DataFrame:
         return self._renewable_service.get_renewable_matrix(self.id, self.area_id)
 
+<<<<<<< HEAD
     def update_renewable_matrix(self, matrix: pd.DataFrame) -> None:
         self._renewable_service.update_renewable_matrix(self, matrix)
+=======
+    def upload_renewable_matrix(self, matrix: pd.DataFrame) -> None:
+        self._renewable_service.upload_renewable_matrix(self, matrix)
+>>>>>>> feat(api): adding renewable and thermal matrix upload method (unit testing too)
