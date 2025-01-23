@@ -440,6 +440,10 @@ class BaseThermalService(ABC):
         pass
 
     @abstractmethod
+    def update_thermal_matrix(self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
     def get_thermal_matrix(self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName) -> pd.DataFrame:
         """
         Args:
@@ -657,6 +661,16 @@ class BaseRenewableService(ABC):
             area_id: area id to retrieve matrix
         Returns: matrix requested
 
+        """
+        pass
+
+    @abstractmethod
+    def update_renewable_matrix(self, renewable_cluster: RenewableCluster, matrix: pd.DataFrame) -> None:
+        """
+        Args:
+            renewable_cluster: the renewable_cluster
+            matrix: the renewable matrix we want to update
+        Returns: None
         """
         pass
 

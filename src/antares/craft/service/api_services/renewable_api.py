@@ -56,7 +56,7 @@ class RenewableApiService(BaseRenewableService):
 
         return new_properties
 
-    def upload_renewable_matrix(self, renewable_cluster: RenewableCluster, matrix: pd.DataFrame) -> None:
+    def update_renewable_matrix(self, renewable_cluster: RenewableCluster, matrix: pd.DataFrame) -> None:
         try:
             path = (
                 PurePosixPath("input")

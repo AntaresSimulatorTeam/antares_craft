@@ -56,7 +56,7 @@ class ThermalApiService(BaseThermalService):
 
         return new_properties
 
-    def upload_thermal_matrix(self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame) -> None:
+    def update_thermal_matrix(self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame) -> None:
         path = (
             PurePosixPath("input")
             / "thermal"
@@ -66,13 +66,7 @@ class ThermalApiService(BaseThermalService):
             / "series"
         )
         try:
-            body = {
-                "data": matrix.to_numpy().tolist(),
-                "index": matrix.index.tolist(),
-                "columns": matrix.columns.tolist(),
-            }
-            data = pd.json_normalize(body)
-            upload_series(self._base_url, self.study_id, self._wrapper, data, path.as_posix())
+            upload_series(self._base_url, self.study_id, self._wrapper, matrix, path.as_posix())
         except APIError as e:
             raise ThermalMatrixUploadError(thermal_cluster.area_id, thermal_cluster.name, e.message) from e
 

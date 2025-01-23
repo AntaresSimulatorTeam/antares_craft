@@ -119,7 +119,7 @@ class TestCreateAPI:
                 f"{self.area.id}/{self.thermal.name}/series"
             )
             mocker.post(url, status_code=200)
-            self.thermal.upload_thermal_matrix(self.matrix)
+            self.thermal.update_thermal_matrix(self.matrix)
 
     def test_upload_thermal_matrix_fail(self):
         with requests_mock.Mocker() as mocker:
@@ -133,7 +133,7 @@ class TestCreateAPI:
                 match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.name}: "
                 + self.antares_web_description_msg,
             ):
-                self.thermal.upload_thermal_matrix(self.matrix)
+                self.thermal.update_thermal_matrix(self.matrix)
 
     def test_read_thermals(self):
         json_thermal = [

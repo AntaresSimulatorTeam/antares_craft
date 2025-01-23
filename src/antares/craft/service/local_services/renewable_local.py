@@ -63,3 +63,6 @@ class RenewableLocalService(BaseRenewableService):
                     )
                 )
         return renewables_clusters
+
+    def update_renewable_matrix(self, renewable_cluster: RenewableCluster, matrix: pd.DataFrame) -> None:
+        pass

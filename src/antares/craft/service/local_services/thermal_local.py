@@ -113,3 +113,6 @@ class ThermalLocalService(BaseThermalService):
                     )
                 )
         return thermal_clusters
+
+    def update_thermal_matrix(self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame) -> None:
+        raise NotImplementedError
