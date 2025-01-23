@@ -158,7 +158,7 @@ class TestCreateAPI:
                     match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.name}" + self.antares_web_description_msg
 =======
                 ThermalMatrixUploadError,
-                match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.name}"
+                match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.name}: "
                 + self.antares_web_description_msg,
 >>>>>>> feat(api): adding renewable and thermal matrix upload method (unit testing too)
             ):
