@@ -464,8 +464,7 @@ class TestWebClient:
         area_fr.delete_st_storage(battery_fr)
         assert battery_fr.id not in study.get_areas().get(area_be.id).get_st_storages()
 
-        #tests uploading thermal and renewable matrices
-
+        # tests uploading thermal and renewable matrices
 
         # tests area deletion error
         with pytest.raises(
