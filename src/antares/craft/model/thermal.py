@@ -214,3 +214,6 @@ class ThermalCluster:
 
     def get_fuel_cost_matrix(self) -> pd.DataFrame:
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_FUEL_COST)
+
+    def upload_thermal_matrix(self, matrix: pd.DataFrame) -> None:
+        self._thermal_service.upload_thermal_matrix(self, matrix)
