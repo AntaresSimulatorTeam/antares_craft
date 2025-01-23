@@ -16,8 +16,11 @@ import requests_mock
 import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
-from antares.craft.exceptions.exceptions import ThermalMatrixDownloadError, ThermalPropertiesUpdateError, \
-    ThermalMatrixUploadError
+from antares.craft.exceptions.exceptions import (
+    ThermalMatrixDownloadError,
+    ThermalMatrixUploadError,
+    ThermalPropertiesUpdateError,
+)
 from antares.craft.model.area import Area
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
@@ -126,8 +129,9 @@ class TestCreateAPI:
             )
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
-                    ThermalMatrixUploadError,
-                    match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.name}" + self.antares_web_description_msg
+                ThermalMatrixUploadError,
+                match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.name}"
+                + self.antares_web_description_msg,
             ):
                 self.thermal.upload_thermal_matrix(self.matrix)
 
