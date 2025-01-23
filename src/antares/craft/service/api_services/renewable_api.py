@@ -57,9 +57,15 @@ class RenewableApiService(BaseRenewableService):
         return new_properties
 
     def upload_renewable_matrix(self, renewable_cluster: RenewableCluster, matrix: pd.DataFrame) -> None:
-
         try:
-            path = PurePosixPath("input") / "renewables" / "series" / f"{renewable_cluster.area_id}" / f"{renewable_cluster.id}" / "series"
+            path = (
+                PurePosixPath("input")
+                / "renewables"
+                / "series"
+                / f"{renewable_cluster.area_id}"
+                / f"{renewable_cluster.id}"
+                / "series"
+            )
 
             upload_series(self._base_url, self.study_id, self._wrapper, matrix, path.as_posix())
         except APIError as e:

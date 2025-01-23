@@ -56,10 +56,17 @@ class ThermalApiService(BaseThermalService):
 
         return new_properties
 
-    def upload_thermal_matrix(self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame):
-        path = PurePosixPath("input") / "thermal" / "series" / f"{thermal_cluster.area_id}" / f"{thermal_cluster.id}" / "series"
+    def upload_thermal_matrix(self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame) -> None:
+        path = (
+            PurePosixPath("input")
+            / "thermal"
+            / "series"
+            / f"{thermal_cluster.area_id}"
+            / f"{thermal_cluster.id}"
+            / "series"
+        )
         try:
-            body={
+            body = {
                 "data": matrix.to_numpy().tolist(),
                 "index": matrix.index.tolist(),
                 "columns": matrix.columns.tolist(),

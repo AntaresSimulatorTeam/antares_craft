@@ -14,11 +14,13 @@ import pytest
 import requests_mock
 
 import pandas as pd
-from numpy.matrixlib.defmatrix import matrix
 
 from antares.craft.api_conf.api_conf import APIconf
-from antares.craft.exceptions.exceptions import RenewableMatrixDownloadError, RenewablePropertiesUpdateError, \
-    RenewableMatrixUploadError
+from antares.craft.exceptions.exceptions import (
+    RenewableMatrixDownloadError,
+    RenewableMatrixUploadError,
+    RenewablePropertiesUpdateError,
+)
 from antares.craft.model.area import Area
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.service.api_services.area_api import AreaApiService
@@ -110,7 +112,8 @@ class TestCreateAPI:
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 RenewableMatrixUploadError,
-                match=f"Could not upload matrix for cluster {self.renewable.name} inside area {self.area.name}: " + self.antares_web_description_msg
+                match=f"Could not upload matrix for cluster {self.renewable.name} inside area {self.area.name}: "
+                + self.antares_web_description_msg,
             ):
                 self.renewable.upload_renewable_matrix(self.matrix)
 
