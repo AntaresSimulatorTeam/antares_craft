@@ -17,6 +17,7 @@ import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
 <<<<<<< HEAD
+<<<<<<< HEAD
 from antares.craft.exceptions.exceptions import (
     ThermalMatrixDownloadError,
     ThermalMatrixUpdateError,
@@ -25,6 +26,13 @@ from antares.craft.exceptions.exceptions import (
 =======
 from antares.craft.exceptions.exceptions import ThermalMatrixDownloadError, ThermalPropertiesUpdateError, \
     ThermalMatrixUploadError
+>>>>>>> feat(api): adding renewable and thermal matrix upload method (unit testing too)
+=======
+from antares.craft.exceptions.exceptions import (
+    ThermalMatrixDownloadError,
+    ThermalMatrixUploadError,
+    ThermalPropertiesUpdateError,
+)
 >>>>>>> feat(api): adding renewable and thermal matrix upload method (unit testing too)
 from antares.craft.model.area import Area
 from antares.craft.model.study import Study
@@ -139,6 +147,7 @@ class TestCreateAPI:
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
 <<<<<<< HEAD
+<<<<<<< HEAD
                 ThermalMatrixUpdateError,
                 match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.name}: "
                 + self.antares_web_description_msg,
@@ -147,6 +156,11 @@ class TestCreateAPI:
 =======
                     ThermalMatrixUploadError,
                     match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.name}" + self.antares_web_description_msg
+=======
+                ThermalMatrixUploadError,
+                match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.name}"
+                + self.antares_web_description_msg,
+>>>>>>> feat(api): adding renewable and thermal matrix upload method (unit testing too)
             ):
                 self.thermal.upload_thermal_matrix(self.matrix)
 >>>>>>> feat(api): adding renewable and thermal matrix upload method (unit testing too)

@@ -14,9 +14,9 @@ import pytest
 import requests_mock
 
 import pandas as pd
-from numpy.matrixlib.defmatrix import matrix
 
 from antares.craft.api_conf.api_conf import APIconf
+<<<<<<< HEAD
 <<<<<<< HEAD
 from antares.craft.exceptions.exceptions import (
     RenewableMatrixDownloadError,
@@ -26,6 +26,13 @@ from antares.craft.exceptions.exceptions import (
 =======
 from antares.craft.exceptions.exceptions import RenewableMatrixDownloadError, RenewablePropertiesUpdateError, \
     RenewableMatrixUploadError
+>>>>>>> feat(api): adding renewable and thermal matrix upload method (unit testing too)
+=======
+from antares.craft.exceptions.exceptions import (
+    RenewableMatrixDownloadError,
+    RenewableMatrixUploadError,
+    RenewablePropertiesUpdateError,
+)
 >>>>>>> feat(api): adding renewable and thermal matrix upload method (unit testing too)
 from antares.craft.model.area import Area
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
@@ -129,7 +136,8 @@ class TestCreateAPI:
                 self.renewable.update_renewable_matrix(self.matrix)
 =======
                 RenewableMatrixUploadError,
-                match=f"Could not upload matrix for cluster {self.renewable.name} inside area {self.area.name}: " + self.antares_web_description_msg
+                match=f"Could not upload matrix for cluster {self.renewable.name} inside area {self.area.name}: "
+                + self.antares_web_description_msg,
             ):
                 self.renewable.upload_renewable_matrix(self.matrix)
 >>>>>>> feat(api): adding renewable and thermal matrix upload method (unit testing too)
