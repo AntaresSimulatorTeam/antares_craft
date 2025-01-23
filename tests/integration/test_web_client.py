@@ -474,6 +474,11 @@ class TestWebClient:
         assert battery_fr.id not in study.get_areas().get(area_be.id).get_st_storages()
 
         # tests uploading thermal and renewable matrices
+        thermal_fr_matrix = pd.DataFrame(data=[[0]])
+        thermal_fr.update_thermal_matrix(thermal_fr_matrix)
+
+        actual_thermal_matrix = thermal_fr.get_series_matrix()
+        actual_thermal_matrix.equals(thermal_fr_matrix)
 
         # tests area deletion error
         with pytest.raises(
