@@ -220,6 +220,12 @@ class IniFile:
 
         cls(study_path=study_path, ini_file_type=property_file, area_id=area_id)
 
+    @classmethod
+    def create_list_ini_for_area(cls, study_path: Path, area_id: str) -> None:
+        property_file = InitializationFilesTypes.THERMAL_LIST_INI
+
+        cls(study_path=study_path, ini_file_type=property_file, area_id=area_id)
+
 
 def merge_dicts_for_ini(dict_a: dict[str, Any], dict_b: dict[str, Any]) -> dict:
     """

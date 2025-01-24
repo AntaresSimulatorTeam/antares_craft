@@ -304,6 +304,7 @@ class AreaLocalService(BaseAreaService):
             self.create_solar(area_name, empty_df)
             self.create_wind(area_name, empty_df)
             IniFile.create_link_ini_for_area(self.config.study_path, area_name)
+            IniFile.create_list_ini_for_area(self.config.study_path, area_name)
 
         except Exception as e:
             raise AreaCreationError(area_name, f"{e}") from e

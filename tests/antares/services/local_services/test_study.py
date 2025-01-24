@@ -1273,6 +1273,7 @@ class TestCreateArea:
             study_path / f"input/load/series/load_{area_id}.txt",
             study_path / f"input/solar/series/solar_{area_id}.txt",
             study_path / f"input/wind/series/wind_{area_id}.txt",
+            study_path / f"input/thermal/clusters/{area_id}/list.ini"
         ]
 
         for expected_path in expected_paths:
