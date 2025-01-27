@@ -1,6 +1,6 @@
 v0.1.8_RC2 (2025-01-22)
 -------------------
-
+- upload renewable thermal matrices method added
 - bug fix clusters/{area}/list.ini file was missing
 - bug fix for input/thermal/series/{area}/{cluster}/series.txt /data.txt and modulation.txt, wrong path 
   at cluster creation
