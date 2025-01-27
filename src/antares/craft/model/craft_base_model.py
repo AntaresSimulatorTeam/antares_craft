@@ -14,4 +14,4 @@ from pydantic import BaseModel, ConfigDict
 
 
 class CraftBaseModel(BaseModel):
-    model_config = ConfigDict(hide_input_in_errors=True, ignored_types=(str, set))
+    model_config = ConfigDict(arbitrary_types_allowed=True)
