@@ -14,7 +14,7 @@ from typing import Optional, Union
 
 import pandas as pd
 
-from antares.craft.model.craft_base_model import CraftBaseModel
+from pydantic import BaseModel
 
 
 class MCIndAreas(Enum):
@@ -49,7 +49,7 @@ class Frequency(Enum):
     ANNUAL = "annual"
 
 
-class AggregationEntry(CraftBaseModel):
+class AggregationEntry(BaseModel):
     """
     Represents an entry for aggregation queries
 

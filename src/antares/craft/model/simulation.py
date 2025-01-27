@@ -13,8 +13,7 @@
 from enum import Enum
 from typing import Any, Optional
 
-from antares.craft.model.craft_base_model import CraftBaseModel
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 
 class Solver(Enum):
@@ -23,7 +22,7 @@ class Solver(Enum):
     SIRIUS = "sirius"
 
 
-class AntaresSimulationParameters(CraftBaseModel):
+class AntaresSimulationParameters(BaseModel):
     solver: Solver = Solver.SIRIUS
     nb_cpu: Optional[int] = None
     unzip_output: bool = Field(alias="auto_unzip", default=True)
@@ -59,7 +58,7 @@ class JobStatus(Enum):
         return JobStatus.__getitem__(input.upper())
 
 
-class Job(CraftBaseModel):
+class Job(BaseModel):
     job_id: str
     status: JobStatus
     output_id: Optional[str] = None

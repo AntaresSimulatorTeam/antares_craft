@@ -15,9 +15,9 @@ from typing import Optional
 
 import pandas as pd
 
-from antares.craft.model.craft_base_model import CraftBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import transform_name_to_id
+from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
 
 
@@ -42,7 +42,7 @@ class STStorageMatrixName(Enum):
     INFLOWS = "inflows"
 
 
-class DefaultSTStorageProperties(CraftBaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+class DefaultSTStorageProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     """
     Properties of a short-term storage system read from the configuration files.
 

@@ -13,9 +13,8 @@
 from enum import Enum
 from typing import Union
 
-from antares.craft.model.craft_base_model import CraftBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 
@@ -52,7 +51,7 @@ class ExportMPS(Enum):
     TRUE = True
 
 
-class DefaultOptimizationParameters(CraftBaseModel, alias_generator=to_camel):
+class DefaultOptimizationParameters(BaseModel, alias_generator=to_camel):
     model_config = ConfigDict(use_enum_values=True)
 
     simplex_optimization_range: SimplexOptimizationRange = Field(
