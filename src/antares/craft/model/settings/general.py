@@ -9,10 +9,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from antares.craft.model.craft_base_model import CraftBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 
@@ -69,7 +69,7 @@ class OutputFormat(EnumIgnoreCase):
     ZIP = "zip-files"
 
 
-class DefaultGeneralParameters(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+class DefaultGeneralParameters(CraftBaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     model_config = ConfigDict(use_enum_values=True)
 
     mode: Mode = Field(default=Mode.ECONOMY, validate_default=True)

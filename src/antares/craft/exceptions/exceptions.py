@@ -264,7 +264,7 @@ class ThermalMatrixDownloadError(Exception):
         super().__init__(self.message)
 
 
-class ThermalMatrixUploadError(Exception):
+class ThermalMatrixUpdateError(Exception):
     def __init__(self, area_name: str, cluster_name: str, message: str) -> None:
         self.message = f"Could not upload matrix for cluster {cluster_name} inside area {area_name}: " + message
         super().__init__(self.message)
@@ -276,7 +276,7 @@ class RenewableMatrixDownloadError(Exception):
         super().__init__(self.message)
 
 
-class RenewableMatrixUploadError(Exception):
+class RenewableMatrixUpdateError(Exception):
     def __init__(self, area_name: str, renewable_name: str, message: str) -> None:
         self.message = f"Could not upload matrix for cluster {renewable_name} inside area {area_name}: " + message
         super().__init__(self.message)

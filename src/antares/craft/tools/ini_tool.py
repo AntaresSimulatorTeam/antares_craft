@@ -14,9 +14,9 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Iterable, Optional, Union
 
+from antares.craft.model.craft_base_model import CraftBaseModel
 from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
 from antares.craft.tools.model_tools import filter_out_empty_model_fields
-from pydantic import BaseModel
 
 
 class InitializationFilesTypes(Enum):
@@ -250,13 +250,13 @@ def merge_dicts_for_ini(dict_a: dict[str, Any], dict_b: dict[str, Any]) -> dict:
     return output_dict
 
 
-def get_ini_fields_for_ini(model: BaseModel) -> dict:
+def get_ini_fields_for_ini(model: CraftBaseModel) -> dict:
     """
-    Creates a dictionary of the property `ini_fields` from a `BaseModel` object that contains the merged dictionaries
+    Creates a dictionary of the property `ini_fields` from a `CraftBaseModel` object that contains the merged dictionaries
     of all the `ini_fields` properties.
 
     Args:
-        model (BaseModel): A `BaseModel` object containing other objects.
+        model (CraftBaseModel): A `CraftBaseModel` object containing other objects.
 
     Returns:
         dict[str, Any]: A dictionary of the property `ini_fields` from the contained objects.

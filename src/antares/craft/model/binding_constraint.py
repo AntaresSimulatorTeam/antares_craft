@@ -15,9 +15,10 @@ from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 
+from antares.craft.model.craft_base_model import CraftBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
-from pydantic import BaseModel, Field, model_validator
+from pydantic import Field, model_validator
 from pydantic.alias_generators import to_camel
 
 
@@ -40,7 +41,7 @@ class ConstraintMatrixName(Enum):
     GREATER_TERM = "gt"
 
 
-class TermOperators(BaseModel):
+class TermOperators(CraftBaseModel):
     weight: Optional[float] = None
     offset: Optional[int] = None
 
@@ -53,7 +54,7 @@ class TermOperators(BaseModel):
         return weight_offset
 
 
-class LinkData(BaseModel):
+class LinkData(CraftBaseModel):
     """
     DTO for a constraint term on a link between two areas.
     """
@@ -62,7 +63,7 @@ class LinkData(BaseModel):
     area2: str
 
 
-class ClusterData(BaseModel):
+class ClusterData(CraftBaseModel):
     """
     DTO for a constraint term on a cluster in an area.
     """
@@ -91,7 +92,9 @@ class ConstraintTerm(TermOperators):
         return ".".join((data.area.lower(), data.cluster.lower()))
 
 
-class DefaultBindingConstraintProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+class DefaultBindingConstraintProperties(
+    CraftBaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel
+):
     """Default properties for binding constraints
 
     Attributes:

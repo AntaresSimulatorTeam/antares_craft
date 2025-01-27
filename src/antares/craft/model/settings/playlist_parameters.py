@@ -12,15 +12,16 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field, ValidationError, field_validator, model_serializer, model_validator
+from antares.craft.model.craft_base_model import CraftBaseModel
+from pydantic import Field, ValidationError, field_validator, model_serializer, model_validator
 
 
-class PlaylistData(BaseModel):
+class PlaylistData(CraftBaseModel):
     status: bool = True
     weight: float = 1.0
 
 
-class PlaylistParameters(BaseModel):
+class PlaylistParameters(CraftBaseModel):
     """
     Parameters for playlists.
 

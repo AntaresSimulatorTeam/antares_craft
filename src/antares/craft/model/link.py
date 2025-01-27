@@ -16,10 +16,10 @@ from typing import Mapping, Optional, Set
 import pandas as pd
 
 from antares.craft.model.commons import FilterOption, sort_filter_values
+from antares.craft.model.craft_base_model import CraftBaseModel
 from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import transform_name_to_id
-from pydantic import BaseModel
 
 
 class TransmissionCapacities(Enum):
@@ -43,7 +43,7 @@ class LinkStyle(Enum):
     DOT_DASH = "dotdash"
 
 
-class DefaultLinkProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_kebab):
+class DefaultLinkProperties(CraftBaseModel, extra="forbid", populate_by_name=True, alias_generator=to_kebab):
     """
     DTO for updating link properties
     """
@@ -98,7 +98,7 @@ class LinkPropertiesLocal(DefaultLinkProperties):
         return LinkProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
 
 
-class DefaultLinkUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_kebab):
+class DefaultLinkUi(CraftBaseModel, extra="forbid", populate_by_name=True, alias_generator=to_kebab):
     """
     DTO for updating link UI
     """

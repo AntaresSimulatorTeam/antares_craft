@@ -13,9 +13,10 @@
 from enum import Enum
 from typing import Optional
 
+from antares.craft.model.craft_base_model import CraftBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.model_tools import filter_out_empty_model_fields
-from pydantic import BaseModel, Field
+from pydantic import Field
 from pydantic.alias_generators import to_camel
 
 
@@ -24,7 +25,7 @@ class SeasonCorrelation(Enum):
     ANNUAL = "annual"
 
 
-class _DefaultParameters(BaseModel, alias_generator=to_camel):
+class _DefaultParameters(CraftBaseModel, alias_generator=to_camel):
     stochastic_ts_status: bool = False
     number: int = 1
     refresh: bool = False
@@ -45,7 +46,7 @@ class _ParametersLocal(_DefaultParameters, populate_by_name=True):
     field_name: str = Field(exclude=True)
 
 
-class DefaultTimeSeriesParameters(BaseModel, alias_generator=to_camel):
+class DefaultTimeSeriesParameters(CraftBaseModel, alias_generator=to_camel):
     load: _DefaultParameters = _DefaultParameters()
     hydro: _DefaultParameters = _DefaultParameters()
     thermal: _DefaultParameters = _DefaultParameters()

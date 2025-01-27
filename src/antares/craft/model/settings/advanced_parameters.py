@@ -13,10 +13,11 @@
 from enum import Enum
 from typing import Any, Optional
 
+from antares.craft.model.craft_base_model import CraftBaseModel
 from antares.craft.model.settings.general import OutputChoices
 from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 from pydantic.alias_generators import to_camel
 from typing_extensions import Self
 
@@ -70,7 +71,7 @@ class RenewableGenerationModeling(Enum):
     CLUSTERS = "clusters"
 
 
-class DefaultAdvancedParameters(BaseModel, alias_generator=to_camel):
+class DefaultAdvancedParameters(CraftBaseModel, alias_generator=to_camel):
     model_config = ConfigDict(use_enum_values=True)
 
     # Advanced parameters
