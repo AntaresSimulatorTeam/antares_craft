@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 from typing import Optional
 
-from antares.craft.model.craft_base_model import CraftBaseModel
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParametersLocal, DefaultAdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import AdvancedParametersLocal, DefaultAdvancedParameters
 from antares.craft.model.settings.general import DefaultGeneralParameters, GeneralParametersLocal
@@ -24,10 +23,10 @@ from antares.craft.model.settings.thematic_trimming import (
 from antares.craft.model.settings.time_series import DefaultTimeSeriesParameters, TimeSeriesParametersLocal
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.ini_tool import get_ini_fields_for_ini
-from pydantic import model_serializer
+from pydantic import BaseModel, model_serializer
 
 
-class DefaultStudySettings(CraftBaseModel):
+class DefaultStudySettings(BaseModel):
     general_parameters: DefaultGeneralParameters = DefaultGeneralParameters()
     # These parameters are listed under the [variables selection] section in the .ini file.
     # They are required if thematic-trimming is set to true.

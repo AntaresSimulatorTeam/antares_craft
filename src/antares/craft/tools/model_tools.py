@@ -9,15 +9,15 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from antares.craft.model.craft_base_model import CraftBaseModel
+from pydantic import BaseModel
 
 
-def filter_out_empty_model_fields(model: CraftBaseModel) -> list[str]:
+def filter_out_empty_model_fields(model: BaseModel) -> list[str]:
     """
-    Creates a list of field names filtering out empty fields from `CraftBaseModel` objects.
+    Creates a list of field names filtering out empty fields from `BaseModel` objects.
 
     Args:
-        model (CraftBaseModel): Model to filter.
+        model (BaseModel): Model to filter.
 
     Returns:
         list[str]: List of field names.

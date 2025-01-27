@@ -9,8 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from antares.craft.model.craft_base_model import CraftBaseModel
 from antares.craft.tools.ini_tool import get_ini_fields_for_ini, merge_dicts_for_ini
+from pydantic import BaseModel
 
 
 class TestExtraFunctions:
@@ -42,7 +42,7 @@ class TestExtraFunctions:
 
     def test_get_ini_fields(self):
         # Given
-        class ChildObjectOne(CraftBaseModel):
+        class ChildObjectOne(BaseModel):
             general: str = "test one"
             test_a: str = "abc"
 
@@ -50,7 +50,7 @@ class TestExtraFunctions:
             def ini_fields(self):
                 return {"general": {"test": self.general, "test_a": self.test_a}}
 
-        class ChildObjectTwo(CraftBaseModel):
+        class ChildObjectTwo(BaseModel):
             general: str = "test two"
             test_b: str = "def"
 
@@ -58,7 +58,7 @@ class TestExtraFunctions:
             def ini_fields(self):
                 return {"general": {"test": self.general, "test_b": self.test_b}}
 
-        class ParentObject(CraftBaseModel):
+        class ParentObject(BaseModel):
             child_one: ChildObjectOne = ChildObjectOne()
             child_two: ChildObjectTwo = ChildObjectTwo()
 

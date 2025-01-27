@@ -15,8 +15,8 @@ from typing import Dict, Optional
 
 import pandas as pd
 
-from antares.craft.model.craft_base_model import CraftBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
+from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
 
 
@@ -32,7 +32,7 @@ class HydroMatrixName(Enum):
     COMMON_CREDIT_MODULATIONS = "creditmodulations"
 
 
-class DefaultHydroProperties(CraftBaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+class DefaultHydroProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     """
     Properties of hydro system read from the configuration files.
 
