@@ -215,10 +215,5 @@ class ThermalCluster:
     def get_fuel_cost_matrix(self) -> pd.DataFrame:
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_FUEL_COST)
 
-<<<<<<< HEAD
     def update_thermal_matrix(self, matrix: pd.DataFrame) -> None:
         self._thermal_service.update_thermal_matrix(self, matrix)
-=======
-    def upload_thermal_matrix(self, matrix: pd.DataFrame) -> None:
-        self._thermal_service.upload_thermal_matrix(self, matrix)
->>>>>>> feat(api): adding renewable and thermal matrix upload method (unit testing too)

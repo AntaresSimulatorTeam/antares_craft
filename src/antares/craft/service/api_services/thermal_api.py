@@ -21,8 +21,7 @@ from antares.craft.exceptions.exceptions import (
     APIError,
     ThermalMatrixDownloadError,
     ThermalMatrixUpdateError,
-    ThermalPropertiesUpdateError, ThermalMatrixUploadError,
-
+    ThermalPropertiesUpdateError,
 )
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
 from antares.craft.service.api_services.utils import get_matrix, upload_series
@@ -70,19 +69,6 @@ class ThermalApiService(BaseThermalService):
             upload_series(self._base_url, self.study_id, self._wrapper, matrix, path.as_posix())
         except APIError as e:
             raise ThermalMatrixUpdateError(thermal_cluster.area_id, thermal_cluster.name, e.message) from e
-
-    def upload_thermal_matrix(self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame):
-        path = PurePosixPath("input") / "thermal" / "series" / f"{thermal_cluster.area_id}" / f"{thermal_cluster.id}" / "series"
-        try:
-            body={
-                "data": matrix.to_numpy().tolist(),
-                "index": matrix.index.tolist(),
-                "columns": matrix.columns.tolist(),
-            }
-            data = pd.json_normalize(body)
-            upload_series(self._base_url, self.study_id, self._wrapper, data, path.as_posix())
-        except APIError as e:
-            raise ThermalMatrixUploadError(thermal_cluster.area_id, thermal_cluster.name, e.message) from e
 
     def get_thermal_matrix(self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName) -> pd.DataFrame:
         try:
