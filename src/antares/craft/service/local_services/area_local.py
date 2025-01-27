@@ -91,9 +91,16 @@ class AreaLocalService(BaseAreaService):
         local_thermal_properties = ThermalClusterPropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id)
-        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_PREPRO_MODULATION, area_id=area_id)
-        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_PREPRO_DATA, area_id=area_id)
-        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_SERIES, area_id=area_id)
+        IniFile(
+            self.config.study_path,
+            InitializationFilesTypes.THERMAL_MODULATION,
+            area_id=area_id,
+            cluster_id=thermal_name,
+        )
+        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_DATA, area_id=area_id, cluster_id=thermal_name)
+        IniFile(
+            self.config.study_path, InitializationFilesTypes.THERMAL_SERIES, area_id=area_id, cluster_id=thermal_name
+        )
         try:
             list_ini.add_section(local_thermal_properties.list_ini_fields)
         except DuplicateSectionError:

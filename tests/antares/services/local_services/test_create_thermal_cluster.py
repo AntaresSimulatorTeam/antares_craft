@@ -278,15 +278,15 @@ variableomcost = 5.000000
     def test_create_thermal_initialization_files(self, local_study_w_areas):
         study_path = Path(local_study_w_areas.path)
         areas = local_study_w_areas.get_areas()
-
+        cluster_id = "cluster_test"
         for area_id, area in areas.items():
-            area.create_thermal_cluster("cluster_test")
+            area.create_thermal_cluster(cluster_id)
 
         for area_id in areas.keys():
             expected_paths = [
-                study_path / f"input/thermal/prepro/{area_id}/cluster/modulation.txt",
-                study_path / f"input/thermal/prepro/{area_id}/cluster/data.txt",
-                study_path / f"input/thermal/series/{area_id}/cluster/series.txt",
+                study_path / f"input/thermal/prepro/{area_id}/{cluster_id}/modulation.txt",
+                study_path / f"input/thermal/prepro/{area_id}/{cluster_id}/data.txt",
+                study_path / f"input/thermal/series/{area_id}/{cluster_id}/series.txt",
             ]
 
             for expected_path in expected_paths:
