@@ -17,8 +17,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from antares.craft.model.craft_base_model import CraftBaseModel
 from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
-from pydantic import BaseModel
 
 # Invalid chars was taken from Antares Simulator (C++).
 _sub_invalid_chars = re.compile(r"[^a-zA-Z0-9_(),& -]+").sub
@@ -86,12 +86,12 @@ class EnumIgnoreCase(Enum):
         return None
 
 
-class AreaUiResponse(BaseModel):
+class AreaUiResponse(CraftBaseModel):
     """
     Utility class to convert the AntaresWebResponse to Antares-Craft object.
     """
 
-    class MapResponse(BaseModel):
+    class MapResponse(CraftBaseModel):
         color_r: int
         color_g: int
         color_b: int

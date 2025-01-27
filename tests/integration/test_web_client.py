@@ -452,6 +452,15 @@ class TestWebClient:
         study.delete_link(link_de_fr)
         assert link_de_fr.id not in study.get_links()
 
+        # tests uploading thermal and renewable matrices
+        thermal_fr_matrix = pd.DataFrame(data=[[0]])
+        renewable_fr_matrix = pd.DataFrame(data=[[0]])
+        thermal_fr.update_thermal_matrix(thermal_fr_matrix)
+        renewable_fr.update_renewable_matrix(renewable_fr_matrix)
+
+        actual_thermal_matrix = thermal_fr.get_series_matrix()
+        actual_thermal_matrix.equals(thermal_fr_matrix)
+
         # tests thermal cluster deletion
         area_be.delete_thermal_cluster(thermal_be)
         assert area_be.get_thermals() == {}

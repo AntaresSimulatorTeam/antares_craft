@@ -13,9 +13,10 @@
 import copy
 import typing as t
 
-from pydantic import BaseModel, create_model
+from antares.craft.model.craft_base_model import CraftBaseModel
+from pydantic import create_model
 
-ModelClass = t.TypeVar("ModelClass", bound=BaseModel)
+ModelClass = t.TypeVar("ModelClass", bound=CraftBaseModel)
 
 
 def all_optional_model(model: t.Type[ModelClass]) -> t.Type[ModelClass]:

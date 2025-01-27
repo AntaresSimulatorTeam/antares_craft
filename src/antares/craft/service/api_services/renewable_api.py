@@ -17,9 +17,14 @@ import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
-from antares.craft.exceptions.exceptions import APIError, RenewableMatrixDownloadError, RenewablePropertiesUpdateError
+from antares.craft.exceptions.exceptions import (
+    APIError,
+    RenewableMatrixDownloadError,
+    RenewableMatrixUpdateError,
+    RenewablePropertiesUpdateError,
+)
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
-from antares.craft.service.api_services.utils import get_matrix
+from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import BaseRenewableService
 
 
@@ -50,6 +55,21 @@ class RenewableApiService(BaseRenewableService):
             raise RenewablePropertiesUpdateError(renewable_cluster.id, renewable_cluster.area_id, e.message) from e
 
         return new_properties
+
+    def update_renewable_matrix(self, renewable_cluster: RenewableCluster, matrix: pd.DataFrame) -> None:
+        try:
+            path = (
+                PurePosixPath("input")
+                / "renewables"
+                / "series"
+                / f"{renewable_cluster.area_id}"
+                / f"{renewable_cluster.id}"
+                / "series"
+            )
+
+            upload_series(self._base_url, self.study_id, self._wrapper, matrix, path.as_posix())
+        except APIError as e:
+            raise RenewableMatrixUpdateError(renewable_cluster.area_id, renewable_cluster.id, e.message) from e
 
     def get_renewable_matrix(self, cluster_id: str, area_id: str) -> pd.DataFrame:
         try:

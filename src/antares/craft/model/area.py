@@ -22,6 +22,7 @@ from typing import Any, Dict, List, Mapping, Optional, Set
 import pandas as pd
 
 from antares.craft.model.commons import FilterOption, sort_filter_values
+from antares.craft.model.craft_base_model import CraftBaseModel
 from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
@@ -29,7 +30,7 @@ from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.tools.alias_generators import to_space
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
-from pydantic import BaseModel, computed_field
+from pydantic import computed_field
 from pydantic.alias_generators import to_camel
 
 
@@ -45,7 +46,7 @@ class AdequacyPatchMode(EnumIgnoreCase):
     VIRTUAL = "virtual"
 
 
-class DefaultAreaProperties(BaseModel, extra="forbid", populate_by_name=True):
+class DefaultAreaProperties(CraftBaseModel, extra="forbid", populate_by_name=True):
     """
     DTO for updating area properties
     """
@@ -111,7 +112,7 @@ class AreaPropertiesLocal(DefaultAreaProperties, alias_generator=to_space):
         return AreaProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
 
 
-class AreaUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+class AreaUi(CraftBaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     """
     DTO for updating area UI
     """
@@ -128,7 +129,7 @@ class AreaUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=t
     layer_color: Optional[Dict[int, str]] = None
 
 
-class AreaUiLocal(BaseModel):
+class AreaUiLocal(CraftBaseModel):
     """
     DTO for updating area UI locally in the ini files
     """
