@@ -91,9 +91,16 @@ class AreaLocalService(BaseAreaService):
         local_thermal_properties = ThermalClusterPropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id)
-        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_PREPRO_MODULATION, area_id=area_id)
-        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_PREPRO_DATA, area_id=area_id)
-        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_SERIES, area_id=area_id)
+        IniFile(
+            self.config.study_path,
+            InitializationFilesTypes.THERMAL_MODULATION,
+            area_id=area_id,
+            cluster_id=thermal_name,
+        )
+        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_DATA, area_id=area_id, cluster_id=thermal_name)
+        IniFile(
+            self.config.study_path, InitializationFilesTypes.THERMAL_SERIES, area_id=area_id, cluster_id=thermal_name
+        )
         try:
             list_ini.add_section(local_thermal_properties.list_ini_fields)
         except DuplicateSectionError:
@@ -304,6 +311,7 @@ class AreaLocalService(BaseAreaService):
             self.create_solar(area_name, empty_df)
             self.create_wind(area_name, empty_df)
             IniFile.create_link_ini_for_area(self.config.study_path, area_name)
+            IniFile.create_list_ini_for_area(self.config.study_path, area_name)
 
         except Exception as e:
             raise AreaCreationError(area_name, f"{e}") from e

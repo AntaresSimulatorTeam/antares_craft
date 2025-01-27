@@ -59,9 +59,9 @@ class InitializationFilesTypes(Enum):
 
     THERMAL_AREAS_INI = "input/thermal/areas.ini"
     THERMAL_LIST_INI = "input/thermal/clusters/{area_id}/list.ini"
-    THERMAL_PREPRO_MODULATION = "input/thermal/prepro/{area_id}/cluster/modulation.txt"
-    THERMAL_PREPRO_DATA = "input/thermal/prepro/{area_id}/cluster/data.txt"
-    THERMAL_SERIES = "input/thermal/series/{area_id}/cluster/series.txt"
+    THERMAL_MODULATION = "input/thermal/prepro/{area_id}/{cluster_id}/modulation.txt"
+    THERMAL_DATA = "input/thermal/prepro/{area_id}/{cluster_id}/data.txt"
+    THERMAL_SERIES = "input/thermal/series/{area_id}/{cluster_id}/series.txt"
 
     WIND_CORRELATION_INI = "input/wind/prepro/correlation.ini"
     WIND_SETTINGS_INI = "input/wind/prepro/{area_id}/settings.ini"
@@ -74,12 +74,13 @@ class IniFile:
         study_path: Path,
         ini_file_type: InitializationFilesTypes,
         area_id: Optional[str] = None,
+        cluster_id: Optional[str] = None,
         ini_contents: Union[CustomRawConfigParser, dict[str, dict[str, str]], None] = None,
     ) -> None:
         if "{area_id}" in ini_file_type.value and not area_id:
             raise ValueError(f"Area name not provided, ini type {ini_file_type.name} requires 'area_id'")
         self._full_path = study_path / (
-            ini_file_type.value.format(area_id=area_id)
+            ini_file_type.value.format(area_id=area_id, cluster_id=cluster_id)
             if ("{area_id}" in ini_file_type.value and area_id)
             else ini_file_type.value
         )
@@ -217,6 +218,12 @@ class IniFile:
     @classmethod
     def create_link_ini_for_area(cls, study_path: Path, area_id: str) -> None:
         property_file = InitializationFilesTypes.LINK_PROPERTIES_INI
+
+        cls(study_path=study_path, ini_file_type=property_file, area_id=area_id)
+
+    @classmethod
+    def create_list_ini_for_area(cls, study_path: Path, area_id: str) -> None:
+        property_file = InitializationFilesTypes.THERMAL_LIST_INI
 
         cls(study_path=study_path, ini_file_type=property_file, area_id=area_id)
 
