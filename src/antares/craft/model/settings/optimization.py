@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Union
 
 from antares.craft.tools.all_optional_meta import all_optional_model
 from pydantic import BaseModel, ConfigDict, Field
@@ -57,8 +56,8 @@ class DefaultOptimizationParameters(BaseModel, alias_generator=to_camel):
     simplex_optimization_range: SimplexOptimizationRange = Field(
         default=SimplexOptimizationRange.WEEK, validate_default=True
     )
-    transmission_capacities: Union[bool, Union[LegacyTransmissionCapacities, OptimizationTransmissionCapacities]] = (
-        Field(default=OptimizationTransmissionCapacities.LOCAL_VALUES, validate_default=True)
+    transmission_capacities: bool | LegacyTransmissionCapacities | OptimizationTransmissionCapacities = Field(
+        default=OptimizationTransmissionCapacities.LOCAL_VALUES, validate_default=True
     )
     binding_constraints: bool = True
     hurdle_costs: bool = True

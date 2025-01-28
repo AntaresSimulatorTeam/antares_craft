@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -72,7 +72,7 @@ class ClusterData(BaseModel):
 
 
 class ConstraintTerm(TermOperators):
-    data: Union[LinkData, ClusterData]
+    data: LinkData | ClusterData
     id: str = Field(init=False)
 
     @model_validator(mode="before")
@@ -81,7 +81,7 @@ class ConstraintTerm(TermOperators):
         return v
 
     @classmethod
-    def generate_id(cls, data: Union[Dict[str, str], LinkData, ClusterData]) -> str:
+    def generate_id(cls, data: Dict[str, str] | LinkData | ClusterData) -> str:
         if isinstance(data, dict):
             if "area1" in data:
                 return "%".join(sorted((data["area1"].lower(), data["area2"].lower())))

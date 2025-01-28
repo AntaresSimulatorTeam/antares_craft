@@ -16,7 +16,7 @@ import time
 
 from pathlib import Path, PurePath
 from types import MappingProxyType
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import pandas as pd
 
@@ -262,7 +262,7 @@ class Study:
         name: str,
         version: str,
         service_factory: ServiceFactory,
-        settings: Union[StudySettings, StudySettingsLocal, None] = None,
+        settings: StudySettings | StudySettingsLocal | None = None,
         path: PurePath = PurePath("."),
     ):
         self.name = name
