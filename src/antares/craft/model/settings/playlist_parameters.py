@@ -12,7 +12,7 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field, ValidationError, field_validator, model_serializer, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_serializer, model_validator
 
 
 class PlaylistData(BaseModel):
@@ -28,12 +28,9 @@ class PlaylistParameters(BaseModel):
         playlist (list[PlaylistData]): A list of years (in **PlaylistData** format) in the playlist
     """
 
-    class Config:
-        validate_assignment = True
+    model_config = ConfigDict(validate_assignment=True)
 
     playlist: list[PlaylistData] = Field(default=[], exclude=True)
-
-    _playlist_dict_error_msg = "Not a valid playlist dictionary."
 
     @field_validator("playlist", mode="before")
     @classmethod
@@ -58,7 +55,7 @@ class PlaylistParameters(BaseModel):
                     try:
                         playlist = [PlaylistData.model_validate(year) for year in data["playlist"].values()]
                     except ValidationError:
-                        raise ValueError(cls._playlist_dict_error_msg)
+                        raise ValueError("Not a valid playlist dictionary.")
                 return_value = {"playlist": playlist}
             elif "mc_years" in data.keys():
                 playlist = [PlaylistData.model_validate(year) for year in data["mc_years"].values()]
