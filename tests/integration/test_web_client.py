@@ -453,8 +453,8 @@ class TestWebClient:
         assert link_de_fr.id not in study.get_links()
 
         # tests uploading thermal and renewable matrices
-        thermal_fr_matrix = pd.DataFrame(data=np.ones((8760,1)))
-        renewable_fr_matrix = pd.DataFrame(data=np.ones((8760,1)))
+        thermal_fr_matrix = pd.DataFrame(data=np.ones((8760, 1)))
+        renewable_fr_matrix = pd.DataFrame(data=np.ones((8760, 1)))
         thermal_fr.update_thermal_matrix(thermal_fr_matrix)
         renewable_fr.update_renewable_matrix(renewable_fr_matrix)
 
