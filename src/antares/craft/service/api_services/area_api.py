@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 import pandas as pd
 
@@ -272,7 +272,7 @@ class AreaApiService(BaseAreaService):
 
             self._replace_matrix_request(json_payload)
 
-    def _replace_matrix_request(self, json_payload: Union[Dict, List[Dict]]) -> None:
+    def _replace_matrix_request(self, json_payload: dict | List[dict]) -> None:
         """
         Send a POST request with the given JSON payload to commands endpoint.
 
