@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from enum import Enum
-from typing import Optional, Union
+from typing import Optional
 
 import pandas as pd
 
@@ -60,7 +60,7 @@ class AggregationEntry(BaseModel):
         columns_names: names or regexes (if query_file is of type details) to select columns
     """
 
-    query_file: Union[MCAllAreas, MCIndAreas, MCAllLinks, MCIndLinks]
+    query_file: MCAllAreas | MCIndAreas | MCAllLinks | MCIndLinks
     frequency: Frequency
     mc_years: Optional[list[str]] = None
     type_ids: Optional[list[str]] = None
