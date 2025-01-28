@@ -927,7 +927,7 @@ class TestReadThermal:
                 assert thermal.properties.cost_generation.value == "SetManually"
 
                 # Create folder and file for timeserie.
-                cluster_path = study_path / "input" / "thermal" / "series" / Path(area.id) / Path(thermal.name)
+                cluster_path = study_path / "input" / "thermal" / "series" / Path(area.id) / Path(thermal.id)
                 series_path = cluster_path / "series.txt"
                 os.makedirs(cluster_path, exist_ok=True)
                 _write_file(series_path, expected_time_serie)
@@ -938,7 +938,7 @@ class TestReadThermal:
                 fuelCost_path = cluster_path / "fuelCost.txt"
                 _write_file(fuelCost_path, expected_time_serie)
 
-                cluster_path = study_path / "input" / "thermal" / "prepro" / Path(area.id) / Path(thermal.name)
+                cluster_path = study_path / "input" / "thermal" / "prepro" / Path(area.id) / Path(thermal.id)
                 os.makedirs(cluster_path, exist_ok=True)
                 series_path_1 = cluster_path / "data.txt"
                 series_path_2 = cluster_path / "modulation.txt"
