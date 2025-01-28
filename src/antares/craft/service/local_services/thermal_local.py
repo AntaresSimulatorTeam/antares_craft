@@ -54,7 +54,7 @@ class ThermalLocalService(BaseThermalService):
             time_serie_type,
             self.config.study_path,
             area_id=thermal_cluster.area_id,
-            cluster_id=thermal_cluster.properties.group.value,
+            cluster_id=thermal_cluster.id,
         )
 
     def read_thermal_clusters(self, area_id: str) -> List[ThermalCluster]:
