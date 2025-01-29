@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Optional
 
 import pandas as pd
 
+from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.config.base_configuration import BaseConfiguration
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
@@ -673,6 +674,10 @@ class BaseStudyService(ABC):
 
     @abstractmethod
     def generate_thermal_timeseries(self) -> None:
+        pass
+
+    @abstractmethod
+    def import_study(self, config: APIconf, study_path: Path, destination_path: Path) -> None:
         pass
 
 
