@@ -13,27 +13,20 @@ from typing import Optional
 
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParametersLocal, DefaultAdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import AdvancedParametersLocal, DefaultAdvancedParameters
-from antares.craft.model.settings.general import DefaultGeneralParameters, GeneralParametersLocal
+from antares.craft.model.settings.general import GeneralParameters
 from antares.craft.model.settings.optimization import DefaultOptimizationParameters, OptimizationParametersLocal
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.thematic_trimming import (
     DefaultThematicTrimmingParameters,
     ThematicTrimmingParametersLocal,
 )
-from antares.craft.model.settings.time_series import DefaultTimeSeriesParameters, TimeSeriesParametersLocal
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.ini_tool import get_ini_fields_for_ini
 from pydantic import BaseModel, model_serializer
 
 
 class DefaultStudySettings(BaseModel):
-    general_parameters: DefaultGeneralParameters = DefaultGeneralParameters()
-    # These parameters are listed under the [variables selection] section in the .ini file.
-    # They are required if thematic-trimming is set to true.
-    # https://antares-simulator.readthedocs.io/en/latest/user-guide/solver/04-parameters/#variables-selection-parameters
-    time_series_parameters: DefaultTimeSeriesParameters = DefaultTimeSeriesParameters()
-    # These parameters are listed under the [general] section in the .ini file.
-    # https://antares-simulator.readthedocs.io/en/latest/user-guide/ts-generator/04-parameters/
+    general_parameters: GeneralParameters = GeneralParameters()
     optimization_parameters: DefaultOptimizationParameters = DefaultOptimizationParameters()
     adequacy_patch_parameters: DefaultAdequacyPatchParameters = DefaultAdequacyPatchParameters()
     advanced_parameters: DefaultAdvancedParameters = DefaultAdvancedParameters()
@@ -47,8 +40,7 @@ class StudySettings(DefaultStudySettings):
 
 
 class StudySettingsLocal(DefaultStudySettings):
-    general_parameters: GeneralParametersLocal = GeneralParametersLocal()
-    time_series_parameters: TimeSeriesParametersLocal = TimeSeriesParametersLocal()
+    general_parameters: GeneralParameters = GeneralParameters()
     optimization_parameters: OptimizationParametersLocal = OptimizationParametersLocal()
     adequacy_patch_parameters: AdequacyPatchParametersLocal = AdequacyPatchParametersLocal()
     advanced_parameters: AdvancedParametersLocal = AdvancedParametersLocal()

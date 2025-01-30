@@ -33,7 +33,6 @@ from antares.craft.model.binding_constraint import (
 from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import DefaultStudySettings, StudySettings, StudySettingsLocal
-from antares.craft.model.settings.time_series import correlation_defaults
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.service.api_services.study_api import _returns_study_settings
 from antares.craft.service.base_services import BaseStudyService
@@ -487,11 +486,5 @@ def _create_correlation_ini_files(local_settings: StudySettingsLocal, study_dire
     ]
 
     for correlation, file_type, field in correlation_inis_to_create:
-        ini_file = IniFile(
-            study_directory,
-            file_type,
-            ini_contents=correlation_defaults(
-                season_correlation=getattr(local_settings.time_series_parameters, field).season_correlation,
-            ),
-        )
+        ini_file = IniFile(study_directory, file_type, ini_contents=None)
         ini_file.write_ini_file()

@@ -38,7 +38,6 @@ from antares.craft.model.settings.optimization import OptimizationParameters
 from antares.craft.model.settings.playlist_parameters import PlaylistData, PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
-from antares.craft.model.settings.time_series import TimeSeriesParameters
 from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 
@@ -53,7 +52,6 @@ def _returns_study_settings(
     mapping = {
         "general_parameters": ("general", GeneralParameters),
         "thematic_trimming_parameters": ("thematictrimming", ThematicTrimmingParameters),
-        "time_series_parameters": ("timeseries", TimeSeriesParameters),
         "adequacy_patch_parameters": ("adequacypatch", AdequacyPatchParameters),
         "advanced_parameters": ("advancedparameters", AdvancedParameters),
         "optimization_parameters": ("optimization", OptimizationParameters),
