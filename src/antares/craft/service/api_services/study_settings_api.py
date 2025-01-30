@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from dataclasses import asdict
 from typing import Optional
 
 from antares.craft.model.settings.adequacy_patch import PriceTakingOrder
@@ -103,7 +104,9 @@ class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, ali
     result_format: OutputFormat
 
     def from_user_model(self, user_class: GeneralParameters) -> "GeneralParametersAPI":
-        pass
+        user_class_as_dict = asdict(user_class)
+        print(user_class_as_dict)
+        raise NotImplementedError
 
     def to_user_model(self, nb_ts_thermal: int) -> GeneralParameters:
         return GeneralParameters(

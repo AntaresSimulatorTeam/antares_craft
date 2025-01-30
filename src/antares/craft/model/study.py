@@ -14,6 +14,7 @@ import logging
 import os
 import time
 
+from dataclasses import asdict
 from pathlib import Path, PurePath
 from types import MappingProxyType
 from typing import List, Optional, Union
@@ -138,9 +139,9 @@ InfoTip = Antares Study {version}: {study_name}
     with open(desktop_ini_path, "w") as desktop_ini_file:
         desktop_ini_file.write(desktop_ini_content)
 
-    local_settings = StudySettings.model_validate(settings)
+    local_settings = settings
     local_settings_file = IniFile(study_directory, InitializationFilesTypes.GENERAL)
-    local_settings_file.ini_dict = local_settings.model_dump(exclude_none=True, by_alias=True)
+    local_settings_file.ini_dict = asdict(local_settings)
     local_settings_file.write_ini_file()
 
     # Create various .ini files for the study

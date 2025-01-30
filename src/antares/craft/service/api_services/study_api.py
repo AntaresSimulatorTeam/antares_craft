@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from dataclasses import asdict
 from pathlib import Path, PurePath
 from typing import TYPE_CHECKING, Optional
 
@@ -58,7 +59,7 @@ def _returns_study_settings(
         "playlist_parameters": ("playlist", PlaylistParameters),
     }
     if settings:
-        json_settings = settings.model_dump(mode="json", by_alias=True, exclude_none=True)
+        json_settings = asdict(settings)
         if not json_settings and update:
             return None
 
@@ -78,7 +79,7 @@ def _returns_study_settings(
             settings_property = settings_class.model_validate(response.json())  # type: ignore
         json_settings[settings_type] = settings_property
 
-    return StudySettings.model_validate(json_settings)
+    return StudySettings(**json_settings)
 
 
 class StudyApiService(BaseStudyService):
