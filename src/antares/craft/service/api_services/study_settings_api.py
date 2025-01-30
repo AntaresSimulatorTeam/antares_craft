@@ -39,6 +39,7 @@ from antares.craft.model.settings.optimization import (
     SimplexOptimizationRange,
     UnfeasibleProblemBehavior,
 )
+from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.tools.all_optional_meta import all_optional_model
 from pydantic import BaseModel, Field
 from pydantic.alias_generators import to_camel
@@ -309,3 +310,11 @@ class ThematicTrimmingParametersAPI(BaseModel, alias_generator=to_camel):
     other5_withdrawal: bool
     other5_level: bool
     sts_cashflow_by_cluster: bool
+
+    @staticmethod
+    def from_user_model(user_class: ThematicTrimmingParameters) -> "ThematicTrimmingParametersAPI":
+        user_dict = asdict(user_class)
+        return ThematicTrimmingParametersAPI.model_validate(user_dict)
+
+    def to_user_model(self) -> ThematicTrimmingParameters:
+        return ThematicTrimmingParameters(**self.model_dump(mode="json"))
