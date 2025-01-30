@@ -13,11 +13,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel
-
-from antares.craft.tools.alias_generators import to_kebab
-from antares.craft.tools.all_optional_meta import all_optional_model
-
 
 class OptimizationTransmissionCapacities(Enum):
     LOCAL_VALUES = "local-values"
@@ -61,24 +56,3 @@ class OptimizationParameters:
     include_export_mps: Optional[ExportMPS] = None
     include_export_structure: Optional[bool] = None
     include_unfeasible_problem_behavior: Optional[UnfeasibleProblemBehavior] = None
-
-
-class OptimizationParametersLocalCreation(BaseModel, alias_generator=to_kebab):
-    simplex_range: SimplexOptimizationRange = SimplexOptimizationRange.WEEK
-    transmission_capacities: OptimizationTransmissionCapacities = OptimizationTransmissionCapacities.LOCAL_VALUES
-    include_constraints: bool = True
-    include_hurdle_costs: bool = True
-    include_tc_min_stable_power: bool = True
-    include_tc_min_ud_time: bool = True
-    include_dayahead: bool = True
-    include_strategicreserve: bool = True
-    include_spinningreserve: bool = True
-    include_primaryreserve: bool = True
-    include_exportmps: bool = False
-    include_exportstructure: bool = False
-    include_unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
-
-
-@all_optional_model
-class OptimizationSettingsLocalEdition(OptimizationParametersLocalCreation):
-    pass

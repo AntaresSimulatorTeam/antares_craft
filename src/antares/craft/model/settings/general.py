@@ -12,9 +12,6 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from pydantic import BaseModel, Field
-
-from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase
 
 
@@ -89,53 +86,3 @@ class GeneralParameters:
     thematic_trimming: Optional[bool] = None
     geographic_trimming: Optional[bool] = None
     nb_timeseries_thermal: Optional[int] = None
-
-
-class GeneralSectionLocal(BaseModel):
-    mode: Mode = Field(default=Mode.ECONOMY, validate_default=True)
-    horizon: str = ""
-    nb_years: int = Field(default=1, alias="nb.years")
-    simulation_start: int = Field(default=1, alias="simulation.start")
-    simulation_end: int = Field(default=365, alias="simulation.end")
-    first_january: WeekDay = Field(default=WeekDay.MONDAY, alias="january.1st")
-    first_month: Month = Field(default=Month.JANUARY, alias="first-month-in-year")
-    first_week_day: WeekDay = Field(default=WeekDay.MONDAY, alias="first.weekday")
-    leap_year: bool = Field(default=False, alias="leapyear")
-    year_by_year: bool = Field(default=False, alias="year-by-year")
-    derated: bool = False
-    custom_scenario: bool = Field(default=False, alias="custom-scenario")
-    user_playlist: bool = Field(default=False, alias="user-playlist")
-    thematic_trimming: bool = Field(default=False, alias="thematic-trimming")
-    geographic_trimming: bool = Field(default=False, alias="geographic-trimming")
-    generate: bool = False
-    nb_timeseries_load: int = Field(default=1, alias="nbtimeseriesload")
-    nb_timeseries_hydro: int = Field(default=1, alias="nbtimeserieshydro")
-    nb_timeseries_wind: int = Field(default=1, alias="nbtimeserieswind")
-    nb_timeseries_thermal: int = Field(default=1, alias="nbtimeseriesthermal")
-    nb_timeseries_solar: int = Field(default=1, alias="nbtimeseriessolar")
-    refresh_timeseries: bool = Field(default=False, alias="refreshtimeseries")
-    intra_model: bool = Field(default=False, alias="intra-model")
-    inter_model: bool = Field(default=False, alias="inter-model")
-    refresh_interval_load: int = Field(default=100, alias="refreshintervalload")
-    refresh_interval_hydro: int = Field(default=100, alias="refreshintervalhydro")
-    refresh_interval_wind: int = Field(default=100, alias="refreshintervalwind")
-    refresh_interval_thermal: int = Field(default=100, alias="refreshintervalthermal")
-    refresh_interval_solar: int = Field(default=100, alias="refreshintervalsolar")
-    read_only: bool = Field(default=False, alias="readonly")
-
-
-class OutputSectionLocal(BaseModel):
-    synthesis: bool = True
-    store_new_set: bool = Field(default=True, alias="storenewset")
-    archives: set[OutputChoices] = set()
-
-
-class GeneralParametersLocalCreation(BaseModel):
-    general: GeneralSectionLocal
-    input: dict = {"input": ""}
-    output: OutputSectionLocal
-
-
-@all_optional_model
-class GeneralParametersLocalEdition(GeneralParametersLocalCreation):
-    pass

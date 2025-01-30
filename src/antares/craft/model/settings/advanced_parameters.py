@@ -11,13 +11,9 @@
 # This file is part of the Antares project.
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
-
-from pydantic import BaseModel, Field
+from typing import Optional
 
 from antares.craft.model.settings.general import OutputChoices
-from antares.craft.tools.alias_generators import to_kebab
-from antares.craft.tools.all_optional_meta import all_optional_model
 
 
 class InitialReservoirLevel(Enum):
@@ -87,62 +83,3 @@ class SeedParameters:
     seed_thermal_costs: Optional[int] = None
     seed_hydro_costs: Optional[int] = None
     seed_initial_reservoir_levels: Optional[int] = None
-
-
-class OtherPreferencesLocalCreation(BaseModel, alias_generator=to_kebab):
-    initial_reservoir_levels: InitialReservoirLevel
-    hydro_heuristic_policy: HydroHeuristicPolicy
-    hydro_pricing_mode: HydroPricingMode
-    power_fluctuations: PowerFluctuation
-    shedding_policy: SheddingPolicy
-    shedding_strategy: Any
-    unit_commitment_mode: UnitCommitmentMode
-    number_of_cores_mode: SimulationCore
-    renewable_generation_modelling: RenewableGenerationModeling
-    day_ahead_reserve_management: Any
-
-
-@all_optional_model
-class OtherPreferencesLocalEdition(OtherPreferencesLocalCreation):
-    pass
-
-
-class AdvancedParametersLocalCreation(BaseModel, alias_generator=to_kebab):
-    accuracy_on_correlation: set[OutputChoices] = set()
-    adequacy_block_size: int = 100
-
-
-@all_optional_model
-class AdvancedParametersLocalEdition(AdvancedParametersLocalCreation):
-    pass
-
-
-class SeedParametersLocalCreation(BaseModel, alias_generator=to_kebab):
-    seed_tsgen_wind: int = 5489
-    seed_tsgen_load: int = 1005489
-    seed_tsgen_hydro: int = 2005489
-    seed_tsgen_thermal: int = 3005489
-    seed_tsgen_solar: int = 4005489
-    seed_tsnumbers: int = 5005489
-    seed_unsupplied_energy_costs: int = 6005489
-    seed_spilled_energy_costs: int = 7005489
-    seed_thermal_costs: int = 8005489
-    seed_hydro_costs: int = 9005489
-    seed_initial_reservoir_levels: int = 10005489
-
-
-@all_optional_model
-class SeedParametersLocalEdition(SeedParametersLocalCreation):
-    pass
-
-
-class AdvancedAndSeedParametersLocalCreation(BaseModel):
-    other_preferences: OtherPreferencesLocalCreation = Field(alias="other preferences")
-    advanced_parameters: AdvancedParametersLocalCreation = Field(alias="advanced parameters")
-    seeds: SeedParametersLocalCreation = Field(alias="seeds - Mersenne Twister")
-
-
-class AdvancedAndSeedParametersLocalEdition(BaseModel):
-    other_preferences: OtherPreferencesLocalEdition = Field(default=None, alias="other preferences")
-    advanced_parameters: AdvancedParametersLocalEdition = Field(default_factory=None, alias="advanced parameters")
-    seeds: SeedParametersLocalEdition = Field(default_factory=None, alias="seeds - Mersenne Twister")
