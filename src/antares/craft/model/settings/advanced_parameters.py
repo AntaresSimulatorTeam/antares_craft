@@ -13,11 +13,11 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Optional
 
+from pydantic import BaseModel, Field
+
 from antares.craft.model.settings.general import OutputChoices
 from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import BaseModel, Field
-from pydantic.alias_generators import to_camel
 
 
 class InitialReservoirLevel(Enum):
@@ -87,30 +87,6 @@ class SeedParameters:
     seed_thermal_costs: Optional[int] = None
     seed_hydro_costs: Optional[int] = None
     seed_initial_reservoir_levels: Optional[int] = None
-
-
-@all_optional_model
-class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel):
-    accuracy_on_correlation: set[OutputChoices]
-    initial_reservoir_levels: InitialReservoirLevel
-    hydro_heuristic_policy: HydroHeuristicPolicy
-    hydro_pricing_mode: HydroPricingMode
-    power_fluctuations: PowerFluctuation
-    shedding_policy: SheddingPolicy
-    unit_commitment_mode: UnitCommitmentMode
-    number_of_cores_mode: SimulationCore
-    renewable_generation_modelling: RenewableGenerationModeling
-    seed_tsgen_wind: int
-    seed_tsgen_load: int
-    seed_tsgen_hydro: int
-    seed_tsgen_thermal: int
-    seed_tsgen_solar: int
-    seed_tsnumbers: int
-    seed_unsupplied_energy_costs: int
-    seed_spilled_energy_costs: int
-    seed_thermal_costs: int
-    seed_hydro_costs: int
-    seed_initial_reservoir_levels: int
 
 
 class OtherPreferencesLocalCreation(BaseModel, alias_generator=to_kebab):

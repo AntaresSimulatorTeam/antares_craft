@@ -15,10 +15,11 @@ from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 
-from antares.craft.tools.all_optional_meta import all_optional_model
-from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 from pydantic import BaseModel, Field, model_validator
 from pydantic.alias_generators import to_camel
+
+from antares.craft.tools.all_optional_meta import all_optional_model
+from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 
 
 class BindingConstraintFrequency(EnumIgnoreCase):

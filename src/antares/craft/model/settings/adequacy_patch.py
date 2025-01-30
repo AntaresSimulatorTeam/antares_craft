@@ -13,10 +13,10 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+from pydantic import BaseModel
+
 from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import BaseModel, Field
-from pydantic.alias_generators import to_camel
 
 
 class PriceTakingOrder(Enum):
@@ -35,20 +35,6 @@ class AdequacyPatchParameters:
     threshold_initiate_curtailment_sharing_rule: Optional[int] = None
     threshold_display_local_matching_rule_violations: Optional[int] = None
     threshold_csr_variable_bounds_relaxation: Optional[int] = None
-
-
-@all_optional_model
-class AdequacyPatchParametersAPI(BaseModel, alias_generator=to_camel):
-    enable_adequacy_patch: Optional[bool] = None
-    ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch: bool = True
-    ntc_between_physical_areas_out_adequacy_patch: bool = True
-    price_taking_order: PriceTakingOrder = Field(default=PriceTakingOrder.DENS, validate_default=True)
-    include_hurdle_cost_csr: bool = False
-    check_csr_cost_function: bool = False
-    enable_first_step: bool = False
-    threshold_initiate_curtailment_sharing_rule: int = 0
-    threshold_display_local_matching_rule_violations: int = 0
-    threshold_csr_variable_bounds_relaxation: int = 3
 
 
 class AdequacyPatchParametersLocalCreation(BaseModel, alias_generator=to_kebab):

@@ -13,10 +13,10 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+from pydantic import BaseModel
+
 from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import BaseModel
-from pydantic.alias_generators import to_camel
 
 
 class OptimizationTransmissionCapacities(Enum):
@@ -61,23 +61,6 @@ class OptimizationParameters:
     include_export_mps: Optional[ExportMPS] = None
     include_export_structure: Optional[bool] = None
     include_unfeasible_problem_behavior: Optional[UnfeasibleProblemBehavior] = None
-
-
-@all_optional_model
-class OptimizationParametersAPI(BaseModel, alias_generator=to_camel):
-    simplex_optimization_range: SimplexOptimizationRange
-    transmission_capacities: OptimizationTransmissionCapacities
-    binding_constraints: bool
-    hurdle_costs: bool
-    thermal_clusters_min_stable_power: bool
-    thermal_clusters_min_ud_time: bool
-    day_ahead_reserve: bool
-    strategic_reserve: bool
-    spinning_reserve: bool
-    primary_reserve: bool
-    export_mps: ExportMPS
-    include_exportstructure: bool
-    unfeasible_problem_behavior: UnfeasibleProblemBehavior
 
 
 class OptimizationParametersLocalCreation(BaseModel, alias_generator=to_kebab):

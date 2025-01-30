@@ -14,9 +14,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Iterable, Optional, Union
 
+from pydantic import BaseModel
+
 from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
 from antares.craft.tools.model_tools import filter_out_empty_model_fields
-from pydantic import BaseModel
 
 
 class InitializationFilesTypes(Enum):

@@ -12,10 +12,10 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from pydantic import BaseModel, Field
+
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase
-from pydantic import BaseModel, Field
-from pydantic.alias_generators import to_camel
 
 
 class Mode(EnumIgnoreCase):
@@ -89,29 +89,6 @@ class GeneralParameters:
     thematic_trimming: Optional[bool] = None
     geographic_trimming: Optional[bool] = None
     nb_timeseries_thermal: Optional[int] = None
-
-
-@all_optional_model
-class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
-    mode: Mode = Field(default=Mode.ECONOMY, validate_default=True)
-    horizon: str
-    nb_years: int
-    first_day: int
-    last_day: int
-    first_january: WeekDay
-    first_month: Month
-    first_week_day: WeekDay
-    leap_year: bool
-    year_by_year: bool
-    building_mode: BuildingMode
-    selection_mode: bool
-    thematic_trimming: bool
-    geographic_trimming: bool
-    active_rules_scenario: str
-    read_only: bool
-    simulation_synthesis: bool
-    mc_scenario: bool
-    result_format: OutputFormat
 
 
 class GeneralSectionLocal(BaseModel):
