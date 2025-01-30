@@ -103,10 +103,17 @@ class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, ali
     mc_scenario: bool
     result_format: OutputFormat
 
-    def from_user_model(self, user_class: GeneralParameters) -> "GeneralParametersAPI":
-        user_class_as_dict = asdict(user_class)
-        print(user_class_as_dict)
-        raise NotImplementedError
+    @staticmethod
+    def from_user_model(user_class: GeneralParameters) -> "GeneralParametersAPI":
+        user_dict = asdict(user_class)
+        user_dict["first_day"] = user_dict.pop("simulation_start")
+        user_dict["last_day"] = user_dict.pop("simulation_end")
+        user_dict["first_january"] = user_dict.pop("january_first")
+        user_dict["first_month"] = user_dict.pop("first_month_in_year")
+        user_dict["first_january"] = user_dict.pop("january_first")
+        user_dict["selection_mode"] = user_dict.pop("user_playlist")
+        user_dict.pop("nb_timeseries_thermal")
+        return GeneralParametersAPI.model_validate(user_dict)
 
     def to_user_model(self, nb_ts_thermal: int) -> GeneralParameters:
         return GeneralParameters(
