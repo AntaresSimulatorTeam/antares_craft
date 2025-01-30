@@ -9,148 +9,212 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 from antares.craft.tools.all_optional_meta import all_optional_model
 from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
 
 
-class DefaultThematicTrimmingParameters(BaseModel, alias_generator=to_camel):
-    """
-    This class manages the configuration of result filtering in a simulation.
-
-    This table allows the user to enable or disable specific variables before running a simulation.
-    """
-
-    ov_cost: bool = True
-    op_cost: bool = True
-    mrg_price: bool = True
-    co2_emis: bool = True
-    dtg_by_plant: bool = True
-    balance: bool = True
-    row_bal: bool = True
-    psp: bool = True
-    misc_ndg: bool = True
-    load: bool = True
-    h_ror: bool = True
-    wind: bool = True
-    solar: bool = True
-    nuclear: bool = True
-    lignite: bool = True
-    coal: bool = True
-    gas: bool = True
-    oil: bool = True
-    mix_fuel: bool = True
-    misc_dtg: bool = True
-    h_stor: bool = True
-    h_pump: bool = True
-    h_lev: bool = True
-    h_infl: bool = True
-    h_ovfl: bool = True
-    h_val: bool = True
-    h_cost: bool = True
-    unsp_enrg: bool = True
-    spil_enrg: bool = True
-    lold: bool = True
-    lolp: bool = True
-    avl_dtg: bool = True
-    dtg_mrg: bool = True
-    max_mrg: bool = True
-    np_cost: bool = True
-    np_cost_by_plant: bool = True
-    nodu: bool = True
-    nodu_by_plant: bool = True
-    flow_lin: bool = True
-    ucap_lin: bool = True
-    loop_flow: bool = True
-    flow_quad: bool = True
-    cong_fee_alg: bool = True
-    cong_fee_abs: bool = True
-    marg_cost: bool = True
-    cong_prob_plus: bool = True
-    cong_prob_minus: bool = True
-    hurdle_cost: bool = True
-    # since v8.1
-    res_generation_by_plant: bool = True
-    misc_dtg_2: bool = True
-    misc_dtg_3: bool = True
-    misc_dtg_4: bool = True
-    wind_offshore: bool = True
-    wind_onshore: bool = True
-    solar_concrt: bool = True
-    solar_pv: bool = True
-    solar_rooft: bool = True
-    renw_1: bool = True
-    renw_2: bool = True
-    renw_3: bool = True
-    renw_4: bool = True
-    # since v8.3
-    dens: bool = True
-    profit_by_plant: bool = True
-    # since v8.6
-    sts_inj_by_plant: bool = True
-    sts_withdrawal_by_plant: bool = True
-    sts_lvl_by_plant: bool = True
-    psp_open_injection: bool = True
-    psp_open_withdrawal: bool = True
-    psp_open_level: bool = True
-    psp_closed_injection: bool = True
-    psp_closed_withdrawal: bool = True
-    psp_closed_level: bool = True
-    pondage_injection: bool = True
-    pondage_withdrawal: bool = True
-    pondage_level: bool = True
-    battery_injection: bool = True
-    battery_withdrawal: bool = True
-    battery_level: bool = True
-    other1_injection: bool = True
-    other1_withdrawal: bool = True
-    other1_level: bool = True
-    other2_injection: bool = True
-    other2_withdrawal: bool = True
-    other2_level: bool = True
-    other3_injection: bool = True
-    other3_withdrawal: bool = True
-    other3_level: bool = True
-    other4_injection: bool = True
-    other4_withdrawal: bool = True
-    other4_level: bool = True
-    other5_injection: bool = True
-    other5_withdrawal: bool = True
-    other5_level: bool = True
-    # since v8.8
-    sts_cashflow_by_cluster: bool = True
-
-    @property
-    def selected_vars_reset(self) -> bool:
-        return sum([getattr(self, field) for field in self.model_fields]) > (len(self.model_fields) / 2)
+@dataclass
+class ThematicTrimmingParameters:
+    ov_cost: Optional[bool] = None
+    op_cost: Optional[bool] = None
+    mrg_price: Optional[bool] = None
+    co2_emis: Optional[bool] = None
+    dtg_by_plant: Optional[bool] = None
+    balance: Optional[bool] = None
+    row_bal: Optional[bool] = None
+    psp: Optional[bool] = None
+    misc_ndg: Optional[bool] = None
+    load: Optional[bool] = None
+    h_ror: Optional[bool] = None
+    wind: Optional[bool] = None
+    solar: Optional[bool] = None
+    nuclear: Optional[bool] = None
+    lignite: Optional[bool] = None
+    coal: Optional[bool] = None
+    gas: Optional[bool] = None
+    oil: Optional[bool] = None
+    mix_fuel: Optional[bool] = None
+    misc_dtg: Optional[bool] = None
+    h_stor: Optional[bool] = None
+    h_pump: Optional[bool] = None
+    h_lev: Optional[bool] = None
+    h_infl: Optional[bool] = None
+    h_ovfl: Optional[bool] = None
+    h_val: Optional[bool] = None
+    h_cost: Optional[bool] = None
+    unsp_enrg: Optional[bool] = None
+    spil_enrg: Optional[bool] = None
+    lold: Optional[bool] = None
+    lolp: Optional[bool] = None
+    avl_dtg: Optional[bool] = None
+    dtg_mrg: Optional[bool] = None
+    max_mrg: Optional[bool] = None
+    np_cost: Optional[bool] = None
+    np_cost_by_plant: Optional[bool] = None
+    nodu: Optional[bool] = None
+    nodu_by_plant: Optional[bool] = None
+    flow_lin: Optional[bool] = None
+    ucap_lin: Optional[bool] = None
+    loop_flow: Optional[bool] = None
+    flow_quad: Optional[bool] = None
+    cong_fee_alg: Optional[bool] = None
+    cong_fee_abs: Optional[bool] = None
+    marg_cost: Optional[bool] = None
+    cong_prob_plus: Optional[bool] = None
+    cong_prob_minus: Optional[bool] = None
+    hurdle_cost: Optional[bool] = None
+    res_generation_by_plant: Optional[bool] = None
+    misc_dtg_2: Optional[bool] = None
+    misc_dtg_3: Optional[bool] = None
+    misc_dtg_4: Optional[bool] = None
+    wind_offshore: Optional[bool] = None
+    wind_onshore: Optional[bool] = None
+    solar_concrt: Optional[bool] = None
+    solar_pv: Optional[bool] = None
+    solar_rooft: Optional[bool] = None
+    renw_1: Optional[bool] = None
+    renw_2: Optional[bool] = None
+    renw_3: Optional[bool] = None
+    renw_4: Optional[bool] = None
+    dens: Optional[bool] = None
+    profit_by_plant: Optional[bool] = None
+    sts_inj_by_plant: Optional[bool] = None
+    sts_withdrawal_by_plant: Optional[bool] = None
+    sts_lvl_by_plant: Optional[bool] = None
+    psp_open_injection: Optional[bool] = None
+    psp_open_withdrawal: Optional[bool] = None
+    psp_open_level: Optional[bool] = None
+    psp_closed_injection: Optional[bool] = None
+    psp_closed_withdrawal: Optional[bool] = None
+    psp_closed_level: Optional[bool] = None
+    pondage_injection: Optional[bool] = None
+    pondage_withdrawal: Optional[bool] = None
+    pondage_level: Optional[bool] = None
+    battery_injection: Optional[bool] = None
+    battery_withdrawal: Optional[bool] = None
+    battery_level: Optional[bool] = None
+    other1_injection: Optional[bool] = None
+    other1_withdrawal: Optional[bool] = None
+    other1_level: Optional[bool] = None
+    other2_injection: Optional[bool] = None
+    other2_withdrawal: Optional[bool] = None
+    other2_level: Optional[bool] = None
+    other3_injection: Optional[bool] = None
+    other3_withdrawal: Optional[bool] = None
+    other3_level: Optional[bool] = None
+    other4_injection: Optional[bool] = None
+    other4_withdrawal: Optional[bool] = None
+    other4_level: Optional[bool] = None
+    other5_injection: Optional[bool] = None
+    other5_withdrawal: Optional[bool] = None
+    other5_level: Optional[bool] = None
+    sts_cashflow_by_cluster: Optional[bool] = None
 
 
 @all_optional_model
-class ThematicTrimmingParameters(DefaultThematicTrimmingParameters):
-    pass
+class ThematicTrimmingParametersAPI(BaseModel, alias_generator=to_camel):
+    ov_cost: bool
+    op_cost: bool
+    mrg_price: bool
+    co2_emis: bool
+    dtg_by_plant: bool
+    balance: bool
+    row_bal: bool
+    psp: bool
+    misc_ndg: bool
+    load: bool
+    h_ror: bool
+    wind: bool
+    solar: bool
+    nuclear: bool
+    lignite: bool
+    coal: bool
+    gas: bool
+    oil: bool
+    mix_fuel: bool
+    misc_dtg: bool
+    h_stor: bool
+    h_pump: bool
+    h_lev: bool
+    h_infl: bool
+    h_ovfl: bool
+    h_val: bool
+    h_cost: bool
+    unsp_enrg: bool
+    spil_enrg: bool
+    lold: bool
+    lolp: bool
+    avl_dtg: bool
+    dtg_mrg: bool
+    max_mrg: bool
+    np_cost: bool
+    np_cost_by_plant: bool
+    nodu: bool
+    nodu_by_plant: bool
+    flow_lin: bool
+    ucap_lin: bool
+    loop_flow: bool
+    flow_quad: bool
+    cong_fee_alg: bool
+    cong_fee_abs: bool
+    marg_cost: bool
+    cong_prob_plus: bool
+    cong_prob_minus: bool
+    hurdle_cost: bool
+    res_generation_by_plant: bool
+    misc_dtg_2: bool
+    misc_dtg_3: bool
+    misc_dtg_4: bool
+    wind_offshore: bool
+    wind_onshore: bool
+    solar_concrt: bool
+    solar_pv: bool
+    solar_rooft: bool
+    renw_1: bool
+    renw_2: bool
+    renw_3: bool
+    renw_4: bool
+    dens: bool
+    profit_by_plant: bool
+    sts_inj_by_plant: bool
+    sts_withdrawal_by_plant: bool
+    sts_lvl_by_plant: bool
+    psp_open_injection: bool
+    psp_open_withdrawal: bool
+    psp_open_level: bool
+    psp_closed_injection: bool
+    psp_closed_withdrawal: bool
+    psp_closed_level: bool
+    pondage_injection: bool
+    pondage_withdrawal: bool
+    pondage_level: bool
+    battery_injection: bool
+    battery_withdrawal: bool
+    battery_level: bool
+    other1_injection: bool
+    other1_withdrawal: bool
+    other1_level: bool
+    other2_injection: bool
+    other2_withdrawal: bool
+    other2_level: bool
+    other3_injection: bool
+    other3_withdrawal: bool
+    other3_level: bool
+    other4_injection: bool
+    other4_withdrawal: bool
+    other4_level: bool
+    other5_injection: bool
+    other5_withdrawal: bool
+    other5_level: bool
+    sts_cashflow_by_cluster: bool
 
 
-class ThematicTrimmingParametersLocal(DefaultThematicTrimmingParameters, populate_by_name=True):
-    @property
-    def ini_fields(self) -> dict:
-        variable_list = repr(
-            [
-                getattr(ThematicVars, to_camel(variable)).value
-                for variable in self.model_fields
-                if getattr(self, variable) ^ self.selected_vars_reset
-            ]
-        )
-        thematic_trimming_dict = {"select_var " + ("-" if self.selected_vars_reset else "+"): variable_list}
-
-        return {
-            "variables selection": {"selected_vars_reset": str(self.selected_vars_reset).lower()}
-            | thematic_trimming_dict
-        }
-
-
-class ThematicVars(Enum):
+class ThematicVarsLocal(Enum):
     balance = "BALANCE"
     dens = "DENS"
     load = "LOAD"

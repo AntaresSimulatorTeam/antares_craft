@@ -32,7 +32,7 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import Output
-from antares.craft.model.settings.study_settings import DefaultStudySettings, StudySettings, StudySettingsLocal
+from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.service.api_services.study_api import _returns_study_settings
 from antares.craft.service.base_services import BaseStudyService
@@ -92,7 +92,7 @@ def create_study_local(
     study_name: str,
     version: str,
     parent_directory: str,
-    settings: StudySettingsLocal = StudySettingsLocal(),
+    settings: StudySettings = StudySettings(),
 ) -> "Study":
     """
     Create a directory structure for the study with empty files.
@@ -138,7 +138,7 @@ InfoTip = Antares Study {version}: {study_name}
     with open(desktop_ini_path, "w") as desktop_ini_file:
         desktop_ini_file.write(desktop_ini_content)
 
-    local_settings = StudySettingsLocal.model_validate(settings)
+    local_settings = StudySettings.model_validate(settings)
     local_settings_file = IniFile(study_directory, InitializationFilesTypes.GENERAL)
     local_settings_file.ini_dict = local_settings.model_dump(exclude_none=True, by_alias=True)
     local_settings_file.write_ini_file()
@@ -231,7 +231,7 @@ class Study:
         name: str,
         version: str,
         service_factory: ServiceFactory,
-        settings: Union[StudySettings, StudySettingsLocal, None] = None,
+        settings: Union[StudySettings, None] = None,
         path: PurePath = PurePath("."),
     ):
         self.name = name
@@ -242,7 +242,7 @@ class Study:
         self._link_service = service_factory.create_link_service()
         self._run_service = service_factory.create_run_service()
         self._binding_constraints_service = service_factory.create_binding_constraints_service()
-        self._settings = DefaultStudySettings.model_validate(settings if settings is not None else StudySettings())
+        self._settings = settings or StudySettings()
         self._areas: dict[str, Area] = dict()
         self._links: dict[str, Link] = dict()
         self._binding_constraints: dict[str, BindingConstraint] = dict()
@@ -272,7 +272,7 @@ class Study:
     def get_links(self) -> MappingProxyType[str, Link]:
         return MappingProxyType(self._links)
 
-    def get_settings(self) -> DefaultStudySettings:
+    def get_settings(self) -> StudySettings:
         return self._settings
 
     def get_binding_constraints(self) -> MappingProxyType[str, BindingConstraint]:
@@ -474,7 +474,7 @@ def _create_directory_structure(study_path: Path) -> None:
         (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
 
 
-def _create_correlation_ini_files(local_settings: StudySettingsLocal, study_directory: Path) -> None:
+def _create_correlation_ini_files(local_settings: StudySettings, study_directory: Path) -> None:
     fields_to_check = ["hydro", "load", "solar", "wind"]
     correlation_inis_to_create = [
         (
