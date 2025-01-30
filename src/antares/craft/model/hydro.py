@@ -15,10 +15,9 @@ from typing import Dict, Optional
 
 import pandas as pd
 
+from antares.craft.tools.all_optional_meta import all_optional_model
 from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
-
-from antares.craft.tools.all_optional_meta import all_optional_model
 
 
 class HydroMatrixName(Enum):

@@ -11,9 +11,6 @@
 # This file is part of the Antares project.
 from typing import Optional
 
-from pydantic import BaseModel, Field
-from pydantic.alias_generators import to_camel
-
 from antares.craft.model.settings.adequacy_patch import PriceTakingOrder
 from antares.craft.model.settings.advanced_parameters import (
     HydroHeuristicPolicy,
@@ -25,7 +22,15 @@ from antares.craft.model.settings.advanced_parameters import (
     SimulationCore,
     UnitCommitmentMode,
 )
-from antares.craft.model.settings.general import BuildingMode, Mode, Month, OutputChoices, OutputFormat, WeekDay
+from antares.craft.model.settings.general import (
+    BuildingMode,
+    GeneralParameters,
+    Mode,
+    Month,
+    OutputChoices,
+    OutputFormat,
+    WeekDay,
+)
 from antares.craft.model.settings.optimization import (
     ExportMPS,
     OptimizationTransmissionCapacities,
@@ -33,6 +38,8 @@ from antares.craft.model.settings.optimization import (
     UnfeasibleProblemBehavior,
 )
 from antares.craft.tools.all_optional_meta import all_optional_model
+from pydantic import BaseModel, Field
+from pydantic.alias_generators import to_camel
 
 
 @all_optional_model
@@ -94,6 +101,29 @@ class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, ali
     simulation_synthesis: bool
     mc_scenario: bool
     result_format: OutputFormat
+
+    def from_user_model(self, user_class: GeneralParameters) -> "GeneralParametersAPI":
+        pass
+
+    def to_user_model(self, nb_ts_thermal: int) -> GeneralParameters:
+        return GeneralParameters(
+            mode=self.mode,
+            horizon=self.horizon,
+            nb_years=self.nb_years,
+            simulation_start=self.first_day,
+            simulation_end=self.last_day,
+            january_first=self.first_january,
+            first_month_in_year=self.first_month,
+            first_week_day=self.first_week_day,
+            leap_year=self.leap_year,
+            year_by_year=self.year_by_year,
+            simulation_synthesis=self.simulation_synthesis,
+            building_mode=self.building_mode,
+            user_playlist=self.selection_mode,
+            thematic_trimming=self.thematic_trimming,
+            geographic_trimming=self.geographic_trimming,
+            nb_timeseries_thermal=nb_ts_thermal,
+        )
 
 
 @all_optional_model

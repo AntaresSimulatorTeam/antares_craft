@@ -12,8 +12,6 @@
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
-
 from antares.craft.model.settings.adequacy_patch import PriceTakingOrder
 from antares.craft.model.settings.advanced_parameters import (
     HydroHeuristicPolicy,
@@ -33,6 +31,7 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
+from pydantic import BaseModel, Field
 
 
 class AdequacyPatchParametersLocalCreation(BaseModel, alias_generator=to_kebab):

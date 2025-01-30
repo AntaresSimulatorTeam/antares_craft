@@ -14,8 +14,6 @@ from typing import Any, Optional, Union
 import numpy as np
 import pandas as pd
 
-from pydantic import Field
-
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import BindingConstraintCreationError
 from antares.craft.model.binding_constraint import (
@@ -31,6 +29,7 @@ from antares.craft.service.base_services import BaseBindingConstraintService
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import df_read, df_save
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from pydantic import Field
 
 
 class BindingConstraintPropertiesLocal(DefaultBindingConstraintProperties):

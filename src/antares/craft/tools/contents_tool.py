@@ -17,9 +17,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel
-
 from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
+from pydantic import BaseModel
 
 # Invalid chars was taken from Antares Simulator (C++).
 _sub_invalid_chars = re.compile(r"[^a-zA-Z0-9_(),& -]+").sub

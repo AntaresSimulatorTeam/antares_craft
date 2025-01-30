@@ -15,12 +15,11 @@ from typing import Mapping, Optional, Set
 
 import pandas as pd
 
-from pydantic import BaseModel
-
 from antares.craft.model.commons import FilterOption, sort_filter_values
 from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import transform_name_to_id
+from pydantic import BaseModel
 
 
 class TransmissionCapacities(Enum):
