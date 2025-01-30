@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 from typing import Optional
 
-from antares.craft.model.settings.adequacy_patch import AdequacyPatchParametersLocal, DefaultAdequacyPatchParameters
+from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters, SeedParameters
 from antares.craft.model.settings.general import GeneralParameters
 from antares.craft.model.settings.optimization import OptimizationParameters
@@ -30,7 +30,7 @@ class DefaultStudySettings(BaseModel):
     optimization_parameters: OptimizationParameters = OptimizationParameters()
     advanced_parameters: AdvancedParameters = AdvancedParameters()
     seed_parameters: SeedParameters = SeedParameters()
-    adequacy_patch_parameters: DefaultAdequacyPatchParameters = DefaultAdequacyPatchParameters()
+    adequacy_patch_parameters: AdequacyPatchParameters = AdequacyPatchParameters()
     playlist_parameters: Optional[PlaylistParameters] = None
     thematic_trimming_parameters: Optional[DefaultThematicTrimmingParameters] = None
 
@@ -43,7 +43,7 @@ class StudySettings(DefaultStudySettings):
 class StudySettingsLocal(DefaultStudySettings):
     general_parameters: GeneralParameters = GeneralParameters()
     optimization_parameters: OptimizationParameters = OptimizationParameters()
-    adequacy_patch_parameters: AdequacyPatchParametersLocal = AdequacyPatchParametersLocal()
+    adequacy_patch_parameters: AdequacyPatchParameters = AdequacyPatchParameters()
     advanced_parameters: AdvancedParameters = AdvancedParameters()
     seed_parameters: SeedParameters = SeedParameters()
     thematic_trimming_parameters: Optional[ThematicTrimmingParametersLocal] = None

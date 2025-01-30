@@ -17,6 +17,7 @@ from antares.craft.model.settings.general import OutputChoices
 from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
 from pydantic import BaseModel, Field
+from pydantic.alias_generators import to_camel
 
 
 class InitialReservoirLevel(Enum):
@@ -89,7 +90,7 @@ class SeedParameters:
 
 
 @all_optional_model
-class AdvancedAndSeedParametersAPI(BaseModel):
+class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel):
     accuracy_on_correlation: set[OutputChoices]
     initial_reservoir_levels: InitialReservoirLevel
     hydro_heuristic_policy: HydroHeuristicPolicy
