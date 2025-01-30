@@ -85,14 +85,14 @@ class OptimizationParametersLocalCreation(BaseModel, alias_generator=to_kebab):
     transmission_capacities: OptimizationTransmissionCapacities = OptimizationTransmissionCapacities.LOCAL_VALUES
     include_constraints: bool = True
     include_hurdle_costs: bool = True
-    include_thermal_cluster_min_stable_power: bool = True
-    include_thermal_cluster_min_ud_time: bool = True
-    include_day_ahead: bool = True
-    include_strategic_reserve: bool = True
-    include_spinning_reserve: bool = True
-    include_primary_reserve: bool = True
-    include_export_mps: bool = False
-    include_export_structure: bool = False
+    include_tc_min_stable_power: bool = True
+    include_tc_min_ud_time: bool = True
+    include_dayahead: bool = True
+    include_strategicreserve: bool = True
+    include_spinningreserve: bool = True
+    include_primaryreserve: bool = True
+    include_exportmps: bool = False
+    include_exportstructure: bool = False
     include_unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
 
 
