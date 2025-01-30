@@ -9,6 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from dataclasses import dataclass
+from typing import Optional
 
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase
@@ -69,69 +71,91 @@ class OutputFormat(EnumIgnoreCase):
     ZIP = "zip-files"
 
 
-class DefaultGeneralParameters(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+@dataclass
+class GeneralParameters:
+    mode: Optional[Mode] = None
+    horizon: Optional[str] = None
+    nb_years: Optional[int] = None
+    simulation_start: Optional[int] = None
+    simulation_end: Optional[int] = None
+    january_first: Optional[WeekDay] = None
+    first_month_in_year: Optional[Month] = None
+    first_week_day: Optional[WeekDay] = None
+    leap_year: Optional[bool] = None
+    year_by_year: Optional[bool] = None
+    simulation_synthesis: Optional[bool] = None
+    building_mode: Optional[BuildingMode] = None
+    user_playlist: Optional[bool] = None
+    thematic_trimming: Optional[bool] = None
+    geographic_trimming: Optional[bool] = None
+    nb_timeseries_thermal: Optional[int] = None
+
+
+@all_optional_model
+class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
     model_config = ConfigDict(use_enum_values=True)
 
     mode: Mode = Field(default=Mode.ECONOMY, validate_default=True)
     horizon: str = ""
-    # Calendar parameters
     nb_years: int = 1
     first_day: int = 1
     last_day: int = 365
-    first_january: WeekDay = Field(default=WeekDay.MONDAY, validate_default=True)
-    first_month: Month = Field(default=Month.JANUARY, validate_default=True)
-    first_week_day: WeekDay = Field(default=WeekDay.MONDAY, validate_default=True)
+    first_january: WeekDay = WeekDay.MONDAY
+    first_month: Month = Month.JANUARY
+    first_week_day: WeekDay = WeekDay.MONDAY
     leap_year: bool = False
-    # Additional parameters
     year_by_year: bool = False
-    building_mode: BuildingMode = Field(
-        default=BuildingMode.AUTOMATIC, validate_default=True
-    )  # ? derated and custom-scenario
-    selection_mode: bool = False  # ? user-playlist
+    building_mode: BuildingMode = BuildingMode.AUTOMATIC
+    selection_mode: bool = False
     thematic_trimming: bool = False
     geographic_trimming: bool = False
-    active_rules_scenario: str = "default ruleset"  # only one option available currently
+    active_rules_scenario: str = "default ruleset"
     read_only: bool = False
-    # Output parameters
-    simulation_synthesis: bool = True  # ? output/synthesis
-    mc_scenario: bool = False  # ? output/storenewset
+    simulation_synthesis: bool = True
+    mc_scenario: bool = False
     result_format: OutputFormat = Field(default=OutputFormat.TXT, exclude=True)
 
 
-@all_optional_model
-class GeneralParameters(DefaultGeneralParameters):
-    pass
+class GeneralSectionLocal(BaseModel):
+    mode: Mode = Field(default=Mode.ECONOMY, validate_default=True)
+    horizon: str = ""
+    nb_years: int = Field(default=1, alias="nb.years")
+    simulation_start: int = Field(default=1, alias="simulation.start")
+    simulation_end: int = Field(default=365, alias="simulation.end")
+    first_january: WeekDay = Field(default=WeekDay.MONDAY, alias="january.1st")
+    first_month: Month = Field(default=Month.JANUARY, alias="first-month-in-year")
+    first_week_day: WeekDay = Field(default=WeekDay.MONDAY, alias="first.weekday")
+    leap_year: bool = Field(default=False, alias="leapyear")
+    year_by_year: bool = Field(default=False, alias="year-by-year")
+    derated: bool = False
+    custom_scenario: bool = Field(default=False, alias="custom-scenario")
+    user_playlist: bool = Field(default=False, alias="user-playlist")
+    thematic_trimming: bool = Field(default=False, alias="thematic-trimming")
+    geographic_trimming: bool = Field(default=False, alias="geographic-trimming")
+    generate: bool = False
+    nb_timeseries_load: int = Field(default=1, alias="nbtimeseriesload")
+    nb_timeseries_hydro: int = Field(default=1, alias="nbtimeserieshydro")
+    nb_timeseries_wind: int = Field(default=1, alias="nbtimeserieswind")
+    nb_timeseries_thermal: int = Field(default=1, alias="nbtimeseriesthermal")
+    nb_timeseries_solar: int = Field(default=1, alias="nbtimeseriessolar")
+    refresh_timeseries: bool = Field(default=False, alias="refreshtimeseries")
+    intra_model: bool = Field(default=False, alias="intra-model")
+    inter_model: bool = Field(default=False, alias="inter-model")
+    refresh_interval_load: int = Field(default=100, alias="refreshintervalload")
+    refresh_interval_hydro: int = Field(default=100, alias="refreshintervalhydro")
+    refresh_interval_wind: int = Field(default=100, alias="refreshintervalwind")
+    refresh_interval_thermal: int = Field(default=100, alias="refreshintervalthermal")
+    refresh_interval_solar: int = Field(default=100, alias="refreshintervalsolar")
+    read_only: bool = Field(default=False, alias="readonly")
 
 
-class GeneralParametersLocal(DefaultGeneralParameters):
-    @property
-    def ini_fields(self) -> dict:
-        return {
-            "general": {
-                "mode": str(self.mode).title(),
-                "horizon": self.horizon,
-                "nbyears": str(self.nb_years),
-                "simulation.start": str(self.first_day),
-                "simulation.end": str(self.last_day),
-                "january.1st": str(self.first_january).title(),
-                "first-month-in-year": str(self.first_month).title(),
-                "first.weekday": str(self.first_week_day).title(),
-                "leapyear": str(self.leap_year).lower(),
-                "year-by-year": str(self.year_by_year).lower(),
-                "derated": str(self.building_mode == BuildingMode.DERATED).lower(),
-                "custom-scenario": str(self.building_mode == BuildingMode.CUSTOM).lower(),
-                "user-playlist": str(self.selection_mode).lower(),
-                "thematic-trimming": str(self.thematic_trimming).lower(),
-                "geographic-trimming": str(self.geographic_trimming).lower(),
-                "readonly": str(self.read_only).lower(),
-            },
-            "input": {},
-            "output": {
-                "synthesis": str(self.simulation_synthesis).lower(),
-                "storenewset": str(self.mc_scenario).lower(),
-                "result-format": self.result_format.value,
-            },
-        }
+class OutputSectionLocal(BaseModel):
+    synthesis: bool = True
+    store_new_set: bool = Field(default=True, alias="storenewset")
+    archives: OutputFormat = Field(default=OutputFormat.TXT, exclude=True)
 
-    def yield_properties(self) -> GeneralParameters:
-        return GeneralParameters.model_validate(self.model_dump(exclude_none=True))
+
+class GeneralParametersLocal(BaseModel):
+    general: GeneralSectionLocal
+    input: dict = {"input": ""}
+    output: OutputSectionLocal
