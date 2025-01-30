@@ -14,7 +14,7 @@ from typing import Optional
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParametersLocal, DefaultAdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import AdvancedParametersLocal, DefaultAdvancedParameters
 from antares.craft.model.settings.general import GeneralParameters
-from antares.craft.model.settings.optimization import DefaultOptimizationParameters, OptimizationParametersLocal
+from antares.craft.model.settings.optimization import OptimizationParameters
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.thematic_trimming import (
     DefaultThematicTrimmingParameters,
@@ -27,7 +27,7 @@ from pydantic import BaseModel, model_serializer
 
 class DefaultStudySettings(BaseModel):
     general_parameters: GeneralParameters = GeneralParameters()
-    optimization_parameters: DefaultOptimizationParameters = DefaultOptimizationParameters()
+    optimization_parameters: OptimizationParameters = OptimizationParameters()
     adequacy_patch_parameters: DefaultAdequacyPatchParameters = DefaultAdequacyPatchParameters()
     advanced_parameters: DefaultAdvancedParameters = DefaultAdvancedParameters()
     playlist_parameters: Optional[PlaylistParameters] = None
@@ -41,7 +41,7 @@ class StudySettings(DefaultStudySettings):
 
 class StudySettingsLocal(DefaultStudySettings):
     general_parameters: GeneralParameters = GeneralParameters()
-    optimization_parameters: OptimizationParametersLocal = OptimizationParametersLocal()
+    optimization_parameters: OptimizationParameters = OptimizationParameters()
     adequacy_patch_parameters: AdequacyPatchParametersLocal = AdequacyPatchParametersLocal()
     advanced_parameters: AdvancedParametersLocal = AdvancedParametersLocal()
     thematic_trimming_parameters: Optional[ThematicTrimmingParametersLocal] = None

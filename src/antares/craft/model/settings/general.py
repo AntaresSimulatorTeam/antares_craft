@@ -14,7 +14,7 @@ from typing import Optional
 
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 from pydantic.alias_generators import to_camel
 
 
@@ -93,27 +93,25 @@ class GeneralParameters:
 
 @all_optional_model
 class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
-    model_config = ConfigDict(use_enum_values=True)
-
     mode: Mode = Field(default=Mode.ECONOMY, validate_default=True)
-    horizon: str = ""
-    nb_years: int = 1
-    first_day: int = 1
-    last_day: int = 365
-    first_january: WeekDay = WeekDay.MONDAY
-    first_month: Month = Month.JANUARY
-    first_week_day: WeekDay = WeekDay.MONDAY
-    leap_year: bool = False
-    year_by_year: bool = False
-    building_mode: BuildingMode = BuildingMode.AUTOMATIC
-    selection_mode: bool = False
-    thematic_trimming: bool = False
-    geographic_trimming: bool = False
-    active_rules_scenario: str = "default ruleset"
-    read_only: bool = False
-    simulation_synthesis: bool = True
-    mc_scenario: bool = False
-    result_format: OutputFormat = Field(default=OutputFormat.TXT, exclude=True)
+    horizon: str
+    nb_years: int
+    first_day: int
+    last_day: int
+    first_january: WeekDay
+    first_month: Month
+    first_week_day: WeekDay
+    leap_year: bool
+    year_by_year: bool
+    building_mode: BuildingMode
+    selection_mode: bool
+    thematic_trimming: bool
+    geographic_trimming: bool
+    active_rules_scenario: str
+    read_only: bool
+    simulation_synthesis: bool
+    mc_scenario: bool
+    result_format: OutputFormat
 
 
 class GeneralSectionLocal(BaseModel):
@@ -155,7 +153,12 @@ class OutputSectionLocal(BaseModel):
     archives: OutputFormat = Field(default=OutputFormat.TXT, exclude=True)
 
 
-class GeneralParametersLocal(BaseModel):
+class GeneralParametersLocalCreation(BaseModel):
     general: GeneralSectionLocal
     input: dict = {"input": ""}
     output: OutputSectionLocal
+
+
+@all_optional_model
+class GeneralParametersLocalEdition(GeneralParametersLocalCreation):
+    pass

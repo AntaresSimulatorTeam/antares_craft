@@ -9,17 +9,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from dataclasses import dataclass
 from enum import Enum
-from typing import Union
+from typing import Optional
 
+from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
-
-
-class LegacyTransmissionCapacities(Enum):
-    INFINITE = "infinite"
 
 
 class OptimizationTransmissionCapacities(Enum):
@@ -43,60 +40,62 @@ class SimplexOptimizationRange(Enum):
 
 
 class ExportMPS(Enum):
-    FALSE = False
     NONE = "none"
     OPTIM1 = "optim1"
     OPTIM2 = "optim2"
     BOTH_OPTIMS = "both-optims"
-    TRUE = True
 
 
-class DefaultOptimizationParameters(BaseModel, alias_generator=to_camel):
-    model_config = ConfigDict(use_enum_values=True)
-
-    simplex_optimization_range: SimplexOptimizationRange = Field(
-        default=SimplexOptimizationRange.WEEK, validate_default=True
-    )
-    transmission_capacities: Union[bool, Union[LegacyTransmissionCapacities, OptimizationTransmissionCapacities]] = (
-        Field(default=OptimizationTransmissionCapacities.LOCAL_VALUES, validate_default=True)
-    )
-    binding_constraints: bool = True
-    hurdle_costs: bool = True
-    thermal_clusters_min_stable_power: bool = True
-    thermal_clusters_min_ud_time: bool = True
-    day_ahead_reserve: bool = True
-    strategic_reserve: bool = True
-    spinning_reserve: bool = True
-    primary_reserve: bool = True
-    export_mps: ExportMPS = Field(default=ExportMPS.NONE, validate_default=True)
-    include_exportstructure: bool = False
-    unfeasible_problem_behavior: UnfeasibleProblemBehavior = Field(
-        default=UnfeasibleProblemBehavior.ERROR_VERBOSE, validate_default=True
-    )
+@dataclass
+class OptimizationParameters:
+    simplex_range: Optional[SimplexOptimizationRange] = None
+    transmission_capacities: Optional[OptimizationTransmissionCapacities] = None
+    include_constraints: Optional[bool] = None
+    include_hurdle_costs: Optional[bool] = None
+    include_thermal_cluster_min_stable_power: Optional[bool] = None
+    include_thermal_cluster_min_ud_time: Optional[bool] = None
+    include_day_ahead: Optional[bool] = None
+    include_strategic_reserve: Optional[bool] = None
+    include_spinning_reserve: Optional[bool] = None
+    include_primary_reserve: Optional[bool] = None
+    include_export_mps: Optional[ExportMPS] = None
+    include_export_structure: Optional[bool] = None
+    include_unfeasible_problem_behavior: Optional[UnfeasibleProblemBehavior] = None
 
 
 @all_optional_model
-class OptimizationParameters(DefaultOptimizationParameters):
+class OptimizationParametersAPI(BaseModel, alias_generator=to_camel):
+    simplex_optimization_range: SimplexOptimizationRange
+    transmission_capacities: OptimizationTransmissionCapacities
+    binding_constraints: bool
+    hurdle_costs: bool
+    thermal_clusters_min_stable_power: bool
+    thermal_clusters_min_ud_time: bool
+    day_ahead_reserve: bool
+    strategic_reserve: bool
+    spinning_reserve: bool
+    primary_reserve: bool
+    export_mps: ExportMPS
+    include_exportstructure: bool
+    unfeasible_problem_behavior: UnfeasibleProblemBehavior
+
+
+class OptimizationParametersLocalCreation(BaseModel, alias_generator=to_kebab):
+    simplex_range: SimplexOptimizationRange = SimplexOptimizationRange.WEEK
+    transmission_capacities: OptimizationTransmissionCapacities = OptimizationTransmissionCapacities.LOCAL_VALUES
+    include_constraints: bool = True
+    include_hurdle_costs: bool = True
+    include_thermal_cluster_min_stable_power: bool = True
+    include_thermal_cluster_min_ud_time: bool = True
+    include_day_ahead: bool = True
+    include_strategic_reserve: bool = True
+    include_spinning_reserve: bool = True
+    include_primary_reserve: bool = True
+    include_export_mps: bool = False
+    include_export_structure: bool = False
+    include_unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
+
+
+@all_optional_model
+class OptimizationSettingsLocalEdition(OptimizationParametersLocalCreation):
     pass
-
-
-class OptimizationParametersLocal(DefaultOptimizationParameters):
-    @property
-    def ini_fields(self) -> dict:
-        return {
-            "optimization": {
-                "simplex-range": self.simplex_optimization_range,
-                "transmission-capacities": self.transmission_capacities,
-                "include-constraints": str(self.binding_constraints).lower(),
-                "include-hurdlecosts": str(self.hurdle_costs).lower(),
-                "include-tc-minstablepower": str(self.thermal_clusters_min_stable_power).lower(),
-                "include-tc-min-ud-time": str(self.thermal_clusters_min_ud_time).lower(),
-                "include-dayahead": str(self.day_ahead_reserve).lower(),
-                "include-strategicreserve": str(self.primary_reserve).lower(),
-                "include-spinningreserve": str(self.spinning_reserve).lower(),
-                "include-primaryreserve": str(self.primary_reserve).lower(),
-                "include-exportmps": self.export_mps,
-                "include-exportstructure": str(self.include_exportstructure).lower(),
-                "include-unfeasible-problem-behavior": self.unfeasible_problem_behavior,
-            }
-        }
