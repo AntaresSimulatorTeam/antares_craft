@@ -150,7 +150,7 @@ class GeneralSectionLocal(BaseModel):
 class OutputSectionLocal(BaseModel):
     synthesis: bool = True
     store_new_set: bool = Field(default=True, alias="storenewset")
-    archives: OutputFormat = Field(default=OutputFormat.TXT, exclude=True)
+    archives: set[OutputChoices] = set()
 
 
 class GeneralParametersLocalCreation(BaseModel):
