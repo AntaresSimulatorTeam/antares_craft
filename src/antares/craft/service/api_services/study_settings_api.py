@@ -34,6 +34,7 @@ from antares.craft.model.settings.general import (
 )
 from antares.craft.model.settings.optimization import (
     ExportMPS,
+    OptimizationParameters,
     OptimizationTransmissionCapacities,
     SimplexOptimizationRange,
     UnfeasibleProblemBehavior,
@@ -176,6 +177,40 @@ class OptimizationParametersAPI(BaseModel, alias_generator=to_camel):
     export_mps: ExportMPS
     include_exportstructure: bool
     unfeasible_problem_behavior: UnfeasibleProblemBehavior
+
+    @staticmethod
+    def from_user_model(user_class: OptimizationParameters) -> "OptimizationParametersAPI":
+        user_dict = asdict(user_class)
+        user_dict["simplex_optimization_range"] = user_dict.pop("simplex_range")
+        user_dict["binding_constraints"] = user_dict.pop("include_constraints")
+        user_dict["hurdle_costs"] = user_dict.pop("include_hurdle_costs")
+        user_dict["thermal_clusters_min_stable_power"] = user_dict.pop("include_thermal_cluster_min_stable_power")
+        user_dict["thermal_clusters_min_ud_time"] = user_dict.pop("include_thermal_cluster_min_ud_time")
+        user_dict["day_ahead_reserve"] = user_dict.pop("include_day_ahead")
+        user_dict["strategic_reserve"] = user_dict.pop("include_strategic_reserve")
+        user_dict["spinning_reserve"] = user_dict.pop("include_spinning_reserve")
+        user_dict["primary_reserve"] = user_dict.pop("include_primary_reserve")
+        user_dict["export_mps"] = user_dict.pop("include_export_mps")
+        user_dict["include_exportstructure"] = user_dict.pop("include_export_structure")
+        user_dict["unfeasible_problem_behavior"] = user_dict.pop("include_unfeasible_problem_behavior")
+        return OptimizationParametersAPI.model_validate(user_dict)
+
+    def to_user_model(self) -> OptimizationParameters:
+        return OptimizationParameters(
+            simplex_range=self.simplex_optimization_range,
+            transmission_capacities=self.transmission_capacities,
+            include_constraints=self.binding_constraints,
+            include_hurdle_costs=self.hurdle_costs,
+            include_thermal_cluster_min_stable_power=self.thermal_clusters_min_stable_power,
+            include_thermal_cluster_min_ud_time=self.thermal_clusters_min_ud_time,
+            include_day_ahead=self.day_ahead_reserve,
+            include_strategic_reserve=self.strategic_reserve,
+            include_spinning_reserve=self.spinning_reserve,
+            include_primary_reserve=self.primary_reserve,
+            include_export_mps=self.export_mps,
+            include_export_structure=self.include_exportstructure,
+            include_unfeasible_problem_behavior=self.unfeasible_problem_behavior,
+        )
 
 
 @all_optional_model
