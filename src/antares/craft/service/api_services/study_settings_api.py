@@ -12,7 +12,7 @@
 from dataclasses import asdict
 from typing import Optional
 
-from antares.craft.model.settings.adequacy_patch import PriceTakingOrder
+from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters, PriceTakingOrder
 from antares.craft.model.settings.advanced_parameters import (
     HydroHeuristicPolicy,
     HydroPricingMode,
@@ -55,6 +55,31 @@ class AdequacyPatchParametersAPI(BaseModel, alias_generator=to_camel):
     threshold_initiate_curtailment_sharing_rule: int = 0
     threshold_display_local_matching_rule_violations: int = 0
     threshold_csr_variable_bounds_relaxation: int = 3
+
+    @staticmethod
+    def from_user_model(user_class: AdequacyPatchParameters) -> "AdequacyPatchParametersAPI":
+        user_dict = asdict(user_class)
+        user_dict["enable_adequacy_patch"] = user_dict.pop("include_adq_patch")
+        user_dict["ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch"] = user_dict.pop(
+            "set_to_null_ntc_from_physical_out_to_physical_in_for_first_step"
+        )
+        user_dict["ntc_between_physical_areas_out_adequacy_patch"] = user_dict.pop(
+            "set_to_null_ntc_between_physical_out_for_first_step"
+        )
+        return AdequacyPatchParametersAPI.model_validate(user_dict)
+
+    def to_user_model(self) -> AdequacyPatchParameters:
+        return AdequacyPatchParameters(
+            include_adq_patch=self.enable_adequacy_patch,
+            set_to_null_ntc_from_physical_out_to_physical_in_for_first_step=self.ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch,
+            set_to_null_ntc_between_physical_out_for_first_step=self.ntc_between_physical_areas_out_adequacy_patch,
+            price_taking_order=self.price_taking_order,
+            include_hurdle_cost_csr=self.include_hurdle_cost_csr,
+            check_csr_cost_function=self.check_csr_cost_function,
+            threshold_initiate_curtailment_sharing_rule=self.threshold_initiate_curtailment_sharing_rule,
+            threshold_display_local_matching_rule_violations=self.threshold_display_local_matching_rule_violations,
+            threshold_csr_variable_bounds_relaxation=self.threshold_csr_variable_bounds_relaxation,
+        )
 
 
 @all_optional_model
