@@ -314,9 +314,16 @@ def read_study_settings(study_directory: Path) -> StudySettings:
     advanced_parameters = seed_and_advanced_local_parameters.to_advanced_parameters_model()
 
     # playlist
-    # todo
+    playlist_parameters = None
+    if "playlist" in ini_content:
+        playlist_parameters = None
+        # todo
+
     # thematic trimming
-    # todo
+    thematic_trimming_parameters = None
+    if "variables selection" in ini_content:
+        thematic_trimming_parameters = None
+        # todo
 
     return StudySettings(
         general_parameters=general_parameters,
@@ -324,8 +331,8 @@ def read_study_settings(study_directory: Path) -> StudySettings:
         seed_parameters=seed_parameters,
         advanced_parameters=advanced_parameters,
         adequacy_patch_parameters=adequacy_patch_parameters,
-        playlist_parameters=None,
-        thematic_trimming_parameters=None,
+        playlist_parameters=playlist_parameters,
+        thematic_trimming_parameters=thematic_trimming_parameters,
     )
 
 
