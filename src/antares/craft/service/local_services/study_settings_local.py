@@ -142,7 +142,7 @@ class AdvancedAndSeedParametersLocalCreation(BaseModel):
         return SeedParameters(**seed_values)
 
 
-class AdvancedAndSeedParametersLocalEdition(BaseModel):
+class AdvancedAndSeedParametersLocalEdition(AdvancedAndSeedParametersLocalCreation):
     other_preferences: OtherPreferencesLocalEdition = Field(default=None, alias="other preferences")
     advanced_parameters: AdvancedParametersLocalEdition = Field(default_factory=None, alias="advanced parameters")
     seeds: SeedParametersLocalEdition = Field(default_factory=None, alias="seeds - Mersenne Twister")
