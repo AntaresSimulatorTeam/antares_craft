@@ -47,7 +47,7 @@ if TYPE_CHECKING:
     from antares.craft.model.study import Study
 
 
-def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, settings: StudySettings) -> None:
+def _edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, settings: StudySettings) -> None:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
     try:
         # thematic trimming
@@ -182,7 +182,7 @@ class StudyApiService(BaseStudyService):
 
     def update_study_settings(self, settings: StudySettings) -> None:
         try:
-            edit_study_settings(self._base_url, self.study_id, self._wrapper, settings)
+            _edit_study_settings(self._base_url, self.study_id, self._wrapper, settings)
         except APIError as e:
             raise StudySettingsUpdateError(self.study_id, e.message) from e
 
