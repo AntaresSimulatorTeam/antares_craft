@@ -163,7 +163,7 @@ class OutputSectionLocal(BaseModel):
 
 class GeneralParametersLocalCreation(BaseModel):
     general: GeneralSectionLocal
-    input: dict = {"input": ""}
+    input: dict = {"import": ""}
     output: OutputSectionLocal
 
 

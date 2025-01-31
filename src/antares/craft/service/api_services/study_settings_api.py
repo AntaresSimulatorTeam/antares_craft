@@ -173,6 +173,7 @@ class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, ali
         user_dict["first_january"] = user_dict.pop("january_first")
         user_dict["first_month"] = user_dict.pop("first_month_in_year")
         user_dict["selection_mode"] = user_dict.pop("user_playlist")
+        user_dict["mc_scenario"] = user_dict.pop("store_new_set")
         user_dict.pop("nb_timeseries_thermal")
         return GeneralParametersAPI.model_validate(user_dict)
 
@@ -193,6 +194,7 @@ class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, ali
             user_playlist=self.selection_mode,
             thematic_trimming=self.thematic_trimming,
             geographic_trimming=self.geographic_trimming,
+            store_new_set=self.mc_scenario,
             nb_timeseries_thermal=nb_ts_thermal,
         )
 

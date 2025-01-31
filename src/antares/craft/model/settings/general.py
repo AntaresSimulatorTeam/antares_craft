@@ -85,4 +85,5 @@ class GeneralParameters:
     user_playlist: Optional[bool] = None
     thematic_trimming: Optional[bool] = None
     geographic_trimming: Optional[bool] = None
+    store_new_set: Optional[bool] = None
     nb_timeseries_thermal: Optional[int] = None
