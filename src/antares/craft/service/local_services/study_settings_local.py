@@ -37,6 +37,7 @@ from antares.craft.model.settings.optimization import (
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
+from antares.craft.tools.ini_tool import InitializationFilesTypes
 from pydantic import BaseModel, Field
 
 
@@ -365,8 +366,10 @@ class ThematicVarsLocal(Enum):
 
 
 def read_study_settings(study_directory: Path) -> StudySettings:
+    general_data_path = study_directory / InitializationFilesTypes.GENERAL.value
     raise NotImplementedError
 
 
 def edit_study_settings(study_directory: Path, settings: StudySettings) -> None:
+    general_data_path = study_directory / InitializationFilesTypes.GENERAL.value
     raise NotImplementedError
