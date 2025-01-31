@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from dataclasses import asdict
 from pathlib import Path, PurePath
 from typing import TYPE_CHECKING, Optional
 
@@ -58,9 +59,12 @@ def _edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, 
         wrapper.put(thematic_trimming_url, json=body)
 
     # playlist
-    # playlist_url = f"{settings_base_url}/playlist/form"
-
-    # todo
+    if settings.playlist_parameters:
+        playlist_url = f"{settings_base_url}/playlist/form"
+        body = {}
+        for key, value in settings.playlist_parameters.items():
+            body[str(key)] = asdict(value)
+        wrapper.put(playlist_url, json=body)
 
     # optimization
     if settings.optimization_parameters:

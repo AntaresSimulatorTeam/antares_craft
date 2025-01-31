@@ -27,5 +27,5 @@ class StudySettings:
     advanced_parameters: Optional[AdvancedParameters] = None
     seed_parameters: Optional[SeedParameters] = None
     adequacy_patch_parameters: Optional[AdequacyPatchParameters] = None
-    playlist_parameters: Optional[PlaylistParameters] = None
+    playlist_parameters: Optional[dict[int, PlaylistParameters]] = None
     thematic_trimming_parameters: Optional[ThematicTrimmingParameters] = None
