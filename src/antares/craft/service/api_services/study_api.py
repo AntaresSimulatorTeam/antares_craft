@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 
 
 def _returns_study_settings(
-    base_url: str, study_id: str, wrapper: RequestWrapper, update: bool, settings: Optional[StudySettings]
+    base_url: str, study_id: str, wrapper: RequestWrapper, update: bool, settings: Optional[StudySettings] = None
 ) -> Optional[StudySettings]:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
     mapping = {
