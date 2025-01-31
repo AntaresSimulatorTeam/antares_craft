@@ -290,15 +290,40 @@ def read_study_settings(study_directory: Path) -> StudySettings:
     general_parameters = general_parameters_local.to_user_model()
 
     # optimization
+    optimization_ini = ini_content["optimization"]
+    optimization_ini.pop("link-type", None)
+    optimization_parameters_local = OptimizationParametersLocalCreation.model_validate(optimization_ini)
+    optimization_parameters = optimization_parameters_local.to_user_model()
 
+    # adequacy_patch
+    adequacy_ini = ini_content["adequacy patch"]
+    adequacy_parameters_local = AdequacyPatchParametersLocalCreation.model_validate(adequacy_ini)
+    adequacy_patch_parameters = adequacy_parameters_local.to_user_model()
+
+    # seed and advanced
+    seed_local_parameters = SeedParametersLocalCreation.model_validate(ini_content["seeds - Mersenne Twister"])
+    advanced_local_parameters = AdvancedParametersLocalCreation.model_validate(ini_content["advanced parameters"])
+    other_preferences_local_parameters = OtherPreferencesLocalCreation.model_validate(ini_content["other preferences"])
+    args = {
+        "other_preferences": other_preferences_local_parameters,
+        "seeds": seed_local_parameters,
+        "advanced_parameters": advanced_local_parameters,
+    }
+    seed_and_advanced_local_parameters = AdvancedAndSeedParametersLocalCreation.model_validate(args)
+    seed_parameters = seed_and_advanced_local_parameters.to_seed_parameters_model()
+    advanced_parameters = seed_and_advanced_local_parameters.to_advanced_parameters_model()
+
+    # playlist
+    # todo
+    # thematic trimming
     # todo
 
     return StudySettings(
         general_parameters=general_parameters,
-        optimization_parameters=None,
-        seed_parameters=None,
-        advanced_parameters=None,
-        adequacy_patch_parameters=None,
+        optimization_parameters=optimization_parameters,
+        seed_parameters=seed_parameters,
+        advanced_parameters=advanced_parameters,
+        adequacy_patch_parameters=adequacy_patch_parameters,
         playlist_parameters=None,
         thematic_trimming_parameters=None,
     )
