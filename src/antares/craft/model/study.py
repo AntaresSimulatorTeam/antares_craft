@@ -35,7 +35,7 @@ from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
-from antares.craft.service.api_services.study_api import _returns_study_settings
+from antares.craft.service.api_services.study_api import read_study_settings
 from antares.craft.service.base_services import BaseStudyService
 from antares.craft.service.service_factory import ServiceFactory
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
@@ -76,8 +76,12 @@ def create_study_api(
         url = f"{base_url}/studies?name={study_name}&version={version}"
         response = wrapper.post(url)
         study_id = response.json()
-        study_settings = _returns_study_settings(base_url, study_id, wrapper, False, settings)
+        # Settings part
+        study_settings = None if settings else read_study_settings(base_url, study_id, wrapper)
         study = Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
+        if settings:
+            study.update_settings(settings)
+        # Move part
         if parent_path:
             study.move(parent_path)
             url = f"{base_url}/studies/{study_id}"
@@ -199,7 +203,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     path = json_study.pop("folder")
     pure_path = PurePath(path) if path else PurePath(".")
 
-    study_settings = _returns_study_settings(base_url, study_id, wrapper, False, None)
+    study_settings = read_study_settings(base_url, study_id, wrapper)
     study = Study(
         study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings, pure_path
     )

@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import asdict
 from pathlib import Path, PurePath
 from typing import TYPE_CHECKING, Optional
 
@@ -33,13 +32,7 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.binding_constraint import BindingConstraint
 from antares.craft.model.output import Output
-from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
-from antares.craft.model.settings.advanced_parameters import AdvancedParameters
-from antares.craft.model.settings.general import GeneralParameters
-from antares.craft.model.settings.optimization import OptimizationParameters
-from antares.craft.model.settings.playlist_parameters import PlaylistData, PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettings
-from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.service.api_services.study_settings_api import (
     AdequacyPatchParametersAPI,
     AdvancedAndSeedParametersAPI,
@@ -161,42 +154,6 @@ def read_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper) -
         playlist_parameters=None,
         thematic_trimming_parameters=thematic_trimming_parameters,
     )
-
-
-def _returns_study_settings(
-    base_url: str, study_id: str, wrapper: RequestWrapper, update: bool, settings: Optional[StudySettings] = None
-) -> Optional[StudySettings]:
-    settings_base_url = f"{base_url}/studies/{study_id}/config"
-    mapping = {
-        "general_parameters": ("general", GeneralParameters),
-        "thematic_trimming_parameters": ("thematictrimming", ThematicTrimmingParameters),
-        "adequacy_patch_parameters": ("adequacypatch", AdequacyPatchParameters),
-        "advanced_parameters": ("advancedparameters", AdvancedParameters),
-        "optimization_parameters": ("optimization", OptimizationParameters),
-        "playlist_parameters": ("playlist", PlaylistParameters),
-    }
-    if settings:
-        json_settings = asdict(settings)
-        if not json_settings and update:
-            return None
-
-        for key, value in json_settings.items():
-            url = f"{settings_base_url}/{mapping[key][0]}/form"
-            wrapper.put(url, json=value)
-
-    json_settings = {}
-    for settings_type, settings_tuple in mapping.items():
-        settings_class = settings_tuple[1]
-        url = f"{settings_base_url}/{settings_tuple[0]}/form"
-        response = wrapper.get(url)
-        if settings_type == "playlist_parameters":
-            mc_years = [PlaylistData.model_validate(year) for year in response.json().values()]
-            settings_property = settings_class(playlist=mc_years) if mc_years else None
-        else:
-            settings_property = settings_class.model_validate(response.json())  # type: ignore
-        json_settings[settings_type] = settings_property
-
-    return StudySettings(**json_settings)
 
 
 class StudyApiService(BaseStudyService):
