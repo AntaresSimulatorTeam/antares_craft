@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 from dataclasses import asdict
 from enum import Enum
-from typing import Any
+from typing import Any, Set
 
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters, PriceTakingOrder
 from antares.craft.model.settings.advanced_parameters import (
@@ -24,7 +24,7 @@ from antares.craft.model.settings.advanced_parameters import (
     SimulationCore,
     UnitCommitmentMode,
 )
-from antares.craft.model.settings.general import Mode, Month, OutputChoices, WeekDay
+from antares.craft.model.settings.general import BuildingMode, GeneralParameters, Mode, Month, OutputChoices, WeekDay
 from antares.craft.model.settings.optimization import (
     OptimizationParameters,
     OptimizationTransmissionCapacities,
@@ -128,13 +128,12 @@ class GeneralSectionLocal(BaseModel):
     nb_years: int = Field(default=1, alias="nb.years")
     simulation_start: int = Field(default=1, alias="simulation.start")
     simulation_end: int = Field(default=365, alias="simulation.end")
-    first_january: WeekDay = Field(default=WeekDay.MONDAY, alias="january.1st")
-    first_month: Month = Field(default=Month.JANUARY, alias="first-month-in-year")
+    january_first: WeekDay = Field(default=WeekDay.MONDAY, alias="january.1st")
+    first_month_in_year: Month = Field(default=Month.JANUARY, alias="first-month-in-year")
     first_week_day: WeekDay = Field(default=WeekDay.MONDAY, alias="first.weekday")
     leap_year: bool = Field(default=False, alias="leapyear")
     year_by_year: bool = Field(default=False, alias="year-by-year")
-    derated: bool = False
-    custom_scenario: bool = Field(default=False, alias="custom-scenario")
+    building_mode: BuildingMode = BuildingMode.AUTOMATIC
     user_playlist: bool = Field(default=False, alias="user-playlist")
     thematic_trimming: bool = Field(default=False, alias="thematic-trimming")
     geographic_trimming: bool = Field(default=False, alias="geographic-trimming")
@@ -165,6 +164,44 @@ class GeneralParametersLocalCreation(BaseModel):
     general: GeneralSectionLocal
     input: dict = {"import": ""}
     output: OutputSectionLocal
+
+    @staticmethod
+    def from_user_model(user_class: GeneralParameters) -> "GeneralParametersLocalCreation":
+        user_dict = asdict(user_class)
+
+        output_dict = {
+            "output": {
+                "store_new_set": user_dict.pop("store_new_set"),
+                "synthesis": user_dict.pop("simulation_synthesis"),
+            }
+        }
+        general_dict = {"general": user_dict}
+        local_dict = general_dict | output_dict
+
+        return GeneralParametersLocalCreation.model_validate(local_dict)
+
+    @staticmethod
+    def get_excluded_fields_for_user_class() -> Set[str]:
+        return {
+            "generate",
+            "nb_timeseries_load",
+            "nb_timeseries_hydro",
+            "nb_timeseries_wind",
+            "nb_timeseries_solar",
+            "refresh_timeseries",
+            "intra_model",
+            "inter_model",
+            "refresh_interval_load",
+            "refresh_interval_hydro",
+            "refresh_interval_wind",
+            "refresh_interval_thermal",
+            "refresh_interval_solar",
+            "read_only",
+        }
+
+    def to_user_model(self) -> GeneralParameters:
+        local_dict = self.model_dump(mode="json", by_alias=False, exclude=self.get_excluded_fields_for_user_class())
+        return GeneralParameters(**local_dict)
 
 
 @all_optional_model
