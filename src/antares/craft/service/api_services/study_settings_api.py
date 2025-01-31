@@ -14,11 +14,13 @@ from typing import Optional
 
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters, PriceTakingOrder
 from antares.craft.model.settings.advanced_parameters import (
+    AdvancedParameters,
     HydroHeuristicPolicy,
     HydroPricingMode,
     InitialReservoirLevel,
     PowerFluctuation,
     RenewableGenerationModeling,
+    SeedParameters,
     SheddingPolicy,
     SimulationCore,
     UnitCommitmentMode,
@@ -106,6 +108,15 @@ class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel):
     seed_thermal_costs: int
     seed_hydro_costs: int
     seed_initial_reservoir_levels: int
+
+    @staticmethod
+    def from_user_model(
+        advanced_parameters: AdvancedParameters, seed_parameters: SeedParameters
+    ) -> "AdvancedAndSeedParametersAPI":
+        advanced_parameters_dict = asdict(advanced_parameters)
+        seed_parameters_dict = asdict(seed_parameters)
+        api_dict = advanced_parameters_dict | seed_parameters_dict
+        return AdvancedAndSeedParametersAPI.model_validate(api_dict)
 
 
 @all_optional_model
