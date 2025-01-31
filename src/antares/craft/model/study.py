@@ -146,6 +146,7 @@ InfoTip = Antares Study {version}: {study_name}
     local_settings = settings
     local_settings_file = IniFile(study_directory, InitializationFilesTypes.GENERAL)
     local_settings_file.ini_dict = asdict(local_settings)
+    # todo: replace this as dict with a specific method that does the mapping.
     local_settings_file.write_ini_file()
 
     # Create various .ini files for the study
