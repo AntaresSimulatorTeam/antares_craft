@@ -143,23 +143,26 @@ InfoTip = Antares Study {version}: {study_name}
     with open(desktop_ini_path, "w") as desktop_ini_file:
         desktop_ini_file.write(desktop_ini_content)
 
+    # Create various .ini files for the study
+    _create_correlation_ini_files(study_directory)
+
+    logging.info(f"Study successfully created: {study_name}")
+    study = Study(
+        name=study_name,
+        version=version,
+        service_factory=ServiceFactory(config=local_config, study_name=study_name),
+        settings=None,
+        path=study_directory,
+    )
+
+    # handle the settings part here
     local_settings = settings
     local_settings_file = IniFile(study_directory, InitializationFilesTypes.GENERAL)
     local_settings_file.ini_dict = asdict(local_settings)
     # todo: replace this as dict with a specific method that does the mapping.
     local_settings_file.write_ini_file()
 
-    # Create various .ini files for the study
-    _create_correlation_ini_files(local_settings, study_directory)
-
-    logging.info(f"Study successfully created: {study_name}")
-    return Study(
-        name=study_name,
-        version=version,
-        service_factory=ServiceFactory(config=local_config, study_name=study_name),
-        settings=local_settings,
-        path=study_directory,
-    )
+    return study
 
 
 def read_study_local(study_directory: Path) -> "Study":
@@ -479,7 +482,7 @@ def _create_directory_structure(study_path: Path) -> None:
         (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
 
 
-def _create_correlation_ini_files(local_settings: StudySettings, study_directory: Path) -> None:
+def _create_correlation_ini_files(study_directory: Path) -> None:
     fields_to_check = ["hydro", "load", "solar", "wind"]
     correlation_inis_to_create = [
         (
