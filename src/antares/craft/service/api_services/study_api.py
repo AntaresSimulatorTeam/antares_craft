@@ -49,55 +49,52 @@ if TYPE_CHECKING:
 
 def _edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, settings: StudySettings) -> None:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
-    try:
-        # thematic trimming
-        if settings.thematic_trimming_parameters:
-            thematic_trimming_url = f"{settings_base_url}/thematictrimming/form"
-            api_model = ThematicTrimmingParametersAPI.from_user_model(settings.thematic_trimming_parameters)
-            body = api_model.model_dump(mode="json", exclude_unset=True, by_alias=True)
-            wrapper.put(thematic_trimming_url, json=body)
 
-        # playlist
-        # playlist_url = f"{settings_base_url}/playlist/form"
+    # thematic trimming
+    if settings.thematic_trimming_parameters:
+        thematic_trimming_url = f"{settings_base_url}/thematictrimming/form"
+        api_model = ThematicTrimmingParametersAPI.from_user_model(settings.thematic_trimming_parameters)
+        body = api_model.model_dump(mode="json", exclude_unset=True, by_alias=True)
+        wrapper.put(thematic_trimming_url, json=body)
 
-        # todo
+    # playlist
+    # playlist_url = f"{settings_base_url}/playlist/form"
 
-        # optimization
-        if settings.optimization_parameters:
-            optimization_url = f"{settings_base_url}/optimization/form"
-            optimization_api_model = OptimizationParametersAPI.from_user_model(settings.optimization_parameters)
-            body = optimization_api_model.model_dump(mode="json", exclude_unset=True, by_alias=True)
-            wrapper.put(optimization_url, json=body)
+    # todo
 
-        # general and timeseries
-        if settings.general_parameters:
-            general_url = f"{settings_base_url}/general/form"
-            general_api_model = GeneralParametersAPI.from_user_model(settings.general_parameters)
-            body = general_api_model.model_dump(mode="json", exclude_unset=True, by_alias=True)
-            wrapper.put(general_url, json=body)
+    # optimization
+    if settings.optimization_parameters:
+        optimization_url = f"{settings_base_url}/optimization/form"
+        optimization_api_model = OptimizationParametersAPI.from_user_model(settings.optimization_parameters)
+        body = optimization_api_model.model_dump(mode="json", exclude_unset=True, by_alias=True)
+        wrapper.put(optimization_url, json=body)
 
-            if nb_ts_thermal := settings.general_parameters.nb_timeseries_thermal:
-                timeseries_url = f"{base_url}/studies/{study_id}/timeseries/config"
-                wrapper.put(timeseries_url, json={"thermal": {"number": nb_ts_thermal}})
+    # general and timeseries
+    if settings.general_parameters:
+        general_url = f"{settings_base_url}/general/form"
+        general_api_model = GeneralParametersAPI.from_user_model(settings.general_parameters)
+        body = general_api_model.model_dump(mode="json", exclude_unset=True, by_alias=True)
+        wrapper.put(general_url, json=body)
 
-        # advanced and seed parameters
-        if settings.advanced_parameters or settings.seed_parameters:
-            advanced_parameters_url = f"{settings_base_url}/advancedparameters/form"
-            advanced_api_model = AdvancedAndSeedParametersAPI.from_user_model(
-                settings.advanced_parameters, settings.seed_parameters
-            )
-            body = advanced_api_model.model_dump(mode="json", exclude_unset=True, by_alias=True)
-            wrapper.put(advanced_parameters_url, json=body)
+        if nb_ts_thermal := settings.general_parameters.nb_timeseries_thermal:
+            timeseries_url = f"{base_url}/studies/{study_id}/timeseries/config"
+            wrapper.put(timeseries_url, json={"thermal": {"number": nb_ts_thermal}})
 
-        # adequacy patch
-        if settings.adequacy_patch_parameters:
-            adequacy_patch_url = f"{settings_base_url}/adequacypatch/form"
-            adequacy_patch_api_model = AdequacyPatchParametersAPI.from_user_model(settings.adequacy_patch_parameters)
-            body = adequacy_patch_api_model.model_dump(mode="json", exclude_unset=True, by_alias=True)
-            wrapper.put(adequacy_patch_url, json=body)
+    # advanced and seed parameters
+    if settings.advanced_parameters or settings.seed_parameters:
+        advanced_parameters_url = f"{settings_base_url}/advancedparameters/form"
+        advanced_api_model = AdvancedAndSeedParametersAPI.from_user_model(
+            settings.advanced_parameters, settings.seed_parameters
+        )
+        body = advanced_api_model.model_dump(mode="json", exclude_unset=True, by_alias=True)
+        wrapper.put(advanced_parameters_url, json=body)
 
-    except APIError as e:
-        raise StudySettingsUpdateError(study_id, e.message) from e
+    # adequacy patch
+    if settings.adequacy_patch_parameters:
+        adequacy_patch_url = f"{settings_base_url}/adequacypatch/form"
+        adequacy_patch_api_model = AdequacyPatchParametersAPI.from_user_model(settings.adequacy_patch_parameters)
+        body = adequacy_patch_api_model.model_dump(mode="json", exclude_unset=True, by_alias=True)
+        wrapper.put(adequacy_patch_url, json=body)
 
 
 def read_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper) -> StudySettings:
