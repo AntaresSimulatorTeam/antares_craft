@@ -127,10 +127,10 @@ class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel):
 
     @staticmethod
     def from_user_model(
-        advanced_parameters: AdvancedParameters, seed_parameters: SeedParameters
+        advanced_parameters: Optional[AdvancedParameters] = None, seed_parameters: Optional[SeedParameters] = None
     ) -> "AdvancedAndSeedParametersAPI":
-        advanced_parameters_dict = asdict(advanced_parameters)
-        seed_parameters_dict = asdict(seed_parameters)
+        advanced_parameters_dict = asdict(advanced_parameters) if advanced_parameters else {}
+        seed_parameters_dict = asdict(seed_parameters) if seed_parameters else {}
         api_dict = advanced_parameters_dict | seed_parameters_dict
         return AdvancedAndSeedParametersAPI.model_validate(api_dict)
 
