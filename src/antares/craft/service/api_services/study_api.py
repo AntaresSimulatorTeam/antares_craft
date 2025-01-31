@@ -54,8 +54,8 @@ if TYPE_CHECKING:
     from antares.craft.model.study import Study
 
 
-def create_study_settings(
-    base_url: str, study_id: str, wrapper: RequestWrapper, settings: Optional[StudySettings] = None
+def edit_study_settings(
+    base_url: str, study_id: str, wrapper: RequestWrapper, settings: StudySettings
 ) -> StudySettings:
     raise NotImplementedError
 
