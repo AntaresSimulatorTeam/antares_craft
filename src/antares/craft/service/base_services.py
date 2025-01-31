@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 
 import pandas as pd
 
-from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.config.base_configuration import BaseConfiguration
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -639,10 +638,6 @@ class BaseStudyService(ABC):
 
     @abstractmethod
     def generate_thermal_timeseries(self) -> None:
-        pass
-
-    @abstractmethod
-    def import_study(self, config: APIconf, study_path: Path, destination_path: Path) -> None:
         pass
 
 
