@@ -32,10 +32,11 @@ from antares.craft.exceptions.exceptions import (
     SimulationFailedError,
     SimulationTimeOutError,
     StudyCreationError,
+    StudyImportError,
     StudyMoveError,
     StudySettingsUpdateError,
     StudyVariantCreationError,
-    ThermalTimeseriesGenerationError, APIError, StudyImportError,
+    ThermalTimeseriesGenerationError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -52,7 +53,7 @@ from antares.craft.model.output import (
 from antares.craft.model.settings.general import GeneralParameters
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
-from antares.craft.model.study import Study, create_study_api, create_variant_api, read_study_api, import_study_api
+from antares.craft.model.study import Study, create_study_api, create_variant_api, import_study_api, read_study_api
 from antares.craft.service.api_services.output_api import OutputApiService
 from antares.craft.service.service_factory import ServiceFactory
 
@@ -714,7 +715,6 @@ class TestCreateAPI:
             with pytest.raises(ThermalTimeseriesGenerationError, match=error_message):
                 self.study.generate_thermal_timeseries()
 
-
     def test_import_study_success(self, tmp_path):
         json_study = {
             "id": "22c52f44-4c2a-407b-862b-490887f93dd8",
@@ -767,17 +767,16 @@ class TestCreateAPI:
             )
             mocker.get(constraints_url, json=[])
 
-            #deux mockers
+            # deux mockers
             mocker.put(url_move)
             mocker.get(url_study, json=json_study)
 
             actual_study = import_study_api(self.api, study_path, new_path)
 
-            assert actual_study.name == json_study['name']
-            assert actual_study.service.study_id == json_study['id']
+            assert actual_study.name == json_study["name"]
+            assert actual_study.service.study_id == json_study["id"]
 
     def test_import_study_fail_wrong_extension(self, tmp_path):
-
         study_path = tmp_path.joinpath("test.rar")
         study_path.touch()
         new_path = Path("/new/path/test")
@@ -785,13 +784,9 @@ class TestCreateAPI:
         base_url = "https://antares.com/api/v1"
         url_import = f"{base_url}/studies/_import"
         with requests_mock.Mocker() as mocker:
-
             mocker.get(url_import, status_code=404)
 
-            with pytest.raises(
-                Exception,
-                match=re.escape("File doesn't have the right extensions (.zip/.7z): .rar")
-            ):
+            with pytest.raises(Exception, match=re.escape("File doesn't have the right extensions (.zip/.7z): .rar")):
                 import_study_api(self.api, study_path, new_path)
 
     def test_import_study_fail_api_error(self, tmp_path):
@@ -807,7 +802,6 @@ class TestCreateAPI:
             mocker.post(url_import, json=self.study_id)
             mocker.get(url_read_study, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
-                    StudyImportError,
-                    match=f"Could not import the study test.zip : {self.antares_web_description_msg}"
+                StudyImportError, match=f"Could not import the study test.zip : {self.antares_web_description_msg}"
             ):
                 import_study_api(self.api, study_path, new_path)

@@ -106,7 +106,7 @@ def import_study_api(api_config: APIconf, study_path: Path, destination_path: Op
 
     if has_valid_extension(study_path):
         try:
-            files={"study":io.BytesIO(study_path.read_bytes())}
+            files = {"study": io.BytesIO(study_path.read_bytes())}
             url = f"{base_url}/studies/_import"
             study_id = wrapper.post(url, files=files).json()
 
@@ -118,7 +118,7 @@ def import_study_api(api_config: APIconf, study_path: Path, destination_path: Op
         except APIError as e:
             raise StudyImportError(study_path.name, e.message) from e
     else:
-        raise Exception(f"File doesn't have the right extensions (.zip/.7z): {study_path.suffix}" )
+        raise Exception(f"File doesn't have the right extensions (.zip/.7z): {study_path.suffix}")
 
 
 def create_study_local(
