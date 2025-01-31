@@ -172,7 +172,6 @@ class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, ali
         user_dict["last_day"] = user_dict.pop("simulation_end")
         user_dict["first_january"] = user_dict.pop("january_first")
         user_dict["first_month"] = user_dict.pop("first_month_in_year")
-        user_dict["first_january"] = user_dict.pop("january_first")
         user_dict["selection_mode"] = user_dict.pop("user_playlist")
         user_dict.pop("nb_timeseries_thermal")
         return GeneralParametersAPI.model_validate(user_dict)
