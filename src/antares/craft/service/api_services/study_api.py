@@ -33,6 +33,7 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.binding_constraint import BindingConstraint
 from antares.craft.model.output import Output
+from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.service.api_services.study_settings_api import (
     AdequacyPatchParametersAPI,
@@ -111,9 +112,12 @@ def read_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper) -
         thematic_trimming_parameters = thematic_trimming_api_model.to_user_model()
 
         # playlist
-        # playlist_url = f"{settings_base_url}/playlist/form"
-
-        # todo
+        playlist_url = f"{settings_base_url}/playlist/form"
+        response = wrapper.get(playlist_url)
+        json_response = response.json()
+        user_playlist = {}
+        for key, value in json_response.items():
+            user_playlist[int(key)] = PlaylistParameters(**value)
 
         # optimization
         optimization_url = f"{settings_base_url}/optimization/form"
@@ -152,7 +156,7 @@ def read_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper) -
         seed_parameters=seed_parameters,
         advanced_parameters=advanced_parameters,
         adequacy_patch_parameters=adequacy_patch_parameters,
-        playlist_parameters=None,
+        playlist_parameters=user_playlist,
         thematic_trimming_parameters=thematic_trimming_parameters,
     )
 
