@@ -9,10 +9,11 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from dataclasses import asdict
 from enum import Enum
 from typing import Any
 
-from antares.craft.model.settings.adequacy_patch import PriceTakingOrder
+from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters, PriceTakingOrder
 from antares.craft.model.settings.advanced_parameters import (
     HydroHeuristicPolicy,
     HydroPricingMode,
@@ -25,6 +26,7 @@ from antares.craft.model.settings.advanced_parameters import (
 )
 from antares.craft.model.settings.general import Mode, Month, OutputChoices, WeekDay
 from antares.craft.model.settings.optimization import (
+    OptimizationParameters,
     OptimizationTransmissionCapacities,
     SimplexOptimizationRange,
     UnfeasibleProblemBehavior,
@@ -45,6 +47,15 @@ class AdequacyPatchParametersLocalCreation(BaseModel, alias_generator=to_kebab):
     threshold_display_local_matching_rule_violations: int = 0
     threshold_csr_variable_bounds_relaxation: int = 3
     enable_first_step: bool = False
+
+    @staticmethod
+    def from_user_model(user_class: AdequacyPatchParameters) -> "AdequacyPatchParametersLocalCreation":
+        user_dict = asdict(user_class)
+        return AdequacyPatchParametersLocalCreation.model_validate(user_dict)
+
+    def to_user_model(self) -> AdequacyPatchParameters:
+        local_dict = self.model_dump(mode="json", by_alias=False, exclude={"enable_first_step"})
+        return AdequacyPatchParameters(**local_dict)
 
 
 @all_optional_model
@@ -166,7 +177,7 @@ class OptimizationParametersLocalCreation(BaseModel, alias_generator=to_kebab):
     transmission_capacities: OptimizationTransmissionCapacities = OptimizationTransmissionCapacities.LOCAL_VALUES
     include_constraints: bool = True
     include_hurdle_costs: bool = True
-    include_tc_min_stable_power: bool = True
+    include_tc_minstablepower: bool = True
     include_tc_min_ud_time: bool = True
     include_dayahead: bool = True
     include_strategicreserve: bool = True
@@ -175,6 +186,15 @@ class OptimizationParametersLocalCreation(BaseModel, alias_generator=to_kebab):
     include_exportmps: bool = False
     include_exportstructure: bool = False
     include_unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
+
+    @staticmethod
+    def from_user_model(user_class: OptimizationParameters) -> "OptimizationParametersLocalCreation":
+        user_dict = asdict(user_class)
+        return OptimizationParametersLocalCreation.model_validate(user_dict)
+
+    def to_user_model(self) -> OptimizationParameters:
+        local_dict = self.model_dump(mode="json", by_alias=False)
+        return OptimizationParameters(**local_dict)
 
 
 @all_optional_model
