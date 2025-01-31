@@ -44,7 +44,7 @@ class StudyLocalService(BaseStudyService):
     def set_output_service(self, output_service: BaseOutputService) -> None:
         self._output_service = output_service
 
-    def update_study_settings(self, settings: StudySettings) -> Optional[StudySettings]:
+    def update_study_settings(self, settings: StudySettings) -> None:
         raise NotImplementedError
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:

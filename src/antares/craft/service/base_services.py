@@ -564,7 +564,7 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
-    def update_study_settings(self, settings: StudySettings) -> Optional[StudySettings]:
+    def update_study_settings(self, settings: StudySettings) -> None:
         """
         Args:
             settings: new study settings. Only registered fields will be updated.

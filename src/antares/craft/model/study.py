@@ -357,9 +357,8 @@ class Study:
         return constraints
 
     def update_settings(self, settings: StudySettings) -> None:
-        new_settings = self._study_service.update_study_settings(settings)
-        if new_settings:
-            self._settings = new_settings
+        self._study_service.update_study_settings(settings)
+        self._settings = settings
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         self._study_service.delete_binding_constraint(constraint)

@@ -223,12 +223,11 @@ class StudyApiService(BaseStudyService):
     def set_output_service(self, output_service: BaseOutputService) -> None:
         self._output_service = output_service
 
-    def update_study_settings(self, settings: StudySettings) -> Optional[StudySettings]:
+    def update_study_settings(self, settings: StudySettings) -> None:
         try:
-            new_settings = _returns_study_settings(self._base_url, self.study_id, self._wrapper, True, settings)
+            edit_study_settings(self._base_url, self.study_id, self._wrapper, settings)
         except APIError as e:
             raise StudySettingsUpdateError(self.study_id, e.message) from e
-        return new_settings
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint.id}"
