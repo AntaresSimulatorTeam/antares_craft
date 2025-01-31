@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 from dataclasses import asdict
 from enum import Enum
+from pathlib import Path
 from typing import Any, Set
 
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters, PriceTakingOrder
@@ -33,6 +34,7 @@ from antares.craft.model.settings.optimization import (
     SimplexOptimizationRange,
     UnfeasibleProblemBehavior,
 )
+from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
 from pydantic import BaseModel, Field
@@ -360,3 +362,11 @@ class ThematicVarsLocal(Enum):
     loopFlow = "LOOP FLOW"
     margCost = "MARG. COST"
     ucapLin = "UCAP LIN."
+
+
+def read_study_settings(study_directory: Path) -> StudySettings:
+    raise NotImplementedError
+
+
+def edit_study_settings(study_directory: Path, settings: StudySettings) -> None:
+    raise NotImplementedError
