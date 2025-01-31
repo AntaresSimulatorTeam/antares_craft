@@ -15,11 +15,13 @@ from typing import Any, Set
 
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters, PriceTakingOrder
 from antares.craft.model.settings.advanced_parameters import (
+    AdvancedParameters,
     HydroHeuristicPolicy,
     HydroPricingMode,
     InitialReservoirLevel,
     PowerFluctuation,
     RenewableGenerationModeling,
+    SeedParameters,
     SheddingPolicy,
     SimulationCore,
     UnitCommitmentMode,
@@ -114,6 +116,30 @@ class AdvancedAndSeedParametersLocalCreation(BaseModel):
     other_preferences: OtherPreferencesLocalCreation = Field(alias="other preferences")
     advanced_parameters: AdvancedParametersLocalCreation = Field(alias="advanced parameters")
     seeds: SeedParametersLocalCreation = Field(alias="seeds - Mersenne Twister")
+
+    @staticmethod
+    def from_user_model(
+        advanced_parameters: AdvancedParameters, seed_parameters: SeedParameters
+    ) -> "AdvancedAndSeedParametersLocalCreation":
+        other_preferences_local_dict = asdict(advanced_parameters)
+        advanced_local_dict = {
+            "advanced_parameters": {
+                "accuracy_on_correlation": other_preferences_local_dict.pop("accuracy_on_correlation")
+            }
+        }
+        seed_local_dict = {"seeds": asdict(seed_parameters)}
+
+        local_dict = {"other_preferences": other_preferences_local_dict} | advanced_local_dict | seed_local_dict
+
+        return AdvancedAndSeedParametersLocalCreation.model_validate(local_dict)
+
+    @staticmethod
+    def get_seed_fields() -> set[str]:
+        return set(asdict(SeedParameters()).keys())
+
+    def to_seed_parameters_model(self) -> SeedParameters:
+        seed_values = self.model_dump(mode="json", by_alias=False, include=set(asdict(SeedParameters()).keys()))
+        return SeedParameters(**seed_values)
 
 
 class AdvancedAndSeedParametersLocalEdition(BaseModel):
