@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from enum import Enum
 from pathlib import Path
 from typing import Any, Set
 
@@ -37,7 +36,7 @@ from antares.craft.model.settings.optimization import (
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
-from antares.craft.tools.ini_tool import InitializationFilesTypes
+from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from pydantic import BaseModel, Field
 
 
@@ -268,108 +267,42 @@ class OptimizationSettingsLocalEdition(OptimizationParametersLocalCreation):
     pass
 
 
-class ThematicVarsLocal(Enum):
-    balance = "BALANCE"
-    dens = "DENS"
-    load = "LOAD"
-    lold = "LOLD"
-    lolp = "LOLP"
-    miscNdg = "MISC. NDG"
-    mrgPrice = "MRG. PRICE"
-    opCost = "OP. COST"
-    ovCost = "OV. COST"
-    rowBal = "ROW BAL."
-    spilEnrg = "SPIL. ENRG"
-    unspEnrg = "UNSP. ENRG"
-    hCost = "H. COST"
-    hInfl = "H. INFL"
-    hLev = "H. LEV"
-    hOvfl = "H. OVFL"
-    hPump = "H. PUMP"
-    hRor = "H. ROR"
-    hStor = "H. STOR"
-    hVal = "H. VAL"
-    psp = "PSP"
-    renw1 = "RENW. 1"
-    renw2 = "RENW. 2"
-    renw3 = "RENW. 3"
-    renw4 = "RENW. 4"
-    resGenerationByPlant = "RES generation by plant"
-    solar = "SOLAR"
-    solarConcrt = "SOLAR CONCRT."
-    solarPv = "SOLAR PV"
-    solarRooft = "SOLAR ROOFT"
-    wind = "WIND"
-    windOffshore = "WIND OFFSHORE"
-    windOnshore = "WIND ONSHORE"
-    batteryInjection = "BATTERY_INJECTION"
-    batteryLevel = "BATTERY_LEVEL"
-    batteryWithdrawal = "BATTERY_WITHDRAWAL"
-    other1Injection = "OTHER1_INJECTION"
-    other1Level = "OTHER1_LEVEL"
-    other1Withdrawal = "OTHER1_WITHDRAWAL"
-    other2Injection = "OTHER2_INJECTION"
-    other2Level = "OTHER2_LEVEL"
-    other2Withdrawal = "OTHER2_WITHDRAWAL"
-    other3Injection = "OTHER3_INJECTION"
-    other3Level = "OTHER3_LEVEL"
-    other3Withdrawal = "OTHER3_WITHDRAWAL"
-    other4Injection = "OTHER4_INJECTION"
-    other4Level = "OTHER4_LEVEL"
-    other4Withdrawal = "OTHER4_WITHDRAWAL"
-    other5Injection = "OTHER5_INJECTION"
-    other5Level = "OTHER5_LEVEL"
-    other5Withdrawal = "OTHER5_WITHDRAWAL"
-    pondageInjection = "PONDAGE_INJECTION"
-    pondageLevel = "PONDAGE_LEVEL"
-    pondageWithdrawal = "PONDAGE_WITHDRAWAL"
-    pspClosedInjection = "PSP_CLOSED_INJECTION"
-    pspClosedLevel = "PSP_CLOSED_LEVEL"
-    pspClosedWithdrawal = "PSP_CLOSED_WITHDRAWAL"
-    pspOpenInjection = "PSP_OPEN_INJECTION"
-    pspOpenLevel = "PSP_OPEN_LEVEL"
-    pspOpenWithdrawal = "PSP_OPEN_WITHDRAWAL"
-    stsCashflowByCluster = "STS CASHFLOW BY CLUSTER"
-    stsInjByPlant = "STS inj by plant"
-    stsLvlByPlant = "STS lvl by plant"
-    stsWithdrawalByPlant = "STS withdrawal by plant"
-    avlDtg = "AVL DTG"
-    co2Emis = "CO2 EMIS."
-    coal = "COAL"
-    dtgByPlant = "DTG by plant"
-    dtgMrg = "DTG MRG"
-    gas = "GAS"
-    lignite = "LIGNITE"
-    maxMrg = "MAX MRG"
-    miscDtg = "MISC. DTG"
-    miscDtg2 = "MISC. DTG 2"
-    miscDtg3 = "MISC. DTG 3"
-    miscDtg4 = "MISC. DTG 4"
-    mixFuel = "MIX. FUEL"
-    nodu = "NODU"
-    noduByPlant = "NODU by plant"
-    npCost = "NP COST"
-    npCostByPlant = "NP Cost by plant"
-    nuclear = "NUCLEAR"
-    oil = "OIL"
-    profitByPlant = "Profit by plant"
-    congFeeAbs = "CONG. FEE (ABS.)"
-    congFeeAlg = "CONG. FEE (ALG.)"
-    congProbMinus = "CONG. PROB -"
-    congProbPlus = "CONG. PROB +"
-    flowLin = "FLOW LIN."
-    flowQuad = "FLOW QUAD."
-    hurdleCost = "HURDLE COST"
-    loopFlow = "LOOP FLOW"
-    margCost = "MARG. COST"
-    ucapLin = "UCAP LIN."
-
-
 def read_study_settings(study_directory: Path) -> StudySettings:
-    general_data_path = study_directory / InitializationFilesTypes.GENERAL.value
-    raise NotImplementedError
+    general_data_ini = IniFile(study_directory, InitializationFilesTypes.THERMAL_AREAS_INI)
+    ini_content = general_data_ini.ini_dict
+
+    # general
+    general_params_ini = {"general": ini_content["general"]}
+    if general_params_ini.pop("derated", None):
+        general_params_ini["building_mode"] = BuildingMode.DERATED.value
+    if general_params_ini.pop("custom-scenario", None):
+        general_params_ini["building_mode"] = BuildingMode.CUSTOM.value
+    else:
+        general_params_ini["building_mode"] = BuildingMode.AUTOMATIC.value
+
+    excluded_keys = GeneralParametersLocalCreation.get_excluded_fields_for_user_class()
+    for key in excluded_keys:
+        general_params_ini.pop(key, None)
+
+    output_parameters_ini = {"output": ini_content["output"]}
+    local_general_ini = general_params_ini | output_parameters_ini
+    general_parameters_local = GeneralParametersLocalCreation.model_validate(local_general_ini)
+    general_parameters = general_parameters_local.to_user_model()
+
+    # optimization
+
+    # todo
+
+    return StudySettings(
+        general_parameters=general_parameters,
+        optimization_parameters=None,
+        seed_parameters=None,
+        advanced_parameters=None,
+        adequacy_patch_parameters=None,
+        playlist_parameters=None,
+        thematic_trimming_parameters=None,
+    )
 
 
 def edit_study_settings(study_directory: Path, settings: StudySettings) -> None:
-    general_data_path = study_directory / InitializationFilesTypes.GENERAL.value
     raise NotImplementedError
