@@ -232,6 +232,7 @@ class TestCreateAPI:
         }
 
         config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
+        ts_settings_url = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/config"
 
         base_url = "https://antares.com/api/v1"
         url = f"{base_url}/studies/{self.study_id}"
@@ -246,6 +247,7 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             mocker.get(url, json=json_study)
             mocker.get(config_urls, json={})
+            mocker.get(ts_settings_url, json={"thermal": {"number": 1}}, status_code=200)
             mocker.get(area_url, json=json_ui)
             mocker.get(area_props_url, json={})
             mocker.get(renewable_url, json=[])
@@ -290,6 +292,8 @@ class TestCreateAPI:
 
             config_urls = re.compile(f"{base_url}/studies/{variant_id}/config/.*")
             mocker.get(config_urls, json={}, status_code=200)
+            ts_settings_url = f"https://antares.com/api/v1/studies/{variant_id}/timeseries/config"
+            mocker.get(ts_settings_url, json={"thermal": {"number": 1}}, status_code=200)
 
             areas_url = f"{base_url}/studies/{variant_id}/areas?ui=true"
             mocker.get(areas_url, json={}, status_code=200)
