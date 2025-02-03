@@ -124,7 +124,7 @@ class AdvancedAndSeedParametersLocal(BaseModel):
 
 
 class GeneralSectionLocal(BaseModel):
-    mode: Mode = Field(default=Mode.ECONOMY, validate_default=True)
+    mode: Mode = Mode.ECONOMY
     horizon: str = ""
     nb_years: int = Field(default=1, alias="nb.years")
     simulation_start: int = Field(default=1, alias="simulation.start")
