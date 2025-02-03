@@ -147,12 +147,12 @@ InfoTip = Antares Study {version}: {study_name}
     _create_correlation_ini_files(study_directory)
 
     logging.info(f"Study successfully created: {study_name}")
-    edit_study_settings(study_directory, settings, update=False)
+    new_settings = edit_study_settings(study_directory, settings, update=False)
     return Study(
         name=study_name,
         version=version,
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
-        settings=settings,
+        settings=new_settings,
         path=study_directory,
     )
 
