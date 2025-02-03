@@ -9,8 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import asdict
-
 import pytest
 
 import logging
@@ -53,37 +51,18 @@ from antares.craft.model.link import (
 )
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
-    PriceTakingOrder,
 )
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParameters,
-    HydroHeuristicPolicy,
-    HydroPricingMode,
-    InitialReservoirLevel,
-    PowerFluctuation,
-    RenewableGenerationModeling,
-    SheddingPolicy,
-    SimulationCore,
-    UnitCommitmentMode, SeedParameters,
 )
 from antares.craft.model.settings.general import (
-    BuildingMode,
     GeneralParameters,
-    Mode,
-    Month,
-    WeekDay,
 )
 from antares.craft.model.settings.optimization import (
-    ExportMPS,
     OptimizationParameters,
-    OptimizationTransmissionCapacities,
-    SimplexOptimizationRange,
-    UnfeasibleProblemBehavior,
 )
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettings
-from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
-
 from antares.craft.model.study import create_study_local
 from antares.craft.tools.ini_tool import InitializationFilesTypes
 
@@ -215,19 +194,83 @@ class TestStudyProperties:
         assert local_study.get_settings()
         assert isinstance(local_study_settings, StudySettings)
 
-    def test_default_values_when_creating_study(self, local_study):
-        default_general_parameters = GeneralParameters()
-        default_optimization_parameters = OptimizationParameters()
-        default_advanced_parameters = AdvancedParameters()
-        default_seed_parameters = SeedParameters()
-        default_adequacy_parameters = AdequacyPatchParameters()
-        default_playlist_parameters = {}
-        default_thematic_trimming_parameters = ThematicTrimmingParameters()
+    def test_local_study_has_correct_default_general_properties(self, local_study):
+        expected_general_properties = GeneralParameters(**{
+                "mode": "economy",
+                "horizon": "",
+                "nb_years": 1,
+                "simulation_start": 1,
+                "simulation_end": 365,
+                "january_first": "monday",
+                "first_month_in_year": "january",
+                "first_week_day": "monday",
+                "leap_year": False,
+                "year_by_year": False,
+                "building_mode": "automatic",
+                "thematic_trimming": False,
+                "geographic_trimming": False,
+                "simulation_synthesis": True,
+                "user_playlist": False,
+                "store_new_set": False,
+                "nb_timeseries_thermal": 1
+            })
 
-        study_settings = local_study.get_settings()
-        # todo: currently it doesn't work ...
-        assert study_settings.general_parameters == default_general_parameters
+        assert local_study.get_settings().general_parameters == expected_general_properties
 
+    def test_local_study_has_correct_default_adequacy_patch_properties(self, local_study):
+        expected_adequacy_patch_properties = AdequacyPatchParameters(**
+            {
+                "include_adq_patch": False,
+                "set_to_null_ntc_from_physical_out_to_physical_in_for_first_step": True,
+                "set_to_null_ntc_between_physical_out_for_first_step": True,
+                "price_taking_order": "DENS",
+                "include_hurdle_cost_csr": False,
+                "check_csr_cost_function": False,
+                "threshold_initiate_curtailment_sharing_rule": 0,
+                "threshold_display_local_matching_rule_violations": 0,
+                "threshold_csr_variable_bounds_relaxation": 3,
+            }
+        )
+
+        assert local_study.get_settings().adequacy_patch_parameters == expected_adequacy_patch_properties
+
+    def test_local_study_has_correct_advanced_parameters(self, local_study):
+        expected_advanced_parameters = AdvancedParameters(**
+            {
+                "accuracy_on_correlation": "[]",
+                "initial_reservoir_levels": "cold start",
+                "hydro_heuristic_policy": "accomodate rule curves",
+                "hydro_pricing_mode": "fast",
+                "power_fluctuations": "free modulations",
+                "shedding_policy": "shave peaks",
+                "unit_commitment_mode": "fast",
+                "number_of_cores_mode": "medium",
+                "renewable_generation_modelling": "clusters",
+            }
+        )
+
+        assert local_study.get_settings().advanced_parameters == expected_advanced_parameters
+
+    def test_local_study_has_correct_optimization_parameters(self, local_study):
+        expected_optimization_parameters = OptimizationParameters(**
+            {
+                "simplex_range": "week",
+                "transmission_capacities": "local-values",
+                "include_constraints": True,
+                "include_hurdle_costs": True,
+                "include_tc_minstablepower": True,
+                "include_tc_min_ud_time": True,
+                "include_dayahead": True,
+                "include_strategicreserve": True,
+                "include_spinningreserve": True,
+                "include_primaryreserve": True,
+                "include_exportmps": False,
+                "include_exportstructure": False,
+                "include_unfeasible_problem_behavior": "error-verbose",
+            }
+        )
+
+        assert local_study.get_settings().optimization_parameters == expected_optimization_parameters
 
     def test_local_study_with_playlist_has_correct_defaults(self, tmp_path):
         # Given
@@ -236,9 +279,9 @@ class TestStudyProperties:
             "test_study",
             "880",
             str(tmp_path.absolute()),
-            StudySettings(
-                general_parameters=GeneralParameters(nb_years=nb_years, user_playlist=True),
-                playlist_parameters={year: PlaylistParameters() for year in range(nb_years)},
+            StudySettingsLocal(
+                general_parameters=GeneralParametersLocal(nb_years=nb_years, selection_mode=True),
+                playlist_parameters=PlaylistParameters(playlist=[PlaylistData()] * nb_years),
             ),
         )
 
@@ -252,6 +295,130 @@ class TestStudyProperties:
         # Then
         assert actual_playlist_parameters_dict == expected_playlist_parameters_dict
         assert actual_playlist_parameters == expected_playlist_parameters
+
+    def test_local_study_has_correct_thematic_trimming_parameters(self, tmp_path):
+        # Given
+        expected_thematic_trimming_parameters = ThematicTrimmingParametersLocal.model_validate(
+            {
+                "ov_cost": True,
+                "op_cost": True,
+                "mrg_price": True,
+                "co2_emis": True,
+                "dtg_by_plant": True,
+                "balance": True,
+                "row_bal": True,
+                "psp": True,
+                "misc_ndg": True,
+                "load": True,
+                "h_ror": True,
+                "wind": True,
+                "solar": True,
+                "nuclear": True,
+                "lignite": True,
+                "coal": True,
+                "gas": True,
+                "oil": True,
+                "mix_fuel": True,
+                "misc_dtg": True,
+                "h_stor": True,
+                "h_pump": True,
+                "h_lev": True,
+                "h_infl": True,
+                "h_ovfl": True,
+                "h_val": True,
+                "h_cost": True,
+                "unsp_enrg": True,
+                "spil_enrg": True,
+                "lold": True,
+                "lolp": True,
+                "avl_dtg": True,
+                "dtg_mrg": True,
+                "max_mrg": True,
+                "np_cost": True,
+                "np_cost_by_plant": True,
+                "nodu": True,
+                "nodu_by_plant": True,
+                "flow_lin": True,
+                "ucap_lin": True,
+                "loop_flow": True,
+                "flow_quad": True,
+                "cong_fee_alg": True,
+                "cong_fee_abs": True,
+                "marg_cost": True,
+                "cong_prob_plus": True,
+                "cong_prob_minus": True,
+                "hurdle_cost": True,
+                "res_generation_by_plant": True,
+                "misc_dtg_2": True,
+                "misc_dtg_3": True,
+                "misc_dtg_4": True,
+                "wind_offshore": True,
+                "wind_onshore": True,
+                "solar_concrt": True,
+                "solar_pv": True,
+                "solar_rooft": True,
+                "renw_1": True,
+                "renw_2": True,
+                "renw_3": True,
+                "renw_4": True,
+                "dens": True,
+                "profit_by_plant": True,
+                "sts_inj_by_plant": True,
+                "sts_withdrawal_by_plant": True,
+                "sts_lvl_by_plant": True,
+                "psp_open_injection": True,
+                "psp_open_withdrawal": True,
+                "psp_open_level": True,
+                "psp_closed_injection": True,
+                "psp_closed_withdrawal": True,
+                "psp_closed_level": True,
+                "pondage_injection": True,
+                "pondage_withdrawal": True,
+                "pondage_level": True,
+                "battery_injection": True,
+                "battery_withdrawal": True,
+                "battery_level": True,
+                "other1_injection": True,
+                "other1_withdrawal": True,
+                "other1_level": True,
+                "other2_injection": True,
+                "other2_withdrawal": True,
+                "other2_level": True,
+                "other3_injection": True,
+                "other3_withdrawal": True,
+                "other3_level": True,
+                "other4_injection": True,
+                "other4_withdrawal": True,
+                "other4_level": True,
+                "other5_injection": True,
+                "other5_withdrawal": True,
+                "other5_level": True,
+                "sts_cashflow_by_cluster": True,
+            }
+        )
+        expected_study_settings = StudySettingsLocal(
+            general_parameters=GeneralParametersLocal(thematic_trimming=True),
+            thematic_trimming_parameters=expected_thematic_trimming_parameters,
+        )
+        thematic_trimming_study = create_study_local(
+            "test_study",
+            "880",
+            str(tmp_path.absolute()),
+            StudySettingsLocal(
+                general_parameters=GeneralParametersLocal(thematic_trimming=True),
+                thematic_trimming_parameters=ThematicTrimmingParametersLocal(),
+            ),
+        )
+
+        # When
+        actual_thematic_trimming_parameters = DefaultThematicTrimmingParameters.model_validate(
+            thematic_trimming_study.get_settings().thematic_trimming_parameters
+        )
+        actual_study_settings = DefaultStudySettings.model_validate(thematic_trimming_study.get_settings())
+
+        # Then
+        assert actual_thematic_trimming_parameters == expected_thematic_trimming_parameters
+        assert actual_study_settings == expected_study_settings
 
     def test_generaldata_ini_exists(self, local_study):
         # Given
