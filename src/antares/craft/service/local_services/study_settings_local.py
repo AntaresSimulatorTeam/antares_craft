@@ -309,4 +309,23 @@ def edit_study_settings(study_directory: Path, settings: StudySettings, update: 
     ini_content.update(general_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update))
 
     # optimization
+    optimization_parameters = settings.optimization_parameters or OptimizationParameters()
+    optimization_local_parameters = OptimizationParametersLocal.from_user_model(optimization_parameters)
+    ini_content.update(optimization_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update))
+
+    # adequacy_patch
+    adequacy_parameters = settings.adequacy_patch_parameters or AdequacyPatchParameters()
+    adequacy_local_parameters = AdequacyPatchParametersLocal.from_user_model(adequacy_parameters)
+    ini_content.update(adequacy_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update))
+
+    # seed and advanced
+    seed_parameters = settings.seed_parameters or SeedParameters()
+    advanced_parameters = settings.advanced_parameters or AdvancedParameters()
+    advanced_parameters_local = AdvancedAndSeedParametersLocal.from_user_model(advanced_parameters, seed_parameters)
+    ini_content.update(advanced_parameters_local.model_dump(mode="json", by_alias=True, exclude_unset=update))
+
+    # playlist
+    # todo
+
+    # thematic trimming
     # todo
