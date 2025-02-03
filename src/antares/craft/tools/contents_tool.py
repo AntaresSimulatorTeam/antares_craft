@@ -10,11 +10,9 @@
 #
 # This file is part of the Antares project.
 
-import json
 import re
 
 from enum import Enum
-from pathlib import Path
 from typing import Any, Dict, Optional
 
 from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser

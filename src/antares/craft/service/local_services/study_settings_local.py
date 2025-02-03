@@ -9,9 +9,11 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import ast
+
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Set
+from typing import Any, Sequence, Set
 
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters, PriceTakingOrder
 from antares.craft.model.settings.advanced_parameters import (
@@ -35,11 +37,12 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.tools.alias_generators import to_kebab
+from antares.craft.tools.all_optional_meta import LocalBaseModel
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
-from pydantic import BaseModel, Field
+from pydantic import Field, field_validator
 
 
-class AdequacyPatchParametersLocal(BaseModel, alias_generator=to_kebab):
+class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     include_adq_patch: bool = False
     set_to_null_ntc_from_physical_out_to_physical_in_for_first_step: bool = True
     set_to_null_ntc_between_physical_out_for_first_step: bool = True
@@ -61,25 +64,30 @@ class AdequacyPatchParametersLocal(BaseModel, alias_generator=to_kebab):
         return AdequacyPatchParameters(**local_dict)
 
 
-class OtherPreferencesLocal(BaseModel, alias_generator=to_kebab):
-    initial_reservoir_levels: InitialReservoirLevel
-    hydro_heuristic_policy: HydroHeuristicPolicy
-    hydro_pricing_mode: HydroPricingMode
-    power_fluctuations: PowerFluctuation
-    shedding_policy: SheddingPolicy
-    shedding_strategy: Any
-    unit_commitment_mode: UnitCommitmentMode
-    number_of_cores_mode: SimulationCore
-    renewable_generation_modelling: RenewableGenerationModeling
-    day_ahead_reserve_management: Any
+class OtherPreferencesLocal(LocalBaseModel, alias_generator=to_kebab):
+    initial_reservoir_levels: InitialReservoirLevel = InitialReservoirLevel.COLD_START
+    hydro_heuristic_policy: HydroHeuristicPolicy = HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES
+    hydro_pricing_mode: HydroPricingMode = HydroPricingMode.FAST
+    power_fluctuations: PowerFluctuation = PowerFluctuation.FREE_MODULATIONS
+    shedding_policy: SheddingPolicy = SheddingPolicy.SHAVE_PEAKS
+    shedding_strategy: Any = "shave margins"
+    unit_commitment_mode: UnitCommitmentMode = UnitCommitmentMode.FAST
+    number_of_cores_mode: SimulationCore = SimulationCore.MEDIUM
+    renewable_generation_modelling: RenewableGenerationModeling = RenewableGenerationModeling.CLUSTERS
+    day_ahead_reserve_management: Any = "global"
 
 
-class AdvancedParametersLocal(BaseModel, alias_generator=to_kebab):
+class AdvancedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     accuracy_on_correlation: set[OutputChoices] = set()
     adequacy_block_size: int = 100
 
+    @field_validator("accuracy_on_correlation", mode="before")
+    def validate_accuracy_on_correlation(cls, v: Any) -> Sequence[str]:
+        """Ensure the ID is lower case."""
+        return ast.literal_eval(v)
 
-class SeedParametersLocal(BaseModel, alias_generator=to_kebab):
+
+class SeedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     seed_tsgen_wind: int = 5489
     seed_tsgen_load: int = 1005489
     seed_tsgen_hydro: int = 2005489
@@ -93,7 +101,7 @@ class SeedParametersLocal(BaseModel, alias_generator=to_kebab):
     seed_initial_reservoir_levels: int = 10005489
 
 
-class AdvancedAndSeedParametersLocal(BaseModel):
+class AdvancedAndSeedParametersLocal(LocalBaseModel):
     other_preferences: OtherPreferencesLocal = Field(alias="other preferences")
     advanced_parameters: AdvancedParametersLocal = Field(alias="advanced parameters")
     seeds: SeedParametersLocal = Field(alias="seeds - Mersenne Twister")
@@ -111,7 +119,7 @@ class AdvancedAndSeedParametersLocal(BaseModel):
         seed_local_dict = {"seeds": asdict(seed_parameters)}
 
         local_dict = {"other_preferences": other_preferences_local_dict} | advanced_local_dict | seed_local_dict
-
+        # fake_dict = {"seeds": {}, "other_preferences": {}, "advanced_parameters": {}}
         return AdvancedAndSeedParametersLocal.model_validate(local_dict)
 
     def to_seed_parameters_model(self) -> SeedParameters:
@@ -123,7 +131,7 @@ class AdvancedAndSeedParametersLocal(BaseModel):
         return AdvancedParameters(**advanced_values)
 
 
-class GeneralSectionLocal(BaseModel):
+class GeneralSectionLocal(LocalBaseModel):
     mode: Mode = Mode.ECONOMY
     horizon: str = ""
     nb_years: int = Field(default=1, alias="nb.years")
@@ -155,13 +163,13 @@ class GeneralSectionLocal(BaseModel):
     read_only: bool = Field(default=False, alias="readonly")
 
 
-class OutputSectionLocal(BaseModel):
+class OutputSectionLocal(LocalBaseModel):
     synthesis: bool = True
     store_new_set: bool = Field(default=True, alias="storenewset")
-    archives: set[OutputChoices] = set()
+    archives: Any = ""
 
 
-class GeneralParametersLocal(BaseModel):
+class GeneralParametersLocal(LocalBaseModel):
     general: GeneralSectionLocal
     input: dict = {"import": ""}
     output: OutputSectionLocal
@@ -201,11 +209,15 @@ class GeneralParametersLocal(BaseModel):
         }
 
     def to_user_model(self) -> GeneralParameters:
-        local_dict = self.model_dump(mode="json", by_alias=False, exclude=self.get_excluded_fields_for_user_class())
+        local_dict = self.general.model_dump(
+            mode="json", by_alias=False, exclude=self.get_excluded_fields_for_user_class()
+        )
+        local_dict.update(self.output.model_dump(mode="json", by_alias=False, exclude={"archives"}))
+        local_dict["simulation_synthesis"] = local_dict.pop("synthesis")
         return GeneralParameters(**local_dict)
 
 
-class OptimizationParametersLocal(BaseModel, alias_generator=to_kebab):
+class OptimizationParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     simplex_range: SimplexOptimizationRange = SimplexOptimizationRange.WEEK
     transmission_capacities: OptimizationTransmissionCapacities = OptimizationTransmissionCapacities.LOCAL_VALUES
     include_constraints: bool = True
@@ -231,7 +243,7 @@ class OptimizationParametersLocal(BaseModel, alias_generator=to_kebab):
 
 
 def read_study_settings_local(study_directory: Path) -> StudySettings:
-    general_data_ini = IniFile(study_directory, InitializationFilesTypes.THERMAL_AREAS_INI)
+    general_data_ini = IniFile(study_directory, InitializationFilesTypes.GENERAL)
     ini_content = general_data_ini.ini_dict
 
     # general
@@ -300,7 +312,7 @@ def read_study_settings_local(study_directory: Path) -> StudySettings:
 
 
 def edit_study_settings(study_directory: Path, settings: StudySettings, update: bool) -> None:
-    general_data_ini = IniFile(study_directory, InitializationFilesTypes.THERMAL_AREAS_INI)
+    general_data_ini = IniFile(study_directory, InitializationFilesTypes.GENERAL)
     ini_content = general_data_ini.ini_dict if update else {}
 
     # general
@@ -311,12 +323,16 @@ def edit_study_settings(study_directory: Path, settings: StudySettings, update: 
     # optimization
     optimization_parameters = settings.optimization_parameters or OptimizationParameters()
     optimization_local_parameters = OptimizationParametersLocal.from_user_model(optimization_parameters)
-    ini_content.update(optimization_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update))
+    ini_content.update(
+        {"optimization": optimization_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)}
+    )
 
     # adequacy_patch
     adequacy_parameters = settings.adequacy_patch_parameters or AdequacyPatchParameters()
     adequacy_local_parameters = AdequacyPatchParametersLocal.from_user_model(adequacy_parameters)
-    ini_content.update(adequacy_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update))
+    ini_content.update(
+        {"adequacy patch": adequacy_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)}
+    )
 
     # seed and advanced
     seed_parameters = settings.seed_parameters or SeedParameters()
