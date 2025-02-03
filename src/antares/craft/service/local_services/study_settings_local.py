@@ -166,7 +166,7 @@ class GeneralSectionLocal(LocalBaseModel):
 
 class OutputSectionLocal(LocalBaseModel):
     synthesis: bool = True
-    store_new_set: bool = Field(default=True, alias="storenewset")
+    store_new_set: bool = Field(default=False, alias="storenewset")
     archives: Any = ""
 
 
