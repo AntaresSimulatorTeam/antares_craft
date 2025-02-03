@@ -128,10 +128,11 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
         return SeedParameters(**seed_values)
 
     def to_advanced_parameters_model(self) -> AdvancedParameters:
-        advanced_values = self.advanced_parameters.model_dump(
-            mode="json", by_alias=False, include=set(asdict(AdvancedParameters()).keys())
-        )
-        return AdvancedParameters(**advanced_values)
+        includes = set(asdict(AdvancedParameters()).keys())
+        advanced_values = self.advanced_parameters.model_dump(mode="json", by_alias=False, include=includes)
+        other_preferences_values = self.other_preferences.model_dump(mode="json", by_alias=False, include=includes)
+        merged_values = advanced_values | other_preferences_values
+        return AdvancedParameters(**merged_values)
 
 
 class GeneralSectionLocal(LocalBaseModel):

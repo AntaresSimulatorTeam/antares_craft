@@ -239,7 +239,7 @@ class TestStudyProperties:
             {
                 "accuracy_on_correlation": [],
                 "initial_reservoir_levels": "cold start",
-                "hydro_heuristic_policy": "accomodate rule curves",
+                "hydro_heuristic_policy": "accommodate rule curves",
                 "hydro_pricing_mode": "fast",
                 "power_fluctuations": "free modulations",
                 "shedding_policy": "shave peaks",
