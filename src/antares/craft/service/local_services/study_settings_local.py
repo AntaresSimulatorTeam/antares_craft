@@ -329,3 +329,7 @@ def edit_study_settings(study_directory: Path, settings: StudySettings, update: 
 
     # thematic trimming
     # todo
+
+    # writing
+    general_data_ini.ini_dict = ini_content
+    general_data_ini.write_ini_file()
