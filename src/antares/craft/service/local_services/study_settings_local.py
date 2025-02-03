@@ -124,11 +124,13 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
         return AdvancedAndSeedParametersLocal.model_validate(local_dict)
 
     def to_seed_parameters_model(self) -> SeedParameters:
-        seed_values = self.model_dump(mode="json", by_alias=False, include=set(asdict(SeedParameters()).keys()))
+        seed_values = self.seeds.model_dump(mode="json", by_alias=False, include=set(asdict(SeedParameters()).keys()))
         return SeedParameters(**seed_values)
 
     def to_advanced_parameters_model(self) -> AdvancedParameters:
-        advanced_values = self.model_dump(mode="json", by_alias=False, include=set(asdict(AdvancedParameters()).keys()))
+        advanced_values = self.advanced_parameters.model_dump(
+            mode="json", by_alias=False, include=set(asdict(AdvancedParameters()).keys())
+        )
         return AdvancedParameters(**advanced_values)
 
 

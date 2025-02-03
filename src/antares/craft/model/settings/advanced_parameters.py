@@ -77,7 +77,7 @@ class AdvancedParameters:
 @dataclass
 class SeedParameters:
     seed_tsgen_thermal: Optional[int] = None
-    seed_ts_numbers: Optional[int] = None
+    seed_tsnumbers: Optional[int] = None
     seed_unsupplied_energy_costs: Optional[int] = None
     seed_spilled_energy_costs: Optional[int] = None
     seed_thermal_costs: Optional[int] = None

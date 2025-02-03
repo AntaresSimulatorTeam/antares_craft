@@ -53,7 +53,7 @@ from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
 )
 from antares.craft.model.settings.advanced_parameters import (
-    AdvancedParameters,
+    AdvancedParameters, SeedParameters,
 )
 from antares.craft.model.settings.general import (
     GeneralParameters,
@@ -237,7 +237,7 @@ class TestStudyProperties:
     def test_local_study_has_correct_advanced_parameters(self, local_study):
         expected_advanced_parameters = AdvancedParameters(**
             {
-                "accuracy_on_correlation": "[]",
+                "accuracy_on_correlation": [],
                 "initial_reservoir_levels": "cold start",
                 "hydro_heuristic_policy": "accomodate rule curves",
                 "hydro_pricing_mode": "fast",
@@ -250,6 +250,21 @@ class TestStudyProperties:
         )
 
         assert local_study.get_settings().advanced_parameters == expected_advanced_parameters
+
+    def test_local_study_has_correct_seed_parameters(self, local_study):
+        expected_seed_parameters = SeedParameters(**
+            {
+                "seed_tsgen_thermal": 3005489,
+                "seed_tsnumbers": 5005489,
+                "seed_unsupplied_energy_costs": 6005489,
+                "seed_spilled_energy_costs": 7005489,
+                "seed_thermal_costs": 8005489,
+                "seed_hydro_costs": 9005489,
+                "seed_initial_reservoir_levels": 10005489,
+            }
+        )
+
+        assert local_study.get_settings().seed_parameters == expected_seed_parameters
 
     def test_local_study_has_correct_optimization_parameters(self, local_study):
         expected_optimization_parameters = OptimizationParameters(**
@@ -271,6 +286,10 @@ class TestStudyProperties:
         )
 
         assert local_study.get_settings().optimization_parameters == expected_optimization_parameters
+
+    def test_local_study_has_correct_playlist_parameters(self, local_study):
+        assert local_study.get_settings().playlist_parameters is None
+        assert local_study.get_settings().thematic_trimming_parameters is None
 
     def test_local_study_with_playlist_has_correct_defaults(self, tmp_path):
         # Given
