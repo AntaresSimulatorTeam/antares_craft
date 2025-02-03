@@ -35,12 +35,11 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.tools.alias_generators import to_kebab
-from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from pydantic import BaseModel, Field
 
 
-class AdequacyPatchParametersLocalCreation(BaseModel, alias_generator=to_kebab):
+class AdequacyPatchParametersLocal(BaseModel, alias_generator=to_kebab):
     include_adq_patch: bool = False
     set_to_null_ntc_from_physical_out_to_physical_in_for_first_step: bool = True
     set_to_null_ntc_between_physical_out_for_first_step: bool = True
@@ -53,21 +52,16 @@ class AdequacyPatchParametersLocalCreation(BaseModel, alias_generator=to_kebab):
     enable_first_step: bool = False
 
     @staticmethod
-    def from_user_model(user_class: AdequacyPatchParameters) -> "AdequacyPatchParametersLocalCreation":
+    def from_user_model(user_class: AdequacyPatchParameters) -> "AdequacyPatchParametersLocal":
         user_dict = asdict(user_class)
-        return AdequacyPatchParametersLocalCreation.model_validate(user_dict)
+        return AdequacyPatchParametersLocal.model_validate(user_dict)
 
     def to_user_model(self) -> AdequacyPatchParameters:
         local_dict = self.model_dump(mode="json", by_alias=False, exclude={"enable_first_step"})
         return AdequacyPatchParameters(**local_dict)
 
 
-@all_optional_model
-class AdequacyPatchParametersLocalEdition(AdequacyPatchParametersLocalCreation):
-    pass
-
-
-class OtherPreferencesLocalCreation(BaseModel, alias_generator=to_kebab):
+class OtherPreferencesLocal(BaseModel, alias_generator=to_kebab):
     initial_reservoir_levels: InitialReservoirLevel
     hydro_heuristic_policy: HydroHeuristicPolicy
     hydro_pricing_mode: HydroPricingMode
@@ -80,22 +74,12 @@ class OtherPreferencesLocalCreation(BaseModel, alias_generator=to_kebab):
     day_ahead_reserve_management: Any
 
 
-@all_optional_model
-class OtherPreferencesLocalEdition(OtherPreferencesLocalCreation):
-    pass
-
-
-class AdvancedParametersLocalCreation(BaseModel, alias_generator=to_kebab):
+class AdvancedParametersLocal(BaseModel, alias_generator=to_kebab):
     accuracy_on_correlation: set[OutputChoices] = set()
     adequacy_block_size: int = 100
 
 
-@all_optional_model
-class AdvancedParametersLocalEdition(AdvancedParametersLocalCreation):
-    pass
-
-
-class SeedParametersLocalCreation(BaseModel, alias_generator=to_kebab):
+class SeedParametersLocal(BaseModel, alias_generator=to_kebab):
     seed_tsgen_wind: int = 5489
     seed_tsgen_load: int = 1005489
     seed_tsgen_hydro: int = 2005489
@@ -109,20 +93,15 @@ class SeedParametersLocalCreation(BaseModel, alias_generator=to_kebab):
     seed_initial_reservoir_levels: int = 10005489
 
 
-@all_optional_model
-class SeedParametersLocalEdition(SeedParametersLocalCreation):
-    pass
-
-
-class AdvancedAndSeedParametersLocalCreation(BaseModel):
-    other_preferences: OtherPreferencesLocalCreation = Field(alias="other preferences")
-    advanced_parameters: AdvancedParametersLocalCreation = Field(alias="advanced parameters")
-    seeds: SeedParametersLocalCreation = Field(alias="seeds - Mersenne Twister")
+class AdvancedAndSeedParametersLocal(BaseModel):
+    other_preferences: OtherPreferencesLocal = Field(alias="other preferences")
+    advanced_parameters: AdvancedParametersLocal = Field(alias="advanced parameters")
+    seeds: SeedParametersLocal = Field(alias="seeds - Mersenne Twister")
 
     @staticmethod
     def from_user_model(
         advanced_parameters: AdvancedParameters, seed_parameters: SeedParameters
-    ) -> "AdvancedAndSeedParametersLocalCreation":
+    ) -> "AdvancedAndSeedParametersLocal":
         other_preferences_local_dict = asdict(advanced_parameters)
         advanced_local_dict = {
             "advanced_parameters": {
@@ -133,7 +112,7 @@ class AdvancedAndSeedParametersLocalCreation(BaseModel):
 
         local_dict = {"other_preferences": other_preferences_local_dict} | advanced_local_dict | seed_local_dict
 
-        return AdvancedAndSeedParametersLocalCreation.model_validate(local_dict)
+        return AdvancedAndSeedParametersLocal.model_validate(local_dict)
 
     def to_seed_parameters_model(self) -> SeedParameters:
         seed_values = self.model_dump(mode="json", by_alias=False, include=set(asdict(SeedParameters()).keys()))
@@ -142,12 +121,6 @@ class AdvancedAndSeedParametersLocalCreation(BaseModel):
     def to_advanced_parameters_model(self) -> AdvancedParameters:
         advanced_values = self.model_dump(mode="json", by_alias=False, include=set(asdict(AdvancedParameters()).keys()))
         return AdvancedParameters(**advanced_values)
-
-
-class AdvancedAndSeedParametersLocalEdition(AdvancedAndSeedParametersLocalCreation):
-    other_preferences: OtherPreferencesLocalEdition = Field(default=None, alias="other preferences")
-    advanced_parameters: AdvancedParametersLocalEdition = Field(default_factory=None, alias="advanced parameters")
-    seeds: SeedParametersLocalEdition = Field(default_factory=None, alias="seeds - Mersenne Twister")
 
 
 class GeneralSectionLocal(BaseModel):
@@ -188,13 +161,13 @@ class OutputSectionLocal(BaseModel):
     archives: set[OutputChoices] = set()
 
 
-class GeneralParametersLocalCreation(BaseModel):
+class GeneralParametersLocal(BaseModel):
     general: GeneralSectionLocal
     input: dict = {"import": ""}
     output: OutputSectionLocal
 
     @staticmethod
-    def from_user_model(user_class: GeneralParameters) -> "GeneralParametersLocalCreation":
+    def from_user_model(user_class: GeneralParameters) -> "GeneralParametersLocal":
         user_dict = asdict(user_class)
 
         output_dict = {
@@ -206,7 +179,7 @@ class GeneralParametersLocalCreation(BaseModel):
         general_dict = {"general": user_dict}
         local_dict = general_dict | output_dict
 
-        return GeneralParametersLocalCreation.model_validate(local_dict)
+        return GeneralParametersLocal.model_validate(local_dict)
 
     @staticmethod
     def get_excluded_fields_for_user_class() -> Set[str]:
@@ -232,12 +205,7 @@ class GeneralParametersLocalCreation(BaseModel):
         return GeneralParameters(**local_dict)
 
 
-@all_optional_model
-class GeneralParametersLocalEdition(GeneralParametersLocalCreation):
-    pass
-
-
-class OptimizationParametersLocalCreation(BaseModel, alias_generator=to_kebab):
+class OptimizationParametersLocal(BaseModel, alias_generator=to_kebab):
     simplex_range: SimplexOptimizationRange = SimplexOptimizationRange.WEEK
     transmission_capacities: OptimizationTransmissionCapacities = OptimizationTransmissionCapacities.LOCAL_VALUES
     include_constraints: bool = True
@@ -253,18 +221,13 @@ class OptimizationParametersLocalCreation(BaseModel, alias_generator=to_kebab):
     include_unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
 
     @staticmethod
-    def from_user_model(user_class: OptimizationParameters) -> "OptimizationParametersLocalCreation":
+    def from_user_model(user_class: OptimizationParameters) -> "OptimizationParametersLocal":
         user_dict = asdict(user_class)
-        return OptimizationParametersLocalCreation.model_validate(user_dict)
+        return OptimizationParametersLocal.model_validate(user_dict)
 
     def to_user_model(self) -> OptimizationParameters:
         local_dict = self.model_dump(mode="json", by_alias=False)
         return OptimizationParameters(**local_dict)
-
-
-@all_optional_model
-class OptimizationSettingsLocalEdition(OptimizationParametersLocalCreation):
-    pass
 
 
 def read_study_settings(study_directory: Path) -> StudySettings:
@@ -280,36 +243,36 @@ def read_study_settings(study_directory: Path) -> StudySettings:
     else:
         general_params_ini["building_mode"] = BuildingMode.AUTOMATIC.value
 
-    excluded_keys = GeneralParametersLocalCreation.get_excluded_fields_for_user_class()
+    excluded_keys = GeneralParametersLocal.get_excluded_fields_for_user_class()
     for key in excluded_keys:
         general_params_ini.pop(key, None)
 
     output_parameters_ini = {"output": ini_content["output"]}
     local_general_ini = general_params_ini | output_parameters_ini
-    general_parameters_local = GeneralParametersLocalCreation.model_validate(local_general_ini)
+    general_parameters_local = GeneralParametersLocal.model_validate(local_general_ini)
     general_parameters = general_parameters_local.to_user_model()
 
     # optimization
     optimization_ini = ini_content["optimization"]
     optimization_ini.pop("link-type", None)
-    optimization_parameters_local = OptimizationParametersLocalCreation.model_validate(optimization_ini)
+    optimization_parameters_local = OptimizationParametersLocal.model_validate(optimization_ini)
     optimization_parameters = optimization_parameters_local.to_user_model()
 
     # adequacy_patch
     adequacy_ini = ini_content["adequacy patch"]
-    adequacy_parameters_local = AdequacyPatchParametersLocalCreation.model_validate(adequacy_ini)
+    adequacy_parameters_local = AdequacyPatchParametersLocal.model_validate(adequacy_ini)
     adequacy_patch_parameters = adequacy_parameters_local.to_user_model()
 
     # seed and advanced
-    seed_local_parameters = SeedParametersLocalCreation.model_validate(ini_content["seeds - Mersenne Twister"])
-    advanced_local_parameters = AdvancedParametersLocalCreation.model_validate(ini_content["advanced parameters"])
-    other_preferences_local_parameters = OtherPreferencesLocalCreation.model_validate(ini_content["other preferences"])
+    seed_local_parameters = SeedParametersLocal.model_validate(ini_content["seeds - Mersenne Twister"])
+    advanced_local_parameters = AdvancedParametersLocal.model_validate(ini_content["advanced parameters"])
+    other_preferences_local_parameters = OtherPreferencesLocal.model_validate(ini_content["other preferences"])
     args = {
         "other_preferences": other_preferences_local_parameters,
         "seeds": seed_local_parameters,
         "advanced_parameters": advanced_local_parameters,
     }
-    seed_and_advanced_local_parameters = AdvancedAndSeedParametersLocalCreation.model_validate(args)
+    seed_and_advanced_local_parameters = AdvancedAndSeedParametersLocal.model_validate(args)
     seed_parameters = seed_and_advanced_local_parameters.to_seed_parameters_model()
     advanced_parameters = seed_and_advanced_local_parameters.to_advanced_parameters_model()
 
@@ -336,5 +299,14 @@ def read_study_settings(study_directory: Path) -> StudySettings:
     )
 
 
-def edit_study_settings(study_directory: Path, settings: StudySettings) -> None:
-    raise NotImplementedError
+def edit_study_settings(study_directory: Path, settings: StudySettings, update: bool) -> None:
+    general_data_ini = IniFile(study_directory, InitializationFilesTypes.THERMAL_AREAS_INI)
+    ini_content = general_data_ini.ini_dict if update else {}
+
+    # general
+    general_parameters = settings.general_parameters or GeneralParameters()
+    general_local_parameters = GeneralParametersLocal.from_user_model(general_parameters)
+    ini_content.update(general_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update))
+
+    # optimization
+    # todo
