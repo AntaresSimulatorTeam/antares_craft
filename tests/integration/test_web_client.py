@@ -9,6 +9,9 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import shutil
+import zipfile
+
 import pytest
 
 from pathlib import Path, PurePath
@@ -40,7 +43,7 @@ from antares.craft.model.settings.general import GeneralParameters, Mode
 from antares.craft.model.settings.study_settings import PlaylistParameters, StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
 from antares.craft.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
-from antares.craft.model.study import create_study_api, create_variant_api, read_study_api
+from antares.craft.model.study import create_study_api, create_variant_api, read_study_api, import_study_api
 from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
@@ -56,7 +59,7 @@ def antares_web() -> AntaresWebDesktop:
 
 # todo add integration tests for matrices
 class TestWebClient:
-    def test_creation_lifecycle(self, antares_web: AntaresWebDesktop):
+    def test_creation_lifecycle(self, antares_web: AntaresWebDesktop, tmp_path):
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
         study = create_study_api("antares-craft-test", "880", api_config)
@@ -92,6 +95,17 @@ class TestWebClient:
         area_fr.create_wind(ts_matrix)
         assert area_fr.get_wind_matrix().equals(ts_matrix)
 
+        # testing import study
+        test_path = Path(antares_web.desktop_path.joinpath("internal_studies").joinpath(study.service.study_id))
+        copy_dir = tmp_path / test_path.name
+
+        tmp_path_zip = tmp_path / f"{copy_dir.name}"
+        shutil.copytree(test_path, copy_dir)
+
+        zip_study = Path(shutil.make_archive(str(tmp_path_zip), "zip", copy_dir))
+
+        print(tmp_path_zip.exists())
+        study = import_study_api(api_config, zip_study, None)
         # tests area creation with ui values
         area_ui = AreaUi(x=100, color_rgb=[255, 0, 0])
         area_name = "BE?"
