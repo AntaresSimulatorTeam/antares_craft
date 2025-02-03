@@ -478,16 +478,19 @@ def _create_directory_structure(study_path: Path) -> None:
 
 
 def _create_correlation_ini_files(study_directory: Path) -> None:
-    fields_to_check = ["hydro", "load", "solar", "wind"]
     correlation_inis_to_create = [
-        (
-            field + "_correlation",
-            getattr(InitializationFilesTypes, field.upper() + "_CORRELATION_INI"),
-            field,
-        )
-        for field in fields_to_check
+        getattr(InitializationFilesTypes, field.upper() + "_CORRELATION_INI")
+        for field in ["hydro", "load", "solar", "wind"]
     ]
 
-    for correlation, file_type, field in correlation_inis_to_create:
-        ini_file = IniFile(study_directory, file_type, ini_contents=None)
+    ini_content = {"general": {"mode": "annual"}, "annual": {}}
+    for k in range(12):
+        ini_content[str(k)] = {}
+
+    for file_type in correlation_inis_to_create:
+        ini_file = IniFile(
+            study_directory,
+            file_type,
+            ini_contents=ini_content,
+        )
         ini_file.write_ini_file()
