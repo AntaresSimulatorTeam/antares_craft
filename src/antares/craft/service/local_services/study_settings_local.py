@@ -84,6 +84,8 @@ class AdvancedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     @field_validator("accuracy_on_correlation", mode="before")
     def validate_accuracy_on_correlation(cls, v: Any) -> Sequence[str]:
         """Ensure the ID is lower case."""
+        if v is None:
+            return []
         return ast.literal_eval(v)
 
 
@@ -119,7 +121,6 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
         seed_local_dict = {"seeds": asdict(seed_parameters)}
 
         local_dict = {"other_preferences": other_preferences_local_dict} | advanced_local_dict | seed_local_dict
-        # fake_dict = {"seeds": {}, "other_preferences": {}, "advanced_parameters": {}}
         return AdvancedAndSeedParametersLocal.model_validate(local_dict)
 
     def to_seed_parameters_model(self) -> SeedParameters:
