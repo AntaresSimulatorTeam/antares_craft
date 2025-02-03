@@ -77,6 +77,8 @@ class TestCreateAPI:
             mocker.post(expected_url, json=self.study_id, status_code=200)
             config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
             mocker.get(config_urls, json={}, status_code=200)
+            ts_settings_url = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/config"
+            mocker.get(ts_settings_url, json={"thermal": {"number": 1}}, status_code=200)
             expected_url_path = f"https://antares.com/api/v1/studies/{self.study_id}"
             mocker.get(
                 expected_url_path,
