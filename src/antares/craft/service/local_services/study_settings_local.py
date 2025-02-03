@@ -230,7 +230,7 @@ class OptimizationParametersLocal(BaseModel, alias_generator=to_kebab):
         return OptimizationParameters(**local_dict)
 
 
-def read_study_settings(study_directory: Path) -> StudySettings:
+def read_study_settings_local(study_directory: Path) -> StudySettings:
     general_data_ini = IniFile(study_directory, InitializationFilesTypes.THERMAL_AREAS_INI)
     ini_content = general_data_ini.ini_dict
 

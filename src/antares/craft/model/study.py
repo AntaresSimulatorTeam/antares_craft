@@ -14,7 +14,6 @@ import logging
 import os
 import time
 
-from dataclasses import asdict
 from pathlib import Path, PurePath
 from types import MappingProxyType
 from typing import List, Optional, Union
@@ -35,8 +34,9 @@ from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
-from antares.craft.service.api_services.study_settings_api import read_study_settings
+from antares.craft.service.api_services.study_settings_api import read_study_settings_api
 from antares.craft.service.base_services import BaseStudyService
+from antares.craft.service.local_services.study_settings_local import edit_study_settings, read_study_settings_local
 from antares.craft.service.service_factory import ServiceFactory
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
@@ -77,7 +77,7 @@ def create_study_api(
         response = wrapper.post(url)
         study_id = response.json()
         # Settings part
-        study_settings = None if settings else read_study_settings(base_url, study_id, wrapper)
+        study_settings = None if settings else read_study_settings_api(base_url, study_id, wrapper)
         study = Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
         if settings:
             study.update_settings(settings)
@@ -147,22 +147,14 @@ InfoTip = Antares Study {version}: {study_name}
     _create_correlation_ini_files(study_directory)
 
     logging.info(f"Study successfully created: {study_name}")
-    study = Study(
+    edit_study_settings(study_directory, settings, update=False)
+    return Study(
         name=study_name,
         version=version,
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
-        settings=None,
+        settings=settings,
         path=study_directory,
     )
-
-    # handle the settings part here
-    local_settings = settings
-    local_settings_file = IniFile(study_directory, InitializationFilesTypes.GENERAL)
-    local_settings_file.ini_dict = asdict(local_settings)
-    # todo: replace this as dict with a specific method that does the mapping.
-    local_settings_file.write_ini_file()
-
-    return study
 
 
 def read_study_local(study_directory: Path) -> "Study":
@@ -188,11 +180,14 @@ def read_study_local(study_directory: Path) -> "Study":
 
     local_config = LocalConfiguration(study_directory.parent, study_directory.name)
 
+    settings = read_study_settings_local(study_directory)
+
     return Study(
         name=study_params["caption"],
         version=study_params["version"],
         service_factory=ServiceFactory(config=local_config, study_name=study_params["caption"]),
         path=study_directory,
+        settings=settings,
     )
 
 
@@ -207,7 +202,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     path = json_study.pop("folder")
     pure_path = PurePath(path) if path else PurePath(".")
 
-    study_settings = read_study_settings(base_url, study_id, wrapper)
+    study_settings = read_study_settings_api(base_url, study_id, wrapper)
     study = Study(
         study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings, pure_path
     )

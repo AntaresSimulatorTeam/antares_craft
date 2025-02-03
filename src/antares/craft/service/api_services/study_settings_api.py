@@ -413,7 +413,7 @@ def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, s
         wrapper.put(adequacy_patch_url, json=body)
 
 
-def read_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper) -> StudySettings:
+def read_study_settings_api(base_url: str, study_id: str, wrapper: RequestWrapper) -> StudySettings:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
     try:
         # thematic trimming
