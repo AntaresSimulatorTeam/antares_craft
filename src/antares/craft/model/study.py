@@ -105,7 +105,9 @@ def import_study_api(api_config: APIconf, study_path: Path, destination_path: Op
     base_url = f"{api_config.get_host()}/api/v1"
 
     if not has_valid_extension(study_path):
-        raise StudyImportError(study_path.name, f"File doesn't have the right extensions (.zip/.7z): {study_path.suffix}")
+        raise StudyImportError(
+            study_path.name, f"File doesn't have the right extensions (.zip/.7z): {study_path.suffix}"
+        )
 
     try:
         files = {"study": io.BytesIO(study_path.read_bytes())}
