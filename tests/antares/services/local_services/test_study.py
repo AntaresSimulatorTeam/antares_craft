@@ -457,63 +457,63 @@ simulation.end = 365
 january.1st = Monday
 first-month-in-year = January
 first.weekday = Monday
-leapyear = false
-year-by-year = false
-user-playlist = false
-thematic-trimming = false
-geographic-trimming = false
-generate = false
+leapyear = False
+year-by-year = False
+user-playlist = False
+thematic-trimming = False
+geographic-trimming = False
+generate = False
 nbtimeseriesload = 1
 nbtimeserieshydro = 1
 nbtimeserieswind = 1
 nbtimeseriesthermal = 1
 nbtimeseriessolar = 1
-refreshtimeseries = false
-intra-modal = false
-inter-modal = false
+refreshtimeseries = False
+intra-modal = False
+inter-modal = False
 refreshintervalload = 100
 refreshintervalhydro = 100
 refreshintervalwind = 100
 refreshintervalthermal = 100
 refreshintervalsolar = 100
-readonly = false
-derated = false
-custom-scenario = false
+readonly = False
+derated = False
+custom-scenario = False
 
 [input]
 import = 
 
 [output]
-synthesis = true
-storenewset = false
+synthesis = True
+storenewset = False
 archives = 
 
 [optimization]
 simplex-range = week
 transmission-capacities = local-values
-include-constraints = true
-include-hurdlecosts = true
-include-tc-minstablepower = true
-include-tc-min-ud-time = true
-include-dayahead = true
-include-strategicreserve = true
-include-spinningreserve = true
-include-primaryreserve = true
-include-exportmps = false
-include-exportstructure = false
+include-constraints = True
+include-hurdlecosts = True
+include-tc-minstablepower = True
+include-tc-min-ud-time = True
+include-dayahead = True
+include-strategicreserve = True
+include-spinningreserve = True
+include-primaryreserve = True
+include-exportmps = False
+include-exportstructure = False
 include-unfeasible-problem-behavior = error-verbose
 
 [adequacy patch]
-include-adq-patch = false
-set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = true
-set-to-null-ntc-between-physical-out-for-first-step = true
+include-adq-patch = False
+set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = True
+set-to-null-ntc-between-physical-out-for-first-step = True
 price-taking-order = DENS
-include-hurdle-cost-csr = false
-check-csr-cost-function = false
-threshold-initiate-curtailment-sharing-rule = 0.000000
-threshold-display-local-matching-rule-violations = 0.000000
+include-hurdle-cost-csr = False
+check-csr-cost-function = False
+threshold-initiate-curtailment-sharing-rule = 0
+threshold-display-local-matching-rule-violations = 0
 threshold-csr-variable-bounds-relaxation = 3
-enable-first-step = false
+enable-first-step = False
 
 [other preferences]
 initial-reservoir-levels = cold start
@@ -569,13 +569,13 @@ simulation.end = 365
 january.1st = Monday
 first-month-in-year = January
 first.weekday = Monday
-leapyear = false
-year-by-year = false
-derated = false
-custom-scenario = false
-user-playlist = false
-thematic-trimming = true
-geographic-trimming = false
+leapyear = False
+year-by-year = False
+derated = False
+custom-scenario = False
+user-playlist = False
+thematic-trimming = True
+geographic-trimming = False
 generate = 
 nbtimeseriesload = 1
 nbtimeserieshydro = 1
@@ -590,42 +590,42 @@ refreshintervalhydro = 100
 refreshintervalthermal = 100
 refreshintervalwind = 100
 refreshintervalsolar = 100
-readonly = false
+readonly = False
 
 [input]
 import = 
 
 [output]
-synthesis = true
-storenewset = false
+synthesis = True
+storenewset = False
 archives = 
 result-format = txt-files
 
 [optimization]
 simplex-range = week
 transmission-capacities = local-values
-include-constraints = true
-include-hurdlecosts = true
-include-tc-minstablepower = true
-include-tc-min-ud-time = true
-include-dayahead = true
-include-strategicreserve = true
-include-spinningreserve = true
-include-primaryreserve = true
+include-constraints = True
+include-hurdlecosts = True
+include-tc-minstablepower = True
+include-tc-min-ud-time = True
+include-dayahead = True
+include-strategicreserve = True
+include-spinningreserve = True
+include-primaryreserve = True
 include-exportmps = none
-include-exportstructure = false
+include-exportstructure = False
 include-unfeasible-problem-behavior = error-verbose
 
 [adequacy patch]
-include-adq-patch = false
-set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = true
-set-to-null-ntc-between-physical-out-for-first-step = true
-enable-first-step = false
+include-adq-patch = False
+set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = True
+set-to-null-ntc-between-physical-out-for-first-step = True
+enable-first-step = False
 price-taking-order = DENS
-include-hurdle-cost-csr = false
-check-csr-cost-function = false
-threshold-initiate-curtailment-sharing-rule = 0.000000
-threshold-display-local-matching-rule-violations = 0.000000
+include-hurdle-cost-csr = False
+check-csr-cost-function = False
+threshold-initiate-curtailment-sharing-rule = 0
+threshold-display-local-matching-rule-violations = 0
 threshold-csr-variable-bounds-relaxation = 3
 
 [other preferences]
@@ -655,7 +655,7 @@ seed-hydro-costs = 9005489
 seed-initial-reservoir-levels = 10005489
 
 [variables selection]
-selected_vars_reset = true
+selected_vars_reset = True
 select_var - = OP. COST
 
 """
@@ -694,13 +694,13 @@ simulation.end = 365
 january.1st = Monday
 first-month-in-year = January
 first.weekday = Monday
-leapyear = false
-year-by-year = false
-derated = false
-custom-scenario = false
-user-playlist = false
-thematic-trimming = true
-geographic-trimming = false
+leapyear = False
+year-by-year = False
+derated = False
+custom-scenario = False
+user-playlist = False
+thematic-trimming = True
+geographic-trimming = False
 generate = 
 nbtimeseriesload = 1
 nbtimeserieshydro = 1
@@ -715,42 +715,42 @@ refreshintervalhydro = 100
 refreshintervalthermal = 100
 refreshintervalwind = 100
 refreshintervalsolar = 100
-readonly = false
+readonly = False
 
 [input]
 import = 
 
 [output]
-synthesis = true
-storenewset = false
+synthesis = True
+storenewset = False
 archives = 
 result-format = txt-files
 
 [optimization]
 simplex-range = week
 transmission-capacities = local-values
-include-constraints = true
-include-hurdlecosts = true
-include-tc-minstablepower = true
-include-tc-min-ud-time = true
-include-dayahead = true
-include-strategicreserve = true
-include-spinningreserve = true
-include-primaryreserve = true
+include-constraints = True
+include-hurdlecosts = True
+include-tc-minstablepower = True
+include-tc-min-ud-time = True
+include-dayahead = True
+include-strategicreserve = True
+include-spinningreserve = True
+include-primaryreserve = True
 include-exportmps = none
-include-exportstructure = false
+include-exportstructure = False
 include-unfeasible-problem-behavior = error-verbose
 
 [adequacy patch]
-include-adq-patch = false
-set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = true
-set-to-null-ntc-between-physical-out-for-first-step = true
-enable-first-step = false
+include-adq-patch = False
+set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = True
+set-to-null-ntc-between-physical-out-for-first-step = True
+enable-first-step = False
 price-taking-order = DENS
-include-hurdle-cost-csr = false
-check-csr-cost-function = false
-threshold-initiate-curtailment-sharing-rule = 0.000000
-threshold-display-local-matching-rule-violations = 0.000000
+include-hurdle-cost-csr = False
+check-csr-cost-function = False
+threshold-initiate-curtailment-sharing-rule = 0
+threshold-display-local-matching-rule-violations = 0
 threshold-csr-variable-bounds-relaxation = 3
 
 [other preferences]
@@ -780,7 +780,7 @@ seed-hydro-costs = 9005489
 seed-initial-reservoir-levels = 10005489
 
 [variables selection]
-selected_vars_reset = false
+selected_vars_reset = False
 select_var + = OP. COST
 
 """
@@ -821,13 +821,13 @@ simulation.end = 365
 january.1st = Monday
 first-month-in-year = January
 first.weekday = Monday
-leapyear = false
-year-by-year = false
-derated = false
-custom-scenario = false
-user-playlist = false
-thematic-trimming = true
-geographic-trimming = false
+leapyear = False
+year-by-year = False
+derated = False
+custom-scenario = False
+user-playlist = False
+thematic-trimming = True
+geographic-trimming = False
 generate = 
 nbtimeseriesload = 1
 nbtimeserieshydro = 1
@@ -842,42 +842,42 @@ refreshintervalhydro = 100
 refreshintervalthermal = 100
 refreshintervalwind = 100
 refreshintervalsolar = 100
-readonly = false
+readonly = False
 
 [input]
 import = 
 
 [output]
-synthesis = true
-storenewset = false
+synthesis = True
+storenewset = False
 archives = 
 result-format = txt-files
 
 [optimization]
 simplex-range = week
 transmission-capacities = local-values
-include-constraints = true
-include-hurdlecosts = true
-include-tc-minstablepower = true
-include-tc-min-ud-time = true
-include-dayahead = true
-include-strategicreserve = true
-include-spinningreserve = true
-include-primaryreserve = true
+include-constraints = True
+include-hurdlecosts = True
+include-tc-minstablepower = True
+include-tc-min-ud-time = True
+include-dayahead = True
+include-strategicreserve = True
+include-spinningreserve = True
+include-primaryreserve = True
 include-exportmps = none
-include-exportstructure = false
+include-exportstructure = False
 include-unfeasible-problem-behavior = error-verbose
 
 [adequacy patch]
-include-adq-patch = false
-set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = true
-set-to-null-ntc-between-physical-out-for-first-step = true
-enable-first-step = false
+include-adq-patch = False
+set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = True
+set-to-null-ntc-between-physical-out-for-first-step = True
+enable-first-step = False
 price-taking-order = DENS
-include-hurdle-cost-csr = false
-check-csr-cost-function = false
-threshold-initiate-curtailment-sharing-rule = 0.000000
-threshold-display-local-matching-rule-violations = 0.000000
+include-hurdle-cost-csr = False
+check-csr-cost-function = False
+threshold-initiate-curtailment-sharing-rule = 0
+threshold-display-local-matching-rule-violations = 0
 threshold-csr-variable-bounds-relaxation = 3
 
 [other preferences]
@@ -907,7 +907,7 @@ seed-hydro-costs = 9005489
 seed-initial-reservoir-levels = 10005489
 
 [variables selection]
-selected_vars_reset = false
+selected_vars_reset = False
 """
 
         expected_file_content += "select_var + = OV. COST\nselect_var + = OP. COST\n\n"
@@ -948,13 +948,13 @@ simulation.end = 365
 january.1st = Monday
 first-month-in-year = January
 first.weekday = Monday
-leapyear = false
-year-by-year = false
-derated = false
-custom-scenario = false
-user-playlist = true
-thematic-trimming = true
-geographic-trimming = false
+leapyear = False
+year-by-year = False
+derated = False
+custom-scenario = False
+user-playlist = True
+thematic-trimming = True
+geographic-trimming = False
 generate = 
 nbtimeseriesload = 1
 nbtimeserieshydro = 1
@@ -969,42 +969,42 @@ refreshintervalhydro = 100
 refreshintervalthermal = 100
 refreshintervalwind = 100
 refreshintervalsolar = 100
-readonly = false
+readonly = False
 
 [input]
 import = 
 
 [output]
-synthesis = true
-storenewset = false
+synthesis = True
+storenewset = False
 archives = 
 result-format = txt-files
 
 [optimization]
 simplex-range = week
 transmission-capacities = local-values
-include-constraints = true
-include-hurdlecosts = true
-include-tc-minstablepower = true
-include-tc-min-ud-time = true
-include-dayahead = true
-include-strategicreserve = true
-include-spinningreserve = true
-include-primaryreserve = true
+include-constraints = True
+include-hurdlecosts = True
+include-tc-minstablepower = True
+include-tc-min-ud-time = True
+include-dayahead = True
+include-strategicreserve = True
+include-spinningreserve = True
+include-primaryreserve = True
 include-exportmps = none
-include-exportstructure = false
+include-exportstructure = False
 include-unfeasible-problem-behavior = error-verbose
 
 [adequacy patch]
-include-adq-patch = false
-set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = true
-set-to-null-ntc-between-physical-out-for-first-step = true
-enable-first-step = false
+include-adq-patch = False
+set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = True
+set-to-null-ntc-between-physical-out-for-first-step = True
+enable-first-step = False
 price-taking-order = DENS
-include-hurdle-cost-csr = false
-check-csr-cost-function = false
-threshold-initiate-curtailment-sharing-rule = 0.000000
-threshold-display-local-matching-rule-violations = 0.000000
+include-hurdle-cost-csr = False
+check-csr-cost-function = False
+threshold-initiate-curtailment-sharing-rule = 0
+threshold-display-local-matching-rule-violations = 0
 threshold-csr-variable-bounds-relaxation = 3
 
 [other preferences]
@@ -1034,11 +1034,11 @@ seed-hydro-costs = 9005489
 seed-initial-reservoir-levels = 10005489
 
 [playlist]
-playlist_reset = true
+playlist_reset = True
 playlist_year - = 2
 
 [variables selection]
-selected_vars_reset = false
+selected_vars_reset = False
 select_var + = OP. COST
 
 """
@@ -1085,13 +1085,13 @@ simulation.end = 365
 january.1st = Monday
 first-month-in-year = January
 first.weekday = Monday
-leapyear = false
-year-by-year = false
-derated = false
-custom-scenario = false
-user-playlist = true
-thematic-trimming = true
-geographic-trimming = false
+leapyear = False
+year-by-year = False
+derated = False
+custom-scenario = False
+user-playlist = True
+thematic-trimming = True
+geographic-trimming = False
 generate = 
 nbtimeseriesload = 1
 nbtimeserieshydro = 1
@@ -1106,42 +1106,42 @@ refreshintervalhydro = 100
 refreshintervalthermal = 100
 refreshintervalwind = 100
 refreshintervalsolar = 100
-readonly = false
+readonly = False
 
 [input]
 import = 
 
 [output]
-synthesis = true
-storenewset = false
+synthesis = True
+storenewset = False
 archives = 
 result-format = txt-files
 
 [optimization]
 simplex-range = week
 transmission-capacities = local-values
-include-constraints = true
-include-hurdlecosts = true
-include-tc-minstablepower = true
-include-tc-min-ud-time = true
-include-dayahead = true
-include-strategicreserve = true
-include-spinningreserve = true
-include-primaryreserve = true
+include-constraints = True
+include-hurdlecosts = True
+include-tc-minstablepower = True
+include-tc-min-ud-time = True
+include-dayahead = True
+include-strategicreserve = True
+include-spinningreserve = True
+include-primaryreserve = True
 include-exportmps = none
-include-exportstructure = false
+include-exportstructure = False
 include-unfeasible-problem-behavior = error-verbose
 
 [adequacy patch]
-include-adq-patch = false
-set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = true
-set-to-null-ntc-between-physical-out-for-first-step = true
-enable-first-step = false
+include-adq-patch = False
+set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = True
+set-to-null-ntc-between-physical-out-for-first-step = True
+enable-first-step = False
 price-taking-order = DENS
-include-hurdle-cost-csr = false
-check-csr-cost-function = false
-threshold-initiate-curtailment-sharing-rule = 0.000000
-threshold-display-local-matching-rule-violations = 0.000000
+include-hurdle-cost-csr = False
+check-csr-cost-function = False
+threshold-initiate-curtailment-sharing-rule = 0
+threshold-display-local-matching-rule-violations = 0
 threshold-csr-variable-bounds-relaxation = 3
 
 [other preferences]
@@ -1171,11 +1171,11 @@ seed-hydro-costs = 9005489
 seed-initial-reservoir-levels = 10005489
 
 [playlist]
-playlist_reset = false
+playlist_reset = False
 playlist_year + = 2
 
 [variables selection]
-selected_vars_reset = false
+selected_vars_reset = False
 select_var + = OP. COST
 
 """
@@ -1225,7 +1225,7 @@ class TestCreateArea:
         expected_sets_ini_content = """[all areas]
 caption = All areas
 comments = Spatial aggregates on all areas
-output = false
+output = False
 apply-filter = add-all
 
 """
@@ -1289,11 +1289,11 @@ ghi
         expected_optimization_ini_path = study_antares_path / "input" / "areas" / "area1" / "optimization.ini"
 
         expected_optimization_ini_content = """[nodal optimization]
-non-dispatchable-power = true
-dispatchable-hydro-power = true
-other-dispatchable-power = true
-spread-unsupplied-energy-cost = 0.000000
-spread-spilled-energy-cost = 0.000000
+non-dispatchable-power = True
+dispatchable-hydro-power = True
+other-dispatchable-power = True
+spread-unsupplied-energy-cost = 0
+spread-spilled-energy-cost = 0
 
 [filtering]
 filter-synthesis = hourly, daily, weekly, monthly, annual
@@ -1332,11 +1332,11 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
             tmp_path / local_study.name / "input/areas" / area_to_create / "optimization.ini"
         )
         expected_optimization_ini_content = """[nodal optimization]
-non-dispatchable-power = true
-dispatchable-hydro-power = false
-other-dispatchable-power = true
-spread-unsupplied-energy-cost = 0.000000
-spread-spilled-energy-cost = 0.000000
+non-dispatchable-power = True
+dispatchable-hydro-power = False
+other-dispatchable-power = True
+spread-unsupplied-energy-cost = 0
+spread-spilled-energy-cost = 0
 
 [filtering]
 filter-synthesis = hourly, daily, weekly, monthly, annual
@@ -1465,11 +1465,11 @@ layers = 0
         # Given
         expected_default_properties = {
             "nodal optimization": {
-                "non-dispatchable-power": "true",
-                "dispatchable-hydro-power": "true",
-                "other-dispatchable-power": "true",
-                "spread-unsupplied-energy-cost": "0.000000",
-                "spread-spilled-energy-cost": "0.000000",
+                "non-dispatchable-power": "True",
+                "dispatchable-hydro-power": "True",
+                "other-dispatchable-power": "True",
+                "spread-unsupplied-energy-cost": "0",
+                "spread-spilled-energy-cost": "0",
             },
             "filtering": {
                 "filter-synthesis": "hourly, daily, weekly, monthly, annual",
@@ -1495,11 +1495,11 @@ layers = 0
         )
         expected_properties = {
             "nodal optimization": {
-                "non-dispatchable-power": "true",
-                "dispatchable-hydro-power": "false",
-                "other-dispatchable-power": "true",
+                "non-dispatchable-power": "True",
+                "dispatchable-hydro-power": "False",
+                "other-dispatchable-power": "True",
                 "spread-unsupplied-energy-cost": "1.000000",
-                "spread-spilled-energy-cost": "0.000000",
+                "spread-spilled-energy-cost": "0",
             },
             "filtering": {
                 "filter-synthesis": "hourly, daily, weekly, monthly, annual",
@@ -1621,9 +1621,9 @@ class TestCreateLink:
         # Given
         link_to_create = "fr_it"
         expected_content = """[it]
-hurdles-cost = false
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = False
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
@@ -1631,7 +1631,7 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
+display-comments = True
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
@@ -1656,9 +1656,9 @@ comments =
         # Given
         link_to_create = "fr_it"
         expected_ini_content = """[it]
-hurdles-cost = false
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = False
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
@@ -1666,7 +1666,7 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
+display-comments = True
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
@@ -1705,9 +1705,9 @@ comments =
             filter_year_by_year={FilterOption.WEEKLY, FilterOption.DAILY},
         )
         expected_ini_content = """[it]
-hurdles-cost = false
-loop-flow = true
-use-phase-shifter = true
+hurdles-cost = False
+loop-flow = True
+use-phase-shifter = True
 transmission-capacities = infinite
 asset-type = ac
 link-style = plain
@@ -1715,7 +1715,7 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
+display-comments = True
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = daily, weekly
 comments = 
@@ -1745,9 +1745,9 @@ comments =
         local_study_w_areas.create_area("at")
         links_to_create = ["fr_at", "at_it"]
         expected_ini_string = """[fr]
-hurdles-cost = false
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = False
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
@@ -1755,15 +1755,15 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
+display-comments = True
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
 
 [it]
-hurdles-cost = false
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = False
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
@@ -1771,7 +1771,7 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
+display-comments = True
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
@@ -1804,9 +1804,9 @@ comments =
         local_study_w_areas.create_area("at")
         links_to_create = ["at_it", "fr_at"]
         expected_ini_string = """[fr]
-hurdles-cost = false
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = False
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
@@ -1814,15 +1814,15 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
+display-comments = True
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
 
 [it]
-hurdles-cost = false
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = False
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
@@ -1830,7 +1830,7 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
+display-comments = True
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
@@ -1878,9 +1878,9 @@ comments =
         actual_ini_file = tmp_path / local_study_w_areas.name / "input" / "links" / "fr" / "properties.ini"
         actual_ini = ConfigParser()
         expected_ini_string = """[it]
-hurdles-cost = false
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = False
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
@@ -1888,7 +1888,7 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
+display-comments = True
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
@@ -1916,9 +1916,9 @@ comments =
         actual_ini_file = tmp_path / local_study_w_areas.name / "input" / "links" / "fr" / "properties.ini"
         actual_ini = ConfigParser()
         expected_ini_string = """[it]
-hurdles-cost = true
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = True
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = ignore
 asset-type = gaz
 link-style = dot
@@ -1926,7 +1926,7 @@ link-width = 1
 colorr = 234
 colorg = 123
 colorb = 0
-display-comments = true
+display-comments = True
 filter-synthesis = hourly, weekly, monthly
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
@@ -2014,7 +2014,7 @@ class TestCreateBindingconstraint:
         expected_ini_contents = """[0]
 name = test constraint
 id = test constraint
-enabled = true
+enabled = True
 type = hourly
 operator = less
 filter-year-by-year = hourly
@@ -2049,7 +2049,7 @@ group = default
         expected_ini_content = """[0]
 name = test constraint
 id = test constraint
-enabled = true
+enabled = True
 type = hourly
 operator = less
 filter-year-by-year = hourly
@@ -2059,7 +2059,7 @@ group = default
 [1]
 name = test constraint two
 id = test constraint two
-enabled = false
+enabled = False
 type = weekly
 operator = both
 comments = test comment
@@ -2093,7 +2093,7 @@ group = test group
         expected_ini_contents = """[0]
 name = test constraint
 id = test constraint
-enabled = true
+enabled = True
 type = hourly
 operator = less
 filter-year-by-year = hourly
@@ -2117,13 +2117,13 @@ at%fr = 0
         expected_ini_contents = """[0]
 name = test constraint
 id = test constraint
-enabled = true
+enabled = True
 type = hourly
 operator = less
 filter-year-by-year = hourly
 filter-synthesis = hourly
 group = default
-at%fr = 0.000000%1
+at%fr = 0%1
 
 """
         # When

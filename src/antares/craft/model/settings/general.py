@@ -16,34 +16,33 @@ from antares.craft.tools.contents_tool import EnumIgnoreCase
 
 
 class Mode(EnumIgnoreCase):
-    ECONOMY = "economy"
-    ADEQUACY = "adequacy"
-    DRAFT = "draft"
+    ECONOMY = "Economy"
+    ADEQUACY = "Adequacy"
 
 
 class Month(EnumIgnoreCase):
-    JANUARY = "january"
-    FEBRUARY = "february"
-    MARCH = "march"
-    APRIL = "april"
-    MAY = "may"
-    JUNE = "june"
-    JULY = "july"
-    AUGUST = "august"
-    SEPTEMBER = "september"
-    OCTOBER = "october"
-    NOVEMBER = "november"
-    DECEMBER = "december"
+    JANUARY = "January"
+    FEBRUARY = "February"
+    MARCH = "March"
+    APRIL = "April"
+    MAY = "May"
+    JUNE = "June"
+    JULY = "July"
+    AUGUST = "August"
+    SEPTEMBER = "September"
+    OCTOBER = "October"
+    NOVEMBER = "November"
+    DECEMBER = "December"
 
 
 class WeekDay(EnumIgnoreCase):
-    MONDAY = "monday"
-    TUESDAY = "tuesday"
-    WEDNESDAY = "wednesday"
-    THURSDAY = "thursday"
-    FRIDAY = "friday"
-    SATURDAY = "saturday"
-    SUNDAY = "sunday"
+    MONDAY = "Monday"
+    TUESDAY = "Tuesday"
+    WEDNESDAY = "Wednesday"
+    THURSDAY = "Thursday"
+    FRIDAY = "Friday"
+    SATURDAY = "Saturday"
+    SUNDAY = "Sunday"
 
 
 class BuildingMode(EnumIgnoreCase):
