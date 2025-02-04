@@ -1292,8 +1292,8 @@ ghi
 non-dispatchable-power = true
 dispatchable-hydro-power = true
 other-dispatchable-power = true
-spread-unsupplied-energy-cost = 0
-spread-spilled-energy-cost = 0
+spread-unsupplied-energy-cost = 0.000000
+spread-spilled-energy-cost = 0.000000
 
 [filtering]
 filter-synthesis = hourly, daily, weekly, monthly, annual
@@ -1335,8 +1335,8 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
 non-dispatchable-power = true
 dispatchable-hydro-power = false
 other-dispatchable-power = true
-spread-unsupplied-energy-cost = 0
-spread-spilled-energy-cost = 0
+spread-unsupplied-energy-cost = 0.000000
+spread-spilled-energy-cost = 0.000000
 
 [filtering]
 filter-synthesis = hourly, daily, weekly, monthly, annual
