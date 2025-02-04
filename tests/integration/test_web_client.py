@@ -18,6 +18,7 @@ import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
+    APIError,
     AreaDeletionError,
     BindingConstraintCreationError,
     ConstraintMatrixUpdateError,
@@ -504,6 +505,8 @@ class TestWebClient:
         # Really important note. To instance such object with value you must respect camel case.
         # Another way to do so is to instance the object and then fill its values
         new_settings.general_parameters = GeneralParameters(nbYears=4)
+        # To create a variant with horizon as string
+        new_settings.general_parameters.horizon = "2018"
         new_settings.advanced_parameters = AdvancedParameters()
         new_settings.advanced_parameters.unit_commitment_mode = UnitCommitmentMode.MILP
         new_study.update_settings(new_settings)
@@ -658,3 +661,16 @@ class TestWebClient:
         moved_study = read_study_api(api_config, study.service.study_id)
         assert moved_study.path == study.path
         assert moved_study.name == study.name
+
+        new_settings_aggregated = StudySettings()
+        new_settings_aggregated.general_parameters = GeneralParameters(nbYears=4)
+        new_settings_aggregated.advanced_parameters = AdvancedParameters()
+        new_settings_aggregated.advanced_parameters.unit_commitment_mode = UnitCommitmentMode.MILP
+        new_settings_aggregated.advanced_parameters.renewable_generation_modelling = "aggregated"
+        study_aggregated = create_study_api("test_aggregated", "880", api_config, new_settings_aggregated)
+        study_aggregated.create_area("area_without_renewables")
+        #  read_study_api does not raise an error
+        try:
+            read_study_api(api_config, study_aggregated.service.study_id)
+        except APIError as e:
+            pytest.fail(f"read_study_api raised an unexpected APIError: {e}")

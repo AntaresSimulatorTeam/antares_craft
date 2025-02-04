@@ -10,9 +10,11 @@
 #
 # This file is part of the Antares project.
 
+import typing as t
+
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic.alias_generators import to_camel
 
 
@@ -96,6 +98,11 @@ class DefaultGeneralParameters(BaseModel, extra="forbid", populate_by_name=True,
     simulation_synthesis: bool = True  # ? output/synthesis
     mc_scenario: bool = False  # ? output/storenewset
     result_format: OutputFormat = Field(default=OutputFormat.TXT, exclude=True)
+
+    @field_validator("horizon", mode="before")
+    def transform_horizon_to_str(cls, val: t.Union[str, int, None]) -> t.Optional[str]:
+        # horizon can be an int.
+        return str(val) if val else val  # type: ignore
 
 
 @all_optional_model

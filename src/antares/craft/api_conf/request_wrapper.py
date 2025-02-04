@@ -30,6 +30,15 @@ DATA_TYPE = Union[
 ]
 
 
+class EmptyResponse(requests.Response):
+    """
+    Class to simulate an empty requests.Response.
+    """
+
+    def json(self, **kwargs: Any) -> list:
+        return []
+
+
 def _handle_exceptions(response: requests.Response) -> requests.Response:
     """
     If an exception occurred, returns APIError exception containing the AntaresWeb error message.
@@ -37,9 +46,13 @@ def _handle_exceptions(response: requests.Response) -> requests.Response:
     if response.status_code - 200 < 100:
         return response
     try:
-        msg = response.json()["description"]
+        error_data = response.json()
+        msg = error_data.get("description", response.reason)
+        if response.status_code == 404 and "renewables" in msg:
+            return EmptyResponse()
     except (json.decoder.JSONDecodeError, KeyError):
         msg = response.reason
+
     raise APIError(msg)
 
 

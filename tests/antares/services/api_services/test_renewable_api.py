@@ -154,3 +154,23 @@ class TestCreateAPI:
 
             assert expected_renewable.id == actual_renewable.id
             assert expected_renewable.name == actual_renewable.name
+
+    def test_read_renewables_with_404_response_then_return_empty_list(self):
+        study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
+        area_id = "zone"
+        url = f"https://antares.com/api/v1/studies/{study_id_test}/areas/{area_id}/"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.get(
+                url + "clusters/renewable",
+                status_code=404,
+                json={"description": "'renewables' not a child of Input", "exception": "ChildNotFoundError"},
+            )
+
+            renewable_api = RenewableApiService(self.api, study_id_test)
+
+            actual_renewable_list = renewable_api.read_renewables(area_id)
+
+            assert actual_renewable_list == []
+
+            assert len(actual_renewable_list) == 0
