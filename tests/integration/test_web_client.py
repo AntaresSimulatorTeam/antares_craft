@@ -663,9 +663,7 @@ class TestWebClient:
         assert moved_study.name == study.name
 
         new_settings_aggregated = StudySettings()
-        new_settings_aggregated.general_parameters = GeneralParameters(nbYears=4)
         new_settings_aggregated.advanced_parameters = AdvancedParameters()
-        new_settings_aggregated.advanced_parameters.unit_commitment_mode = UnitCommitmentMode.MILP
         new_settings_aggregated.advanced_parameters.renewable_generation_modelling = "aggregated"
         study_aggregated = create_study_api("test_aggregated", "880", api_config, new_settings_aggregated)
         study_aggregated.create_area("area_without_renewables")

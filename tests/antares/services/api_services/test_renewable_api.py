@@ -172,5 +172,3 @@ class TestCreateAPI:
             actual_renewable_list = renewable_api.read_renewables(area_id)
 
             assert actual_renewable_list == []
-
-            assert len(actual_renewable_list) == 0
