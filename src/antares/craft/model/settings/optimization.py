@@ -46,7 +46,7 @@ class OptimizationParameters:
     simplex_range: Optional[SimplexOptimizationRange] = None
     transmission_capacities: Optional[OptimizationTransmissionCapacities] = None
     include_constraints: Optional[bool] = None
-    include_hurdle_costs: Optional[bool] = None
+    include_hurdlecosts: Optional[bool] = None
     include_tc_minstablepower: Optional[bool] = None
     include_tc_min_ud_time: Optional[bool] = None
     include_dayahead: Optional[bool] = None

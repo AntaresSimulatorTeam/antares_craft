@@ -138,7 +138,7 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
 class GeneralSectionLocal(LocalBaseModel):
     mode: Mode = Mode.ECONOMY
     horizon: str = ""
-    nb_years: int = Field(default=1, alias="nb.years")
+    nb_years: int = Field(default=1, alias="nbyears")
     simulation_start: int = Field(default=1, alias="simulation.start")
     simulation_end: int = Field(default=365, alias="simulation.end")
     january_first: WeekDay = Field(default=WeekDay.MONDAY, alias="january.1st")
@@ -157,8 +157,8 @@ class GeneralSectionLocal(LocalBaseModel):
     nb_timeseries_thermal: int = Field(default=1, alias="nbtimeseriesthermal")
     nb_timeseries_solar: int = Field(default=1, alias="nbtimeseriessolar")
     refresh_timeseries: bool = Field(default=False, alias="refreshtimeseries")
-    intra_model: bool = Field(default=False, alias="intra-model")
-    inter_model: bool = Field(default=False, alias="inter-model")
+    intra_modal: bool = Field(default=False, alias="intra-modal")
+    inter_modal: bool = Field(default=False, alias="inter-modal")
     refresh_interval_load: int = Field(default=100, alias="refreshintervalload")
     refresh_interval_hydro: int = Field(default=100, alias="refreshintervalhydro")
     refresh_interval_wind: int = Field(default=100, alias="refreshintervalwind")
@@ -202,8 +202,8 @@ class GeneralParametersLocal(LocalBaseModel):
             "nb_timeseries_wind",
             "nb_timeseries_solar",
             "refresh_timeseries",
-            "intra_model",
-            "inter_model",
+            "intra_modal",
+            "inter_modal",
             "refresh_interval_load",
             "refresh_interval_hydro",
             "refresh_interval_wind",
@@ -225,7 +225,7 @@ class OptimizationParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     simplex_range: SimplexOptimizationRange = SimplexOptimizationRange.WEEK
     transmission_capacities: OptimizationTransmissionCapacities = OptimizationTransmissionCapacities.LOCAL_VALUES
     include_constraints: bool = True
-    include_hurdle_costs: bool = True
+    include_hurdlecosts: bool = True
     include_tc_minstablepower: bool = True
     include_tc_min_ud_time: bool = True
     include_dayahead: bool = True
@@ -322,7 +322,16 @@ def edit_study_settings(study_directory: Path, settings: StudySettings, update: 
     # general
     general_parameters = settings.general_parameters or GeneralParameters()
     general_local_parameters = GeneralParametersLocal.from_user_model(general_parameters)
-    ini_content.update(general_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update))
+
+    json_content = general_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)
+    if "general" in json_content and "building_mode" in json_content["general"]:
+        general_values = json_content["general"]
+        del general_values["building_mode"]
+        building_mode = general_local_parameters.general.building_mode
+        general_values["derated"] = building_mode == BuildingMode.DERATED
+        general_values["custom-scenario"] = building_mode == BuildingMode.CUSTOM
+
+    ini_content.update(json_content)
     new_general_parameters = general_local_parameters.to_user_model()
 
     # optimization

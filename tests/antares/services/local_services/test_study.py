@@ -459,26 +459,26 @@ first-month-in-year = January
 first.weekday = Monday
 leapyear = false
 year-by-year = false
-derated = false
-custom-scenario = false
 user-playlist = false
 thematic-trimming = false
 geographic-trimming = false
-generate = 
+generate = false
 nbtimeseriesload = 1
 nbtimeserieshydro = 1
-nbtimeseriesthermal = 1
 nbtimeserieswind = 1
+nbtimeseriesthermal = 1
 nbtimeseriessolar = 1
-refreshtimeseries = 
-intra-modal = 
-inter-modal = 
+refreshtimeseries = false
+intra-modal = false
+inter-modal = false
 refreshintervalload = 100
 refreshintervalhydro = 100
-refreshintervalthermal = 100
 refreshintervalwind = 100
+refreshintervalthermal = 100
 refreshintervalsolar = 100
 readonly = false
+derated = false
+custom-scenario = false
 
 [input]
 import = 
@@ -487,7 +487,6 @@ import =
 synthesis = true
 storenewset = false
 archives = 
-result-format = txt-files
 
 [optimization]
 simplex-range = week
@@ -500,7 +499,7 @@ include-dayahead = true
 include-strategicreserve = true
 include-spinningreserve = true
 include-primaryreserve = true
-include-exportmps = none
+include-exportmps = false
 include-exportstructure = false
 include-unfeasible-problem-behavior = error-verbose
 
@@ -508,13 +507,13 @@ include-unfeasible-problem-behavior = error-verbose
 include-adq-patch = false
 set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = true
 set-to-null-ntc-between-physical-out-for-first-step = true
-enable-first-step = false
 price-taking-order = DENS
 include-hurdle-cost-csr = false
 check-csr-cost-function = false
 threshold-initiate-curtailment-sharing-rule = 0.000000
 threshold-display-local-matching-rule-violations = 0.000000
 threshold-csr-variable-bounds-relaxation = 3
+enable-first-step = false
 
 [other preferences]
 initial-reservoir-levels = cold start
@@ -522,12 +521,15 @@ hydro-heuristic-policy = accommodate rule curves
 hydro-pricing-mode = fast
 power-fluctuations = free modulations
 shedding-policy = shave peaks
+shedding-strategy = shave margins
 unit-commitment-mode = fast
 number-of-cores-mode = medium
-renewable-generation-modelling = aggregated
+renewable-generation-modelling = clusters
+day-ahead-reserve-management = global
 
 [advanced parameters]
-accuracy-on-correlation = 
+accuracy-on-correlation = []
+adequacy-block-size = 100
 
 [seeds - Mersenne Twister]
 seed-tsgen-wind = 5489
