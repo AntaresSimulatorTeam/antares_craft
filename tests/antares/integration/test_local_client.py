@@ -20,9 +20,9 @@ from antares.craft.model.binding_constraint import BindingConstraintProperties, 
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties
-from antares.craft.model.settings.general import GeneralParametersLocal, Mode
-from antares.craft.model.settings.playlist_parameters import PlaylistParameters
-from antares.craft.model.settings.study_settings import StudySettingsLocal
+from antares.craft.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
+from antares.craft.model.settings.general import GeneralParameters
+from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
 from antares.craft.model.study import Study, create_study_local
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterGroup, ThermalClusterProperties
@@ -248,13 +248,9 @@ class TestLocalClient:
         }
 
         # test study creation with settings
-        settings = StudySettingsLocal()
-        settings.general_parameters = GeneralParametersLocal(mode="Adequacy")
-        settings.general_parameters.year_by_year = False
-        settings.playlist_parameters = PlaylistParameters()
-        settings.playlist_parameters.playlist = [{"status": False, "weight": 1}]
+        settings = StudySettings()
+        settings.general_parameters = GeneralParameters(nb_years=4)
+        settings.advanced_parameters = AdvancedParameters(unit_commitment_mode=UnitCommitmentMode.MILP)
         new_study = create_study_local("second_study", "880", tmp_path, settings)
-        settings = new_study.get_settings()
-        assert settings.general_parameters.mode == Mode.ADEQUACY.value
-        assert not settings.general_parameters.year_by_year
-        assert settings.playlist_parameters.model_dump() == {1: {"status": False, "weight": 1}}
+        assert new_study.get_settings().general_parameters.nb_years == 4
+        assert new_study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP.value
