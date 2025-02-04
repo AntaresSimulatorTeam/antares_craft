@@ -30,7 +30,7 @@ from antares.craft.model.output import AggregationEntry, Output
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
-from antares.craft.model.st_storage import STStorage, STStorageProperties
+from antares.craft.model.st_storage import STStorage, STStorageMatrixName, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
 
 if TYPE_CHECKING:
@@ -685,6 +685,14 @@ class BaseShortTermStorageService(ABC):
 
     @abstractmethod
     def read_st_storages(self, area_id: str) -> List[STStorage]:
+        pass
+
+    @abstractmethod
+    def get_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def upload_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:
         pass
 
 

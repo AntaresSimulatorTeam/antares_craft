@@ -34,10 +34,12 @@ class CustomRawConfigParser(RawConfigParser):
     def optionxform(self, optionstr: str) -> str:
         return optionstr
 
-    def _write_line(self, file_path: "SupportsWrite", section_name: str, delimiter: str, key: str, value: str) -> None:
+    def _write_line(
+        self, file_path: "SupportsWrite[str]", section_name: str, delimiter: str, key: str, value: str
+    ) -> None:
         """Writes a single line of the provided section to the specified `file_path`."""
         value = self._interpolation.before_write(self, section_name, key, value)
-        if value is not None or not self._allow_no_value:  # type:ignore
+        if value is not None or not self._allow_no_value:
             value = delimiter + str(value).replace("\n", "\n\t")
         else:
             value = ""

@@ -14,9 +14,8 @@ from typing import Optional, Union
 
 import pandas as pd
 
-from pydantic import BaseModel
-
 from antares.craft.service.base_services import BaseOutputService
+from pydantic import BaseModel
 
 
 class MCIndAreas(Enum):

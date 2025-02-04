@@ -15,6 +15,7 @@ from typing import Dict, Optional
 
 import pandas as pd
 
+from antares.craft.service.base_services import BaseHydroService
 from antares.craft.tools.all_optional_meta import all_optional_model
 from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
@@ -90,9 +91,9 @@ class HydroPropertiesLocal(DefaultHydroProperties):
 
 
 class Hydro:
-    def __init__(   #
+    def __init__(  #
         self,
-        service,
+        service: BaseHydroService,
         area_id: str,
         properties: Optional[HydroProperties] = None,
         matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,

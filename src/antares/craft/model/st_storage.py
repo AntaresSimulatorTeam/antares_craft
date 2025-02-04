@@ -15,6 +15,7 @@ from typing import Optional
 
 import pandas as pd
 
+from antares.craft.service.base_services import BaseShortTermStorageService
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import transform_name_to_id
 from pydantic import BaseModel
@@ -90,8 +91,15 @@ class STStoragePropertiesLocal(DefaultSTStorageProperties):
 
 
 class STStorage:
-    def __init__(self, storage_service: BaseShortTermService, area_id: str, name: str, properties: Optional[STStorageProperties] = None):  # type: ignore # TODO: Find a way to avoid circular imports
+    def __init__(
+        self,
+        storage_service: BaseShortTermStorageService,
+        area_id: str,
+        name: str,
+        properties: Optional[STStorageProperties] = None,
+    ):  # TODO: Find a way to avoid circular imports
         self._area_id = area_id
+        self._storage_service = storage_service
         self._storage_service = storage_service
         self._name = name
         self._id = transform_name_to_id(name)

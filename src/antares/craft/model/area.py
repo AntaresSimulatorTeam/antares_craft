@@ -26,8 +26,13 @@ from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
-from antares.craft.service.base_services import BaseThermalService, BaseAreaService, BaseShortTermStorageService, \
-    BaseRenewableService, BaseHydroService
+from antares.craft.service.base_services import (
+    BaseAreaService,
+    BaseHydroService,
+    BaseRenewableService,
+    BaseShortTermStorageService,
+    BaseThermalService,
+)
 from antares.craft.tools.alias_generators import to_space
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
@@ -191,14 +196,14 @@ class AreaUiLocal(BaseModel):
 
 
 class Area:
-    def __init__(   # TODO: Find a way to avoid circular imports
+    def __init__(  # TODO: Find a way to avoid circular imports
         self,
         name: str,
         area_service: BaseAreaService,
-        storage_service: Optional[BaseShortTermStorageService],
-        thermal_service: Optional[BaseThermalService],
-        renewable_service: Optional[BaseRenewableService],
-        hydro_service: Optional[BaseHydroService],
+        storage_service: BaseShortTermStorageService,
+        thermal_service: BaseThermalService,
+        renewable_service: BaseRenewableService,
+        hydro_service: BaseHydroService,
         *,
         renewables: Optional[Dict[str, RenewableCluster]] = None,
         thermals: Optional[Dict[str, ThermalCluster]] = None,

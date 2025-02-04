@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 
+from antares.craft.service.base_services import BaseBindingConstraintService
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 from pydantic import BaseModel, Field, model_validator
@@ -120,10 +121,10 @@ class BindingConstraintProperties(DefaultBindingConstraintProperties):
 
 
 class BindingConstraint:
-    def __init__(   # TODO: Find a way to avoid circular imports
+    def __init__(  # TODO: Find a way to avoid circular imports
         self,
         name: str,
-        binding_constraint_service,
+        binding_constraint_service: BaseBindingConstraintService,
         properties: Optional[BindingConstraintProperties] = None,
         terms: Optional[List[ConstraintTerm]] = None,
     ):
