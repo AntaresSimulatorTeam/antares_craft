@@ -9,10 +9,9 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import shutil
-import zipfile
-
 import pytest
+
+import shutil
 
 from pathlib import Path, PurePath
 
@@ -43,7 +42,7 @@ from antares.craft.model.settings.general import GeneralParameters, Mode
 from antares.craft.model.settings.study_settings import PlaylistParameters, StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
 from antares.craft.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
-from antares.craft.model.study import create_study_api, create_variant_api, read_study_api, import_study_api
+from antares.craft.model.study import create_study_api, create_variant_api, import_study_api, read_study_api
 from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
@@ -104,8 +103,17 @@ class TestWebClient:
 
         zip_study = Path(shutil.make_archive(str(tmp_path_zip), "zip", copy_dir))
 
-        print(tmp_path_zip.exists())
-        study = import_study_api(api_config, zip_study, None)
+        # importing without moving the study
+        imported_study = import_study_api(api_config, zip_study, None)
+
+        assert imported_study.path == study.path
+
+        # importing with moving the study
+        path_test = Path("/new/test/studies")
+        imported_study = import_study_api(api_config, zip_study, path_test)
+
+        assert imported_study.path == path_test / f"{imported_study.service.study_id}"
+
         # tests area creation with ui values
         area_ui = AreaUi(x=100, color_rgb=[255, 0, 0])
         area_name = "BE?"
