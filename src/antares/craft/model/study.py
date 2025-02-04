@@ -104,21 +104,21 @@ def import_study_api(api_config: APIconf, study_path: Path, destination_path: Op
     wrapper = RequestWrapper(session)
     base_url = f"{api_config.get_host()}/api/v1"
 
-    if has_valid_extension(study_path):
-        try:
-            files = {"study": io.BytesIO(study_path.read_bytes())}
-            url = f"{base_url}/studies/_import"
-            study_id = wrapper.post(url, files=files).json()
+    if not has_valid_extension(study_path):
+        raise StudyImportError(study_path.name, f"File doesn't have the right extensions (.zip/.7z): {study_path.suffix}")
 
-            study = read_study_api(api_config, study_id)
-            if destination_path is not None:
-                study.move(destination_path)
+    try:
+        files = {"study": io.BytesIO(study_path.read_bytes())}
+        url = f"{base_url}/studies/_import"
+        study_id = wrapper.post(url, files=files).json()
 
-            return study
-        except APIError as e:
-            raise StudyImportError(study_path.name, e.message) from e
-    else:
-        raise Exception(f"File doesn't have the right extensions (.zip/.7z): {study_path.suffix}")
+        study = read_study_api(api_config, study_id)
+        if destination_path is not None:
+            study.move(destination_path)
+
+        return study
+    except APIError as e:
+        raise StudyImportError(study_path.name, e.message) from e
 
 
 def create_study_local(

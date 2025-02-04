@@ -781,13 +781,8 @@ class TestCreateAPI:
         study_path.touch()
         new_path = Path("/new/path/test")
 
-        base_url = "https://antares.com/api/v1"
-        url_import = f"{base_url}/studies/_import"
-        with requests_mock.Mocker() as mocker:
-            mocker.get(url_import, status_code=404)
-
-            with pytest.raises(Exception, match=re.escape("File doesn't have the right extensions (.zip/.7z): .rar")):
-                import_study_api(self.api, study_path, new_path)
+        with pytest.raises(Exception, match=re.escape("File doesn't have the right extensions (.zip/.7z): .rar")):
+            import_study_api(self.api, study_path, new_path)
 
     def test_import_study_fail_api_error(self, tmp_path):
         study_path = tmp_path.joinpath("test.zip")

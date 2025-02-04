@@ -94,26 +94,6 @@ class TestWebClient:
         area_fr.create_wind(ts_matrix)
         assert area_fr.get_wind_matrix().equals(ts_matrix)
 
-        # testing import study
-        test_path = Path(antares_web.desktop_path.joinpath("internal_studies").joinpath(study.service.study_id))
-        copy_dir = tmp_path / test_path.name
-
-        tmp_path_zip = tmp_path / f"{copy_dir.name}"
-        shutil.copytree(test_path, copy_dir)
-
-        zip_study = Path(shutil.make_archive(str(tmp_path_zip), "zip", copy_dir))
-
-        # importing without moving the study
-        imported_study = import_study_api(api_config, zip_study, None)
-
-        assert imported_study.path == study.path
-
-        # importing with moving the study
-        path_test = Path("/new/test/studies")
-        imported_study = import_study_api(api_config, zip_study, path_test)
-
-        assert imported_study.path == path_test / f"{imported_study.service.study_id}"
-
         # tests area creation with ui values
         area_ui = AreaUi(x=100, color_rgb=[255, 0, 0])
         area_name = "BE?"
@@ -680,3 +660,25 @@ class TestWebClient:
         moved_study = read_study_api(api_config, study.service.study_id)
         assert moved_study.path == study.path
         assert moved_study.name == study.name
+
+        # testing import study
+        # creating a test path to not affect the internal studies created
+        test_path = Path(antares_web.desktop_path.joinpath("internal_studies").joinpath(study.service.study_id))
+        copy_dir = tmp_path / test_path.name
+
+        tmp_path_zip = tmp_path / copy_dir.name
+        shutil.copytree(test_path, copy_dir)
+
+        zip_study = Path(shutil.make_archive(str(tmp_path_zip), "zip", copy_dir))
+
+        # importing without moving the study
+        imported_study = import_study_api(api_config, zip_study, None)
+
+        assert imported_study.path == PurePath(".")
+
+        # importing with moving the study
+        path_test = Path("/new/test/studies")
+        imported_study = import_study_api(api_config, zip_study, path_test)
+
+        assert imported_study.path == path_test / f"{imported_study.service.study_id}"
+        assert list(imported_study.get_areas()) == list(study.get_areas())
