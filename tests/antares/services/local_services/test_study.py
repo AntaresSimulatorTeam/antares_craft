@@ -196,14 +196,14 @@ class TestStudyProperties:
 
     def test_local_study_has_correct_default_general_properties(self, local_study):
         expected_general_properties = GeneralParameters(**{
-                "mode": "economy",
+                "mode": "Economy",
                 "horizon": "",
                 "nb_years": 1,
                 "simulation_start": 1,
                 "simulation_end": 365,
-                "january_first": "monday",
-                "first_month_in_year": "january",
-                "first_week_day": "monday",
+                "january_first": "Monday",
+                "first_month_in_year": "January",
+                "first_week_day": "Monday",
                 "leap_year": False,
                 "year_by_year": False,
                 "building_mode": "automatic",
@@ -272,7 +272,7 @@ class TestStudyProperties:
                 "simplex_range": "week",
                 "transmission_capacities": "local-values",
                 "include_constraints": True,
-                "include_hurdle_costs": True,
+                "include_hurdlecosts": True,
                 "include_tc_minstablepower": True,
                 "include_tc_min_ud_time": True,
                 "include_dayahead": True,
@@ -1225,7 +1225,7 @@ class TestCreateArea:
         expected_sets_ini_content = """[all areas]
 caption = All areas
 comments = Spatial aggregates on all areas
-output = False
+output = false
 apply-filter = add-all
 
 """
@@ -1289,9 +1289,9 @@ ghi
         expected_optimization_ini_path = study_antares_path / "input" / "areas" / "area1" / "optimization.ini"
 
         expected_optimization_ini_content = """[nodal optimization]
-non-dispatchable-power = True
-dispatchable-hydro-power = True
-other-dispatchable-power = True
+non-dispatchable-power = true
+dispatchable-hydro-power = true
+other-dispatchable-power = true
 spread-unsupplied-energy-cost = 0
 spread-spilled-energy-cost = 0
 
@@ -1332,9 +1332,9 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
             tmp_path / local_study.name / "input/areas" / area_to_create / "optimization.ini"
         )
         expected_optimization_ini_content = """[nodal optimization]
-non-dispatchable-power = True
-dispatchable-hydro-power = False
-other-dispatchable-power = True
+non-dispatchable-power = true
+dispatchable-hydro-power = false
+other-dispatchable-power = true
 spread-unsupplied-energy-cost = 0
 spread-spilled-energy-cost = 0
 
@@ -1465,11 +1465,11 @@ layers = 0
         # Given
         expected_default_properties = {
             "nodal optimization": {
-                "non-dispatchable-power": "True",
-                "dispatchable-hydro-power": "True",
-                "other-dispatchable-power": "True",
-                "spread-unsupplied-energy-cost": "0",
-                "spread-spilled-energy-cost": "0",
+                "non-dispatchable-power": "true",
+                "dispatchable-hydro-power": "true",
+                "other-dispatchable-power": "true",
+                "spread-unsupplied-energy-cost": "0.000000",
+                "spread-spilled-energy-cost": "0.000000",
             },
             "filtering": {
                 "filter-synthesis": "hourly, daily, weekly, monthly, annual",
@@ -1495,11 +1495,11 @@ layers = 0
         )
         expected_properties = {
             "nodal optimization": {
-                "non-dispatchable-power": "True",
-                "dispatchable-hydro-power": "False",
-                "other-dispatchable-power": "True",
+                "non-dispatchable-power": "true",
+                "dispatchable-hydro-power": "false",
+                "other-dispatchable-power": "true",
                 "spread-unsupplied-energy-cost": "1.000000",
-                "spread-spilled-energy-cost": "0",
+                "spread-spilled-energy-cost": "0.000000",
             },
             "filtering": {
                 "filter-synthesis": "hourly, daily, weekly, monthly, annual",
@@ -1621,9 +1621,9 @@ class TestCreateLink:
         # Given
         link_to_create = "fr_it"
         expected_content = """[it]
-hurdles-cost = False
-loop-flow = False
-use-phase-shifter = False
+hurdles-cost = false
+loop-flow = false
+use-phase-shifter = false
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
@@ -1631,7 +1631,7 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = True
+display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
@@ -1656,9 +1656,9 @@ comments =
         # Given
         link_to_create = "fr_it"
         expected_ini_content = """[it]
-hurdles-cost = False
-loop-flow = False
-use-phase-shifter = False
+hurdles-cost = false
+loop-flow = false
+use-phase-shifter = false
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
@@ -1666,7 +1666,7 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = True
+display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
@@ -1705,9 +1705,9 @@ comments =
             filter_year_by_year={FilterOption.WEEKLY, FilterOption.DAILY},
         )
         expected_ini_content = """[it]
-hurdles-cost = False
-loop-flow = True
-use-phase-shifter = True
+hurdles-cost = false
+loop-flow = true
+use-phase-shifter = true
 transmission-capacities = infinite
 asset-type = ac
 link-style = plain
@@ -1715,7 +1715,7 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = True
+display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = daily, weekly
 comments = 
@@ -1745,9 +1745,9 @@ comments =
         local_study_w_areas.create_area("at")
         links_to_create = ["fr_at", "at_it"]
         expected_ini_string = """[fr]
-hurdles-cost = False
-loop-flow = False
-use-phase-shifter = False
+hurdles-cost = false
+loop-flow = false
+use-phase-shifter = false
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
@@ -1755,15 +1755,15 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = True
+display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
 
 [it]
-hurdles-cost = False
-loop-flow = False
-use-phase-shifter = False
+hurdles-cost = false
+loop-flow = false
+use-phase-shifter = false
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
@@ -1771,7 +1771,7 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = True
+display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
@@ -1804,9 +1804,9 @@ comments =
         local_study_w_areas.create_area("at")
         links_to_create = ["at_it", "fr_at"]
         expected_ini_string = """[fr]
-hurdles-cost = False
-loop-flow = False
-use-phase-shifter = False
+hurdles-cost = false
+loop-flow = false
+use-phase-shifter = false
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
@@ -1814,15 +1814,15 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = True
+display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
 
 [it]
-hurdles-cost = False
-loop-flow = False
-use-phase-shifter = False
+hurdles-cost = false
+loop-flow = false
+use-phase-shifter = false
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
@@ -1830,7 +1830,7 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = True
+display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
@@ -1878,9 +1878,9 @@ comments =
         actual_ini_file = tmp_path / local_study_w_areas.name / "input" / "links" / "fr" / "properties.ini"
         actual_ini = ConfigParser()
         expected_ini_string = """[it]
-hurdles-cost = False
-loop-flow = False
-use-phase-shifter = False
+hurdles-cost = false
+loop-flow = false
+use-phase-shifter = false
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
@@ -1888,7 +1888,7 @@ link-width = 1
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = True
+display-comments = true
 filter-synthesis = hourly, daily, weekly, monthly, annual
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
@@ -1916,9 +1916,9 @@ comments =
         actual_ini_file = tmp_path / local_study_w_areas.name / "input" / "links" / "fr" / "properties.ini"
         actual_ini = ConfigParser()
         expected_ini_string = """[it]
-hurdles-cost = True
-loop-flow = False
-use-phase-shifter = False
+hurdles-cost = true
+loop-flow = false
+use-phase-shifter = false
 transmission-capacities = ignore
 asset-type = gaz
 link-style = dot
@@ -1926,7 +1926,7 @@ link-width = 1
 colorr = 234
 colorg = 123
 colorb = 0
-display-comments = True
+display-comments = true
 filter-synthesis = hourly, weekly, monthly
 filter-year-by-year = hourly, daily, weekly, monthly, annual
 comments = 
@@ -2014,7 +2014,7 @@ class TestCreateBindingconstraint:
         expected_ini_contents = """[0]
 name = test constraint
 id = test constraint
-enabled = True
+enabled = true
 type = hourly
 operator = less
 filter-year-by-year = hourly
@@ -2049,7 +2049,7 @@ group = default
         expected_ini_content = """[0]
 name = test constraint
 id = test constraint
-enabled = True
+enabled = true
 type = hourly
 operator = less
 filter-year-by-year = hourly
@@ -2059,7 +2059,7 @@ group = default
 [1]
 name = test constraint two
 id = test constraint two
-enabled = False
+enabled = false
 type = weekly
 operator = both
 comments = test comment
@@ -2093,7 +2093,7 @@ group = test group
         expected_ini_contents = """[0]
 name = test constraint
 id = test constraint
-enabled = True
+enabled = true
 type = hourly
 operator = less
 filter-year-by-year = hourly
@@ -2117,13 +2117,13 @@ at%fr = 0
         expected_ini_contents = """[0]
 name = test constraint
 id = test constraint
-enabled = True
+enabled = true
 type = hourly
 operator = less
 filter-year-by-year = hourly
 filter-synthesis = hourly
 group = default
-at%fr = 0%1
+at%fr = 0.000000%1
 
 """
         # When
