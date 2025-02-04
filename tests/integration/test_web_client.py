@@ -18,7 +18,6 @@ import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
-    APIError,
     AreaDeletionError,
     BindingConstraintCreationError,
     ConstraintMatrixUpdateError,
@@ -668,7 +667,4 @@ class TestWebClient:
         study_aggregated = create_study_api("test_aggregated", "880", api_config, new_settings_aggregated)
         study_aggregated.create_area("area_without_renewables")
         #  read_study_api does not raise an error
-        try:
-            read_study_api(api_config, study_aggregated.service.study_id)
-        except APIError as e:
-            pytest.fail(f"read_study_api raised an unexpected APIError: {e}")
+        read_study_api(api_config, study_aggregated.service.study_id)

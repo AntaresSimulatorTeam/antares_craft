@@ -82,6 +82,12 @@ class RenewableApiService(BaseRenewableService):
         self,
         area_id: str,
     ) -> List[RenewableCluster]:
+        """
+        read_renewables will return an error if
+        study settings renewable_generation_modelling is aggregated
+        an empty list will be returned instead
+        """
+
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
 
         try:
