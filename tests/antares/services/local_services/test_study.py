@@ -53,7 +53,8 @@ from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
 )
 from antares.craft.model.settings.advanced_parameters import (
-    AdvancedParameters, SeedParameters,
+    AdvancedParameters,
+    SeedParameters,
 )
 from antares.craft.model.settings.general import (
     GeneralParameters,
@@ -61,7 +62,6 @@ from antares.craft.model.settings.general import (
 from antares.craft.model.settings.optimization import (
     OptimizationParameters,
 )
-from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.study import create_study_local
 from antares.craft.tools.ini_tool import InitializationFilesTypes
@@ -195,7 +195,8 @@ class TestStudyProperties:
         assert isinstance(local_study_settings, StudySettings)
 
     def test_local_study_has_correct_default_general_properties(self, local_study):
-        expected_general_properties = GeneralParameters(**{
+        expected_general_properties = GeneralParameters(
+            **{
                 "mode": "Economy",
                 "horizon": "",
                 "nb_years": 1,
@@ -212,14 +213,15 @@ class TestStudyProperties:
                 "simulation_synthesis": True,
                 "user_playlist": False,
                 "store_new_set": False,
-                "nb_timeseries_thermal": 1
-            })
+                "nb_timeseries_thermal": 1,
+            }
+        )
 
         assert local_study.get_settings().general_parameters == expected_general_properties
 
     def test_local_study_has_correct_default_adequacy_patch_properties(self, local_study):
-        expected_adequacy_patch_properties = AdequacyPatchParameters(**
-            {
+        expected_adequacy_patch_properties = AdequacyPatchParameters(
+            **{
                 "include_adq_patch": False,
                 "set_to_null_ntc_from_physical_out_to_physical_in_for_first_step": True,
                 "set_to_null_ntc_between_physical_out_for_first_step": True,
@@ -235,8 +237,8 @@ class TestStudyProperties:
         assert local_study.get_settings().adequacy_patch_parameters == expected_adequacy_patch_properties
 
     def test_local_study_has_correct_advanced_parameters(self, local_study):
-        expected_advanced_parameters = AdvancedParameters(**
-            {
+        expected_advanced_parameters = AdvancedParameters(
+            **{
                 "accuracy_on_correlation": [],
                 "initial_reservoir_levels": "cold start",
                 "hydro_heuristic_policy": "accommodate rule curves",
@@ -252,8 +254,8 @@ class TestStudyProperties:
         assert local_study.get_settings().advanced_parameters == expected_advanced_parameters
 
     def test_local_study_has_correct_seed_parameters(self, local_study):
-        expected_seed_parameters = SeedParameters(**
-            {
+        expected_seed_parameters = SeedParameters(
+            **{
                 "seed_tsgen_thermal": 3005489,
                 "seed_tsnumbers": 5005489,
                 "seed_unsupplied_energy_costs": 6005489,
@@ -267,8 +269,8 @@ class TestStudyProperties:
         assert local_study.get_settings().seed_parameters == expected_seed_parameters
 
     def test_local_study_has_correct_optimization_parameters(self, local_study):
-        expected_optimization_parameters = OptimizationParameters(**
-            {
+        expected_optimization_parameters = OptimizationParameters(
+            **{
                 "simplex_range": "week",
                 "transmission_capacities": "local-values",
                 "include_constraints": True,
