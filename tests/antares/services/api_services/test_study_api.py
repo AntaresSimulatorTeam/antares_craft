@@ -723,15 +723,6 @@ class TestCreateAPI:
             "folder": None,
         }
 
-        json_ui = {
-            "zone": {
-                "ui": {"x": 0, "y": 0, "color_r": 230, "color_g": 108, "color_b": 44, "layers": "0"},
-                "layerX": {"0": 0},
-                "layerY": {"0": 0},
-                "layerColor": {"0": "230, 108, 44"},
-            }
-        }
-
         study_path = tmp_path.joinpath("test.zip")
         study_path.touch()
         new_path = Path("/new/path/test")
@@ -756,7 +747,7 @@ class TestCreateAPI:
 
             mocker.get(url, json=json_study)
             mocker.get(config_urls, json={})
-            mocker.get(area_url, json=json_ui)
+            mocker.get(area_url, json={})
             mocker.get(area_props_url, json={})
             mocker.get(renewable_url, json=[])
             mocker.get(thermal_url, json=[])
