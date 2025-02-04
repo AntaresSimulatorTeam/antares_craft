@@ -120,7 +120,7 @@ class BindingConstraintProperties(DefaultBindingConstraintProperties):
 
 
 class BindingConstraint:
-    def __init__(  # type: ignore # TODO: Find a way to avoid circular imports
+    def __init__(   # TODO: Find a way to avoid circular imports
         self,
         name: str,
         binding_constraint_service,

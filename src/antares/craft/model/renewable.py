@@ -90,7 +90,7 @@ class RenewableClusterPropertiesLocal(DefaultRenewableClusterProperties):
 
 
 class RenewableCluster:
-    def __init__(  # type: ignore  # TODO: Find a way to avoid circular imports
+    def __init__(    # TODO: Find a way to avoid circular imports
         self,
         renewable_service,
         area_id: str,

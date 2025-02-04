@@ -90,7 +90,7 @@ class HydroPropertiesLocal(DefaultHydroProperties):
 
 
 class Hydro:
-    def __init__(  # type: ignore #
+    def __init__(   #
         self,
         service,
         area_id: str,

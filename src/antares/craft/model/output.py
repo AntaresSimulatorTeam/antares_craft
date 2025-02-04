@@ -16,6 +16,8 @@ import pandas as pd
 
 from pydantic import BaseModel
 
+from antares.craft.service.base_services import BaseOutputService
+
 
 class MCIndAreas(Enum):
     VALUES = "values"
@@ -75,7 +77,7 @@ class AggregationEntry(BaseModel):
 
 
 class Output:
-    def __init__(self, name: str, archived: bool, output_service):  # type: ignore
+    def __init__(self, name: str, archived: bool, output_service: BaseOutputService):
         self._name = name
         self._archived = archived
         self._output_service = output_service

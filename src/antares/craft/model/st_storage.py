@@ -90,7 +90,7 @@ class STStoragePropertiesLocal(DefaultSTStorageProperties):
 
 
 class STStorage:
-    def __init__(self, storage_service, area_id: str, name: str, properties: Optional[STStorageProperties] = None):  # type: ignore # TODO: Find a way to avoid circular imports
+    def __init__(self, storage_service: BaseShortTermService, area_id: str, name: str, properties: Optional[STStorageProperties] = None):  # type: ignore # TODO: Find a way to avoid circular imports
         self._area_id = area_id
         self._storage_service = storage_service
         self._name = name
