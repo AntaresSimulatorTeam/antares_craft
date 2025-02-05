@@ -379,16 +379,13 @@ class AreaLocalService(BaseAreaService):
                     self.config.study_path, InitializationFilesTypes.AREA_UI_INI, area_id=element.name
                 ).ini_dict
                 thermal_area_dict = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_AREAS_INI).ini_dict
+                nodal_optimization = optimization_dict["nodal optimization"]
                 area_properties = AreaPropertiesLocal(
-                    non_dispatch_power=optimization_dict["nodal optimization"].get("non-dispatchable-power"),
-                    dispatch_hydro_power=optimization_dict["nodal optimization"].get("dispatchable-hydro-power"),
-                    other_dispatch_power=optimization_dict["nodal optimization"].get("other-dispatchable-power"),
-                    spread_unsupplied_energy_cost=optimization_dict["nodal optimization"].get(
-                        "spread-unsupplied-energy-cost"
-                    ),
-                    spread_spilled_energy_cost=optimization_dict["nodal optimization"].get(
-                        "spread-spilled-energy-cost"
-                    ),
+                    non_dispatch_power=nodal_optimization.get("non-dispatchable-power"),
+                    dispatch_hydro_power=nodal_optimization.get("dispatchable-hydro-power"),
+                    other_dispatch_power=nodal_optimization.get("other-dispatchable-power"),
+                    spread_unsupplied_energy_cost=nodal_optimization.get("spread-unsupplied-energy-cost"),
+                    spread_spilled_energy_cost=nodal_optimization.get("spread-spilled-energy-cost"),
                     energy_cost_unsupplied=thermal_area_dict["unserverdenergycost"].get(element.name),
                     energy_cost_spilled=thermal_area_dict["spilledenergycost"].get(element.name),
                     filter_synthesis=set(optimization_dict["filtering"].get("filter-synthesis").split(", ")),
