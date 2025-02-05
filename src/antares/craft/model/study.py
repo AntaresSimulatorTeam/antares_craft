@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+import io
 import logging
 import os
 import time
@@ -23,7 +23,13 @@ import pandas as pd
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import APIError, LinkCreationError, StudyCreationError, StudyMoveError
+from antares.craft.exceptions.exceptions import (
+    APIError,
+    LinkCreationError,
+    StudyCreationError,
+    StudyImportError,
+    StudyMoveError,
+)
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -87,6 +93,30 @@ def create_study_api(
         return study
     except (APIError, StudyMoveError) as e:
         raise StudyCreationError(study_name, e.message) from e
+
+
+def import_study_api(api_config: APIconf, study_path: Path, destination_path: Optional[Path] = None) -> "Study":
+    session = api_config.set_up_api_conf()
+    wrapper = RequestWrapper(session)
+    base_url = f"{api_config.get_host()}/api/v1"
+
+    if study_path.suffix not in {".zip", ".7z"}:
+        raise StudyImportError(
+            study_path.name, f"File doesn't have the right extensions (.zip/.7z): {study_path.suffix}"
+        )
+
+    try:
+        files = {"study": io.BytesIO(study_path.read_bytes())}
+        url = f"{base_url}/studies/_import"
+        study_id = wrapper.post(url, files=files).json()
+
+        study = read_study_api(api_config, study_id)
+        if destination_path is not None:
+            study.move(destination_path)
+
+        return study
+    except APIError as e:
+        raise StudyImportError(study_path.name, e.message) from e
 
 
 def create_study_local(

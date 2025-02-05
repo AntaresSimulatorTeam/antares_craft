@@ -32,6 +32,7 @@ from antares.craft.exceptions.exceptions import (
     SimulationFailedError,
     SimulationTimeOutError,
     StudyCreationError,
+    StudyImportError,
     StudyMoveError,
     StudySettingsUpdateError,
     StudyVariantCreationError,
@@ -52,7 +53,7 @@ from antares.craft.model.output import (
 from antares.craft.model.settings.general import GeneralParameters
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
-from antares.craft.model.study import Study, create_study_api, create_variant_api, read_study_api
+from antares.craft.model.study import Study, create_study_api, create_variant_api, import_study_api, read_study_api
 from antares.craft.service.api_services.output_api import OutputApiService
 from antares.craft.service.service_factory import ServiceFactory
 
@@ -713,3 +714,74 @@ class TestCreateAPI:
 
             with pytest.raises(ThermalTimeseriesGenerationError, match=error_message):
                 self.study.generate_thermal_timeseries()
+
+    def test_import_study_success(self, tmp_path):
+        json_study = {
+            "id": "22c52f44-4c2a-407b-862b-490887f93dd8",
+            "name": "test_read_areas",
+            "version": "880",
+            "folder": None,
+        }
+
+        study_path = tmp_path.joinpath("test.zip")
+        study_path.touch()
+        new_path = Path("/new/path/test")
+        base_url = "https://antares.com/api/v1"
+
+        url = f"{base_url}/studies/{self.study_id}"
+        area_url = f"{url}/areas"
+        area_props_url = f"{area_url}/zone/properties/form"
+        thermal_url = f"{area_url}/zone/clusters/thermal"
+        renewable_url = f"{area_url}/zone/clusters/renewable"
+        storage_url = f"{area_url}/zone/storages"
+        output_url = f"{url}/outputs"
+        constraints_url = f"{base_url}/studies/{self.study_id}/bindingconstraints"
+        config_urls = re.compile(f"{base_url}/studies/{self.study_id}/config/.*")
+
+        url_import = f"{base_url}/studies/_import"
+        url_move = f"{base_url}/studies/{self.study_id}/move?folder_dest={new_path}"
+        url_study = f"{base_url}/studies/{self.study_id}"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.post(url_import, status_code=200, json=self.study_id)
+
+            mocker.get(url, json=json_study)
+            mocker.get(config_urls, json={})
+            mocker.get(area_url, json={})
+            mocker.get(area_props_url, json={})
+            mocker.get(renewable_url, json=[])
+            mocker.get(thermal_url, json=[])
+            mocker.get(storage_url, json=[])
+            mocker.get(
+                output_url,
+                json=[],
+            )
+            mocker.get(constraints_url, json=[])
+
+            mocker.put(url_move)
+            mocker.get(url_study, json=json_study)
+
+            actual_study = import_study_api(self.api, study_path, new_path)
+
+            assert actual_study.name == json_study["name"]
+            assert actual_study.service.study_id == json_study["id"]
+
+    def test_import_study_fail_wrong_extension(self):
+        with pytest.raises(Exception, match=re.escape("File doesn't have the right extensions (.zip/.7z): .rar")):
+            import_study_api(self.api, Path("test.rar"))
+
+    def test_import_study_fail_api_error(self, tmp_path):
+        study_path = tmp_path.joinpath("test.zip")
+        study_path.touch()
+
+        base_url = "https://antares.com/api/v1"
+        url_import = f"{base_url}/studies/_import"
+        url_read_study = f"{base_url}/studies/{self.study_id}"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.post(url_import, json=self.study_id)
+            mocker.get(url_read_study, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                StudyImportError, match=f"Could not import the study test.zip : {self.antares_web_description_msg}"
+            ):
+                import_study_api(self.api, study_path)
