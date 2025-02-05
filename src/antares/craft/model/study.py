@@ -95,16 +95,12 @@ def create_study_api(
         raise StudyCreationError(study_name, e.message) from e
 
 
-def import_study_api(api_config: APIconf, study_path: Path, destination_path: Optional[Path]) -> "Study":
-    def has_valid_extension(path: Path) -> bool:
-        valid_extensions = {".zip", ".7z"}
-        return path.suffix in valid_extensions
-
+def import_study_api(api_config: APIconf, study_path: Path, destination_path: Optional[Path] = None) -> "Study":
     session = api_config.set_up_api_conf()
     wrapper = RequestWrapper(session)
     base_url = f"{api_config.get_host()}/api/v1"
 
-    if not has_valid_extension(study_path):
+    if study_path.suffix not in {".zip", ".7z"}:
         raise StudyImportError(
             study_path.name, f"File doesn't have the right extensions (.zip/.7z): {study_path.suffix}"
         )

@@ -82,9 +82,21 @@ class RenewableApiService(BaseRenewableService):
         self,
         area_id: str,
     ) -> List[RenewableCluster]:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
-        json_renewables = self._wrapper.get(url).json()
+        """
+        read_renewables will return an error if
+        study settings renewable_generation_modelling is aggregated
+        an empty list will be returned instead
+        """
 
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
+
+        try:
+            json_renewables = self._wrapper.get(url).json()
+        except APIError as e:
+            if e.message == "'renewables' not a child of Input":
+                json_renewables = []
+            else:
+                raise
         renewables = []
 
         for renewable in json_renewables:

@@ -391,3 +391,18 @@ class TestCreateAPI:
             assert actual_hydro.area_id == expected_hydro.area_id
             assert actual_hydro.properties == expected_hydro.properties
             assert actual_hydro.matrices is None
+
+    def test_read_renewables_empty(self):
+        area = self.area
+        url_renewable = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{area.id}/clusters/renewable"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.get(
+                url_renewable,
+                status_code=404,
+                json={"description": "'renewables' not a child of Input", "exception": "ChildNotFoundError"},
+            )
+
+            actual_renewables = area.read_renewables()
+
+            assert actual_renewables == []

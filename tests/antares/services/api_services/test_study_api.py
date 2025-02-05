@@ -758,7 +758,6 @@ class TestCreateAPI:
             )
             mocker.get(constraints_url, json=[])
 
-            # deux mockers
             mocker.put(url_move)
             mocker.get(url_study, json=json_study)
 
@@ -767,18 +766,13 @@ class TestCreateAPI:
             assert actual_study.name == json_study["name"]
             assert actual_study.service.study_id == json_study["id"]
 
-    def test_import_study_fail_wrong_extension(self, tmp_path):
-        study_path = tmp_path.joinpath("test.rar")
-        study_path.touch()
-        new_path = Path("/new/path/test")
-
+    def test_import_study_fail_wrong_extension(self):
         with pytest.raises(Exception, match=re.escape("File doesn't have the right extensions (.zip/.7z): .rar")):
-            import_study_api(self.api, study_path, new_path)
+            import_study_api(self.api, Path("test.rar"))
 
     def test_import_study_fail_api_error(self, tmp_path):
         study_path = tmp_path.joinpath("test.zip")
         study_path.touch()
-        new_path = Path("/new/path/test")
 
         base_url = "https://antares.com/api/v1"
         url_import = f"{base_url}/studies/_import"
@@ -790,4 +784,4 @@ class TestCreateAPI:
             with pytest.raises(
                 StudyImportError, match=f"Could not import the study test.zip : {self.antares_web_description_msg}"
             ):
-                import_study_api(self.api, study_path, new_path)
+                import_study_api(self.api, study_path)

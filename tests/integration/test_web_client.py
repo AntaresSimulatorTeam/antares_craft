@@ -661,6 +661,14 @@ class TestWebClient:
         assert moved_study.path == study.path
         assert moved_study.name == study.name
 
+        new_settings_aggregated = StudySettings()
+        new_settings_aggregated.advanced_parameters = AdvancedParameters()
+        new_settings_aggregated.advanced_parameters.renewable_generation_modelling = "aggregated"
+        study_aggregated = create_study_api("test_aggregated", "880", api_config, new_settings_aggregated)
+        study_aggregated.create_area("area_without_renewables")
+        #  read_study_api does not raise an error
+        read_study_api(api_config, study_aggregated.service.study_id)
+
         # testing import study
         # creating a test path to not affect the internal studies created
         test_path = Path(antares_web.desktop_path.joinpath("internal_studies").joinpath(study.service.study_id))
