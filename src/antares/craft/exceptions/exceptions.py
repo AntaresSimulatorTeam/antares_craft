@@ -262,6 +262,12 @@ class StudyMoveError(Exception):
         super().__init__(self.message)
 
 
+class StudyImportError(Exception):
+    def __init__(self, study_id: str, message: str):
+        self.message = f"Could not import the study {study_id} : {message}"
+        super().__init__(self.message)
+
+
 class ThermalMatrixDownloadError(Exception):
     def __init__(self, area_name: str, cluster_name: str, matrix_name: str, message: str) -> None:
         self.message = (
