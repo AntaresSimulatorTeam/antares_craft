@@ -42,7 +42,10 @@ class StudySettingsAPIService(BaseStudySettingsService):
             raise StudySettingsUpdateError(self.study_id, e.message) from e
 
     def read_study_settings(self) -> StudySettings:
-        return read_study_settings_api(self._base_url, self.study_id, self._wrapper)
+        try:
+            return read_study_settings_api(self._base_url, self.study_id, self._wrapper)
+        except APIError as e:
+            raise StudySettingsReadError(self.study_id, e.message) from e
 
 
 def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, settings: StudySettings) -> None:
@@ -100,51 +103,48 @@ def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, s
 
 def read_study_settings_api(base_url: str, study_id: str, wrapper: RequestWrapper) -> StudySettings:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
-    try:
-        # thematic trimming
-        thematic_trimming_url = f"{settings_base_url}/thematictrimming/form"
-        response = wrapper.get(thematic_trimming_url)
-        thematic_trimming_api_model = ThematicTrimmingParametersAPI.model_validate(response.json())
-        thematic_trimming_parameters = thematic_trimming_api_model.to_user_model()
 
-        # playlist
-        playlist_url = f"{settings_base_url}/playlist/form"
-        response = wrapper.get(playlist_url)
-        json_response = response.json()
-        user_playlist = {}
-        for key, value in json_response.items():
-            user_playlist[int(key)] = PlaylistParameters(**value)
+    # thematic trimming
+    thematic_trimming_url = f"{settings_base_url}/thematictrimming/form"
+    response = wrapper.get(thematic_trimming_url)
+    thematic_trimming_api_model = ThematicTrimmingParametersAPI.model_validate(response.json())
+    thematic_trimming_parameters = thematic_trimming_api_model.to_user_model()
 
-        # optimization
-        optimization_url = f"{settings_base_url}/optimization/form"
-        response = wrapper.get(optimization_url)
-        optimization_api_model = OptimizationParametersAPI.model_validate(response.json())
-        optimization_parameters = optimization_api_model.to_user_model()
+    # playlist
+    playlist_url = f"{settings_base_url}/playlist/form"
+    response = wrapper.get(playlist_url)
+    json_response = response.json()
+    user_playlist = {}
+    for key, value in json_response.items():
+        user_playlist[int(key)] = PlaylistParameters(**value)
 
-        # general and timeseries
-        general_url = f"{settings_base_url}/general/form"
-        response = wrapper.get(general_url)
-        general_api_model = GeneralParametersAPI.model_validate(response.json())
-        timeseries_url = f"{base_url}/studies/{study_id}/timeseries/config"
-        response = wrapper.get(timeseries_url)
-        nb_ts_thermal = response.json()["thermal"]["number"]
-        general_parameters = general_api_model.to_user_model(nb_ts_thermal)
+    # optimization
+    optimization_url = f"{settings_base_url}/optimization/form"
+    response = wrapper.get(optimization_url)
+    optimization_api_model = OptimizationParametersAPI.model_validate(response.json())
+    optimization_parameters = optimization_api_model.to_user_model()
 
-        # advanced and seed parameters
-        advanced_parameters_url = f"{settings_base_url}/advancedparameters/form"
-        response = wrapper.get(advanced_parameters_url)
-        advanced_parameters_api_model = AdvancedAndSeedParametersAPI.model_validate(response.json())
-        seed_parameters = advanced_parameters_api_model.to_user_seed_parameters_model()
-        advanced_parameters = advanced_parameters_api_model.to_user_advanced_parameters_model()
+    # general and timeseries
+    general_url = f"{settings_base_url}/general/form"
+    response = wrapper.get(general_url)
+    general_api_model = GeneralParametersAPI.model_validate(response.json())
+    timeseries_url = f"{base_url}/studies/{study_id}/timeseries/config"
+    response = wrapper.get(timeseries_url)
+    nb_ts_thermal = response.json()["thermal"]["number"]
+    general_parameters = general_api_model.to_user_model(nb_ts_thermal)
 
-        # adequacy patch
-        adequacy_patch_url = f"{settings_base_url}/adequacypatch/form"
-        response = wrapper.get(adequacy_patch_url)
-        adequacy_patch_api_model = AdequacyPatchParametersAPI.model_validate(response.json())
-        adequacy_patch_parameters = adequacy_patch_api_model.to_user_model()
+    # advanced and seed parameters
+    advanced_parameters_url = f"{settings_base_url}/advancedparameters/form"
+    response = wrapper.get(advanced_parameters_url)
+    advanced_parameters_api_model = AdvancedAndSeedParametersAPI.model_validate(response.json())
+    seed_parameters = advanced_parameters_api_model.to_user_seed_parameters_model()
+    advanced_parameters = advanced_parameters_api_model.to_user_advanced_parameters_model()
 
-    except APIError as e:
-        raise StudySettingsReadError(study_id, e.message) from e
+    # adequacy patch
+    adequacy_patch_url = f"{settings_base_url}/adequacypatch/form"
+    response = wrapper.get(adequacy_patch_url)
+    adequacy_patch_api_model = AdequacyPatchParametersAPI.model_validate(response.json())
+    adequacy_patch_parameters = adequacy_patch_api_model.to_user_model()
 
     return StudySettings(
         general_parameters=general_parameters,

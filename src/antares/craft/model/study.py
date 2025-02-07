@@ -40,7 +40,6 @@ from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
-from antares.craft.service.api_services.services.settings import read_study_settings_api
 from antares.craft.service.base_services import BaseStudyService
 from antares.craft.service.local_services.services.settings import edit_study_settings, read_study_settings_local
 from antares.craft.service.service_factory import ServiceFactory
@@ -83,10 +82,11 @@ def create_study_api(
         response = wrapper.post(url)
         study_id = response.json()
         # Settings part
-        study_settings = None if settings else read_study_settings_api(base_url, study_id, wrapper)
-        study = Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
+        study = Study(study_name, version, ServiceFactory(api_config, study_id), None)
         if settings:
             study.update_settings(settings)
+        else:
+            study.read_settings()
         # Move part
         if parent_path:
             study.move(parent_path)
@@ -232,11 +232,9 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     path = json_study.pop("folder")
     pure_path = PurePath(path) if path else PurePath(".")
 
-    study_settings = read_study_settings_api(base_url, study_id, wrapper)
-    study = Study(
-        study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings, pure_path
-    )
+    study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), None, pure_path)
 
+    study.read_settings()
     study.read_areas()
     study.read_outputs()
     study.read_binding_constraints()
