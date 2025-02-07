@@ -620,6 +620,10 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
+    def set_settings_service(self, settings_service: "BaseStudySettingsService") -> None:
+        pass
+
+    @abstractmethod
     def delete_outputs(self) -> None:
         """
         Deletes all the outputs of the study
@@ -750,5 +754,26 @@ class BaseOutputService(ABC):
             object_type: links or areas (enum)
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
+        """
+        pass
+
+
+class BaseStudySettingsService(ABC):
+    @abstractmethod
+    def edit_study_settings(self, settings: StudySettings) -> StudySettings:
+        """
+        Edit the settings for a given study
+
+        Args:
+            settings: the new Settings for the study
+
+        Returns: the new Settings for the study
+        """
+        pass
+
+    @abstractmethod
+    def read_study_settings(self) -> StudySettings:
+        """
+        Reads the settings of a study
         """
         pass
