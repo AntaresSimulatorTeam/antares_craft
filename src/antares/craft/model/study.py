@@ -41,6 +41,7 @@ from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.service.base_services import BaseStudyService
+from antares.craft.service.local_services.services.settings import edit_study_settings
 from antares.craft.service.service_factory import ServiceFactory
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
@@ -182,7 +183,8 @@ InfoTip = Antares Study {version}: {study_name}
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
         path=study_directory,
     )
-    study.update_settings(settings)
+    # We need to create the file with default value
+    study._settings = edit_study_settings(study_directory, settings, False)
     return study
 
 
