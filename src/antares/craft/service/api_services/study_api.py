@@ -85,6 +85,9 @@ class StudyApiService(BaseStudyService):
             raise StudyVariantCreationError(self.study_id, e.message) from e
 
     def read_outputs(self) -> list[Output]:
+        if not isinstance(self.output_service, BaseOutputService):
+            raise RuntimeError(f"The output service for {self.study_id} study service has not been set")
+
         url = f"{self._base_url}/studies/{self.study_id}/outputs"
         try:
             response = self._wrapper.get(url)

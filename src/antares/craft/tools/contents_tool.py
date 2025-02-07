@@ -13,7 +13,7 @@
 import re
 
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
 from pydantic import BaseModel

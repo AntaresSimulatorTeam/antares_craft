@@ -12,12 +12,11 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import pandas as pd
 
 from antares.craft.config.base_configuration import BaseConfiguration
-from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintProperties,
@@ -39,25 +38,10 @@ from antares.craft.model.thermal import (
 
 if TYPE_CHECKING:
     from antares.craft.model.study import Study
+    from antares.craft.model.area import Area, AreaProperties, AreaUi
 
 
 class BaseAreaService(ABC):
-    @abstractmethod
-    def set_storage_service(self, storage_service: "BaseShortTermStorageService") -> None:
-        pass
-
-    @abstractmethod
-    def set_thermal_service(self, thermal_service: "BaseThermalService") -> None:
-        pass
-
-    @abstractmethod
-    def set_renewable_service(self, renewable_service: "BaseRenewableService") -> None:
-        pass
-
-    @abstractmethod
-    def set_hydro_service(self, hydro_service: "BaseHydroService") -> None:
-        pass
-
     @abstractmethod
     def create_area(
         self, area_name: str, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
@@ -462,6 +446,7 @@ class BaseThermalService(ABC):
     @abstractmethod
     def read_thermal_clusters(self, area_id: str) -> List[ThermalCluster]:
         pass
+
 
 class BaseBindingConstraintService(ABC):
     binding_constraints: dict[str, BindingConstraint]

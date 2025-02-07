@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from pathlib import PurePosixPath
-from typing import Any, List
+from typing import List
 
 import pandas as pd
 

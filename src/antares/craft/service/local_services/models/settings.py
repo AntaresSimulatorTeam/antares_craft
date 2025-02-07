@@ -13,7 +13,7 @@
 import ast
 
 from dataclasses import asdict
-from typing import Any, Sequence, Set
+from typing import Any, Sequence, Set, cast
 
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters, PriceTakingOrder
 from antares.craft.model.settings.advanced_parameters import (
@@ -98,7 +98,7 @@ class AdvancedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
         """Ensure the ID is lower case."""
         if v is None:
             return []
-        return ast.literal_eval(v)
+        return cast(Sequence[str], ast.literal_eval(v))
 
 
 class SeedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
@@ -187,7 +187,7 @@ class OutputSectionLocal(LocalBaseModel):
 
 class GeneralParametersLocal(LocalBaseModel):
     general: GeneralSectionLocal
-    input: dict = {"import": ""}
+    input: dict[str, str] = {"import": ""}
     output: OutputSectionLocal
 
     @staticmethod

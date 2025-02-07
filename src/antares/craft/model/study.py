@@ -40,7 +40,7 @@ from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
-from antares.craft.service.base_services import BaseStudyService
+from antares.craft.service.base_services import BaseStudyService, BaseLinkService
 from antares.craft.service.local_services.services.settings import edit_study_settings
 from antares.craft.service.service_factory import ServiceFactory
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes

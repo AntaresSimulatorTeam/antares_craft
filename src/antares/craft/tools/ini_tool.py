@@ -98,7 +98,7 @@ class IniFile:
             self.write_ini_file()
 
     @property
-    def ini_dict(self) -> dict[str, dict[str, str]]:
+    def ini_dict(self) -> dict[str, Any]:
         """Ini contents as a python dictionary"""
         return {section: dict(self._ini_contents[section]) for section in self._ini_contents.sections()}
 

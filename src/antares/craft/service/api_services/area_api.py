@@ -51,28 +51,24 @@ from antares.craft.tools.matrix_tool import prepare_args_replace_matrix
 
 
 class AreaApiService(BaseAreaService):
-    def __init__(self, config: APIconf, study_id: str) -> None:
+    def __init__(
+        self,
+        config: APIconf,
+        study_id: str,
+        storage_service: BaseShortTermStorageService,
+        thermal_service: BaseThermalService,
+        renewable_service: BaseRenewableService,
+        hydro_service: BaseHydroService,
+    ) -> None:
         super().__init__()
         self.api_config = config
         self.study_id = study_id
         self._wrapper = RequestWrapper(self.api_config.set_up_api_conf())
         self._base_url = f"{self.api_config.get_host()}/api/v1"
-        self.storage_service: Optional[BaseShortTermStorageService] = None
-        self.thermal_service: Optional[BaseThermalService] = None
-        self.renewable_service: Optional[BaseRenewableService] = None
-        self.hydro_service: Optional[BaseHydroService] = None
-
-    def set_storage_service(self, storage_service: BaseShortTermStorageService) -> None:
-        self.storage_service = storage_service
-
-    def set_thermal_service(self, thermal_service: BaseThermalService) -> None:
-        self.thermal_service = thermal_service
-
-    def set_renewable_service(self, renewable_service: BaseRenewableService) -> None:
-        self.renewable_service = renewable_service
-
-    def set_hydro_service(self, hydro_service: "BaseHydroService") -> None:
-        self.hydro_service = hydro_service
+        self.storage_service: BaseShortTermStorageService = storage_service
+        self.thermal_service: BaseThermalService = thermal_service
+        self.renewable_service: BaseRenewableService = renewable_service
+        self.hydro_service: BaseHydroService = hydro_service
 
     def create_area(
         self, area_name: str, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
