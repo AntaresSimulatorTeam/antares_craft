@@ -32,7 +32,7 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.binding_constraint import BindingConstraint
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings
-from antares.craft.service.api_services.study_settings_api import edit_study_settings
+from antares.craft.service.api_services.services.settings import edit_study_settings
 from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 

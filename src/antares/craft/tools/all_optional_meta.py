@@ -13,8 +13,7 @@
 import copy
 import typing as t
 
-from pydantic import BaseModel, ConfigDict, create_model, field_validator
-from pydantic_core import PydanticUseDefault
+from pydantic import BaseModel, create_model
 
 ModelClass = t.TypeVar("ModelClass", bound=BaseModel)
 
@@ -37,17 +36,3 @@ def all_optional_model(model: t.Type[ModelClass]) -> t.Type[ModelClass]:
         kwargs[field_name] = (new.annotation, new)
 
     return create_model(f"Partial{model.__name__}", __base__=model, __module__=model.__module__, **kwargs)  # type: ignore
-
-
-class LocalBaseModel(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    @field_validator("*", mode="before")
-    @classmethod
-    def _usedefault_for_none(cls, value: t.Any) -> t.Any:
-        """
-        Will use the default value for the field if the value is None and the annotation doesn't allow for a None input.
-        """
-        if value is None:
-            raise PydanticUseDefault()
-        return value

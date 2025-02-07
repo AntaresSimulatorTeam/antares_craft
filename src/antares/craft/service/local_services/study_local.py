@@ -17,7 +17,7 @@ from antares.craft.model.binding_constraint import BindingConstraint
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
-from antares.craft.service.local_services.study_settings_local import edit_study_settings
+from antares.craft.service.local_services.services.settings import edit_study_settings
 
 if TYPE_CHECKING:
     from antares.craft.model.study import Study
