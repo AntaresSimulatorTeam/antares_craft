@@ -20,6 +20,7 @@ from antares.craft.service.api_services.link_api import LinkApiService
 from antares.craft.service.api_services.output_api import OutputApiService
 from antares.craft.service.api_services.renewable_api import RenewableApiService
 from antares.craft.service.api_services.run_api import RunApiService
+from antares.craft.service.api_services.services.settings import StudySettingsAPIService
 from antares.craft.service.api_services.st_storage_api import ShortTermStorageApiService
 from antares.craft.service.api_services.study_api import StudyApiService
 from antares.craft.service.api_services.thermal_api import ThermalApiService
@@ -33,6 +34,7 @@ from antares.craft.service.base_services import (
     BaseRunService,
     BaseShortTermStorageService,
     BaseStudyService,
+    BaseStudySettingsService,
     BaseThermalService,
 )
 from antares.craft.service.local_services.area_local import AreaLocalService
@@ -42,6 +44,7 @@ from antares.craft.service.local_services.link_local import LinkLocalService
 from antares.craft.service.local_services.output_local import OutputLocalService
 from antares.craft.service.local_services.renewable_local import RenewableLocalService
 from antares.craft.service.local_services.run_local import RunLocalService
+from antares.craft.service.local_services.services.settings import StudySettingsLocalService
 from antares.craft.service.local_services.st_storage_local import ShortTermStorageLocalService
 from antares.craft.service.local_services.study_local import StudyLocalService
 from antares.craft.service.local_services.thermal_local import ThermalLocalService
@@ -158,6 +161,15 @@ class ServiceFactory:
         else:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
         return output_service
+
+    def create_settings_service(self) -> BaseStudySettingsService:
+        if isinstance(self.config, APIconf):
+            settings_service: BaseStudySettingsService = StudySettingsAPIService(self.config, self.study_id)
+        elif isinstance(self.config, LocalConfiguration):
+            settings_service = StudySettingsLocalService(self.config, self.study_name)
+        else:
+            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
+        return settings_service
 
     def create_hydro_service(self) -> BaseHydroService:
         if isinstance(self.config, APIconf):

@@ -23,7 +23,6 @@ from antares.craft.exceptions.exceptions import (
     OutputsRetrievalError,
     StudyDeletionError,
     StudyMoveError,
-    StudySettingsUpdateError,
     StudyVariantCreationError,
     TaskFailedError,
     TaskTimeOutError,
@@ -31,8 +30,6 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.binding_constraint import BindingConstraint
 from antares.craft.model.output import Output
-from antares.craft.model.settings.study_settings import StudySettings
-from antares.craft.service.api_services.services.settings import edit_study_settings
 from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 
@@ -63,12 +60,6 @@ class StudyApiService(BaseStudyService):
 
     def set_output_service(self, output_service: BaseOutputService) -> None:
         self._output_service = output_service
-
-    def update_study_settings(self, settings: StudySettings) -> None:
-        try:
-            edit_study_settings(self._base_url, self.study_id, self._wrapper, settings)
-        except APIError as e:
-            raise StudySettingsUpdateError(self.study_id, e.message) from e
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint.id}"

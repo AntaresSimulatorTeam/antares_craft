@@ -16,7 +16,7 @@ import time
 
 from pathlib import Path, PurePath
 from types import MappingProxyType
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import pandas as pd
 
@@ -40,9 +40,8 @@ from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
-from antares.craft.service.api_services.services.settings import read_study_settings_api
 from antares.craft.service.base_services import BaseStudyService
-from antares.craft.service.local_services.services.settings import edit_study_settings, read_study_settings_local
+from antares.craft.service.local_services.services.settings import edit_study_settings
 from antares.craft.service.service_factory import ServiceFactory
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
@@ -83,10 +82,11 @@ def create_study_api(
         response = wrapper.post(url)
         study_id = response.json()
         # Settings part
-        study_settings = None if settings else read_study_settings_api(base_url, study_id, wrapper)
-        study = Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
+        study = Study(study_name, version, ServiceFactory(api_config, study_id))
         if settings:
             study.update_settings(settings)
+        else:
+            study.read_settings()
         # Move part
         if parent_path:
             study.move(parent_path)
@@ -177,14 +177,15 @@ InfoTip = Antares Study {version}: {study_name}
     _create_correlation_ini_files(study_directory)
 
     logging.info(f"Study successfully created: {study_name}")
-    new_settings = edit_study_settings(study_directory, settings, update=False)
-    return Study(
+    study = Study(
         name=study_name,
         version=version,
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
-        settings=new_settings,
         path=study_directory,
     )
+    # We need to create the file with default value
+    study._settings = edit_study_settings(study_directory, settings, False)
+    return study
 
 
 def read_study_local(study_directory: Path) -> "Study":
@@ -210,15 +211,14 @@ def read_study_local(study_directory: Path) -> "Study":
 
     local_config = LocalConfiguration(study_directory.parent, study_directory.name)
 
-    settings = read_study_settings_local(study_directory)
-
-    return Study(
+    study = Study(
         name=study_params["caption"],
         version=study_params["version"],
         service_factory=ServiceFactory(config=local_config, study_name=study_params["caption"]),
         path=study_directory,
-        settings=settings,
     )
+    study.read_settings()
+    return study
 
 
 def read_study_api(api_config: APIconf, study_id: str) -> "Study":
@@ -232,11 +232,9 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     path = json_study.pop("folder")
     pure_path = PurePath(path) if path else PurePath(".")
 
-    study_settings = read_study_settings_api(base_url, study_id, wrapper)
-    study = Study(
-        study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings, pure_path
-    )
+    study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), pure_path)
 
+    study.read_settings()
     study.read_areas()
     study.read_outputs()
     study.read_binding_constraints()
@@ -265,7 +263,6 @@ class Study:
         name: str,
         version: str,
         service_factory: ServiceFactory,
-        settings: Union[StudySettings, None] = None,
         path: PurePath = PurePath("."),
     ):
         self.name = name
@@ -276,7 +273,8 @@ class Study:
         self._link_service = service_factory.create_link_service()
         self._run_service = service_factory.create_run_service()
         self._binding_constraints_service = service_factory.create_binding_constraints_service()
-        self._settings = settings or StudySettings()
+        self._settings_service = service_factory.create_settings_service()
+        self._settings = StudySettings()
         self._areas: dict[str, Area] = dict()
         self._links: dict[str, Link] = dict()
         self._binding_constraints: dict[str, BindingConstraint] = dict()
@@ -298,7 +296,15 @@ class Study:
     def read_links(self) -> list[Link]:
         link_list = self._link_service.read_links()
         self._links = {link.id: link for link in link_list}
-        return self._link_service.read_links()
+        return link_list
+
+    def read_settings(self) -> StudySettings:
+        study_settings = self._settings_service.read_study_settings()
+        self._settings = study_settings
+        return study_settings
+
+    def update_settings(self, settings: StudySettings) -> None:
+        self._settings = self._settings_service.edit_study_settings(settings)
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
@@ -388,10 +394,6 @@ class Study:
         constraints = self._binding_constraints_service.read_binding_constraints()
         self._binding_constraints = {constraint.id: constraint for constraint in constraints}
         return constraints
-
-    def update_settings(self, settings: StudySettings) -> None:
-        self._study_service.update_study_settings(settings)
-        self._settings = settings
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         self._study_service.delete_binding_constraint(constraint)

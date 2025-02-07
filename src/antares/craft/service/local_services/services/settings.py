@@ -11,7 +11,9 @@
 # This file is part of the Antares project.
 
 from pathlib import Path
+from typing import Any
 
+from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParameters,
@@ -22,6 +24,7 @@ from antares.craft.model.settings.optimization import (
     OptimizationParameters,
 )
 from antares.craft.model.settings.study_settings import StudySettings
+from antares.craft.service.base_services import BaseStudySettingsService
 from antares.craft.service.local_services.models.settings import (
     AdequacyPatchParametersLocal,
     AdvancedAndSeedParametersLocal,
@@ -34,7 +37,20 @@ from antares.craft.service.local_services.models.settings import (
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
-def read_study_settings_local(study_directory: Path) -> StudySettings:
+class StudySettingsLocalService(BaseStudySettingsService):
+    def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.config = config
+        self.study_name = study_name
+
+    def edit_study_settings(self, settings: StudySettings) -> StudySettings:
+        return edit_study_settings(self.config.study_path, settings, update=True)
+
+    def read_study_settings(self) -> StudySettings:
+        return read_study_settings(self.config.study_path)
+
+
+def read_study_settings(study_directory: Path) -> StudySettings:
     general_data_ini = IniFile(study_directory, InitializationFilesTypes.GENERAL)
     ini_content = general_data_ini.ini_dict
 

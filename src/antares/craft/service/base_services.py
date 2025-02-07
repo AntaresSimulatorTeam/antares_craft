@@ -564,14 +564,6 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
-    def update_study_settings(self, settings: StudySettings) -> None:
-        """
-        Args:
-            settings: new study settings. Only registered fields will be updated.
-        """
-        pass
-
-    @abstractmethod
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         """
         Args:
@@ -750,5 +742,26 @@ class BaseOutputService(ABC):
             object_type: links or areas (enum)
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
+        """
+        pass
+
+
+class BaseStudySettingsService(ABC):
+    @abstractmethod
+    def edit_study_settings(self, settings: StudySettings) -> StudySettings:
+        """
+        Edit the settings for a given study
+
+        Args:
+            settings: the new Settings for the study
+
+        Returns: the new Settings for the study
+        """
+        pass
+
+    @abstractmethod
+    def read_study_settings(self) -> StudySettings:
+        """
+        Reads the settings of a study
         """
         pass
