@@ -463,11 +463,6 @@ class BaseThermalService(ABC):
     def read_thermal_clusters(self, area_id: str) -> List[ThermalCluster]:
         pass
 
-    @abstractmethod
-    def _extract_thermal_properties(self, thermal_data: dict[str, Any]) -> ThermalClusterProperties:
-        pass
-
-
 class BaseBindingConstraintService(ABC):
     binding_constraints: dict[str, BindingConstraint]
 

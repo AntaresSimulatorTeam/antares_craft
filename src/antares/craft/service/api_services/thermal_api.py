@@ -107,6 +107,3 @@ class ThermalApiService(BaseThermalService):
         thermals.sort(key=lambda thermal: thermal.id)
 
         return thermals
-
-    def _extract_thermal_properties(self, thermal_data: dict[str, Any]) -> ThermalClusterProperties:
-        pass

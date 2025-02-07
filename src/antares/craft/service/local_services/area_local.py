@@ -203,7 +203,7 @@ class AreaLocalService(BaseAreaService):
 
         IniFile.create_hydro_initialization_files_for_area(self.config.study_path, area_id)
 
-        return Hydro(self, area_id, local_hydro_properties.yield_hydro_properties())
+        return Hydro(self.hydro_service, area_id, local_hydro_properties.yield_hydro_properties())
 
     def read_hydro(
         self,
