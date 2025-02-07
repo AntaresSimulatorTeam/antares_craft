@@ -159,7 +159,7 @@ class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel):
         return AdvancedParameters(**self.model_dump(mode="json", exclude=excluded_fields))
 
     def to_user_seed_parameters_model(self, update: bool) -> SeedParametersType:
-        included_fields = set(asdict(SeedParametersType()).keys())
+        included_fields = set(asdict(SeedParametersUpdate()).keys())
         if update:
             return SeedParametersUpdate(**self.model_dump(mode="json", include=included_fields))
         return SeedParameters(**self.model_dump(mode="json", include=included_fields))
