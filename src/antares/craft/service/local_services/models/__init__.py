@@ -9,10 +9,3 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import dataclass
-
-
-@dataclass
-class PlaylistParameters:
-    status: bool = True
-    weight: float = 1.0

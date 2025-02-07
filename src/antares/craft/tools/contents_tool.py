@@ -10,11 +10,9 @@
 #
 # This file is part of the Antares project.
 
-import json
 import re
 
 from enum import Enum
-from pathlib import Path
 from typing import Any, Dict, Optional
 
 from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
@@ -30,50 +28,6 @@ def transform_name_to_id(name: str) -> str:
     This method is used in AntaresWeb to construct their ids.
     """
     return _sub_invalid_chars(" ", name).strip().lower()
-
-
-def retrieve_file_content(file_to_retrieve: str) -> Dict[str, Any]:
-    module_path = Path(__file__).resolve().parent
-
-    path_resources = module_path.parent.parent / "resources"
-    path_to_file = path_resources / file_to_retrieve
-
-    with open(path_to_file, "r") as read_content:
-        return json.load(read_content)
-
-
-def transform_ui_data_to_text(data_from_json: Dict[str, Any]) -> str:
-    """
-    Args:
-        data_from_json: ini data to be inserted
-
-    Returns:
-        str to be written in .ini file
-    """
-    ini_content = ""
-    for key, value in data_from_json.items():
-        if isinstance(value, dict):
-            section_header = f"[{key}]"
-            ini_content += f"{section_header}\n"
-            for inner_key, inner_value in value.items():
-                if isinstance(inner_value, list):
-                    inner_value_str = " , ".join(map(str, inner_value))
-                    ini_content += f"{inner_key} = {inner_value_str}\n"
-                else:
-                    ini_content += f"{inner_key} = {inner_value}\n"
-        else:
-            ini_content += f"{key} = {value}\n"
-
-    return ini_content
-
-
-def extract_content(key: str, file_to_retrieve: str) -> str:
-    ini_data = retrieve_file_content(file_to_retrieve)
-    data_for_file = ini_data.get(key)
-    if data_for_file is not None:
-        return transform_ui_data_to_text(data_for_file)
-    else:
-        raise KeyError(f"Key '{key}' not defined in {file_to_retrieve}")
 
 
 class EnumIgnoreCase(Enum):

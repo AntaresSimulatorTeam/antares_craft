@@ -238,6 +238,12 @@ class StudySettingsUpdateError(Exception):
         super().__init__(self.message)
 
 
+class StudySettingsReadError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not read settings for study {study_name}: " + message
+        super().__init__(self.message)
+
+
 class StudyDeletionError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
         self.message = f"Could not delete the study {study_id}: " + message

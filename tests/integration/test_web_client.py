@@ -491,21 +491,18 @@ class TestWebClient:
 
         # test study creation with settings
         settings = StudySettings()
-        settings.general_parameters = GeneralParameters(mode="Adequacy")
+        settings.general_parameters = GeneralParameters(mode=Mode.ADEQUACY)
         settings.general_parameters.year_by_year = False
-        settings.playlist_parameters = PlaylistParameters()
-        settings.playlist_parameters.playlist = [{"status": False, "weight": 1}]
+        settings.playlist_parameters = {1: PlaylistParameters(status=False, weight=1)}
         new_study = create_study_api("second_study", "880", api_config, settings)
         settings = new_study.get_settings()
         assert settings.general_parameters.mode == Mode.ADEQUACY.value
         assert not settings.general_parameters.year_by_year
-        assert settings.playlist_parameters.model_dump() == {1: {"status": False, "weight": 1}}
+        assert settings.playlist_parameters == {1: PlaylistParameters(status=False, weight=1)}
 
         # tests update settings
         new_settings = StudySettings()
-        # Really important note. To instance such object with value you must respect camel case.
-        # Another way to do so is to instance the object and then fill its values
-        new_settings.general_parameters = GeneralParameters(nbYears=4)
+        new_settings.general_parameters = GeneralParameters(nb_years=4)
         new_settings.advanced_parameters = AdvancedParameters()
         new_settings.advanced_parameters.unit_commitment_mode = UnitCommitmentMode.MILP
         new_study.update_settings(new_settings)

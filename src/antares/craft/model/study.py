@@ -38,11 +38,11 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import Output
-from antares.craft.model.settings.study_settings import DefaultStudySettings, StudySettings, StudySettingsLocal
-from antares.craft.model.settings.time_series import correlation_defaults
+from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
-from antares.craft.service.api_services.study_api import _returns_study_settings
+from antares.craft.service.api_services.services.settings import read_study_settings_api
 from antares.craft.service.base_services import BaseStudyService
+from antares.craft.service.local_services.services.settings import edit_study_settings, read_study_settings_local
 from antares.craft.service.service_factory import ServiceFactory
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
@@ -82,8 +82,12 @@ def create_study_api(
         url = f"{base_url}/studies?name={study_name}&version={version}"
         response = wrapper.post(url)
         study_id = response.json()
-        study_settings = _returns_study_settings(base_url, study_id, wrapper, False, settings)
+        # Settings part
+        study_settings = None if settings else read_study_settings_api(base_url, study_id, wrapper)
         study = Study(study_name, version, ServiceFactory(api_config, study_id), study_settings)
+        if settings:
+            study.update_settings(settings)
+        # Move part
         if parent_path:
             study.move(parent_path)
             url = f"{base_url}/studies/{study_id}"
@@ -123,7 +127,7 @@ def create_study_local(
     study_name: str,
     version: str,
     parent_directory: str,
-    settings: StudySettingsLocal = StudySettingsLocal(),
+    settings: StudySettings = StudySettings(),
 ) -> "Study":
     """
     Create a directory structure for the study with empty files.
@@ -169,20 +173,16 @@ InfoTip = Antares Study {version}: {study_name}
     with open(desktop_ini_path, "w") as desktop_ini_file:
         desktop_ini_file.write(desktop_ini_content)
 
-    local_settings = StudySettingsLocal.model_validate(settings)
-    local_settings_file = IniFile(study_directory, InitializationFilesTypes.GENERAL)
-    local_settings_file.ini_dict = local_settings.model_dump(exclude_none=True, by_alias=True)
-    local_settings_file.write_ini_file()
-
     # Create various .ini files for the study
-    _create_correlation_ini_files(local_settings, study_directory)
+    _create_correlation_ini_files(study_directory)
 
     logging.info(f"Study successfully created: {study_name}")
+    new_settings = edit_study_settings(study_directory, settings, update=False)
     return Study(
         name=study_name,
         version=version,
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
-        settings=local_settings,
+        settings=new_settings,
         path=study_directory,
     )
 
@@ -210,11 +210,14 @@ def read_study_local(study_directory: Path) -> "Study":
 
     local_config = LocalConfiguration(study_directory.parent, study_directory.name)
 
+    settings = read_study_settings_local(study_directory)
+
     return Study(
         name=study_params["caption"],
         version=study_params["version"],
         service_factory=ServiceFactory(config=local_config, study_name=study_params["caption"]),
         path=study_directory,
+        settings=settings,
     )
 
 
@@ -229,7 +232,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     path = json_study.pop("folder")
     pure_path = PurePath(path) if path else PurePath(".")
 
-    study_settings = _returns_study_settings(base_url, study_id, wrapper, False, None)
+    study_settings = read_study_settings_api(base_url, study_id, wrapper)
     study = Study(
         study_name, study_version, ServiceFactory(api_config, study_id, study_name), study_settings, pure_path
     )
@@ -262,7 +265,7 @@ class Study:
         name: str,
         version: str,
         service_factory: ServiceFactory,
-        settings: Union[StudySettings, StudySettingsLocal, None] = None,
+        settings: Union[StudySettings, None] = None,
         path: PurePath = PurePath("."),
     ):
         self.name = name
@@ -273,7 +276,7 @@ class Study:
         self._link_service = service_factory.create_link_service()
         self._run_service = service_factory.create_run_service()
         self._binding_constraints_service = service_factory.create_binding_constraints_service()
-        self._settings = DefaultStudySettings.model_validate(settings if settings is not None else StudySettings())
+        self._settings = settings or StudySettings()
         self._areas: dict[str, Area] = dict()
         self._links: dict[str, Link] = dict()
         self._binding_constraints: dict[str, BindingConstraint] = dict()
@@ -303,7 +306,7 @@ class Study:
     def get_links(self) -> MappingProxyType[str, Link]:
         return MappingProxyType(self._links)
 
-    def get_settings(self) -> DefaultStudySettings:
+    def get_settings(self) -> StudySettings:
         return self._settings
 
     def get_binding_constraints(self) -> MappingProxyType[str, BindingConstraint]:
@@ -387,9 +390,8 @@ class Study:
         return constraints
 
     def update_settings(self, settings: StudySettings) -> None:
-        new_settings = self._study_service.update_study_settings(settings)
-        if new_settings:
-            self._settings = new_settings
+        self._study_service.update_study_settings(settings)
+        self._settings = settings
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         self._study_service.delete_binding_constraint(constraint)
@@ -505,23 +507,20 @@ def _create_directory_structure(study_path: Path) -> None:
         (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
 
 
-def _create_correlation_ini_files(local_settings: StudySettingsLocal, study_directory: Path) -> None:
-    fields_to_check = ["hydro", "load", "solar", "wind"]
+def _create_correlation_ini_files(study_directory: Path) -> None:
     correlation_inis_to_create = [
-        (
-            field + "_correlation",
-            getattr(InitializationFilesTypes, field.upper() + "_CORRELATION_INI"),
-            field,
-        )
-        for field in fields_to_check
+        getattr(InitializationFilesTypes, field.upper() + "_CORRELATION_INI")
+        for field in ["hydro", "load", "solar", "wind"]
     ]
 
-    for correlation, file_type, field in correlation_inis_to_create:
+    ini_content = {"general": {"mode": "annual"}, "annual": {}}
+    for k in range(12):
+        ini_content[str(k)] = {}
+
+    for file_type in correlation_inis_to_create:
         ini_file = IniFile(
             study_directory,
             file_type,
-            ini_contents=correlation_defaults(
-                season_correlation=getattr(local_settings.time_series_parameters, field).season_correlation,
-            ),
+            ini_contents=ini_content,
         )
         ini_file.write_ini_file()
