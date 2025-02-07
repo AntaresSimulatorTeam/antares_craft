@@ -302,8 +302,7 @@ class Study:
         return study_settings
 
     def update_settings(self, settings: StudySettings) -> None:
-        new_settings = self._settings_service.edit_study_settings(settings)
-        self._settings = new_settings
+        self._settings = self._settings_service.edit_study_settings(settings)
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
