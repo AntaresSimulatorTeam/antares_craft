@@ -38,7 +38,7 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import Output
-from antares.craft.model.settings.study_settings import StudySettings
+from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.service.base_services import BaseStudyService
 from antares.craft.service.local_services.services.settings import edit_study_settings
@@ -303,7 +303,7 @@ class Study:
         self._settings = study_settings
         return study_settings
 
-    def update_settings(self, settings: StudySettings) -> None:
+    def update_settings(self, settings: StudySettingsUpdate) -> None:
         self._settings = self._settings_service.edit_study_settings(settings)
 
     def get_areas(self) -> MappingProxyType[str, Area]:

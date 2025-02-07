@@ -28,7 +28,7 @@ from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import AggregationEntry, Output
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
-from antares.craft.model.settings.study_settings import StudySettings
+from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
@@ -748,14 +748,14 @@ class BaseOutputService(ABC):
 
 class BaseStudySettingsService(ABC):
     @abstractmethod
-    def edit_study_settings(self, settings: StudySettings) -> StudySettings:
+    def edit_study_settings(self, settings: StudySettingsUpdate) -> StudySettings:
         """
         Edit the settings for a given study
 
         Args:
-            settings: the new Settings for the study
+            settings: the settings to update with their values
 
-        Returns: the new Settings for the study
+        Returns: the new Settings of the study
         """
         pass
 

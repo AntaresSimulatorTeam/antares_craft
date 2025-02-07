@@ -15,7 +15,7 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import APIError, StudySettingsReadError, StudySettingsUpdateError
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
-from antares.craft.model.settings.study_settings import StudySettings
+from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.service.api_services.models.settings import (
     AdequacyPatchParametersAPI,
     AdvancedAndSeedParametersAPI,
@@ -34,7 +34,7 @@ class StudySettingsAPIService(BaseStudySettingsService):
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
-    def edit_study_settings(self, settings: StudySettings) -> StudySettings:
+    def edit_study_settings(self, settings: StudySettingsUpdate) -> StudySettings:
         try:
             edit_study_settings(self._base_url, self.study_id, self._wrapper, settings)
             return settings
@@ -48,7 +48,7 @@ class StudySettingsAPIService(BaseStudySettingsService):
             raise StudySettingsReadError(self.study_id, e.message) from e
 
 
-def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, settings: StudySettings) -> None:
+def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, settings: StudySettingsUpdate) -> None:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
 
     # thematic trimming

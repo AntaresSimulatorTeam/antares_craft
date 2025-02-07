@@ -23,7 +23,7 @@ from antares.craft.model.settings.general import BuildingMode, GeneralParameters
 from antares.craft.model.settings.optimization import (
     OptimizationParameters,
 )
-from antares.craft.model.settings.study_settings import StudySettings
+from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.service.base_services import BaseStudySettingsService
 from antares.craft.service.local_services.models.settings import (
     AdequacyPatchParametersLocal,
@@ -43,7 +43,7 @@ class StudySettingsLocalService(BaseStudySettingsService):
         self.config = config
         self.study_name = study_name
 
-    def edit_study_settings(self, settings: StudySettings) -> StudySettings:
+    def edit_study_settings(self, settings: StudySettingsUpdate) -> StudySettings:
         return edit_study_settings(self.config.study_path, settings, update=True)
 
     def read_study_settings(self) -> StudySettings:
@@ -119,7 +119,7 @@ def read_study_settings(study_directory: Path) -> StudySettings:
     )
 
 
-def edit_study_settings(study_directory: Path, settings: StudySettings, update: bool) -> StudySettings:
+def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, update: bool) -> StudySettings:
     general_data_ini = IniFile(study_directory, InitializationFilesTypes.GENERAL)
     ini_content = general_data_ini.ini_dict if update else {}
 

@@ -12,15 +12,21 @@
 from dataclasses import asdict
 from typing import Optional
 
-from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters, PriceTakingOrder
+from antares.craft.model.settings.adequacy_patch import (
+    AdequacyPatchParameters,
+    AdequacyPatchParametersUpdate,
+    PriceTakingOrder,
+)
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParameters,
+    AdvancedParametersUpdate,
     HydroHeuristicPolicy,
     HydroPricingMode,
     InitialReservoirLevel,
     PowerFluctuation,
     RenewableGenerationModeling,
     SeedParameters,
+    SeedParametersUpdate,
     SheddingPolicy,
     SimulationCore,
     UnitCommitmentMode,
@@ -28,6 +34,7 @@ from antares.craft.model.settings.advanced_parameters import (
 from antares.craft.model.settings.general import (
     BuildingMode,
     GeneralParameters,
+    GeneralParametersUpdate,
     Mode,
     Month,
     OutputChoices,
@@ -37,14 +44,18 @@ from antares.craft.model.settings.general import (
 from antares.craft.model.settings.optimization import (
     ExportMPS,
     OptimizationParameters,
+    OptimizationParametersUpdate,
     OptimizationTransmissionCapacities,
     SimplexOptimizationRange,
     UnfeasibleProblemBehavior,
 )
-from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
+from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters, ThematicTrimmingParametersUpdate
 from antares.craft.tools.all_optional_meta import all_optional_model
+from mypyc.codegen.literals import Union
 from pydantic import BaseModel, Field
 from pydantic.alias_generators import to_camel
+
+AdequacyPatchParametersType = Union[AdequacyPatchParameters, AdequacyPatchParametersUpdate]
 
 
 @all_optional_model
@@ -61,7 +72,7 @@ class AdequacyPatchParametersAPI(BaseModel, alias_generator=to_camel):
     threshold_csr_variable_bounds_relaxation: int = 3
 
     @staticmethod
-    def from_user_model(user_class: AdequacyPatchParameters) -> "AdequacyPatchParametersAPI":
+    def from_user_model(user_class: AdequacyPatchParametersType) -> "AdequacyPatchParametersAPI":
         user_dict = asdict(user_class)
         user_dict["enable_adequacy_patch"] = user_dict.pop("include_adq_patch")
         user_dict["ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch"] = user_dict.pop(
@@ -72,8 +83,9 @@ class AdequacyPatchParametersAPI(BaseModel, alias_generator=to_camel):
         )
         return AdequacyPatchParametersAPI.model_validate(user_dict)
 
-    def to_user_model(self) -> AdequacyPatchParameters:
-        return AdequacyPatchParameters(
+    def to_user_model(self, update: bool) -> AdequacyPatchParametersType:
+        klass = AdequacyPatchParametersUpdate if update else AdequacyPatchParameters
+        return klass(
             include_adq_patch=self.enable_adequacy_patch,
             set_to_null_ntc_from_physical_out_to_physical_in_for_first_step=self.ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch,
             set_to_null_ntc_between_physical_out_for_first_step=self.ntc_between_physical_areas_out_adequacy_patch,
@@ -84,6 +96,10 @@ class AdequacyPatchParametersAPI(BaseModel, alias_generator=to_camel):
             threshold_display_local_matching_rule_violations=self.threshold_display_local_matching_rule_violations,
             threshold_csr_variable_bounds_relaxation=self.threshold_csr_variable_bounds_relaxation,
         )
+
+
+AdvancedParametersType = Union[AdvancedParameters, AdvancedParametersUpdate]
+SeedParametersType = Union[SeedParameters, SeedParametersUpdate]
 
 
 @all_optional_model
@@ -127,20 +143,28 @@ class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel):
 
     @staticmethod
     def from_user_model(
-        advanced_parameters: Optional[AdvancedParameters] = None, seed_parameters: Optional[SeedParameters] = None
+        advanced_parameters: Optional[AdvancedParametersType] = None,
+        seed_parameters: Optional[SeedParametersType] = None,
     ) -> "AdvancedAndSeedParametersAPI":
         advanced_parameters_dict = asdict(advanced_parameters) if advanced_parameters else {}
         seed_parameters_dict = asdict(seed_parameters) if seed_parameters else {}
         api_dict = advanced_parameters_dict | seed_parameters_dict
         return AdvancedAndSeedParametersAPI.model_validate(api_dict)
 
-    def to_user_advanced_parameters_model(self) -> AdvancedParameters:
+    def to_user_advanced_parameters_model(self, update: bool) -> AdvancedParametersType:
         excluded_fields = self._get_advanced_user_parameters_fields()
+        if update:
+            return AdvancedParametersUpdate(**self.model_dump(mode="json", exclude=excluded_fields))
         return AdvancedParameters(**self.model_dump(mode="json", exclude=excluded_fields))
 
-    def to_user_seed_parameters_model(self) -> SeedParameters:
-        included_fields = set(asdict(SeedParameters()).keys())
+    def to_user_seed_parameters_model(self, update: bool) -> SeedParametersType:
+        included_fields = set(asdict(SeedParametersType()).keys())
+        if update:
+            return SeedParametersUpdate(**self.model_dump(mode="json", include=included_fields))
         return SeedParameters(**self.model_dump(mode="json", include=included_fields))
+
+
+GeneralParametersType = Union[GeneralParameters, GeneralParametersUpdate]
 
 
 @all_optional_model
@@ -166,7 +190,7 @@ class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, ali
     result_format: OutputFormat
 
     @staticmethod
-    def from_user_model(user_class: GeneralParameters) -> "GeneralParametersAPI":
+    def from_user_model(user_class: GeneralParametersType) -> "GeneralParametersAPI":
         user_dict = asdict(user_class)
         user_dict["first_day"] = user_dict.pop("simulation_start")
         user_dict["last_day"] = user_dict.pop("simulation_end")
@@ -177,8 +201,9 @@ class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, ali
         user_dict.pop("nb_timeseries_thermal")
         return GeneralParametersAPI.model_validate(user_dict)
 
-    def to_user_model(self, nb_ts_thermal: int) -> GeneralParameters:
-        return GeneralParameters(
+    def to_user_model(self, nb_ts_thermal: int, update: bool) -> GeneralParameters:
+        klass = GeneralParametersUpdate if update else GeneralParameters
+        return klass(
             mode=self.mode,
             horizon=self.horizon,
             nb_years=self.nb_years,
@@ -199,6 +224,9 @@ class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, ali
         )
 
 
+OptimizationParametersType = Union[OptimizationParameters, OptimizationParametersUpdate]
+
+
 @all_optional_model
 class OptimizationParametersAPI(BaseModel, alias_generator=to_camel):
     simplex_optimization_range: SimplexOptimizationRange
@@ -216,7 +244,7 @@ class OptimizationParametersAPI(BaseModel, alias_generator=to_camel):
     unfeasible_problem_behavior: UnfeasibleProblemBehavior
 
     @staticmethod
-    def from_user_model(user_class: OptimizationParameters) -> "OptimizationParametersAPI":
+    def from_user_model(user_class: OptimizationParametersType) -> "OptimizationParametersAPI":
         user_dict = asdict(user_class)
         user_dict["simplex_optimization_range"] = user_dict.pop("simplex_range")
         user_dict["binding_constraints"] = user_dict.pop("include_constraints")
@@ -232,8 +260,9 @@ class OptimizationParametersAPI(BaseModel, alias_generator=to_camel):
         user_dict["unfeasible_problem_behavior"] = user_dict.pop("include_unfeasible_problem_behavior")
         return OptimizationParametersAPI.model_validate(user_dict)
 
-    def to_user_model(self) -> OptimizationParameters:
-        return OptimizationParameters(
+    def to_user_model(self, update: bool) -> OptimizationParameters:
+        klass = OptimizationParametersUpdate if update else OptimizationParameters
+        return klass(
             simplex_range=self.simplex_optimization_range,
             transmission_capacities=self.transmission_capacities,
             include_constraints=self.binding_constraints,
@@ -248,6 +277,9 @@ class OptimizationParametersAPI(BaseModel, alias_generator=to_camel):
             include_exportstructure=self.include_exportstructure,
             include_unfeasible_problem_behavior=self.unfeasible_problem_behavior,
         )
+
+
+ThematicTrimmingParametersType = Union[ThematicTrimmingParameters, ThematicTrimmingParametersUpdate]
 
 
 @all_optional_model
@@ -348,9 +380,11 @@ class ThematicTrimmingParametersAPI(BaseModel, alias_generator=to_camel):
     sts_cashflow_by_cluster: bool
 
     @staticmethod
-    def from_user_model(user_class: ThematicTrimmingParameters) -> "ThematicTrimmingParametersAPI":
+    def from_user_model(user_class: ThematicTrimmingParametersType) -> "ThematicTrimmingParametersAPI":
         user_dict = asdict(user_class)
         return ThematicTrimmingParametersAPI.model_validate(user_dict)
 
-    def to_user_model(self) -> ThematicTrimmingParameters:
+    def to_user_model(self, update: bool) -> ThematicTrimmingParametersType:
+        if update:
+            return ThematicTrimmingParametersUpdate(**self.model_dump(mode="json"))
         return ThematicTrimmingParameters(**self.model_dump(mode="json"))
