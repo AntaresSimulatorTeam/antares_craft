@@ -98,7 +98,7 @@ class IniFile:
             self.write_ini_file()
 
     @property
-    def ini_dict(self) -> dict:
+    def ini_dict(self) -> dict[str, dict[str, str]]:
         """Ini contents as a python dictionary"""
         return {section: dict(self._ini_contents[section]) for section in self._ini_contents.sections()}
 
@@ -147,7 +147,7 @@ class IniFile:
         else:
             raise TypeError(f"Only dict or Path are allowed, received {type(section)}")
 
-    def _check_if_duplicated_section_names(self, sections: Iterable, append: bool = False) -> None:
+    def _check_if_duplicated_section_names(self, sections: Iterable[str], append: bool = False) -> None:
         for section in sections:
             if section in self.ini_dict and not append:
                 raise DuplicateSectionError(section)
@@ -228,7 +228,7 @@ class IniFile:
         cls(study_path=study_path, ini_file_type=property_file, area_id=area_id)
 
 
-def merge_dicts_for_ini(dict_a: dict[str, Any], dict_b: dict[str, Any]) -> dict:
+def merge_dicts_for_ini(dict_a: dict[str, Any], dict_b: dict[str, Any]) -> dict[str, Any]:
     """
     Merges two dictionaries, combining fields with the same name into a list of the values in the fields.
 
@@ -240,10 +240,10 @@ def merge_dicts_for_ini(dict_a: dict[str, Any], dict_b: dict[str, Any]) -> dict:
           dict: The merged dictionary.
     """
 
-    def _ensure_list(item: Any) -> list:
+    def _ensure_list(item: Any) -> list[Any]:
         return item if isinstance(item, list) else [item]
 
-    def _filter_out_empty_list_entries(list_of_entries: list[Any]) -> list:
+    def _filter_out_empty_list_entries(list_of_entries: list[Any]) -> list[Any]:
         return [entry for entry in list_of_entries if entry]
 
     output_dict = dict_a | dict_b
@@ -257,7 +257,7 @@ def merge_dicts_for_ini(dict_a: dict[str, Any], dict_b: dict[str, Any]) -> dict:
     return output_dict
 
 
-def get_ini_fields_for_ini(model: BaseModel) -> dict:
+def get_ini_fields_for_ini(model: BaseModel) -> dict[str, Any]:
     """
     Creates a dictionary of the property `ini_fields` from a `BaseModel` object that contains the merged dictionaries
     of all the `ini_fields` properties.

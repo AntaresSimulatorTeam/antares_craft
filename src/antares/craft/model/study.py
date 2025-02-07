@@ -16,7 +16,7 @@ import time
 
 from pathlib import Path, PurePath
 from types import MappingProxyType
-from typing import List, Optional
+from typing import List, Optional, Union, cast
 
 import pandas as pd
 
@@ -337,7 +337,7 @@ class Study:
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
     ) -> Link:
-        temp_link = Link(area_from, area_to, link_service=None)
+        temp_link = Link(area_from, area_to, link_service=cast(BaseLinkService, None))
         area_from, area_to = sorted([area_from, area_to])
         area_from_id = temp_link.area_from_id
         area_to_id = temp_link.area_to_id

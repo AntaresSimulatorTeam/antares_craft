@@ -12,7 +12,7 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -31,7 +31,11 @@ from antares.craft.model.renewable import RenewableCluster, RenewableClusterProp
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.model.st_storage import STStorage, STStorageMatrixName, STStorageProperties
-from antares.craft.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
+from antares.craft.model.thermal import (
+    ThermalCluster,
+    ThermalClusterMatrixName,
+    ThermalClusterProperties,
+)
 
 if TYPE_CHECKING:
     from antares.craft.model.study import Study
@@ -457,6 +461,10 @@ class BaseThermalService(ABC):
 
     @abstractmethod
     def read_thermal_clusters(self, area_id: str) -> List[ThermalCluster]:
+        pass
+
+    @abstractmethod
+    def _extract_thermal_properties(self, thermal_data: dict[str, Any]) -> ThermalClusterProperties:
         pass
 
 

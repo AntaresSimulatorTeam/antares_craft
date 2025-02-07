@@ -15,7 +15,7 @@ from typing import Any, List
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.st_storage import STStorage, STStorageProperties, STStorageMatrixName
+from antares.craft.model.st_storage import STStorage, STStorageMatrixName, STStorageProperties
 from antares.craft.service.base_services import BaseShortTermStorageService
 
 

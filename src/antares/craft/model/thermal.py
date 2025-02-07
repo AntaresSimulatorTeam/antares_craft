@@ -178,7 +178,7 @@ class ThermalCluster:
         area_id: str,
         name: str,
         properties: Optional[ThermalClusterProperties] = None,
-    ): # TODO: Find a way to avoid circular imports
+    ):  # TODO: Find a way to avoid circular imports
         self._area_id = area_id
         self._thermal_service = thermal_service
         self._name = name

@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 import pandas as pd
 
@@ -272,11 +272,11 @@ class AreaApiService(BaseAreaService):
 
             self._replace_matrix_request(json_payload)
 
-    def _replace_matrix_request(self, json_payload: Union[Dict, List[Dict]]) -> None:
+    def _replace_matrix_request(self, json_payload: Union[dict[str, Any], list[dict[str, Any]]]) -> None:
         """
         Send a POST request with the given JSON payload to commands endpoint.
 
-        Args: Dict or List([Dict] with action = "replace_matrix" and matrix values
+        Args: dict or list([dict] with action = "replace_matrix" and matrix values
         """
 
         url = f"{self._base_url}/studies/{self.study_id}/commands"
@@ -404,7 +404,7 @@ class AreaApiService(BaseAreaService):
         self,
         area_id: str,
         properties: Optional[HydroProperties],
-        matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]],
+        matrices: Optional[dict[HydroMatrixName, pd.DataFrame]],
     ) -> Hydro:
         # todo: not model validation because endpoint does not return anything
         #  properties = HydroProperties.model_validate(json_response) not possible
@@ -437,7 +437,7 @@ class AreaApiService(BaseAreaService):
 
         return hydro
 
-    def _create_hydro_series(self, area_id: str, matrices: Dict[HydroMatrixName, pd.DataFrame]) -> None:
+    def _create_hydro_series(self, area_id: str, matrices: dict[HydroMatrixName, pd.DataFrame]) -> None:
         command_body = []
         for matrix_name, series in matrices.items():
             if "SERIES" in matrix_name.name:
@@ -506,7 +506,7 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise AreaDeletionError(area_id, e.message) from e
 
-    def delete_thermal_clusters(self, area_id: str, clusters: List[ThermalCluster]) -> None:
+    def delete_thermal_clusters(self, area_id: str, clusters: list[ThermalCluster]) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/thermal"
         body = [cluster.id for cluster in clusters]
         try:
@@ -514,7 +514,7 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise ThermalDeletionError(area_id, body, e.message) from e
 
-    def delete_renewable_clusters(self, area_id: str, clusters: List[RenewableCluster]) -> None:
+    def delete_renewable_clusters(self, area_id: str, clusters: list[RenewableCluster]) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
         body = [cluster.id for cluster in clusters]
         try:
@@ -522,7 +522,7 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise RenewableDeletionError(area_id, body, e.message) from e
 
-    def delete_st_storages(self, area_id: str, storages: List[STStorage]) -> None:
+    def delete_st_storages(self, area_id: str, storages: list[STStorage]) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages"
         body = [storage.id for storage in storages]
         try:
@@ -569,7 +569,7 @@ class AreaApiService(BaseAreaService):
 
         return current_ui
 
-    def read_areas(self) -> List[Area]:
+    def read_areas(self) -> list[Area]:
         area_list = []
 
         base_api_url = f"{self._base_url}/studies/{self.study_id}/areas"

@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class CustomRawConfigParser(RawConfigParser):
     def __init__(self, special_keys: Optional[list[str]] = None, **kwargs: Any) -> None:
         super().__init__(**kwargs)
-        _special_keys: list = [
+        _special_keys: list[str] = [
             "playlist_year_weight",
             "playlist_year +",
             "playlist_year -",
@@ -46,7 +46,7 @@ class CustomRawConfigParser(RawConfigParser):
         file_path.write(f"{key}{value}\n")
 
     def _write_section(
-        self, fp: "SupportsWrite", section_name: str, section_items: ItemsView[str, str], delimiter: str
+        self, fp: "SupportsWrite[str]", section_name: str, section_items: ItemsView[str, str], delimiter: str
     ) -> None:
         """Write a single section to the specified `fp`. Overrides the function in `RawConfigParser`.
 

@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from pathlib import PurePosixPath
-from typing import List
+from typing import Any, List
 
 import pandas as pd
 
@@ -107,3 +107,6 @@ class ThermalApiService(BaseThermalService):
         thermals.sort(key=lambda thermal: thermal.id)
 
         return thermals
+
+    def _extract_thermal_properties(self, thermal_data: dict[str, Any]) -> ThermalClusterProperties:
+        pass
