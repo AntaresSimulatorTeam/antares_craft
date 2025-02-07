@@ -564,14 +564,6 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
-    def update_study_settings(self, settings: StudySettings) -> None:
-        """
-        Args:
-            settings: new study settings. Only registered fields will be updated.
-        """
-        pass
-
-    @abstractmethod
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         """
         Args:
@@ -617,10 +609,6 @@ class BaseStudyService(ABC):
 
     @abstractmethod
     def set_output_service(self, output_service: "BaseOutputService") -> None:
-        pass
-
-    @abstractmethod
-    def set_settings_service(self, settings_service: "BaseStudySettingsService") -> None:
         pass
 
     @abstractmethod

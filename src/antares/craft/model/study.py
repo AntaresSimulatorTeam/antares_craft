@@ -276,6 +276,7 @@ class Study:
         self._link_service = service_factory.create_link_service()
         self._run_service = service_factory.create_run_service()
         self._binding_constraints_service = service_factory.create_binding_constraints_service()
+        self._settings_service = service_factory.create_settings_service()
         self._settings = settings or StudySettings()
         self._areas: dict[str, Area] = dict()
         self._links: dict[str, Link] = dict()
@@ -299,6 +300,15 @@ class Study:
         link_list = self._link_service.read_links()
         self._links = {link.id: link for link in link_list}
         return link_list
+
+    def read_settings(self) -> StudySettings:
+        study_settings = self._settings_service.read_study_settings()
+        self._settings = study_settings
+        return study_settings
+
+    def update_settings(self, settings: StudySettings) -> None:
+        new_settings = self._settings_service.edit_study_settings(settings)
+        self._settings = new_settings
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
@@ -388,10 +398,6 @@ class Study:
         constraints = self._binding_constraints_service.read_binding_constraints()
         self._binding_constraints = {constraint.id: constraint for constraint in constraints}
         return constraints
-
-    def update_settings(self, settings: StudySettings) -> None:
-        self._study_service.update_study_settings(settings)
-        self._settings = settings
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         self._study_service.delete_binding_constraint(constraint)

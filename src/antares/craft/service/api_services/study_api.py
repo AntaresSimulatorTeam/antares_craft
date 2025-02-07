@@ -23,7 +23,6 @@ from antares.craft.exceptions.exceptions import (
     OutputsRetrievalError,
     StudyDeletionError,
     StudyMoveError,
-    StudySettingsUpdateError,
     StudyVariantCreationError,
     TaskFailedError,
     TaskTimeOutError,
@@ -31,10 +30,8 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.binding_constraint import BindingConstraint
 from antares.craft.model.output import Output
-from antares.craft.model.settings.study_settings import StudySettings
-from antares.craft.service.api_services.services.settings import edit_study_settings
 from antares.craft.service.api_services.utils import wait_task_completion
-from antares.craft.service.base_services import BaseOutputService, BaseStudyService, BaseStudySettingsService
+from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 
 if TYPE_CHECKING:
     from antares.craft.model.study import Study
@@ -48,7 +45,6 @@ class StudyApiService(BaseStudyService):
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
         self._output_service: Optional[BaseOutputService] = None
-        self._settings_service: Optional[BaseStudySettingsService] = None
 
     @property
     def study_id(self) -> str:
@@ -64,15 +60,6 @@ class StudyApiService(BaseStudyService):
 
     def set_output_service(self, output_service: BaseOutputService) -> None:
         self._output_service = output_service
-
-    def set_settings_service(self, settings_service: BaseStudySettingsService) -> None:
-        self._settings_service = settings_service
-
-    def update_study_settings(self, settings: StudySettings) -> None:
-        try:
-            edit_study_settings(self._base_url, self.study_id, self._wrapper, settings)
-        except APIError as e:
-            raise StudySettingsUpdateError(self.study_id, e.message) from e
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint.id}"

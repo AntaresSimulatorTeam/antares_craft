@@ -122,7 +122,6 @@ class ServiceFactory:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
 
         study_service.set_output_service(self.create_output_service())
-        study_service.set_settings_service(self.create_settings_service())
         return study_service
 
     def create_renewable_service(self) -> BaseRenewableService:

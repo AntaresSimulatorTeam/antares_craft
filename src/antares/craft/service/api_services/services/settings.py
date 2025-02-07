@@ -13,7 +13,7 @@ from dataclasses import asdict
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
-from antares.craft.exceptions.exceptions import APIError, StudySettingsReadError
+from antares.craft.exceptions.exceptions import APIError, StudySettingsReadError, StudySettingsUpdateError
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.service.api_services.models.settings import (
@@ -35,8 +35,11 @@ class StudySettingsAPIService(BaseStudySettingsService):
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
     def edit_study_settings(self, settings: StudySettings) -> StudySettings:
-        edit_study_settings(self._base_url, self.study_id, self._wrapper, settings)
-        return settings
+        try:
+            edit_study_settings(self._base_url, self.study_id, self._wrapper, settings)
+            return settings
+        except APIError as e:
+            raise StudySettingsUpdateError(self.study_id, e.message) from e
 
     def read_study_settings(self) -> StudySettings:
         return read_study_settings_api(self._base_url, self.study_id, self._wrapper)
