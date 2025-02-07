@@ -47,10 +47,10 @@ class StudySettingsLocalService(BaseStudySettingsService):
         return edit_study_settings(self.config.study_path, settings, update=True)
 
     def read_study_settings(self) -> StudySettings:
-        return read_study_settings_local(self.config.study_path)
+        return read_study_settings(self.config.study_path)
 
 
-def read_study_settings_local(study_directory: Path) -> StudySettings:
+def read_study_settings(study_directory: Path) -> StudySettings:
     general_data_ini = IniFile(study_directory, InitializationFilesTypes.GENERAL)
     ini_content = general_data_ini.ini_dict
 
