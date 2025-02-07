@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Optional, TypeAlias
+from typing import Optional, Union
 
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
@@ -51,11 +51,10 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters, ThematicTrimmingParametersUpdate
 from antares.craft.tools.all_optional_meta import all_optional_model
-from mypyc.codegen.literals import Union
 from pydantic import BaseModel, Field
 from pydantic.alias_generators import to_camel
 
-AdequacyPatchParametersType: TypeAlias = Union[AdequacyPatchParameters, AdequacyPatchParametersUpdate]
+AdequacyPatchParametersType = Union[AdequacyPatchParameters, AdequacyPatchParametersUpdate]
 
 
 @all_optional_model
@@ -100,8 +99,8 @@ class AdequacyPatchParametersAPI(BaseModel, alias_generator=to_camel):
         return AdequacyPatchParameters(**args)
 
 
-AdvancedParametersType: TypeAlias = Union[AdvancedParameters, AdvancedParametersUpdate]
-SeedParametersType: TypeAlias = Union[SeedParameters, SeedParametersUpdate]
+AdvancedParametersType = Union[AdvancedParameters, AdvancedParametersUpdate]
+SeedParametersType = Union[SeedParameters, SeedParametersUpdate]
 
 
 @all_optional_model
@@ -166,7 +165,7 @@ class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel):
         return SeedParameters(**self.model_dump(mode="json", include=included_fields))
 
 
-GeneralParametersType: TypeAlias = Union[GeneralParameters, GeneralParametersUpdate]
+GeneralParametersType = Union[GeneralParameters, GeneralParametersUpdate]
 
 
 @all_optional_model
@@ -228,7 +227,7 @@ class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, ali
         return GeneralParameters(**args)
 
 
-OptimizationParametersType: TypeAlias = Union[OptimizationParameters, OptimizationParametersUpdate]
+OptimizationParametersType = Union[OptimizationParameters, OptimizationParametersUpdate]
 
 
 @all_optional_model
@@ -285,7 +284,7 @@ class OptimizationParametersAPI(BaseModel, alias_generator=to_camel):
         return OptimizationParameters(**args)
 
 
-ThematicTrimmingParametersType: TypeAlias = Union[ThematicTrimmingParameters, ThematicTrimmingParametersUpdate]
+ThematicTrimmingParametersType = Union[ThematicTrimmingParameters, ThematicTrimmingParametersUpdate]
 
 
 @all_optional_model
