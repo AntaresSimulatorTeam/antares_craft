@@ -16,7 +16,7 @@ import time
 
 from pathlib import Path, PurePath
 from types import MappingProxyType
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import pandas as pd
 
@@ -81,7 +81,7 @@ def create_study_api(
         response = wrapper.post(url)
         study_id = response.json()
         # Settings part
-        study = Study(study_name, version, ServiceFactory(api_config, study_id), None)
+        study = Study(study_name, version, ServiceFactory(api_config, study_id))
         if settings:
             study.update_settings(settings)
         else:
@@ -180,7 +180,6 @@ InfoTip = Antares Study {version}: {study_name}
         name=study_name,
         version=version,
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
-        settings=None,
         path=study_directory,
     )
     study.update_settings(settings)
@@ -231,7 +230,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     path = json_study.pop("folder")
     pure_path = PurePath(path) if path else PurePath(".")
 
-    study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), None, pure_path)
+    study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), pure_path)
 
     study.read_settings()
     study.read_areas()
@@ -262,7 +261,6 @@ class Study:
         name: str,
         version: str,
         service_factory: ServiceFactory,
-        settings: Union[StudySettings, None] = None,
         path: PurePath = PurePath("."),
     ):
         self.name = name
@@ -274,7 +272,7 @@ class Study:
         self._run_service = service_factory.create_run_service()
         self._binding_constraints_service = service_factory.create_binding_constraints_service()
         self._settings_service = service_factory.create_settings_service()
-        self._settings = settings or StudySettings()
+        self._settings = StudySettings()
         self._areas: dict[str, Area] = dict()
         self._links: dict[str, Link] = dict()
         self._binding_constraints: dict[str, BindingConstraint] = dict()
