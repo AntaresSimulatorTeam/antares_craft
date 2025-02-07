@@ -15,6 +15,104 @@ from typing import Optional
 
 @dataclass
 class ThematicTrimmingParameters:
+    ov_cost: bool
+    op_cost: bool
+    mrg_price: bool
+    co2_emis: bool
+    dtg_by_plant: bool
+    balance: bool
+    row_bal: bool
+    psp: bool
+    misc_ndg: bool
+    load: bool
+    h_ror: bool
+    wind: bool
+    solar: bool
+    nuclear: bool
+    lignite: bool
+    coal: bool
+    gas: bool
+    oil: bool
+    mix_fuel: bool
+    misc_dtg: bool
+    h_stor: bool
+    h_pump: bool
+    h_lev: bool
+    h_infl: bool
+    h_ovfl: bool
+    h_val: bool
+    h_cost: bool
+    unsp_enrg: bool
+    spil_enrg: bool
+    lold: bool
+    lolp: bool
+    avl_dtg: bool
+    dtg_mrg: bool
+    max_mrg: bool
+    np_cost: bool
+    np_cost_by_plant: bool
+    nodu: bool
+    nodu_by_plant: bool
+    flow_lin: bool
+    ucap_lin: bool
+    loop_flow: bool
+    flow_quad: bool
+    cong_fee_alg: bool
+    cong_fee_abs: bool
+    marg_cost: bool
+    cong_prob_plus: bool
+    cong_prob_minus: bool
+    hurdle_cost: bool
+    res_generation_by_plant: bool
+    misc_dtg_2: bool
+    misc_dtg_3: bool
+    misc_dtg_4: bool
+    wind_offshore: bool
+    wind_onshore: bool
+    solar_concrt: bool
+    solar_pv: bool
+    solar_rooft: bool
+    renw_1: bool
+    renw_2: bool
+    renw_3: bool
+    renw_4: bool
+    dens: bool
+    profit_by_plant: bool
+    sts_inj_by_plant: bool
+    sts_withdrawal_by_plant: bool
+    sts_lvl_by_plant: bool
+    psp_open_injection: bool
+    psp_open_withdrawal: bool
+    psp_open_level: bool
+    psp_closed_injection: bool
+    psp_closed_withdrawal: bool
+    psp_closed_level: bool
+    pondage_injection: bool
+    pondage_withdrawal: bool
+    pondage_level: bool
+    battery_injection: bool
+    battery_withdrawal: bool
+    battery_level: bool
+    other1_injection: bool
+    other1_withdrawal: bool
+    other1_level: bool
+    other2_injection: bool
+    other2_withdrawal: bool
+    other2_level: bool
+    other3_injection: bool
+    other3_withdrawal: bool
+    other3_level: bool
+    other4_injection: bool
+    other4_withdrawal: bool
+    other4_level: bool
+    other5_injection: bool
+    other5_withdrawal: bool
+    other5_level: bool
+    sts_cashflow_by_cluster: bool
+
+
+@dataclass
+class ThematicTrimmingParametersUpdate:
     ov_cost: Optional[bool] = None
     op_cost: Optional[bool] = None
     mrg_price: Optional[bool] = None

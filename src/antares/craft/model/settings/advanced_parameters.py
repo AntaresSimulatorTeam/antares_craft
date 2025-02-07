@@ -63,6 +63,30 @@ class RenewableGenerationModeling(Enum):
 
 @dataclass
 class AdvancedParameters:
+    initial_reservoir_levels: InitialReservoirLevel
+    hydro_heuristic_policy: HydroHeuristicPolicy
+    hydro_pricing_mode: HydroPricingMode
+    power_fluctuations: PowerFluctuation
+    shedding_policy: SheddingPolicy
+    unit_commitment_mode: UnitCommitmentMode
+    number_of_cores_mode: SimulationCore
+    renewable_generation_modelling: RenewableGenerationModeling
+    accuracy_on_correlation: set[OutputChoices]
+
+
+@dataclass
+class SeedParameters:
+    seed_tsgen_thermal: int
+    seed_tsnumbers: int
+    seed_unsupplied_energy_costs: int
+    seed_spilled_energy_costs: int
+    seed_thermal_costs: int
+    seed_hydro_costs: int
+    seed_initial_reservoir_levels: int
+
+
+@dataclass
+class AdvancedParametersUpdate:
     initial_reservoir_levels: Optional[InitialReservoirLevel] = None
     hydro_heuristic_policy: Optional[HydroHeuristicPolicy] = None
     hydro_pricing_mode: Optional[HydroPricingMode] = None
@@ -75,7 +99,7 @@ class AdvancedParameters:
 
 
 @dataclass
-class SeedParameters:
+class SeedParametersUpdate:
     seed_tsgen_thermal: Optional[int] = None
     seed_tsnumbers: Optional[int] = None
     seed_unsupplied_energy_costs: Optional[int] = None

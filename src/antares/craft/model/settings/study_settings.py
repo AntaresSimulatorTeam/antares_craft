@@ -12,20 +12,36 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
-from antares.craft.model.settings.advanced_parameters import AdvancedParameters, SeedParameters
-from antares.craft.model.settings.general import GeneralParameters
-from antares.craft.model.settings.optimization import OptimizationParameters
-from antares.craft.model.settings.playlist_parameters import PlaylistParameters
-from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
+from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters, AdequacyPatchParametersUpdate
+from antares.craft.model.settings.advanced_parameters import (
+    AdvancedParameters,
+    AdvancedParametersUpdate,
+    SeedParameters,
+    SeedParametersUpdate,
+)
+from antares.craft.model.settings.general import GeneralParameters, GeneralParametersUpdate
+from antares.craft.model.settings.optimization import OptimizationParameters, OptimizationParametersUpdate
+from antares.craft.model.settings.playlist_parameters import PlaylistParameters, PlaylistParametersUpdate
+from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters, ThematicTrimmingParametersUpdate
 
 
 @dataclass
 class StudySettings:
-    general_parameters: Optional[GeneralParameters] = None
-    optimization_parameters: Optional[OptimizationParameters] = None
-    advanced_parameters: Optional[AdvancedParameters] = None
-    seed_parameters: Optional[SeedParameters] = None
-    adequacy_patch_parameters: Optional[AdequacyPatchParameters] = None
-    playlist_parameters: Optional[dict[int, PlaylistParameters]] = None
-    thematic_trimming_parameters: Optional[ThematicTrimmingParameters] = None
+    general_parameters: GeneralParameters
+    optimization_parameters: OptimizationParameters
+    advanced_parameters: AdvancedParameters
+    seed_parameters: SeedParameters
+    adequacy_patch_parameters: AdequacyPatchParameters
+    playlist_parameters: dict[int, PlaylistParameters]
+    thematic_trimming_parameters: ThematicTrimmingParameters
+
+
+@dataclass
+class StudySettingsUpdate:
+    general_parameters: Optional[GeneralParametersUpdate] = None
+    optimization_parameters: Optional[OptimizationParametersUpdate] = None
+    advanced_parameters: Optional[AdvancedParametersUpdate] = None
+    seed_parameters: Optional[SeedParametersUpdate] = None
+    adequacy_patch_parameters: Optional[AdequacyPatchParametersUpdate] = None
+    playlist_parameters: Optional[dict[int, PlaylistParametersUpdate]] = None
+    thematic_trimming_parameters: Optional[ThematicTrimmingParametersUpdate] = None
