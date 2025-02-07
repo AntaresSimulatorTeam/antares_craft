@@ -41,7 +41,6 @@ from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.service.base_services import BaseStudyService
-from antares.craft.service.local_services.services.settings import edit_study_settings, read_study_settings_local
 from antares.craft.service.service_factory import ServiceFactory
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
@@ -177,14 +176,15 @@ InfoTip = Antares Study {version}: {study_name}
     _create_correlation_ini_files(study_directory)
 
     logging.info(f"Study successfully created: {study_name}")
-    new_settings = edit_study_settings(study_directory, settings, update=False)
-    return Study(
+    study = Study(
         name=study_name,
         version=version,
         service_factory=ServiceFactory(config=local_config, study_name=study_name),
-        settings=new_settings,
+        settings=None,
         path=study_directory,
     )
+    study.update_settings(settings)
+    return study
 
 
 def read_study_local(study_directory: Path) -> "Study":
@@ -210,15 +210,14 @@ def read_study_local(study_directory: Path) -> "Study":
 
     local_config = LocalConfiguration(study_directory.parent, study_directory.name)
 
-    settings = read_study_settings_local(study_directory)
-
-    return Study(
+    study = Study(
         name=study_params["caption"],
         version=study_params["version"],
         service_factory=ServiceFactory(config=local_config, study_name=study_params["caption"]),
         path=study_directory,
-        settings=settings,
     )
+    study.read_settings()
+    return study
 
 
 def read_study_api(api_config: APIconf, study_id: str) -> "Study":
