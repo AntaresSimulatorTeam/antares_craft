@@ -9,8 +9,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import ast
+
 from dataclasses import asdict
-from typing import Optional, Union
+from typing import Any, Optional, Sequence, Union, cast
 
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
@@ -51,7 +53,7 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters, ThematicTrimmingParametersUpdate
 from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from pydantic.alias_generators import to_camel
 
 AdequacyPatchParametersType = Union[AdequacyPatchParameters, AdequacyPatchParametersUpdate]
@@ -122,6 +124,14 @@ class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel):
     seed_thermal_costs: int
     seed_hydro_costs: int
     seed_initial_reservoir_levels: int
+
+    @field_validator("accuracy_on_correlation", mode="before")
+    def validate_accuracy_on_correlation(cls, v: Any) -> Union[Sequence[str], set[str]]:
+        if not v:
+            return []
+        if isinstance(v, set):
+            return v
+        return cast(Sequence[str], ast.literal_eval(v))
 
     @staticmethod
     def from_user_model(
