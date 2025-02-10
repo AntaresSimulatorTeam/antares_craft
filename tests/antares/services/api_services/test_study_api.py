@@ -50,8 +50,8 @@ from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import (
     Output,
 )
-from antares.craft.model.settings.general import GeneralParameters
-from antares.craft.model.settings.study_settings import StudySettings
+from antares.craft.model.settings.general import GeneralParameters, GeneralParametersUpdate
+from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
 from antares.craft.model.study import Study, create_study_api, create_variant_api, import_study_api, read_study_api
 from antares.craft.service.api_services.output_api import OutputApiService
@@ -113,8 +113,8 @@ class TestCreateAPI:
 
     def test_update_study_settings_success(self):
         with requests_mock.Mocker() as mocker:
-            settings = StudySettings()
-            settings.general_parameters = GeneralParameters(mode="Adequacy")
+            settings = StudySettingsUpdate()
+            settings.general_parameters = GeneralParametersUpdate(mode="Adequacy")
             config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
             mocker.put(config_urls, status_code=200)
             mocker.get(config_urls, json={}, status_code=200)
@@ -122,8 +122,8 @@ class TestCreateAPI:
 
     def test_update_study_settings_fails(self):
         with requests_mock.Mocker() as mocker:
-            settings = StudySettings()
-            settings.general_parameters = GeneralParameters(mode="Adequacy")
+            settings = StudySettingsUpdate()
+            settings.general_parameters = GeneralParametersUpdate(mode="Adequacy")
             config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
             antares_web_description_msg = "Server KO"
             mocker.put(config_urls, json={"description": antares_web_description_msg}, status_code=404)
