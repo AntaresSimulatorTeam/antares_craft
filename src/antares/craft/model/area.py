@@ -17,7 +17,7 @@ electrical demand (load), generation fleet (clusters),
 """
 
 from types import MappingProxyType
-from typing import Any, Dict, List, Mapping, Optional, Set
+from typing import Any, Mapping, Optional
 
 import pandas as pd
 
@@ -26,6 +26,13 @@ from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
+from antares.craft.service.base_services import (
+    BaseAreaService,
+    BaseHydroService,
+    BaseRenewableService,
+    BaseShortTermStorageService,
+    BaseThermalService,
+)
 from antares.craft.tools.alias_generators import to_space
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
@@ -55,14 +62,14 @@ class DefaultAreaProperties(BaseModel, extra="forbid", populate_by_name=True):
     non_dispatch_power: bool = True
     dispatch_hydro_power: bool = True
     other_dispatch_power: bool = True
-    filter_synthesis: Set[FilterOption] = {
+    filter_synthesis: set[FilterOption] = {
         FilterOption.HOURLY,
         FilterOption.DAILY,
         FilterOption.WEEKLY,
         FilterOption.MONTHLY,
         FilterOption.ANNUAL,
     }
-    filter_by_year: Set[FilterOption] = {
+    filter_by_year: set[FilterOption] = {
         FilterOption.HOURLY,
         FilterOption.DAILY,
         FilterOption.WEEKLY,
@@ -121,11 +128,11 @@ class AreaUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=t
     layer: Optional[int] = None
     x: Optional[int] = None
     y: Optional[int] = None
-    color_rgb: Optional[List[int]] = None
+    color_rgb: Optional[list[int]] = None
 
-    layer_x: Optional[Dict[int, int]] = None
-    layer_y: Optional[Dict[int, int]] = None
-    layer_color: Optional[Dict[int, str]] = None
+    layer_x: Optional[dict[int, int]] = None
+    layer_y: Optional[dict[int, int]] = None
+    layer_color: Optional[dict[int, str]] = None
 
 
 class AreaUiLocal(BaseModel):
@@ -151,7 +158,7 @@ class AreaUiLocal(BaseModel):
 
     @computed_field  # type: ignore[misc]
     @property
-    def ui(self) -> Dict[str, Optional[int]]:
+    def ui(self) -> dict[str, Optional[int]]:
         return dict(
             x=self._x,
             y=self._y,
@@ -163,17 +170,17 @@ class AreaUiLocal(BaseModel):
 
     @computed_field  # type: ignore[misc]
     @property
-    def layerX(self) -> Dict[int, int]:
+    def layerX(self) -> dict[int, int]:
         return self._layer_x
 
     @computed_field  # type: ignore[misc]
     @property
-    def layerY(self) -> Dict[int, int]:
+    def layerY(self) -> dict[int, int]:
         return self._layer_y
 
     @computed_field  # type: ignore[misc]
     @property
-    def layerColor(self) -> Dict[int, str]:
+    def layerColor(self) -> dict[int, str]:
         return self._layer_color
 
     def yield_area_ui(self) -> AreaUi:
@@ -189,18 +196,18 @@ class AreaUiLocal(BaseModel):
 
 
 class Area:
-    def __init__(  # type: ignore # TODO: Find a way to avoid circular imports
+    def __init__(
         self,
         name: str,
-        area_service,
-        storage_service,
-        thermal_service,
-        renewable_service,
-        hydro_service,
+        area_service: BaseAreaService,
+        storage_service: BaseShortTermStorageService,
+        thermal_service: BaseThermalService,
+        renewable_service: BaseRenewableService,
+        hydro_service: BaseHydroService,
         *,
-        renewables: Optional[Dict[str, RenewableCluster]] = None,
-        thermals: Optional[Dict[str, ThermalCluster]] = None,
-        st_storages: Optional[Dict[str, STStorage]] = None,
+        renewables: Optional[dict[str, RenewableCluster]] = None,
+        thermals: Optional[dict[str, ThermalCluster]] = None,
+        st_storages: Optional[dict[str, STStorage]] = None,
         hydro: Optional[Hydro] = None,
         properties: Optional[AreaProperties] = None,
         ui: Optional[AreaUi] = None,
@@ -299,7 +306,7 @@ class Area:
     def get_misc_gen_matrix(self) -> pd.DataFrame:
         return self._area_service.get_misc_gen_matrix(self.id)
 
-    def delete_thermal_clusters(self, thermal_clusters: List[ThermalCluster]) -> None:
+    def delete_thermal_clusters(self, thermal_clusters: list[ThermalCluster]) -> None:
         self._area_service.delete_thermal_clusters(self.id, thermal_clusters)
         for cluster in thermal_clusters:
             self._thermals.pop(cluster.id)
@@ -307,7 +314,7 @@ class Area:
     def delete_thermal_cluster(self, thermal_cluster: ThermalCluster) -> None:
         self.delete_thermal_clusters([thermal_cluster])
 
-    def delete_renewable_clusters(self, renewable_clusters: List[RenewableCluster]) -> None:
+    def delete_renewable_clusters(self, renewable_clusters: list[RenewableCluster]) -> None:
         self._area_service.delete_renewable_clusters(self.id, renewable_clusters)
         for cluster in renewable_clusters:
             self._renewables.pop(cluster.id)
@@ -315,7 +322,7 @@ class Area:
     def delete_renewable_cluster(self, renewable_cluster: RenewableCluster) -> None:
         self.delete_renewable_clusters([renewable_cluster])
 
-    def delete_st_storages(self, storages: List[STStorage]) -> None:
+    def delete_st_storages(self, storages: list[STStorage]) -> None:
         self._area_service.delete_st_storages(self.id, storages)
         for storage in storages:
             self._st_storages.pop(storage.id)
@@ -349,7 +356,7 @@ class Area:
     def create_hydro(
         self,
         properties: Optional[HydroProperties] = None,
-        matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
+        matrices: Optional[dict[HydroMatrixName, pd.DataFrame]] = None,
     ) -> Hydro:
         # todo: is it necessary to create allocation or correlation ?
         hydro = self._area_service.create_hydro(self.id, properties, matrices)
@@ -358,17 +365,17 @@ class Area:
 
     def read_st_storages(
         self,
-    ) -> List[STStorage]:
+    ) -> list[STStorage]:
         return self._storage_service.read_st_storages(self.id)
 
     def read_renewables(
         self,
-    ) -> List[RenewableCluster]:
+    ) -> list[RenewableCluster]:
         return self._renewable_service.read_renewables(self.id)
 
     def read_thermal_clusters(
         self,
-    ) -> List[ThermalCluster]:
+    ) -> list[ThermalCluster]:
         return self._thermal_service.read_thermal_clusters(self.id)
 
     def read_hydro(

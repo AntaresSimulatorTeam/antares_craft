@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 
-from typing import Any, List
+from typing import Any, get_type_hints
 
 import pandas as pd
 
@@ -39,27 +39,42 @@ class RenewableLocalService(BaseRenewableService):
             TimeSeriesFileType.RENEWABLE_DATA_SERIES, self.config.study_path, area_id=area_id, cluster_id=cluster_id
         )
 
-    def read_renewables(self, area_id: str) -> List[RenewableCluster]:
+    def _extract_renewable_properties(self, renewable_data: dict[str, Any]) -> RenewableClusterProperties:
+        # get_type_hints will yield a dict with every local property as key and its type as the value
+        property_types = get_type_hints(RenewableClusterPropertiesLocal)
+
+        # the name key is called "name" in renewable_data but "renewable_name" in the properties, that's why we map it
+        property_mapping = {"name": "renewable_name"}
+
+        # for each property in renewable_data, we will type it according to property_types while making sure it's not None
+        # because it's Optional. If it's "name" then we get its mapping from the property_mapping dict
+        parsed_data = {
+            property_mapping.get(property, property): property_types[property_mapping.get(property, property)](value)
+            if value is not None
+            else None
+            for property, value in renewable_data.items()
+            if property_mapping.get(property, property) in property_types
+        }
+
+        return RenewableClusterPropertiesLocal(**parsed_data).yield_renewable_cluster_properties()
+
+    def read_renewables(self, area_id: str) -> list[RenewableCluster]:
         renewable_dict = IniFile(
             self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id
         ).ini_dict
-        renewables_clusters = []
-        if renewable_dict:
-            for renewable_cluster in renewable_dict:
-                renewable_properties = RenewableClusterPropertiesLocal(
-                    group=renewable_dict[renewable_cluster].get("group"),
-                    renewable_name=renewable_dict[renewable_cluster].get("name"),
-                    enabled=renewable_dict[renewable_cluster].get("enabled"),
-                    unit_count=renewable_dict[renewable_cluster].get("unitcount"),
-                    nominal_capacity=renewable_dict[renewable_cluster].get("nominalcapacity"),
-                    ts_interpretation=renewable_dict[renewable_cluster].get("ts-interpretation"),
-                )
-                renewables_clusters.append(
-                    RenewableCluster(
-                        renewable_service=self,
-                        area_id=area_id,
-                        name=renewable_dict[renewable_cluster]["name"],
-                        properties=renewable_properties.yield_renewable_cluster_properties(),
-                    )
-                )
-        return renewables_clusters
+
+        if not renewable_dict:
+            return []
+
+        return [
+            RenewableCluster(
+                renewable_service=self,
+                area_id=area_id,
+                name=renewable_data["name"],
+                properties=self._extract_renewable_properties(renewable_data),
+            )
+            for renewable_data in renewable_dict.values()
+        ]
+
+    def update_renewable_matrix(self, renewable_cluster: RenewableCluster, matrix: pd.DataFrame) -> None:
+        raise NotImplementedError

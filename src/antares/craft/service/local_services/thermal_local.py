@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Any, List
+from typing import Any, get_type_hints
 
 import pandas as pd
 
@@ -54,62 +54,40 @@ class ThermalLocalService(BaseThermalService):
             time_serie_type,
             self.config.study_path,
             area_id=thermal_cluster.area_id,
-            cluster_id=thermal_cluster.properties.group.value,
+            cluster_id=thermal_cluster.id,
         )
 
-    def read_thermal_clusters(self, area_id: str) -> List[ThermalCluster]:
+    def _extract_thermal_properties(self, thermal_data: dict[str, Any]) -> ThermalClusterProperties:
+        property_types = get_type_hints(ThermalClusterPropertiesLocal)
+
+        property_mapping = {"name": "thermal_name"}
+
+        parsed_data = {
+            property_mapping.get(property, property): property_types[property_mapping.get(property, property)](value)
+            if value is not None
+            else None
+            for property, value in thermal_data.items()
+            if property_mapping.get(property, property) in property_types
+        }
+
+        return ThermalClusterPropertiesLocal(**parsed_data).yield_thermal_cluster_properties()
+
+    def read_thermal_clusters(self, area_id: str) -> list[ThermalCluster]:
         thermal_dict = IniFile(
             self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id
         ).ini_dict
-        thermal_clusters = []
-        if thermal_dict:
-            for thermal_cluster in thermal_dict:
-                # TODO refactor this as it is really not clean
-                thermal_properties = ThermalClusterPropertiesLocal(
-                    group=thermal_dict[thermal_cluster].get("group"),
-                    thermal_name=thermal_dict[thermal_cluster]["name"],
-                    enabled=thermal_dict[thermal_cluster].get("enabled"),
-                    unit_count=thermal_dict[thermal_cluster].get("unitcount"),
-                    nominal_capacity=thermal_dict[thermal_cluster].get("nominalcapacity"),
-                    gen_ts=thermal_dict[thermal_cluster].get("gen-ts"),
-                    min_stable_power=thermal_dict[thermal_cluster].get("min-stable-power"),
-                    min_up_time=thermal_dict[thermal_cluster].get("min-up-time"),
-                    min_down_time=thermal_dict[thermal_cluster].get("min-down-time"),
-                    must_run=thermal_dict[thermal_cluster].get("must-run"),
-                    spinning=thermal_dict[thermal_cluster].get("spinning"),
-                    volatility_forced=thermal_dict[thermal_cluster].get("volatility.forced"),
-                    volatility_planned=thermal_dict[thermal_cluster].get("volatility.planned"),
-                    law_forced=thermal_dict[thermal_cluster].get("law.forced"),
-                    law_planned=thermal_dict[thermal_cluster].get("law.planned"),
-                    marginal_cost=thermal_dict[thermal_cluster].get("marginal-cost"),
-                    spread_cost=thermal_dict[thermal_cluster].get("spread-cost"),
-                    fixed_cost=thermal_dict[thermal_cluster].get("fixed-cost"),
-                    startup_cost=thermal_dict[thermal_cluster].get("startup-cost"),
-                    market_bid_cost=thermal_dict[thermal_cluster].get("market-bid-cost"),
-                    co2=thermal_dict[thermal_cluster].get("co2"),
-                    nh3=thermal_dict[thermal_cluster].get("nh3"),
-                    so2=thermal_dict[thermal_cluster].get("so2"),
-                    nox=thermal_dict[thermal_cluster].get("nox"),
-                    pm2_5=thermal_dict[thermal_cluster].get("pm2_5"),
-                    pm5=thermal_dict[thermal_cluster].get("pm5"),
-                    pm10=thermal_dict[thermal_cluster].get("pm10"),
-                    nmvoc=thermal_dict[thermal_cluster].get("nmvoc"),
-                    op1=thermal_dict[thermal_cluster].get("op1"),
-                    op2=thermal_dict[thermal_cluster].get("op2"),
-                    op3=thermal_dict[thermal_cluster].get("op3"),
-                    op4=thermal_dict[thermal_cluster].get("op4"),
-                    op5=thermal_dict[thermal_cluster].get("op5"),
-                    cost_generation=thermal_dict[thermal_cluster].get("costgeneration"),
-                    efficiency=thermal_dict[thermal_cluster].get("efficiency"),
-                    variable_o_m_cost=thermal_dict[thermal_cluster].get("variableomcost"),
-                )
+        if not thermal_dict:
+            return []
 
-                thermal_clusters.append(
-                    ThermalCluster(
-                        thermal_service=self,
-                        area_id=area_id,
-                        name=thermal_dict[thermal_cluster]["name"],
-                        properties=thermal_properties.yield_thermal_cluster_properties(),
-                    )
-                )
-        return thermal_clusters
+        return [
+            ThermalCluster(
+                thermal_service=self,
+                area_id=area_id,
+                name=thermal_data["name"],
+                properties=self._extract_thermal_properties(thermal_data),
+            )
+            for thermal_data in thermal_dict.values()
+        ]
+
+    def update_thermal_matrix(self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame) -> None:
+        raise NotImplementedError

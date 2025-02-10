@@ -59,9 +59,9 @@ class InitializationFilesTypes(Enum):
 
     THERMAL_AREAS_INI = "input/thermal/areas.ini"
     THERMAL_LIST_INI = "input/thermal/clusters/{area_id}/list.ini"
-    THERMAL_PREPRO_MODULATION = "input/thermal/prepro/{area_id}/cluster/modulation.txt"
-    THERMAL_PREPRO_DATA = "input/thermal/prepro/{area_id}/cluster/data.txt"
-    THERMAL_SERIES = "input/thermal/series/{area_id}/cluster/series.txt"
+    THERMAL_MODULATION = "input/thermal/prepro/{area_id}/{cluster_id}/modulation.txt"
+    THERMAL_DATA = "input/thermal/prepro/{area_id}/{cluster_id}/data.txt"
+    THERMAL_SERIES = "input/thermal/series/{area_id}/{cluster_id}/series.txt"
 
     WIND_CORRELATION_INI = "input/wind/prepro/correlation.ini"
     WIND_SETTINGS_INI = "input/wind/prepro/{area_id}/settings.ini"
@@ -74,12 +74,13 @@ class IniFile:
         study_path: Path,
         ini_file_type: InitializationFilesTypes,
         area_id: Optional[str] = None,
+        cluster_id: Optional[str] = None,
         ini_contents: Union[CustomRawConfigParser, dict[str, dict[str, str]], None] = None,
     ) -> None:
         if "{area_id}" in ini_file_type.value and not area_id:
             raise ValueError(f"Area name not provided, ini type {ini_file_type.name} requires 'area_id'")
         self._full_path = study_path / (
-            ini_file_type.value.format(area_id=area_id)
+            ini_file_type.value.format(area_id=area_id, cluster_id=cluster_id)
             if ("{area_id}" in ini_file_type.value and area_id)
             else ini_file_type.value
         )
@@ -97,7 +98,7 @@ class IniFile:
             self.write_ini_file()
 
     @property
-    def ini_dict(self) -> dict:
+    def ini_dict(self) -> dict[str, Any]:
         """Ini contents as a python dictionary"""
         return {section: dict(self._ini_contents[section]) for section in self._ini_contents.sections()}
 
@@ -146,7 +147,7 @@ class IniFile:
         else:
             raise TypeError(f"Only dict or Path are allowed, received {type(section)}")
 
-    def _check_if_duplicated_section_names(self, sections: Iterable, append: bool = False) -> None:
+    def _check_if_duplicated_section_names(self, sections: Iterable[str], append: bool = False) -> None:
         for section in sections:
             if section in self.ini_dict and not append:
                 raise DuplicateSectionError(section)
@@ -220,8 +221,14 @@ class IniFile:
 
         cls(study_path=study_path, ini_file_type=property_file, area_id=area_id)
 
+    @classmethod
+    def create_list_ini_for_area(cls, study_path: Path, area_id: str) -> None:
+        property_file = InitializationFilesTypes.THERMAL_LIST_INI
 
-def merge_dicts_for_ini(dict_a: dict[str, Any], dict_b: dict[str, Any]) -> dict:
+        cls(study_path=study_path, ini_file_type=property_file, area_id=area_id)
+
+
+def merge_dicts_for_ini(dict_a: dict[str, Any], dict_b: dict[str, Any]) -> dict[str, Any]:
     """
     Merges two dictionaries, combining fields with the same name into a list of the values in the fields.
 
@@ -233,10 +240,10 @@ def merge_dicts_for_ini(dict_a: dict[str, Any], dict_b: dict[str, Any]) -> dict:
           dict: The merged dictionary.
     """
 
-    def _ensure_list(item: Any) -> list:
+    def _ensure_list(item: Any) -> list[Any]:
         return item if isinstance(item, list) else [item]
 
-    def _filter_out_empty_list_entries(list_of_entries: list[Any]) -> list:
+    def _filter_out_empty_list_entries(list_of_entries: list[Any]) -> list[Any]:
         return [entry for entry in list_of_entries if entry]
 
     output_dict = dict_a | dict_b
@@ -250,7 +257,7 @@ def merge_dicts_for_ini(dict_a: dict[str, Any], dict_b: dict[str, Any]) -> dict:
     return output_dict
 
 
-def get_ini_fields_for_ini(model: BaseModel) -> dict:
+def get_ini_fields_for_ini(model: BaseModel) -> dict[str, Any]:
     """
     Creates a dictionary of the property `ini_fields` from a `BaseModel` object that contains the merged dictionaries
     of all the `ini_fields` properties.

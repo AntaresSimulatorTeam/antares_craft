@@ -12,14 +12,14 @@
 import os
 
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional, Union
 
 import pandas as pd
 
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
 
-def prepare_args_replace_matrix(series: pd.DataFrame, series_path: str) -> Dict:
+def prepare_args_replace_matrix(series: pd.DataFrame, series_path: str) -> dict[str, Union[str, dict[str, str]]]:
     """
 
     Args:

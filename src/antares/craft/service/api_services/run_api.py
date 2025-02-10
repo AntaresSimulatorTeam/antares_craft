@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 import time
 
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
@@ -103,5 +103,5 @@ class RunApiService(BaseRunService):
             task_name = task["name"]
             output_id = task_name.split("/")[-1].split(" ")[0]
             if output_id == job.output_id:
-                return task["id"]
+                return cast(str, task["id"])
         raise AntaresSimulationUnzipError(self.study_id, job.job_id, "Could not find task for unarchiving job")

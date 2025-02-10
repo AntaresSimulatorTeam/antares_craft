@@ -63,22 +63,23 @@ def _sets_ini_content() -> ConfigParser:
 
 
 class AreaLocalService(BaseAreaService):
-    def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        config: LocalConfiguration,
+        study_name: str,
+        storage_service: BaseShortTermStorageService,
+        thermal_service: BaseThermalService,
+        renewable_service: BaseRenewableService,
+        hydro_service: BaseHydroService,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
-
-    def set_storage_service(self, storage_service: BaseShortTermStorageService) -> None:
-        self.storage_service = storage_service
-
-    def set_thermal_service(self, thermal_service: BaseThermalService) -> None:
-        self.thermal_service = thermal_service
-
-    def set_renewable_service(self, renewable_service: BaseRenewableService) -> None:
-        self.renewable_service = renewable_service
-
-    def set_hydro_service(self, hydro_service: "BaseHydroService") -> None:
-        self.hydro_service = hydro_service
+        self.storage_service: BaseShortTermStorageService = storage_service
+        self.thermal_service: BaseThermalService = thermal_service
+        self.renewable_service: BaseRenewableService = renewable_service
+        self.hydro_service: BaseHydroService = hydro_service
 
     def create_thermal_cluster(
         self,
@@ -91,9 +92,16 @@ class AreaLocalService(BaseAreaService):
         local_thermal_properties = ThermalClusterPropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id)
-        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_PREPRO_MODULATION, area_id=area_id)
-        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_PREPRO_DATA, area_id=area_id)
-        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_SERIES, area_id=area_id)
+        IniFile(
+            self.config.study_path,
+            InitializationFilesTypes.THERMAL_MODULATION,
+            area_id=area_id,
+            cluster_id=thermal_name,
+        )
+        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_DATA, area_id=area_id, cluster_id=thermal_name)
+        IniFile(
+            self.config.study_path, InitializationFilesTypes.THERMAL_SERIES, area_id=area_id, cluster_id=thermal_name
+        )
         try:
             list_ini.add_section(local_thermal_properties.list_ini_fields)
         except DuplicateSectionError:
@@ -196,7 +204,7 @@ class AreaLocalService(BaseAreaService):
 
         IniFile.create_hydro_initialization_files_for_area(self.config.study_path, area_id)
 
-        return Hydro(self, area_id, local_hydro_properties.yield_hydro_properties())
+        return Hydro(self.hydro_service, area_id, local_hydro_properties.yield_hydro_properties())
 
     def read_hydro(
         self,
@@ -304,6 +312,7 @@ class AreaLocalService(BaseAreaService):
             self.create_solar(area_name, empty_df)
             self.create_wind(area_name, empty_df)
             IniFile.create_link_ini_for_area(self.config.study_path, area_name)
+            IniFile.create_list_ini_for_area(self.config.study_path, area_name)
 
         except Exception as e:
             raise AreaCreationError(area_name, f"{e}") from e
@@ -371,16 +380,13 @@ class AreaLocalService(BaseAreaService):
                     self.config.study_path, InitializationFilesTypes.AREA_UI_INI, area_id=element.name
                 ).ini_dict
                 thermal_area_dict = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_AREAS_INI).ini_dict
+                nodal_optimization = optimization_dict["nodal optimization"]
                 area_properties = AreaPropertiesLocal(
-                    non_dispatch_power=optimization_dict["nodal optimization"].get("non-dispatchable-power"),
-                    dispatch_hydro_power=optimization_dict["nodal optimization"].get("dispatchable-hydro-power"),
-                    other_dispatch_power=optimization_dict["nodal optimization"].get("other-dispatchable-power"),
-                    spread_unsupplied_energy_cost=optimization_dict["nodal optimization"].get(
-                        "spread-unsupplied-energy-cost"
-                    ),
-                    spread_spilled_energy_cost=optimization_dict["nodal optimization"].get(
-                        "spread-spilled-energy-cost"
-                    ),
+                    non_dispatch_power=nodal_optimization.get("non-dispatchable-power"),
+                    dispatch_hydro_power=nodal_optimization.get("dispatchable-hydro-power"),
+                    other_dispatch_power=nodal_optimization.get("other-dispatchable-power"),
+                    spread_unsupplied_energy_cost=nodal_optimization.get("spread-unsupplied-energy-cost"),
+                    spread_spilled_energy_cost=nodal_optimization.get("spread-spilled-energy-cost"),
                     energy_cost_unsupplied=thermal_area_dict["unserverdenergycost"].get(element.name),
                     energy_cost_spilled=thermal_area_dict["spilledenergycost"].get(element.name),
                     filter_synthesis=set(optimization_dict["filtering"].get("filter-synthesis").split(", ")),

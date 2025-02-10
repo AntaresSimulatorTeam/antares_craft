@@ -17,9 +17,14 @@ import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
-from antares.craft.exceptions.exceptions import APIError, RenewableMatrixDownloadError, RenewablePropertiesUpdateError
+from antares.craft.exceptions.exceptions import (
+    APIError,
+    RenewableMatrixDownloadError,
+    RenewableMatrixUpdateError,
+    RenewablePropertiesUpdateError,
+)
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
-from antares.craft.service.api_services.utils import get_matrix
+from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import BaseRenewableService
 
 
@@ -51,6 +56,21 @@ class RenewableApiService(BaseRenewableService):
 
         return new_properties
 
+    def update_renewable_matrix(self, renewable_cluster: RenewableCluster, matrix: pd.DataFrame) -> None:
+        try:
+            path = (
+                PurePosixPath("input")
+                / "renewables"
+                / "series"
+                / f"{renewable_cluster.area_id}"
+                / f"{renewable_cluster.id}"
+                / "series"
+            )
+
+            upload_series(self._base_url, self.study_id, self._wrapper, matrix, path.as_posix())
+        except APIError as e:
+            raise RenewableMatrixUpdateError(renewable_cluster.area_id, renewable_cluster.id, e.message) from e
+
     def get_renewable_matrix(self, cluster_id: str, area_id: str) -> pd.DataFrame:
         try:
             path = PurePosixPath("input") / "renewables" / "series" / f"{area_id}" / f"{cluster_id}" / "series"
@@ -62,9 +82,21 @@ class RenewableApiService(BaseRenewableService):
         self,
         area_id: str,
     ) -> List[RenewableCluster]:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
-        json_renewables = self._wrapper.get(url).json()
+        """
+        read_renewables will return an error if
+        study settings renewable_generation_modelling is aggregated
+        an empty list will be returned instead
+        """
 
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
+
+        try:
+            json_renewables = self._wrapper.get(url).json()
+        except APIError as e:
+            if e.message == "'renewables' not a child of Input":
+                json_renewables = []
+            else:
+                raise
         renewables = []
 
         for renewable in json_renewables:
@@ -72,7 +104,7 @@ class RenewableApiService(BaseRenewableService):
             renewable_name = renewable.pop("name")
 
             renewable_props = RenewableClusterProperties(**renewable)
-            renewable_cluster = RenewableCluster(self.config, renewable_id, renewable_name, renewable_props)
+            renewable_cluster = RenewableCluster(self, renewable_id, renewable_name, renewable_props)
             renewables.append(renewable_cluster)
 
         renewables.sort(key=lambda renewable: renewable.id)

@@ -9,14 +9,19 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
 import requests_mock
+
+from unittest.mock import Mock
 
 import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
-from antares.craft.exceptions.exceptions import RenewableMatrixDownloadError, RenewablePropertiesUpdateError
+from antares.craft.exceptions.exceptions import (
+    RenewableMatrixDownloadError,
+    RenewableMatrixUpdateError,
+    RenewablePropertiesUpdateError,
+)
 from antares.craft.model.area import Area
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.service.api_services.area_api import AreaApiService
@@ -90,6 +95,29 @@ class TestCreateAPI:
             ):
                 self.renewable.get_timeseries()
 
+    def test_upload_renewable_matrices_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/renewables/series/"
+                f"{self.area.id}/{self.renewable.name}/series"
+            )
+            mocker.post(url, status_code=200)
+            self.renewable.update_renewable_matrix(self.matrix)
+
+    def test_upload_renewable_matrices_fail(self):
+        with requests_mock.Mocker() as mocker:
+            url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/renewables/series/"
+                f"{self.area.id}/{self.renewable.name}/series"
+            )
+            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                RenewableMatrixUpdateError,
+                match=f"Could not upload matrix for cluster {self.renewable.name} inside area {self.area.name}: "
+                + self.antares_web_description_msg,
+            ):
+                self.renewable.update_renewable_matrix(self.matrix)
+
     def test_read_renewables(self):
         json_renewable = [
             {
@@ -109,8 +137,13 @@ class TestCreateAPI:
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url + "clusters/renewable", json=json_renewable)
-            area_api = AreaApiService(self.api, study_id_test)
             renewable_api = RenewableApiService(self.api, study_id_test)
+            storage_service = Mock()
+            thermal_service = Mock()
+            hydro_service = Mock()
+            area_api = AreaApiService(
+                self.api, study_id_test, storage_service, thermal_service, renewable_api, hydro_service
+            )
 
             actual_renewable_list = renewable_api.read_renewables(area_id)
 

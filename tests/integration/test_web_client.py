@@ -11,6 +11,8 @@
 # This file is part of the Antares project.
 import pytest
 
+import shutil
+
 from pathlib import Path, PurePath
 
 import numpy as np
@@ -40,7 +42,7 @@ from antares.craft.model.settings.general import GeneralParameters, Mode
 from antares.craft.model.settings.study_settings import PlaylistParameters, StudySettings
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
 from antares.craft.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
-from antares.craft.model.study import create_study_api, create_variant_api, read_study_api
+from antares.craft.model.study import create_study_api, create_variant_api, import_study_api, read_study_api
 from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
@@ -56,7 +58,7 @@ def antares_web() -> AntaresWebDesktop:
 
 # todo add integration tests for matrices
 class TestWebClient:
-    def test_creation_lifecycle(self, antares_web: AntaresWebDesktop):
+    def test_creation_lifecycle(self, antares_web: AntaresWebDesktop, tmp_path):
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
         study = create_study_api("antares-craft-test", "880", api_config)
@@ -452,6 +454,16 @@ class TestWebClient:
         study.delete_link(link_de_fr)
         assert link_de_fr.id not in study.get_links()
 
+        # tests uploading thermal and renewable matrices
+        thermal_fr_matrix = pd.DataFrame(data=np.ones((8760, 1)))
+        renewable_fr_matrix = pd.DataFrame(data=np.ones((8760, 1)))
+        thermal_fr.update_thermal_matrix(thermal_fr_matrix)
+        renewable_fr.update_renewable_matrix(renewable_fr_matrix)
+
+        actual_thermal_matrix = thermal_fr.get_series_matrix()
+        actual_thermal_matrix.equals(thermal_fr_matrix)
+        actual_renewable_matrix = renewable_fr.get_timeseries()
+        actual_renewable_matrix.equals(renewable_fr_matrix)
         # tests thermal cluster deletion
         area_be.delete_thermal_cluster(thermal_be)
         assert area_be.get_thermals() == {}
@@ -479,21 +491,18 @@ class TestWebClient:
 
         # test study creation with settings
         settings = StudySettings()
-        settings.general_parameters = GeneralParameters(mode="Adequacy")
+        settings.general_parameters = GeneralParameters(mode=Mode.ADEQUACY)
         settings.general_parameters.year_by_year = False
-        settings.playlist_parameters = PlaylistParameters()
-        settings.playlist_parameters.playlist = [{"status": False, "weight": 1}]
+        settings.playlist_parameters = {1: PlaylistParameters(status=False, weight=1)}
         new_study = create_study_api("second_study", "880", api_config, settings)
         settings = new_study.get_settings()
         assert settings.general_parameters.mode == Mode.ADEQUACY.value
         assert not settings.general_parameters.year_by_year
-        assert settings.playlist_parameters.model_dump() == {1: {"status": False, "weight": 1}}
+        assert settings.playlist_parameters == {1: PlaylistParameters(status=False, weight=1)}
 
         # tests update settings
         new_settings = StudySettings()
-        # Really important note. To instance such object with value you must respect camel case.
-        # Another way to do so is to instance the object and then fill its values
-        new_settings.general_parameters = GeneralParameters(nbYears=4)
+        new_settings.general_parameters = GeneralParameters(nb_years=4)
         new_settings.advanced_parameters = AdvancedParameters()
         new_settings.advanced_parameters.unit_commitment_mode = UnitCommitmentMode.MILP
         new_study.update_settings(new_settings)
@@ -648,3 +657,33 @@ class TestWebClient:
         moved_study = read_study_api(api_config, study.service.study_id)
         assert moved_study.path == study.path
         assert moved_study.name == study.name
+
+        new_settings_aggregated = StudySettings()
+        new_settings_aggregated.advanced_parameters = AdvancedParameters()
+        new_settings_aggregated.advanced_parameters.renewable_generation_modelling = "aggregated"
+        study_aggregated = create_study_api("test_aggregated", "880", api_config, new_settings_aggregated)
+        study_aggregated.create_area("area_without_renewables")
+        #  read_study_api does not raise an error
+        read_study_api(api_config, study_aggregated.service.study_id)
+
+        # testing import study
+        # creating a test path to not affect the internal studies created
+        test_path = Path(antares_web.desktop_path.joinpath("internal_studies").joinpath(study.service.study_id))
+        copy_dir = tmp_path / test_path.name
+
+        tmp_path_zip = tmp_path / copy_dir.name
+        shutil.copytree(test_path, copy_dir)
+
+        zip_study = Path(shutil.make_archive(str(tmp_path_zip), "zip", copy_dir))
+
+        # importing without moving the study
+        imported_study = import_study_api(api_config, zip_study, None)
+
+        assert imported_study.path == PurePath(".")
+
+        # importing with moving the study
+        path_test = Path("/new/test/studies")
+        imported_study = import_study_api(api_config, zip_study, path_test)
+
+        assert imported_study.path == path_test / f"{imported_study.service.study_id}"
+        assert list(imported_study.get_areas()) == list(study.get_areas())
