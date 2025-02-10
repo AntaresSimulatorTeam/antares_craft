@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
@@ -83,7 +83,7 @@ class AdequacyPatchParametersAPI(BaseModel, alias_generator=to_camel):
         return AdequacyPatchParametersAPI.model_validate(user_dict)
 
     def to_user_model(self, update: bool) -> AdequacyPatchParametersType:
-        args = {
+        args: dict[str, Any] = {
             "include_adq_patch": self.enable_adequacy_patch,
             "set_to_null_ntc_from_physical_out_to_physical_in_for_first_step": self.ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch,
             "set_to_null_ntc_between_physical_out_for_first_step": self.ntc_between_physical_areas_out_adequacy_patch,
@@ -203,7 +203,7 @@ class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, ali
         return GeneralParametersAPI.model_validate(user_dict)
 
     def to_user_model(self, nb_ts_thermal: int, update: bool) -> GeneralParametersType:
-        args = {
+        args: dict[str, Any] = {
             "mode": self.mode,
             "horizon": self.horizon,
             "nb_years": self.nb_years,
@@ -264,7 +264,7 @@ class OptimizationParametersAPI(BaseModel, alias_generator=to_camel):
         return OptimizationParametersAPI.model_validate(user_dict)
 
     def to_user_model(self, update: bool) -> OptimizationParametersType:
-        args = {
+        args: dict[str, Any] = {
             "simplex_range": self.simplex_optimization_range,
             "transmission_capacities": self.transmission_capacities,
             "include_constraints": self.binding_constraints,
