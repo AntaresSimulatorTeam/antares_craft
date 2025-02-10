@@ -17,7 +17,7 @@ electrical demand (load), generation fleet (clusters),
 """
 
 from types import MappingProxyType
-from typing import Any, Mapping, Optional, cast
+from typing import Any, Mapping, Optional
 
 import pandas as pd
 
@@ -26,6 +26,13 @@ from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
+from antares.craft.service.base_services import (
+    BaseAreaService,
+    BaseHydroService,
+    BaseRenewableService,
+    BaseShortTermStorageService,
+    BaseThermalService,
+)
 from antares.craft.tools.alias_generators import to_space
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
@@ -189,14 +196,14 @@ class AreaUiLocal(BaseModel):
 
 
 class Area:
-    def __init__(  # type: ignore # TODO: Find a way to avoid circular imports
+    def __init__(  # TODO: Find a way to avoid circular imports
         self,
         name: str,
-        area_service,
-        storage_service,
-        thermal_service,
-        renewable_service,
-        hydro_service,
+        area_service: BaseAreaService,
+        storage_service: BaseShortTermStorageService,
+        thermal_service: BaseThermalService,
+        renewable_service: BaseRenewableService,
+        hydro_service: BaseHydroService,
         *,
         renewables: Optional[dict[str, RenewableCluster]] = None,
         thermals: Optional[dict[str, ThermalCluster]] = None,
@@ -251,9 +258,9 @@ class Area:
     def create_thermal_cluster(
         self, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
     ) -> ThermalCluster:
-        thermal = self._area_service.create_thermal_cluster(self.id, thermal_name, properties)
+        thermal: ThermalCluster = self._area_service.create_thermal_cluster(self.id, thermal_name, properties)
         self._thermals[thermal.id] = thermal
-        return cast(ThermalCluster, thermal)
+        return thermal
 
     def create_thermal_cluster_with_matrices(
         self,
@@ -269,35 +276,35 @@ class Area:
             self.id, cluster_name, parameters, prepro, modulation, series, CO2Cost, fuelCost
         )
         self._thermals[thermal.id] = thermal
-        return cast(ThermalCluster, thermal)
+        return thermal
 
     def create_renewable_cluster(
         self, renewable_name: str, properties: Optional[RenewableClusterProperties], series: Optional[pd.DataFrame]
     ) -> RenewableCluster:
         renewable = self._area_service.create_renewable_cluster(self.id, renewable_name, properties, series=series)
         self._renewables[renewable.id] = renewable
-        return cast(RenewableCluster, renewable)
+        return renewable
 
     def create_st_storage(self, st_storage_name: str, properties: Optional[STStorageProperties] = None) -> STStorage:
         storage = self._area_service.create_st_storage(self.id, st_storage_name, properties)
         self._st_storages[storage.id] = storage
 
-        return cast(STStorage, storage)
+        return storage
 
     def get_load_matrix(self) -> pd.DataFrame:
-        return cast(pd.DataFrame, self._area_service.get_load_matrix(self.id))
+        return self._area_service.get_load_matrix(self.id)
 
     def get_wind_matrix(self) -> pd.DataFrame:
-        return cast(pd.DataFrame, self._area_service.get_wind_matrix(self.id))
+        return self._area_service.get_wind_matrix(self.id)
 
     def get_solar_matrix(self) -> pd.DataFrame:
-        return cast(pd.DataFrame, self._area_service.get_solar_matrix(self.id))
+        return self._area_service.get_solar_matrix(self.id)
 
     def get_reserves_matrix(self) -> pd.DataFrame:
-        return cast(pd.DataFrame, self._area_service.get_reserves_matrix(self.id))
+        return self._area_service.get_reserves_matrix(self.id)
 
     def get_misc_gen_matrix(self) -> pd.DataFrame:
-        return cast(pd.DataFrame, self._area_service.get_misc_gen_matrix(self.id))
+        return self._area_service.get_misc_gen_matrix(self.id)
 
     def delete_thermal_clusters(self, thermal_clusters: list[ThermalCluster]) -> None:
         self._area_service.delete_thermal_clusters(self.id, thermal_clusters)
@@ -354,24 +361,24 @@ class Area:
         # todo: is it necessary to create allocation or correlation ?
         hydro = self._area_service.create_hydro(self.id, properties, matrices)
         self._hydro = hydro
-        return cast(Hydro, hydro)
+        return hydro
 
     def read_st_storages(
         self,
     ) -> list[STStorage]:
-        return cast(list[STStorage], self._storage_service.read_st_storages(self.id))
+        return self._storage_service.read_st_storages(self.id)
 
     def read_renewables(
         self,
     ) -> list[RenewableCluster]:
-        return cast(list[RenewableCluster], self._renewable_service.read_renewables(self.id))
+        return self._renewable_service.read_renewables(self.id)
 
     def read_thermal_clusters(
         self,
     ) -> list[ThermalCluster]:
-        return cast(list[ThermalCluster], self._thermal_service.read_thermal_clusters(self.id))
+        return self._thermal_service.read_thermal_clusters(self.id)
 
     def read_hydro(
         self,
     ) -> Hydro:
-        return cast(Hydro, self._area_service.read_hydro(self.id))
+        return self._area_service.read_hydro(self.id)

@@ -11,11 +11,12 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Mapping, Optional, Set, cast
+from typing import Mapping, Optional, Set
 
 import pandas as pd
 
 from antares.craft.model.commons import FilterOption, sort_filter_values
+from antares.craft.service.base_services import BaseLinkService
 from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import transform_name_to_id
@@ -133,11 +134,11 @@ class LinkUiLocal(DefaultLinkUi):
 
 
 class Link:
-    def __init__(  # type: ignore # TODO: Find a way to avoid circular imports
+    def __init__(  # TODO: Find a way to avoid circular imports
         self,
         area_from: str,
         area_to: str,
-        link_service,
+        link_service: BaseLinkService,
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
     ):
@@ -169,12 +170,12 @@ class Link:
     def update_properties(self, properties: LinkProperties) -> LinkProperties:
         new_properties = self._link_service.update_link_properties(self, properties)
         self._properties = new_properties
-        return cast(LinkProperties, new_properties)
+        return new_properties
 
     def update_ui(self, ui: LinkUi) -> LinkUi:
         new_ui = self._link_service.update_link_ui(self, ui)
         self._ui = new_ui
-        return cast(LinkUi, new_ui)
+        return new_ui
 
     def create_parameters(self, series: pd.DataFrame) -> None:
         self._link_service.create_parameters(series, self.area_from_id, self.area_to_id)
@@ -186,10 +187,10 @@ class Link:
         self._link_service.create_capacity_indirect(series, self.area_from_id, self.area_to_id)
 
     def get_capacity_direct(self) -> pd.DataFrame:
-        return cast(pd.DataFrame, self._link_service.get_capacity_direct(self.area_from_id, self.area_to_id))
+        return self._link_service.get_capacity_direct(self.area_from_id, self.area_to_id)
 
     def get_capacity_indirect(self) -> pd.DataFrame:
-        return cast(pd.DataFrame, self._link_service.get_capacity_indirect(self.area_from_id, self.area_to_id))
+        return self._link_service.get_capacity_indirect(self.area_from_id, self.area_to_id)
 
     def get_parameters(self) -> pd.DataFrame:
-        return cast(pd.DataFrame, self._link_service.get_parameters(self.area_from_id, self.area_to_id))
+        return self._link_service.get_parameters(self.area_from_id, self.area_to_id)

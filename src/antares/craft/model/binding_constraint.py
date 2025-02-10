@@ -11,10 +11,11 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Any, Optional, Union, cast
+from typing import Any, Optional, Union
 
 import pandas as pd
 
+from antares.craft.service.base_services import BaseBindingConstraintService
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 from pydantic import BaseModel, Field, model_validator
@@ -120,10 +121,10 @@ class BindingConstraintProperties(DefaultBindingConstraintProperties):
 
 
 class BindingConstraint:
-    def __init__(  # type: ignore # TODO: Find a way to avoid circular imports
+    def __init__(  # TODO: Find a way to avoid circular imports
         self,
         name: str,
-        binding_constraint_service,
+        binding_constraint_service: BaseBindingConstraintService,
         properties: Optional[BindingConstraintProperties] = None,
         terms: Optional[list[ConstraintTerm]] = None,
     ):
@@ -166,20 +167,13 @@ class BindingConstraint:
         self._properties = new_properties
 
     def get_less_term_matrix(self) -> pd.DataFrame:
-        return cast(
-            pd.DataFrame, self._binding_constraint_service.get_constraint_matrix(self, ConstraintMatrixName.LESS_TERM)
-        )
+        return self._binding_constraint_service.get_constraint_matrix(self, ConstraintMatrixName.LESS_TERM)
 
     def get_equal_term_matrix(self) -> pd.DataFrame:
-        return cast(
-            pd.DataFrame, self._binding_constraint_service.get_constraint_matrix(self, ConstraintMatrixName.EQUAL_TERM)
-        )
+        return self._binding_constraint_service.get_constraint_matrix(self, ConstraintMatrixName.EQUAL_TERM)
 
     def get_greater_term_matrix(self) -> pd.DataFrame:
-        return cast(
-            pd.DataFrame,
-            self._binding_constraint_service.get_constraint_matrix(self, ConstraintMatrixName.GREATER_TERM),
-        )
+        return self._binding_constraint_service.get_constraint_matrix(self, ConstraintMatrixName.GREATER_TERM)
 
     def update_less_term_matrix(self, matrix: pd.DataFrame) -> None:
         self._binding_constraint_service.update_constraint_matrix(self, ConstraintMatrixName.LESS_TERM, matrix)

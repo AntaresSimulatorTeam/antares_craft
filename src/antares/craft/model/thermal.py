@@ -11,11 +11,12 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Optional, cast
+from typing import Optional
 
 import pandas as pd
 
 from antares.craft.model.cluster import ClusterProperties
+from antares.craft.service.base_services import BaseThermalService
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import transform_name_to_id
 
@@ -171,9 +172,15 @@ class ThermalClusterMatrixName(Enum):
 
 
 class ThermalCluster:
-    def __init__(self, thermal_service, area_id: str, name: str, properties: Optional[ThermalClusterProperties] = None):  # type: ignore # TODO: Find a way to avoid circular imports
+    def __init__(
+        self,
+        thermal_service: BaseThermalService,
+        area_id: str,
+        name: str,
+        properties: Optional[ThermalClusterProperties] = None,
+    ):  # TODO: Find a way to avoid circular imports
         self._area_id = area_id
-        self._thermal_service = thermal_service
+        self._thermal_service: BaseThermalService = thermal_service
         self._name = name
         self._id = transform_name_to_id(name)
         self._properties = properties or ThermalClusterProperties()
@@ -201,25 +208,19 @@ class ThermalCluster:
         self._properties = new_properties
 
     def get_prepro_data_matrix(self) -> pd.DataFrame:
-        return cast(pd.DataFrame, self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.PREPRO_DATA))
+        return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.PREPRO_DATA)
 
     def get_prepro_modulation_matrix(self) -> pd.DataFrame:
-        return cast(
-            pd.DataFrame, self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.PREPRO_MODULATION)
-        )
+        return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.PREPRO_MODULATION)
 
     def get_series_matrix(self) -> pd.DataFrame:
-        return cast(pd.DataFrame, self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES))
+        return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES)
 
     def get_co2_cost_matrix(self) -> pd.DataFrame:
-        return cast(
-            pd.DataFrame, self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_CO2_COST)
-        )
+        return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_CO2_COST)
 
     def get_fuel_cost_matrix(self) -> pd.DataFrame:
-        return cast(
-            pd.DataFrame, self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_FUEL_COST)
-        )
+        return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_FUEL_COST)
 
     def update_thermal_matrix(self, matrix: pd.DataFrame) -> None:
         self._thermal_service.update_thermal_matrix(self, matrix)
