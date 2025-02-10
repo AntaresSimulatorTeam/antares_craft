@@ -596,10 +596,6 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
-    def set_output_service(self, output_service: "BaseOutputService") -> None:
-        pass
-
-    @abstractmethod
     def delete_outputs(self) -> None:
         """
         Deletes all the outputs of the study

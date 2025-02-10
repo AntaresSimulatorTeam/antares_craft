@@ -110,14 +110,14 @@ class ServiceFactory:
 
     def create_study_service(self) -> BaseStudyService:
         study_service: BaseStudyService
+        output_service = self.create_output_service()
         if isinstance(self.config, APIconf):
-            study_service = StudyApiService(self.config, self.study_id)
+            study_service = StudyApiService(self.config, self.study_id, output_service)
         elif isinstance(self.config, LocalConfiguration):
-            study_service = StudyLocalService(self.config, self.study_name)
+            study_service = StudyLocalService(self.config, self.study_name, output_service)
         else:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
 
-        study_service.set_output_service(self.create_output_service())
         return study_service
 
     def create_renewable_service(self) -> BaseRenewableService:

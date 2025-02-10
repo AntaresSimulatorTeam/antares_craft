@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import antares.craft.model.study as study
 
@@ -38,13 +38,13 @@ if TYPE_CHECKING:
 
 
 class StudyApiService(BaseStudyService):
-    def __init__(self, config: APIconf, study_id: str):
+    def __init__(self, config: APIconf, study_id: str, output_service: BaseOutputService):
         super().__init__()
         self._config = config
         self._study_id = study_id
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
-        self._output_service: Optional[BaseOutputService] = None
+        self._output_service: BaseOutputService = output_service
 
     @property
     def study_id(self) -> str:
@@ -55,11 +55,8 @@ class StudyApiService(BaseStudyService):
         return self._config
 
     @property
-    def output_service(self) -> Optional[BaseOutputService]:
+    def output_service(self) -> BaseOutputService:
         return self._output_service
-
-    def set_output_service(self, output_service: BaseOutputService) -> None:
-        self._output_service = output_service
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint.id}"
@@ -85,9 +82,6 @@ class StudyApiService(BaseStudyService):
             raise StudyVariantCreationError(self.study_id, e.message) from e
 
     def read_outputs(self) -> list[Output]:
-        if not isinstance(self.output_service, BaseOutputService):
-            raise RuntimeError(f"The output service for {self.study_id} study service has not been set")
-
         url = f"{self._base_url}/studies/{self.study_id}/outputs"
         try:
             response = self._wrapper.get(url)
