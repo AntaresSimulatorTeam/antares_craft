@@ -44,8 +44,8 @@ class StudySettingsLocalService(BaseStudySettingsService):
         self.config = config
         self.study_name = study_name
 
-    def edit_study_settings(self, settings: StudySettingsUpdate) -> StudySettings:
-        return edit_study_settings(self.config.study_path, settings, update=True)
+    def edit_study_settings(self, settings: StudySettingsUpdate) -> None:
+        edit_study_settings(self.config.study_path, settings, update=True)
 
     def read_study_settings(self) -> StudySettings:
         return read_study_settings(self.config.study_path)

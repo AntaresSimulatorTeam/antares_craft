@@ -34,10 +34,9 @@ class StudySettingsAPIService(BaseStudySettingsService):
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
-    def edit_study_settings(self, settings: StudySettingsUpdate) -> StudySettings:
+    def edit_study_settings(self, settings: StudySettingsUpdate) -> None:
         try:
             edit_study_settings(self._base_url, self.study_id, self._wrapper, settings)
-            return settings
         except APIError as e:
             raise StudySettingsUpdateError(self.study_id, e.message) from e
 
