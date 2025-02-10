@@ -59,7 +59,7 @@ AdequacyPatchParametersType = Union[AdequacyPatchParameters, AdequacyPatchParame
 
 @all_optional_model
 class AdequacyPatchParametersAPI(BaseModel, alias_generator=to_camel):
-    enable_adequacy_patch: Optional[bool] = None
+    enable_adequacy_patch: bool = False
     ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch: bool = True
     ntc_between_physical_areas_out_adequacy_patch: bool = True
     price_taking_order: PriceTakingOrder = Field(default=PriceTakingOrder.DENS, validate_default=True)
