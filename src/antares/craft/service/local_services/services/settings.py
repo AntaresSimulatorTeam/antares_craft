@@ -21,6 +21,7 @@ from antares.craft.model.settings.advanced_parameters import (
 from antares.craft.model.settings.general import BuildingMode
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
+from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.service.base_services import BaseStudySettingsService
 from antares.craft.service.local_services.models.settings import (
     AdequacyPatchParametersLocal,
@@ -100,9 +101,9 @@ def read_study_settings(study_directory: Path) -> StudySettings:
         # todo
 
     # thematic trimming
-    thematic_trimming_parameters = None
+    thematic_trimming_parameters = ThematicTrimmingParameters()
     if "variables selection" in ini_content:
-        thematic_trimming_parameters = None
+        thematic_trimming_parameters = ThematicTrimmingParameters()
         # todo
 
     return StudySettings(
@@ -112,8 +113,7 @@ def read_study_settings(study_directory: Path) -> StudySettings:
         advanced_parameters=advanced_parameters,
         adequacy_patch_parameters=adequacy_patch_parameters,
         playlist_parameters=playlist_parameters,
-        thematic_trimming_parameters=thematic_trimming_parameters,  # type: ignore
-        # todo: remove the type ignore when thematic trimming is implemented
+        thematic_trimming_parameters=thematic_trimming_parameters,
     )
 
 
