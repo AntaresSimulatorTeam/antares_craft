@@ -54,4 +54,22 @@ class StudySettings:
                     if inner_value is not None:
                         current_settings[key][inner_key] = inner_value
 
-        return StudySettings(**current_settings)
+        general_parameters = GeneralParameters(**current_settings["general_parameters"])
+        optimization_parameters = OptimizationParameters(**current_settings["optimization_parameters"])
+        advanced_parameters = AdvancedParameters(**current_settings["advanced_parameters"])
+        seed_parameters = SeedParameters(**current_settings["seed_parameters"])
+        adequacy_patch_parameters = AdequacyPatchParameters(**current_settings["adequacy_patch_parameters"])
+        thematic_trimming_parameters = ThematicTrimmingParameters(**current_settings["thematic_trimming_parameters"])
+        playlist_parameters: dict[int, PlaylistParameters] = {}
+        for year in current_settings["playlist_parameters"]:
+            playlist_parameters[year] = PlaylistParameters(**current_settings["playlist_parameters"][year])
+
+        return StudySettings(
+            general_parameters,
+            optimization_parameters,
+            advanced_parameters,
+            seed_parameters,
+            adequacy_patch_parameters,
+            thematic_trimming_parameters,
+            playlist_parameters,
+        )
