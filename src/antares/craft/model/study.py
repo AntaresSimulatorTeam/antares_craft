@@ -14,6 +14,7 @@ import logging
 import os
 import time
 
+from dataclasses import asdict
 from pathlib import Path, PurePath
 from types import MappingProxyType
 from typing import List, Optional
@@ -173,7 +174,8 @@ InfoTip = Antares Study {version}: {study_name}
         path=study_directory,
     )
     # We need to create the file with default value
-    study._settings = edit_study_settings(study_directory, StudySettings(), False)
+    default_settings = StudySettingsUpdate(**asdict(StudySettings()))
+    study._settings = edit_study_settings(study_directory, default_settings, False)
     return study
 
 
