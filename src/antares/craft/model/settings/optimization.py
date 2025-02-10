@@ -35,10 +35,10 @@ class SimplexOptimizationRange(Enum):
 
 
 class ExportMPS(Enum):
-    NONE = "none"
+    TRUE = "true"
+    FALSE = "false"
     OPTIM1 = "optim1"
     OPTIM2 = "optim2"
-    BOTH_OPTIMS = "both-optims"
 
 
 @dataclass
@@ -53,7 +53,7 @@ class OptimizationParameters:
     include_strategicreserve: bool = True
     include_spinningreserve: bool = True
     include_primaryreserve: bool = True
-    include_exportmps: ExportMPS = ExportMPS.NONE
+    include_exportmps: ExportMPS = ExportMPS.FALSE
     include_exportstructure: bool = False
     include_unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
 

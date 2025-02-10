@@ -27,12 +27,12 @@ from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParam
 
 @dataclass
 class StudySettings:
-    general_parameters: GeneralParameters = GeneralParameters()
-    optimization_parameters: OptimizationParameters = OptimizationParameters()
-    advanced_parameters: AdvancedParameters = AdvancedParameters()
-    seed_parameters: SeedParameters = SeedParameters()
-    adequacy_patch_parameters: AdequacyPatchParameters = AdequacyPatchParameters()
-    thematic_trimming_parameters: ThematicTrimmingParameters = ThematicTrimmingParameters()
+    general_parameters: GeneralParameters = field(default_factory=GeneralParameters)
+    optimization_parameters: OptimizationParameters = field(default_factory=OptimizationParameters)
+    advanced_parameters: AdvancedParameters = field(default_factory=AdvancedParameters)
+    seed_parameters: SeedParameters = field(default_factory=SeedParameters)
+    adequacy_patch_parameters: AdequacyPatchParameters = field(default_factory=AdequacyPatchParameters)
+    thematic_trimming_parameters: ThematicTrimmingParameters = field(default_factory=ThematicTrimmingParameters)
     playlist_parameters: dict[int, PlaylistParameters] = field(default_factory=dict)
 
 

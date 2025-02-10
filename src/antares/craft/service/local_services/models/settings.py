@@ -44,6 +44,7 @@ from antares.craft.model.settings.general import (
     WeekDay,
 )
 from antares.craft.model.settings.optimization import (
+    ExportMPS,
     OptimizationParameters,
     OptimizationParametersUpdate,
     OptimizationTransmissionCapacities,
@@ -272,7 +273,7 @@ class OptimizationParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     include_strategicreserve: bool = True
     include_spinningreserve: bool = True
     include_primaryreserve: bool = True
-    include_exportmps: bool = False
+    include_exportmps: ExportMPS = ExportMPS.FALSE
     include_exportstructure: bool = False
     include_unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
 
