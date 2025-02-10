@@ -117,7 +117,7 @@ class AdvancedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     adequacy_block_size: int = 100
 
     @field_validator("accuracy_on_correlation", mode="before")
-    def validate_accuracy_on_correlation(cls, v: Any) -> Sequence[str] | set:
+    def validate_accuracy_on_correlation(cls, v: Any) -> Union[Sequence[str], set]:
         """Ensure the ID is lower case."""
         if v is None:
             return []
