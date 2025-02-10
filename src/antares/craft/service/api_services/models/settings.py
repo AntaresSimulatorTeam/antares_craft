@@ -124,22 +124,6 @@ class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel):
     seed_initial_reservoir_levels: int
 
     @staticmethod
-    def _get_advanced_user_parameters_fields() -> set[str]:
-        return {
-            "seed_tsgen_wind",
-            "seed_tsgen_load",
-            "seed_tsgen_hydro",
-            "seed_tsgen_thermal",
-            "seed_tsgen_solar",
-            "seed_tsnumbers",
-            "seed_unsupplied_energy_costs",
-            "seed_spilled_energy_costs",
-            "seed_thermal_costs",
-            "seed_hydro_costs",
-            "seed_initial_reservoir_levels",
-        }
-
-    @staticmethod
     def from_user_model(
         advanced_parameters: Optional[AdvancedParametersType] = None,
         seed_parameters: Optional[SeedParametersType] = None,
@@ -150,8 +134,8 @@ class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel):
         return AdvancedAndSeedParametersAPI.model_validate(api_dict)
 
     def to_user_advanced_parameters_model(self) -> AdvancedParameters:
-        excluded_fields = self._get_advanced_user_parameters_fields()
-        return AdvancedParameters(**self.model_dump(mode="json", exclude=excluded_fields))
+        included_fields = set(asdict(AdvancedParameters()).keys())
+        return AdvancedParameters(**self.model_dump(mode="json", include=included_fields))
 
     def to_user_seed_parameters_model(self) -> SeedParameters:
         included_fields = set(asdict(SeedParameters()).keys())
