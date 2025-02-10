@@ -196,7 +196,7 @@ class AreaUiLocal(BaseModel):
 
 
 class Area:
-    def __init__(  # TODO: Find a way to avoid circular imports
+    def __init__(
         self,
         name: str,
         area_service: BaseAreaService,
@@ -258,7 +258,7 @@ class Area:
     def create_thermal_cluster(
         self, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
     ) -> ThermalCluster:
-        thermal: ThermalCluster = self._area_service.create_thermal_cluster(self.id, thermal_name, properties)
+        thermal = self._area_service.create_thermal_cluster(self.id, thermal_name, properties)
         self._thermals[thermal.id] = thermal
         return thermal
 

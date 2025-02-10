@@ -134,7 +134,7 @@ class LinkUiLocal(DefaultLinkUi):
 
 
 class Link:
-    def __init__(  # TODO: Find a way to avoid circular imports
+    def __init__(
         self,
         area_from: str,
         area_to: str,

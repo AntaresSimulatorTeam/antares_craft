@@ -97,7 +97,7 @@ class STStorage:
         area_id: str,
         name: str,
         properties: Optional[STStorageProperties] = None,
-    ):  # TODO: Find a way to avoid circular imports
+    ):
         self._area_id: str = area_id
         self._storage_service: BaseShortTermStorageService = storage_service
         self._name: str = name

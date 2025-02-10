@@ -40,7 +40,7 @@ class RenewableLocalService(BaseRenewableService):
         )
 
     def _extract_renewable_properties(self, renewable_data: dict[str, Any]) -> RenewableClusterProperties:
-        # get_type_hints will yield a dict with every property with every local property as key and its type as the value
+        # get_type_hints will yield a dict with every local property as key and its type as the value
         property_types = get_type_hints(RenewableClusterPropertiesLocal)
 
         # the name key is called "name" in renewable_data but "renewable_name" in the properties, that's why we map it
