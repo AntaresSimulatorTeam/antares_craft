@@ -128,7 +128,7 @@ class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel):
     @field_validator("accuracy_on_correlation", mode="before")
     def validate_accuracy_on_correlation(cls, v: Any) -> Union[Sequence[str], set[str]]:
         if not v:
-            return []
+            return set()
         if isinstance(v, set):
             return v
         return cast(Sequence[str], ast.literal_eval(v))

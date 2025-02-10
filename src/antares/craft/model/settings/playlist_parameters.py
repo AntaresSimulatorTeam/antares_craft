@@ -10,16 +10,9 @@
 #
 # This file is part of the Antares project.
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
 class PlaylistParameters:
     status: bool
     weight: float
-
-
-@dataclass
-class PlaylistParametersUpdate:
-    status: Optional[bool] = None
-    weight: Optional[float] = None

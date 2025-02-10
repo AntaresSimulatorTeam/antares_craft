@@ -495,24 +495,29 @@ class TestWebClient:
 
         # test default settings at the study creation
         new_study = create_study_api("second_study", "880", api_config)
-        assert new_study.get_settings() == StudySettings()
+        actual_settings = new_study.get_settings()
+        default_settings = StudySettings()
+        assert actual_settings.general_parameters == default_settings.general_parameters
+        assert actual_settings.adequacy_patch_parameters == default_settings.adequacy_patch_parameters
+        assert actual_settings.seed_parameters == default_settings.seed_parameters
+        assert actual_settings.playlist_parameters == {1: PlaylistParameters(status=False, weight=1)}
 
         # tests update settings
         study_settings = StudySettingsUpdate()
         study_settings.general_parameters = GeneralParametersUpdate(mode=Mode.ADEQUACY, year_by_year=False)
-        study_settings.playlist_parameters = {1: PlaylistParameters(status=False, weight=1)}
+        study_settings.playlist_parameters = {1: PlaylistParameters(status=True, weight=0.6)}
         new_study.update_settings(study_settings)
         updated_settings = new_study.get_settings()
         assert updated_settings.general_parameters.mode == Mode.ADEQUACY
         assert not updated_settings.general_parameters.year_by_year
-        assert updated_settings.playlist_parameters == {1: PlaylistParameters(status=False, weight=1)}
+        assert updated_settings.playlist_parameters == {1: PlaylistParameters(status=True, weight=0.6)}
 
         new_settings = StudySettingsUpdate()
-        new_settings.general_parameters = GeneralParametersUpdate(nb_years=4)
+        new_settings.general_parameters = GeneralParametersUpdate(simulation_synthesis=False)
         new_settings.advanced_parameters = AdvancedParametersUpdate(unit_commitment_mode=UnitCommitmentMode.MILP)
         new_study.update_settings(new_settings)
         assert new_study.get_settings().general_parameters.mode == Mode.ADEQUACY
-        assert new_study.get_settings().general_parameters.nb_years == 4
+        assert new_study.get_settings().general_parameters.simulation_synthesis is False
         assert new_study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP
 
         # test each hydro matrices returns the good values

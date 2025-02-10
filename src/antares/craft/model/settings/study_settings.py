@@ -21,7 +21,7 @@ from antares.craft.model.settings.advanced_parameters import (
 )
 from antares.craft.model.settings.general import GeneralParameters, GeneralParametersUpdate
 from antares.craft.model.settings.optimization import OptimizationParameters, OptimizationParametersUpdate
-from antares.craft.model.settings.playlist_parameters import PlaylistParameters, PlaylistParametersUpdate
+from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters, ThematicTrimmingParametersUpdate
 
 
@@ -33,7 +33,7 @@ class StudySettingsUpdate:
     seed_parameters: Optional[SeedParametersUpdate] = None
     adequacy_patch_parameters: Optional[AdequacyPatchParametersUpdate] = None
     thematic_trimming_parameters: Optional[ThematicTrimmingParametersUpdate] = None
-    playlist_parameters: Optional[dict[int, PlaylistParametersUpdate]] = None
+    playlist_parameters: Optional[dict[int, PlaylistParameters]] = None
 
 
 @dataclass
@@ -84,9 +84,9 @@ class StudySettings:
         thematic_trimming_parameters = ThematicTrimmingParametersUpdate(
             **current_settings["thematic_trimming_parameters"]
         )
-        playlist_parameters: dict[int, PlaylistParametersUpdate] = {}
+        playlist_parameters: dict[int, PlaylistParameters] = {}
         for year in current_settings["playlist_parameters"]:
-            playlist_parameters[year] = PlaylistParametersUpdate(**current_settings["playlist_parameters"][year])
+            playlist_parameters[year] = PlaylistParameters(**current_settings["playlist_parameters"][year])
 
         return StudySettingsUpdate(
             general_parameters,
