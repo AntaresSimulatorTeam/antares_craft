@@ -59,7 +59,7 @@ class BaseAreaService(ABC):
             properties: the properties of the thermal cluster. If not provided, AntaresWeb will use its own default values.
 
         Returns:
-            The created thermal cluster
+            The created ThermalCluster
         """
         pass
 
