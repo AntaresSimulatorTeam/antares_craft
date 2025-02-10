@@ -214,7 +214,7 @@ class OutputSectionLocal(LocalBaseModel):
 
 class GeneralParametersLocal(LocalBaseModel):
     general: GeneralSectionLocal
-    input: dict = {"import": ""}
+    input: dict[str, str] = {"import": ""}
     output: OutputSectionLocal
 
     @staticmethod

@@ -15,6 +15,7 @@ from typing import Optional
 
 import pandas as pd
 
+from antares.craft.service.base_services import BaseShortTermStorageService
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import transform_name_to_id
 from pydantic import BaseModel
@@ -90,12 +91,18 @@ class STStoragePropertiesLocal(DefaultSTStorageProperties):
 
 
 class STStorage:
-    def __init__(self, storage_service, area_id: str, name: str, properties: Optional[STStorageProperties] = None):  # type: ignore # TODO: Find a way to avoid circular imports
-        self._area_id = area_id
-        self._storage_service = storage_service
-        self._name = name
-        self._id = transform_name_to_id(name)
-        self._properties = properties or STStorageProperties()
+    def __init__(
+        self,
+        storage_service: BaseShortTermStorageService,
+        area_id: str,
+        name: str,
+        properties: Optional[STStorageProperties] = None,
+    ):
+        self._area_id: str = area_id
+        self._storage_service: BaseShortTermStorageService = storage_service
+        self._name: str = name
+        self._id: str = transform_name_to_id(name)
+        self._properties: STStorageProperties = properties or STStorageProperties()
 
     # TODO: Add matrices.
 
@@ -135,24 +142,16 @@ class STStorage:
         return self._storage_service.get_storage_matrix(self, STStorageMatrixName.INFLOWS)
 
     def upload_pmax_injection(self, p_max_injection_matrix: pd.DataFrame) -> None:
-        return self._storage_service.upload_storage_matrix(
-            self, STStorageMatrixName.PMAX_INJECTION, p_max_injection_matrix
-        )
+        self._storage_service.upload_storage_matrix(self, STStorageMatrixName.PMAX_INJECTION, p_max_injection_matrix)
 
     def upload_pmax_withdrawal(self, p_max_withdrawal_matrix: pd.DataFrame) -> None:
-        return self._storage_service.upload_storage_matrix(
-            self, STStorageMatrixName.PMAX_WITHDRAWAL, p_max_withdrawal_matrix
-        )
+        self._storage_service.upload_storage_matrix(self, STStorageMatrixName.PMAX_WITHDRAWAL, p_max_withdrawal_matrix)
 
     def upload_lower_rule_curve(self, lower_rule_curve_matrix: pd.DataFrame) -> None:
-        return self._storage_service.upload_storage_matrix(
-            self, STStorageMatrixName.LOWER_CURVE_RULE, lower_rule_curve_matrix
-        )
+        self._storage_service.upload_storage_matrix(self, STStorageMatrixName.LOWER_CURVE_RULE, lower_rule_curve_matrix)
 
     def upload_upper_rule_curve(self, upper_rule_curve_matrix: pd.DataFrame) -> None:
-        return self._storage_service.upload_storage_matrix(
-            self, STStorageMatrixName.UPPER_RULE_CURVE, upper_rule_curve_matrix
-        )
+        self._storage_service.upload_storage_matrix(self, STStorageMatrixName.UPPER_RULE_CURVE, upper_rule_curve_matrix)
 
     def upload_storage_inflows(self, inflows_matrix: pd.DataFrame) -> None:
-        return self._storage_service.upload_storage_matrix(self, STStorageMatrixName.INFLOWS, inflows_matrix)
+        self._storage_service.upload_storage_matrix(self, STStorageMatrixName.INFLOWS, inflows_matrix)

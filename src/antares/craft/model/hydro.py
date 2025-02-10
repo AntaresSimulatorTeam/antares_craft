@@ -11,10 +11,11 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Dict, Optional
+from typing import Optional
 
 import pandas as pd
 
+from antares.craft.service.base_services import BaseHydroService
 from antares.craft.tools.all_optional_meta import all_optional_model
 from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
@@ -90,12 +91,12 @@ class HydroPropertiesLocal(DefaultHydroProperties):
 
 
 class Hydro:
-    def __init__(  # type: ignore #
+    def __init__(
         self,
-        service,
+        service: BaseHydroService,
         area_id: str,
         properties: Optional[HydroProperties] = None,
-        matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
+        matrices: Optional[dict[HydroMatrixName, pd.DataFrame]] = None,
     ):
         self._area_id = area_id
         self._service = service
@@ -111,7 +112,7 @@ class Hydro:
         return self._properties
 
     @property
-    def matrices(self) -> Optional[Dict[HydroMatrixName, pd.DataFrame]]:
+    def matrices(self) -> Optional[dict[HydroMatrixName, pd.DataFrame]]:
         return self._matrices
 
     def get_maxpower(self) -> pd.DataFrame:

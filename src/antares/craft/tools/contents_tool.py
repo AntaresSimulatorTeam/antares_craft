@@ -13,7 +13,7 @@
 import re
 
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
 from pydantic import BaseModel
@@ -53,12 +53,12 @@ class AreaUiResponse(BaseModel):
         x: int
         y: int
 
-    layerColor: Dict[str, str]
-    layerX: Dict[str, float]
-    layerY: Dict[str, float]
+    layerColor: dict[str, str]
+    layerX: dict[str, float]
+    layerY: dict[str, float]
     ui: MapResponse
 
-    def to_craft(self) -> Dict[str, Any]:
+    def to_craft(self) -> dict[str, Any]:
         json_ui = {
             "layer": self.ui.layers,
             "x": self.ui.x,

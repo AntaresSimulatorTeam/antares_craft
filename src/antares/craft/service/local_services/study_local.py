@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.binding_constraint import BindingConstraint
@@ -22,11 +22,13 @@ if TYPE_CHECKING:
 
 
 class StudyLocalService(BaseStudyService):
-    def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
+    def __init__(
+        self, config: LocalConfiguration, study_name: str, output_service: BaseOutputService, **kwargs: Any
+    ) -> None:
         super().__init__(**kwargs)
         self._config = config
         self._study_name = study_name
-        self._output_service: Optional[BaseOutputService] = None
+        self._output_service: BaseOutputService = output_service
 
     @property
     def study_id(self) -> str:
@@ -37,11 +39,8 @@ class StudyLocalService(BaseStudyService):
         return self._config
 
     @property
-    def output_service(self) -> Optional[BaseOutputService]:
+    def output_service(self) -> BaseOutputService:
         return self._output_service
-
-    def set_output_service(self, output_service: BaseOutputService) -> None:
-        self._output_service = output_service
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         raise NotImplementedError

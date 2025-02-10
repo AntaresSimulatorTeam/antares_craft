@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class CustomRawConfigParser(RawConfigParser):
     def __init__(self, special_keys: Optional[list[str]] = None, **kwargs: Any) -> None:
         super().__init__(**kwargs)
-        _special_keys: list = [
+        _special_keys: list[str] = [
             "playlist_year_weight",
             "playlist_year +",
             "playlist_year -",
@@ -34,17 +34,19 @@ class CustomRawConfigParser(RawConfigParser):
     def optionxform(self, optionstr: str) -> str:
         return optionstr
 
-    def _write_line(self, file_path: "SupportsWrite", section_name: str, delimiter: str, key: str, value: str) -> None:
+    def _write_line(
+        self, file_path: "SupportsWrite[str]", section_name: str, delimiter: str, key: str, value: str
+    ) -> None:
         """Writes a single line of the provided section to the specified `file_path`."""
         value = self._interpolation.before_write(self, section_name, key, value)
-        if value is not None or not self._allow_no_value:  # type:ignore
+        if value is not None or not self._allow_no_value:
             value = delimiter + str(value).replace("\n", "\n\t")
         else:
             value = ""
         file_path.write(f"{key}{value}\n")
 
     def _write_section(
-        self, fp: "SupportsWrite", section_name: str, section_items: ItemsView[str, str], delimiter: str
+        self, fp: "SupportsWrite[str]", section_name: str, section_items: ItemsView[str, str], delimiter: str
     ) -> None:
         """Write a single section to the specified `fp`. Overrides the function in `RawConfigParser`.
 

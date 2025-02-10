@@ -12,8 +12,10 @@
 
 from typing import Any, List
 
+import pandas as pd
+
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.st_storage import STStorage, STStorageProperties
+from antares.craft.model.st_storage import STStorage, STStorageMatrixName, STStorageProperties
 from antares.craft.service.base_services import BaseShortTermStorageService
 
 
@@ -29,4 +31,10 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         raise NotImplementedError
 
     def read_st_storages(self, area_id: str) -> List[STStorage]:
+        raise NotImplementedError
+
+    def upload_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:
+        raise NotImplementedError
+
+    def get_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName) -> pd.DataFrame:
         raise NotImplementedError
