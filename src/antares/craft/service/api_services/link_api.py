@@ -258,7 +258,7 @@ class LinkApiService(BaseLinkService):
         return Link(link_area_from_id, link_area_to_id, self, link_properties, link_ui)
 
 
-def _join_filter_values_for_json(json_dict: dict, dict_to_extract: dict) -> dict:
+def _join_filter_values_for_json(json_dict: dict[str, Any], dict_to_extract: dict[str, Any]) -> dict[str, Any]:
     for key in dict_to_extract:
         if key in ["filter-synthesis", "filter-year-by-year"]:
             json_dict[key] = ",".join(dict_to_extract[key])

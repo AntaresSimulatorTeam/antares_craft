@@ -16,6 +16,7 @@ from typing import Optional
 import pandas as pd
 
 from antares.craft.model.cluster import ClusterProperties
+from antares.craft.service.base_services import BaseRenewableService
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import transform_name_to_id
 
@@ -90,9 +91,9 @@ class RenewableClusterPropertiesLocal(DefaultRenewableClusterProperties):
 
 
 class RenewableCluster:
-    def __init__(  # type: ignore  # TODO: Find a way to avoid circular imports
+    def __init__(
         self,
-        renewable_service,
+        renewable_service: BaseRenewableService,
         area_id: str,
         name: str,
         properties: Optional[RenewableClusterProperties] = None,

@@ -104,7 +104,7 @@ class RenewableApiService(BaseRenewableService):
             renewable_name = renewable.pop("name")
 
             renewable_props = RenewableClusterProperties(**renewable)
-            renewable_cluster = RenewableCluster(self.config, renewable_id, renewable_name, renewable_props)
+            renewable_cluster = RenewableCluster(self, renewable_id, renewable_name, renewable_props)
             renewables.append(renewable_cluster)
 
         renewables.sort(key=lambda renewable: renewable.id)

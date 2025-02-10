@@ -14,6 +14,7 @@ from typing import Optional, Union
 
 import pandas as pd
 
+from antares.craft.service.base_services import BaseOutputService
 from pydantic import BaseModel
 
 
@@ -75,10 +76,10 @@ class AggregationEntry(BaseModel):
 
 
 class Output:
-    def __init__(self, name: str, archived: bool, output_service):  # type: ignore
+    def __init__(self, name: str, archived: bool, output_service: BaseOutputService):
         self._name = name
         self._archived = archived
-        self._output_service = output_service
+        self._output_service: BaseOutputService = output_service
 
     @property
     def name(self) -> str:

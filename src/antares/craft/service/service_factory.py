@@ -60,25 +60,21 @@ class ServiceFactory:
 
     def create_area_service(self) -> BaseAreaService:
         if isinstance(self.config, APIconf):
-            area_service: BaseAreaService = AreaApiService(self.config, self.study_id)
             storage_service: BaseShortTermStorageService = ShortTermStorageApiService(self.config, self.study_id)
             thermal_service: BaseThermalService = ThermalApiService(self.config, self.study_id)
             renewable_service: BaseRenewableService = RenewableApiService(self.config, self.study_id)
             hydro_service: BaseHydroService = HydroApiService(self.config, self.study_id)
-            area_service.set_storage_service(storage_service)
-            area_service.set_thermal_service(thermal_service)
-            area_service.set_renewable_service(renewable_service)
-            area_service.set_hydro_service(hydro_service)
+            area_service: BaseAreaService = AreaApiService(
+                self.config, self.study_id, storage_service, thermal_service, renewable_service, hydro_service
+            )
         elif isinstance(self.config, LocalConfiguration):
-            area_service = AreaLocalService(self.config, self.study_name)
             storage_service = ShortTermStorageLocalService(self.config, self.study_name)
             thermal_service = ThermalLocalService(self.config, self.study_name)
             renewable_service = RenewableLocalService(self.config, self.study_name)
             hydro_service = HydroLocalService(self.config, self.study_name)
-            area_service.set_storage_service(storage_service)
-            area_service.set_thermal_service(thermal_service)
-            area_service.set_renewable_service(renewable_service)
-            area_service.set_hydro_service(hydro_service)
+            area_service = AreaLocalService(
+                self.config, self.study_name, storage_service, thermal_service, renewable_service, hydro_service
+            )
         else:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
         return area_service
@@ -114,14 +110,14 @@ class ServiceFactory:
 
     def create_study_service(self) -> BaseStudyService:
         study_service: BaseStudyService
+        output_service = self.create_output_service()
         if isinstance(self.config, APIconf):
-            study_service = StudyApiService(self.config, self.study_id)
+            study_service = StudyApiService(self.config, self.study_id, output_service)
         elif isinstance(self.config, LocalConfiguration):
-            study_service = StudyLocalService(self.config, self.study_name)
+            study_service = StudyLocalService(self.config, self.study_name, output_service)
         else:
             raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
 
-        study_service.set_output_service(self.create_output_service())
         return study_service
 
     def create_renewable_service(self) -> BaseRenewableService:
