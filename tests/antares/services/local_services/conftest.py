@@ -38,7 +38,7 @@ from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 def local_study(tmp_path) -> Study:
     study_name = "studyTest"
     study_version = "880"
-    return create_study_local(study_name, study_version, str(tmp_path.absolute()))
+    return create_study_local(study_name, study_version, tmp_path.absolute())
 
 
 @pytest.fixture
