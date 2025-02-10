@@ -13,24 +13,39 @@
 import ast
 
 from dataclasses import asdict
-from typing import Any, Sequence, Set
+from typing import Any, Sequence, Set, Union
 
-from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters, PriceTakingOrder
+from antares.craft.model.settings.adequacy_patch import (
+    AdequacyPatchParameters,
+    AdequacyPatchParametersUpdate,
+    PriceTakingOrder,
+)
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParameters,
+    AdvancedParametersUpdate,
     HydroHeuristicPolicy,
     HydroPricingMode,
     InitialReservoirLevel,
     PowerFluctuation,
     RenewableGenerationModeling,
     SeedParameters,
+    SeedParametersUpdate,
     SheddingPolicy,
     SimulationCore,
     UnitCommitmentMode,
 )
-from antares.craft.model.settings.general import BuildingMode, GeneralParameters, Mode, Month, OutputChoices, WeekDay
+from antares.craft.model.settings.general import (
+    BuildingMode,
+    GeneralParameters,
+    GeneralParametersUpdate,
+    Mode,
+    Month,
+    OutputChoices,
+    WeekDay,
+)
 from antares.craft.model.settings.optimization import (
     OptimizationParameters,
+    OptimizationParametersUpdate,
     OptimizationTransmissionCapacities,
     SimplexOptimizationRange,
     UnfeasibleProblemBehavior,
@@ -54,6 +69,9 @@ class LocalBaseModel(BaseModel):
         return value
 
 
+AdequacyPatchParametersType = Union[AdequacyPatchParameters, AdequacyPatchParametersUpdate]
+
+
 class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     include_adq_patch: bool = False
     set_to_null_ntc_from_physical_out_to_physical_in_for_first_step: bool = True
@@ -67,13 +85,17 @@ class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     enable_first_step: bool = False
 
     @staticmethod
-    def from_user_model(user_class: AdequacyPatchParameters) -> "AdequacyPatchParametersLocal":
+    def from_user_model(user_class: AdequacyPatchParametersType) -> "AdequacyPatchParametersLocal":
         user_dict = asdict(user_class)
         return AdequacyPatchParametersLocal.model_validate(user_dict)
 
     def to_user_model(self) -> AdequacyPatchParameters:
         local_dict = self.model_dump(mode="json", by_alias=False, exclude={"enable_first_step"})
         return AdequacyPatchParameters(**local_dict)
+
+
+AdvancedParametersType = Union[AdvancedParameters, AdvancedParametersUpdate]
+SeedParametersType = Union[SeedParameters, SeedParametersUpdate]
 
 
 class OtherPreferencesLocal(LocalBaseModel, alias_generator=to_kebab):
@@ -122,7 +144,7 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
 
     @staticmethod
     def from_user_model(
-        advanced_parameters: AdvancedParameters, seed_parameters: SeedParameters
+        advanced_parameters: AdvancedParametersType, seed_parameters: SeedParametersType
     ) -> "AdvancedAndSeedParametersLocal":
         other_preferences_local_dict = asdict(advanced_parameters)
         advanced_local_dict = {
@@ -145,6 +167,9 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
         other_preferences_values = self.other_preferences.model_dump(mode="json", by_alias=False, include=includes)
         merged_values = advanced_values | other_preferences_values
         return AdvancedParameters(**merged_values)
+
+
+GeneralParametersType = Union[GeneralParameters, GeneralParametersUpdate]
 
 
 class GeneralSectionLocal(LocalBaseModel):
@@ -191,7 +216,7 @@ class GeneralParametersLocal(LocalBaseModel):
     output: OutputSectionLocal
 
     @staticmethod
-    def from_user_model(user_class: GeneralParameters) -> "GeneralParametersLocal":
+    def from_user_model(user_class: GeneralParametersType) -> "GeneralParametersLocal":
         user_dict = asdict(user_class)
 
         output_dict = {
@@ -233,6 +258,9 @@ class GeneralParametersLocal(LocalBaseModel):
         return GeneralParameters(**local_dict)
 
 
+OptimizationParametersType = Union[OptimizationParameters, OptimizationParametersUpdate]
+
+
 class OptimizationParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     simplex_range: SimplexOptimizationRange = SimplexOptimizationRange.WEEK
     transmission_capacities: OptimizationTransmissionCapacities = OptimizationTransmissionCapacities.LOCAL_VALUES
@@ -249,7 +277,7 @@ class OptimizationParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     include_unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
 
     @staticmethod
-    def from_user_model(user_class: OptimizationParameters) -> "OptimizationParametersLocal":
+    def from_user_model(user_class: OptimizationParametersType) -> "OptimizationParametersLocal":
         user_dict = asdict(user_class)
         return OptimizationParametersLocal.model_validate(user_dict)
 

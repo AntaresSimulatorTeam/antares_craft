@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters, AdequacyPatchParametersUpdate
@@ -32,8 +32,8 @@ class StudySettings:
     advanced_parameters: AdvancedParameters
     seed_parameters: SeedParameters
     adequacy_patch_parameters: AdequacyPatchParameters
-    playlist_parameters: dict[int, PlaylistParameters]
     thematic_trimming_parameters: ThematicTrimmingParameters
+    playlist_parameters: dict[int, PlaylistParameters] = field(default_factory=dict)
 
 
 @dataclass

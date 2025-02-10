@@ -21,15 +21,16 @@ class PriceTakingOrder(Enum):
 
 @dataclass
 class AdequacyPatchParameters:
-    include_adq_patch: bool
-    set_to_null_ntc_from_physical_out_to_physical_in_for_first_step: bool
-    set_to_null_ntc_between_physical_out_for_first_step: bool
-    price_taking_order: PriceTakingOrder
-    include_hurdle_cost_csr: bool
-    check_csr_cost_function: bool
-    threshold_initiate_curtailment_sharing_rule: int
-    threshold_display_local_matching_rule_violations: int
-    threshold_csr_variable_bounds_relaxation: int
+    include_adq_patch: bool = False
+    set_to_null_ntc_from_physical_out_to_physical_in_for_first_step: bool = True
+    set_to_null_ntc_between_physical_out_for_first_step: bool = True
+    price_taking_order: PriceTakingOrder = PriceTakingOrder.DENS
+    include_hurdle_cost_csr: bool = False
+    check_csr_cost_function: bool = False
+    threshold_initiate_curtailment_sharing_rule: int = 0
+    threshold_display_local_matching_rule_violations: int = 0
+    threshold_csr_variable_bounds_relaxation: int = 3
+    enable_first_step: bool = False
 
 
 @dataclass
