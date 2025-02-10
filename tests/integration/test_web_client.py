@@ -37,9 +37,13 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
-from antares.craft.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
-from antares.craft.model.settings.general import GeneralParameters, Mode
-from antares.craft.model.settings.study_settings import PlaylistParameters, StudySettings
+from antares.craft.model.settings.advanced_parameters import (
+    AdvancedParametersUpdate,
+    RenewableGenerationModeling,
+    UnitCommitmentMode,
+)
+from antares.craft.model.settings.general import GeneralParametersUpdate, Mode
+from antares.craft.model.settings.study_settings import PlaylistParameters, StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
 from antares.craft.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
 from antares.craft.model.study import create_study_api, create_variant_api, import_study_api, read_study_api
@@ -489,35 +493,30 @@ class TestWebClient:
         study.delete_area(area_de)
         assert area_de.id not in study.get_areas()
 
-        # test study creation with settings
-        settings = StudySettings()
-        settings.general_parameters = GeneralParameters(mode=Mode.ADEQUACY)
-        settings.general_parameters.year_by_year = False
-        settings.playlist_parameters = {1: PlaylistParameters(status=False, weight=1)}
-        new_study = create_study_api("second_study", "880", api_config, settings)
-        settings = new_study.get_settings()
-        assert settings.general_parameters.mode == Mode.ADEQUACY.value
-        assert not settings.general_parameters.year_by_year
-        assert settings.playlist_parameters == {1: PlaylistParameters(status=False, weight=1)}
+        # test default settings at the study creation
+        new_study = create_study_api("second_study", "880", api_config)
+        assert new_study.get_settings() == StudySettings()
 
         # tests update settings
-        new_settings = StudySettings()
-        new_settings.general_parameters = GeneralParameters(nb_years=4)
-        new_settings.advanced_parameters = AdvancedParameters()
-        new_settings.advanced_parameters.unit_commitment_mode = UnitCommitmentMode.MILP
+        study_settings = StudySettingsUpdate()
+        study_settings.general_parameters = GeneralParametersUpdate(mode=Mode.ADEQUACY, year_by_year=False)
+        study_settings.playlist_parameters = {1: PlaylistParameters(status=False, weight=1)}
+        new_study.update_settings(study_settings)
+        updated_settings = new_study.get_settings()
+        assert updated_settings.general_parameters.mode == Mode.ADEQUACY.value
+        assert not updated_settings.general_parameters.year_by_year
+        assert updated_settings.playlist_parameters == {1: PlaylistParameters(status=False, weight=1)}
+
+        new_settings = StudySettingsUpdate()
+        new_settings.general_parameters = GeneralParametersUpdate(nb_years=4)
+        new_settings.advanced_parameters = AdvancedParametersUpdate(unit_commitment_mode=UnitCommitmentMode.MILP)
         new_study.update_settings(new_settings)
         assert new_study.get_settings().general_parameters.mode == Mode.ADEQUACY.value
         assert new_study.get_settings().general_parameters.nb_years == 4
         assert new_study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP.value
 
-        old_settings = new_study.get_settings()
-        empty_settings = StudySettings()
-        new_study.update_settings(empty_settings)
-        assert old_settings == new_study.get_settings()
-
-        series = pd.DataFrame(data=np.ones((365, 1)))
-
         # test each hydro matrices returns the good values
+        series = pd.DataFrame(data=np.ones((365, 1)))
         actual_reservoir_matrix = area_fr.hydro.get_reservoir()
         actual_maxpower_matrix = area_fr.hydro.get_maxpower()
         actual_inflow_matrix = area_fr.hydro.get_inflow_pattern()
@@ -658,10 +657,13 @@ class TestWebClient:
         assert moved_study.path == study.path
         assert moved_study.name == study.name
 
-        new_settings_aggregated = StudySettings()
-        new_settings_aggregated.advanced_parameters = AdvancedParameters()
-        new_settings_aggregated.advanced_parameters.renewable_generation_modelling = "aggregated"
-        study_aggregated = create_study_api("test_aggregated", "880", api_config, new_settings_aggregated)
+        new_settings_aggregated = StudySettingsUpdate(
+            advanced_parameters=AdvancedParametersUpdate(
+                renewable_generation_modelling=RenewableGenerationModeling.AGGREGATED
+            )
+        )
+        study_aggregated = create_study_api("test_aggregated", "880", api_config)
+        study_aggregated.update_settings(new_settings_aggregated)
         study_aggregated.create_area("area_without_renewables")
         #  read_study_api does not raise an error
         read_study_api(api_config, study_aggregated.service.study_id)

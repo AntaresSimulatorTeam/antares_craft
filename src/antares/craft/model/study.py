@@ -58,7 +58,6 @@ def create_study_api(
     study_name: str,
     version: str,
     api_config: APIconf,
-    settings: Optional[StudySettings] = None,
     parent_path: Optional[Path] = None,
 ) -> "Study":
     """
@@ -66,7 +65,6 @@ def create_study_api(
         study_name: antares study name to be created
         version: antares version
         api_config: host and token config for API
-        settings: study settings. If not provided, AntaresWeb will use its default values.
 
     Raises:
         MissingTokenError if api_token is missing
@@ -83,10 +81,7 @@ def create_study_api(
         study_id = response.json()
         # Settings part
         study = Study(study_name, version, ServiceFactory(api_config, study_id))
-        if settings:
-            study.update_settings(settings)
-        else:
-            study.read_settings()
+        study.read_settings()
         # Move part
         if parent_path:
             study.move(parent_path)
@@ -123,12 +118,7 @@ def import_study_api(api_config: APIconf, study_path: Path, destination_path: Op
         raise StudyImportError(study_path.name, e.message) from e
 
 
-def create_study_local(
-    study_name: str,
-    version: str,
-    parent_directory: str,
-    settings: StudySettings = StudySettings(),
-) -> "Study":
+def create_study_local(study_name: str, version: str, parent_directory: str) -> "Study":
     """
     Create a directory structure for the study with empty files.
 
@@ -136,7 +126,6 @@ def create_study_local(
         study_name: antares study name to be created
         version: antares version for study
         parent_directory: Local directory to store the study in.
-        settings: study settings. If not provided, AntaresCraft will use its default values.
 
     Raises:
         FileExistsError if the study already exists in the given location
@@ -184,7 +173,7 @@ InfoTip = Antares Study {version}: {study_name}
         path=study_directory,
     )
     # We need to create the file with default value
-    study._settings = edit_study_settings(study_directory, settings, False)
+    study._settings = edit_study_settings(study_directory, StudySettings(), False)
     return study
 
 
