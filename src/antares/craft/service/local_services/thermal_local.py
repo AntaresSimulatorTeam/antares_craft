@@ -60,12 +60,14 @@ class ThermalLocalService(BaseThermalService):
     def _extract_thermal_properties(self, thermal_data: dict[str, Any]) -> ThermalClusterProperties:
         property_types = get_type_hints(ThermalClusterPropertiesLocal)
 
-        key_mapping = {"name": "thermal_name"}
+        property_mapping = {"name": "thermal_name"}
 
         parsed_data = {
-            key_mapping.get(key, key): property_types[key_mapping.get(key, key)](value) if value is not None else None
-            for key, value in thermal_data.items()
-            if key_mapping.get(key, key) in property_types
+            property_mapping.get(property, property): property_types[property_mapping.get(property, property)](value)
+            if value is not None
+            else None
+            for property, value in thermal_data.items()
+            if property_mapping.get(property, property) in property_types
         }
 
         return ThermalClusterPropertiesLocal(**parsed_data).yield_thermal_cluster_properties()
