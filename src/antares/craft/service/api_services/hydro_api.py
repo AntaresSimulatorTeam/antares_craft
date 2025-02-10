@@ -17,6 +17,7 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import APIError, MatrixDownloadError
 from antares.craft.service.api_services.utils import get_matrix
 from antares.craft.service.base_services import BaseHydroService
+from typing_extensions import override
 
 
 class HydroApiService(BaseHydroService):
@@ -27,6 +28,7 @@ class HydroApiService(BaseHydroService):
         self._wrapper = RequestWrapper(self.api_config.set_up_api_conf())
         self._base_url = f"{self.api_config.get_host()}/api/v1"
 
+    @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:
         try:
             return get_matrix(
@@ -35,6 +37,7 @@ class HydroApiService(BaseHydroService):
         except APIError as e:
             raise MatrixDownloadError(area_id, "maxpower", e.message) from e
 
+    @override
     def get_reservoir(self, area_id: str) -> pd.DataFrame:
         try:
             return get_matrix(
@@ -43,6 +46,7 @@ class HydroApiService(BaseHydroService):
         except APIError as e:
             raise MatrixDownloadError(area_id, "reservoir", e.message) from e
 
+    @override
     def get_inflow_pattern(self, area_id: str) -> pd.DataFrame:
         try:
             return get_matrix(
@@ -51,6 +55,7 @@ class HydroApiService(BaseHydroService):
         except APIError as e:
             raise MatrixDownloadError(area_id, "inflow_pattern", e.message) from e
 
+    @override
     def get_credit_modulations(self, area_id: str) -> pd.DataFrame:
         try:
             return get_matrix(
@@ -59,6 +64,7 @@ class HydroApiService(BaseHydroService):
         except APIError as e:
             raise MatrixDownloadError(area_id, "credit_modulations", e.message) from e
 
+    @override
     def get_water_values(self, area_id: str) -> pd.DataFrame:
         try:
             return get_matrix(

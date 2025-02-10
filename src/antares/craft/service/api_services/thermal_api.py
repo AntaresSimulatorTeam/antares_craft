@@ -26,6 +26,7 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import BaseThermalService
+from typing_extensions import override
 
 
 class ThermalApiService(BaseThermalService):
@@ -36,6 +37,7 @@ class ThermalApiService(BaseThermalService):
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
+    @override
     def update_thermal_properties(
         self, thermal_cluster: ThermalCluster, properties: ThermalClusterProperties
     ) -> ThermalClusterProperties:
@@ -56,6 +58,7 @@ class ThermalApiService(BaseThermalService):
 
         return new_properties
 
+    @override
     def update_thermal_matrix(self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame) -> None:
         path = (
             PurePosixPath("input")
@@ -70,6 +73,7 @@ class ThermalApiService(BaseThermalService):
         except APIError as e:
             raise ThermalMatrixUpdateError(thermal_cluster.area_id, thermal_cluster.name, e.message) from e
 
+    @override
     def get_thermal_matrix(self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName) -> pd.DataFrame:
         try:
             keyword = "series" if "SERIES" in ts_name.name else "prepro"
@@ -87,6 +91,7 @@ class ThermalApiService(BaseThermalService):
                 thermal_cluster.area_id, thermal_cluster.name, ts_name.value, e.message
             ) from e
 
+    @override
     def read_thermal_clusters(
         self,
         area_id: str,

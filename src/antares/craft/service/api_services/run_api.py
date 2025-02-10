@@ -26,6 +26,7 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
 from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseRunService
+from typing_extensions import override
 
 
 class RunApiService(BaseRunService):
@@ -36,6 +37,7 @@ class RunApiService(BaseRunService):
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
+    @override
     def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
         url = f"{self._base_url}/launcher/run/{self.study_id}"
         try:
@@ -58,6 +60,7 @@ class RunApiService(BaseRunService):
         output_id = job_info.get("output_id")
         return Job(job_id=job_id, status=status, parameters=parameters, output_id=output_id)
 
+    @override
     def wait_job_completion(self, job: Job, time_out: int) -> None:
         start_time = time.time()
         repeat_interval = 5

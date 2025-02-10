@@ -17,6 +17,7 @@ from typing import Any, Optional
 
 from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
 from pydantic import BaseModel
+from typing_extensions import override
 
 # Invalid chars was taken from Antares Simulator (C++).
 _sub_invalid_chars = re.compile(r"[^a-zA-Z0-9_(),& -]+").sub
@@ -32,6 +33,7 @@ def transform_name_to_id(name: str) -> str:
 
 class EnumIgnoreCase(Enum):
     @classmethod
+    @override
     def _missing_(cls, value: object) -> Optional["EnumIgnoreCase"]:
         if isinstance(value, str):
             for member in cls:

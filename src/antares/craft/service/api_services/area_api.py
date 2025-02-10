@@ -48,6 +48,7 @@ from antares.craft.service.base_services import (
 )
 from antares.craft.tools.contents_tool import AreaUiResponse
 from antares.craft.tools.matrix_tool import prepare_args_replace_matrix
+from typing_extensions import override
 
 
 class AreaApiService(BaseAreaService):
@@ -70,6 +71,7 @@ class AreaApiService(BaseAreaService):
         self.renewable_service: BaseRenewableService = renewable_service
         self.hydro_service: BaseHydroService = hydro_service
 
+    @override
     def create_area(
         self, area_name: str, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
     ) -> Area:
@@ -144,6 +146,7 @@ class AreaApiService(BaseAreaService):
             hydro=hydro,
         )
 
+    @override
     def create_thermal_cluster(
         self, area_id: str, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
     ) -> ThermalCluster:
@@ -179,6 +182,7 @@ class AreaApiService(BaseAreaService):
 
         return ThermalCluster(self.thermal_service, area_id, name, properties)
 
+    @override
     def create_thermal_cluster_with_matrices(
         self,
         area_id: str,
@@ -279,6 +283,7 @@ class AreaApiService(BaseAreaService):
         response = self._wrapper.post(url, json=json_payload)
         response.raise_for_status()
 
+    @override
     def create_renewable_cluster(
         self,
         area_id: str,
@@ -323,6 +328,7 @@ class AreaApiService(BaseAreaService):
 
         return RenewableCluster(self.renewable_service, area_id, name, properties)
 
+    @override
     def create_st_storage(
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
@@ -357,6 +363,7 @@ class AreaApiService(BaseAreaService):
 
         return STStorage(self.storage_service, area_id, name, properties)
 
+    @override
     def create_load(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/load/series/load_{area_id}"
@@ -368,6 +375,7 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise MatrixUploadError(area_id, "load", e.message) from e
 
+    @override
     def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/wind/series/wind_{area_id}"
@@ -375,6 +383,7 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise MatrixUploadError(area_id, "wind", e.message) from e
 
+    @override
     def create_reserves(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/reserves/{area_id}"
@@ -382,6 +391,7 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise MatrixUploadError(area_id, "reserves", e.message) from e
 
+    @override
     def create_solar(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/solar/series/solar_{area_id}"
@@ -389,6 +399,7 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise MatrixUploadError(area_id, "solar", e.message) from e
 
+    @override
     def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/misc-gen/miscgen-{area_id}"
@@ -396,6 +407,7 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise MatrixUploadError(area_id, "misc-gen", e.message) from e
 
+    @override
     def create_hydro(
         self,
         area_id: str,
@@ -421,6 +433,7 @@ class AreaApiService(BaseAreaService):
 
         return Hydro(self.hydro_service, area_id, properties)
 
+    @override
     def read_hydro(
         self,
         area_id: str,
@@ -450,6 +463,7 @@ class AreaApiService(BaseAreaService):
 
             self._replace_matrix_request(json_payload)
 
+    @override
     def update_area_properties(self, area_id: str, properties: AreaProperties) -> AreaProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/properties/form"
         try:
@@ -464,6 +478,7 @@ class AreaApiService(BaseAreaService):
 
         return area_properties
 
+    @override
     def update_area_ui(self, area_id: str, ui: AreaUi) -> AreaUi:
         base_url = f"{self._base_url}/studies/{self.study_id}/areas"
         try:
@@ -495,6 +510,7 @@ class AreaApiService(BaseAreaService):
 
         return area_ui
 
+    @override
     def delete_area(self, area_id: str) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}"
         try:
@@ -502,6 +518,7 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise AreaDeletionError(area_id, e.message) from e
 
+    @override
     def delete_thermal_clusters(self, area_id: str, clusters: list[ThermalCluster]) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/thermal"
         body = [cluster.id for cluster in clusters]
@@ -510,6 +527,7 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise ThermalDeletionError(area_id, body, e.message) from e
 
+    @override
     def delete_renewable_clusters(self, area_id: str, clusters: list[RenewableCluster]) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
         body = [cluster.id for cluster in clusters]
@@ -518,6 +536,7 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise RenewableDeletionError(area_id, body, e.message) from e
 
+    @override
     def delete_st_storages(self, area_id: str, storages: list[STStorage]) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages"
         body = [storage.id for storage in storages]
@@ -526,30 +545,35 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise STStorageDeletionError(area_id, body, e.message) from e
 
+    @override
     def get_load_matrix(self, area_id: str) -> pd.DataFrame:
         try:
             return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/load/series/load_{area_id}")
         except APIError as e:
             raise MatrixDownloadError(area_id, "load", e.message)
 
+    @override
     def get_solar_matrix(self, area_id: str) -> pd.DataFrame:
         try:
             return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/solar/series/solar_{area_id}")
         except APIError as e:
             raise MatrixDownloadError(area_id, "solar", e.message)
 
+    @override
     def get_wind_matrix(self, area_id: str) -> pd.DataFrame:
         try:
             return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/wind/series/wind_{area_id}")
         except APIError as e:
             raise MatrixDownloadError(area_id, "wind", e.message)
 
+    @override
     def get_reserves_matrix(self, area_id: str) -> pd.DataFrame:
         try:
             return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/reserves/{area_id}")
         except APIError as e:
             raise MatrixDownloadError(area_id, "reserves", e.message)
 
+    @override
     def get_misc_gen_matrix(self, area_id: str) -> pd.DataFrame:
         try:
             return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/misc-gen/miscgen-{area_id}")
@@ -565,6 +589,7 @@ class AreaApiService(BaseAreaService):
 
         return current_ui
 
+    @override
     def read_areas(self) -> list[Area]:
         area_list = []
 

@@ -21,6 +21,7 @@ from antares.craft.service.base_services import BaseRenewableService
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from typing_extensions import override
 
 
 class RenewableLocalService(BaseRenewableService):
@@ -29,11 +30,13 @@ class RenewableLocalService(BaseRenewableService):
         self.config = config
         self.study_name = study_name
 
+    @override
     def update_renewable_properties(
         self, renewable_cluster: RenewableCluster, properties: RenewableClusterProperties
     ) -> RenewableClusterProperties:
         raise NotImplementedError
 
+    @override
     def get_renewable_matrix(self, cluster_id: str, area_id: str) -> pd.DataFrame:
         return read_timeseries(
             TimeSeriesFileType.RENEWABLE_DATA_SERIES, self.config.study_path, area_id=area_id, cluster_id=cluster_id
@@ -58,6 +61,7 @@ class RenewableLocalService(BaseRenewableService):
 
         return RenewableClusterPropertiesLocal(**parsed_data).yield_renewable_cluster_properties()
 
+    @override
     def read_renewables(self, area_id: str) -> list[RenewableCluster]:
         renewable_dict = IniFile(
             self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id
@@ -76,5 +80,6 @@ class RenewableLocalService(BaseRenewableService):
             for renewable_data in renewable_dict.values()
         ]
 
+    @override
     def update_renewable_matrix(self, renewable_cluster: RenewableCluster, matrix: pd.DataFrame) -> None:
         raise NotImplementedError

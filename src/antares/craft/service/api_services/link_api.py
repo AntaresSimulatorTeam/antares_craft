@@ -29,6 +29,7 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import BaseLinkService
+from typing_extensions import override
 
 
 class LinkApiService(BaseLinkService):
@@ -39,6 +40,7 @@ class LinkApiService(BaseLinkService):
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
+    @override
     def create_link(
         self,
         area_from: str,
@@ -100,6 +102,7 @@ class LinkApiService(BaseLinkService):
 
         return Link(area_from, area_to, self, created_properties, ui)
 
+    @override
     def delete_link(self, link: Link) -> None:
         area_from_id = link.area_from_id
         area_to_id = link.area_to_id
@@ -109,6 +112,7 @@ class LinkApiService(BaseLinkService):
         except APIError as e:
             raise LinkDeletionError(link.id, e.message) from e
 
+    @override
     def update_link_properties(self, link: Link, properties: LinkProperties) -> LinkProperties:
         # todo: change this code when AntaresWeb will have a real endpoint
         area1_id = link.area_from_id
@@ -142,6 +146,7 @@ class LinkApiService(BaseLinkService):
 
         return link_properties
 
+    @override
     def update_link_ui(self, link: Link, ui: LinkUi) -> LinkUi:
         # todo: change this code when AntaresWeb will have a real endpoint
         area1_id = link.area_from_id
@@ -168,6 +173,7 @@ class LinkApiService(BaseLinkService):
 
         return link_ui
 
+    @override
     def get_parameters(self, area_from: str, area_to: str) -> pd.DataFrame:
         try:
             parameters_path = f"input/links/{area_from}/{area_to}_parameters"
@@ -177,6 +183,7 @@ class LinkApiService(BaseLinkService):
 
         return matrix
 
+    @override
     def create_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         try:
             series_path = f"input/links/{area_from}/{area_to}_parameters"
@@ -184,6 +191,7 @@ class LinkApiService(BaseLinkService):
         except APIError as e:
             raise LinkUploadError(area_from, area_to, "parameters", e.message) from e
 
+    @override
     def get_capacity_direct(self, area_from: str, area_to: str) -> pd.DataFrame:
         try:
             series_path = f"input/links/{area_from}/capacities/{area_to}_direct"
@@ -192,6 +200,7 @@ class LinkApiService(BaseLinkService):
             raise LinkDownloadError(area_from, area_to, "directcapacity", e.message) from e
         return matrix
 
+    @override
     def create_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         try:
             series_path = f"input/links/{area_from}/capacities/{area_to}_direct"
@@ -199,6 +208,7 @@ class LinkApiService(BaseLinkService):
         except APIError as e:
             raise LinkUploadError(area_from, area_to, "directcapacity", e.message) from e
 
+    @override
     def get_capacity_indirect(self, area_from: str, area_to: str) -> pd.DataFrame:
         try:
             series_path = f"input/links/{area_from}/capacities/{area_to}_indirect"
@@ -207,6 +217,7 @@ class LinkApiService(BaseLinkService):
             raise LinkDownloadError(area_from, area_to, "indirectcapacity", e.message) from e
         return matrix
 
+    @override
     def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         try:
             series_path = f"input/links/{area_from}/capacities/{area_to}_indirect"
@@ -214,6 +225,7 @@ class LinkApiService(BaseLinkService):
         except APIError as e:
             raise LinkUploadError(area_from, area_to, "indirectcapacity", e.message) from e
 
+    @override
     def read_links(self) -> list[Link]:
         try:
             url = f"{self._base_url}/studies/{self.study_id}/links"

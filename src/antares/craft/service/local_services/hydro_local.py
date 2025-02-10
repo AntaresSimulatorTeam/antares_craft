@@ -14,6 +14,7 @@ import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.service.base_services import BaseHydroService
+from typing_extensions import override
 
 
 class HydroLocalService(BaseHydroService):
@@ -21,17 +22,22 @@ class HydroLocalService(BaseHydroService):
         self.config = config
         self.study_name = study_name
 
+    @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:
         raise NotImplementedError()
 
+    @override
     def get_reservoir(self, area_id: str) -> pd.DataFrame:
         raise NotImplementedError()
 
+    @override
     def get_inflow_pattern(self, area_id: str) -> pd.DataFrame:
         raise NotImplementedError()
 
+    @override
     def get_credit_modulations(self, area_id: str) -> pd.DataFrame:
         raise NotImplementedError()
 
+    @override
     def get_water_values(self, area_id: str) -> pd.DataFrame:
         raise NotImplementedError()
