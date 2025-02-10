@@ -10,11 +10,10 @@
 #
 # This file is part of the Antares project.
 from enum import Enum
-from typing import Optional, Union
+from typing import Optional, Union, cast
 
 import pandas as pd
 
-from antares.craft.service.base_services import BaseOutputService
 from pydantic import BaseModel
 
 
@@ -76,7 +75,7 @@ class AggregationEntry(BaseModel):
 
 
 class Output:
-    def __init__(self, name: str, archived: bool, output_service: BaseOutputService):
+    def __init__(self, name: str, archived: bool, output_service):  # type: ignore
         self._name = name
         self._archived = archived
         self._output_service = output_service
@@ -98,7 +97,7 @@ class Output:
 
         Returns: Pandas DataFrame
         """
-        return self._output_service.get_matrix(self.name, path)
+        return cast(pd.DataFrame, self._output_service.get_matrix(self.name, path))
 
     def aggregate_areas_mc_ind(
         self,
@@ -125,7 +124,7 @@ class Output:
             columns_names=columns_names,
         )
 
-        return self._output_service.aggregate_values(self.name, aggregation_entry, "areas", "ind")
+        return cast(pd.DataFrame, self._output_service.aggregate_values(self.name, aggregation_entry, "areas", "ind"))
 
     def aggregate_links_mc_ind(
         self,
@@ -152,7 +151,7 @@ class Output:
             columns_names=columns_names,
         )
 
-        return self._output_service.aggregate_values(self.name, aggregation_entry, "links", "ind")
+        return cast(pd.DataFrame, self._output_service.aggregate_values(self.name, aggregation_entry, "links", "ind"))
 
     def aggregate_areas_mc_all(
         self,
@@ -179,7 +178,7 @@ class Output:
             columns_names=columns_names,
         )
 
-        return self._output_service.aggregate_values(self.name, aggregation_entry, "areas", "all")
+        return cast(pd.DataFrame, self._output_service.aggregate_values(self.name, aggregation_entry, "areas", "all"))
 
     def aggregate_links_mc_all(
         self,
@@ -206,4 +205,4 @@ class Output:
             columns_names=columns_names,
         )
 
-        return self._output_service.aggregate_values(self.name, aggregation_entry, "links", "all")
+        return cast(pd.DataFrame, self._output_service.aggregate_values(self.name, aggregation_entry, "links", "all"))

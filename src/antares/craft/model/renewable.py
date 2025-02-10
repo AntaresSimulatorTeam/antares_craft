@@ -11,12 +11,11 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Optional
+from typing import Optional, cast
 
 import pandas as pd
 
 from antares.craft.model.cluster import ClusterProperties
-from antares.craft.service.base_services import BaseRenewableService
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import transform_name_to_id
 
@@ -91,9 +90,9 @@ class RenewableClusterPropertiesLocal(DefaultRenewableClusterProperties):
 
 
 class RenewableCluster:
-    def __init__(  # TODO: Find a way to avoid circular imports
+    def __init__(  # type: ignore # TODO: Find a way to avoid circular imports
         self,
-        renewable_service: BaseRenewableService,
+        renewable_service,
         area_id: str,
         name: str,
         properties: Optional[RenewableClusterProperties] = None,
@@ -127,7 +126,7 @@ class RenewableCluster:
         self._properties = new_properties
 
     def get_timeseries(self) -> pd.DataFrame:
-        return self._renewable_service.get_renewable_matrix(self.id, self.area_id)
+        return cast(pd.DataFrame, self._renewable_service.get_renewable_matrix(self.id, self.area_id))
 
     def update_renewable_matrix(self, matrix: pd.DataFrame) -> None:
         self._renewable_service.update_renewable_matrix(self, matrix)

@@ -43,11 +43,11 @@ class TestDeleteAPI:
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
     study_service = StudyApiService(api, study_id)
-    area_service = AreaApiService(api, study_id)
     thermal_service = ThermalApiService(api, study_id)
     renewable_service = RenewableApiService(api, study_id)
     st_storage_service = ShortTermStorageApiService(api, study_id)
     hydro_service = HydroApiService(api, study_id)
+    area_service = AreaApiService(api, study_id, st_storage_service, thermal_service, renewable_service, hydro_service)
     area_fr = Area("fr", area_service, st_storage_service, thermal_service, renewable_service, hydro_service)
     area_be = Area("be", area_service, st_storage_service, thermal_service, renewable_service, hydro_service)
     link_service = LinkApiService(api, study_id)

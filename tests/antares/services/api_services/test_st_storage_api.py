@@ -9,9 +9,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
 import requests_mock
+
+from unittest.mock import Mock
 
 import pandas as pd
 
@@ -138,8 +139,14 @@ class TestCreateAPI:
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url + "storages", json=json_storage)
-            area_api = AreaApiService(self.api, study_id_test)
+
             storage_api = ShortTermStorageApiService(self.api, study_id_test)
+            renewable_service = Mock()
+            thermal_service = Mock()
+            hydro_service = Mock()
+            area_api = AreaApiService(
+                self.api, study_id_test, storage_api, thermal_service, renewable_service, hydro_service
+            )
 
             actual_storage_list = storage_api.read_st_storages(area_id)
 

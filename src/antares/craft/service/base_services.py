@@ -12,11 +12,12 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 import pandas as pd
 
 from antares.craft.config.base_configuration import BaseConfiguration
+from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintProperties,
@@ -38,7 +39,6 @@ from antares.craft.model.thermal import (
 
 if TYPE_CHECKING:
     from antares.craft.model.study import Study
-    from antares.craft.model.area import Area, AreaProperties, AreaUi
 
 
 class BaseAreaService(ABC):
@@ -208,29 +208,29 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def delete_thermal_clusters(self, area_id: str, thermal_clusters: List[ThermalCluster]) -> None:
+    def delete_thermal_clusters(self, area_id: str, thermal_clusters: list[ThermalCluster]) -> None:
         """
         Args:
             area_id: area containing the cluster
-            thermal_clusters: List of thermal clusters object to be deleted
+            thermal_clusters: list of thermal clusters object to be deleted
         """
         pass
 
     @abstractmethod
-    def delete_renewable_clusters(self, area_id: str, renewable_clusters: List[RenewableCluster]) -> None:
+    def delete_renewable_clusters(self, area_id: str, renewable_clusters: list[RenewableCluster]) -> None:
         """
         Args:
             area_id: area containing the cluster
-            renewable_clusters: List of renewable clusters object to be deleted
+            renewable_clusters: list of renewable clusters object to be deleted
         """
         pass
 
     @abstractmethod
-    def delete_st_storages(self, area_id: str, storages: List[STStorage]) -> None:
+    def delete_st_storages(self, area_id: str, storages: list[STStorage]) -> None:
         """
         Args:
             area_id: area containing the cluster
-            storages: List of short term storage objects to be deleted
+            storages: list of short term storage objects to be deleted
         """
         pass
 
@@ -289,7 +289,7 @@ class BaseAreaService(ABC):
         self,
         area_id: str,
         properties: Optional[HydroProperties],
-        matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]],
+        matrices: Optional[dict[HydroMatrixName, pd.DataFrame]],
     ) -> Hydro:
         """
         Args:
@@ -389,7 +389,7 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def read_links(self) -> List[Link]:
+    def read_links(self) -> list[Link]:
         pass
 
     @abstractmethod
@@ -444,7 +444,7 @@ class BaseThermalService(ABC):
         pass
 
     @abstractmethod
-    def read_thermal_clusters(self, area_id: str) -> List[ThermalCluster]:
+    def read_thermal_clusters(self, area_id: str) -> list[ThermalCluster]:
         pass
 
 
@@ -456,7 +456,7 @@ class BaseBindingConstraintService(ABC):
         self,
         name: str,
         properties: Optional[BindingConstraintProperties] = None,
-        terms: Optional[List[ConstraintTerm]] = None,
+        terms: Optional[list[ConstraintTerm]] = None,
         less_term_matrix: Optional[pd.DataFrame] = None,
         equal_term_matrix: Optional[pd.DataFrame] = None,
         greater_term_matrix: Optional[pd.DataFrame] = None,
@@ -476,7 +476,7 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def add_constraint_terms(self, constraint: BindingConstraint, terms: List[ConstraintTerm]) -> List[ConstraintTerm]:
+    def add_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> list[ConstraintTerm]:
         """
         Args:
             constraint: the concerned binding constraint
@@ -655,7 +655,7 @@ class BaseRenewableService(ABC):
         pass
 
     @abstractmethod
-    def read_renewables(self, area_id: str) -> List[RenewableCluster]:
+    def read_renewables(self, area_id: str) -> list[RenewableCluster]:
         pass
 
 
@@ -672,7 +672,7 @@ class BaseShortTermStorageService(ABC):
         pass
 
     @abstractmethod
-    def read_st_storages(self, area_id: str) -> List[STStorage]:
+    def read_st_storages(self, area_id: str) -> list[STStorage]:
         pass
 
     @abstractmethod

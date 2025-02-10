@@ -11,11 +11,10 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict, Optional, cast
 
 import pandas as pd
 
-from antares.craft.service.base_services import BaseHydroService
 from antares.craft.tools.all_optional_meta import all_optional_model
 from pydantic import BaseModel
 from pydantic.alias_generators import to_camel
@@ -91,9 +90,9 @@ class HydroPropertiesLocal(DefaultHydroProperties):
 
 
 class Hydro:
-    def __init__(  #
+    def __init__(  # type: ignore
         self,
-        service: BaseHydroService,
+        service,
         area_id: str,
         properties: Optional[HydroProperties] = None,
         matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
@@ -116,16 +115,16 @@ class Hydro:
         return self._matrices
 
     def get_maxpower(self) -> pd.DataFrame:
-        return self._service.get_maxpower(self.area_id)
+        return cast(pd.DataFrame, self._service.get_maxpower(self.area_id))
 
     def get_reservoir(self) -> pd.DataFrame:
-        return self._service.get_reservoir(self.area_id)
+        return cast(pd.DataFrame, self._service.get_reservoir(self.area_id))
 
     def get_inflow_pattern(self) -> pd.DataFrame:
-        return self._service.get_inflow_pattern(self.area_id)
+        return cast(pd.DataFrame, self._service.get_inflow_pattern(self.area_id))
 
     def get_credit_modulations(self) -> pd.DataFrame:
-        return self._service.get_credit_modulations(self.area_id)
+        return cast(pd.DataFrame, self._service.get_credit_modulations(self.area_id))
 
     def get_water_values(self) -> pd.DataFrame:
-        return self._service.get_water_values(self.area_id)
+        return cast(pd.DataFrame, self._service.get_water_values(self.area_id))

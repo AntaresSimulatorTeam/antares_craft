@@ -37,15 +37,21 @@ from antares.craft.service.service_factory import ServiceFactory
 class TestCreateAPI:
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
-    area = Area(
-        "area_test",
-        ServiceFactory(api, study_id).create_area_service(),
-        ServiceFactory(api, study_id).create_st_storage_service(),
-        ServiceFactory(api, study_id).create_thermal_service(),
-        ServiceFactory(api, study_id).create_renewable_service(),
-        ServiceFactory(api, study_id).create_hydro_service(),
+    area_service = ServiceFactory(api, study_id).create_area_service()
+    st_storage_service = ServiceFactory(api, study_id).create_st_storage_service()
+    thermal_service = ServiceFactory(api, study_id).create_thermal_service()
+    renewable_service = ServiceFactory(api, study_id).create_renewable_service()
+    hydro_service = ServiceFactory(api, study_id).create_hydro_service()
+    area = Area("area_test", area_service, st_storage_service, thermal_service, renewable_service, hydro_service)
+
+    area_api = AreaApiService(
+        api,
+        "248bbb99-c909-47b7-b239-01f6f6ae7de7",
+        st_storage_service,
+        thermal_service,
+        renewable_service,
+        hydro_service,
     )
-    area_api = AreaApiService(api, "248bbb99-c909-47b7-b239-01f6f6ae7de7")
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
     study = Study("TestStudy", "880", ServiceFactory(api, study_id))

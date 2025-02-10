@@ -42,10 +42,12 @@ class RenewableLocalService(BaseRenewableService):
     def _extract_renewable_properties(self, renewable_data: dict[str, Any]) -> RenewableClusterProperties:
         property_types = get_type_hints(RenewableClusterPropertiesLocal)
 
+        key_mapping = {"name": "renewable_name"}
+
         parsed_data = {
-            key: property_types[key](value) if value is not None else None
+            key_mapping.get(key, key): property_types[key_mapping.get(key, key)](value) if value is not None else None
             for key, value in renewable_data.items()
-            if key in property_types
+            if key_mapping.get(key, key) in property_types
         }
 
         return RenewableClusterPropertiesLocal(**parsed_data).yield_renewable_cluster_properties()
