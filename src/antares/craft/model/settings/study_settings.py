@@ -47,11 +47,11 @@ class StudySettings:
     playlist_parameters: dict[int, PlaylistParameters] = field(default_factory=dict)
 
     def from_update_settings(self, update_settings: StudySettingsUpdate) -> "StudySettings":
-        old_settings = asdict(self)
+        current_settings = asdict(self)
         for key, values in asdict(update_settings).items():
             if values is not None:
-                for little_key, little_value in values.items():
-                    if little_value is not None:
-                        old_settings[key][little_key] = little_value
+                for inner_key, inner_value in values.items():
+                    if inner_value is not None:
+                        current_settings[key][inner_key] = inner_value
 
-        return StudySettings(**old_settings)
+        return StudySettings(**current_settings)
