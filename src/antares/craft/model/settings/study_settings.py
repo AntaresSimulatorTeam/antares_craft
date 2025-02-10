@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Optional
 
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters, AdequacyPatchParametersUpdate
@@ -26,6 +26,17 @@ from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParam
 
 
 @dataclass
+class StudySettingsUpdate:
+    general_parameters: Optional[GeneralParametersUpdate] = None
+    optimization_parameters: Optional[OptimizationParametersUpdate] = None
+    advanced_parameters: Optional[AdvancedParametersUpdate] = None
+    seed_parameters: Optional[SeedParametersUpdate] = None
+    adequacy_patch_parameters: Optional[AdequacyPatchParametersUpdate] = None
+    playlist_parameters: Optional[dict[int, PlaylistParametersUpdate]] = None
+    thematic_trimming_parameters: Optional[ThematicTrimmingParametersUpdate] = None
+
+
+@dataclass
 class StudySettings:
     general_parameters: GeneralParameters = field(default_factory=GeneralParameters)
     optimization_parameters: OptimizationParameters = field(default_factory=OptimizationParameters)
@@ -35,13 +46,12 @@ class StudySettings:
     thematic_trimming_parameters: ThematicTrimmingParameters = field(default_factory=ThematicTrimmingParameters)
     playlist_parameters: dict[int, PlaylistParameters] = field(default_factory=dict)
 
+    def from_update_settings(self, update_settings: StudySettingsUpdate) -> "StudySettings":
+        old_settings = asdict(self)
+        for key, values in asdict(update_settings).items():
+            if values is not None:
+                for little_key, little_value in values.items():
+                    if little_value is not None:
+                        old_settings[key][little_key] = little_value
 
-@dataclass
-class StudySettingsUpdate:
-    general_parameters: Optional[GeneralParametersUpdate] = None
-    optimization_parameters: Optional[OptimizationParametersUpdate] = None
-    advanced_parameters: Optional[AdvancedParametersUpdate] = None
-    seed_parameters: Optional[SeedParametersUpdate] = None
-    adequacy_patch_parameters: Optional[AdequacyPatchParametersUpdate] = None
-    playlist_parameters: Optional[dict[int, PlaylistParametersUpdate]] = None
-    thematic_trimming_parameters: Optional[ThematicTrimmingParametersUpdate] = None
+        return StudySettings(**old_settings)
