@@ -14,15 +14,11 @@ from pathlib import Path
 from typing import Any
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import (
-    AdvancedParameters,
-    SeedParameters,
+    AdvancedParametersUpdate,
+    SeedParametersUpdate,
 )
-from antares.craft.model.settings.general import BuildingMode, GeneralParameters
-from antares.craft.model.settings.optimization import (
-    OptimizationParameters,
-)
+from antares.craft.model.settings.general import BuildingMode
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.service.base_services import BaseStudySettingsService
@@ -121,49 +117,44 @@ def read_study_settings(study_directory: Path) -> StudySettings:
     )
 
 
-def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, creation: bool) -> StudySettings:
+def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, creation: bool) -> None:
     general_data_ini = IniFile(study_directory, InitializationFilesTypes.GENERAL)
     update = not creation
     ini_content = {} if creation else general_data_ini.ini_dict
 
     # general
-    general_parameters = settings.general_parameters or GeneralParameters()
-    general_local_parameters = GeneralParametersLocal.from_user_model(general_parameters)
+    if settings.general_parameters:
+        general_local_parameters = GeneralParametersLocal.from_user_model(settings.general_parameters)
 
-    json_content = general_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)
-    if "general" in json_content and "building_mode" in json_content["general"]:
-        general_values = json_content["general"]
-        del general_values["building_mode"]
-        building_mode = general_local_parameters.general.building_mode
-        general_values["derated"] = building_mode == BuildingMode.DERATED
-        general_values["custom-scenario"] = building_mode == BuildingMode.CUSTOM
+        json_content = general_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)
+        if "general" in json_content and "building_mode" in json_content["general"]:
+            general_values = json_content["general"]
+            del general_values["building_mode"]
+            building_mode = general_local_parameters.general.building_mode
+            general_values["derated"] = building_mode == BuildingMode.DERATED
+            general_values["custom-scenario"] = building_mode == BuildingMode.CUSTOM
 
-    ini_content.update(json_content)
-    new_general_parameters = general_local_parameters.to_user_model()
+        ini_content.update(json_content)
 
     # optimization
-    optimization_parameters = settings.optimization_parameters or OptimizationParameters()
-    optimization_local_parameters = OptimizationParametersLocal.from_user_model(optimization_parameters)
-    ini_content.update(
-        {"optimization": optimization_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)}
-    )
-    new_optimization_parameters = optimization_local_parameters.to_user_model()
+    if settings.optimization_parameters:
+        optimization_local_parameters = OptimizationParametersLocal.from_user_model(settings.optimization_parameters)
+        ini_content.update(
+            {"optimization": optimization_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)}
+        )
 
     # adequacy_patch
-    adequacy_parameters = settings.adequacy_patch_parameters or AdequacyPatchParameters()
-    adequacy_local_parameters = AdequacyPatchParametersLocal.from_user_model(adequacy_parameters)
-    ini_content.update(
-        {"adequacy patch": adequacy_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)}
-    )
-    new_adequacy_parameters = adequacy_local_parameters.to_user_model()
+    if settings.adequacy_patch_parameters:
+        adequacy_local_parameters = AdequacyPatchParametersLocal.from_user_model(settings.adequacy_patch_parameters)
+        ini_content.update(
+            {"adequacy patch": adequacy_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)}
+        )
 
     # seed and advanced
-    seed_parameters = settings.seed_parameters or SeedParameters()
-    advanced_parameters = settings.advanced_parameters or AdvancedParameters()
+    seed_parameters = settings.seed_parameters or SeedParametersUpdate()
+    advanced_parameters = settings.advanced_parameters or AdvancedParametersUpdate()
     advanced_parameters_local = AdvancedAndSeedParametersLocal.from_user_model(advanced_parameters, seed_parameters)
     ini_content.update(advanced_parameters_local.model_dump(mode="json", by_alias=True, exclude_unset=update))
-    new_seed_parameters = advanced_parameters_local.to_seed_parameters_model()
-    new_advanced_parameters = advanced_parameters_local.to_advanced_parameters_model()
 
     # playlist
     # todo
@@ -174,15 +165,3 @@ def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, cr
     # writing
     general_data_ini.ini_dict = ini_content
     general_data_ini.write_ini_file()
-
-    # returning new_settings
-    return StudySettings(
-        general_parameters=new_general_parameters,
-        optimization_parameters=new_optimization_parameters,
-        adequacy_patch_parameters=new_adequacy_parameters,
-        seed_parameters=new_seed_parameters,
-        advanced_parameters=new_advanced_parameters,
-        playlist_parameters={},
-        thematic_trimming_parameters=None,  # type: ignore
-        # todo: remove this type: ignore when the thematic trimming is handled
-    )
