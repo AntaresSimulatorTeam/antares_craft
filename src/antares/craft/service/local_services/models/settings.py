@@ -13,7 +13,7 @@
 import ast
 
 from dataclasses import asdict
-from typing import Any, Sequence, Set, Union
+from typing import Any, Sequence, Set, Union, cast
 
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
@@ -117,12 +117,12 @@ class AdvancedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     adequacy_block_size: int = 100
 
     @field_validator("accuracy_on_correlation", mode="before")
-    def validate_accuracy_on_correlation(cls, v: Any) -> Union[Sequence[str], set]:
+    def validate_accuracy_on_correlation(cls, v: Any) -> Union[Sequence[str], set[str]]:
         if v is None:
             return []
         if isinstance(v, set):
             return v
-        return ast.literal_eval(v)
+        return cast(Sequence[str], ast.literal_eval(v))
 
 
 class SeedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
