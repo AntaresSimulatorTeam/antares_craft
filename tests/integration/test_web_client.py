@@ -504,12 +504,12 @@ class TestWebClient:
 
         # tests update settings
         study_settings = StudySettingsUpdate()
-        study_settings.general_parameters = GeneralParametersUpdate(mode=Mode.ADEQUACY, year_by_year=False)
+        study_settings.general_parameters = GeneralParametersUpdate(mode=Mode.ADEQUACY, year_by_year=True)
         study_settings.playlist_parameters = {1: PlaylistParameters(status=True, weight=0.6)}
         new_study.update_settings(study_settings)
         updated_settings = new_study.get_settings()
         assert updated_settings.general_parameters.mode == Mode.ADEQUACY
-        assert not updated_settings.general_parameters.year_by_year
+        assert updated_settings.general_parameters.year_by_year
         assert updated_settings.playlist_parameters == {1: PlaylistParameters(status=True, weight=0.6)}
 
         new_settings = StudySettingsUpdate()

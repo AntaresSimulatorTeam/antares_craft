@@ -60,7 +60,7 @@ AdequacyPatchParametersType = Union[AdequacyPatchParameters, AdequacyPatchParame
 
 
 @all_optional_model
-class AdequacyPatchParametersAPI(BaseModel, alias_generator=to_camel):
+class AdequacyPatchParametersAPI(BaseModel, alias_generator=to_camel, populate_by_name=True):
     enable_adequacy_patch: bool = False
     ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch: bool = True
     ntc_between_physical_areas_out_adequacy_patch: bool = True
@@ -103,7 +103,7 @@ SeedParametersType = Union[SeedParameters, SeedParametersUpdate]
 
 
 @all_optional_model
-class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel):
+class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel, populate_by_name=True):
     accuracy_on_correlation: set[OutputChoices]
     initial_reservoir_levels: InitialReservoirLevel
     hydro_heuristic_policy: HydroHeuristicPolicy
@@ -215,7 +215,7 @@ OptimizationParametersType = Union[OptimizationParameters, OptimizationParameter
 
 
 @all_optional_model
-class OptimizationParametersAPI(BaseModel, alias_generator=to_camel):
+class OptimizationParametersAPI(BaseModel, alias_generator=to_camel, populate_by_name=True):
     simplex_optimization_range: SimplexOptimizationRange
     transmission_capacities: OptimizationTransmissionCapacities
     binding_constraints: bool
@@ -269,7 +269,7 @@ ThematicTrimmingParametersType = Union[ThematicTrimmingParameters, ThematicTrimm
 
 
 @all_optional_model
-class ThematicTrimmingParametersAPI(BaseModel, alias_generator=to_camel):
+class ThematicTrimmingParametersAPI(BaseModel, alias_generator=to_camel, populate_by_name=True):
     ov_cost: bool
     op_cost: bool
     mrg_price: bool
