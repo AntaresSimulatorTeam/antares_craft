@@ -33,6 +33,7 @@ from antares.craft.service.api_services.area_api import AreaApiService
 from antares.craft.service.api_services.binding_constraint_api import BindingConstraintApiService
 from antares.craft.service.api_services.hydro_api import HydroApiService
 from antares.craft.service.api_services.link_api import LinkApiService
+from antares.craft.service.api_services.output_api import OutputApiService
 from antares.craft.service.api_services.renewable_api import RenewableApiService
 from antares.craft.service.api_services.st_storage_api import ShortTermStorageApiService
 from antares.craft.service.api_services.study_api import StudyApiService
@@ -42,7 +43,8 @@ from antares.craft.service.api_services.thermal_api import ThermalApiService
 class TestDeleteAPI:
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
-    study_service = StudyApiService(api, study_id)
+    output_service = OutputApiService(api, study_id)
+    study_service = StudyApiService(api, study_id, output_service)
     thermal_service = ThermalApiService(api, study_id)
     renewable_service = RenewableApiService(api, study_id)
     st_storage_service = ShortTermStorageApiService(api, study_id)
