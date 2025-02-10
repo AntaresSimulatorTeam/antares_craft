@@ -144,12 +144,28 @@ class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel, populate
         return AdvancedAndSeedParametersAPI.model_validate(api_dict)
 
     def to_user_advanced_parameters_model(self) -> AdvancedParameters:
-        included_fields = set(asdict(AdvancedParameters()).keys())
-        return AdvancedParameters(**self.model_dump(mode="json", include=included_fields))
+        return AdvancedParameters(
+            initial_reservoir_levels=self.initial_reservoir_levels,
+            hydro_heuristic_policy=self.hydro_heuristic_policy,
+            hydro_pricing_mode=self.hydro_pricing_mode,
+            power_fluctuations=self.power_fluctuations,
+            shedding_policy=self.shedding_policy,
+            unit_commitment_mode=self.unit_commitment_mode,
+            number_of_cores_mode=self.number_of_cores_mode,
+            renewable_generation_modelling=self.renewable_generation_modelling,
+            accuracy_on_correlation=self.accuracy_on_correlation,
+        )
 
     def to_user_seed_parameters_model(self) -> SeedParameters:
-        included_fields = set(asdict(SeedParameters()).keys())
-        return SeedParameters(**self.model_dump(mode="json", include=included_fields))
+        return SeedParameters(
+            seed_tsgen_thermal=self.seed_tsgen_thermal,
+            seed_tsnumbers=self.seed_tsnumbers,
+            seed_unsupplied_energy_costs=self.seed_unsupplied_energy_costs,
+            seed_spilled_energy_costs=self.seed_spilled_energy_costs,
+            seed_thermal_costs=self.seed_thermal_costs,
+            seed_hydro_costs=self.seed_hydro_costs,
+            seed_initial_reservoir_levels=self.seed_initial_reservoir_levels,
+        )
 
 
 GeneralParametersType = Union[GeneralParameters, GeneralParametersUpdate]
