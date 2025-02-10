@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
@@ -82,21 +82,18 @@ class AdequacyPatchParametersAPI(BaseModel, alias_generator=to_camel):
         )
         return AdequacyPatchParametersAPI.model_validate(user_dict)
 
-    def to_user_model(self, update: bool) -> AdequacyPatchParametersType:
-        args: dict[str, Any] = {
-            "include_adq_patch": self.enable_adequacy_patch,
-            "set_to_null_ntc_from_physical_out_to_physical_in_for_first_step": self.ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch,
-            "set_to_null_ntc_between_physical_out_for_first_step": self.ntc_between_physical_areas_out_adequacy_patch,
-            "price_taking_order": self.price_taking_order,
-            "include_hurdle_cost_csr": self.include_hurdle_cost_csr,
-            "check_csr_cost_function": self.check_csr_cost_function,
-            "threshold_initiate_curtailment_sharing_rule": self.threshold_initiate_curtailment_sharing_rule,
-            "threshold_display_local_matching_rule_violations": self.threshold_display_local_matching_rule_violations,
-            "threshold_csr_variable_bounds_relaxation": self.threshold_csr_variable_bounds_relaxation,
-        }
-        if update:
-            return AdequacyPatchParametersUpdate(**args)
-        return AdequacyPatchParameters(**args)
+    def to_user_model(self) -> AdequacyPatchParameters:
+        return AdequacyPatchParameters(
+            include_adq_patch=self.enable_adequacy_patch,
+            set_to_null_ntc_from_physical_out_to_physical_in_for_first_step=self.ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch,
+            set_to_null_ntc_between_physical_out_for_first_step=self.ntc_between_physical_areas_out_adequacy_patch,
+            price_taking_order=self.price_taking_order,
+            include_hurdle_cost_csr=self.include_hurdle_cost_csr,
+            check_csr_cost_function=self.check_csr_cost_function,
+            threshold_initiate_curtailment_sharing_rule=self.threshold_initiate_curtailment_sharing_rule,
+            threshold_display_local_matching_rule_violations=self.threshold_display_local_matching_rule_violations,
+            threshold_csr_variable_bounds_relaxation=self.threshold_csr_variable_bounds_relaxation,
+        )
 
 
 AdvancedParametersType = Union[AdvancedParameters, AdvancedParametersUpdate]
@@ -152,16 +149,12 @@ class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel):
         api_dict = advanced_parameters_dict | seed_parameters_dict
         return AdvancedAndSeedParametersAPI.model_validate(api_dict)
 
-    def to_user_advanced_parameters_model(self, update: bool) -> AdvancedParametersType:
+    def to_user_advanced_parameters_model(self) -> AdvancedParameters:
         excluded_fields = self._get_advanced_user_parameters_fields()
-        if update:
-            return AdvancedParametersUpdate(**self.model_dump(mode="json", exclude=excluded_fields))
         return AdvancedParameters(**self.model_dump(mode="json", exclude=excluded_fields))
 
-    def to_user_seed_parameters_model(self, update: bool) -> SeedParametersType:
+    def to_user_seed_parameters_model(self) -> SeedParameters:
         included_fields = set(asdict(SeedParametersUpdate()).keys())
-        if update:
-            return SeedParametersUpdate(**self.model_dump(mode="json", include=included_fields))
         return SeedParameters(**self.model_dump(mode="json", include=included_fields))
 
 
@@ -202,29 +195,26 @@ class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, ali
         user_dict.pop("nb_timeseries_thermal")
         return GeneralParametersAPI.model_validate(user_dict)
 
-    def to_user_model(self, nb_ts_thermal: int, update: bool) -> GeneralParametersType:
-        args: dict[str, Any] = {
-            "mode": self.mode,
-            "horizon": self.horizon,
-            "nb_years": self.nb_years,
-            "simulation_start": self.first_day,
-            "simulation_end": self.last_day,
-            "january_first": self.first_january,
-            "first_month_in_year": self.first_month,
-            "first_week_day": self.first_week_day,
-            "leap_year": self.leap_year,
-            "year_by_year": self.year_by_year,
-            "simulation_synthesis": self.simulation_synthesis,
-            "building_mode": self.building_mode,
-            "user_playlist": self.selection_mode,
-            "thematic_trimming": self.thematic_trimming,
-            "geographic_trimming": self.geographic_trimming,
-            "store_new_set": self.mc_scenario,
-            "nb_timeseries_thermal": nb_ts_thermal,
-        }
-        if update:
-            return GeneralParametersUpdate(**args)
-        return GeneralParameters(**args)
+    def to_user_model(self, nb_ts_thermal: int) -> GeneralParameters:
+        return GeneralParameters(
+            mode=self.mode,
+            horizon=self.horizon,
+            nb_years=self.nb_years,
+            simulation_start=self.first_day,
+            simulation_end=self.last_day,
+            january_first=self.first_january,
+            first_month_in_year=self.first_month,
+            first_week_day=self.first_week_day,
+            leap_year=self.leap_year,
+            year_by_year=self.year_by_year,
+            simulation_synthesis=self.simulation_synthesis,
+            building_mode=self.building_mode,
+            user_playlist=self.selection_mode,
+            thematic_trimming=self.thematic_trimming,
+            geographic_trimming=self.geographic_trimming,
+            store_new_set=self.mc_scenario,
+            nb_timeseries_thermal=nb_ts_thermal,
+        )
 
 
 OptimizationParametersType = Union[OptimizationParameters, OptimizationParametersUpdate]
@@ -263,25 +253,22 @@ class OptimizationParametersAPI(BaseModel, alias_generator=to_camel):
         user_dict["unfeasible_problem_behavior"] = user_dict.pop("include_unfeasible_problem_behavior")
         return OptimizationParametersAPI.model_validate(user_dict)
 
-    def to_user_model(self, update: bool) -> OptimizationParametersType:
-        args: dict[str, Any] = {
-            "simplex_range": self.simplex_optimization_range,
-            "transmission_capacities": self.transmission_capacities,
-            "include_constraints": self.binding_constraints,
-            "include_hurdlecosts": self.hurdle_costs,
-            "include_tc_minstablepower": self.thermal_clusters_min_stable_power,
-            "include_tc_min_ud_time": self.thermal_clusters_min_ud_time,
-            "include_dayahead": self.day_ahead_reserve,
-            "include_strategicreserve": self.strategic_reserve,
-            "include_spinningreserve": self.spinning_reserve,
-            "include_primaryreserve": self.primary_reserve,
-            "include_exportmps": self.export_mps,
-            "include_exportstructure": self.include_exportstructure,
-            "include_unfeasible_problem_behavior": self.unfeasible_problem_behavior,
-        }
-        if update:
-            return OptimizationParametersUpdate(**args)
-        return OptimizationParameters(**args)
+    def to_user_model(self) -> OptimizationParameters:
+        return OptimizationParameters(
+            simplex_range=self.simplex_optimization_range,
+            transmission_capacities=self.transmission_capacities,
+            include_constraints=self.binding_constraints,
+            include_hurdlecosts=self.hurdle_costs,
+            include_tc_minstablepower=self.thermal_clusters_min_stable_power,
+            include_tc_min_ud_time=self.thermal_clusters_min_ud_time,
+            include_dayahead=self.day_ahead_reserve,
+            include_strategicreserve=self.strategic_reserve,
+            include_spinningreserve=self.spinning_reserve,
+            include_primaryreserve=self.primary_reserve,
+            include_exportmps=self.export_mps,
+            include_exportstructure=self.include_exportstructure,
+            include_unfeasible_problem_behavior=self.unfeasible_problem_behavior,
+        )
 
 
 ThematicTrimmingParametersType = Union[ThematicTrimmingParameters, ThematicTrimmingParametersUpdate]
@@ -389,7 +376,5 @@ class ThematicTrimmingParametersAPI(BaseModel, alias_generator=to_camel):
         user_dict = asdict(user_class)
         return ThematicTrimmingParametersAPI.model_validate(user_dict)
 
-    def to_user_model(self, update: bool) -> ThematicTrimmingParametersType:
-        if update:
-            return ThematicTrimmingParametersUpdate(**self.model_dump(mode="json"))
+    def to_user_model(self) -> ThematicTrimmingParameters:
         return ThematicTrimmingParameters(**self.model_dump(mode="json"))
