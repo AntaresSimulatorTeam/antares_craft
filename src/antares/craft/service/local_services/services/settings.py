@@ -45,7 +45,7 @@ class StudySettingsLocalService(BaseStudySettingsService):
         self.study_name = study_name
 
     def edit_study_settings(self, settings: StudySettingsUpdate) -> None:
-        edit_study_settings(self.config.study_path, settings, update=True)
+        edit_study_settings(self.config.study_path, settings, creation=False)
 
     def read_study_settings(self) -> StudySettings:
         return read_study_settings(self.config.study_path)
@@ -121,9 +121,10 @@ def read_study_settings(study_directory: Path) -> StudySettings:
     )
 
 
-def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, update: bool) -> StudySettings:
+def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, creation: bool) -> StudySettings:
     general_data_ini = IniFile(study_directory, InitializationFilesTypes.GENERAL)
-    ini_content = general_data_ini.ini_dict if update else {}
+    update = not creation
+    ini_content = {} if creation else general_data_ini.ini_dict
 
     # general
     general_parameters = settings.general_parameters or GeneralParameters()
