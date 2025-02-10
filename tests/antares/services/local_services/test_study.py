@@ -79,7 +79,7 @@ class TestCreateStudy:
         expected_study_path = tmp_path / "studyTest"
 
         # When
-        create_study_local(study_name, version, str(tmp_path.absolute()))
+        create_study_local(study_name, version, tmp_path.absolute())
 
         # Then
         assert os.path.exists(expected_study_path)
@@ -127,7 +127,7 @@ author = Unknown
         monkeypatch.setattr(time, "time", lambda: "123")
 
         # When
-        create_study_local(study_name, version, str(tmp_path.absolute()))
+        create_study_local(study_name, version, tmp_path.absolute())
         with open(expected_study_antares_path, "r") as file:
             actual_content = file.read()
 
@@ -142,7 +142,7 @@ author = Unknown
 
         # When
         with pytest.raises(FileExistsError, match=f"Study {study_name} already exists"):
-            create_study_local(study_name, version, str(tmp_path.absolute()))
+            create_study_local(study_name, version, tmp_path.absolute())
 
     def test_all_correlation_ini_files_exists(self, local_study):
         expected_ini_content = """[general]

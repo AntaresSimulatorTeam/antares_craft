@@ -32,8 +32,8 @@ class StudySettingsUpdate:
     advanced_parameters: Optional[AdvancedParametersUpdate] = None
     seed_parameters: Optional[SeedParametersUpdate] = None
     adequacy_patch_parameters: Optional[AdequacyPatchParametersUpdate] = None
-    playlist_parameters: Optional[dict[int, PlaylistParametersUpdate]] = None
     thematic_trimming_parameters: Optional[ThematicTrimmingParametersUpdate] = None
+    playlist_parameters: Optional[dict[int, PlaylistParametersUpdate]] = None
 
 
 @dataclass
@@ -65,6 +65,30 @@ class StudySettings:
             playlist_parameters[year] = PlaylistParameters(**current_settings["playlist_parameters"][year])
 
         return StudySettings(
+            general_parameters,
+            optimization_parameters,
+            advanced_parameters,
+            seed_parameters,
+            adequacy_patch_parameters,
+            thematic_trimming_parameters,
+            playlist_parameters,
+        )
+
+    def to_update_settings(self) -> StudySettingsUpdate:
+        current_settings = asdict(self)
+        general_parameters = GeneralParametersUpdate(**current_settings["general_parameters"])
+        optimization_parameters = OptimizationParametersUpdate(**current_settings["optimization_parameters"])
+        advanced_parameters = AdvancedParametersUpdate(**current_settings["advanced_parameters"])
+        seed_parameters = SeedParametersUpdate(**current_settings["seed_parameters"])
+        adequacy_patch_parameters = AdequacyPatchParametersUpdate(**current_settings["adequacy_patch_parameters"])
+        thematic_trimming_parameters = ThematicTrimmingParametersUpdate(
+            **current_settings["thematic_trimming_parameters"]
+        )
+        playlist_parameters: dict[int, PlaylistParametersUpdate] = {}
+        for year in current_settings["playlist_parameters"]:
+            playlist_parameters[year] = PlaylistParametersUpdate(**current_settings["playlist_parameters"][year])
+
+        return StudySettingsUpdate(
             general_parameters,
             optimization_parameters,
             advanced_parameters,

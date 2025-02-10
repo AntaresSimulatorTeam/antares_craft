@@ -30,7 +30,6 @@ class AdequacyPatchParameters:
     threshold_initiate_curtailment_sharing_rule: int = 0
     threshold_display_local_matching_rule_violations: int = 0
     threshold_csr_variable_bounds_relaxation: int = 3
-    enable_first_step: bool = False
 
 
 @dataclass

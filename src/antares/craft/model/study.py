@@ -14,7 +14,6 @@ import logging
 import os
 import time
 
-from dataclasses import asdict
 from pathlib import Path, PurePath
 from types import MappingProxyType
 from typing import List, Optional
@@ -119,7 +118,7 @@ def import_study_api(api_config: APIconf, study_path: Path, destination_path: Op
         raise StudyImportError(study_path.name, e.message) from e
 
 
-def create_study_local(study_name: str, version: str, parent_directory: str) -> "Study":
+def create_study_local(study_name: str, version: str, parent_directory: Path) -> "Study":
     """
     Create a directory structure for the study with empty files.
 
@@ -131,7 +130,7 @@ def create_study_local(study_name: str, version: str, parent_directory: str) -> 
     Raises:
         FileExistsError if the study already exists in the given location
     """
-    local_config = LocalConfiguration(Path(parent_directory), study_name)
+    local_config = LocalConfiguration(parent_directory, study_name)
 
     study_directory = local_config.local_path / study_name
 
@@ -175,7 +174,7 @@ InfoTip = Antares Study {version}: {study_name}
     )
     # We need to create the file with default value
     default_settings = StudySettings()
-    update_settings = StudySettingsUpdate(**asdict(default_settings))
+    update_settings = default_settings.to_update_settings()
     edit_study_settings(study_directory, update_settings, True)
     study._settings = default_settings
     return study
