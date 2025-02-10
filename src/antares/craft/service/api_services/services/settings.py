@@ -124,10 +124,10 @@ def read_study_settings_api(base_url: str, study_id: str, wrapper: RequestWrappe
     optimization_url = f"{settings_base_url}/optimization/form"
     response = wrapper.get(optimization_url)
     json_response = response.json()
-    export_mps_value = json_response["exportMps"]
-    if export_mps_value:
+    export_mps_value = json_response.get("exportMps", None)
+    if export_mps_value is True:
         json_response["exportMps"] = ExportMPS.TRUE
-    elif not export_mps_value:
+    elif export_mps_value is False:
         json_response["exportMps"] = ExportMPS.FALSE
     optimization_api_model = OptimizationParametersAPI.model_validate(json_response)
     optimization_parameters = optimization_api_model.to_user_model()
