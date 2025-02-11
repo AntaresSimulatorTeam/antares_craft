@@ -20,15 +20,14 @@ from antares.craft.model.thermal import (
     ThermalClusterPropertiesUpdate,
     ThermalCostGeneration,
 )
+from antares.craft.service.api_services.models import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import BaseModel
-from pydantic.alias_generators import to_camel
 
 ThermalPropertiesType = Union[ThermalClusterProperties, ThermalClusterPropertiesUpdate]
 
 
 @all_optional_model
-class ThermalClusterPropertiesAPI(BaseModel, alias_generator=to_camel, populate_by_name=True):
+class ThermalClusterPropertiesAPI(APIBaseModel):
     enabled: bool
     unit_count: int
     nominal_capacity: float

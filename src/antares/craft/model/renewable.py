@@ -9,15 +9,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
 import pandas as pd
 
-from antares.craft.model.cluster import ClusterProperties
+from antares.craft.model.cluster import ClusterProperties, ClusterPropertiesUpdate
 from antares.craft.service.base_services import BaseRenewableService
-from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import transform_name_to_id
 
 
@@ -55,18 +54,15 @@ class TimeSeriesInterpretation(Enum):
     PRODUCTION_FACTOR = "production-factor"
 
 
-class DefaultRenewableClusterProperties(ClusterProperties):
-    """
-    Properties of a renewable cluster read from the configuration files.
-    """
-
+@dataclass
+class RenewableClusterProperties(ClusterProperties):
     group: RenewableClusterGroup = RenewableClusterGroup.OTHER1
     ts_interpretation: TimeSeriesInterpretation = TimeSeriesInterpretation.POWER_GENERATION
 
-
-@all_optional_model
-class RenewableClusterProperties(DefaultRenewableClusterProperties):
-    pass
+@dataclass
+class RenewableClusterPropertiesUpdate(ClusterPropertiesUpdate):
+    group: Optional[RenewableClusterGroup] = None
+    ts_interpretation: Optional[TimeSeriesInterpretation] = None
 
 
 class RenewableClusterPropertiesLocal(DefaultRenewableClusterProperties):

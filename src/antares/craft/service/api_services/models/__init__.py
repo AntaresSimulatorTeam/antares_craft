@@ -9,3 +9,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from pydantic import BaseModel
+from pydantic.alias_generators import to_camel
+from pydantic.v1 import ConfigDict
+
+
+class APIBaseModel(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel, extra="forbid")
