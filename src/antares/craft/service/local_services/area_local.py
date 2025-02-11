@@ -27,7 +27,7 @@ from antares.craft.model.area import (
     AreaUi,
     AreaUiLocal,
 )
-from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesLocal
+from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesLocal
 from antares.craft.model.st_storage import STStorage, STStorageProperties, STStoragePropertiesLocal
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties, ThermalClusterPropertiesLocal
@@ -38,6 +38,7 @@ from antares.craft.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
+from antares.craft.service.local_services.models.hydro import HydroPropertiesLocal
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries

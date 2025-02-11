@@ -13,36 +13,32 @@ from dataclasses import asdict
 from typing import Union
 
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
-from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import BaseModel
-from pydantic.alias_generators import to_camel
+from antares.craft.service.local_services.models.settings import LocalBaseModel
 
 HydroPropertiesType = Union[HydroProperties, HydroPropertiesUpdate]
 
 
-@all_optional_model
-class HydroPropertiesAPI(BaseModel, populate_by_name=True, alias_generator=to_camel, extra="forbid"):
-    # todo: use API Model once the other PR is merged
-    inter_daily_breakdown: float
-    intra_daily_modulation: float
-    inter_monthly_breakdown: float
-    reservoir: bool
-    reservoir_capacity: float
-    follow_load: bool
-    use_water: bool
-    hard_bounds: bool
-    initialize_reservoir_date: int
-    use_heuristic: bool
-    power_to_level: bool
-    use_leeway: bool
-    leeway_low: float
-    leeway_up: float
-    pumping_efficiency: float
+class HydroPropertiesLocal(LocalBaseModel):
+    inter_daily_breakdown: float = 1
+    intra_daily_modulation: float = 24
+    inter_monthly_breakdown: float = 1
+    reservoir: bool = False
+    reservoir_capacity: float = 0
+    follow_load: bool = True
+    use_water: bool = False
+    hard_bounds: bool = False
+    initialize_reservoir_date: int = 0
+    use_heuristic: bool = True
+    power_to_level: bool = False
+    use_leeway: bool = False
+    leeway_low: float = 1
+    leeway_up: float = 1
+    pumping_efficiency: float = 1
 
     @staticmethod
-    def from_user_model(user_class: HydroPropertiesType) -> "HydroPropertiesAPI":
+    def from_user_model(user_class: HydroPropertiesType) -> "HydroPropertiesLocal":
         user_dict = asdict(user_class)
-        return HydroPropertiesAPI.model_validate(user_dict)
+        return HydroPropertiesLocal.model_validate(user_dict)
 
     def to_user_model(self) -> HydroProperties:
         return HydroProperties(
