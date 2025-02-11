@@ -113,7 +113,8 @@ class ThermalApiService(BaseThermalService):
             thermal_id = thermal.pop("id")
             thermal_name = thermal.pop("name")
 
-            thermal_props = ThermalClusterProperties(**thermal)
+            api_props = ThermalClusterPropertiesAPI.model_validate(thermal)
+            thermal_props = api_props.to_user_model()
             thermal_cluster = ThermalCluster(self, thermal_id, thermal_name, thermal_props)
             thermals.append(thermal_cluster)
 
