@@ -18,8 +18,8 @@ from antares.craft.service.api_services.binding_constraint_api import BindingCon
 from antares.craft.service.api_services.hydro_api import HydroApiService
 from antares.craft.service.api_services.link_api import LinkApiService
 from antares.craft.service.api_services.renewable_api import RenewableApiService
-from antares.craft.service.api_services.run_api import RunApiService
 from antares.craft.service.api_services.services.output import OutputApiService
+from antares.craft.service.api_services.services.run import RunApiService
 from antares.craft.service.api_services.services.settings import StudySettingsAPIService
 from antares.craft.service.api_services.st_storage_api import ShortTermStorageApiService
 from antares.craft.service.api_services.study_api import StudyApiService
@@ -42,8 +42,8 @@ from antares.craft.service.local_services.binding_constraint_local import Bindin
 from antares.craft.service.local_services.hydro_local import HydroLocalService
 from antares.craft.service.local_services.link_local import LinkLocalService
 from antares.craft.service.local_services.renewable_local import RenewableLocalService
-from antares.craft.service.local_services.run_local import RunLocalService
 from antares.craft.service.local_services.services.output import OutputLocalService
+from antares.craft.service.local_services.services.run import RunLocalService
 from antares.craft.service.local_services.services.settings import StudySettingsLocalService
 from antares.craft.service.local_services.st_storage_local import ShortTermStorageLocalService
 from antares.craft.service.local_services.study_local import StudyLocalService
