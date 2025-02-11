@@ -42,7 +42,9 @@ class AntaresWebDesktop:
     def _is_server_ready(self):
         healthcheck_url = f"{self.url}/api/health"
         try:
-            res = requests.get(healthcheck_url)
+            session = requests.Session()
+            session.trust_env = False
+            res = session.get(healthcheck_url)
             return res.status_code == 200
         except requests.RequestException:
             return False
@@ -64,6 +66,7 @@ class AntaresWebDesktop:
         It also kills the AntaresWebDesktop instance.
         """
         session = requests.Session()
+        session.trust_env = False
         res = session.get(self.url + "/api/v1/studies")
         studies = res.json()
         for study in studies:
