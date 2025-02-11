@@ -14,27 +14,27 @@ from typing import Union
 
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
 from antares.craft.service.local_services.models.settings import LocalBaseModel
+from pydantic import Field
 
 HydroPropertiesType = Union[HydroProperties, HydroPropertiesUpdate]
 
 
 class HydroPropertiesLocal(LocalBaseModel):
-    # todo: add the aliases ?
-    inter_daily_breakdown: float = 1
-    intra_daily_modulation: float = 24
-    inter_monthly_breakdown: float = 1
+    inter_daily_breakdown: float = Field(default=1, alias="inter-daily-breakdown")
+    intra_daily_modulation: float = Field(default=24, alias="intra-daily-modulation")
+    inter_monthly_breakdown: float = Field(default=1, alias="inter-monthly-breakdown")
     reservoir: bool = False
-    reservoir_capacity: float = 0
-    follow_load: bool = True
-    use_water: bool = False
-    hard_bounds: bool = False
-    initialize_reservoir_date: int = 0
-    use_heuristic: bool = True
-    power_to_level: bool = False
-    use_leeway: bool = False
-    leeway_low: float = 1
-    leeway_up: float = 1
-    pumping_efficiency: float = 1
+    reservoir_capacity: float = Field(default=0, alias="reservoir capacity")
+    follow_load: bool = Field(default=True, alias="follow load")
+    use_water: bool = Field(default=False, alias="use water")
+    hard_bounds: bool = Field(default=False, alias="hard bounds")
+    initialize_reservoir_date: int = Field(default=0, alias="initialize reservoir date")
+    use_heuristic: bool = Field(default=True, alias="use heuristic")
+    power_to_level: bool = Field(default=False, alias="power to level")
+    use_leeway: bool = Field(default=False, alias="use leeway")
+    leeway_low: float = Field(default=1, alias="leeway low")
+    leeway_up: float = Field(default=1, alias="leeway up")
+    pumping_efficiency: float = Field(default=1, alias="pumping efficiency")
 
     @staticmethod
     def from_user_model(user_class: HydroPropertiesType) -> "HydroPropertiesLocal":
