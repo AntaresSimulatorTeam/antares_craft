@@ -229,21 +229,16 @@ variableomcost = 5.0
     ):
         # Given
         local_study_w_thermal.get_areas()["fr"].create_thermal_cluster("test thermal cluster two")
-        args = default_thermal_cluster_properties.model_dump(mode="json", exclude_none=True)
-        args["thermal_name"] = "test thermal cluster"
-        expected_list_ini_dict = ThermalClusterPropertiesLocal.model_validate(args).list_ini_fields
-        args["thermal_name"] = "test thermal cluster two"
-        expected_list_ini_dict.update(ThermalClusterPropertiesLocal.model_validate(args).list_ini_fields)
+        ini_file = IniFile(
+            local_study_w_thermal.service.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id="fr"
+        )
 
-        expected_list_ini = ConfigParser()
-        expected_list_ini.read_dict(expected_list_ini_dict)
-
-        # When
-        actual_thermal_list_ini.update_from_ini_file()
-
-        # Then
-        assert actual_thermal_list_ini.parsed_ini.sections() == expected_list_ini.sections()
-        assert actual_thermal_list_ini.parsed_ini == expected_list_ini
+        new_content = ini_file.ini_dict
+        assert len(new_content.keys()) == 2
+        for key in ["test thermal cluster", "test thermal cluster two"]:
+            assert key in new_content
+            created_properties = ThermalClusterPropertiesLocal(**new_content[key]).to_user_model()
+            assert created_properties == default_thermal_cluster_properties
 
     def test_clusters_are_alphabetical_in_list_ini(
         self, local_study_w_thermal, actual_thermal_list_ini, default_thermal_cluster_properties
