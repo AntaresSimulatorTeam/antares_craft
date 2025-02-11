@@ -50,43 +50,27 @@ class BaseAreaService(ABC):
 
     @abstractmethod
     def create_thermal_cluster(
-        self, area_id: str, thermal_name: str, properties: Optional["ThermalClusterProperties"] = None
-    ) -> "ThermalCluster":
-        """
-        Args:
-            area_id: the area id in which to create the thermal cluster
-            thermal_name: the name of the thermal cluster
-            properties: the properties of the thermal cluster. If not provided, AntaresWeb will use its own default values.
-
-        Returns:
-            The created ThermalCluster
-        """
-        pass
-
-    @abstractmethod
-    def create_thermal_cluster_with_matrices(
         self,
         area_id: str,
         cluster_name: str,
-        parameters: "ThermalClusterProperties",
-        prepro: Optional[pd.DataFrame],
-        modulation: Optional[pd.DataFrame],
-        series: Optional[pd.DataFrame],
-        CO2Cost: Optional[pd.DataFrame],
-        fuelCost: Optional[pd.DataFrame],
+        properties: Optional["ThermalClusterProperties"] = None,
+        prepro: Optional[pd.DataFrame] = None,
+        modulation: Optional[pd.DataFrame] = None,
+        series: Optional[pd.DataFrame] = None,
+        co2_cost: Optional[pd.DataFrame] = None,
+        fuel_cost: Optional[pd.DataFrame] = None,
     ) -> "ThermalCluster":
         """
-
         Args:
 
             area_id: area id in which to create the thermal cluster
             cluster_name: thermal cluster nam
-            parameters: properties of the thermal cluster.
+            properties: properties of the thermal cluster.
             prepro: matrix corresponding to prepro/data.txt
             modulation: matrix corresponding to prepro/modulation.txt
             series: matrix for series/series.txt
-            CO2Cost: matrix for series/CO2Cost.txt
-            fuelCost: matrix for series/fuelCost.txt
+            co2_cost: matrix for series/CO2Cost.txt
+            fuel_cost: matrix for series/fuelCost.txt
 
         Returns:
            Thermal cluster created
@@ -98,8 +82,8 @@ class BaseAreaService(ABC):
         self,
         area_id: str,
         renewable_name: str,
-        properties: Optional["RenewableClusterProperties"],
-        series: Optional[pd.DataFrame],
+        properties: Optional["RenewableClusterProperties"] = None,
+        series: Optional[pd.DataFrame] = None,
     ) -> "RenewableCluster":
         """
         Args:

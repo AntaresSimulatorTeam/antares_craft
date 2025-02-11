@@ -89,6 +89,11 @@ class AreaLocalService(BaseAreaService):
         area_id: str,
         thermal_name: str,
         properties: Optional[ThermalClusterProperties] = None,
+        prepro: Optional[pd.DataFrame] = None,
+        modulation: Optional[pd.DataFrame] = None,
+        series: Optional[pd.DataFrame] = None,
+        co2_cost: Optional[pd.DataFrame] = None,
+        fuel_cost: Optional[pd.DataFrame] = None,
     ) -> ThermalCluster:
         properties = properties or ThermalClusterProperties()
         local_properties = ThermalClusterPropertiesLocal.from_user_model(properties)
@@ -116,23 +121,11 @@ class AreaLocalService(BaseAreaService):
             )
         list_ini.write_ini_file(sort_sections=True)
 
+        # todo: handle the matrices
+
         return ThermalCluster(
             self.thermal_service, area_id, thermal_name, local_thermal_properties.yield_thermal_cluster_properties()
         )
-
-    @override
-    def create_thermal_cluster_with_matrices(
-        self,
-        area_id: str,
-        cluster_name: str,
-        parameters: ThermalClusterProperties,
-        prepro: Optional[pd.DataFrame],
-        modulation: Optional[pd.DataFrame],
-        series: Optional[pd.DataFrame],
-        CO2Cost: Optional[pd.DataFrame],
-        fuelCost: Optional[pd.DataFrame],
-    ) -> ThermalCluster:
-        raise NotImplementedError
 
     @override
     def create_renewable_cluster(
