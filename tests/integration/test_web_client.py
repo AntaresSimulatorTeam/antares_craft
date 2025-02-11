@@ -498,6 +498,7 @@ class TestWebClient:
         actual_settings = new_study.get_settings()
         default_settings = StudySettings()
         assert actual_settings.general_parameters == default_settings.general_parameters
+        assert actual_settings.advanced_parameters == default_settings.advanced_parameters
         assert actual_settings.adequacy_patch_parameters == default_settings.adequacy_patch_parameters
         assert actual_settings.seed_parameters == default_settings.seed_parameters
         assert actual_settings.playlist_parameters == {1: PlaylistParameters(status=False, weight=1)}
