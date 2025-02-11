@@ -19,6 +19,7 @@ from antares.craft.model.thermal import (
     ThermalCluster,
     ThermalClusterMatrixName,
     ThermalClusterProperties,
+    ThermalClusterPropertiesUpdate,
 )
 from antares.craft.service.base_services import BaseThermalService
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
@@ -36,7 +37,7 @@ class ThermalLocalService(BaseThermalService):
 
     @override
     def update_thermal_properties(
-        self, thermal_cluster: ThermalCluster, properties: ThermalClusterProperties
+        self, thermal_cluster: ThermalCluster, properties: ThermalClusterPropertiesUpdate
     ) -> ThermalClusterProperties:
         raise NotImplementedError
 

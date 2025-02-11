@@ -38,6 +38,7 @@ if TYPE_CHECKING:
         ThermalCluster,
         ThermalClusterMatrixName,
         ThermalClusterProperties,
+        ThermalClusterPropertiesUpdate,
     )
 
 
@@ -402,7 +403,7 @@ class BaseLinkService(ABC):
 class BaseThermalService(ABC):
     @abstractmethod
     def update_thermal_properties(
-        self, thermal_cluster: "ThermalCluster", properties: "ThermalClusterProperties"
+        self, thermal_cluster: "ThermalCluster", properties: "ThermalClusterPropertiesUpdate"
     ) -> "ThermalClusterProperties":
         """
         Args:

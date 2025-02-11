@@ -23,7 +23,12 @@ from antares.craft.exceptions.exceptions import (
     ThermalMatrixUpdateError,
     ThermalPropertiesUpdateError,
 )
-from antares.craft.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
+from antares.craft.model.thermal import (
+    ThermalCluster,
+    ThermalClusterMatrixName,
+    ThermalClusterProperties,
+    ThermalClusterPropertiesUpdate,
+)
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import BaseThermalService
@@ -40,7 +45,7 @@ class ThermalApiService(BaseThermalService):
 
     @override
     def update_thermal_properties(
-        self, thermal_cluster: ThermalCluster, properties: ThermalClusterProperties
+        self, thermal_cluster: ThermalCluster, properties: ThermalClusterPropertiesUpdate
     ) -> ThermalClusterProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{thermal_cluster.area_id}/clusters/thermal/{thermal_cluster.id}"
         try:
