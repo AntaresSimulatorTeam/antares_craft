@@ -121,11 +121,19 @@ class AreaLocalService(BaseAreaService):
             )
         list_ini.write_ini_file(sort_sections=True)
 
-        # todo: handle the matrices
+        # Upload matrices
+        if prepro:
+            self._write_timeseries(prepro, TimeSeriesFileType.THERMAL_DATA, area_id)
+        if modulation:
+            self._write_timeseries(modulation, TimeSeriesFileType.THERMAL_MODULATION, area_id)
+        if series:
+            self._write_timeseries(series, TimeSeriesFileType.THERMAL_SERIES, area_id)
+        if co2_cost:
+            self._write_timeseries(co2_cost, TimeSeriesFileType.THERMAL_CO2, area_id)
+        if fuel_cost:
+            self._write_timeseries(fuel_cost, TimeSeriesFileType.THERMAL_FUEL, area_id)
 
-        return ThermalCluster(
-            self.thermal_service, area_id, thermal_name, local_thermal_properties.yield_thermal_cluster_properties()
-        )
+        return ThermalCluster(self.thermal_service, area_id, thermal_name, properties)
 
     @override
     def create_renewable_cluster(
