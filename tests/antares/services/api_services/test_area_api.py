@@ -9,6 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import re
+
 import pytest
 import requests_mock
 
@@ -185,6 +187,9 @@ class TestCreateAPI:
             creation_response = {"name": cluster_name, "id": cluster_name, "group": "Nuclear"}
             mocker.post(url, json=creation_response, status_code=200)
 
+            raw_url = f"{base_url}/studies/{self.study_id}/raw"
+            mocker.post(raw_url, json={}, status_code=200)
+
             thermal_cluster = self.area.create_thermal_cluster(
                 thermal_name=cluster_name,
                 properties=ThermalClusterProperties(),
@@ -192,8 +197,9 @@ class TestCreateAPI:
                 series=self.matrix,
                 fuel_cost=self.matrix,
             )
-            # to assert two http requests to "commands"
-            assert len(mocker.request_history) == 2
+            # Asserts 4 commands were created
+            # 1 for the properties and 1 for each matrix we filled
+            assert len(mocker.request_history) == 4
             assert isinstance(thermal_cluster, ThermalCluster)
 
     def test_create_hydro_success(self):
