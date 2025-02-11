@@ -189,12 +189,26 @@ class AreaApiService(BaseAreaService):
             json_response = response.json()
             name = json_response["name"]
             del json_response["name"]
-            del json_response["id"]
+            thermal_id = json_response.pop("id")
             created_api_properties = ThermalClusterPropertiesAPI.model_validate(json_response)
             properties = created_api_properties.to_user_model()
 
-            # todo: do the matrices
-            # upload_series(self._base_url, self.study_id, self._wrapper, matrix, path.as_posix())
+            # Upload matrices
+            if prepro:
+                matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/data"
+                upload_series(self._base_url, self.study_id, self._wrapper, prepro, matrix_path)
+            if modulation:
+                matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/data"
+                upload_series(self._base_url, self.study_id, self._wrapper, modulation, matrix_path)
+            if series:
+                matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/series"
+                upload_series(self._base_url, self.study_id, self._wrapper, series, matrix_path)
+            if co2_cost:
+                matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/CO2Cost"
+                upload_series(self._base_url, self.study_id, self._wrapper, co2_cost, matrix_path)
+            if fuel_cost:
+                matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/fuelCost"
+                upload_series(self._base_url, self.study_id, self._wrapper, fuel_cost, matrix_path)
 
         except APIError as e:
             raise ThermalCreationError(cluster_name, area_id, e.message) from e
