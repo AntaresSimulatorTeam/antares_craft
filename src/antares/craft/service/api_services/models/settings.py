@@ -113,6 +113,7 @@ class AdvancedAndSeedParametersAPI(APIBaseModel):
     unit_commitment_mode: UnitCommitmentMode
     number_of_cores_mode: SimulationCore
     renewable_generation_modelling: RenewableGenerationModeling
+    day_ahead_reserve_management: Any
     seed_tsgen_wind: int
     seed_tsgen_load: int
     seed_tsgen_hydro: int
