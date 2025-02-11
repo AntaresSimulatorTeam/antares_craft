@@ -95,11 +95,7 @@ class AreaLocalService(BaseAreaService):
         co2_cost: Optional[pd.DataFrame] = None,
         fuel_cost: Optional[pd.DataFrame] = None,
     ) -> ThermalCluster:
-        properties = properties or ThermalClusterProperties()
-        local_properties = ThermalClusterPropertiesLocal.from_user_model(properties)
-        args = {"thermal_name": thermal_name, **local_properties.model_dump(mode="json", exclude_none=True)}
-        local_thermal_properties = ThermalClusterPropertiesLocal.model_validate(args)
-
+        # Creating files
         list_ini = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id)
         IniFile(
             self.config.study_path,
@@ -111,8 +107,13 @@ class AreaLocalService(BaseAreaService):
         IniFile(
             self.config.study_path, InitializationFilesTypes.THERMAL_SERIES, area_id=area_id, cluster_id=thermal_name
         )
+
+        # Writing properties
         try:
-            list_ini.add_section(local_thermal_properties.list_ini_fields)
+            properties = properties or ThermalClusterProperties()
+            local_properties = ThermalClusterPropertiesLocal.from_user_model(properties)
+            new_section_content = {"name": thermal_name, **local_properties.model_dump(mode="json")}
+            list_ini.add_section({"name": new_section_content})
         except DuplicateSectionError:
             raise ThermalCreationError(
                 thermal_name,

@@ -55,7 +55,6 @@ from antares.craft.service.local_services.models import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
 from pydantic import Field, field_validator
 
-
 AdequacyPatchParametersType = Union[AdequacyPatchParameters, AdequacyPatchParametersUpdate]
 
 
