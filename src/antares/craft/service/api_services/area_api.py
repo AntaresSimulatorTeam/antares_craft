@@ -38,6 +38,7 @@ from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
+from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import (
@@ -252,14 +253,16 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
             body = {"name": renewable_name.lower()}
             if properties:
-                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                api_model = RenewableClusterPropertiesAPI.from_user_model(properties)
+                camel_properties = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
             name = json_response["name"]
             del json_response["name"]
             del json_response["id"]
-            properties = RenewableClusterProperties.model_validate(json_response)
+            api_properties = RenewableClusterPropertiesAPI.model_validate(json_response)
+            properties = api_properties.to_user_model()
 
             if series is not None:
                 series_path = f"input/renewables/series/{area_id}/{renewable_name.lower()}/series"
