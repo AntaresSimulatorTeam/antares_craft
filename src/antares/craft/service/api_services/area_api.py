@@ -38,6 +38,7 @@ from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
+from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import (
     BaseAreaService,
@@ -421,8 +422,8 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
             body = {}
             if properties:
-                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
-                body = {**camel_properties}
+                api_model = HydroPropertiesAPI.from_user_model(properties)
+                body = {**api_model.model_dump(mode="json", by_alias=True, exclude_none=True)}
             self._wrapper.put(url, json=body)
 
             if matrices is not None:
