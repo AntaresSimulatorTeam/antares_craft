@@ -227,7 +227,7 @@ variableomcost = 5.0
     def test_list_ini_has_multiple_clusters(
         self, local_study_w_thermal, actual_thermal_list_ini, default_thermal_cluster_properties
     ):
-        # Given
+        # Asserts we can create 2 clusters
         local_study_w_thermal.get_areas()["fr"].create_thermal_cluster("test thermal cluster two")
         ini_file = IniFile(
             local_study_w_thermal.service.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id="fr"
