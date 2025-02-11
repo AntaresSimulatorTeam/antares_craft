@@ -54,7 +54,7 @@ from antares.craft.model.settings.general import GeneralParametersUpdate, Mode
 from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
 from antares.craft.model.study import Study, create_study_api, create_variant_api, import_study_api, read_study_api
-from antares.craft.service.api_services.output_api import OutputApiService
+from antares.craft.service.api_services.services.output import OutputApiService
 from antares.craft.service.service_factory import ServiceFactory
 
 
