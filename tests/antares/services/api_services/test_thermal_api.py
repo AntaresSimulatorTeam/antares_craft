@@ -26,7 +26,7 @@ from antares.craft.model.area import Area
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
 from antares.craft.service.api_services.area_api import AreaApiService
-from antares.craft.service.api_services.thermal_api import ThermalApiService
+from antares.craft.service.api_services.services.thermal import ThermalApiService
 from antares.craft.service.service_factory import ServiceFactory
 
 

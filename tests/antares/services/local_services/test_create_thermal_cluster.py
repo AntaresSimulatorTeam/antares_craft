@@ -22,9 +22,9 @@ from antares.craft.model.thermal import (
     ThermalCluster,
     ThermalClusterGroup,
     ThermalClusterProperties,
-    ThermalClusterPropertiesLocal,
     ThermalCostGeneration,
 )
+from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 

@@ -27,12 +27,12 @@ from antares.craft.model.renewable import (
     RenewableCluster,
     RenewableClusterGroup,
     RenewableClusterProperties,
-    RenewableClusterPropertiesLocal,
     TimeSeriesInterpretation,
 )
 from antares.craft.model.st_storage import STStorage, STStorageGroup, STStorageProperties, STStoragePropertiesLocal
 from antares.craft.model.study import read_study_local
 from antares.craft.model.thermal import ThermalCluster
+from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import df_save
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
