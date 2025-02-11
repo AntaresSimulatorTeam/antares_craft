@@ -14,8 +14,9 @@ from dataclasses import asdict
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import APIError, StudySettingsReadError, StudySettingsUpdateError
+from antares.craft.model.settings.optimization import ExportMPS
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
-from antares.craft.model.settings.study_settings import StudySettings
+from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.service.api_services.models.settings import (
     AdequacyPatchParametersAPI,
     AdvancedAndSeedParametersAPI,
@@ -36,10 +37,9 @@ class StudySettingsAPIService(BaseStudySettingsService):
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
     @override
-    def edit_study_settings(self, settings: StudySettings) -> StudySettings:
+    def edit_study_settings(self, settings: StudySettingsUpdate) -> None:
         try:
             edit_study_settings(self._base_url, self.study_id, self._wrapper, settings)
-            return settings
         except APIError as e:
             raise StudySettingsUpdateError(self.study_id, e.message) from e
 
@@ -51,14 +51,14 @@ class StudySettingsAPIService(BaseStudySettingsService):
             raise StudySettingsReadError(self.study_id, e.message) from e
 
 
-def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, settings: StudySettings) -> None:
+def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, settings: StudySettingsUpdate) -> None:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
 
     # thematic trimming
     if settings.thematic_trimming_parameters:
         thematic_trimming_url = f"{settings_base_url}/thematictrimming/form"
         api_model = ThematicTrimmingParametersAPI.from_user_model(settings.thematic_trimming_parameters)
-        body = api_model.model_dump(mode="json", exclude_unset=True, by_alias=True)
+        body = api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
         wrapper.put(thematic_trimming_url, json=body)
 
     # playlist
@@ -73,14 +73,16 @@ def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, s
     if settings.optimization_parameters:
         optimization_url = f"{settings_base_url}/optimization/form"
         optimization_api_model = OptimizationParametersAPI.from_user_model(settings.optimization_parameters)
-        body = optimization_api_model.model_dump(mode="json", exclude_unset=True, by_alias=True)
+        body = optimization_api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
+        if "includeExportstructure" in body:
+            raise APIError("AntaresWeb doesn't support editing the parameter include_exportstructure")
         wrapper.put(optimization_url, json=body)
 
     # general and timeseries
     if settings.general_parameters:
         general_url = f"{settings_base_url}/general/form"
         general_api_model = GeneralParametersAPI.from_user_model(settings.general_parameters)
-        body = general_api_model.model_dump(mode="json", exclude_unset=True, by_alias=True)
+        body = general_api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
         wrapper.put(general_url, json=body)
 
         if nb_ts_thermal := settings.general_parameters.nb_timeseries_thermal:
@@ -93,14 +95,16 @@ def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, s
         advanced_api_model = AdvancedAndSeedParametersAPI.from_user_model(
             settings.advanced_parameters, settings.seed_parameters
         )
-        body = advanced_api_model.model_dump(mode="json", exclude_unset=True, by_alias=True)
+        body = advanced_api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
+        if "accuracyOnCorrelation" in body:
+            body["accuracyOnCorrelation"] = ", ".join(corr for corr in body["accuracyOnCorrelation"])
         wrapper.put(advanced_parameters_url, json=body)
 
     # adequacy patch
     if settings.adequacy_patch_parameters:
         adequacy_patch_url = f"{settings_base_url}/adequacypatch/form"
         adequacy_patch_api_model = AdequacyPatchParametersAPI.from_user_model(settings.adequacy_patch_parameters)
-        body = adequacy_patch_api_model.model_dump(mode="json", exclude_unset=True, by_alias=True)
+        body = adequacy_patch_api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
         wrapper.put(adequacy_patch_url, json=body)
 
 
@@ -124,7 +128,13 @@ def read_study_settings_api(base_url: str, study_id: str, wrapper: RequestWrappe
     # optimization
     optimization_url = f"{settings_base_url}/optimization/form"
     response = wrapper.get(optimization_url)
-    optimization_api_model = OptimizationParametersAPI.model_validate(response.json())
+    json_response = response.json()
+    export_mps_value = json_response.get("exportMps", None)
+    if export_mps_value is True:
+        json_response["exportMps"] = ExportMPS.TRUE
+    elif export_mps_value is False:
+        json_response["exportMps"] = ExportMPS.FALSE
+    optimization_api_model = OptimizationParametersAPI.model_validate(json_response)
     optimization_parameters = optimization_api_model.to_user_model()
 
     # general and timeseries

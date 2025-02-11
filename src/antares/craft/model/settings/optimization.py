@@ -35,14 +35,31 @@ class SimplexOptimizationRange(Enum):
 
 
 class ExportMPS(Enum):
-    NONE = "none"
+    TRUE = "True"
+    FALSE = "False"
     OPTIM1 = "optim1"
     OPTIM2 = "optim2"
-    BOTH_OPTIMS = "both-optims"
 
 
 @dataclass
 class OptimizationParameters:
+    simplex_range: SimplexOptimizationRange = SimplexOptimizationRange.WEEK
+    transmission_capacities: OptimizationTransmissionCapacities = OptimizationTransmissionCapacities.LOCAL_VALUES
+    include_constraints: bool = True
+    include_hurdlecosts: bool = True
+    include_tc_minstablepower: bool = True
+    include_tc_min_ud_time: bool = True
+    include_dayahead: bool = True
+    include_strategicreserve: bool = True
+    include_spinningreserve: bool = True
+    include_primaryreserve: bool = True
+    include_exportmps: ExportMPS = ExportMPS.FALSE
+    include_exportstructure: bool = False
+    include_unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
+
+
+@dataclass
+class OptimizationParametersUpdate:
     simplex_range: Optional[SimplexOptimizationRange] = None
     transmission_capacities: Optional[OptimizationTransmissionCapacities] = None
     include_constraints: Optional[bool] = None

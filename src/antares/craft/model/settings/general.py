@@ -69,6 +69,27 @@ class OutputFormat(EnumIgnoreCase):
 
 @dataclass
 class GeneralParameters:
+    mode: Mode = Mode.ECONOMY
+    horizon: str = ""
+    nb_years: int = 1
+    simulation_start: int = 1
+    simulation_end: int = 365
+    january_first: WeekDay = WeekDay.MONDAY
+    first_month_in_year: Month = Month.JANUARY
+    first_week_day: WeekDay = WeekDay.MONDAY
+    leap_year: bool = False
+    year_by_year: bool = False
+    simulation_synthesis: bool = True
+    building_mode: BuildingMode = BuildingMode.AUTOMATIC
+    user_playlist: bool = False
+    thematic_trimming: bool = False
+    geographic_trimming: bool = False
+    store_new_set: bool = False
+    nb_timeseries_thermal: int = 1
+
+
+@dataclass
+class GeneralParametersUpdate:
     mode: Optional[Mode] = None
     horizon: Optional[str] = None
     nb_years: Optional[int] = None

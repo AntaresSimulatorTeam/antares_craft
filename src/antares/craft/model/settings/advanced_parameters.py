@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
@@ -63,6 +63,30 @@ class RenewableGenerationModeling(Enum):
 
 @dataclass
 class AdvancedParameters:
+    initial_reservoir_levels: InitialReservoirLevel = InitialReservoirLevel.COLD_START
+    hydro_heuristic_policy: HydroHeuristicPolicy = HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES
+    hydro_pricing_mode: HydroPricingMode = HydroPricingMode.FAST
+    power_fluctuations: PowerFluctuation = PowerFluctuation.FREE_MODULATIONS
+    shedding_policy: SheddingPolicy = SheddingPolicy.SHAVE_PEAKS
+    unit_commitment_mode: UnitCommitmentMode = UnitCommitmentMode.FAST
+    number_of_cores_mode: SimulationCore = SimulationCore.MEDIUM
+    renewable_generation_modelling: RenewableGenerationModeling = RenewableGenerationModeling.CLUSTERS
+    accuracy_on_correlation: set[OutputChoices] = field(default_factory=set)
+
+
+@dataclass
+class SeedParameters:
+    seed_tsgen_thermal: int = 3005489
+    seed_tsnumbers: int = 5005489
+    seed_unsupplied_energy_costs: int = 6005489
+    seed_spilled_energy_costs: int = 7005489
+    seed_thermal_costs: int = 8005489
+    seed_hydro_costs: int = 9005489
+    seed_initial_reservoir_levels: int = 10005489
+
+
+@dataclass
+class AdvancedParametersUpdate:
     initial_reservoir_levels: Optional[InitialReservoirLevel] = None
     hydro_heuristic_policy: Optional[HydroHeuristicPolicy] = None
     hydro_pricing_mode: Optional[HydroPricingMode] = None
@@ -75,7 +99,7 @@ class AdvancedParameters:
 
 
 @dataclass
-class SeedParameters:
+class SeedParametersUpdate:
     seed_tsgen_thermal: Optional[int] = None
     seed_tsnumbers: Optional[int] = None
     seed_unsupplied_energy_costs: Optional[int] = None

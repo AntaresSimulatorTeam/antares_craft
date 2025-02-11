@@ -13,24 +13,40 @@
 import ast
 
 from dataclasses import asdict
-from typing import Any, Sequence, Set, cast
+from typing import Any, Sequence, Set, Union, cast
 
-from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters, PriceTakingOrder
+from antares.craft.model.settings.adequacy_patch import (
+    AdequacyPatchParameters,
+    AdequacyPatchParametersUpdate,
+    PriceTakingOrder,
+)
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParameters,
+    AdvancedParametersUpdate,
     HydroHeuristicPolicy,
     HydroPricingMode,
     InitialReservoirLevel,
     PowerFluctuation,
     RenewableGenerationModeling,
     SeedParameters,
+    SeedParametersUpdate,
     SheddingPolicy,
     SimulationCore,
     UnitCommitmentMode,
 )
-from antares.craft.model.settings.general import BuildingMode, GeneralParameters, Mode, Month, OutputChoices, WeekDay
+from antares.craft.model.settings.general import (
+    BuildingMode,
+    GeneralParameters,
+    GeneralParametersUpdate,
+    Mode,
+    Month,
+    OutputChoices,
+    WeekDay,
+)
 from antares.craft.model.settings.optimization import (
+    ExportMPS,
     OptimizationParameters,
+    OptimizationParametersUpdate,
     OptimizationTransmissionCapacities,
     SimplexOptimizationRange,
     UnfeasibleProblemBehavior,
@@ -38,6 +54,9 @@ from antares.craft.model.settings.optimization import (
 from antares.craft.service.local_services.models import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
 from pydantic import Field, field_validator
+
+
+AdequacyPatchParametersType = Union[AdequacyPatchParameters, AdequacyPatchParametersUpdate]
 
 
 class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
@@ -53,13 +72,26 @@ class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     enable_first_step: bool = False
 
     @staticmethod
-    def from_user_model(user_class: AdequacyPatchParameters) -> "AdequacyPatchParametersLocal":
+    def from_user_model(user_class: AdequacyPatchParametersType) -> "AdequacyPatchParametersLocal":
         user_dict = asdict(user_class)
         return AdequacyPatchParametersLocal.model_validate(user_dict)
 
     def to_user_model(self) -> AdequacyPatchParameters:
-        local_dict = self.model_dump(mode="json", by_alias=False, exclude={"enable_first_step"})
-        return AdequacyPatchParameters(**local_dict)
+        return AdequacyPatchParameters(
+            include_adq_patch=self.include_adq_patch,
+            set_to_null_ntc_from_physical_out_to_physical_in_for_first_step=self.set_to_null_ntc_from_physical_out_to_physical_in_for_first_step,
+            set_to_null_ntc_between_physical_out_for_first_step=self.set_to_null_ntc_between_physical_out_for_first_step,
+            price_taking_order=self.price_taking_order,
+            include_hurdle_cost_csr=self.include_hurdle_cost_csr,
+            check_csr_cost_function=self.check_csr_cost_function,
+            threshold_initiate_curtailment_sharing_rule=self.threshold_initiate_curtailment_sharing_rule,
+            threshold_display_local_matching_rule_violations=self.threshold_display_local_matching_rule_violations,
+            threshold_csr_variable_bounds_relaxation=self.threshold_csr_variable_bounds_relaxation,
+        )
+
+
+AdvancedParametersType = Union[AdvancedParameters, AdvancedParametersUpdate]
+SeedParametersType = Union[SeedParameters, SeedParametersUpdate]
 
 
 class OtherPreferencesLocal(LocalBaseModel, alias_generator=to_kebab):
@@ -80,10 +112,11 @@ class AdvancedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     adequacy_block_size: int = 100
 
     @field_validator("accuracy_on_correlation", mode="before")
-    def validate_accuracy_on_correlation(cls, v: Any) -> Sequence[str]:
-        """Ensure the ID is lower case."""
+    def validate_accuracy_on_correlation(cls, v: Any) -> Union[Sequence[str], set[str]]:
         if v is None:
             return []
+        if isinstance(v, set):
+            return v
         return cast(Sequence[str], ast.literal_eval(v))
 
 
@@ -108,7 +141,7 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
 
     @staticmethod
     def from_user_model(
-        advanced_parameters: AdvancedParameters, seed_parameters: SeedParameters
+        advanced_parameters: AdvancedParametersType, seed_parameters: SeedParametersType
     ) -> "AdvancedAndSeedParametersLocal":
         other_preferences_local_dict = asdict(advanced_parameters)
         advanced_local_dict = {
@@ -122,15 +155,31 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
         return AdvancedAndSeedParametersLocal.model_validate(local_dict)
 
     def to_seed_parameters_model(self) -> SeedParameters:
-        seed_values = self.seeds.model_dump(mode="json", by_alias=False, include=set(asdict(SeedParameters()).keys()))
-        return SeedParameters(**seed_values)
+        return SeedParameters(
+            seed_tsgen_thermal=self.seeds.seed_tsgen_thermal,
+            seed_tsnumbers=self.seeds.seed_tsnumbers,
+            seed_unsupplied_energy_costs=self.seeds.seed_unsupplied_energy_costs,
+            seed_spilled_energy_costs=self.seeds.seed_spilled_energy_costs,
+            seed_thermal_costs=self.seeds.seed_thermal_costs,
+            seed_hydro_costs=self.seeds.seed_hydro_costs,
+            seed_initial_reservoir_levels=self.seeds.seed_initial_reservoir_levels,
+        )
 
     def to_advanced_parameters_model(self) -> AdvancedParameters:
-        includes = set(asdict(AdvancedParameters()).keys())
-        advanced_values = self.advanced_parameters.model_dump(mode="json", by_alias=False, include=includes)
-        other_preferences_values = self.other_preferences.model_dump(mode="json", by_alias=False, include=includes)
-        merged_values = advanced_values | other_preferences_values
-        return AdvancedParameters(**merged_values)
+        return AdvancedParameters(
+            initial_reservoir_levels=self.other_preferences.initial_reservoir_levels,
+            hydro_heuristic_policy=self.other_preferences.hydro_heuristic_policy,
+            hydro_pricing_mode=self.other_preferences.hydro_pricing_mode,
+            power_fluctuations=self.other_preferences.power_fluctuations,
+            shedding_policy=self.other_preferences.shedding_policy,
+            unit_commitment_mode=self.other_preferences.unit_commitment_mode,
+            number_of_cores_mode=self.other_preferences.number_of_cores_mode,
+            renewable_generation_modelling=self.other_preferences.renewable_generation_modelling,
+            accuracy_on_correlation=self.advanced_parameters.accuracy_on_correlation,
+        )
+
+
+GeneralParametersType = Union[GeneralParameters, GeneralParametersUpdate]
 
 
 class GeneralSectionLocal(LocalBaseModel):
@@ -177,7 +226,7 @@ class GeneralParametersLocal(LocalBaseModel):
     output: OutputSectionLocal
 
     @staticmethod
-    def from_user_model(user_class: GeneralParameters) -> "GeneralParametersLocal":
+    def from_user_model(user_class: GeneralParametersType) -> "GeneralParametersLocal":
         user_dict = asdict(user_class)
 
         output_dict = {
@@ -211,12 +260,28 @@ class GeneralParametersLocal(LocalBaseModel):
         }
 
     def to_user_model(self) -> GeneralParameters:
-        local_dict = self.general.model_dump(
-            mode="json", by_alias=False, exclude=self.get_excluded_fields_for_user_class()
+        return GeneralParameters(
+            mode=self.general.mode,
+            horizon=self.general.horizon,
+            nb_years=self.general.nb_years,
+            simulation_start=self.general.simulation_start,
+            simulation_end=self.general.simulation_end,
+            january_first=self.general.january_first,
+            first_month_in_year=self.general.first_month_in_year,
+            first_week_day=self.general.first_week_day,
+            leap_year=self.general.leap_year,
+            year_by_year=self.general.year_by_year,
+            simulation_synthesis=self.output.synthesis,
+            building_mode=self.general.building_mode,
+            user_playlist=self.general.user_playlist,
+            thematic_trimming=self.general.thematic_trimming,
+            geographic_trimming=self.general.geographic_trimming,
+            store_new_set=self.output.store_new_set,
+            nb_timeseries_thermal=self.general.nb_timeseries_thermal,
         )
-        local_dict.update(self.output.model_dump(mode="json", by_alias=False, exclude={"archives"}))
-        local_dict["simulation_synthesis"] = local_dict.pop("synthesis")
-        return GeneralParameters(**local_dict)
+
+
+OptimizationParametersType = Union[OptimizationParameters, OptimizationParametersUpdate]
 
 
 class OptimizationParametersLocal(LocalBaseModel, alias_generator=to_kebab):
@@ -230,15 +295,28 @@ class OptimizationParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     include_strategicreserve: bool = True
     include_spinningreserve: bool = True
     include_primaryreserve: bool = True
-    include_exportmps: bool = False
+    include_exportmps: ExportMPS = ExportMPS.FALSE
     include_exportstructure: bool = False
     include_unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
 
     @staticmethod
-    def from_user_model(user_class: OptimizationParameters) -> "OptimizationParametersLocal":
+    def from_user_model(user_class: OptimizationParametersType) -> "OptimizationParametersLocal":
         user_dict = asdict(user_class)
         return OptimizationParametersLocal.model_validate(user_dict)
 
     def to_user_model(self) -> OptimizationParameters:
-        local_dict = self.model_dump(mode="json", by_alias=False)
-        return OptimizationParameters(**local_dict)
+        return OptimizationParameters(
+            simplex_range=self.simplex_range,
+            transmission_capacities=self.transmission_capacities,
+            include_constraints=self.include_constraints,
+            include_hurdlecosts=self.include_hurdlecosts,
+            include_tc_minstablepower=self.include_tc_minstablepower,
+            include_tc_min_ud_time=self.include_tc_min_ud_time,
+            include_dayahead=self.include_dayahead,
+            include_strategicreserve=self.include_strategicreserve,
+            include_spinningreserve=self.include_spinningreserve,
+            include_primaryreserve=self.include_primaryreserve,
+            include_exportmps=self.include_exportmps,
+            include_exportstructure=self.include_exportstructure,
+            include_unfeasible_problem_behavior=self.include_unfeasible_problem_behavior,
+        )
