@@ -24,6 +24,7 @@ from antares.craft.exceptions.exceptions import (
     ThermalPropertiesUpdateError,
 )
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
+from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import BaseThermalService
 from typing_extensions import override
@@ -43,7 +44,8 @@ class ThermalApiService(BaseThermalService):
     ) -> ThermalClusterProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{thermal_cluster.area_id}/clusters/thermal/{thermal_cluster.id}"
         try:
-            body = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+            api_model = ThermalClusterPropertiesAPI.from_user_model(properties)
+            body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
             if not body:
                 return thermal_cluster.properties
 
@@ -51,7 +53,8 @@ class ThermalApiService(BaseThermalService):
             json_response = response.json()
             del json_response["id"]
             del json_response["name"]
-            new_properties = ThermalClusterProperties.model_validate(json_response)
+            new_api_properties = ThermalClusterPropertiesAPI.model_validate(json_response)
+            new_properties = new_api_properties.to_user_model()
 
         except APIError as e:
             raise ThermalPropertiesUpdateError(thermal_cluster.id, thermal_cluster.area_id, e.message) from e

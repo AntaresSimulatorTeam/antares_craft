@@ -21,9 +21,9 @@ from antares.craft.service.api_services.output_api import OutputApiService
 from antares.craft.service.api_services.renewable_api import RenewableApiService
 from antares.craft.service.api_services.run_api import RunApiService
 from antares.craft.service.api_services.services.settings import StudySettingsAPIService
+from antares.craft.service.api_services.services.thermal import ThermalApiService
 from antares.craft.service.api_services.st_storage_api import ShortTermStorageApiService
 from antares.craft.service.api_services.study_api import StudyApiService
-from antares.craft.service.api_services.thermal_api import ThermalApiService
 from antares.craft.service.base_services import (
     BaseAreaService,
     BaseBindingConstraintService,
