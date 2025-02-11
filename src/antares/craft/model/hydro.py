@@ -82,6 +82,8 @@ class Hydro:
     def properties(self) -> HydroProperties:
         return self._properties
 
+    # todo: create update properties method + do the implem on API side + add tests
+
     def get_maxpower(self) -> pd.DataFrame:
         return self._service.get_maxpower(self.area_id)
 
