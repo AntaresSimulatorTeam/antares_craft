@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
@@ -17,8 +17,6 @@ import pandas as pd
 
 from antares.craft.service.base_services import BaseHydroService
 from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import BaseModel
-from pydantic.alias_generators import to_camel
 
 
 class HydroMatrixName(Enum):
@@ -33,13 +31,8 @@ class HydroMatrixName(Enum):
     COMMON_CREDIT_MODULATIONS = "creditmodulations"
 
 
-class DefaultHydroProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
-    """
-    Properties of hydro system read from the configuration files.
-
-    All aliases match the name of the corresponding field in the INI files.
-    """
-
+@dataclass
+class HydroProperties:
     inter_daily_breakdown: float = 1
     intra_daily_modulation: float = 24
     inter_monthly_breakdown: float = 1
@@ -57,10 +50,23 @@ class DefaultHydroProperties(BaseModel, extra="forbid", populate_by_name=True, a
     pumping_efficiency: float = 1
 
 
-@all_optional_model
-class HydroProperties(DefaultHydroProperties):
-    pass
-
+@dataclass
+class HydroPropertiesUpdate:
+    inter_daily_breakdown: Optional[float] = None
+    intra_daily_modulation: Optional[float] = None
+    inter_monthly_breakdown: Optional[float] = None
+    reservoir: Optional[bool] = None
+    reservoir_capacity: float = 0
+    follow_load: Optional[bool] = None
+    use_water: Optional[bool] = None
+    hard_bounds: Optional[bool] = None
+    initialize_reservoir_date: Optional[int] = None
+    use_heuristic: Optional[bool] = None
+    power_to_level: Optional[bool] = None
+    use_leeway: Optional[bool] = None
+    leeway_low: Optional[float] = None
+    leeway_up: Optional[float] = None
+    pumping_efficiency: Optional[float] = None
 
 class HydroPropertiesLocal(DefaultHydroProperties):
     area_id: str
