@@ -19,10 +19,10 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.renewable import (
     RenewableCluster,
     RenewableClusterProperties,
-    RenewableClusterPropertiesLocal,
     RenewableClusterPropertiesUpdate,
 )
 from antares.craft.service.base_services import BaseRenewableService
+from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType

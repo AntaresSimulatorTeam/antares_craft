@@ -98,7 +98,7 @@ class RenewableCluster:
     def properties(self) -> RenewableClusterProperties:
         return self._properties
 
-    def update_properties(self, properties: RenewableClusterProperties) -> None:
+    def update_properties(self, properties: RenewableClusterPropertiesUpdate) -> None:
         new_properties = self._renewable_service.update_renewable_properties(self, properties)
         self._properties = new_properties
 
