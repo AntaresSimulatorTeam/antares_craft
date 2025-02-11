@@ -206,6 +206,11 @@ class AreaLocalService(BaseAreaService):
         properties: Optional[HydroProperties] = None,
         matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
     ) -> Hydro:
+        # todo: we first have to get the current content
+        # Then, we can create a pydantic object to store this info
+        # Then we have to update this object with our values we gathered inside properties
+        # Finally we have to model_dump the content inside a variable that will take the place of .ini_dict
+        # And we write the file: write_ini_file
         properties = properties or HydroProperties()
         args = {"area_id": area_id, **properties.model_dump(mode="json", exclude_none=True)}
         local_hydro_properties = HydroPropertiesLocal.model_validate(args)

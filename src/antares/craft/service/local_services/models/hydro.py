@@ -19,6 +19,7 @@ HydroPropertiesType = Union[HydroProperties, HydroPropertiesUpdate]
 
 
 class HydroPropertiesLocal(LocalBaseModel):
+    # todo: add the aliases ?
     inter_daily_breakdown: float = 1
     intra_daily_modulation: float = 24
     inter_monthly_breakdown: float = 1
