@@ -113,7 +113,7 @@ class AreaLocalService(BaseAreaService):
         try:
             properties = properties or ThermalClusterProperties()
             local_properties = ThermalClusterPropertiesLocal.from_user_model(properties)
-            new_section_content = {"name": thermal_name, **local_properties.model_dump(mode="json")}
+            new_section_content = {"name": thermal_name, **local_properties.model_dump(mode="json", by_alias=True)}
             list_ini.add_section({thermal_name: new_section_content})
         except DuplicateSectionError:
             raise ThermalCreationError(
@@ -147,7 +147,7 @@ class AreaLocalService(BaseAreaService):
     ) -> RenewableCluster:
         properties = properties or RenewableClusterProperties()
         local_properties = RenewableClusterPropertiesLocal.from_user_model(properties)
-        new_section_content = {"name": renewable_name, **local_properties.model_dump(mode="json")}
+        new_section_content = {"name": renewable_name, **local_properties.model_dump(mode="json", by_alias=True)}
 
         list_ini = IniFile(self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id)
         list_ini.add_section({renewable_name: new_section_content})
