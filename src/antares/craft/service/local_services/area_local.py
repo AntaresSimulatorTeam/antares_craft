@@ -146,16 +146,17 @@ class AreaLocalService(BaseAreaService):
         series: Optional[pd.DataFrame] = None,
     ) -> RenewableCluster:
         properties = properties or RenewableClusterProperties()
-        args = {"renewable_name": renewable_name, **properties.model_dump(mode="json", exclude_none=True)}
-        local_properties = RenewableClusterPropertiesLocal.model_validate(args)
+        local_properties = RenewableClusterPropertiesLocal.from_user_model(properties)
+        new_section_content = {"name": renewable_name, **local_properties.model_dump(mode="json")}
 
         list_ini = IniFile(self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id)
-        list_ini.add_section(local_properties.ini_fields)
+        list_ini.add_section({renewable_name: new_section_content})
         list_ini.write_ini_file()
 
-        return RenewableCluster(
-            self.renewable_service, area_id, renewable_name, local_properties.yield_renewable_cluster_properties()
-        )
+        if series:
+            self._write_timeseries(series, TimeSeriesFileType.RENEWABLE_DATA_SERIES, area_id)
+
+        return RenewableCluster(self.renewable_service, area_id, renewable_name, properties)
 
     @override
     def create_load(self, area_id: str, series: pd.DataFrame) -> None:
