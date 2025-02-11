@@ -173,9 +173,10 @@ InfoTip = Antares Study {version}: {study_name}
         path=study_directory,
     )
     # We need to create the file with default value
-    update_settings = StudySettings().to_update_settings()
+    default_settings = StudySettings()
+    update_settings = default_settings.to_update_settings()
     edit_study_settings(study_directory, update_settings, True)
-    study.read_settings()
+    study._settings = default_settings
     return study
 
 
