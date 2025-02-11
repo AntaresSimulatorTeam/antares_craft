@@ -396,7 +396,6 @@ class TestCreateAPI:
 
             assert actual_hydro.area_id == expected_hydro.area_id
             assert actual_hydro.properties == expected_hydro.properties
-            assert actual_hydro.matrices is None
 
     def test_read_renewables_empty(self):
         area = self.area

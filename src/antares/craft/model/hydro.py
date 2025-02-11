@@ -69,17 +69,10 @@ class HydroPropertiesUpdate:
 
 
 class Hydro:
-    def __init__(
-        self,
-        service: BaseHydroService,
-        area_id: str,
-        properties: Optional[HydroProperties] = None,
-        matrices: Optional[dict[HydroMatrixName, pd.DataFrame]] = None,
-    ):
+    def __init__(self, service: BaseHydroService, area_id: str, properties: Optional[HydroProperties] = None):
         self._area_id = area_id
         self._service = service
         self._properties = properties or HydroProperties()
-        self._matrices = matrices
 
     @property
     def area_id(self) -> str:
@@ -88,10 +81,6 @@ class Hydro:
     @property
     def properties(self) -> HydroProperties:
         return self._properties
-
-    @property
-    def matrices(self) -> Optional[dict[HydroMatrixName, pd.DataFrame]]:
-        return self._matrices
 
     def get_maxpower(self) -> pd.DataFrame:
         return self._service.get_maxpower(self.area_id)
