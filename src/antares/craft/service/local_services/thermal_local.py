@@ -25,6 +25,7 @@ from antares.craft.service.base_services import BaseThermalService
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from typing_extensions import override
 
 
 class ThermalLocalService(BaseThermalService):
@@ -33,11 +34,13 @@ class ThermalLocalService(BaseThermalService):
         self.config = config
         self.study_name = study_name
 
+    @override
     def update_thermal_properties(
         self, thermal_cluster: ThermalCluster, properties: ThermalClusterProperties
     ) -> ThermalClusterProperties:
         raise NotImplementedError
 
+    @override
     def get_thermal_matrix(self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName) -> pd.DataFrame:
         if ts_name.value == "series":
             time_serie_type = TimeSeriesFileType.THERMAL_SERIES
@@ -72,6 +75,7 @@ class ThermalLocalService(BaseThermalService):
 
         return ThermalClusterPropertiesLocal(**parsed_data).yield_thermal_cluster_properties()
 
+    @override
     def read_thermal_clusters(self, area_id: str) -> list[ThermalCluster]:
         thermal_dict = IniFile(
             self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id
@@ -89,5 +93,6 @@ class ThermalLocalService(BaseThermalService):
             for thermal_data in thermal_dict.values()
         ]
 
+    @override
     def update_thermal_matrix(self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame) -> None:
         raise NotImplementedError

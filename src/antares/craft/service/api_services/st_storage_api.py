@@ -23,6 +23,7 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.st_storage import STStorage, STStorageMatrixName, STStorageProperties
 from antares.craft.service.base_services import BaseShortTermStorageService
+from typing_extensions import override
 
 
 class ShortTermStorageApiService(BaseShortTermStorageService):
@@ -33,6 +34,7 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
+    @override
     def update_st_storage_properties(
         self, st_storage: STStorage, properties: STStorageProperties
     ) -> STStorageProperties:
@@ -53,6 +55,7 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
 
         return new_properties
 
+    @override
     def upload_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{storage.area_id}/storages/{storage.id}/series/{ts_name.value}"
         try:
@@ -65,6 +68,7 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
         except APIError as e:
             raise STStorageMatrixUploadError(storage.area_id, storage.id, ts_name.value, e.message) from e
 
+    @override
     def get_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName) -> pd.DataFrame:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{storage.area_id}/storages/{storage.id}/series/{ts_name.value}"
         try:
@@ -75,6 +79,7 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
             raise STStorageMatrixDownloadError(storage.area_id, storage.id, ts_name.value, e.message) from e
         return dataframe
 
+    @override
     def read_st_storages(self, area_id: str) -> List[STStorage]:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages"
         json_storage = self._wrapper.get(url).json()

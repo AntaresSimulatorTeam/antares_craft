@@ -17,6 +17,7 @@ import pandas as pd
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.st_storage import STStorage, STStorageMatrixName, STStorageProperties
 from antares.craft.service.base_services import BaseShortTermStorageService
+from typing_extensions import override
 
 
 class ShortTermStorageLocalService(BaseShortTermStorageService):
@@ -25,16 +26,20 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         self.config = config
         self.study_name = study_name
 
+    @override
     def update_st_storage_properties(
         self, st_storage: STStorage, properties: STStorageProperties
     ) -> STStorageProperties:
         raise NotImplementedError
 
+    @override
     def read_st_storages(self, area_id: str) -> List[STStorage]:
         raise NotImplementedError
 
+    @override
     def upload_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:
         raise NotImplementedError
 
+    @override
     def get_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName) -> pd.DataFrame:
         raise NotImplementedError

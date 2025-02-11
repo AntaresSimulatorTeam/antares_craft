@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from pathlib import PurePosixPath
-from typing import List, Optional
+from typing import Optional
 
 import pandas as pd
 
@@ -35,6 +35,7 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.service.api_services.utils import get_matrix
 from antares.craft.service.base_services import BaseBindingConstraintService
+from typing_extensions import override
 
 
 class BindingConstraintApiService(BaseBindingConstraintService):
@@ -45,11 +46,12 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         self._wrapper = RequestWrapper(self.api_config.set_up_api_conf())
         self._base_url = f"{self.api_config.get_host()}/api/v1"
 
+    @override
     def create_binding_constraint(
         self,
         name: str,
         properties: Optional[BindingConstraintProperties] = None,
-        terms: Optional[List[ConstraintTerm]] = None,
+        terms: Optional[list[ConstraintTerm]] = None,
         less_term_matrix: Optional[pd.DataFrame] = None,
         equal_term_matrix: Optional[pd.DataFrame] = None,
         greater_term_matrix: Optional[pd.DataFrame] = None,
@@ -89,7 +91,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             for key in ["terms", "id", "name"]:
                 del created_properties[key]
             bc_properties = BindingConstraintProperties.model_validate(created_properties)
-            bc_terms: List[ConstraintTerm] = []
+            bc_terms: list[ConstraintTerm] = []
 
             if terms:
                 json_terms = [term.model_dump() for term in terms]
@@ -108,6 +110,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
 
         return constraint
 
+    @override
     def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint_id}/term/{term_id}"
         try:
@@ -115,6 +118,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         except APIError as e:
             raise ConstraintTermDeletionError(constraint_id, term_id, e.message) from e
 
+    @override
     def update_binding_constraint_properties(
         self, binding_constraint: BindingConstraint, properties: BindingConstraintProperties
     ) -> BindingConstraintProperties:
@@ -135,6 +139,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
 
         return new_properties
 
+    @override
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
         try:
             path = PurePosixPath("input") / "bindingconstraints" / f"{constraint.id}_{matrix_name.value}"
@@ -142,6 +147,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         except APIError as e:
             raise ConstraintMatrixDownloadError(constraint.id, matrix_name.value, e.message) from e
 
+    @override
     def update_constraint_matrix(
         self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName, matrix: pd.DataFrame
     ) -> None:
@@ -157,7 +163,8 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         except APIError as e:
             raise ConstraintMatrixUpdateError(constraint.id, matrix_name.value, e.message) from e
 
-    def add_constraint_terms(self, constraint: BindingConstraint, terms: List[ConstraintTerm]) -> List[ConstraintTerm]:
+    @override
+    def add_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> list[ConstraintTerm]:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint.id}"
         try:
             json_terms = [term.model_dump() for term in terms]
@@ -172,6 +179,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
 
         return new_terms
 
+    @override
     def read_binding_constraints(self) -> list[BindingConstraint]:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints"
         try:

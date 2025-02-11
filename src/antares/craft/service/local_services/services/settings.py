@@ -33,6 +33,7 @@ from antares.craft.service.local_services.models.settings import (
     SeedParametersLocal,
 )
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
+from typing_extensions import override
 
 
 class StudySettingsLocalService(BaseStudySettingsService):
@@ -41,9 +42,11 @@ class StudySettingsLocalService(BaseStudySettingsService):
         self.config = config
         self.study_name = study_name
 
+    @override
     def edit_study_settings(self, settings: StudySettingsUpdate) -> None:
         edit_study_settings(self.config.study_path, settings, creation=False)
 
+    @override
     def read_study_settings(self) -> StudySettings:
         return read_study_settings(self.config.study_path)
 

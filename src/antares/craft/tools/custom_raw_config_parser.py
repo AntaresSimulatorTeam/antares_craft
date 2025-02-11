@@ -13,6 +13,8 @@ from ast import literal_eval
 from configparser import Interpolation, RawConfigParser
 from typing import TYPE_CHECKING, Any, ItemsView, Optional
 
+from typing_extensions import override
+
 if TYPE_CHECKING:
     from _typeshed import SupportsWrite
 
@@ -31,6 +33,7 @@ class CustomRawConfigParser(RawConfigParser):
         self._interpolation: Interpolation
 
     # Parent version uses optionstr.lower() and we want to preserve upper- and lower-case
+    @override
     def optionxform(self, optionstr: str) -> str:
         return optionstr
 

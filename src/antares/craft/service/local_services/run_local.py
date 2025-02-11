@@ -14,6 +14,7 @@ from typing import Any, Optional
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.service.base_services import BaseRunService
+from typing_extensions import override
 
 
 class RunLocalService(BaseRunService):
@@ -22,8 +23,10 @@ class RunLocalService(BaseRunService):
         self.config = config
         self.study_name = study_name
 
+    @override
     def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
         raise NotImplementedError
 
+    @override
     def wait_job_completion(self, job: Job, time_out: int) -> None:
         raise NotImplementedError
