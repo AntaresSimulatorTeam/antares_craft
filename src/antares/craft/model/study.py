@@ -173,10 +173,9 @@ InfoTip = Antares Study {version}: {study_name}
         path=study_directory,
     )
     # We need to create the file with default value
-    default_settings = StudySettings()
-    update_settings = default_settings.to_update_settings()
+    update_settings = StudySettings().to_update_settings()
     edit_study_settings(study_directory, update_settings, True)
-    study._settings = default_settings
+    study.read_settings()
     return study
 
 
@@ -297,7 +296,7 @@ class Study:
 
     def update_settings(self, settings: StudySettingsUpdate) -> None:
         self._settings_service.edit_study_settings(settings)
-        self._settings = self._settings.from_update_settings(settings)
+        self._settings = self._settings_service.read_study_settings()
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
