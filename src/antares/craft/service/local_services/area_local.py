@@ -113,7 +113,7 @@ class AreaLocalService(BaseAreaService):
             properties = properties or ThermalClusterProperties()
             local_properties = ThermalClusterPropertiesLocal.from_user_model(properties)
             new_section_content = {"name": thermal_name, **local_properties.model_dump(mode="json")}
-            list_ini.add_section({"name": new_section_content})
+            list_ini.add_section({thermal_name: new_section_content})
         except DuplicateSectionError:
             raise ThermalCreationError(
                 thermal_name,
