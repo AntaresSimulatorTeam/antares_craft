@@ -51,18 +51,36 @@ from antares.craft.model.link import (
 )
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
+    PriceTakingOrder,
 )
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParameters,
+    HydroHeuristicPolicy,
+    HydroPricingMode,
+    InitialReservoirLevel,
+    PowerFluctuation,
+    RenewableGenerationModeling,
     SeedParameters,
+    SheddingPolicy,
+    SimulationCore,
+    UnitCommitmentMode,
 )
 from antares.craft.model.settings.general import (
+    BuildingMode,
     GeneralParameters,
+    Mode,
+    Month,
+    WeekDay,
 )
 from antares.craft.model.settings.optimization import (
+    ExportMPS,
     OptimizationParameters,
+    OptimizationTransmissionCapacities,
+    SimplexOptimizationRange,
+    UnfeasibleProblemBehavior,
 )
 from antares.craft.model.settings.study_settings import StudySettings
+from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.model.study import create_study_local
 from antares.craft.tools.ini_tool import InitializationFilesTypes
 
@@ -79,7 +97,7 @@ class TestCreateStudy:
         expected_study_path = tmp_path / "studyTest"
 
         # When
-        create_study_local(study_name, version, str(tmp_path.absolute()))
+        create_study_local(study_name, version, tmp_path.absolute())
 
         # Then
         assert os.path.exists(expected_study_path)
@@ -127,7 +145,7 @@ author = Unknown
         monkeypatch.setattr(time, "time", lambda: "123")
 
         # When
-        create_study_local(study_name, version, str(tmp_path.absolute()))
+        create_study_local(study_name, version, tmp_path.absolute())
         with open(expected_study_antares_path, "r") as file:
             actual_content = file.read()
 
@@ -142,7 +160,7 @@ author = Unknown
 
         # When
         with pytest.raises(FileExistsError, match=f"Study {study_name} already exists"):
-            create_study_local(study_name, version, str(tmp_path.absolute()))
+            create_study_local(study_name, version, tmp_path.absolute())
 
     def test_all_correlation_ini_files_exists(self, local_study):
         expected_ini_content = """[general]
@@ -197,17 +215,17 @@ class TestStudyProperties:
     def test_local_study_has_correct_default_general_properties(self, local_study):
         expected_general_properties = GeneralParameters(
             **{
-                "mode": "Economy",
+                "mode": Mode.ECONOMY,
                 "horizon": "",
                 "nb_years": 1,
                 "simulation_start": 1,
                 "simulation_end": 365,
-                "january_first": "Monday",
-                "first_month_in_year": "January",
-                "first_week_day": "Monday",
+                "january_first": WeekDay.MONDAY,
+                "first_month_in_year": Month.JANUARY,
+                "first_week_day": WeekDay.MONDAY,
                 "leap_year": False,
                 "year_by_year": False,
-                "building_mode": "automatic",
+                "building_mode": BuildingMode.AUTOMATIC,
                 "thematic_trimming": False,
                 "geographic_trimming": False,
                 "simulation_synthesis": True,
@@ -225,7 +243,7 @@ class TestStudyProperties:
                 "include_adq_patch": False,
                 "set_to_null_ntc_from_physical_out_to_physical_in_for_first_step": True,
                 "set_to_null_ntc_between_physical_out_for_first_step": True,
-                "price_taking_order": "DENS",
+                "price_taking_order": PriceTakingOrder.DENS,
                 "include_hurdle_cost_csr": False,
                 "check_csr_cost_function": False,
                 "threshold_initiate_curtailment_sharing_rule": 0,
@@ -239,15 +257,15 @@ class TestStudyProperties:
     def test_local_study_has_correct_advanced_parameters(self, local_study):
         expected_advanced_parameters = AdvancedParameters(
             **{
-                "accuracy_on_correlation": [],
-                "initial_reservoir_levels": "cold start",
-                "hydro_heuristic_policy": "accommodate rule curves",
-                "hydro_pricing_mode": "fast",
-                "power_fluctuations": "free modulations",
-                "shedding_policy": "shave peaks",
-                "unit_commitment_mode": "fast",
-                "number_of_cores_mode": "medium",
-                "renewable_generation_modelling": "clusters",
+                "accuracy_on_correlation": set(),
+                "initial_reservoir_levels": InitialReservoirLevel.COLD_START,
+                "hydro_heuristic_policy": HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES,
+                "hydro_pricing_mode": HydroPricingMode.FAST,
+                "power_fluctuations": PowerFluctuation.FREE_MODULATIONS,
+                "shedding_policy": SheddingPolicy.SHAVE_PEAKS,
+                "unit_commitment_mode": UnitCommitmentMode.FAST,
+                "number_of_cores_mode": SimulationCore.MEDIUM,
+                "renewable_generation_modelling": RenewableGenerationModeling.CLUSTERS,
             }
         )
 
@@ -271,8 +289,8 @@ class TestStudyProperties:
     def test_local_study_has_correct_optimization_parameters(self, local_study):
         expected_optimization_parameters = OptimizationParameters(
             **{
-                "simplex_range": "week",
-                "transmission_capacities": "local-values",
+                "simplex_range": SimplexOptimizationRange.WEEK,
+                "transmission_capacities": OptimizationTransmissionCapacities.LOCAL_VALUES,
                 "include_constraints": True,
                 "include_hurdlecosts": True,
                 "include_tc_minstablepower": True,
@@ -281,17 +299,17 @@ class TestStudyProperties:
                 "include_strategicreserve": True,
                 "include_spinningreserve": True,
                 "include_primaryreserve": True,
-                "include_exportmps": False,
+                "include_exportmps": ExportMPS.FALSE,
                 "include_exportstructure": False,
-                "include_unfeasible_problem_behavior": "error-verbose",
+                "include_unfeasible_problem_behavior": UnfeasibleProblemBehavior.ERROR_VERBOSE,
             }
         )
 
         assert local_study.get_settings().optimization_parameters == expected_optimization_parameters
 
     def test_local_study_has_correct_playlist_and_thematic_parameters(self, local_study):
-        assert local_study.get_settings().playlist_parameters is None
-        assert local_study.get_settings().thematic_trimming_parameters is None
+        assert local_study.get_settings().playlist_parameters == {}
+        assert local_study.get_settings().thematic_trimming_parameters == ThematicTrimmingParameters()
 
     def test_generaldata_ini_exists(self, local_study):
         # Given

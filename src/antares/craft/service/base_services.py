@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Optional
 import pandas as pd
 
 from antares.craft.config.base_configuration import BaseConfiguration
-from antares.craft.model.settings.study_settings import StudySettings
+from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 
 if TYPE_CHECKING:
@@ -746,14 +746,12 @@ class BaseOutputService(ABC):
 
 class BaseStudySettingsService(ABC):
     @abstractmethod
-    def edit_study_settings(self, settings: StudySettings) -> StudySettings:
+    def edit_study_settings(self, settings: StudySettingsUpdate) -> None:
         """
         Edit the settings for a given study
 
         Args:
-            settings: the new Settings for the study
-
-        Returns: the new Settings for the study
+            settings: the settings to update with their values
         """
         pass
 

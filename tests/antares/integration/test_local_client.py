@@ -11,6 +11,8 @@
 # This file is part of the Antares project.
 import pytest
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -20,9 +22,12 @@ from antares.craft.model.binding_constraint import BindingConstraintProperties, 
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties
-from antares.craft.model.settings.advanced_parameters import AdvancedParameters, UnitCommitmentMode
-from antares.craft.model.settings.general import GeneralParameters
-from antares.craft.model.settings.study_settings import StudySettings
+from antares.craft.model.settings.advanced_parameters import (
+    AdvancedParametersUpdate,
+    UnitCommitmentMode,
+)
+from antares.craft.model.settings.general import GeneralParametersUpdate
+from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
 from antares.craft.model.study import Study, create_study_local
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterGroup, ThermalClusterProperties
@@ -34,7 +39,7 @@ class TestLocalClient:
     Testing lifespan of a study in local mode. Creating a study, adding areas, links, clusters and so on.
     """
 
-    def test_local_study(self, tmp_path, unknown_area):
+    def test_local_study(self, tmp_path: Path, unknown_area):
         study_name = "test study"
         study_version = "880"
 
@@ -248,9 +253,10 @@ class TestLocalClient:
         }
 
         # test study creation with settings
-        settings = StudySettings()
-        settings.general_parameters = GeneralParameters(nb_years=4)
-        settings.advanced_parameters = AdvancedParameters(unit_commitment_mode=UnitCommitmentMode.MILP)
-        new_study = create_study_local("second_study", "880", tmp_path, settings)
+        settings = StudySettingsUpdate()
+        settings.general_parameters = GeneralParametersUpdate(nb_years=4)
+        settings.advanced_parameters = AdvancedParametersUpdate(unit_commitment_mode=UnitCommitmentMode.MILP)
+        new_study = create_study_local("second_study", "880", tmp_path)
+        new_study.update_settings(settings)
         assert new_study.get_settings().general_parameters.nb_years == 4
-        assert new_study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP.value
+        assert new_study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP

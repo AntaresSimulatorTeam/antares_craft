@@ -38,7 +38,7 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import Output
-from antares.craft.model.settings.study_settings import StudySettings
+from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.service.base_services import BaseLinkService, BaseStudyService
 from antares.craft.service.local_services.services.settings import edit_study_settings
@@ -58,7 +58,6 @@ def create_study_api(
     study_name: str,
     version: str,
     api_config: APIconf,
-    settings: Optional[StudySettings] = None,
     parent_path: Optional[Path] = None,
 ) -> "Study":
     """
@@ -66,7 +65,6 @@ def create_study_api(
         study_name: antares study name to be created
         version: antares version
         api_config: host and token config for API
-        settings: study settings. If not provided, AntaresWeb will use its default values.
 
     Raises:
         MissingTokenError if api_token is missing
@@ -83,10 +81,7 @@ def create_study_api(
         study_id = response.json()
         # Settings part
         study = Study(study_name, version, ServiceFactory(api_config, study_id))
-        if settings:
-            study.update_settings(settings)
-        else:
-            study.read_settings()
+        study.read_settings()
         # Move part
         if parent_path:
             study.move(parent_path)
@@ -123,12 +118,7 @@ def import_study_api(api_config: APIconf, study_path: Path, destination_path: Op
         raise StudyImportError(study_path.name, e.message) from e
 
 
-def create_study_local(
-    study_name: str,
-    version: str,
-    parent_directory: str,
-    settings: StudySettings = StudySettings(),
-) -> "Study":
+def create_study_local(study_name: str, version: str, parent_directory: Path) -> "Study":
     """
     Create a directory structure for the study with empty files.
 
@@ -136,12 +126,11 @@ def create_study_local(
         study_name: antares study name to be created
         version: antares version for study
         parent_directory: Local directory to store the study in.
-        settings: study settings. If not provided, AntaresCraft will use its default values.
 
     Raises:
         FileExistsError if the study already exists in the given location
     """
-    local_config = LocalConfiguration(Path(parent_directory), study_name)
+    local_config = LocalConfiguration(parent_directory, study_name)
 
     study_directory = local_config.local_path / study_name
 
@@ -184,7 +173,10 @@ InfoTip = Antares Study {version}: {study_name}
         path=study_directory,
     )
     # We need to create the file with default value
-    study._settings = edit_study_settings(study_directory, settings, False)
+    default_settings = StudySettings()
+    update_settings = default_settings.to_update_settings()
+    edit_study_settings(study_directory, update_settings, True)
+    study._settings = default_settings
     return study
 
 
@@ -303,8 +295,9 @@ class Study:
         self._settings = study_settings
         return study_settings
 
-    def update_settings(self, settings: StudySettings) -> None:
-        self._settings = self._settings_service.edit_study_settings(settings)
+    def update_settings(self, settings: StudySettingsUpdate) -> None:
+        self._settings_service.edit_study_settings(settings)
+        self._settings = self._settings_service.read_study_settings()
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
