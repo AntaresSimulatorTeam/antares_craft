@@ -111,7 +111,8 @@ class RenewableApiService(BaseRenewableService):
             renewable_id = renewable.pop("id")
             renewable_name = renewable.pop("name")
 
-            renewable_props = RenewableClusterProperties(**renewable)
+            api_props = RenewableClusterPropertiesAPI.model_validate(**renewable)
+            renewable_props = api_props.to_user_model()
             renewable_cluster = RenewableCluster(self, renewable_id, renewable_name, renewable_props)
             renewables.append(renewable_cluster)
 

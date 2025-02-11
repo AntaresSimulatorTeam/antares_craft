@@ -31,6 +31,8 @@ from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.area_api import AreaApiService
+from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
+from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.service_factory import ServiceFactory
 
 
@@ -109,7 +111,7 @@ class TestCreateAPI:
     def test_create_thermal_success(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/clusters/thermal"
-            json_response = ThermalClusterProperties().model_dump(mode="json", by_alias=True)
+            json_response = ThermalClusterPropertiesAPI().model_dump(mode="json", by_alias=True)
             thermal_name = "thermal_cluster"
             mocker.post(url, json={"name": thermal_name, "id": thermal_name, **json_response}, status_code=201)
             thermal = self.area.create_thermal_cluster(thermal_name=thermal_name)
@@ -130,7 +132,7 @@ class TestCreateAPI:
     def test_create_renewable_success(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/clusters/renewable"
-            json_response = RenewableClusterProperties().model_dump(mode="json", by_alias=True)
+            json_response = RenewableClusterPropertiesAPI().model_dump(mode="json", by_alias=True)
             renewable_name = "renewable_cluster"
             mocker.post(url, json={"name": renewable_name, "id": renewable_name, **json_response}, status_code=201)
 
@@ -195,14 +197,14 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             mocker.post(expected_url, json=json_for_post, status_code=200)
 
-            thermal_cluster = self.area.create_thermal_cluster_with_matrices(
-                cluster_name="cluster_test",
-                parameters=ThermalClusterProperties(),
+            thermal_cluster = self.area.create_thermal_cluster(
+                thermal_name="cluster_test",
+                properties=ThermalClusterProperties(),
                 prepro=matrix_test,
                 modulation=matrix_test,
                 series=matrix_test,
-                CO2Cost=matrix_test,
-                fuelCost=matrix_test,
+                co2_cost=matrix_test,
+                fuel_cost=matrix_test,
             )
             # to assert two http requests to "commands"
             assert len(mocker.request_history) == 2
