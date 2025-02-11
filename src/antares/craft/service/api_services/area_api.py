@@ -198,7 +198,7 @@ class AreaApiService(BaseAreaService):
                 matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/data"
                 upload_series(self._base_url, self.study_id, self._wrapper, prepro, matrix_path)
             if modulation is not None:
-                matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/data"
+                matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/modulation"
                 upload_series(self._base_url, self.study_id, self._wrapper, modulation, matrix_path)
             if series is not None:
                 matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/series"
