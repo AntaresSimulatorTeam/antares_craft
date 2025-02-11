@@ -9,30 +9,43 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from antares.craft.model.thermal import LocalTSGenerationBehavior, ThermalClusterGroup, LawOption, ThermalCostGeneration
+from dataclasses import asdict
+from typing import Union
+
+from antares.craft.model.thermal import (
+    LawOption,
+    LocalTSGenerationBehavior,
+    ThermalClusterGroup,
+    ThermalClusterProperties,
+    ThermalClusterPropertiesUpdate,
+    ThermalCostGeneration,
+)
 from antares.craft.service.local_services.models import LocalBaseModel
+from pydantic import Field
+
+ThermalPropertiesType = Union[ThermalClusterProperties, ThermalClusterPropertiesUpdate]
 
 
 class ThermalClusterPropertiesLocal(LocalBaseModel):
     enabled: bool = True
-    unit_count: int = 1
-    nominal_capacity: float = 0
+    unit_count: int = Field(default=1, alias="unitcount")
+    nominal_capacity: float = Field(default=0, alias="nominalcapacity")
     group: ThermalClusterGroup = ThermalClusterGroup.OTHER1
-    gen_ts: LocalTSGenerationBehavior = LocalTSGenerationBehavior.USE_GLOBAL
-    min_stable_power: float = 0
-    min_up_time: int = 1
-    min_down_time: int = 1
-    must_run: bool = False
+    gen_ts: LocalTSGenerationBehavior = Field(default=LocalTSGenerationBehavior.USE_GLOBAL, alias="gen-ts")
+    min_stable_power: float = Field(default=0, alias="min-stable-power")
+    min_up_time: int = Field(default=1, alias="min-up-time")
+    min_down_time: int = Field(default=1, alias="min-down-time")
+    must_run: bool = Field(default=False, alias="must-run")
     spinning: float = 0
-    volatility_forced: float = 0
-    volatility_planned: float = 0
-    law_forced: LawOption = LawOption.UNIFORM
-    law_planned: LawOption = LawOption.UNIFORM
-    marginal_cost: float = 0
-    spread_cost: float = 0
-    fixed_cost: float = 0
-    startup_cost: float = 0
-    market_bid_cost: float = 0
+    volatility_forced: float = Field(default=0, alias="volatility.forced")
+    volatility_planned: float = Field(default=0, alias="volatility.planned")
+    law_forced: LawOption = Field(default=LawOption.UNIFORM, alias="law.forced")
+    law_planned: LawOption = Field(default=LawOption.UNIFORM, alias="law.planned")
+    marginal_cost: float = Field(default=0, alias="marginal-cost")
+    spread_cost: float = Field(default=0, alias="spread-cost")
+    fixed_cost: float = Field(default=0, alias="fixed-cost")
+    startup_cost: float = Field(default=0, alias="startup-cost")
+    market_bid_cost: float = Field(default=0, alias="market-bid-cost")
     co2: float = 0
     nh3: float = 0
     so2: float = 0
@@ -46,57 +59,50 @@ class ThermalClusterPropertiesLocal(LocalBaseModel):
     op3: float = 0
     op4: float = 0
     op5: float = 0
-    cost_generation: ThermalCostGeneration = ThermalCostGeneration.SET_MANUALLY
+    cost_generation: ThermalCostGeneration = Field(default=ThermalCostGeneration.SET_MANUALLY, alias="costgeneration")
     efficiency: float = 100
-    variable_o_m_cost: float = 0
+    variable_o_m_cost: float = Field(default=0, alias="variableomcost")
 
+    @staticmethod
+    def from_user_model(user_class: ThermalPropertiesType) -> "ThermalClusterPropertiesLocal":
+        user_dict = asdict(user_class)
+        return ThermalClusterPropertiesLocal.model_validate(user_dict)
 
-class ThermalClusterPropertiesLocal(DefaultThermalProperties):
-    thermal_name: str
-
-    @property
-    def list_ini_fields(self) -> dict[str, dict[str, str]]:
-        return {
-            f"{self.thermal_name}": {
-                "group": self.group.value,
-                "name": self.thermal_name,
-                "enabled": f"{self.enabled}",
-                "unitcount": f"{self.unit_count}",
-                "nominalcapacity": f"{self.nominal_capacity:.6f}",
-                "gen-ts": self.gen_ts.value,
-                "min-stable-power": f"{self.min_stable_power:.6f}",
-                "min-up-time": f"{self.min_up_time}",
-                "min-down-time": f"{self.min_down_time}",
-                "must-run": f"{self.must_run}",
-                "spinning": f"{self.spinning:.6f}",
-                "volatility.forced": f"{self.volatility_forced:.6f}",
-                "volatility.planned": f"{self.volatility_planned:.6f}",
-                "law.forced": self.law_forced.value,
-                "law.planned": self.law_planned.value,
-                "marginal-cost": f"{self.marginal_cost:.6f}",
-                "spread-cost": f"{self.spread_cost:.6f}",
-                "fixed-cost": f"{self.fixed_cost:.6f}",
-                "startup-cost": f"{self.startup_cost:.6f}",
-                "market-bid-cost": f"{self.market_bid_cost:.6f}",
-                "co2": f"{self.co2:.6f}",
-                "nh3": f"{self.nh3:.6f}",
-                "so2": f"{self.so2:.6f}",
-                "nox": f"{self.nox:.6f}",
-                "pm2_5": f"{self.pm2_5:.6f}",
-                "pm5": f"{self.pm5:.6f}",
-                "pm10": f"{self.pm10:.6f}",
-                "nmvoc": f"{self.nmvoc:.6f}",
-                "op1": f"{self.op1:.6f}",
-                "op2": f"{self.op2:.6f}",
-                "op3": f"{self.op3:.6f}",
-                "op4": f"{self.op4:.6f}",
-                "op5": f"{self.op5:.6f}",
-                "costgeneration": self.cost_generation.value,
-                "efficiency": f"{self.efficiency:.6f}",
-                "variableomcost": f"{self.variable_o_m_cost:.6f}",
-            }
-        }
-
-    def yield_thermal_cluster_properties(self) -> ThermalClusterProperties:
-        excludes = {"thermal_name", "list_ini_fields"}
-        return ThermalClusterProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
+    def to_user_model(self) -> ThermalClusterProperties:
+        return ThermalClusterProperties(
+            enabled=self.enabled,
+            unit_count=self.unit_count,
+            nominal_capacity=self.nominal_capacity,
+            group=self.group,
+            gen_ts=self.gen_ts,
+            min_stable_power=self.min_stable_power,
+            min_up_time=self.min_up_time,
+            min_down_time=self.min_down_time,
+            must_run=self.must_run,
+            spinning=self.spinning,
+            volatility_forced=self.volatility_forced,
+            volatility_planned=self.volatility_planned,
+            law_forced=self.law_forced,
+            law_planned=self.law_planned,
+            marginal_cost=self.marginal_cost,
+            spread_cost=self.spread_cost,
+            fixed_cost=self.fixed_cost,
+            startup_cost=self.startup_cost,
+            market_bid_cost=self.market_bid_cost,
+            co2=self.co2,
+            nh3=self.nh3,
+            so2=self.so2,
+            nox=self.nox,
+            pm2_5=self.pm2_5,
+            pm5=self.pm5,
+            pm10=self.pm10,
+            nmvoc=self.nmvoc,
+            op1=self.op1,
+            op2=self.op2,
+            op3=self.op3,
+            op4=self.op4,
+            op5=self.op5,
+            cost_generation=self.cost_generation,
+            efficiency=self.efficiency,
+            variable_o_m_cost=self.variable_o_m_cost,
+        )

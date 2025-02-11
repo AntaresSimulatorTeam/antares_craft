@@ -63,6 +63,7 @@ class ThermalCostGeneration(Enum):
     SET_MANUALLY = "SetManually"
     USE_COST_TIME_SERIES = "useCostTimeseries"
 
+
 @dataclass
 class ThermalClusterProperties(ClusterProperties):
     group: ThermalClusterGroup = ThermalClusterGroup.OTHER1
@@ -97,6 +98,7 @@ class ThermalClusterProperties(ClusterProperties):
     cost_generation: ThermalCostGeneration = ThermalCostGeneration.SET_MANUALLY
     efficiency: float = 100
     variable_o_m_cost: float = 0
+
 
 @dataclass
 class ThermalClusterPropertiesUpdate(ClusterPropertiesUpdate):

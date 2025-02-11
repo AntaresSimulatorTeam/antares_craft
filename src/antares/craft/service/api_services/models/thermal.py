@@ -26,6 +26,7 @@ from pydantic.alias_generators import to_camel
 
 ThermalPropertiesType = Union[ThermalClusterProperties, ThermalClusterPropertiesUpdate]
 
+
 @all_optional_model
 class ThermalClusterPropertiesAPI(BaseModel, alias_generator=to_camel, populate_by_name=True):
     enabled: bool

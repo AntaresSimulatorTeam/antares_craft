@@ -30,7 +30,7 @@ from antares.craft.model.area import (
 from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesLocal
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesLocal
 from antares.craft.model.st_storage import STStorage, STStorageProperties, STStoragePropertiesLocal
-from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties, ThermalClusterPropertiesLocal
+from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.base_services import (
     BaseAreaService,
     BaseHydroService,
@@ -38,6 +38,7 @@ from antares.craft.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
+from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
@@ -90,7 +91,8 @@ class AreaLocalService(BaseAreaService):
         properties: Optional[ThermalClusterProperties] = None,
     ) -> ThermalCluster:
         properties = properties or ThermalClusterProperties()
-        args = {"thermal_name": thermal_name, **properties.model_dump(mode="json", exclude_none=True)}
+        local_properties = ThermalClusterPropertiesLocal.from_user_model(properties)
+        args = {"thermal_name": thermal_name, **local_properties.model_dump(mode="json", exclude_none=True)}
         local_thermal_properties = ThermalClusterPropertiesLocal.model_validate(args)
 
         list_ini = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id)

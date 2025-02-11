@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Any, get_type_hints
+from typing import Any
 
 import pandas as pd
 
@@ -19,9 +19,9 @@ from antares.craft.model.thermal import (
     ThermalCluster,
     ThermalClusterMatrixName,
     ThermalClusterProperties,
-    ThermalClusterPropertiesLocal,
 )
 from antares.craft.service.base_services import BaseThermalService
+from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
@@ -60,21 +60,6 @@ class ThermalLocalService(BaseThermalService):
             cluster_id=thermal_cluster.id,
         )
 
-    def _extract_thermal_properties(self, thermal_data: dict[str, Any]) -> ThermalClusterProperties:
-        property_types = get_type_hints(ThermalClusterPropertiesLocal)
-
-        property_mapping = {"name": "thermal_name"}
-
-        parsed_data = {
-            property_mapping.get(property, property): property_types[property_mapping.get(property, property)](value)
-            if value is not None
-            else None
-            for property, value in thermal_data.items()
-            if property_mapping.get(property, property) in property_types
-        }
-
-        return ThermalClusterPropertiesLocal(**parsed_data).yield_thermal_cluster_properties()
-
     @override
     def read_thermal_clusters(self, area_id: str) -> list[ThermalCluster]:
         thermal_dict = IniFile(
@@ -88,7 +73,7 @@ class ThermalLocalService(BaseThermalService):
                 thermal_service=self,
                 area_id=area_id,
                 name=thermal_data["name"],
-                properties=self._extract_thermal_properties(thermal_data),
+                properties=ThermalClusterPropertiesLocal.model_validate(thermal_data).to_user_model(),
             )
             for thermal_data in thermal_dict.values()
         ]

@@ -18,6 +18,7 @@ class ClusterProperties:
     """
     Common properties for thermal and renewable clusters
     """
+
     enabled: bool = True
     unit_count: int = 1
     nominal_capacity: float = 0
