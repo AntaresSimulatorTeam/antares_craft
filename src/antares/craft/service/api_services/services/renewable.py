@@ -23,7 +23,7 @@ from antares.craft.exceptions.exceptions import (
     RenewableMatrixUpdateError,
     RenewablePropertiesUpdateError,
 )
-from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
+from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesUpdate
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import BaseRenewableService
 from typing_extensions import override
@@ -39,7 +39,7 @@ class RenewableApiService(BaseRenewableService):
 
     @override
     def update_renewable_properties(
-        self, renewable_cluster: RenewableCluster, properties: RenewableClusterProperties
+        self, renewable_cluster: RenewableCluster, properties: RenewableClusterPropertiesUpdate
     ) -> RenewableClusterProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{renewable_cluster.area_id}/clusters/renewable/{renewable_cluster.id}"
         try:

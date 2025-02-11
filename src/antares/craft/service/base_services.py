@@ -31,7 +31,11 @@ if TYPE_CHECKING:
     from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
     from antares.craft.model.link import Link, LinkProperties, LinkUi
     from antares.craft.model.output import AggregationEntry, Output
-    from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
+    from antares.craft.model.renewable import (
+        RenewableCluster,
+        RenewableClusterProperties,
+        RenewableClusterPropertiesUpdate,
+    )
     from antares.craft.model.st_storage import STStorage, STStorageMatrixName, STStorageProperties
     from antares.craft.model.study import Study
     from antares.craft.model.thermal import (
@@ -611,7 +615,7 @@ class BaseStudyService(ABC):
 class BaseRenewableService(ABC):
     @abstractmethod
     def update_renewable_properties(
-        self, renewable_cluster: "RenewableCluster", properties: "RenewableClusterProperties"
+        self, renewable_cluster: "RenewableCluster", properties: "RenewableClusterPropertiesUpdate"
     ) -> "RenewableClusterProperties":
         """
         Args:
