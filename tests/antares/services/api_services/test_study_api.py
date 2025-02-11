@@ -117,7 +117,9 @@ class TestCreateAPI:
             settings.general_parameters = GeneralParametersUpdate(mode="Adequacy")
             config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
             mocker.put(config_urls, status_code=200)
-            mocker.get(config_urls, json={}, status_code=200)
+            mocker.get(config_urls, status_code=200, json={})
+            ts_settings_url = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/config"
+            mocker.get(ts_settings_url, json={"thermal": {"number": 1}}, status_code=200)
             self.study.update_settings(settings)
 
     def test_update_study_settings_fails(self):
