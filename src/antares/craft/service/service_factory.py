@@ -42,8 +42,8 @@ from antares.craft.service.local_services.binding_constraint_local import Bindin
 from antares.craft.service.local_services.hydro_local import HydroLocalService
 from antares.craft.service.local_services.link_local import LinkLocalService
 from antares.craft.service.local_services.output_local import OutputLocalService
-from antares.craft.service.local_services.renewable_local import RenewableLocalService
 from antares.craft.service.local_services.run_local import RunLocalService
+from antares.craft.service.local_services.services.renewable import RenewableLocalService
 from antares.craft.service.local_services.services.settings import StudySettingsLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService
 from antares.craft.service.local_services.st_storage_local import ShortTermStorageLocalService
