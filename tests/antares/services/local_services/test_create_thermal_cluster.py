@@ -235,37 +235,14 @@ variableomcost = 5.0
 
         new_content = ini_file.ini_dict
         assert len(new_content.keys()) == 2
-        for key in ["test thermal cluster", "test thermal cluster two"]:
+        expected_sections = ["test thermal cluster", "test thermal cluster two"]
+        for key in expected_sections:
             assert key in new_content
             created_properties = ThermalClusterPropertiesLocal(**new_content[key]).to_user_model()
             assert created_properties == default_thermal_cluster_properties
 
-    def test_clusters_are_alphabetical_in_list_ini(
-        self, local_study_w_thermal, actual_thermal_list_ini, default_thermal_cluster_properties
-    ):
-        # Given
-        first_cluster_alphabetically = "a is before b and t"
-        second_cluster_alphabetically = "b is after a"
-
-        args = default_thermal_cluster_properties.model_dump(mode="json", exclude_none=True)
-        args["thermal_name"] = first_cluster_alphabetically
-        expected_list_ini_dict = ThermalClusterPropertiesLocal.model_validate(args).list_ini_fields
-        args["thermal_name"] = second_cluster_alphabetically
-        expected_list_ini_dict.update(ThermalClusterPropertiesLocal.model_validate(args).list_ini_fields)
-        args["thermal_name"] = "test thermal cluster"
-        expected_list_ini_dict.update(ThermalClusterPropertiesLocal.model_validate(args).list_ini_fields)
-        expected_list_ini = ConfigParser()
-        expected_list_ini.read_dict(expected_list_ini_dict)
-
-        # When
-        local_study_w_thermal.get_areas()["fr"].create_thermal_cluster(second_cluster_alphabetically)
-        local_study_w_thermal.get_areas()["fr"].create_thermal_cluster(first_cluster_alphabetically)
-        actual_thermal_list_ini.update_from_ini_file()
-
-        # Then
-        assert actual_thermal_list_ini.ini_dict.keys() == expected_list_ini_dict.keys()
-        assert actual_thermal_list_ini.parsed_ini.sections() == expected_list_ini.sections()
-        assert actual_thermal_list_ini.parsed_ini == expected_list_ini
+        # Asserts the section are ordered in alphabetical order
+        assert ini_file.parsed_ini.sections() == expected_sections
 
     def test_create_thermal_initialization_files(self, local_study_w_areas):
         study_path = Path(local_study_w_areas.path)
