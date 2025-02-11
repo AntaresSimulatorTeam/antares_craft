@@ -61,16 +61,16 @@ AdequacyPatchParametersType = Union[AdequacyPatchParameters, AdequacyPatchParame
 
 @all_optional_model
 class AdequacyPatchParametersAPI(BaseModel, alias_generator=to_camel, populate_by_name=True):
-    enable_adequacy_patch: bool = False
-    ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch: bool = True
-    ntc_between_physical_areas_out_adequacy_patch: bool = True
-    price_taking_order: PriceTakingOrder = Field(default=PriceTakingOrder.DENS, validate_default=True)
-    include_hurdle_cost_csr: bool = False
-    check_csr_cost_function: bool = False
-    enable_first_step: bool = False
-    threshold_initiate_curtailment_sharing_rule: int = 0
-    threshold_display_local_matching_rule_violations: int = 0
-    threshold_csr_variable_bounds_relaxation: int = 3
+    enable_adequacy_patch: bool
+    ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch: bool
+    ntc_between_physical_areas_out_adequacy_patch: bool
+    price_taking_order: PriceTakingOrder
+    include_hurdle_cost_csr: bool
+    check_csr_cost_function: bool
+    enable_first_step: bool
+    threshold_initiate_curtailment_sharing_rule: int
+    threshold_display_local_matching_rule_violations: int
+    threshold_csr_variable_bounds_relaxation: int
 
     @staticmethod
     def from_user_model(user_class: AdequacyPatchParametersType) -> "AdequacyPatchParametersAPI":
