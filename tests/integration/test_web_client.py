@@ -37,7 +37,12 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
-from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
+from antares.craft.model.renewable import (
+    RenewableClusterGroup,
+    RenewableClusterProperties,
+    RenewableClusterPropertiesUpdate,
+    TimeSeriesInterpretation,
+)
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParametersUpdate,
     RenewableGenerationModeling,
@@ -49,7 +54,7 @@ from antares.craft.model.settings.study_settings import PlaylistParameters, Stud
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
 from antares.craft.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
 from antares.craft.model.study import create_study_api, create_variant_api, import_study_api, read_study_api
-from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
+from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties, ThermalClusterPropertiesUpdate
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
@@ -416,7 +421,7 @@ class TestWebClient:
         assert link_be_fr.ui.link_style == LinkStyle.PLAIN
 
         # tests thermal properties update
-        new_props = ThermalClusterProperties()
+        new_props = ThermalClusterPropertiesUpdate()
         new_props.group = ThermalClusterGroup.NUCLEAR
         thermal_fr.update_properties(new_props)
         assert thermal_fr.properties.group == ThermalClusterGroup.NUCLEAR
@@ -431,7 +436,7 @@ class TestWebClient:
         assert test_link_de_fr.id == link_de_fr.id
 
         # tests renewable properties update
-        new_props = RenewableClusterProperties()
+        new_props = RenewableClusterPropertiesUpdate()
         new_props.ts_interpretation = TimeSeriesInterpretation.POWER_GENERATION
         renewable_onshore.update_properties(new_props)
         assert renewable_onshore.properties.ts_interpretation == TimeSeriesInterpretation.POWER_GENERATION
