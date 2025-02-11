@@ -17,8 +17,8 @@ from antares.craft.service.api_services.area_api import AreaApiService
 from antares.craft.service.api_services.binding_constraint_api import BindingConstraintApiService
 from antares.craft.service.api_services.hydro_api import HydroApiService
 from antares.craft.service.api_services.link_api import LinkApiService
-from antares.craft.service.api_services.output_api import OutputApiService
 from antares.craft.service.api_services.run_api import RunApiService
+from antares.craft.service.api_services.services.output import OutputApiService
 from antares.craft.service.api_services.services.renewable import RenewableApiService
 from antares.craft.service.api_services.services.settings import StudySettingsAPIService
 from antares.craft.service.api_services.services.thermal import ThermalApiService
@@ -41,8 +41,8 @@ from antares.craft.service.local_services.area_local import AreaLocalService
 from antares.craft.service.local_services.binding_constraint_local import BindingConstraintLocalService
 from antares.craft.service.local_services.hydro_local import HydroLocalService
 from antares.craft.service.local_services.link_local import LinkLocalService
-from antares.craft.service.local_services.output_local import OutputLocalService
 from antares.craft.service.local_services.run_local import RunLocalService
+from antares.craft.service.local_services.services.output import OutputLocalService
 from antares.craft.service.local_services.services.renewable import RenewableLocalService
 from antares.craft.service.local_services.services.settings import StudySettingsLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService

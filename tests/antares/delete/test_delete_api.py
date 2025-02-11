@@ -33,7 +33,7 @@ from antares.craft.service.api_services.area_api import AreaApiService
 from antares.craft.service.api_services.binding_constraint_api import BindingConstraintApiService
 from antares.craft.service.api_services.hydro_api import HydroApiService
 from antares.craft.service.api_services.link_api import LinkApiService
-from antares.craft.service.api_services.output_api import OutputApiService
+from antares.craft.service.api_services.services.output import OutputApiService
 from antares.craft.service.api_services.services.renewable import RenewableApiService
 from antares.craft.service.api_services.services.thermal import ThermalApiService
 from antares.craft.service.api_services.st_storage_api import ShortTermStorageApiService
