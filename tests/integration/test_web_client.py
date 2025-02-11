@@ -43,6 +43,7 @@ from antares.craft.model.settings.advanced_parameters import (
     UnitCommitmentMode,
 )
 from antares.craft.model.settings.general import GeneralParametersUpdate, Mode
+from antares.craft.model.settings.optimization import ExportMPS, OptimizationParametersUpdate
 from antares.craft.model.settings.study_settings import PlaylistParameters, StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
 from antares.craft.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
@@ -507,18 +508,22 @@ class TestWebClient:
         study_settings = StudySettingsUpdate()
         study_settings.general_parameters = GeneralParametersUpdate(mode=Mode.ADEQUACY, year_by_year=True)
         study_settings.playlist_parameters = {1: PlaylistParameters(status=True, weight=0.6)}
+        study_settings.optimization_parameters = OptimizationParametersUpdate(include_exportmps=ExportMPS.OPTIM1)
         new_study.update_settings(study_settings)
         updated_settings = new_study.get_settings()
         assert updated_settings.general_parameters.mode == Mode.ADEQUACY
         assert updated_settings.general_parameters.year_by_year
+        assert updated_settings.optimization_parameters.include_exportmps == ExportMPS.OPTIM1
         assert updated_settings.playlist_parameters == {1: PlaylistParameters(status=True, weight=0.6)}
 
         new_settings = StudySettingsUpdate()
         new_settings.general_parameters = GeneralParametersUpdate(simulation_synthesis=False)
         new_settings.advanced_parameters = AdvancedParametersUpdate(unit_commitment_mode=UnitCommitmentMode.MILP)
+        new_settings.optimization_parameters = OptimizationParametersUpdate(include_exportmps=ExportMPS.FALSE)
         new_study.update_settings(new_settings)
         assert new_study.get_settings().general_parameters.mode == Mode.ADEQUACY
         assert new_study.get_settings().general_parameters.simulation_synthesis is False
+        assert new_study.get_settings().optimization_parameters.include_exportmps == ExportMPS.FALSE
         assert new_study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP
 
         # test each hydro matrices returns the good values
