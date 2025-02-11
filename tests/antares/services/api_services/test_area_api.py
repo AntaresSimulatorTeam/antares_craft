@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import re
 
 import pytest
 import requests_mock
@@ -313,9 +312,9 @@ class TestCreateAPI:
             storage_id = storage_.pop("id")
             storage_name = storage_.pop("name")
 
-            thermal_props = ThermalClusterProperties(**thermal_)
+            thermal_props = ThermalClusterPropertiesAPI(**thermal_).to_user_model()
             thermal_cluster = ThermalCluster(self.area_api.thermal_service, thermal_id, thermal_name, thermal_props)
-            renewable_props = RenewableClusterProperties(**renewable_)
+            renewable_props = RenewableClusterPropertiesAPI(**renewable_).to_user_model()
             renewable_cluster = RenewableCluster(
                 self.area_api.renewable_service, renewable_id, renewable_name, renewable_props
             )

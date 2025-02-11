@@ -25,6 +25,7 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.area import Area
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesUpdate
 from antares.craft.service.api_services.area_api import AreaApiService
+from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.services.renewable import RenewableApiService
 from antares.craft.service.service_factory import ServiceFactory
 
@@ -150,7 +151,7 @@ class TestCreateAPI:
             renewable_id = json_renewable[0].pop("id")
             renewable_name = json_renewable[0].pop("name")
 
-            renewable_props = RenewableClusterProperties(**json_renewable[0])
+            renewable_props = RenewableClusterPropertiesAPI(**json_renewable[0]).to_user_model()
             expected_renewable = RenewableCluster(
                 area_api.renewable_service, renewable_id, renewable_name, renewable_props
             )

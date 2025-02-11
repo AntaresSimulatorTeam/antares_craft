@@ -31,6 +31,7 @@ from antares.craft.model.thermal import (
     ThermalClusterPropertiesUpdate,
 )
 from antares.craft.service.api_services.area_api import AreaApiService
+from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.services.thermal import ThermalApiService
 from antares.craft.service.service_factory import ServiceFactory
 
@@ -172,7 +173,7 @@ class TestCreateAPI:
             thermal_id = json_thermal[0].pop("id")
             thermal_name = json_thermal[0].pop("name")
 
-            thermal_props = ThermalClusterProperties(**json_thermal[0])
+            thermal_props = ThermalClusterPropertiesAPI(**json_thermal[0]).to_user_model()
             expected_thermal = ThermalCluster(area_api.thermal_service, thermal_id, thermal_name, thermal_props)
 
             assert len(actual_thermal_list) == 1
