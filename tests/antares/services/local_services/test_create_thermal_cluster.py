@@ -50,11 +50,8 @@ class TestCreateThermalCluster:
             local_study_w_thermal.get_areas()[area_name].create_thermal_cluster(thermal_name)
 
     def test_has_default_properties(self, local_study_w_thermal):
-        assert (
-            local_study_w_thermal.get_areas()["fr"]
-            .get_thermals()["test thermal cluster"]
-            .properties.model_dump(exclude_none=True)
-        )
+        thermal_cluster = local_study_w_thermal.get_areas()["fr"].get_thermals()["test thermal cluster"]
+        assert thermal_cluster.properties == ThermalClusterProperties()
 
     def test_has_correct_default_properties(self, local_study_w_thermal, default_thermal_cluster_properties):
         # Given
