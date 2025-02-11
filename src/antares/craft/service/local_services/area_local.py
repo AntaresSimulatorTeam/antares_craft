@@ -43,6 +43,7 @@ from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
 from antares.craft.tools.prepro_folder import PreproFolder
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from typing_extensions import override
 
 
 def _sets_ini_content() -> ConfigParser:
@@ -81,6 +82,7 @@ class AreaLocalService(BaseAreaService):
         self.renewable_service: BaseRenewableService = renewable_service
         self.hydro_service: BaseHydroService = hydro_service
 
+    @override
     def create_thermal_cluster(
         self,
         area_id: str,
@@ -116,6 +118,7 @@ class AreaLocalService(BaseAreaService):
             self.thermal_service, area_id, thermal_name, local_thermal_properties.yield_thermal_cluster_properties()
         )
 
+    @override
     def create_thermal_cluster_with_matrices(
         self,
         area_id: str,
@@ -129,6 +132,7 @@ class AreaLocalService(BaseAreaService):
     ) -> ThermalCluster:
         raise NotImplementedError
 
+    @override
     def create_renewable_cluster(
         self,
         area_id: str,
@@ -148,6 +152,7 @@ class AreaLocalService(BaseAreaService):
             self.renewable_service, area_id, renewable_name, local_properties.yield_renewable_cluster_properties()
         )
 
+    @override
     def create_load(self, area_id: str, series: pd.DataFrame) -> None:
         self._write_timeseries(series, TimeSeriesFileType.LOAD, area_id)
         PreproFolder.LOAD.save(self.config.study_path, area_id)
@@ -156,6 +161,7 @@ class AreaLocalService(BaseAreaService):
         file_path = self.config.study_path.joinpath(ts_file_type.value.format(area_id=area_id))
         series.to_csv(file_path, sep="\t", header=False, index=False, encoding="utf-8")
 
+    @override
     def create_st_storage(
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
@@ -174,20 +180,25 @@ class AreaLocalService(BaseAreaService):
             local_st_storage_properties.yield_st_storage_properties(),
         )
 
+    @override
     def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
         self._write_timeseries(series, TimeSeriesFileType.WIND, area_id)
         PreproFolder.WIND.save(self.config.study_path, area_id)
 
+    @override
     def create_reserves(self, area_id: str, series: pd.DataFrame) -> None:
         self._write_timeseries(series, TimeSeriesFileType.RESERVES, area_id)
 
+    @override
     def create_solar(self, area_id: str, series: pd.DataFrame) -> None:
         self._write_timeseries(series, TimeSeriesFileType.SOLAR, area_id)
         PreproFolder.SOLAR.save(self.config.study_path, area_id)
 
+    @override
     def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
         self._write_timeseries(series, TimeSeriesFileType.MISC_GEN, area_id)
 
+    @override
     def create_hydro(
         self,
         area_id: str,
@@ -206,12 +217,14 @@ class AreaLocalService(BaseAreaService):
 
         return Hydro(self.hydro_service, area_id, local_hydro_properties.yield_hydro_properties())
 
+    @override
     def read_hydro(
         self,
         area_id: str,
     ) -> Hydro:
         raise NotImplementedError
 
+    @override
     def create_area(
         self, area_name: str, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
     ) -> Area:
@@ -331,39 +344,51 @@ class AreaLocalService(BaseAreaService):
         created_area.create_hydro()
         return created_area
 
+    @override
     def delete_area(self, area_id: str) -> None:
         raise NotImplementedError
 
+    @override
     def update_area_properties(self, area_id: str, properties: AreaProperties) -> AreaProperties:
         raise NotImplementedError
 
+    @override
     def update_area_ui(self, area_id: str, ui: AreaUi) -> AreaUi:
         raise NotImplementedError
 
+    @override
     def delete_thermal_clusters(self, area_id: str, thermal_clusters: List[ThermalCluster]) -> None:
         raise NotImplementedError
 
+    @override
     def delete_renewable_clusters(self, area_id: str, renewable_clusters: List[RenewableCluster]) -> None:
         raise NotImplementedError
 
+    @override
     def delete_st_storages(self, area_id: str, storages: List[STStorage]) -> None:
         raise NotImplementedError
 
+    @override
     def get_load_matrix(self, area_id: str) -> pd.DataFrame:
         return read_timeseries(TimeSeriesFileType.LOAD, self.config.study_path, area_id=area_id)
 
+    @override
     def get_solar_matrix(self, area_id: str) -> pd.DataFrame:
         return read_timeseries(TimeSeriesFileType.SOLAR, self.config.study_path, area_id=area_id)
 
+    @override
     def get_wind_matrix(self, area_id: str) -> pd.DataFrame:
         return read_timeseries(TimeSeriesFileType.WIND, self.config.study_path, area_id=area_id)
 
+    @override
     def get_reserves_matrix(self, area_id: str) -> pd.DataFrame:
         return read_timeseries(TimeSeriesFileType.RESERVES, self.config.study_path, area_id=area_id)
 
+    @override
     def get_misc_gen_matrix(self, area_id: str) -> pd.DataFrame:
         return read_timeseries(TimeSeriesFileType.MISC_GEN, self.config.study_path, area_id=area_id)
 
+    @override
     def read_areas(self) -> List[Area]:
         local_path = self.config.local_path
         areas_path = local_path / self.study_name / "input" / "areas"

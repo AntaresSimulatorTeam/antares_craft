@@ -32,6 +32,7 @@ from antares.craft.model.binding_constraint import BindingConstraint
 from antares.craft.model.output import Output
 from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
+from typing_extensions import override
 
 if TYPE_CHECKING:
     from antares.craft.model.study import Study
@@ -47,10 +48,12 @@ class StudyApiService(BaseStudyService):
         self._output_service: BaseOutputService = output_service
 
     @property
+    @override
     def study_id(self) -> str:
         return self._study_id
 
     @property
+    @override
     def config(self) -> APIconf:
         return self._config
 
@@ -58,6 +61,7 @@ class StudyApiService(BaseStudyService):
     def output_service(self) -> BaseOutputService:
         return self._output_service
 
+    @override
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint.id}"
         try:
@@ -65,6 +69,7 @@ class StudyApiService(BaseStudyService):
         except APIError as e:
             raise BindingConstraintDeletionError(constraint.id, e.message) from e
 
+    @override
     def delete(self, children: bool) -> None:
         url = f"{self._base_url}/studies/{self.study_id}?children={children}"
         try:
@@ -72,6 +77,7 @@ class StudyApiService(BaseStudyService):
         except APIError as e:
             raise StudyDeletionError(self.study_id, e.message) from e
 
+    @override
     def create_variant(self, variant_name: str) -> "Study":
         url = f"{self._base_url}/studies/{self.study_id}/variants?name={variant_name}"
         try:
@@ -81,6 +87,7 @@ class StudyApiService(BaseStudyService):
         except APIError as e:
             raise StudyVariantCreationError(self.study_id, e.message) from e
 
+    @override
     def read_outputs(self) -> list[Output]:
         url = f"{self._base_url}/studies/{self.study_id}/outputs"
         try:
@@ -93,6 +100,7 @@ class StudyApiService(BaseStudyService):
         except APIError as e:
             raise OutputsRetrievalError(self.study_id, e.message)
 
+    @override
     def delete_outputs(self) -> None:
         outputs_url = f"{self._base_url}/studies/{self.study_id}/outputs"
         try:
@@ -106,6 +114,7 @@ class StudyApiService(BaseStudyService):
         except APIError as e:
             raise OutputsRetrievalError(self.study_id, e.message)
 
+    @override
     def delete_output(self, output_name: str) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/outputs/{output_name}"
         try:
@@ -113,6 +122,7 @@ class StudyApiService(BaseStudyService):
         except APIError as e:
             raise OutputDeletionError(self.study_id, output_name, e.message) from e
 
+    @override
     def move_study(self, new_parent_path: Path) -> PurePath:
         url = f"{self._base_url}/studies/{self.study_id}/move?folder_dest={new_parent_path}"
         try:
@@ -123,6 +133,7 @@ class StudyApiService(BaseStudyService):
         except APIError as e:
             raise StudyMoveError(self.study_id, new_parent_path.as_posix(), e.message) from e
 
+    @override
     def generate_thermal_timeseries(self) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/timeseries/generate"
         try:

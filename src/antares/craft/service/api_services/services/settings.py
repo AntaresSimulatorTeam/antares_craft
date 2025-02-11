@@ -24,6 +24,7 @@ from antares.craft.service.api_services.models.settings import (
     ThematicTrimmingParametersAPI,
 )
 from antares.craft.service.base_services import BaseStudySettingsService
+from typing_extensions import override
 
 
 class StudySettingsAPIService(BaseStudySettingsService):
@@ -34,6 +35,7 @@ class StudySettingsAPIService(BaseStudySettingsService):
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
+    @override
     def edit_study_settings(self, settings: StudySettings) -> StudySettings:
         try:
             edit_study_settings(self._base_url, self.study_id, self._wrapper, settings)
@@ -41,6 +43,7 @@ class StudySettingsAPIService(BaseStudySettingsService):
         except APIError as e:
             raise StudySettingsUpdateError(self.study_id, e.message) from e
 
+    @override
     def read_study_settings(self) -> StudySettings:
         try:
             return read_study_settings_api(self._base_url, self.study_id, self._wrapper)

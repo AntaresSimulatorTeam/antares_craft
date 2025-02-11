@@ -16,6 +16,7 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.binding_constraint import BindingConstraint
 from antares.craft.model.output import Output
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
+from typing_extensions import override
 
 if TYPE_CHECKING:
     from antares.craft.model.study import Study
@@ -31,10 +32,12 @@ class StudyLocalService(BaseStudyService):
         self._output_service: BaseOutputService = output_service
 
     @property
+    @override
     def study_id(self) -> str:
         return self._study_name
 
     @property
+    @override
     def config(self) -> LocalConfiguration:
         return self._config
 
@@ -42,26 +45,34 @@ class StudyLocalService(BaseStudyService):
     def output_service(self) -> BaseOutputService:
         return self._output_service
 
+    @override
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         raise NotImplementedError
 
+    @override
     def delete(self, children: bool) -> None:
         raise NotImplementedError
 
+    @override
     def create_variant(self, variant_name: str) -> "Study":
         raise NotImplementedError
 
+    @override
     def read_outputs(self) -> list[Output]:
         raise NotImplementedError
 
+    @override
     def delete_outputs(self) -> None:
         raise NotImplementedError
 
+    @override
     def delete_output(self, output_name: str) -> None:
         raise NotImplementedError
 
+    @override
     def move_study(self, new_parent_path: Path) -> PurePath:
         raise NotImplementedError
 
+    @override
     def generate_thermal_timeseries(self) -> None:
         raise NotImplementedError

@@ -30,6 +30,7 @@ from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import df_read, df_save
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 from pydantic import Field
+from typing_extensions import override
 
 
 class BindingConstraintPropertiesLocal(DefaultBindingConstraintProperties):
@@ -79,6 +80,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         self.study_name = study_name
         self.ini_file = IniFile(self.config.study_path, InitializationFilesTypes.BINDING_CONSTRAINTS_INI)
 
+    @override
     def create_binding_constraint(
         self,
         name: str,
@@ -188,6 +190,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         self.ini_file.ini_dict_binding_constraints = current_ini_content
         self.ini_file.write_ini_file()
 
+    @override
     def add_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> list[ConstraintTerm]:
         """
         Add terms to a binding constraint and update the INI file.
@@ -223,24 +226,29 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
         return terms_values
 
+    @override
     def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
         raise NotImplementedError
 
+    @override
     def update_binding_constraint_properties(
         self, binding_constraint: BindingConstraint, properties: BindingConstraintProperties
     ) -> BindingConstraintProperties:
         raise NotImplementedError
 
+    @override
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
         file_path = self.config.study_path.joinpath(
             "input", "bindingconstraints", f"{constraint.id}_{matrix_name.value}.txt"
         )
         return df_read(file_path)
 
+    @override
     def update_constraint_matrix(
         self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName, matrix: pd.DataFrame
     ) -> None:
         raise NotImplementedError
 
+    @override
     def read_binding_constraints(self) -> list[BindingConstraint]:
         raise NotImplementedError

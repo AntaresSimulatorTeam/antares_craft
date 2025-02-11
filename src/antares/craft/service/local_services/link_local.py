@@ -26,6 +26,7 @@ from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from typing_extensions import override
 
 
 class LinkLocalService(BaseLinkService):
@@ -34,6 +35,7 @@ class LinkLocalService(BaseLinkService):
         self.config = config
         self.study_name = study_name
 
+    @override
     def create_link(
         self,
         area_from: str,
@@ -96,12 +98,15 @@ class LinkLocalService(BaseLinkService):
             ui=local_ui.yield_link_ui(),
         )
 
+    @override
     def delete_link(self, link: Link) -> None:
         raise NotImplementedError
 
+    @override
     def update_link_properties(self, link: Link, properties: LinkProperties) -> LinkProperties:
         raise NotImplementedError
 
+    @override
     def update_link_ui(self, link: Link, ui: LinkUi) -> LinkUi:
         raise NotImplementedError
 
@@ -126,15 +131,19 @@ class LinkLocalService(BaseLinkService):
         ]
         return dict(sorted(ini_dict.items(), key=lambda item: dict_order.index(item[0])))
 
+    @override
     def create_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         raise NotImplementedError
 
+    @override
     def create_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         raise NotImplementedError
 
+    @override
     def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         raise NotImplementedError
 
+    @override
     def get_capacity_direct(
         self,
         area_from: str,
@@ -147,6 +156,7 @@ class LinkLocalService(BaseLinkService):
             second_area_id=area_to,
         )
 
+    @override
     def get_capacity_indirect(
         self,
         area_from: str,
@@ -159,6 +169,7 @@ class LinkLocalService(BaseLinkService):
             second_area_id=area_to,
         )
 
+    @override
     def get_parameters(
         self,
         area_from: str,
@@ -168,6 +179,7 @@ class LinkLocalService(BaseLinkService):
             TimeSeriesFileType.LINKS_PARAMETERS, self.config.study_path, area_id=area_from, second_area_id=area_to
         )
 
+    @override
     def read_links(self) -> list[Link]:
         link_path = self.config.study_path / "input" / "links"
 
