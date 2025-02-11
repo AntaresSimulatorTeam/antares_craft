@@ -78,7 +78,7 @@ class Hydro:
     ):
         self._area_id = area_id
         self._service = service
-        self._properties = properties
+        self._properties = properties or HydroProperties()
         self._matrices = matrices
 
     @property
@@ -86,7 +86,7 @@ class Hydro:
         return self._area_id
 
     @property
-    def properties(self) -> Optional[HydroProperties]:
+    def properties(self) -> HydroProperties:
         return self._properties
 
     @property
