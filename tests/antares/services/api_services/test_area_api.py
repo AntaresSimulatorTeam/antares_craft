@@ -55,7 +55,7 @@ class TestCreateAPI:
         hydro_service,
     )
     antares_web_description_msg = "Mocked Server KO"
-    matrix = pd.DataFrame(data=[[0]])
+    matrix = pd.DataFrame(data=[[1]])
     study = Study("TestStudy", "880", ServiceFactory(api, study_id))
 
     def test_update_area_properties_success(self):
@@ -178,33 +178,19 @@ class TestCreateAPI:
                 self.area.create_st_storage(st_storage_name=st_storage_name)
 
     def test_create_thermal_cluster_with_matrices(self):
-        expected_url = f"https://antares.com/api/v1/studies/{self.study_id}/commands"
-        matrix_test = pd.DataFrame(data=np.ones((8760, 1)))
-        json_for_post = (
-            [
-                {
-                    "action": "create_cluster",
-                    "args": {
-                        "area_id": "fr",
-                        "cluster_name": "cluster 1",
-                        "parameters": {},
-                        "prepro": matrix_test.to_dict(orient="split"),
-                        "modulation": matrix_test.to_dict(orient="split"),
-                    },
-                }
-            ],
-        )
+        base_url = f"{self.api.api_host}/api/v1"
         with requests_mock.Mocker() as mocker:
-            mocker.post(expected_url, json=json_for_post, status_code=200)
+            url = f"{base_url}/studies/{self.study_id}/areas/{self.area.id}/clusters/thermal"
+            cluster_name = "cluster_test"
+            creation_response = {"name": cluster_name, "id": cluster_name, "group": "Nuclear"}
+            mocker.post(url, json=creation_response, status_code=200)
 
             thermal_cluster = self.area.create_thermal_cluster(
-                thermal_name="cluster_test",
+                thermal_name=cluster_name,
                 properties=ThermalClusterProperties(),
-                prepro=matrix_test,
-                modulation=matrix_test,
-                series=matrix_test,
-                co2_cost=matrix_test,
-                fuel_cost=matrix_test,
+                prepro=self.matrix,
+                series=self.matrix,
+                fuel_cost=self.matrix,
             )
             # to assert two http requests to "commands"
             assert len(mocker.request_history) == 2

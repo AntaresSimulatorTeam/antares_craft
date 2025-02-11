@@ -188,26 +188,25 @@ class AreaApiService(BaseAreaService):
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
-            name = json_response["name"]
-            del json_response["name"]
+            name = json_response.pop("name")
             thermal_id = json_response.pop("id")
             created_api_properties = ThermalClusterPropertiesAPI.model_validate(json_response)
             properties = created_api_properties.to_user_model()
 
             # Upload matrices
-            if prepro:
+            if prepro is not None:
                 matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/data"
                 upload_series(self._base_url, self.study_id, self._wrapper, prepro, matrix_path)
-            if modulation:
+            if modulation is not None:
                 matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/data"
                 upload_series(self._base_url, self.study_id, self._wrapper, modulation, matrix_path)
-            if series:
+            if series is not None:
                 matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/series"
                 upload_series(self._base_url, self.study_id, self._wrapper, series, matrix_path)
-            if co2_cost:
+            if co2_cost is not None:
                 matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/CO2Cost"
                 upload_series(self._base_url, self.study_id, self._wrapper, co2_cost, matrix_path)
-            if fuel_cost:
+            if fuel_cost is not None:
                 matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/fuelCost"
                 upload_series(self._base_url, self.study_id, self._wrapper, fuel_cost, matrix_path)
 
