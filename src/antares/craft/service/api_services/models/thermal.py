@@ -28,6 +28,9 @@ ThermalPropertiesType = Union[ThermalClusterProperties, ThermalClusterProperties
 
 @all_optional_model
 class ThermalClusterPropertiesAPI(BaseModel, alias_generator=to_camel, populate_by_name=True):
+    enabled: bool
+    unit_count: int
+    nominal_capacity: float
     group: ThermalClusterGroup
     gen_ts: LocalTSGenerationBehavior
     min_stable_power: float
@@ -68,6 +71,9 @@ class ThermalClusterPropertiesAPI(BaseModel, alias_generator=to_camel, populate_
 
     def to_user_model(self) -> ThermalClusterProperties:
         return ThermalClusterProperties(
+            enabled=self.enabled,
+            unit_count=self.unit_count,
+            nominal_capacity=self.nominal_capacity,
             group=self.group,
             gen_ts=self.gen_ts,
             min_stable_power=self.min_stable_power,
