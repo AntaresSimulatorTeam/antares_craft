@@ -25,6 +25,7 @@ from antares.craft.exceptions.exceptions import (
     ConstraintMatrixUpdateError,
     MatrixUploadError,
     STStorageMatrixUploadError,
+    StudySettingsUpdateError,
 )
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
 from antares.craft.model.binding_constraint import (
@@ -700,3 +701,12 @@ class TestWebClient:
 
         assert imported_study.path == path_test / f"{imported_study.service.study_id}"
         assert list(imported_study.get_areas()) == list(study.get_areas())
+
+        # Asserts updating include_exportstructure parameter raises a clear Exception
+        update_settings = StudySettingsUpdate()
+        update_settings.optimization_parameters = OptimizationParametersUpdate(include_exportstructure=True)
+        with pytest.raises(
+            StudySettingsUpdateError,
+            match=f"Could not update settings for study {imported_study.service.study_id}: AntaresWeb doesn't support editing the parameter include_exportstructure",
+        ):
+            imported_study.update_settings(update_settings)
