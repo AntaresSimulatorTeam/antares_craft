@@ -59,31 +59,11 @@ class RenewableClusterProperties(ClusterProperties):
     group: RenewableClusterGroup = RenewableClusterGroup.OTHER1
     ts_interpretation: TimeSeriesInterpretation = TimeSeriesInterpretation.POWER_GENERATION
 
+
 @dataclass
 class RenewableClusterPropertiesUpdate(ClusterPropertiesUpdate):
     group: Optional[RenewableClusterGroup] = None
     ts_interpretation: Optional[TimeSeriesInterpretation] = None
-
-
-class RenewableClusterPropertiesLocal(DefaultRenewableClusterProperties):
-    renewable_name: str
-
-    @property
-    def ini_fields(self) -> dict[str, dict[str, str]]:
-        return {
-            self.renewable_name: {
-                "name": self.renewable_name,
-                "group": self.group.value,
-                "enabled": f"{self.enabled}".lower(),
-                "nominalcapacity": f"{self.nominal_capacity:.6f}",
-                "unitcount": f"{self.unit_count}",
-                "ts-interpretation": self.ts_interpretation.value,
-            }
-        }
-
-    def yield_renewable_cluster_properties(self) -> RenewableClusterProperties:
-        excludes = {"renewable_name", "ini_fields"}
-        return RenewableClusterProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
 
 
 class RenewableCluster:

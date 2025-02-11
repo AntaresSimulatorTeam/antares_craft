@@ -18,24 +18,25 @@ from antares.craft.model.renewable import (
     RenewableClusterPropertiesUpdate,
     TimeSeriesInterpretation,
 )
-from antares.craft.service.api_services.models import APIBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
+from antares.craft.service.local_services.models import LocalBaseModel
+from pydantic import Field
 
 RenewablePropertiesType = Union[RenewableClusterProperties, RenewableClusterPropertiesUpdate]
 
 
-@all_optional_model
-class RenewableClusterPropertiesAPI(APIBaseModel):
-    group: RenewableClusterGroup
-    ts_interpretation: TimeSeriesInterpretation
-    enabled: bool
-    unit_count: int
-    nominal_capacity: float
+class RenewableClusterPropertiesLocal(LocalBaseModel):
+    enabled: bool = True
+    unit_count: int = Field(default=1, alias="unitcount")
+    nominal_capacity: float = Field(default=0, alias="nominalcapacity")
+    group: RenewableClusterGroup = RenewableClusterGroup.OTHER1
+    ts_interpretation: TimeSeriesInterpretation = Field(
+        default=TimeSeriesInterpretation.POWER_GENERATION, alias="ts-interpretation"
+    )
 
     @staticmethod
-    def from_user_model(user_class: RenewablePropertiesType) -> "RenewableClusterPropertiesAPI":
+    def from_user_model(user_class: RenewablePropertiesType) -> "RenewableClusterPropertiesLocal":
         user_dict = asdict(user_class)
-        return RenewableClusterPropertiesAPI.model_validate(user_dict)
+        return RenewableClusterPropertiesLocal.model_validate(user_dict)
 
     def to_user_model(self) -> RenewableClusterProperties:
         return RenewableClusterProperties(
