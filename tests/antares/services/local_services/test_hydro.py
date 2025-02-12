@@ -154,7 +154,7 @@ it = False
 
 [reservoir capacity]
 at = 0.0
-fr = 0.0
+fr = 4.3
 it = 0.0
 
 [follow load]
