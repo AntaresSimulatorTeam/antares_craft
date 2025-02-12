@@ -63,3 +63,8 @@ def read_timeseries(
         _time_series = pd.DataFrame()
 
     return _time_series
+
+
+def write_timeseries(study_path: Path, series: pd.DataFrame, ts_file_type: TimeSeriesFileType, area_id: str) -> None:
+    file_path = study_path.joinpath(ts_file_type.value.format(area_id=area_id))
+    series.to_csv(file_path, sep="\t", header=False, index=False, encoding="utf-8")

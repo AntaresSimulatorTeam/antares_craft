@@ -122,3 +122,18 @@ class Hydro:
 
     def get_water_values(self) -> pd.DataFrame:
         return self._service.get_water_values(self.area_id)
+
+    def update_maxpower(self, series: pd.DataFrame) -> None:
+        return self._service.update_maxpower(self.area_id, series)
+
+    def update_reservoir(self, series: pd.DataFrame) -> None:
+        return self._service.update_reservoir(self.area_id, series)
+
+    def update_inflow_pattern(self, series: pd.DataFrame) -> None:
+        return self._service.update_inflow_pattern(self.area_id, series)
+
+    def update_credits_modulation(self, series: pd.DataFrame) -> None:
+        return self._service.update_credits_modulation(self.area_id, series)
+
+    def update_water_values(self, series: pd.DataFrame) -> None:
+        return self._service.update_water_values(self.area_id, series)

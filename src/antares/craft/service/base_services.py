@@ -314,6 +314,26 @@ class BaseHydroService(ABC):
     def get_water_values(self, area_id: str) -> pd.DataFrame:
         pass
 
+    @abstractmethod
+    def update_maxpower(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def update_reservoir(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def update_inflow_pattern(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def update_credits_modulation(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def update_water_values(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
 
 class BaseLinkService(ABC):
     @abstractmethod

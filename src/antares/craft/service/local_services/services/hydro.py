@@ -18,7 +18,7 @@ from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
 from antares.craft.service.base_services import BaseHydroService
 from antares.craft.service.local_services.models.hydro import HydroPropertiesLocal, HydroPropertiesLocalUpdate
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
-from antares.craft.tools.matrix_tool import read_timeseries
+from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 from typing_extensions import override
 
@@ -63,6 +63,26 @@ class HydroLocalService(BaseHydroService):
     @override
     def get_water_values(self, area_id: str) -> pd.DataFrame:
         return read_timeseries(TimeSeriesFileType.HYDRO_WATER_VALUES, self.config.study_path, area_id=area_id)
+
+    @override
+    def update_maxpower(self, area_id: str, series: pd.DataFrame) -> None:
+        write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_MAX_POWER, area_id)
+
+    @override
+    def update_reservoir(self, area_id: str, series: pd.DataFrame) -> None:
+        write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_RESERVOIR, area_id)
+
+    @override
+    def update_inflow_pattern(self, area_id: str, series: pd.DataFrame) -> None:
+        write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_INFLOW_PATTERN, area_id)
+
+    @override
+    def update_credits_modulation(self, area_id: str, series: pd.DataFrame) -> None:
+        write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_CREDITS_MODULATION, area_id)
+
+    @override
+    def update_water_values(self, area_id: str, series: pd.DataFrame) -> None:
+        write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_WATER_VALUES, area_id)
 
 
 def edit_hydro_properties(study_path: Path, area_id: str, properties: HydroPropertiesUpdate, creation: bool) -> None:
