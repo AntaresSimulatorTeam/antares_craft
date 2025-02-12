@@ -18,8 +18,14 @@ import pandas as pd
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import ConstraintMatrixDownloadError, ConstraintPropertiesUpdateError
 from antares.craft.model.area import Area
-from antares.craft.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintMatrixName
+from antares.craft.model.binding_constraint import (
+    BindingConstraint,
+    BindingConstraintProperties,
+    BindingConstraintPropertiesUpdate,
+    ConstraintMatrixName,
+)
 from antares.craft.model.study import Study
+from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 from antares.craft.service.service_factory import ServiceFactory
 
 
@@ -50,13 +56,17 @@ class TestCreateAPI:
 
     def test_update_binding_constraint_properties_success(self):
         with requests_mock.Mocker() as mocker:
-            properties = BindingConstraintProperties(enabled=False)
+            update_properties = BindingConstraintPropertiesUpdate(enabled=False)
+            api_properties = BindingConstraintPropertiesAPI.from_user_model(update_properties)
             constraint = BindingConstraint(
                 "bc_1", ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
             )
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}"
-            mocker.put(url, json={"id": "id", "name": "name", "terms": [], **properties.model_dump()}, status_code=200)
-            constraint.update_properties(properties=properties)
+            mocker.put(
+                url, json={"id": "id", "name": "name", "terms": [], **api_properties.model_dump()}, status_code=200
+            )
+            constraint.update_properties(properties=update_properties)
+            assert constraint.properties == BindingConstraintProperties(enabled=False)
 
     def test_update_binding_constraint_properties_fails(self):
         with requests_mock.Mocker() as mocker:
