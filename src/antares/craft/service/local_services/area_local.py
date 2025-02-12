@@ -28,9 +28,9 @@ from antares.craft.model.area import (
     AreaUiLocal,
 )
 from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesLocal
-from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesLocal
+from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties, STStoragePropertiesLocal
-from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties, ThermalClusterPropertiesLocal
+from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.base_services import (
     BaseAreaService,
     BaseHydroService,
@@ -38,6 +38,8 @@ from antares.craft.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
+from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
+from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
@@ -88,11 +90,13 @@ class AreaLocalService(BaseAreaService):
         area_id: str,
         thermal_name: str,
         properties: Optional[ThermalClusterProperties] = None,
+        prepro: Optional[pd.DataFrame] = None,
+        modulation: Optional[pd.DataFrame] = None,
+        series: Optional[pd.DataFrame] = None,
+        co2_cost: Optional[pd.DataFrame] = None,
+        fuel_cost: Optional[pd.DataFrame] = None,
     ) -> ThermalCluster:
-        properties = properties or ThermalClusterProperties()
-        args = {"thermal_name": thermal_name, **properties.model_dump(mode="json", exclude_none=True)}
-        local_thermal_properties = ThermalClusterPropertiesLocal.model_validate(args)
-
+        # Creating files
         list_ini = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id)
         IniFile(
             self.config.study_path,
@@ -104,8 +108,13 @@ class AreaLocalService(BaseAreaService):
         IniFile(
             self.config.study_path, InitializationFilesTypes.THERMAL_SERIES, area_id=area_id, cluster_id=thermal_name
         )
+
+        # Writing properties
         try:
-            list_ini.add_section(local_thermal_properties.list_ini_fields)
+            properties = properties or ThermalClusterProperties()
+            local_properties = ThermalClusterPropertiesLocal.from_user_model(properties)
+            new_section_content = {"name": thermal_name, **local_properties.model_dump(mode="json", by_alias=True)}
+            list_ini.add_section({thermal_name: new_section_content})
         except DuplicateSectionError:
             raise ThermalCreationError(
                 thermal_name,
@@ -114,23 +123,19 @@ class AreaLocalService(BaseAreaService):
             )
         list_ini.write_ini_file(sort_sections=True)
 
-        return ThermalCluster(
-            self.thermal_service, area_id, thermal_name, local_thermal_properties.yield_thermal_cluster_properties()
-        )
+        # Upload matrices
+        if prepro:
+            self._write_timeseries(prepro, TimeSeriesFileType.THERMAL_DATA, area_id)
+        if modulation:
+            self._write_timeseries(modulation, TimeSeriesFileType.THERMAL_MODULATION, area_id)
+        if series:
+            self._write_timeseries(series, TimeSeriesFileType.THERMAL_SERIES, area_id)
+        if co2_cost:
+            self._write_timeseries(co2_cost, TimeSeriesFileType.THERMAL_CO2, area_id)
+        if fuel_cost:
+            self._write_timeseries(fuel_cost, TimeSeriesFileType.THERMAL_FUEL, area_id)
 
-    @override
-    def create_thermal_cluster_with_matrices(
-        self,
-        area_id: str,
-        cluster_name: str,
-        parameters: ThermalClusterProperties,
-        prepro: Optional[pd.DataFrame],
-        modulation: Optional[pd.DataFrame],
-        series: Optional[pd.DataFrame],
-        CO2Cost: Optional[pd.DataFrame],
-        fuelCost: Optional[pd.DataFrame],
-    ) -> ThermalCluster:
-        raise NotImplementedError
+        return ThermalCluster(self.thermal_service, area_id, thermal_name, properties)
 
     @override
     def create_renewable_cluster(
@@ -141,16 +146,17 @@ class AreaLocalService(BaseAreaService):
         series: Optional[pd.DataFrame] = None,
     ) -> RenewableCluster:
         properties = properties or RenewableClusterProperties()
-        args = {"renewable_name": renewable_name, **properties.model_dump(mode="json", exclude_none=True)}
-        local_properties = RenewableClusterPropertiesLocal.model_validate(args)
+        local_properties = RenewableClusterPropertiesLocal.from_user_model(properties)
+        new_section_content = {"name": renewable_name, **local_properties.model_dump(mode="json", by_alias=True)}
 
         list_ini = IniFile(self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id)
-        list_ini.add_section(local_properties.ini_fields)
+        list_ini.add_section({renewable_name: new_section_content})
         list_ini.write_ini_file()
 
-        return RenewableCluster(
-            self.renewable_service, area_id, renewable_name, local_properties.yield_renewable_cluster_properties()
-        )
+        if series:
+            self._write_timeseries(series, TimeSeriesFileType.RENEWABLE_DATA_SERIES, area_id)
+
+        return RenewableCluster(self.renewable_service, area_id, renewable_name, properties)
 
     @override
     def create_load(self, area_id: str, series: pd.DataFrame) -> None:

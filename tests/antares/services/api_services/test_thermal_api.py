@@ -24,9 +24,15 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.area import Area
 from antares.craft.model.study import Study
-from antares.craft.model.thermal import ThermalCluster, ThermalClusterMatrixName, ThermalClusterProperties
+from antares.craft.model.thermal import (
+    ThermalCluster,
+    ThermalClusterMatrixName,
+    ThermalClusterProperties,
+    ThermalClusterPropertiesUpdate,
+)
 from antares.craft.service.api_services.area_api import AreaApiService
-from antares.craft.service.api_services.thermal_api import ThermalApiService
+from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
+from antares.craft.service.api_services.services.thermal import ThermalApiService
 from antares.craft.service.service_factory import ServiceFactory
 
 
@@ -60,12 +66,12 @@ class TestCreateAPI:
 
     def test_update_thermal_properties_success(self):
         with requests_mock.Mocker() as mocker:
-            properties = ThermalClusterProperties(co2=4)
+            properties = ThermalClusterPropertiesUpdate(co2=4)
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/"
                 f"areas/{self.thermal.area_id}/clusters/thermal/{self.thermal.id}"
             )
-            mocker.patch(url, json={"id": "id", "name": "name", **properties.model_dump()}, status_code=200)
+            mocker.patch(url, json={"id": "id", "name": "name", "co2": 4}, status_code=200)
             self.thermal.update_properties(properties=properties)
 
     def test_update_thermal_properties_fails(self):
@@ -167,7 +173,7 @@ class TestCreateAPI:
             thermal_id = json_thermal[0].pop("id")
             thermal_name = json_thermal[0].pop("name")
 
-            thermal_props = ThermalClusterProperties(**json_thermal[0])
+            thermal_props = ThermalClusterPropertiesAPI(**json_thermal[0]).to_user_model()
             expected_thermal = ThermalCluster(area_api.thermal_service, thermal_id, thermal_name, thermal_props)
 
             assert len(actual_thermal_list) == 1

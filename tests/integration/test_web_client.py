@@ -37,7 +37,12 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
-from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
+from antares.craft.model.renewable import (
+    RenewableClusterGroup,
+    RenewableClusterProperties,
+    RenewableClusterPropertiesUpdate,
+    TimeSeriesInterpretation,
+)
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParametersUpdate,
     RenewableGenerationModeling,
@@ -49,7 +54,7 @@ from antares.craft.model.settings.study_settings import PlaylistParameters, Stud
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
 from antares.craft.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
 from antares.craft.model.study import create_study_api, create_variant_api, import_study_api, read_study_api
-from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
+from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties, ThermalClusterPropertiesUpdate
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
@@ -174,8 +179,8 @@ class TestWebClient:
         prepro_modulation_matrix = pd.DataFrame(data=np.ones((8760, 6)))
         modulation_matrix = pd.DataFrame(data=np.ones((8760, 4)))
         series_matrix = pd.DataFrame(data=np.ones((8760, 6)))
-        CO2Cost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
-        fuelCost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
+        co2_cost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
+        fuel_cost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
 
         # creating parameters and capacities for this link and testing them
         link_be_fr.create_parameters(series_matrix)
@@ -190,14 +195,14 @@ class TestWebClient:
         series_matrix.equals(indirect_matrix)
 
         # Case that succeeds
-        thermal_value_be = area_fr.create_thermal_cluster_with_matrices(
-            cluster_name=thermal_name,
-            parameters=thermal_properties,
+        thermal_value_be = area_fr.create_thermal_cluster(
+            thermal_name=thermal_name,
+            properties=thermal_properties,
             prepro=prepro_modulation_matrix,
             modulation=modulation_matrix,
             series=series_matrix,
-            CO2Cost=CO2Cost_matrix,
-            fuelCost=fuelCost_matrix,
+            co2_cost=co2_cost_matrix,
+            fuel_cost=fuel_cost_matrix,
         )
 
         prepro = thermal_value_be.get_prepro_data_matrix()
@@ -210,8 +215,8 @@ class TestWebClient:
         assert prepro.equals(prepro_modulation_matrix)
         assert modulation.equals(modulation_matrix)
         assert series.equals(series_matrix)
-        assert CO2.equals(CO2Cost_matrix)
-        assert fuel.equals(fuelCost_matrix)
+        assert CO2.equals(co2_cost_matrix)
+        assert fuel.equals(fuel_cost_matrix)
 
         # test renewable cluster creation with default values
         renewable_name = "cluster_test %?"
@@ -416,7 +421,7 @@ class TestWebClient:
         assert link_be_fr.ui.link_style == LinkStyle.PLAIN
 
         # tests thermal properties update
-        new_props = ThermalClusterProperties()
+        new_props = ThermalClusterPropertiesUpdate()
         new_props.group = ThermalClusterGroup.NUCLEAR
         thermal_fr.update_properties(new_props)
         assert thermal_fr.properties.group == ThermalClusterGroup.NUCLEAR
@@ -431,7 +436,7 @@ class TestWebClient:
         assert test_link_de_fr.id == link_de_fr.id
 
         # tests renewable properties update
-        new_props = RenewableClusterProperties()
+        new_props = RenewableClusterPropertiesUpdate()
         new_props.ts_interpretation = TimeSeriesInterpretation.POWER_GENERATION
         renewable_onshore.update_properties(new_props)
         assert renewable_onshore.properties.ts_interpretation == TimeSeriesInterpretation.POWER_GENERATION

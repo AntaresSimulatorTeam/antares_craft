@@ -27,7 +27,6 @@ from antares.craft.model.renewable import (
     RenewableCluster,
     RenewableClusterGroup,
     RenewableClusterProperties,
-    RenewableClusterPropertiesLocal,
     TimeSeriesInterpretation,
 )
 from antares.craft.model.st_storage import STStorage, STStorageGroup, STStorageProperties, STStoragePropertiesLocal
@@ -53,11 +52,8 @@ class TestCreateRenewablesCluster:
         )
 
     def test_renewable_cluster_has_properties(self, local_study_with_renewable):
-        assert (
-            local_study_with_renewable.get_areas()["fr"]
-            .get_renewables()["renewable cluster"]
-            .properties.model_dump(exclude_none=True)
-        )
+        renewable_cluster = local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"]
+        assert renewable_cluster.properties == RenewableClusterProperties()
 
     def test_renewable_cluster_has_correct_default_properties(
         self, local_study_with_renewable, default_renewable_cluster_properties
@@ -80,10 +76,10 @@ class TestCreateRenewablesCluster:
         # Given
         expected_renewables_list_ini_content = """[renewable cluster]
 name = renewable cluster
-group = Other RES 1
-enabled = true
-nominalcapacity = 0.000000
+enabled = True
 unitcount = 1
+nominalcapacity = 0.0
+group = Other RES 1
 ts-interpretation = power-generation
 
 """
@@ -100,17 +96,16 @@ ts-interpretation = power-generation
 
     def test_renewable_cluster_and_ini_have_custom_properties(self, local_study_w_thermal):
         # Given
-        props = RenewableClusterProperties(
+        renewable_properties = RenewableClusterProperties(
             group=RenewableClusterGroup.WIND_OFF_SHORE, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
         )
-        args = {"renewable_name": "renewable cluster", **props.model_dump(mode="json", exclude_none=True)}
-        custom_properties = RenewableClusterPropertiesLocal.model_validate(args)
+        renewable_name = "renewable cluster"
         expected_renewables_list_ini_content = """[renewable cluster]
 name = renewable cluster
-group = Wind Offshore
-enabled = true
-nominalcapacity = 0.000000
+enabled = True
 unitcount = 1
+nominalcapacity = 0.0
+group = Wind Offshore
 ts-interpretation = production-factor
 
 """
@@ -119,17 +114,13 @@ ts-interpretation = production-factor
         )
 
         # When
-        local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
-            renewable_name=custom_properties.renewable_name,
-            properties=custom_properties.yield_renewable_cluster_properties(),
-            series=None,
-        )
+        local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(renewable_name, renewable_properties, None)
         with actual_renewable_list_ini.ini_path.open() as renewables_list_ini_file:
             actual_renewable_list_ini_content = renewables_list_ini_file.read()
 
         assert (
             local_study_w_thermal.get_areas()["fr"].get_renewables()["renewable cluster"].properties
-            == custom_properties.yield_renewable_cluster_properties()
+            == renewable_properties
         )
         assert actual_renewable_list_ini_content == expected_renewables_list_ini_content
 

@@ -9,15 +9,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
 import pandas as pd
 
-from antares.craft.model.cluster import ClusterProperties
+from antares.craft.model.cluster import ClusterProperties, ClusterPropertiesUpdate
 from antares.craft.service.base_services import BaseRenewableService
-from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import transform_name_to_id
 
 
@@ -55,39 +54,16 @@ class TimeSeriesInterpretation(Enum):
     PRODUCTION_FACTOR = "production-factor"
 
 
-class DefaultRenewableClusterProperties(ClusterProperties):
-    """
-    Properties of a renewable cluster read from the configuration files.
-    """
-
+@dataclass
+class RenewableClusterProperties(ClusterProperties):
     group: RenewableClusterGroup = RenewableClusterGroup.OTHER1
     ts_interpretation: TimeSeriesInterpretation = TimeSeriesInterpretation.POWER_GENERATION
 
 
-@all_optional_model
-class RenewableClusterProperties(DefaultRenewableClusterProperties):
-    pass
-
-
-class RenewableClusterPropertiesLocal(DefaultRenewableClusterProperties):
-    renewable_name: str
-
-    @property
-    def ini_fields(self) -> dict[str, dict[str, str]]:
-        return {
-            self.renewable_name: {
-                "name": self.renewable_name,
-                "group": self.group.value,
-                "enabled": f"{self.enabled}".lower(),
-                "nominalcapacity": f"{self.nominal_capacity:.6f}",
-                "unitcount": f"{self.unit_count}",
-                "ts-interpretation": self.ts_interpretation.value,
-            }
-        }
-
-    def yield_renewable_cluster_properties(self) -> RenewableClusterProperties:
-        excludes = {"renewable_name", "ini_fields"}
-        return RenewableClusterProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
+@dataclass
+class RenewableClusterPropertiesUpdate(ClusterPropertiesUpdate):
+    group: Optional[RenewableClusterGroup] = None
+    ts_interpretation: Optional[TimeSeriesInterpretation] = None
 
 
 class RenewableCluster:
@@ -122,7 +98,7 @@ class RenewableCluster:
     def properties(self) -> RenewableClusterProperties:
         return self._properties
 
-    def update_properties(self, properties: RenewableClusterProperties) -> None:
+    def update_properties(self, properties: RenewableClusterPropertiesUpdate) -> None:
         new_properties = self._renewable_service.update_renewable_properties(self, properties)
         self._properties = new_properties
 

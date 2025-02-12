@@ -23,7 +23,8 @@ from antares.craft.exceptions.exceptions import (
     RenewableMatrixUpdateError,
     RenewablePropertiesUpdateError,
 )
-from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
+from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesUpdate
+from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import BaseRenewableService
 from typing_extensions import override
@@ -39,11 +40,12 @@ class RenewableApiService(BaseRenewableService):
 
     @override
     def update_renewable_properties(
-        self, renewable_cluster: RenewableCluster, properties: RenewableClusterProperties
+        self, renewable_cluster: RenewableCluster, properties: RenewableClusterPropertiesUpdate
     ) -> RenewableClusterProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{renewable_cluster.area_id}/clusters/renewable/{renewable_cluster.id}"
         try:
-            body = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+            api_model = RenewableClusterPropertiesAPI.from_user_model(properties)
+            body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
             if not body:
                 return renewable_cluster.properties
 
@@ -51,7 +53,8 @@ class RenewableApiService(BaseRenewableService):
             json_response = response.json()
             del json_response["id"]
             del json_response["name"]
-            new_properties = RenewableClusterProperties.model_validate(json_response)
+            new_api_properties = RenewableClusterPropertiesAPI.model_validate(json_response)
+            new_properties = new_api_properties.to_user_model()
 
         except APIError as e:
             raise RenewablePropertiesUpdateError(renewable_cluster.id, renewable_cluster.area_id, e.message) from e
@@ -108,7 +111,8 @@ class RenewableApiService(BaseRenewableService):
             renewable_id = renewable.pop("id")
             renewable_name = renewable.pop("name")
 
-            renewable_props = RenewableClusterProperties(**renewable)
+            api_props = RenewableClusterPropertiesAPI.model_validate(renewable)
+            renewable_props = api_props.to_user_model()
             renewable_cluster = RenewableCluster(self, renewable_id, renewable_name, renewable_props)
             renewables.append(renewable_cluster)
 

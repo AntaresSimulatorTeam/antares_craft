@@ -52,15 +52,15 @@ from antares.craft.model.settings.optimization import (
     UnfeasibleProblemBehavior,
 )
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters, ThematicTrimmingParametersUpdate
+from antares.craft.service.api_services.models import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import BaseModel, Field, field_validator
-from pydantic.alias_generators import to_camel
+from pydantic import Field, field_validator
 
 AdequacyPatchParametersType = Union[AdequacyPatchParameters, AdequacyPatchParametersUpdate]
 
 
 @all_optional_model
-class AdequacyPatchParametersAPI(BaseModel, alias_generator=to_camel, populate_by_name=True):
+class AdequacyPatchParametersAPI(APIBaseModel):
     enable_adequacy_patch: bool
     ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch: bool
     ntc_between_physical_areas_out_adequacy_patch: bool
@@ -103,7 +103,7 @@ SeedParametersType = Union[SeedParameters, SeedParametersUpdate]
 
 
 @all_optional_model
-class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel, populate_by_name=True):
+class AdvancedAndSeedParametersAPI(APIBaseModel):
     accuracy_on_correlation: set[OutputChoices]
     initial_reservoir_levels: InitialReservoirLevel
     hydro_heuristic_policy: HydroHeuristicPolicy
@@ -113,6 +113,7 @@ class AdvancedAndSeedParametersAPI(BaseModel, alias_generator=to_camel, populate
     unit_commitment_mode: UnitCommitmentMode
     number_of_cores_mode: SimulationCore
     renewable_generation_modelling: RenewableGenerationModeling
+    day_ahead_reserve_management: Any
     seed_tsgen_wind: int
     seed_tsgen_load: int
     seed_tsgen_hydro: int
@@ -172,7 +173,7 @@ GeneralParametersType = Union[GeneralParameters, GeneralParametersUpdate]
 
 
 @all_optional_model
-class GeneralParametersAPI(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+class GeneralParametersAPI(APIBaseModel):
     mode: Mode = Field(default=Mode.ECONOMY, validate_default=True)
     horizon: str
     nb_years: int
@@ -231,7 +232,7 @@ OptimizationParametersType = Union[OptimizationParameters, OptimizationParameter
 
 
 @all_optional_model
-class OptimizationParametersAPI(BaseModel, alias_generator=to_camel, populate_by_name=True):
+class OptimizationParametersAPI(APIBaseModel):
     simplex_optimization_range: SimplexOptimizationRange
     transmission_capacities: OptimizationTransmissionCapacities
     binding_constraints: bool
@@ -285,7 +286,7 @@ ThematicTrimmingParametersType = Union[ThematicTrimmingParameters, ThematicTrimm
 
 
 @all_optional_model
-class ThematicTrimmingParametersAPI(BaseModel, alias_generator=to_camel, populate_by_name=True):
+class ThematicTrimmingParametersAPI(APIBaseModel):
     ov_cost: bool
     op_cost: bool
     mrg_price: bool
