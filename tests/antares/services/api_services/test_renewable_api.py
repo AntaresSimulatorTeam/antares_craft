@@ -23,9 +23,10 @@ from antares.craft.exceptions.exceptions import (
     RenewablePropertiesUpdateError,
 )
 from antares.craft.model.area import Area
-from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
+from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesUpdate
 from antares.craft.service.api_services.area_api import AreaApiService
-from antares.craft.service.api_services.renewable_api import RenewableApiService
+from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
+from antares.craft.service.api_services.services.renewable import RenewableApiService
 from antares.craft.service.service_factory import ServiceFactory
 
 
@@ -46,12 +47,12 @@ class TestCreateAPI:
 
     def test_update_renewable_properties_success(self):
         with requests_mock.Mocker() as mocker:
-            properties = RenewableClusterProperties(enabled=False)
+            properties = RenewableClusterPropertiesUpdate(enabled=False)
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.renewable.area_id}/"
                 f"clusters/renewable/{self.renewable.id}"
             )
-            mocker.patch(url, json={"id": "id", "name": "name", **properties.model_dump()}, status_code=200)
+            mocker.patch(url, json={"id": "id", "name": "name", "enabled": False}, status_code=200)
             self.renewable.update_properties(properties=properties)
 
     def test_update_renewable_properties_fails(self):
@@ -150,7 +151,7 @@ class TestCreateAPI:
             renewable_id = json_renewable[0].pop("id")
             renewable_name = json_renewable[0].pop("name")
 
-            renewable_props = RenewableClusterProperties(**json_renewable[0])
+            renewable_props = RenewableClusterPropertiesAPI(**json_renewable[0]).to_user_model()
             expected_renewable = RenewableCluster(
                 area_api.renewable_service, renewable_id, renewable_name, renewable_props
             )

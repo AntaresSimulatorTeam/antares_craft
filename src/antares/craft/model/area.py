@@ -256,24 +256,17 @@ class Area:
         return self._ui
 
     def create_thermal_cluster(
-        self, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
-    ) -> ThermalCluster:
-        thermal = self._area_service.create_thermal_cluster(self.id, thermal_name, properties)
-        self._thermals[thermal.id] = thermal
-        return thermal
-
-    def create_thermal_cluster_with_matrices(
         self,
-        cluster_name: str,
-        parameters: ThermalClusterProperties,
-        prepro: Optional[pd.DataFrame],
-        modulation: Optional[pd.DataFrame],
-        series: Optional[pd.DataFrame],
-        CO2Cost: Optional[pd.DataFrame],
-        fuelCost: Optional[pd.DataFrame],
+        thermal_name: str,
+        properties: Optional[ThermalClusterProperties] = None,
+        prepro: Optional[pd.DataFrame] = None,
+        modulation: Optional[pd.DataFrame] = None,
+        series: Optional[pd.DataFrame] = None,
+        co2_cost: Optional[pd.DataFrame] = None,
+        fuel_cost: Optional[pd.DataFrame] = None,
     ) -> ThermalCluster:
-        thermal = self._area_service.create_thermal_cluster_with_matrices(
-            self.id, cluster_name, parameters, prepro, modulation, series, CO2Cost, fuelCost
+        thermal = self._area_service.create_thermal_cluster(
+            self.id, thermal_name, properties, prepro, modulation, series, co2_cost, fuel_cost
         )
         self._thermals[thermal.id] = thermal
         return thermal

@@ -39,6 +39,8 @@ from antares.craft.model.renewable import RenewableCluster, RenewableClusterProp
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
+from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
+from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import (
     BaseAreaService,
@@ -149,63 +151,27 @@ class AreaApiService(BaseAreaService):
 
     @override
     def create_thermal_cluster(
-        self, area_id: str, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
-    ) -> ThermalCluster:
-        """
-        Args:
-            area_id: the area id of the thermal cluster
-            thermal_name: the name of the thermal cluster
-            properties: the properties of the thermal cluster. If not provided, AntaresWeb will use its own default values.
-
-        Returns:
-            The created thermal cluster
-
-        Raises:
-            MissingTokenError if api_token is missing
-            ThermalCreationError if an HTTP Exception occurs
-        """
-
-        try:
-            url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/thermal"
-            body = {"name": thermal_name.lower()}
-            if properties:
-                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
-                body = {**body, **camel_properties}
-            response = self._wrapper.post(url, json=body)
-            json_response = response.json()
-            name = json_response["name"]
-            del json_response["name"]
-            del json_response["id"]
-            properties = ThermalClusterProperties.model_validate(json_response)
-
-        except APIError as e:
-            raise ThermalCreationError(thermal_name, area_id, e.message) from e
-
-        return ThermalCluster(self.thermal_service, area_id, name, properties)
-
-    @override
-    def create_thermal_cluster_with_matrices(
         self,
         area_id: str,
         cluster_name: str,
-        parameters: ThermalClusterProperties,
+        properties: Optional[ThermalClusterProperties] = None,
         prepro: Optional[pd.DataFrame] = None,
         modulation: Optional[pd.DataFrame] = None,
         series: Optional[pd.DataFrame] = None,
-        CO2Cost: Optional[pd.DataFrame] = None,
-        fuelCost: Optional[pd.DataFrame] = None,
+        co2_cost: Optional[pd.DataFrame] = None,
+        fuel_cost: Optional[pd.DataFrame] = None,
     ) -> ThermalCluster:
         """
         Args:
 
             area_id: the area id of the thermal cluster
             cluster_name: the name of the thermal cluster
-            parameters: the properties of the thermal cluster.
+            properties: the properties of the thermal cluster.
             prepro: prepro matrix as a pandas DataFrame.
             modulation: modulation matrix as a pandas DataFrame.
             series: matrix for series at input/thermal/series/series.txt (optional).
-            CO2Cost: matrix for CO2Cost at input/thermal/series/CO2Cost.txt (optional).
-            fuelCost: matrix for CO2Cost at input/thermal/series/fuelCost.txt (optional).
+            co2_cost: matrix for CO2Cost at input/thermal/series/CO2Cost.txt (optional).
+            fuel_cost: matrix for CO2Cost at input/thermal/series/fuelCost.txt (optional).
 
         Returns:
             The created thermal cluster with matrices.
@@ -214,64 +180,41 @@ class AreaApiService(BaseAreaService):
             MissingTokenError if api_token is missing
             ThermalCreationError if an HTTP Exception occurs
         """
-
         try:
-            url = f"{self._base_url}/studies/{self.study_id}/commands"
-            body = {
-                "action": "create_cluster",
-                "args": {"area_id": area_id, "cluster_name": cluster_name, "parameters": {}},
-            }
-            args = body.get("args")
+            url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/thermal"
+            body = {"name": cluster_name.lower()}
+            if properties:
+                api_properties = ThermalClusterPropertiesAPI.from_user_model(properties)
+                camel_properties = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                body = {**body, **camel_properties}
+            response = self._wrapper.post(url, json=body)
+            json_response = response.json()
+            name = json_response.pop("name")
+            thermal_id = json_response.pop("id")
+            created_api_properties = ThermalClusterPropertiesAPI.model_validate(json_response)
+            properties = created_api_properties.to_user_model()
 
-            if not isinstance(args, dict):
-                raise TypeError("body['args'] must be a dictionary")
-
-            if parameters:
-                camel_properties = parameters.model_dump(mode="json", by_alias=True, exclude_none=True)
-                args["parameters"].update(camel_properties)
-
+            # Upload matrices
             if prepro is not None:
-                args["prepro"] = prepro.to_numpy().tolist()
+                matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/data"
+                upload_series(self._base_url, self.study_id, self._wrapper, prepro, matrix_path)
             if modulation is not None:
-                args["modulation"] = modulation.to_numpy().tolist()
-
-            payload = [body]
-            response = self._wrapper.post(url, json=payload)
-            response.raise_for_status()
-
-            if series is not None or CO2Cost is not None or fuelCost is not None:
-                self._create_thermal_series(area_id, cluster_name, series, CO2Cost, fuelCost)
+                matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/modulation"
+                upload_series(self._base_url, self.study_id, self._wrapper, modulation, matrix_path)
+            if series is not None:
+                matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/series"
+                upload_series(self._base_url, self.study_id, self._wrapper, series, matrix_path)
+            if co2_cost is not None:
+                matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/CO2Cost"
+                upload_series(self._base_url, self.study_id, self._wrapper, co2_cost, matrix_path)
+            if fuel_cost is not None:
+                matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/fuelCost"
+                upload_series(self._base_url, self.study_id, self._wrapper, fuel_cost, matrix_path)
 
         except APIError as e:
             raise ThermalCreationError(cluster_name, area_id, e.message) from e
 
-        return ThermalCluster(self.thermal_service, area_id, cluster_name, parameters)
-
-    def _create_thermal_series(
-        self,
-        area_id: str,
-        cluster_name: str,
-        series: Optional[pd.DataFrame],
-        CO2Cost: Optional[pd.DataFrame],
-        fuelCost: Optional[pd.DataFrame],
-    ) -> None:
-        command_body = []
-        if series is not None:
-            series_path = f"input/thermal/series/{area_id}/{cluster_name.lower()}/series"
-            command_body.append(prepare_args_replace_matrix(series, series_path))
-
-        if CO2Cost is not None:
-            co2_cost_path = f"input/thermal/series/{area_id}/{cluster_name.lower()}/CO2Cost"
-            command_body.append(prepare_args_replace_matrix(CO2Cost, co2_cost_path))
-
-        if fuelCost is not None:
-            fuel_cost_path = f"input/thermal/series/{area_id}/{cluster_name.lower()}/fuelCost"
-            command_body.append(prepare_args_replace_matrix(fuelCost, fuel_cost_path))
-
-        if command_body:
-            json_payload = command_body
-
-            self._replace_matrix_request(json_payload)
+        return ThermalCluster(self.thermal_service, area_id, name, properties)
 
     def _replace_matrix_request(self, json_payload: Union[dict[str, Any], list[dict[str, Any]]]) -> None:
         """
@@ -289,8 +232,8 @@ class AreaApiService(BaseAreaService):
         self,
         area_id: str,
         renewable_name: str,
-        properties: Optional[RenewableClusterProperties],
-        series: Optional[pd.DataFrame],
+        properties: Optional[RenewableClusterProperties] = None,
+        series: Optional[pd.DataFrame] = None,
     ) -> RenewableCluster:
         """
         Args:
@@ -310,14 +253,16 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
             body = {"name": renewable_name.lower()}
             if properties:
-                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                api_model = RenewableClusterPropertiesAPI.from_user_model(properties)
+                camel_properties = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
             name = json_response["name"]
             del json_response["name"]
             del json_response["id"]
-            properties = RenewableClusterProperties.model_validate(json_response)
+            api_properties = RenewableClusterPropertiesAPI.model_validate(json_response)
+            properties = api_properties.to_user_model()
 
             if series is not None:
                 series_path = f"input/renewables/series/{area_id}/{renewable_name.lower()}/series"

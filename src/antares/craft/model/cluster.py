@@ -9,34 +9,31 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from dataclasses import dataclass
 from typing import Optional
 
-from pydantic import BaseModel
-from pydantic.alias_generators import to_camel
 
-
-class ClusterProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
+@dataclass
+class ClusterProperties:
     """
     Common properties for thermal and renewable clusters
     """
 
-    # Activity status:
-    # - True: the plant may generate.
-    # - False: not yet commissioned, moth-balled, etc.
     enabled: bool = True
-
     unit_count: int = 1
     nominal_capacity: float = 0
 
     @property
-    def installed_capacity(self) -> Optional[float]:
-        if self.unit_count is None or self.nominal_capacity is None:
-            return None
+    def installed_capacity(self) -> float:
         return self.unit_count * self.nominal_capacity
 
     @property
-    def enabled_capacity(self) -> Optional[float]:
-        if self.enabled is None or self.installed_capacity is None:
-            return None
+    def enabled_capacity(self) -> float:
         return self.enabled * self.installed_capacity
+
+
+@dataclass
+class ClusterPropertiesUpdate:
+    enabled: Optional[bool] = None
+    unit_count: Optional[int] = None
+    nominal_capacity: Optional[float] = None
