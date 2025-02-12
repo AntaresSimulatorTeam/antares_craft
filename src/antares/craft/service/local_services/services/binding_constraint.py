@@ -191,4 +191,4 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         if not existing_key:
             raise ConstraintDoesNotExistError(constraint.name)
 
-        return ini_content[existing_key]
+        return ini_content[existing_key]  # type: ignore
