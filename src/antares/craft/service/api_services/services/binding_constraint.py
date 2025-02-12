@@ -30,9 +30,11 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintProperties,
+    BindingConstraintPropertiesUpdate,
     ConstraintMatrixName,
     ConstraintTerm,
 )
+from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix
 from antares.craft.service.base_services import BaseBindingConstraintService
 from typing_extensions import override
@@ -77,7 +79,8 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         try:
             body = {"name": name}
             if properties:
-                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                api_model = BindingConstraintPropertiesAPI.from_user_model(properties)
+                camel_properties = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
                 body = {**body, **camel_properties}
             for matrix, matrix_name in zip(
                 [less_term_matrix, equal_term_matrix, greater_term_matrix],
@@ -90,7 +93,8 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             bc_id = created_properties["id"]
             for key in ["terms", "id", "name"]:
                 del created_properties[key]
-            bc_properties = BindingConstraintProperties.model_validate(created_properties)
+            api_properties = BindingConstraintPropertiesAPI.model_validate(created_properties)
+            bc_properties = api_properties.to_user_model()
             bc_terms: list[ConstraintTerm] = []
 
             if terms:
@@ -120,11 +124,12 @@ class BindingConstraintApiService(BaseBindingConstraintService):
 
     @override
     def update_binding_constraint_properties(
-        self, binding_constraint: BindingConstraint, properties: BindingConstraintProperties
+        self, binding_constraint: BindingConstraint, properties: BindingConstraintPropertiesUpdate
     ) -> BindingConstraintProperties:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{binding_constraint.id}"
         try:
-            body = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+            api_model = BindingConstraintPropertiesAPI.from_user_model(properties)
+            body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
             if not body:
                 return binding_constraint.properties
 
@@ -132,7 +137,8 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             json_response = response.json()
             for key in ["terms", "id", "name"]:
                 del json_response[key]
-            new_properties = BindingConstraintProperties.model_validate(json_response)
+            new_api_properties = BindingConstraintPropertiesAPI.model_validate(json_response)
+            new_properties = new_api_properties.to_user_model()
 
         except APIError as e:
             raise ConstraintPropertiesUpdateError(binding_constraint.id, e.message) from e

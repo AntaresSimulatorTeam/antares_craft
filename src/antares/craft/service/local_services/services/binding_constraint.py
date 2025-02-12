@@ -21,56 +21,16 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
+    BindingConstraintPropertiesUpdate,
     ConstraintMatrixName,
     ConstraintTerm,
-    DefaultBindingConstraintProperties,
 )
 from antares.craft.service.base_services import BaseBindingConstraintService
+from antares.craft.service.local_services.models.binding_constraint import BindingConstraintPropertiesLocal
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import df_read, df_save
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
-from pydantic import Field
 from typing_extensions import override
-
-
-class BindingConstraintPropertiesLocal(DefaultBindingConstraintProperties):
-    """
-    Used to create the entries for the bindingconstraints.ini file
-
-    Attributes:
-        constraint_name: The constraint name
-        constraint_id: The constraint id
-        properties (BindingConstraintProperties): The BindingConstraintProperties  to set
-        terms (dict[str, ConstraintTerm]]): The terms applying to the binding constraint
-    """
-
-    constraint_name: str
-    constraint_id: str
-    terms: dict[str, ConstraintTerm] = Field(default_factory=dict[str, ConstraintTerm])
-
-    @property
-    def list_ini_fields(self) -> dict[str, str]:
-        ini_dict = {
-            "name": self.constraint_name,
-            "id": self.constraint_id,
-            "enabled": f"{self.enabled}".lower(),
-            "type": self.time_step.value,
-            "operator": self.operator.value,
-            "comments": self.comments,
-            "filter-year-by-year": self.filter_year_by_year,
-            "filter-synthesis": self.filter_synthesis,
-            "group": self.group,
-        } | {term_id: term.weight_offset() for term_id, term in self.terms.items()}
-        return {key: value for key, value in ini_dict.items() if value not in [None, ""]}
-
-    def yield_binding_constraint_properties(self) -> BindingConstraintProperties:
-        excludes = {
-            "constraint_name",
-            "constraint_id",
-            "terms",
-            "list_ini_fields",
-        }
-        return BindingConstraintProperties(**self.model_dump(mode="json", exclude=excludes))
 
 
 class BindingConstraintLocalService(BaseBindingConstraintService):
@@ -232,7 +192,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
     @override
     def update_binding_constraint_properties(
-        self, binding_constraint: BindingConstraint, properties: BindingConstraintProperties
+        self, binding_constraint: BindingConstraint, properties: BindingConstraintPropertiesUpdate
     ) -> BindingConstraintProperties:
         raise NotImplementedError
 

@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from antares.craft.model.binding_constraint import (
         BindingConstraint,
         BindingConstraintProperties,
+        BindingConstraintPropertiesUpdate,
         ConstraintMatrixName,
         ConstraintTerm,
     )
@@ -491,7 +492,7 @@ class BaseBindingConstraintService(ABC):
 
     @abstractmethod
     def update_binding_constraint_properties(
-        self, binding_constraint: "BindingConstraint", properties: "BindingConstraintProperties"
+        self, binding_constraint: "BindingConstraint", properties: "BindingConstraintPropertiesUpdate"
     ) -> "BindingConstraintProperties":
         """
         Args:

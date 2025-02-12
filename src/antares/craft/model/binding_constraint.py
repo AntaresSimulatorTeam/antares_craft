@@ -9,17 +9,15 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Optional, Union
 
 import pandas as pd
 
 from antares.craft.service.base_services import BaseBindingConstraintService
-from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 from pydantic import BaseModel, Field, model_validator
-from pydantic.alias_generators import to_camel
 
 
 class BindingConstraintFrequency(EnumIgnoreCase):
@@ -92,20 +90,19 @@ class ConstraintTerm(TermOperators):
         return ".".join((data.area.lower(), data.cluster.lower()))
 
 
-class DefaultBindingConstraintProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
-    """Default properties for binding constraints
+@dataclass
+class BindingConstraintPropertiesUpdate:
+    enabled: Optional[bool] = None
+    time_step: Optional[BindingConstraintFrequency] = None
+    operator: Optional[BindingConstraintOperator] = None
+    comments: Optional[str] = None
+    filter_year_by_year: Optional[str] = None
+    filter_synthesis: Optional[str] = None
+    group: Optional[str] = None
 
-    Attributes:
-        enabled (bool): True
-        time_step (BindingConstraintFrequency): BindingConstraintFrequency.HOURLY
-        operator (BindingConstraintOperator): BindingConstraintOperator.LESS
-        comments (str): None
-        filter_year_by_year (str): "hourly"
-        filter_synthesis (str): "hourly"
-        group (str): "default"
 
-    """
-
+@dataclass
+class BindingConstraintProperties:
     enabled: bool = True
     time_step: BindingConstraintFrequency = BindingConstraintFrequency.HOURLY
     operator: BindingConstraintOperator = BindingConstraintOperator.LESS
@@ -113,11 +110,6 @@ class DefaultBindingConstraintProperties(BaseModel, extra="forbid", populate_by_
     filter_year_by_year: str = "hourly"
     filter_synthesis: str = "hourly"
     group: str = "default"
-
-
-@all_optional_model
-class BindingConstraintProperties(DefaultBindingConstraintProperties):
-    pass
 
 
 class BindingConstraint:
@@ -162,7 +154,7 @@ class BindingConstraint:
         self._binding_constraint_service.delete_binding_constraint_term(self.id, term.id)
         self._terms.pop(term.id)
 
-    def update_properties(self, properties: BindingConstraintProperties) -> None:
+    def update_properties(self, properties: BindingConstraintPropertiesUpdate) -> None:
         new_properties = self._binding_constraint_service.update_binding_constraint_properties(self, properties)
         self._properties = new_properties
 
