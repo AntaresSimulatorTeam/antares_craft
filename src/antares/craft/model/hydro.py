@@ -88,10 +88,10 @@ class HydroProperties:
 
 
 class Hydro:
-    def __init__(self, service: BaseHydroService, area_id: str, properties: Optional[HydroProperties] = None):
+    def __init__(self, service: BaseHydroService, area_id: str, properties: HydroProperties):
         self._area_id = area_id
         self._service = service
-        self._properties = properties or HydroProperties()
+        self._properties = properties
 
     @property
     def area_id(self) -> str:
@@ -100,8 +100,6 @@ class Hydro:
     @property
     def properties(self) -> HydroProperties:
         return self._properties
-
-    # todo: create update properties method + do the implem on API side + add tests
 
     def get_maxpower(self) -> pd.DataFrame:
         return self._service.get_maxpower(self.area_id)

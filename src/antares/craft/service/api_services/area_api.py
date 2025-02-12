@@ -374,7 +374,7 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise HydroCreationError(area_id, e.message) from e
 
-        return Hydro(self.hydro_service, area_id, properties)
+        return Hydro(self.hydro_service, area_id, properties or HydroProperties())
 
     @override
     def read_hydro(
