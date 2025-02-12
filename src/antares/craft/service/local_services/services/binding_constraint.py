@@ -15,7 +15,10 @@ import numpy as np
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import BindingConstraintCreationError
+from antares.craft.exceptions.exceptions import (
+    BindingConstraintCreationError,
+    ConstraintDoesNotExistError,
+)
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintFrequency,
@@ -135,6 +138,23 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         current_ini_content[new_key] = whole_content
         self.ini_file.ini_dict = current_ini_content
         self.ini_file.write_ini_file()
+
+    def _update_constraint_inside_ini(
+        self,
+        constraint_name: str,
+        properties: Optional[BindingConstraintPropertiesLocal] = None,
+        terms: Optional[list[ConstraintTerm]] = None,
+    ) -> None:
+        current_ini_content = self.ini_file.ini_dict
+        constraint_id = transform_name_to_id(constraint_name)
+        # Ensures the constraint already exists
+        existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint_id), None)
+        if not existing_key:
+            raise ConstraintDoesNotExistError(constraint_name)
+
+        # todo: do the update
+        # existing_constraint = current_ini_content[existing_key]
+        # todo: split the content between terms and properties
 
     def _write_binding_constraint_ini(
         self,
