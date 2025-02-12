@@ -32,6 +32,7 @@ from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.area_api import AreaApiService
+from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.service_factory import ServiceFactory
@@ -203,7 +204,7 @@ class TestCreateAPI:
 
     def test_create_hydro_success(self):
         url_hydro_form = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/hydro/form"
-        json_for_post = HydroProperties().model_dump(mode="json", by_alias=True)
+        json_for_post = HydroPropertiesAPI().model_dump(mode="json", by_alias=True)
         series = pd.DataFrame(data=np.ones((150, 1)))
 
         url_for_command = f"https://antares.com/api/v1/studies/{self.study_id}/commands"
@@ -327,7 +328,7 @@ class TestCreateAPI:
                 self.area_api.storage_service,
                 self.area_api.thermal_service,
                 self.area_api.renewable_service,
-                hydro_service=None,
+                self.area_api.hydro_service,
                 thermals={thermal_id: thermal_cluster},
                 renewables={renewable_id: renewable_cluster},
                 st_storages={storage_id: st_storage},
@@ -382,7 +383,7 @@ class TestCreateAPI:
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url, json=json_hydro)
-            hydro_props = HydroProperties(**json_hydro)
+            hydro_props = HydroPropertiesAPI(**json_hydro).to_user_model()
 
             actual_hydro = Hydro(self.api, self.area.id, hydro_props)
             expected_hydro = self.area.read_hydro()

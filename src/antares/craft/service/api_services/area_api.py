@@ -384,7 +384,7 @@ class AreaApiService(BaseAreaService):
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
         json_hydro = self._wrapper.get(url).json()
 
-        hydro_props = HydroProperties(**json_hydro)
+        hydro_props = HydroPropertiesAPI(**json_hydro).to_user_model()
         hydro = Hydro(self.hydro_service, area_id, hydro_props)
 
         return hydro
