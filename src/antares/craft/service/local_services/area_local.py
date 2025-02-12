@@ -207,7 +207,7 @@ class AreaLocalService(BaseAreaService):
         matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
     ) -> Hydro:
         properties = properties or HydroProperties()
-        create_hydro_properties(self.config.study_path, properties)
+        create_hydro_properties(self.config.study_path, area_id, properties)
         return Hydro(self.hydro_service, area_id, properties)
 
     @override

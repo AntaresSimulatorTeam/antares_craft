@@ -16,6 +16,7 @@ import pandas as pd
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
 from antares.craft.service.base_services import BaseHydroService
+from antares.craft.service.local_services.models.hydro import HydroPropertiesLocal
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
@@ -52,7 +53,7 @@ class HydroLocalService(BaseHydroService):
         return read_timeseries(TimeSeriesFileType.HYDRO_WATER_VALUES, self.config.study_path, area_id=area_id)
 
 
-def create_hydro_properties(study_path: Path, properties: HydroProperties) -> None:
+def create_hydro_properties(study_path: Path, area_id: str, properties: HydroProperties) -> None:
     # todo: we first have to get the current content
     # Then, we can create a pydantic object to store this info
     # Then we have to update this object with our values we gathered inside properties
@@ -60,8 +61,21 @@ def create_hydro_properties(study_path: Path, properties: HydroProperties) -> No
     # And we write the file: write_ini_file
     list_ini = IniFile(study_path, InitializationFilesTypes.HYDRO_INI)
     current_content = list_ini.ini_dict
-    # reorganized_content: dict[str, Any] = {}
-    for key, values in current_content.items():
-        print(key, values)
+    local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(mode="json", by_alias=True)
+    for key, value in local_dict.items():
+        current_content.setdefault(key, {})[area_id] = value
+    list_ini.ini_dict = current_content
+    list_ini.write_ini_file()
+
+    """
+    reorganized_content: dict[str, Any] = {}
+    for key, data in current_content.items():
+        for area_id, value in data.items():
+            reorganized_content.setdefault(area_id, {})[key] = value
+
+    for area_id, values in reorganized_content.items():
+        local_properties = HydroPropertiesLocal.model_validate(values)
+
 
     # local_properties = HydroPropertiesLocal.from_user_model(properties)
+    """
