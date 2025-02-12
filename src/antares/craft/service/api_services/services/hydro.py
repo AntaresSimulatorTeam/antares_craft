@@ -14,8 +14,13 @@ import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
-from antares.craft.exceptions.exceptions import APIError, HydroPropertiesUpdateError, MatrixDownloadError
-from antares.craft.model.hydro import HydroPropertiesUpdate
+from antares.craft.exceptions.exceptions import (
+    APIError,
+    HydroPropertiesReadingError,
+    HydroPropertiesUpdateError,
+    MatrixDownloadError,
+)
+from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix
 from antares.craft.service.base_services import BaseHydroService
@@ -29,6 +34,18 @@ class HydroApiService(BaseHydroService):
         self.study_id = study_id
         self._wrapper = RequestWrapper(self.api_config.set_up_api_conf())
         self._base_url = f"{self.api_config.get_host()}/api/v1"
+
+    @override
+    def read_properties(self, area_id: str) -> HydroProperties:
+        try:
+            url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
+            json_hydro = self._wrapper.get(url).json()
+
+            hydro_props = HydroPropertiesAPI(**json_hydro).to_user_model()
+        except APIError as e:
+            raise HydroPropertiesReadingError(area_id, e.message) from e
+
+        return hydro_props
 
     @override
     def update_properties(self, area_id: str, properties: HydroPropertiesUpdate) -> None:

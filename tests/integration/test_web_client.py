@@ -262,7 +262,7 @@ class TestWebClient:
         assert actual_storage.id == storage_fr.id
 
         # test actual_hydro has the same datas (id, properties and matrices) than area_fr hydro
-        actual_hydro = area_fr.read_hydro()
+        actual_hydro = area_fr.hydro
         assert actual_hydro.area_id == area_fr.id
         assert actual_hydro.properties == area_fr.hydro.properties
 

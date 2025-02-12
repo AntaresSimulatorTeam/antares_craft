@@ -28,7 +28,7 @@ if TYPE_CHECKING:
         ConstraintMatrixName,
         ConstraintTerm,
     )
-    from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesUpdate
+    from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkUi
     from antares.craft.model.output import AggregationEntry, Output
     from antares.craft.model.renewable import (
@@ -274,22 +274,6 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_hydro(
-        self,
-        area_id: str,
-        properties: Optional["HydroProperties"],
-        matrices: Optional[dict["HydroMatrixName", pd.DataFrame]],
-    ) -> "Hydro":
-        """
-        Args:
-            area_id: area in which hydro will be created
-            properties: hydro properties
-            matrices: matrices for hydro to be created
-
-        """
-        pass
-
-    @abstractmethod
     def read_hydro(
         self,
         area_id: str,
@@ -304,6 +288,16 @@ class BaseHydroService(ABC):
         Args:
             area_id: area in which hydro will be created
             properties: hydro properties
+        """
+        pass
+
+    @abstractmethod
+    def read_properties(self, area_id: str) -> "HydroProperties":
+        """
+        Args:
+            area_id: area in which hydro will be created
+        Returns:
+            The hydro properties
         """
         pass
 

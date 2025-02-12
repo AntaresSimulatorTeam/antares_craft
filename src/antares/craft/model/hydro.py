@@ -101,6 +101,13 @@ class Hydro:
     def properties(self) -> HydroProperties:
         return self._properties
 
+    def update_properties(self, properties: HydroPropertiesUpdate) -> None:
+        self._service.update_properties(self.area_id, properties)
+        self._properties = self.read_properties()
+
+    def read_properties(self) -> HydroProperties:
+        return self._service.read_properties(self.area_id)
+
     def get_maxpower(self) -> pd.DataFrame:
         return self._service.get_maxpower(self.area_id)
 

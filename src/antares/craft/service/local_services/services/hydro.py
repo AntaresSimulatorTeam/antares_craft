@@ -33,6 +33,10 @@ class HydroLocalService(BaseHydroService):
         edit_hydro_properties(self.config.study_path, area_id, properties, creation=False)
 
     @override
+    def read_properties(self, area_id: str) -> HydroProperties:
+        return read_hydro_properties(self.config.study_path, area_id)
+
+    @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:
         return read_timeseries(TimeSeriesFileType.HYDRO_MAX_POWER, self.config.study_path, area_id=area_id)
 

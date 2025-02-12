@@ -14,7 +14,7 @@ import logging
 import os
 
 from configparser import ConfigParser, DuplicateSectionError
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 import pandas as pd
 
@@ -27,7 +27,7 @@ from antares.craft.model.area import (
     AreaUi,
     AreaUiLocal,
 )
-from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
+from antares.craft.model.hydro import Hydro, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties, STStoragePropertiesLocal
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
@@ -204,18 +204,6 @@ class AreaLocalService(BaseAreaService):
     @override
     def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
         self._write_timeseries(series, TimeSeriesFileType.MISC_GEN, area_id)
-
-    @override
-    def create_hydro(
-        self,
-        area_id: str,
-        properties: Optional[HydroProperties] = None,
-        matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
-    ) -> Hydro:
-        properties = properties or HydroProperties()
-        update_properties = properties.to_update_properties()
-        edit_hydro_properties(self.config.study_path, area_id, update_properties, creation=True)
-        return Hydro(self.hydro_service, area_id, properties)
 
     @override
     def read_hydro(

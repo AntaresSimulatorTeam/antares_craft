@@ -23,7 +23,6 @@ from antares.craft.exceptions.exceptions import (
     AreaPropertiesUpdateError,
     AreasRetrievalError,
     AreaUiUpdateError,
-    HydroCreationError,
     MatrixDownloadError,
     MatrixUploadError,
     RenewableCreationError,
@@ -34,7 +33,7 @@ from antares.craft.exceptions.exceptions import (
     ThermalDeletionError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaUi
-from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
+from antares.craft.model.hydro import Hydro, HydroMatrixName
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
@@ -49,7 +48,7 @@ from antares.craft.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
-from antares.craft.tools.contents_tool import AreaUiResponse
+from antares.craft.tools.contents_tool import AreaUiResponse, transform_name_to_id
 from antares.craft.tools.matrix_tool import prepare_args_replace_matrix
 from typing_extensions import override
 
@@ -132,7 +131,8 @@ class AreaApiService(BaseAreaService):
             ui_response = AreaUiResponse.model_validate(json_ui)
             ui_properties = AreaUi.model_validate(ui_response.to_craft())
 
-            hydro = self.read_hydro(area_id)
+            hydro_properties = self.hydro_service.read_properties(area_id)
+            hydro = Hydro(self.hydro_service, area_id, hydro_properties)
 
         except APIError as e:
             raise AreaCreationError(area_name, e.message) from e
@@ -354,29 +354,6 @@ class AreaApiService(BaseAreaService):
             raise MatrixUploadError(area_id, "misc-gen", e.message) from e
 
     @override
-    def create_hydro(
-        self,
-        area_id: str,
-        properties: Optional[HydroProperties],
-        matrices: Optional[dict[HydroMatrixName, pd.DataFrame]],
-    ) -> Hydro:
-        try:
-            url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
-            body = {}
-            if properties:
-                api_model = HydroPropertiesAPI.from_user_model(properties)
-                body = {**api_model.model_dump(mode="json", by_alias=True, exclude_none=True)}
-            self._wrapper.put(url, json=body)
-
-            if matrices is not None:
-                self._create_hydro_series(area_id, matrices)
-
-        except APIError as e:
-            raise HydroCreationError(area_id, e.message) from e
-
-        return Hydro(self.hydro_service, area_id, properties or HydroProperties())
-
-    @override
     def read_hydro(
         self,
         area_id: str,
@@ -561,7 +538,9 @@ class AreaApiService(BaseAreaService):
                 dict_thermals = {thermal.id: thermal for thermal in thermals}
                 dict_st_storage = {storage.id: storage for storage in st_storages}
 
-                hydro = self.read_hydro(area)
+                area_id = transform_name_to_id(area)
+                hydro_properties = self.hydro_service.read_properties(area_id)
+                hydro = Hydro(self.hydro_service, area_id, hydro_properties)
                 area_obj = Area(
                     area,
                     self,

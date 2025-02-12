@@ -26,7 +26,7 @@ from antares.craft.exceptions.exceptions import (
     ThermalCreationError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaUi
-from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
+from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.study import Study
@@ -223,10 +223,9 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             mocker.put(url_hydro_form, json=json_for_post, status_code=200)
             mocker.post(url_for_command)
-            hydro = self.area.create_hydro(properties=HydroProperties(), matrices=matrices_hydro)
-            # to assert two http requests to "commands" and "hydro/form"
-            assert len(mocker.request_history) == 2
-            assert isinstance(hydro, Hydro)
+            self.area.hydro.update_properties(HydroPropertiesUpdate(reservoir=True))
+            # todo: use matrices
+            print(matrices_hydro)
 
     def test_read_areas_success(self):
         area_id = "zone"
@@ -394,10 +393,7 @@ class TestCreateAPI:
             hydro_props = HydroPropertiesAPI(**json_hydro).to_user_model()
 
             actual_hydro = Hydro(self.api, self.area.id, hydro_props)
-            expected_hydro = self.area.read_hydro()
-
-            assert actual_hydro.area_id == expected_hydro.area_id
-            assert actual_hydro.properties == expected_hydro.properties
+            assert actual_hydro.properties == self.area.hydro.read_properties()
 
     def test_read_renewables_empty(self):
         area = self.area

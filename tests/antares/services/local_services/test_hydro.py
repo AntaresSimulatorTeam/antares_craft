@@ -13,18 +13,15 @@
 from configparser import ConfigParser
 from pathlib import Path
 
-from antares.craft.model.hydro import Hydro
+from antares.craft.model.hydro import Hydro, HydroProperties
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
 class TestCreateHydro:
-    def test_can_create_hydro(self, local_study_with_st_storage):
-        # When
-        local_study_with_st_storage.get_areas()["fr"].create_hydro()
-
-        # Then
-        assert local_study_with_st_storage.get_areas()["fr"].hydro
-        assert isinstance(local_study_with_st_storage.get_areas()["fr"].hydro, Hydro)
+    def test_can_create_hydro(self, local_study_with_hydro):
+        hydro = local_study_with_hydro.get_areas()["fr"].hydro
+        assert isinstance(hydro, Hydro)
+        assert hydro.properties == HydroProperties(reservoir_capacity=4.3)
 
     def test_hydro_has_properties(self, local_study_w_areas):
         assert local_study_w_areas.get_areas()["fr"].hydro.properties
@@ -42,9 +39,6 @@ class TestCreateHydro:
         """
         study_path = Path(local_study_w_areas.path)
         areas = local_study_w_areas.get_areas()
-
-        for area_id, area in areas.items():
-            area.create_hydro()
 
         for area_id in areas.keys():
             expected_paths = [
