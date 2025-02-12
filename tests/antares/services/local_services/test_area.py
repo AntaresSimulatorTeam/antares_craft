@@ -32,7 +32,6 @@ from antares.craft.model.renewable import (
 from antares.craft.model.st_storage import STStorage, STStorageGroup, STStorageProperties
 from antares.craft.model.study import read_study_local
 from antares.craft.model.thermal import ThermalCluster
-from antares.craft.service.local_services.models.st_storage import STStoragePropertiesLocal
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import df_save
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
@@ -146,13 +145,13 @@ class TestCreateSTStorage:
         expected_st_storage_list_ini_content = """[short term storage]
 name = short term storage
 group = Other1
-injectionnominalcapacity = 0.000000
-withdrawalnominalcapacity = 0.000000
-reservoircapacity = 0.000000
-efficiency = 1.000000
-initiallevel = 0.500000
-initialleveloptim = false
-enabled = true
+injectionnominalcapacity = 0.0
+withdrawalnominalcapacity = 0.0
+reservoircapacity = 0.0
+efficiency = 1.0
+initiallevel = 0.5
+initialleveloptim = False
+enabled = True
 
 """
         expected_st_storage_list_ini = ConfigParser()
@@ -168,37 +167,33 @@ enabled = true
 
     def test_st_storage_and_ini_have_custom_properties(self, local_study_w_areas):
         # Given
-        props = STStorageProperties(group=STStorageGroup.BATTERY, reservoir_capacity=12.345)
-        args = {"st_storage_name": "short term storage", **props.model_dump(mode="json", exclude_none=True)}
-        custom_properties = STStoragePropertiesLocal.model_validate(args)
+        properties = STStorageProperties(group=STStorageGroup.BATTERY, reservoir_capacity=12.345)
+        st_storage_name = "short term storage"
+
+        # When
+        created_storage = local_study_w_areas.get_areas()["fr"].create_st_storage(st_storage_name, properties)
+
+        # Then
         expected_st_storage_list_ini_content = """[short term storage]
 name = short term storage
 group = Battery
-injectionnominalcapacity = 0.000000
-withdrawalnominalcapacity = 0.000000
-reservoircapacity = 12.345000
-efficiency = 1.000000
-initiallevel = 0.500000
-initialleveloptim = false
-enabled = true
+injectionnominalcapacity = 0.0
+withdrawalnominalcapacity = 0.0
+reservoircapacity = 12.345
+efficiency = 1.0
+initiallevel = 0.5
+initialleveloptim = False
+enabled = True
 
 """
         actual_st_storage_list_ini = IniFile(
             local_study_w_areas.service.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id="fr"
         )
 
-        # When
-        local_study_w_areas.get_areas()["fr"].create_st_storage(
-            st_storage_name=custom_properties.st_storage_name,
-            properties=custom_properties.yield_st_storage_properties(),
-        )
         with actual_st_storage_list_ini.ini_path.open() as st_storage_list_ini_file:
             actual_st_storage_list_ini_content = st_storage_list_ini_file.read()
 
-        assert (
-            local_study_w_areas.get_areas()["fr"].get_st_storages()["short term storage"].properties
-            == custom_properties.yield_st_storage_properties()
-        )
+        assert created_storage.properties == properties
         assert actual_st_storage_list_ini_content == expected_st_storage_list_ini_content
 
 
