@@ -100,6 +100,22 @@ class HydroLocalService(BaseHydroService):
     def update_water_values(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_WATER_VALUES, area_id)
 
+    @override
+    def update_ror_series(self, area_id: str, series: pd.DataFrame) -> None:
+        write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_ROR, area_id)
+
+    @override
+    def update_mod_series(self, area_id: str, series: pd.DataFrame) -> None:
+        write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_MOD, area_id)
+
+    @override
+    def update_mingen(self, area_id: str, series: pd.DataFrame) -> None:
+        write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_MINGEN, area_id)
+
+    @override
+    def update_energy(self, area_id: str, series: pd.DataFrame) -> None:
+        write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_ENERGY, area_id)
+
 
 def edit_hydro_properties(study_path: Path, area_id: str, properties: HydroPropertiesUpdate, creation: bool) -> None:
     list_ini = IniFile(study_path, InitializationFilesTypes.HYDRO_INI)

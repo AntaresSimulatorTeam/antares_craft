@@ -350,6 +350,22 @@ class BaseHydroService(ABC):
     def update_water_values(self, area_id: str, series: pd.DataFrame) -> None:
         pass
 
+    @abstractmethod
+    def update_ror_series(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def update_mod_series(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def update_mingen(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def update_energy(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
 
 class BaseLinkService(ABC):
     @abstractmethod

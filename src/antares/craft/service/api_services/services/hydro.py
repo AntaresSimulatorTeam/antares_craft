@@ -187,3 +187,49 @@ class HydroApiService(BaseHydroService):
             )
         except APIError as e:
             raise MatrixUploadError(area_id, "water_values", e.message) from e
+
+    @override
+    def update_ror_series(self, area_id: str, series: pd.DataFrame) -> None:
+        try:
+            upload_series(self._base_url, self.study_id, self._wrapper, series, f"input/hydro/series/{area_id}/ror")
+        except APIError as e:
+            raise MatrixUploadError(area_id, "ror", e.message) from e
+
+    @override
+    def update_mod_series(self, area_id: str, series: pd.DataFrame) -> None:
+        try:
+            upload_series(
+                self._base_url,
+                self.study_id,
+                self._wrapper,
+                series,
+                f"input/hydro/series/{area_id}/mod",
+            )
+        except APIError as e:
+            raise MatrixUploadError(area_id, "mod", e.message) from e
+
+    @override
+    def update_mingen(self, area_id: str, series: pd.DataFrame) -> None:
+        try:
+            upload_series(
+                self._base_url,
+                self.study_id,
+                self._wrapper,
+                series,
+                f"input/hydro/series/{area_id}/mingen",
+            )
+        except APIError as e:
+            raise MatrixUploadError(area_id, "mingen", e.message) from e
+
+    @override
+    def update_energy(self, area_id: str, series: pd.DataFrame) -> None:
+        try:
+            upload_series(
+                self._base_url,
+                self.study_id,
+                self._wrapper,
+                series,
+                f"input/hydro/prepro/{area_id}/energy",
+            )
+        except APIError as e:
+            raise MatrixUploadError(area_id, "energy", e.message) from e

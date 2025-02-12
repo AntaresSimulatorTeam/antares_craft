@@ -149,3 +149,15 @@ class Hydro:
 
     def update_water_values(self, series: pd.DataFrame) -> None:
         return self._service.update_water_values(self.area_id, series)
+
+    def update_mod_series(self, series: pd.DataFrame) -> None:
+        return self._service.update_mod_series(self.area_id, series)
+
+    def update_ror_series(self, series: pd.DataFrame) -> None:
+        return self._service.update_ror_series(self.area_id, series)
+
+    def update_mingen(self, series: pd.DataFrame) -> None:
+        return self._service.update_mingen(self.area_id, series)
+
+    def update_energy(self, series: pd.DataFrame) -> None:
+        return self._service.update_energy(self.area_id, series)
