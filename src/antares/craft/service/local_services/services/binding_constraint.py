@@ -148,8 +148,8 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         current_ini_content = self.ini_file.ini_dict_binding_constraints or {}
         existing_constraint = self._get_constraint_inside_ini(current_ini_content, constraint)
         new_terms = {term.id: term.weight_offset() for term in terms}
-        new_content = existing_constraint | new_terms
-        self.ini_file.ini_dict = new_content
+        existing_constraint.update(new_terms)
+        self.ini_file.ini_dict = current_ini_content
         self.ini_file.write_ini_file()
 
     @override
