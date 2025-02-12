@@ -52,17 +52,9 @@ class TestCreateRenewablesCluster:
             local_study_w_thermal.get_areas()["fr"].get_renewables()[renewable_cluster_name], RenewableCluster
         )
 
-    def test_renewable_cluster_has_properties(self, local_study_with_renewable):
+    def test_renewable_cluster_has_correct_default_properties(self, local_study_with_renewable):
         renewable_cluster = local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"]
         assert renewable_cluster.properties == RenewableClusterProperties()
-
-    def test_renewable_cluster_has_correct_default_properties(
-        self, local_study_with_renewable, default_renewable_cluster_properties
-    ):
-        assert (
-            local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"].properties
-            == default_renewable_cluster_properties
-        )
 
     def test_renewables_list_ini_exists(self, local_study_with_renewable):
         renewables_list_ini = (
@@ -136,18 +128,9 @@ class TestCreateSTStorage:
         assert local_study_with_renewable.get_areas()["fr"].get_st_storages()
         assert isinstance(local_study_with_renewable.get_areas()["fr"].get_st_storages()[storage_name], STStorage)
 
-    def test_storage_has_properties(self, local_study_with_st_storage):
-        assert (
-            local_study_with_st_storage.get_areas()["fr"]
-            .get_st_storages()["short term storage"]
-            .properties.model_dump(exclude_none=True)
-        )
-
-    def test_storage_has_correct_default_properties(self, local_study_with_st_storage, default_st_storage_properties):
-        assert (
-            local_study_with_st_storage.get_areas()["fr"].get_st_storages()["short term storage"].properties
-            == default_st_storage_properties
-        )
+    def test_storage_has_correct_default_properties(self, local_study_with_st_storage):
+        st_storage = local_study_with_st_storage.get_areas()["fr"].get_st_storages()["short term storage"]
+        assert st_storage.properties == STStorageProperties()
 
     def test_st_storage_list_ini_exists(self, local_study_with_st_storage):
         st_storage_list_ini = (

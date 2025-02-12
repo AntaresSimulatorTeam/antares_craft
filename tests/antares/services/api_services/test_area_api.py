@@ -27,7 +27,7 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
-from antares.craft.model.st_storage import STStorage, STStorageProperties
+from antares.craft.model.st_storage import STStorage
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.area_api import AreaApiService
@@ -307,7 +307,7 @@ class TestCreateAPI:
             renewable_cluster = RenewableCluster(
                 self.area_api.renewable_service, renewable_id, renewable_name, renewable_props
             )
-            storage_props = STStorageProperties(**storage_)
+            storage_props = STStoragePropertiesAPI(**storage_).to_user_model()
             st_storage = STStorage(self.area_api.storage_service, storage_id, storage_name, storage_props)
 
             hydro = Hydro(self.area_api.hydro_service, area_id, hydro_properties)
