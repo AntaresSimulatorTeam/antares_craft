@@ -36,6 +36,7 @@ from antares.craft.model.binding_constraint import (
     ConstraintTerm,
     LinkData,
 )
+from antares.craft.model.hydro import HydroPropertiesUpdate
 from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
 from antares.craft.model.renewable import (
     RenewableClusterGroup,
@@ -265,6 +266,14 @@ class TestWebClient:
         actual_hydro = area_fr.hydro
         assert actual_hydro.area_id == area_fr.id
         assert actual_hydro.properties == area_fr.hydro.properties
+        assert area_fr.hydro.properties.reservoir is False
+        assert area_fr.hydro.properties.reservoir_capacity == 0
+
+        # update hydro properties
+        hydro_properties = HydroPropertiesUpdate(reservoir=True, reservoir_capacity=4.5)
+        area_fr.hydro.update_properties(hydro_properties)
+        assert area_fr.hydro.properties.reservoir is True
+        assert area_fr.hydro.properties.reservoir_capacity == 4.5
 
         # tests study reading method and comparing ids, name, areas and settings
         actual_study = read_study_api(api_config, study.service.study_id)
