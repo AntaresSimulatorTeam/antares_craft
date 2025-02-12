@@ -54,11 +54,6 @@ class HydroLocalService(BaseHydroService):
 
 
 def create_hydro_properties(study_path: Path, area_id: str, properties: HydroProperties) -> None:
-    # todo: we first have to get the current content
-    # Then, we can create a pydantic object to store this info
-    # Then we have to update this object with our values we gathered inside properties
-    # Finally we have to model_dump the content inside a variable that will take the place of .ini_dict
-    # And we write the file: write_ini_file
     list_ini = IniFile(study_path, InitializationFilesTypes.HYDRO_INI)
     current_content = list_ini.ini_dict
     local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(mode="json", by_alias=True)
