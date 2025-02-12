@@ -236,6 +236,7 @@ class TestCreateAPI:
         url_renewable = url + f"/{area_id}/clusters/renewable"
         url_st_storage = url + f"/{area_id}/storages"
         url_properties_form = url + f"/{area_id}/properties/form"
+        hydro_url = url + f"/{area_id}/hydro/form"
 
         json_ui = {
             area_id: {
@@ -291,12 +292,15 @@ class TestCreateAPI:
             "adequacyPatchMode": "outside",
         }
 
+        hydro_properties = HydroProperties(reservoir_capacity=4.5)
+
         with requests_mock.Mocker() as mocker:
             mocker.get(ui_url, json=json_ui)
             mocker.get(url_thermal, json=json_thermal)
             mocker.get(url_renewable, json=json_renewable)
             mocker.get(url_st_storage, json=json_st_storage)
             mocker.get(url_properties_form, json=json_properties)
+            mocker.get(hydro_url, json={"reservoir_capacity": 4.5})
 
             actual_area_list = self.study.read_areas()
             area_ui = self.area_api.craft_ui(url + "?type=AREA&ui=true", "zone")
@@ -322,6 +326,8 @@ class TestCreateAPI:
             storage_props = STStorageProperties(**storage_)
             st_storage = STStorage(self.area_api.storage_service, storage_id, storage_name, storage_props)
 
+            hydro = Hydro(self.area_api.hydro_service, area_id, hydro_properties)
+
             expected_area = Area(
                 area_id,
                 self.area_api,
@@ -332,6 +338,7 @@ class TestCreateAPI:
                 thermals={thermal_id: thermal_cluster},
                 renewables={renewable_id: renewable_cluster},
                 st_storages={storage_id: st_storage},
+                hydro=hydro,
                 properties=json_properties,
                 ui=area_ui,
             )
@@ -349,6 +356,7 @@ class TestCreateAPI:
             assert actual_thermals[thermal_id].name == expected_area.get_thermals()[thermal_id].name
             assert actual_renewables[renewable_id].name == expected_area.get_renewables()[renewable_id].name
             assert actual_storages[storage_id].name == expected_area.get_st_storages()[storage_id].name
+            assert actual_area.hydro.properties == hydro_properties
 
     def test_read_areas_fail(self):
         with requests_mock.Mocker() as mocker:

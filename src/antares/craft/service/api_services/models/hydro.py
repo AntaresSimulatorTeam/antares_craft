@@ -45,19 +45,20 @@ class HydroPropertiesAPI(BaseModel, populate_by_name=True, alias_generator=to_ca
         return HydroPropertiesAPI.model_validate(user_dict)
 
     def to_user_model(self) -> HydroProperties:
+        default_properties = HydroProperties()
         return HydroProperties(
-            inter_daily_breakdown=self.inter_daily_breakdown,
-            intra_daily_modulation=self.intra_daily_modulation,
-            inter_monthly_breakdown=self.inter_monthly_breakdown,
-            reservoir=self.reservoir,
-            reservoir_capacity=self.reservoir_capacity,
-            follow_load=self.follow_load,
-            use_water=self.use_water,
-            initialize_reservoir_date=self.initialize_reservoir_date,
-            use_heuristic=self.use_heuristic,
-            power_to_level=self.power_to_level,
-            use_leeway=self.use_leeway,
-            leeway_low=self.leeway_low,
-            leeway_up=self.leeway_up,
-            pumping_efficiency=self.pumping_efficiency,
+            inter_daily_breakdown=self.inter_daily_breakdown or default_properties.inter_daily_breakdown,
+            intra_daily_modulation=self.intra_daily_modulation or default_properties.intra_daily_modulation,
+            inter_monthly_breakdown=self.inter_monthly_breakdown or default_properties.inter_monthly_breakdown,
+            reservoir=self.reservoir or default_properties.reservoir,
+            reservoir_capacity=self.reservoir_capacity or default_properties.reservoir_capacity,
+            follow_load=self.follow_load or default_properties.follow_load,
+            use_water=self.use_water or default_properties.use_water,
+            initialize_reservoir_date=self.initialize_reservoir_date or default_properties.initialize_reservoir_date,
+            use_heuristic=self.use_heuristic or default_properties.use_heuristic,
+            power_to_level=self.power_to_level or default_properties.power_to_level,
+            use_leeway=self.use_leeway or default_properties.use_leeway,
+            leeway_low=self.leeway_low or default_properties.leeway_low,
+            leeway_up=self.leeway_up or default_properties.leeway_up,
+            pumping_efficiency=self.pumping_efficiency or default_properties.pumping_efficiency,
         )
