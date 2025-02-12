@@ -331,7 +331,11 @@ class AreaLocalService(BaseAreaService):
             raise AreaCreationError(area_name, f"{e}") from e
 
         logging.info(f"Area {area_name} created successfully!")
-        # todo: create the hydro here to give it at the area instantiation
+        area_id = transform_name_to_id(area_name)
+        default_hydro_properties = HydroProperties()
+        update_properties = default_hydro_properties.to_update_properties()
+        edit_hydro_properties(self.config.study_path, area_id, update_properties, creation=True)
+        hydro = Hydro(self.hydro_service, area_id, default_hydro_properties)
         created_area = Area(
             name=area_name,
             area_service=self,
@@ -339,10 +343,10 @@ class AreaLocalService(BaseAreaService):
             thermal_service=self.thermal_service,
             renewable_service=self.renewable_service,
             hydro_service=self.hydro_service,
+            hydro=hydro,
             properties=local_properties.yield_area_properties(),
             ui=local_ui.yield_area_ui(),
         )
-        created_area.create_hydro()
         return created_area
 
     @override
