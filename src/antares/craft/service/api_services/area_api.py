@@ -619,6 +619,7 @@ class AreaApiService(BaseAreaService):
                 dict_thermals = {thermal.id: thermal for thermal in thermals}
                 dict_st_storage = {storage.id: storage for storage in st_storages}
 
+                hydro = self.read_hydro(area)
                 area_obj = Area(
                     area,
                     self,
@@ -631,8 +632,8 @@ class AreaApiService(BaseAreaService):
                     st_storages=dict_st_storage,
                     properties=json_properties,
                     ui=ui_response,
+                    hydro=hydro,
                 )
-                area_obj.read_hydro()
 
                 area_list.append(area_obj)
 

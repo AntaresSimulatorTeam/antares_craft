@@ -337,6 +337,7 @@ class AreaLocalService(BaseAreaService):
             raise AreaCreationError(area_name, f"{e}") from e
 
         logging.info(f"Area {area_name} created successfully!")
+        # todo: create the hydro here to give it at the area instantiation
         created_area = Area(
             name=area_name,
             area_service=self,
@@ -437,6 +438,8 @@ class AreaLocalService(BaseAreaService):
                     layer_y=ui_dict["ui"].get("layerY"),
                     layer_color=ui_dict["ui"].get("layerColor"),
                 )
+                area_id = transform_name_to_id(element.name)
+                hydro = self.read_hydro(area_id)
                 area = Area(
                     name=element.name,
                     area_service=self,
@@ -446,8 +449,8 @@ class AreaLocalService(BaseAreaService):
                     hydro_service=self.hydro_service,
                     properties=area_properties.yield_area_properties(),
                     ui=ui_properties,
+                    hydro=hydro,
                 )
-                area.read_hydro()
                 areas.append(area)
 
         areas.sort(key=lambda area_obj: area_obj.id)
