@@ -203,16 +203,13 @@ class TestCreateAPI:
 
     def test_create_hydro_success(self):
         url_hydro_form = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/hydro/form"
-        json_for_post = HydroPropertiesAPI().model_dump(mode="json", by_alias=True)
-        # series = pd.DataFrame(data=np.ones((150, 1)))
-
-        url_for_matrices = f"https://antares.com/api/v1/studies/{self.study_id}/raw"
-
+        body = {"reservoir": True}
         with requests_mock.Mocker() as mocker:
-            mocker.put(url_hydro_form, json=json_for_post, status_code=200)
-            mocker.post(url_for_matrices, status_code=200)
+            mocker.put(url_hydro_form, status_code=200)
+            mocker.get(url_hydro_form, json=body, status_code=200)
+            assert self.area.hydro.properties.reservoir is False
             self.area.hydro.update_properties(HydroPropertiesUpdate(reservoir=True))
-            # todo: use matrices
+            assert self.area.hydro.properties.reservoir is True
 
     def test_read_areas_success(self):
         area_id = "zone"
