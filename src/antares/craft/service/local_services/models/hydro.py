@@ -13,7 +13,7 @@ from dataclasses import asdict
 from typing import Union
 
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
-from antares.craft.service.local_services.models import LocalBaseModel
+from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 from pydantic import Field
 from typing_extensions import override
