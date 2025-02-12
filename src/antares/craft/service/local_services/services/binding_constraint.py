@@ -61,12 +61,6 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
         local_properties = BindingConstraintPropertiesLocal.from_user_model(properties)
 
-        current_ini_content = self.ini_file.ini_dict_binding_constraints or {}
-        if any(values.get("id") == constraint.id for values in current_ini_content.values()):
-            raise BindingConstraintCreationError(
-                constraint_name=name, message=f"A binding constraint with the name {name} already exists."
-            )
-
         self._create_constraint_inside_ini(name, local_properties, terms)
 
         self._store_time_series(constraint, less_term_matrix, equal_term_matrix, greater_term_matrix)
