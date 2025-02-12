@@ -64,7 +64,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
         local_properties = BindingConstraintPropertiesLocal.from_user_model(properties)
 
-        self._create_constraint_inside_ini(name, local_properties, terms)
+        self._create_constraint_inside_ini(name, local_properties, terms or [])
 
         self._store_time_series(constraint, less_term_matrix, equal_term_matrix, greater_term_matrix)
 
@@ -116,7 +116,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         self,
         constraint_name: str,
         properties: BindingConstraintPropertiesLocal,
-        terms: Optional[list[ConstraintTerm]] = None,
+        terms: list[ConstraintTerm],
     ) -> None:
         current_ini_content = self.ini_file.ini_dict
         constraint_id = transform_name_to_id(constraint_name)
@@ -133,7 +133,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             "name": constraint_name,
             **properties.model_dump(mode="json", by_alias=True),
         }
-        term_content = {} if not terms else {term.id: term.weight_offset() for term in terms}
+        term_content = {term.id: term.weight_offset() for term in terms}
         whole_content = props_content | term_content
         current_ini_content[new_key] = whole_content
         self.ini_file.ini_dict = current_ini_content
