@@ -9,17 +9,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
 import pandas as pd
 
 from antares.craft.service.base_services import BaseShortTermStorageService
-from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import transform_name_to_id
-from pydantic import BaseModel
-from pydantic.alias_generators import to_camel
 
 
 class STStorageGroup(Enum):
@@ -43,13 +40,20 @@ class STStorageMatrixName(Enum):
     INFLOWS = "inflows"
 
 
-class DefaultSTStorageProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
-    """
-    Properties of a short-term storage system read from the configuration files.
+@dataclass
+class STStoragePropertiesUpdate:
+    group: Optional[STStorageGroup] = None
+    injection_nominal_capacity: Optional[float] = None
+    withdrawal_nominal_capacity: Optional[float] = None
+    reservoir_capacity: Optional[float] = None
+    efficiency: Optional[float] = None
+    initial_level: Optional[float] = None
+    initial_level_optim: Optional[bool] = None
+    enabled: Optional[bool] = None
 
-    All aliases match the name of the corresponding field in the INI files.
-    """
 
+@dataclass
+class STStorageProperties:
     group: STStorageGroup = STStorageGroup.OTHER1
     injection_nominal_capacity: float = 0
     withdrawal_nominal_capacity: float = 0
@@ -57,37 +61,7 @@ class DefaultSTStorageProperties(BaseModel, extra="forbid", populate_by_name=Tru
     efficiency: float = 1
     initial_level: float = 0.5
     initial_level_optim: bool = False
-    # v880
     enabled: bool = True
-
-
-@all_optional_model
-class STStorageProperties(DefaultSTStorageProperties):
-    pass
-
-
-class STStoragePropertiesLocal(DefaultSTStorageProperties):
-    st_storage_name: str
-
-    @property
-    def list_ini_fields(self) -> dict[str, dict[str, str]]:
-        return {
-            f"{self.st_storage_name}": {
-                "name": self.st_storage_name,
-                "group": self.group.value,
-                "injectionnominalcapacity": f"{self.injection_nominal_capacity:.6f}",
-                "withdrawalnominalcapacity": f"{self.withdrawal_nominal_capacity:.6f}",
-                "reservoircapacity": f"{self.reservoir_capacity:.6f}",
-                "efficiency": f"{self.efficiency:.6f}",
-                "initiallevel": f"{self.initial_level:.6f}",
-                "initialleveloptim": f"{self.initial_level_optim}".lower(),
-                "enabled": f"{self.enabled}".lower(),
-            }
-        }
-
-    def yield_st_storage_properties(self) -> STStorageProperties:
-        excludes = {"st_storage_name", "list_ini_fields"}
-        return STStorageProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
 
 
 class STStorage:
@@ -103,8 +77,6 @@ class STStorage:
         self._name: str = name
         self._id: str = transform_name_to_id(name)
         self._properties: STStorageProperties = properties or STStorageProperties()
-
-    # TODO: Add matrices.
 
     @property
     def area_id(self) -> str:
@@ -122,7 +94,7 @@ class STStorage:
     def properties(self) -> STStorageProperties:
         return self._properties
 
-    def update_properties(self, properties: STStorageProperties) -> None:
+    def update_properties(self, properties: STStoragePropertiesUpdate) -> None:
         new_properties = self._storage_service.update_st_storage_properties(self, properties)
         self._properties = new_properties
 

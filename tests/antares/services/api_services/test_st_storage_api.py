@@ -25,7 +25,8 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.area import Area
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.service.api_services.area_api import AreaApiService
-from antares.craft.service.api_services.st_storage_api import ShortTermStorageApiService
+from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
+from antares.craft.service.api_services.services.st_storage import ShortTermStorageApiService
 from antares.craft.service.service_factory import ServiceFactory
 
 
@@ -47,11 +48,14 @@ class TestCreateAPI:
     def test_update_st_storage_properties_success(self):
         with requests_mock.Mocker() as mocker:
             properties = STStorageProperties(enabled=False)
+            api_properties = STStoragePropertiesAPI.from_user_model(properties)
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/"
                 f"areas/{self.storage.area_id}/storages/{self.storage.id}"
             )
-            mocker.patch(url, json={"id": "id", "name": "name", **properties.model_dump()}, status_code=200)
+            mocker.patch(
+                url, json={"id": "id", "name": "name", **api_properties.model_dump(mode="json")}, status_code=200
+            )
             self.storage.update_properties(properties=properties)
 
     def test_update_st_storage_properties_fails(self):
@@ -153,7 +157,7 @@ class TestCreateAPI:
             storage_id = json_storage[0].pop("id")
             storage_name = json_storage[0].pop("name")
 
-            storage_props = STStorageProperties(**json_storage[0])
+            storage_props = STStoragePropertiesAPI(**json_storage[0]).to_user_model()
             expected_st_storage = STStorage(area_api.storage_service, storage_id, storage_name, storage_props)
 
             assert len(actual_storage_list) == 1

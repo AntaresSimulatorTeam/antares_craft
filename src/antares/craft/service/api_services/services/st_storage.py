@@ -21,7 +21,13 @@ from antares.craft.exceptions.exceptions import (
     STStorageMatrixUploadError,
     STStoragePropertiesUpdateError,
 )
-from antares.craft.model.st_storage import STStorage, STStorageMatrixName, STStorageProperties
+from antares.craft.model.st_storage import (
+    STStorage,
+    STStorageMatrixName,
+    STStorageProperties,
+    STStoragePropertiesUpdate,
+)
+from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.base_services import BaseShortTermStorageService
 from typing_extensions import override
 
@@ -36,11 +42,12 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
 
     @override
     def update_st_storage_properties(
-        self, st_storage: STStorage, properties: STStorageProperties
+        self, st_storage: STStorage, properties: STStoragePropertiesUpdate
     ) -> STStorageProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{st_storage.area_id}/storages/{st_storage.id}"
         try:
-            body = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+            api_model = STStoragePropertiesAPI.from_user_model(properties)
+            body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
             if not body:
                 return st_storage.properties
 
@@ -48,7 +55,8 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
             json_response = response.json()
             del json_response["id"]
             del json_response["name"]
-            new_properties = STStorageProperties.model_validate(json_response)
+            new_api_properties = STStoragePropertiesAPI.model_validate(json_response)
+            new_properties = new_api_properties.to_user_model()
 
         except APIError as e:
             raise STStoragePropertiesUpdateError(st_storage.id, st_storage.area_id, e.message) from e
@@ -89,7 +97,8 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
             storage_id = storage.pop("id")
             storage_name = storage.pop("name")
 
-            storage_properties = STStorageProperties(**storage)
+            api_props = STStoragePropertiesAPI.model_validate(storage)
+            storage_properties = api_props.to_user_model()
             st_storage = STStorage(self, storage_id, storage_name, storage_properties)
             storages.append(st_storage)
 
