@@ -14,7 +14,7 @@ from pathlib import Path
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.hydro import HydroPropertiesUpdate
+from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
 from antares.craft.service.base_services import BaseHydroService
 from antares.craft.service.local_services.models.hydro import HydroPropertiesLocal, HydroPropertiesLocalUpdate
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
@@ -67,3 +67,15 @@ def edit_hydro_properties(study_path: Path, area_id: str, properties: HydroPrope
         current_content.setdefault(key, {})[area_id] = value
     list_ini.ini_dict = current_content
     list_ini.write_ini_file()
+
+
+def read_hydro_properties(study_path: Path, area_id: str) -> HydroProperties:
+    list_ini = IniFile(study_path, InitializationFilesTypes.HYDRO_INI)
+    current_content = list_ini.ini_dict
+
+    body = {}
+    for key, data in current_content.items():
+        if area_id in data:
+            body[key] = data[area_id]
+
+    return HydroPropertiesLocal.model_validate(body).to_user_model()

@@ -40,7 +40,7 @@ from antares.craft.service.base_services import (
 )
 from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
-from antares.craft.service.local_services.services.hydro import edit_hydro_properties
+from antares.craft.service.local_services.services.hydro import edit_hydro_properties, read_hydro_properties
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
@@ -222,7 +222,8 @@ class AreaLocalService(BaseAreaService):
         self,
         area_id: str,
     ) -> Hydro:
-        raise NotImplementedError
+        hydro_properties = read_hydro_properties(self.config.study_path, area_id)
+        return Hydro(self.hydro_service, area_id, hydro_properties)
 
     @override
     def create_area(
