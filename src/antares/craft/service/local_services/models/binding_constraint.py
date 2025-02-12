@@ -20,20 +20,19 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintPropertiesUpdate,
 )
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
+from pydantic import Field
 
 BindingConstraintPropertiesType = Union[BindingConstraintProperties, BindingConstraintPropertiesUpdate]
 
 
-@all_optional_model
 class BindingConstraintPropertiesLocal(LocalBaseModel):
-    enabled: bool
-    time_step: BindingConstraintFrequency
-    operator: BindingConstraintOperator
-    comments: str
-    filter_year_by_year: str
-    filter_synthesis: str
-    group: str
+    enabled: bool = True
+    time_step: BindingConstraintFrequency = Field(BindingConstraintFrequency.HOURLY, alias="type")
+    operator: BindingConstraintOperator = BindingConstraintOperator.LESS
+    comments: str = ""
+    filter_year_by_year: str = Field("hourly", alias="filter-year-by-year")
+    filter_synthesis: str = Field("hourly", alias="filter-synthesis")
+    group: str = "default"
 
     @staticmethod
     def from_user_model(user_class: BindingConstraintPropertiesType) -> "BindingConstraintPropertiesLocal":
