@@ -415,9 +415,6 @@ class AreaApiService(BaseAreaService):
         properties: Optional[HydroProperties],
         matrices: Optional[dict[HydroMatrixName, pd.DataFrame]],
     ) -> Hydro:
-        # todo: not model validation because endpoint does not return anything
-        #  properties = HydroProperties.model_validate(json_response) not possible
-
         try:
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
             body = {}

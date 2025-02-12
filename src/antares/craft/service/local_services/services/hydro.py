@@ -13,6 +13,7 @@
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.model.hydro import HydroPropertiesUpdate
 from antares.craft.service.base_services import BaseHydroService
 from typing_extensions import override
 
@@ -21,6 +22,10 @@ class HydroLocalService(BaseHydroService):
     def __init__(self, config: LocalConfiguration, study_name: str):
         self.config = config
         self.study_name = study_name
+
+    @override
+    def update_properties(self, area_id: str, properties: HydroPropertiesUpdate) -> None:
+        raise NotImplementedError
 
     @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:

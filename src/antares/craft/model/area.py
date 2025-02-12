@@ -22,7 +22,7 @@ from typing import Any, Mapping, Optional
 import pandas as pd
 
 from antares.craft.model.commons import FilterOption, sort_filter_values
-from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
+from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
@@ -362,6 +362,11 @@ class Area:
         hydro = self._area_service.create_hydro(self.id, properties, matrices)
         self._hydro = hydro
         return hydro
+
+    def update_hydro_properties(self, properties: HydroPropertiesUpdate) -> None:
+        hydro = self._hydro_service.update_properties(self.id, properties)
+        # todo: convert the object to not optional one
+        self._hydro = hydro
 
     def read_st_storages(
         self,

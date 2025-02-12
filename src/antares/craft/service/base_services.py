@@ -28,7 +28,7 @@ if TYPE_CHECKING:
         ConstraintMatrixName,
         ConstraintTerm,
     )
-    from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
+    from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkUi
     from antares.craft.model.output import AggregationEntry, Output
     from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
@@ -309,6 +309,15 @@ class BaseAreaService(ABC):
 
 
 class BaseHydroService(ABC):
+    @abstractmethod
+    def update_properties(self, area_id: str, properties: "HydroPropertiesUpdate") -> None:
+        """
+        Args:
+            area_id: area in which hydro will be created
+            properties: hydro properties
+        """
+        pass
+
     @abstractmethod
     def get_maxpower(self, area_id: str) -> pd.DataFrame:
         pass
