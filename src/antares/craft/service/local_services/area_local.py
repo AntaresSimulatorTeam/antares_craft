@@ -170,18 +170,18 @@ class AreaLocalService(BaseAreaService):
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
         properties = properties or STStorageProperties()
-        args = {"st_storage_name": st_storage_name, **properties.model_dump(mode="json", exclude_none=True)}
-        local_st_storage_properties = STStoragePropertiesLocal.model_validate(args)
+        local_properties = STStoragePropertiesLocal.from_user_model(properties)
+        new_section_content = {"name": st_storage_name, **local_properties.model_dump(mode="json", by_alias=True)}
 
         list_ini = IniFile(self.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area_id)
-        list_ini.add_section(local_st_storage_properties.list_ini_fields)
+        list_ini.add_section({st_storage_name: new_section_content})
         list_ini.write_ini_file(sort_sections=True)
 
         return STStorage(
             self.storage_service,
             area_id,
             st_storage_name,
-            local_st_storage_properties.yield_st_storage_properties(),
+            properties,
         )
 
     @override
