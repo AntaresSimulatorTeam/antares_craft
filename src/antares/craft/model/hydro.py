@@ -93,7 +93,9 @@ class Hydro:
         self._properties = self.read_properties()
 
     def read_properties(self) -> HydroProperties:
-        return self._service.read_properties(self.area_id)
+        properties = self._service.read_properties(self.area_id)
+        self._properties = properties
+        return properties
 
     def get_maxpower(self) -> pd.DataFrame:
         return self._service.get_maxpower(self.area_id)

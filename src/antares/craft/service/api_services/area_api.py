@@ -47,7 +47,7 @@ from antares.craft.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
-from antares.craft.tools.contents_tool import AreaUiResponse, transform_name_to_id
+from antares.craft.tools.contents_tool import AreaUiResponse
 from antares.craft.tools.matrix_tool import prepare_args_replace_matrix
 from typing_extensions import override
 
@@ -507,9 +507,6 @@ class AreaApiService(BaseAreaService):
                 dict_thermals = {thermal.id: thermal for thermal in thermals}
                 dict_st_storage = {storage.id: storage for storage in st_storages}
 
-                area_id = transform_name_to_id(area)
-                hydro_properties = self.hydro_service.read_properties(area_id)
-                hydro = Hydro(self.hydro_service, area_id, hydro_properties)
                 area_obj = Area(
                     area,
                     self,
@@ -522,8 +519,8 @@ class AreaApiService(BaseAreaService):
                     st_storages=dict_st_storage,
                     properties=json_properties,
                     ui=ui_response,
-                    hydro=hydro,
                 )
+                area_obj.hydro.read_properties()
 
                 area_list.append(area_obj)
 

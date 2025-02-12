@@ -13,16 +13,14 @@ from dataclasses import asdict
 from typing import Union
 
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
+from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import BaseModel
-from pydantic.alias_generators import to_camel
 
 HydroPropertiesType = Union[HydroProperties, HydroPropertiesUpdate]
 
 
 @all_optional_model
-class HydroPropertiesAPI(BaseModel, populate_by_name=True, alias_generator=to_camel, extra="forbid"):
-    # todo: use API Model once the other PR is merged
+class HydroPropertiesAPI(APIBaseModel):
     inter_daily_breakdown: float
     intra_daily_modulation: float
     inter_monthly_breakdown: float

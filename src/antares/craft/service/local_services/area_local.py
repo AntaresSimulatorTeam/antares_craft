@@ -416,9 +416,6 @@ class AreaLocalService(BaseAreaService):
                     layer_y=ui_dict["ui"].get("layerY"),
                     layer_color=ui_dict["ui"].get("layerColor"),
                 )
-                area_id = transform_name_to_id(element.name)
-                hydro_properties = self.hydro_service.read_properties(area_id)
-                hydro = Hydro(self.hydro_service, area_id, hydro_properties)
                 area = Area(
                     name=element.name,
                     area_service=self,
@@ -428,8 +425,8 @@ class AreaLocalService(BaseAreaService):
                     hydro_service=self.hydro_service,
                     properties=area_properties.yield_area_properties(),
                     ui=ui_properties,
-                    hydro=hydro,
                 )
+                area.hydro.read_properties()
                 areas.append(area)
 
         areas.sort(key=lambda area_obj: area_obj.id)
