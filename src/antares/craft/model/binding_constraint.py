@@ -138,10 +138,6 @@ class BindingConstraint:
     def properties(self) -> BindingConstraintProperties:
         return self._properties
 
-    @properties.setter
-    def properties(self, new_properties: BindingConstraintProperties) -> None:
-        self._properties = new_properties
-
     def get_terms(self) -> dict[str, ConstraintTerm]:
         return self._terms
 
