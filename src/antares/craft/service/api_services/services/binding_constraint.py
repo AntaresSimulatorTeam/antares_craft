@@ -170,20 +170,14 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise ConstraintMatrixUpdateError(constraint.id, matrix_name.value, e.message) from e
 
     @override
-    def add_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> list[ConstraintTerm]:
+    def add_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint.id}"
         try:
             json_terms = [term.model_dump() for term in terms]
             self._wrapper.post(f"{url}/terms", json=json_terms)
-            response = self._wrapper.get(url)
-            all_terms = response.json()["terms"]
-            validated_terms = [ConstraintTerm.model_validate(term) for term in all_terms]
-            new_terms = [term for term in validated_terms if term.id not in constraint.get_terms()]
 
         except APIError as e:
             raise ConstraintTermAdditionError(constraint.id, [term.id for term in terms], e.message) from e
-
-        return new_terms
 
     @override
     def read_binding_constraints(self) -> list[BindingConstraint]:

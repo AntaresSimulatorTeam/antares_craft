@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -70,18 +70,6 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
         return constraint
 
-    @staticmethod
-    def _create_local_property_args(constraint: BindingConstraint) -> dict[str, Union[str, dict[str, ConstraintTerm]]]:
-        return {
-            "constraint_name": constraint.name,
-            "constraint_id": constraint.id,
-            "terms": constraint.get_terms(),
-            **constraint.properties.model_dump(mode="json", exclude_none=True),
-        }
-
-    def _generate_local_properties(self, constraint: BindingConstraint) -> BindingConstraintPropertiesLocal:
-        return BindingConstraintPropertiesLocal.model_validate(self._create_local_property_args(constraint))
-
     def _store_time_series(
         self,
         constraint: BindingConstraint,
@@ -139,75 +127,35 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         self.ini_file.ini_dict = current_ini_content
         self.ini_file.write_ini_file()
 
-    def _write_binding_constraint_ini(
-        self,
-        local_properties: BindingConstraintPropertiesLocal,
-        constraint_name: str,
-        terms: Optional[list[ConstraintTerm]] = None,
-    ) -> None:
-        """
-        Write or update a binding constraint in the INI file.
-
-        """
-
-        current_ini_content = self.ini_file.ini_dict_binding_constraints or {}
-
-        existing_section = next(
-            (section for section, values in current_ini_content.items() if values.get("name") == constraint_name),
-            None,
-        )
-
-        if existing_section:
-            existing_terms = current_ini_content[existing_section]
-
-            serialized_terms = {term.id: term.weight_offset() for term in terms} if terms else {}
-
-            existing_terms.update(serialized_terms)
-            current_ini_content[existing_section] = existing_terms
-
-            # Persist the updated INI content
-            self.ini_file.write_ini_file()
-        else:
-            section_index = len(current_ini_content)
-            current_ini_content[str(section_index)] = local_properties.list_ini_fields
-
-        self.ini_file.ini_dict_binding_constraints = current_ini_content
-        self.ini_file.write_ini_file()
-
     @override
-    def add_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> list[ConstraintTerm]:
+    def add_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> None:
         """
         Add terms to a binding constraint and update the INI file.
 
         Args:
             constraint (BindingConstraint): The binding constraint to update.
             terms (list[ConstraintTerm]): A list of new terms to add.
-
-        Returns:
-            list[ConstraintTerm]: The updated list of terms.
         """
 
-        new_terms = constraint.get_terms().copy()
-
+        # Checks the terms to add are not already defined
+        current_terms = constraint.get_terms()
         for term in terms:
-            if term.id in constraint.get_terms():
+            if term.id in current_terms:
                 raise BindingConstraintCreationError(
                     constraint_name=constraint.name, message=f"Duplicate term found: {term.id}"
                 )
-            new_terms[term.id] = term
 
-        local_properties = self._generate_local_properties(constraint)
-        local_properties.terms = new_terms
+        current_ini_content = self.ini_file.ini_dict_binding_constraints or {}
+        # Ensures the constraint already exists
+        existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint.id), None)
+        if not existing_key:
+            raise ConstraintDoesNotExistError(constraint.name)
 
-        terms_values = list(new_terms.values())
-
-        self._write_binding_constraint_ini(
-            local_properties=local_properties,
-            constraint_name=constraint.name,
-            terms=terms_values,
-        )
-
-        return terms_values
+        existing_constraint = current_ini_content[existing_key]
+        new_terms = {term.id: term.weight_offset() for term in terms}
+        new_content = existing_constraint | new_terms
+        self.ini_file.ini_dict = new_content
+        self.ini_file.write_ini_file()
 
     @override
     def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
