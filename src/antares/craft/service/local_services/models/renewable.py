@@ -18,7 +18,7 @@ from antares.craft.model.renewable import (
     RenewableClusterPropertiesUpdate,
     TimeSeriesInterpretation,
 )
-from antares.craft.service.local_services.models import LocalBaseModel
+from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from pydantic import Field
 
 RenewablePropertiesType = Union[RenewableClusterProperties, RenewableClusterPropertiesUpdate]

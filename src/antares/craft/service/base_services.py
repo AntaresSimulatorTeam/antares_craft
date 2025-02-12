@@ -29,7 +29,7 @@ if TYPE_CHECKING:
         ConstraintMatrixName,
         ConstraintTerm,
     )
-    from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
+    from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkUi
     from antares.craft.model.output import AggregationEntry, Output
     from antares.craft.model.renewable import (
@@ -274,31 +274,27 @@ class BaseAreaService(ABC):
         """
         pass
 
+
+class BaseHydroService(ABC):
     @abstractmethod
-    def create_hydro(
-        self,
-        area_id: str,
-        properties: Optional["HydroProperties"],
-        matrices: Optional[dict["HydroMatrixName", pd.DataFrame]],
-    ) -> "Hydro":
+    def update_properties(self, area_id: str, properties: "HydroPropertiesUpdate") -> None:
         """
         Args:
             area_id: area in which hydro will be created
             properties: hydro properties
-            matrices: matrices for hydro to be created
-
         """
         pass
 
     @abstractmethod
-    def read_hydro(
-        self,
-        area_id: str,
-    ) -> "Hydro":
+    def read_properties(self, area_id: str) -> "HydroProperties":
+        """
+        Args:
+            area_id: area in which hydro will be created
+        Returns:
+            The hydro properties
+        """
         pass
 
-
-class BaseHydroService(ABC):
     @abstractmethod
     def get_maxpower(self, area_id: str) -> pd.DataFrame:
         pass
@@ -317,6 +313,58 @@ class BaseHydroService(ABC):
 
     @abstractmethod
     def get_water_values(self, area_id: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_ror_series(self, area_id: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_mod_series(self, area_id: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_mingen(self, area_id: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_energy(self, area_id: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def update_maxpower(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def update_reservoir(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def update_inflow_pattern(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def update_credits_modulation(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def update_water_values(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def update_ror_series(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def update_mod_series(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def update_mingen(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def update_energy(self, area_id: str, series: pd.DataFrame) -> None:
         pass
 
 

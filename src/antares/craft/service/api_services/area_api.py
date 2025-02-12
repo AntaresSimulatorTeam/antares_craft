@@ -23,7 +23,6 @@ from antares.craft.exceptions.exceptions import (
     AreaPropertiesUpdateError,
     AreasRetrievalError,
     AreaUiUpdateError,
-    HydroCreationError,
     MatrixDownloadError,
     MatrixUploadError,
     RenewableCreationError,
@@ -34,7 +33,7 @@ from antares.craft.exceptions.exceptions import (
     ThermalDeletionError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaUi
-from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
+from antares.craft.model.hydro import Hydro
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
@@ -131,7 +130,8 @@ class AreaApiService(BaseAreaService):
             ui_response = AreaUiResponse.model_validate(json_ui)
             ui_properties = AreaUi.model_validate(ui_response.to_craft())
 
-            hydro = self.read_hydro(area_id)
+            hydro_properties = self.hydro_service.read_properties(area_id)
+            hydro = Hydro(self.hydro_service, area_id, hydro_properties)
 
         except APIError as e:
             raise AreaCreationError(area_name, e.message) from e
@@ -353,62 +353,6 @@ class AreaApiService(BaseAreaService):
             raise MatrixUploadError(area_id, "misc-gen", e.message) from e
 
     @override
-    def create_hydro(
-        self,
-        area_id: str,
-        properties: Optional[HydroProperties],
-        matrices: Optional[dict[HydroMatrixName, pd.DataFrame]],
-    ) -> Hydro:
-        # todo: not model validation because endpoint does not return anything
-        #  properties = HydroProperties.model_validate(json_response) not possible
-
-        try:
-            url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
-            body = {}
-            if properties:
-                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
-                body = {**camel_properties}
-            self._wrapper.put(url, json=body)
-
-            if matrices is not None:
-                self._create_hydro_series(area_id, matrices)
-
-        except APIError as e:
-            raise HydroCreationError(area_id, e.message) from e
-
-        return Hydro(self.hydro_service, area_id, properties)
-
-    @override
-    def read_hydro(
-        self,
-        area_id: str,
-    ) -> Hydro:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
-        json_hydro = self._wrapper.get(url).json()
-
-        hydro_props = HydroProperties(**json_hydro)
-        hydro = Hydro(self.hydro_service, area_id, hydro_props)
-
-        return hydro
-
-    def _create_hydro_series(self, area_id: str, matrices: dict[HydroMatrixName, pd.DataFrame]) -> None:
-        command_body = []
-        for matrix_name, series in matrices.items():
-            if "SERIES" in matrix_name.name:
-                series_path = f"input/hydro/series/{area_id}/{matrix_name.value}"
-                command_body.append(prepare_args_replace_matrix(series, series_path))
-            if "PREPRO" in matrix_name.name:
-                series_path = f"input/hydro/prepro/{area_id}/{matrix_name.value}"
-                command_body.append(prepare_args_replace_matrix(series, series_path))
-            if "COMMON" in matrix_name.name:
-                series_path = f"input/hydro/common/capacity/{matrix_name.value}_{area_id}"
-                command_body.append(prepare_args_replace_matrix(series, series_path))
-        if command_body:
-            json_payload = command_body
-
-            self._replace_matrix_request(json_payload)
-
-    @override
     def update_area_properties(self, area_id: str, properties: AreaProperties) -> AreaProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/properties/form"
         try:
@@ -576,6 +520,7 @@ class AreaApiService(BaseAreaService):
                     properties=json_properties,
                     ui=ui_response,
                 )
+                area_obj.hydro.read_properties()
 
                 area_list.append(area_obj)
 

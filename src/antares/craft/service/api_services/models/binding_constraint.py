@@ -19,7 +19,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
 )
-from antares.craft.service.api_services.models import APIBaseModel
+from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 
 BindingConstraintPropertiesType = Union[BindingConstraintProperties, BindingConstraintPropertiesUpdate]

@@ -9,37 +9,35 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
-from enum import Enum
+from dataclasses import dataclass
 from typing import Optional
 
 import pandas as pd
 
 from antares.craft.service.base_services import BaseHydroService
-from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import BaseModel
-from pydantic.alias_generators import to_camel
 
 
-class HydroMatrixName(Enum):
-    SERIES_ROR = "ror"
-    SERIES_MOD = "mod"
-    SERIES_MIN_GEN = "mingen"
-    PREPRO_ENERGY = "energy"
-    COMMON_WATER_VALUES = "waterValues"
-    COMMON_RESERVOIR = "reservoir"
-    COMMON_MAX_POWER = "maxpower"
-    COMMON_INFLOW_PATTERN = "inflowPattern"
-    COMMON_CREDIT_MODULATIONS = "creditmodulations"
+@dataclass
+class HydroPropertiesUpdate:
+    inter_daily_breakdown: Optional[float] = None
+    intra_daily_modulation: Optional[float] = None
+    inter_monthly_breakdown: Optional[float] = None
+    reservoir: Optional[bool] = None
+    reservoir_capacity: Optional[float] = None
+    follow_load: Optional[bool] = None
+    use_water: Optional[bool] = None
+    hard_bounds: Optional[bool] = None
+    initialize_reservoir_date: Optional[int] = None
+    use_heuristic: Optional[bool] = None
+    power_to_level: Optional[bool] = None
+    use_leeway: Optional[bool] = None
+    leeway_low: Optional[float] = None
+    leeway_up: Optional[float] = None
+    pumping_efficiency: Optional[float] = None
 
 
-class DefaultHydroProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
-    """
-    Properties of hydro system read from the configuration files.
-
-    All aliases match the name of the corresponding field in the INI files.
-    """
-
+@dataclass
+class HydroProperties:
     inter_daily_breakdown: float = 1
     intra_daily_modulation: float = 24
     inter_monthly_breakdown: float = 1
@@ -56,64 +54,48 @@ class DefaultHydroProperties(BaseModel, extra="forbid", populate_by_name=True, a
     leeway_up: float = 1
     pumping_efficiency: float = 1
 
-
-@all_optional_model
-class HydroProperties(DefaultHydroProperties):
-    pass
-
-
-class HydroPropertiesLocal(DefaultHydroProperties):
-    area_id: str
-
-    @property
-    def hydro_ini_fields(self) -> dict[str, dict[str, str]]:
-        return {
-            "inter-daily-breakdown": {f"{self.area_id}": f"{self.inter_daily_breakdown:.6f}"},
-            "intra-daily-modulation": {f"{self.area_id}": f"{self.intra_daily_modulation:.6f}"},
-            "inter-monthly-breakdown": {f"{self.area_id}": f"{self.inter_monthly_breakdown:.6f}"},
-            "reservoir": {f"{self.area_id}": f"{self.reservoir}".lower()},
-            "reservoir capacity": {f"{self.area_id}": f"{self.reservoir_capacity:.6f}"},
-            "follow load": {f"{self.area_id}": f"{self.follow_load}".lower()},
-            "use water": {f"{self.area_id}": f"{self.use_water}".lower()},
-            "hard bounds": {f"{self.area_id}": f"{self.hard_bounds}".lower()},
-            "initialize reservoir date": {f"{self.area_id}": f"{self.initialize_reservoir_date}"},
-            "use heuristic": {f"{self.area_id}": f"{self.use_heuristic}".lower()},
-            "power to level": {f"{self.area_id}": f"{self.power_to_level}".lower()},
-            "use leeway": {f"{self.area_id}": f"{self.use_leeway}".lower()},
-            "leeway low": {f"{self.area_id}": f"{self.leeway_low:.6f}"},
-            "leeway up": {f"{self.area_id}": f"{self.leeway_up:.6f}"},
-            "pumping efficiency": {f"{self.area_id}": f"{self.pumping_efficiency:.6f}"},
-        }
-
-    def yield_hydro_properties(self) -> HydroProperties:
-        excludes = {"area_id", "hydro_ini_fields"}
-        return HydroProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
+    def to_update_properties(self) -> HydroPropertiesUpdate:
+        return HydroPropertiesUpdate(
+            inter_daily_breakdown=self.inter_daily_breakdown,
+            intra_daily_modulation=self.intra_daily_modulation,
+            inter_monthly_breakdown=self.inter_monthly_breakdown,
+            reservoir=self.reservoir,
+            reservoir_capacity=self.reservoir_capacity,
+            follow_load=self.follow_load,
+            use_water=self.use_water,
+            hard_bounds=self.hard_bounds,
+            initialize_reservoir_date=self.initialize_reservoir_date,
+            use_heuristic=self.use_heuristic,
+            power_to_level=self.power_to_level,
+            use_leeway=self.use_leeway,
+            leeway_low=self.leeway_low,
+            leeway_up=self.leeway_up,
+            pumping_efficiency=self.pumping_efficiency,
+        )
 
 
 class Hydro:
-    def __init__(
-        self,
-        service: BaseHydroService,
-        area_id: str,
-        properties: Optional[HydroProperties] = None,
-        matrices: Optional[dict[HydroMatrixName, pd.DataFrame]] = None,
-    ):
+    def __init__(self, service: BaseHydroService, area_id: str, properties: HydroProperties):
         self._area_id = area_id
         self._service = service
         self._properties = properties
-        self._matrices = matrices
 
     @property
     def area_id(self) -> str:
         return self._area_id
 
     @property
-    def properties(self) -> Optional[HydroProperties]:
+    def properties(self) -> HydroProperties:
         return self._properties
 
-    @property
-    def matrices(self) -> Optional[dict[HydroMatrixName, pd.DataFrame]]:
-        return self._matrices
+    def update_properties(self, properties: HydroPropertiesUpdate) -> None:
+        self._service.update_properties(self.area_id, properties)
+        self._properties = self.read_properties()
+
+    def read_properties(self) -> HydroProperties:
+        properties = self._service.read_properties(self.area_id)
+        self._properties = properties
+        return properties
 
     def get_maxpower(self) -> pd.DataFrame:
         return self._service.get_maxpower(self.area_id)
@@ -129,3 +111,42 @@ class Hydro:
 
     def get_water_values(self) -> pd.DataFrame:
         return self._service.get_water_values(self.area_id)
+
+    def get_ror_series(self) -> pd.DataFrame:
+        return self._service.get_reservoir(self.area_id)
+
+    def get_mod_series(self) -> pd.DataFrame:
+        return self._service.get_inflow_pattern(self.area_id)
+
+    def get_mingen(self) -> pd.DataFrame:
+        return self._service.get_credit_modulations(self.area_id)
+
+    def get_energy(self) -> pd.DataFrame:
+        return self._service.get_water_values(self.area_id)
+
+    def update_maxpower(self, series: pd.DataFrame) -> None:
+        return self._service.update_maxpower(self.area_id, series)
+
+    def update_reservoir(self, series: pd.DataFrame) -> None:
+        return self._service.update_reservoir(self.area_id, series)
+
+    def update_inflow_pattern(self, series: pd.DataFrame) -> None:
+        return self._service.update_inflow_pattern(self.area_id, series)
+
+    def update_credits_modulation(self, series: pd.DataFrame) -> None:
+        return self._service.update_credits_modulation(self.area_id, series)
+
+    def update_water_values(self, series: pd.DataFrame) -> None:
+        return self._service.update_water_values(self.area_id, series)
+
+    def update_mod_series(self, series: pd.DataFrame) -> None:
+        return self._service.update_mod_series(self.area_id, series)
+
+    def update_ror_series(self, series: pd.DataFrame) -> None:
+        return self._service.update_ror_series(self.area_id, series)
+
+    def update_mingen(self, series: pd.DataFrame) -> None:
+        return self._service.update_mingen(self.area_id, series)
+
+    def update_energy(self, series: pd.DataFrame) -> None:
+        return self._service.update_energy(self.area_id, series)
