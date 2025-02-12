@@ -139,22 +139,6 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         self.ini_file.ini_dict = current_ini_content
         self.ini_file.write_ini_file()
 
-    def _update_constraint_inside_ini(
-        self,
-        constraint_name: str,
-        properties: BindingConstraintPropertiesLocal,
-    ) -> None:
-        current_ini_content = self.ini_file.ini_dict
-        constraint_id = transform_name_to_id(constraint_name)
-        # Ensures the constraint already exists
-        existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint_id), None)
-        if not existing_key:
-            raise ConstraintDoesNotExistError(constraint_name)
-
-        # todo: do the update
-        # existing_constraint = current_ini_content[existing_key]
-        # todo: split the content between terms and properties
-
     def _write_binding_constraint_ini(
         self,
         local_properties: BindingConstraintPropertiesLocal,
@@ -233,7 +217,18 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     def update_binding_constraint_properties(
         self, binding_constraint: BindingConstraint, properties: BindingConstraintPropertiesUpdate
     ) -> BindingConstraintProperties:
-        raise NotImplementedError
+        current_ini_content = self.ini_file.ini_dict
+        # Ensures the constraint already exists
+        existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == binding_constraint.id), None)
+        if not existing_key:
+            raise ConstraintDoesNotExistError(binding_constraint.name)
+
+        local_properties = BindingConstraintPropertiesLocal.from_user_model(properties)
+        existing_constraint = current_ini_content[existing_key]
+        existing_constraint.update(local_properties.model_dump(mode="json", by_alias=True))
+        self.ini_file.ini_dict = current_ini_content
+        self.ini_file.write_ini_file()
+        return local_properties.to_user_model()
 
     @override
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
