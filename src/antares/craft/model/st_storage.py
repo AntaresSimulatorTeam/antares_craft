@@ -94,7 +94,7 @@ class STStorage:
     def properties(self) -> STStorageProperties:
         return self._properties
 
-    def update_properties(self, properties: STStorageProperties) -> None:
+    def update_properties(self, properties: STStoragePropertiesUpdate) -> None:
         new_properties = self._storage_service.update_st_storage_properties(self, properties)
         self._properties = new_properties
 

@@ -21,7 +21,12 @@ from antares.craft.exceptions.exceptions import (
     STStorageMatrixUploadError,
     STStoragePropertiesUpdateError,
 )
-from antares.craft.model.st_storage import STStorage, STStorageMatrixName, STStorageProperties
+from antares.craft.model.st_storage import (
+    STStorage,
+    STStorageMatrixName,
+    STStorageProperties,
+    STStoragePropertiesUpdate,
+)
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.base_services import BaseShortTermStorageService
 from typing_extensions import override
@@ -37,7 +42,7 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
 
     @override
     def update_st_storage_properties(
-        self, st_storage: STStorage, properties: STStorageProperties
+        self, st_storage: STStorage, properties: STStoragePropertiesUpdate
     ) -> STStorageProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{st_storage.area_id}/storages/{st_storage.id}"
         try:
@@ -92,7 +97,8 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
             storage_id = storage.pop("id")
             storage_name = storage.pop("name")
 
-            storage_properties = STStorageProperties(**storage)
+            api_props = STStoragePropertiesAPI.model_validate(storage)
+            storage_properties = api_props.to_user_model()
             st_storage = STStorage(self, storage_id, storage_name, storage_properties)
             storages.append(st_storage)
 

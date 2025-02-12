@@ -15,7 +15,12 @@ from typing import Any, List
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.st_storage import STStorage, STStorageMatrixName, STStorageProperties
+from antares.craft.model.st_storage import (
+    STStorage,
+    STStorageMatrixName,
+    STStorageProperties,
+    STStoragePropertiesUpdate,
+)
 from antares.craft.service.base_services import BaseShortTermStorageService
 from typing_extensions import override
 
@@ -28,7 +33,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
 
     @override
     def update_st_storage_properties(
-        self, st_storage: STStorage, properties: STStorageProperties
+        self, st_storage: STStorage, properties: STStoragePropertiesUpdate
     ) -> STStorageProperties:
         raise NotImplementedError
 
