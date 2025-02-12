@@ -13,7 +13,6 @@
 import pytest
 import requests_mock
 
-import numpy as np
 import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
@@ -26,7 +25,7 @@ from antares.craft.exceptions.exceptions import (
     ThermalCreationError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaUi
-from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesUpdate
+from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.study import Study
@@ -205,27 +204,15 @@ class TestCreateAPI:
     def test_create_hydro_success(self):
         url_hydro_form = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/hydro/form"
         json_for_post = HydroPropertiesAPI().model_dump(mode="json", by_alias=True)
-        series = pd.DataFrame(data=np.ones((150, 1)))
+        # series = pd.DataFrame(data=np.ones((150, 1)))
 
         url_for_matrices = f"https://antares.com/api/v1/studies/{self.study_id}/raw"
 
-        matrices_hydro = {
-            HydroMatrixName.SERIES_ROR: series,
-            HydroMatrixName.SERIES_MOD: series,
-            HydroMatrixName.SERIES_MIN_GEN: series,
-            HydroMatrixName.PREPRO_ENERGY: series,
-            HydroMatrixName.COMMON_WATER_VALUES: series,
-            HydroMatrixName.COMMON_RESERVOIR: series,
-            HydroMatrixName.COMMON_MAX_POWER: series,
-            HydroMatrixName.COMMON_INFLOW_PATTERN: series,
-            HydroMatrixName.COMMON_CREDIT_MODULATIONS: series,
-        }
         with requests_mock.Mocker() as mocker:
             mocker.put(url_hydro_form, json=json_for_post, status_code=200)
             mocker.post(url_for_matrices, status_code=200)
             self.area.hydro.update_properties(HydroPropertiesUpdate(reservoir=True))
             # todo: use matrices
-            print(matrices_hydro)
 
     def test_read_areas_success(self):
         area_id = "zone"

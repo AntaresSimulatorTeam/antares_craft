@@ -10,24 +10,11 @@
 #
 # This file is part of the Antares project.
 from dataclasses import dataclass
-from enum import Enum
 from typing import Optional
 
 import pandas as pd
 
 from antares.craft.service.base_services import BaseHydroService
-
-
-class HydroMatrixName(Enum):
-    SERIES_ROR = "ror"
-    SERIES_MOD = "mod"
-    SERIES_MIN_GEN = "mingen"
-    PREPRO_ENERGY = "energy"
-    COMMON_WATER_VALUES = "waterValues"
-    COMMON_RESERVOIR = "reservoir"
-    COMMON_MAX_POWER = "maxpower"
-    COMMON_INFLOW_PATTERN = "inflowPattern"
-    COMMON_CREDIT_MODULATIONS = "creditmodulations"
 
 
 @dataclass
