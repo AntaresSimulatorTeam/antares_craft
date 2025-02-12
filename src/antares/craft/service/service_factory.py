@@ -21,8 +21,8 @@ from antares.craft.service.api_services.services.output import OutputApiService
 from antares.craft.service.api_services.services.renewable import RenewableApiService
 from antares.craft.service.api_services.services.run import RunApiService
 from antares.craft.service.api_services.services.settings import StudySettingsAPIService
+from antares.craft.service.api_services.services.st_storage import ShortTermStorageApiService
 from antares.craft.service.api_services.services.thermal import ThermalApiService
-from antares.craft.service.api_services.st_storage_api import ShortTermStorageApiService
 from antares.craft.service.api_services.study_api import StudyApiService
 from antares.craft.service.base_services import (
     BaseAreaService,
@@ -45,8 +45,8 @@ from antares.craft.service.local_services.services.output import OutputLocalServ
 from antares.craft.service.local_services.services.renewable import RenewableLocalService
 from antares.craft.service.local_services.services.run import RunLocalService
 from antares.craft.service.local_services.services.settings import StudySettingsLocalService
+from antares.craft.service.local_services.services.st_storage import ShortTermStorageLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService
-from antares.craft.service.local_services.st_storage_local import ShortTermStorageLocalService
 from antares.craft.service.local_services.study_local import StudyLocalService
 
 ERROR_MESSAGE = "Unsupported configuration type: "
