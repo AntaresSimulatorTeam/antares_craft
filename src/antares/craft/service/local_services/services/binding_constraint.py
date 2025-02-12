@@ -146,12 +146,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
                 )
 
         current_ini_content = self.ini_file.ini_dict_binding_constraints or {}
-        # Ensures the constraint already exists
-        existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint.id), None)
-        if not existing_key:
-            raise ConstraintDoesNotExistError(constraint.name)
-
-        existing_constraint = current_ini_content[existing_key]
+        existing_constraint = self._get_constraint_inside_ini(current_ini_content, constraint)
         new_terms = {term.id: term.weight_offset() for term in terms}
         new_content = existing_constraint | new_terms
         self.ini_file.ini_dict = new_content
@@ -166,13 +161,8 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         self, binding_constraint: BindingConstraint, properties: BindingConstraintPropertiesUpdate
     ) -> BindingConstraintProperties:
         current_ini_content = self.ini_file.ini_dict
-        # Ensures the constraint already exists
-        existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == binding_constraint.id), None)
-        if not existing_key:
-            raise ConstraintDoesNotExistError(binding_constraint.name)
-
+        existing_constraint = self._get_constraint_inside_ini(current_ini_content, binding_constraint)
         local_properties = BindingConstraintPropertiesLocal.from_user_model(properties)
-        existing_constraint = current_ini_content[existing_key]
         existing_constraint.update(local_properties.model_dump(mode="json", by_alias=True))
         self.ini_file.ini_dict = current_ini_content
         self.ini_file.write_ini_file()
@@ -194,3 +184,11 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     @override
     def read_binding_constraints(self) -> list[BindingConstraint]:
         raise NotImplementedError
+
+    @staticmethod
+    def _get_constraint_inside_ini(ini_content: dict[str, Any], constraint: BindingConstraint) -> dict[str, Any]:
+        existing_key = next((key for key, bc in ini_content.items() if bc["id"] == constraint.id), None)
+        if not existing_key:
+            raise ConstraintDoesNotExistError(constraint.name)
+
+        return ini_content[existing_key]
