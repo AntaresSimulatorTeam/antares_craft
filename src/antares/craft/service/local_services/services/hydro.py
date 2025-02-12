@@ -56,11 +56,27 @@ class HydroLocalService(BaseHydroService):
 def create_hydro_properties(study_path: Path, area_id: str, properties: HydroProperties) -> None:
     list_ini = IniFile(study_path, InitializationFilesTypes.HYDRO_INI)
     current_content = list_ini.ini_dict
+    local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(mode="json", by_alias=True,
+                                                                             exclude_unset=True)
+    print(local_dict)
+    print("///////////")
+
+
+    list_ini = IniFile(study_path, InitializationFilesTypes.HYDRO_INI)
+    current_content = list_ini.ini_dict
     local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(mode="json", by_alias=True)
     for key, value in local_dict.items():
         current_content.setdefault(key, {})[area_id] = value
     list_ini.ini_dict = current_content
     list_ini.write_ini_file()
+
+
+def update_hydro_properties(study_path: Path, area_id: str, properties: HydroPropertiesUpdate) -> None:
+    list_ini = IniFile(study_path, InitializationFilesTypes.HYDRO_INI)
+    current_content = list_ini.ini_dict
+    local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(mode="json", by_alias=True, exclude_unset=True)
+    print(local_dict)
+    print("///////////")
 
     """
     reorganized_content: dict[str, Any] = {}
