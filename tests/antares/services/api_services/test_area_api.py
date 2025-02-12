@@ -13,7 +13,6 @@
 import pytest
 import requests_mock
 
-import numpy as np
 import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
@@ -26,12 +25,13 @@ from antares.craft.exceptions.exceptions import (
     ThermalCreationError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaUi
-from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
+from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.area_api import AreaApiService
+from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.service_factory import ServiceFactory
@@ -203,29 +203,13 @@ class TestCreateAPI:
 
     def test_create_hydro_success(self):
         url_hydro_form = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/hydro/form"
-        json_for_post = HydroProperties().model_dump(mode="json", by_alias=True)
-        series = pd.DataFrame(data=np.ones((150, 1)))
-
-        url_for_command = f"https://antares.com/api/v1/studies/{self.study_id}/commands"
-
-        matrices_hydro = {
-            HydroMatrixName.SERIES_ROR: series,
-            HydroMatrixName.SERIES_MOD: series,
-            HydroMatrixName.SERIES_MIN_GEN: series,
-            HydroMatrixName.PREPRO_ENERGY: series,
-            HydroMatrixName.COMMON_WATER_VALUES: series,
-            HydroMatrixName.COMMON_RESERVOIR: series,
-            HydroMatrixName.COMMON_MAX_POWER: series,
-            HydroMatrixName.COMMON_INFLOW_PATTERN: series,
-            HydroMatrixName.COMMON_CREDIT_MODULATIONS: series,
-        }
+        body = {"reservoir": True}
         with requests_mock.Mocker() as mocker:
-            mocker.put(url_hydro_form, json=json_for_post, status_code=200)
-            mocker.post(url_for_command)
-            hydro = self.area.create_hydro(properties=HydroProperties(), matrices=matrices_hydro)
-            # to assert two http requests to "commands" and "hydro/form"
-            assert len(mocker.request_history) == 2
-            assert isinstance(hydro, Hydro)
+            mocker.put(url_hydro_form, status_code=200)
+            mocker.get(url_hydro_form, json=body, status_code=200)
+            assert self.area.hydro.properties.reservoir is False
+            self.area.hydro.update_properties(HydroPropertiesUpdate(reservoir=True))
+            assert self.area.hydro.properties.reservoir is True
 
     def test_read_areas_success(self):
         area_id = "zone"
@@ -235,6 +219,7 @@ class TestCreateAPI:
         url_renewable = url + f"/{area_id}/clusters/renewable"
         url_st_storage = url + f"/{area_id}/storages"
         url_properties_form = url + f"/{area_id}/properties/form"
+        hydro_url = url + f"/{area_id}/hydro/form"
 
         json_ui = {
             area_id: {
@@ -290,12 +275,15 @@ class TestCreateAPI:
             "adequacyPatchMode": "outside",
         }
 
+        hydro_properties = HydroProperties(reservoir_capacity=4.5)
+
         with requests_mock.Mocker() as mocker:
             mocker.get(ui_url, json=json_ui)
             mocker.get(url_thermal, json=json_thermal)
             mocker.get(url_renewable, json=json_renewable)
             mocker.get(url_st_storage, json=json_st_storage)
             mocker.get(url_properties_form, json=json_properties)
+            mocker.get(hydro_url, json={"reservoir_capacity": 4.5})
 
             actual_area_list = self.study.read_areas()
             area_ui = self.area_api.craft_ui(url + "?type=AREA&ui=true", "zone")
@@ -321,16 +309,19 @@ class TestCreateAPI:
             storage_props = STStorageProperties(**storage_)
             st_storage = STStorage(self.area_api.storage_service, storage_id, storage_name, storage_props)
 
+            hydro = Hydro(self.area_api.hydro_service, area_id, hydro_properties)
+
             expected_area = Area(
                 area_id,
                 self.area_api,
                 self.area_api.storage_service,
                 self.area_api.thermal_service,
                 self.area_api.renewable_service,
-                hydro_service=None,
+                self.area_api.hydro_service,
                 thermals={thermal_id: thermal_cluster},
                 renewables={renewable_id: renewable_cluster},
                 st_storages={storage_id: st_storage},
+                hydro=hydro,
                 properties=json_properties,
                 ui=area_ui,
             )
@@ -348,6 +339,7 @@ class TestCreateAPI:
             assert actual_thermals[thermal_id].name == expected_area.get_thermals()[thermal_id].name
             assert actual_renewables[renewable_id].name == expected_area.get_renewables()[renewable_id].name
             assert actual_storages[storage_id].name == expected_area.get_st_storages()[storage_id].name
+            assert actual_area.hydro.properties == hydro_properties
 
     def test_read_areas_fail(self):
         with requests_mock.Mocker() as mocker:
@@ -382,14 +374,10 @@ class TestCreateAPI:
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url, json=json_hydro)
-            hydro_props = HydroProperties(**json_hydro)
+            hydro_props = HydroPropertiesAPI(**json_hydro).to_user_model()
 
             actual_hydro = Hydro(self.api, self.area.id, hydro_props)
-            expected_hydro = self.area.read_hydro()
-
-            assert actual_hydro.area_id == expected_hydro.area_id
-            assert actual_hydro.properties == expected_hydro.properties
-            assert actual_hydro.matrices is None
+            assert actual_hydro.properties == self.area.hydro.read_properties()
 
     def test_read_renewables_empty(self):
         area = self.area

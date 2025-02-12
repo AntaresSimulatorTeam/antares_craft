@@ -20,7 +20,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
 )
-from antares.craft.model.hydro import HydroProperties
+from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
 from antares.craft.model.study import Study, create_study_local
@@ -187,7 +187,8 @@ def actual_st_storage_list_ini(local_study_with_st_storage) -> IniFile:
 
 @pytest.fixture
 def local_study_with_hydro(local_study_with_st_storage) -> Study:
-    local_study_with_st_storage.get_areas()["fr"].create_hydro()
+    hydro_properties = HydroPropertiesUpdate(reservoir_capacity=4.3)
+    local_study_with_st_storage.get_areas()["fr"].hydro.update_properties(hydro_properties)
     return local_study_with_st_storage
 
 

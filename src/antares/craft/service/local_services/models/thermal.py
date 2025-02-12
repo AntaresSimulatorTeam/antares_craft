@@ -20,7 +20,7 @@ from antares.craft.model.thermal import (
     ThermalClusterPropertiesUpdate,
     ThermalCostGeneration,
 )
-from antares.craft.service.local_services.models import LocalBaseModel
+from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from pydantic import Field
 
 ThermalPropertiesType = Union[ThermalClusterProperties, ThermalClusterPropertiesUpdate]

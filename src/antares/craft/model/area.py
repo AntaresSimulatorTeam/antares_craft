@@ -22,7 +22,7 @@ from typing import Any, Mapping, Optional
 import pandas as pd
 
 from antares.craft.model.commons import FilterOption, sort_filter_values
-from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties
+from antares.craft.model.hydro import Hydro, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
@@ -222,7 +222,7 @@ class Area:
         self._renewables = renewables or dict()
         self._thermals = thermals or dict()
         self._st_storages = st_storages or dict()
-        self._hydro = hydro
+        self._hydro = hydro or Hydro(self._hydro_service, self._id, HydroProperties())
         self._properties = properties or AreaProperties()
         self._ui = ui or AreaUi()
 
@@ -244,7 +244,7 @@ class Area:
         return MappingProxyType(self._st_storages)
 
     @property
-    def hydro(self) -> Optional[Hydro]:
+    def hydro(self) -> Hydro:
         return self._hydro
 
     @property
@@ -346,16 +346,6 @@ class Area:
     def create_misc_gen(self, series: pd.DataFrame) -> None:
         self._area_service.create_misc_gen(self.id, series)
 
-    def create_hydro(
-        self,
-        properties: Optional[HydroProperties] = None,
-        matrices: Optional[dict[HydroMatrixName, pd.DataFrame]] = None,
-    ) -> Hydro:
-        # todo: is it necessary to create allocation or correlation ?
-        hydro = self._area_service.create_hydro(self.id, properties, matrices)
-        self._hydro = hydro
-        return hydro
-
     def read_st_storages(
         self,
     ) -> list[STStorage]:
@@ -370,8 +360,3 @@ class Area:
         self,
     ) -> list[ThermalCluster]:
         return self._thermal_service.read_thermal_clusters(self.id)
-
-    def read_hydro(
-        self,
-    ) -> Hydro:
-        return self._area_service.read_hydro(self.id)

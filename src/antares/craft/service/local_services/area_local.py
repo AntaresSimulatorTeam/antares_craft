@@ -14,7 +14,7 @@ import logging
 import os
 
 from configparser import ConfigParser, DuplicateSectionError
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 import pandas as pd
 
@@ -27,7 +27,7 @@ from antares.craft.model.area import (
     AreaUi,
     AreaUiLocal,
 )
-from antares.craft.model.hydro import Hydro, HydroMatrixName, HydroProperties, HydroPropertiesLocal
+from antares.craft.model.hydro import Hydro, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties, STStoragePropertiesLocal
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
@@ -40,9 +40,10 @@ from antares.craft.service.base_services import (
 )
 from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
+from antares.craft.service.local_services.services.hydro import edit_hydro_properties
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
-from antares.craft.tools.matrix_tool import read_timeseries
+from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.prepro_folder import PreproFolder
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 from typing_extensions import override
@@ -125,15 +126,15 @@ class AreaLocalService(BaseAreaService):
 
         # Upload matrices
         if prepro:
-            self._write_timeseries(prepro, TimeSeriesFileType.THERMAL_DATA, area_id)
+            write_timeseries(self.config.study_path, prepro, TimeSeriesFileType.THERMAL_DATA, area_id)
         if modulation:
-            self._write_timeseries(modulation, TimeSeriesFileType.THERMAL_MODULATION, area_id)
+            write_timeseries(self.config.study_path, modulation, TimeSeriesFileType.THERMAL_MODULATION, area_id)
         if series:
-            self._write_timeseries(series, TimeSeriesFileType.THERMAL_SERIES, area_id)
+            write_timeseries(self.config.study_path, series, TimeSeriesFileType.THERMAL_SERIES, area_id)
         if co2_cost:
-            self._write_timeseries(co2_cost, TimeSeriesFileType.THERMAL_CO2, area_id)
+            write_timeseries(self.config.study_path, co2_cost, TimeSeriesFileType.THERMAL_CO2, area_id)
         if fuel_cost:
-            self._write_timeseries(fuel_cost, TimeSeriesFileType.THERMAL_FUEL, area_id)
+            write_timeseries(self.config.study_path, fuel_cost, TimeSeriesFileType.THERMAL_FUEL, area_id)
 
         return ThermalCluster(self.thermal_service, area_id, thermal_name, properties)
 
@@ -154,18 +155,14 @@ class AreaLocalService(BaseAreaService):
         list_ini.write_ini_file()
 
         if series:
-            self._write_timeseries(series, TimeSeriesFileType.RENEWABLE_DATA_SERIES, area_id)
+            write_timeseries(self.config.study_path, series, TimeSeriesFileType.RENEWABLE_DATA_SERIES, area_id)
 
         return RenewableCluster(self.renewable_service, area_id, renewable_name, properties)
 
     @override
     def create_load(self, area_id: str, series: pd.DataFrame) -> None:
-        self._write_timeseries(series, TimeSeriesFileType.LOAD, area_id)
+        write_timeseries(self.config.study_path, series, TimeSeriesFileType.LOAD, area_id)
         PreproFolder.LOAD.save(self.config.study_path, area_id)
-
-    def _write_timeseries(self, series: pd.DataFrame, ts_file_type: TimeSeriesFileType, area_id: str) -> None:
-        file_path = self.config.study_path.joinpath(ts_file_type.value.format(area_id=area_id))
-        series.to_csv(file_path, sep="\t", header=False, index=False, encoding="utf-8")
 
     @override
     def create_st_storage(
@@ -188,47 +185,21 @@ class AreaLocalService(BaseAreaService):
 
     @override
     def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
-        self._write_timeseries(series, TimeSeriesFileType.WIND, area_id)
+        write_timeseries(self.config.study_path, series, TimeSeriesFileType.WIND, area_id)
         PreproFolder.WIND.save(self.config.study_path, area_id)
 
     @override
     def create_reserves(self, area_id: str, series: pd.DataFrame) -> None:
-        self._write_timeseries(series, TimeSeriesFileType.RESERVES, area_id)
+        write_timeseries(self.config.study_path, series, TimeSeriesFileType.RESERVES, area_id)
 
     @override
     def create_solar(self, area_id: str, series: pd.DataFrame) -> None:
-        self._write_timeseries(series, TimeSeriesFileType.SOLAR, area_id)
+        write_timeseries(self.config.study_path, series, TimeSeriesFileType.SOLAR, area_id)
         PreproFolder.SOLAR.save(self.config.study_path, area_id)
 
     @override
     def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
-        self._write_timeseries(series, TimeSeriesFileType.MISC_GEN, area_id)
-
-    @override
-    def create_hydro(
-        self,
-        area_id: str,
-        properties: Optional[HydroProperties] = None,
-        matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
-    ) -> Hydro:
-        properties = properties or HydroProperties()
-        args = {"area_id": area_id, **properties.model_dump(mode="json", exclude_none=True)}
-        local_hydro_properties = HydroPropertiesLocal.model_validate(args)
-
-        list_ini = IniFile(self.config.study_path, InitializationFilesTypes.HYDRO_INI)
-        list_ini.add_section(local_hydro_properties.hydro_ini_fields, append=True)
-        list_ini.write_ini_file(sort_section_content=True)
-
-        IniFile.create_hydro_initialization_files_for_area(self.config.study_path, area_id)
-
-        return Hydro(self.hydro_service, area_id, local_hydro_properties.yield_hydro_properties())
-
-    @override
-    def read_hydro(
-        self,
-        area_id: str,
-    ) -> Hydro:
-        raise NotImplementedError
+        write_timeseries(self.config.study_path, series, TimeSeriesFileType.MISC_GEN, area_id)
 
     @override
     def create_area(
@@ -333,6 +304,14 @@ class AreaLocalService(BaseAreaService):
             IniFile.create_link_ini_for_area(self.config.study_path, area_name)
             IniFile.create_list_ini_for_area(self.config.study_path, area_name)
 
+            # Hydro
+            area_id = transform_name_to_id(area_name)
+            default_hydro_properties = HydroProperties()
+            update_properties = default_hydro_properties.to_update_properties()
+            edit_hydro_properties(self.config.study_path, area_id, update_properties, creation=True)
+            hydro = Hydro(self.hydro_service, area_id, default_hydro_properties)
+            IniFile.create_hydro_initialization_files_for_area(self.config.study_path, area_id)
+
         except Exception as e:
             raise AreaCreationError(area_name, f"{e}") from e
 
@@ -344,10 +323,10 @@ class AreaLocalService(BaseAreaService):
             thermal_service=self.thermal_service,
             renewable_service=self.renewable_service,
             hydro_service=self.hydro_service,
+            hydro=hydro,
             properties=local_properties.yield_area_properties(),
             ui=local_ui.yield_area_ui(),
         )
-        created_area.create_hydro()
         return created_area
 
     @override
@@ -437,16 +416,18 @@ class AreaLocalService(BaseAreaService):
                     layer_y=ui_dict["ui"].get("layerY"),
                     layer_color=ui_dict["ui"].get("layerColor"),
                 )
-                areas.append(
-                    Area(
-                        name=element.name,
-                        area_service=self,
-                        storage_service=self.storage_service,
-                        thermal_service=self.thermal_service,
-                        renewable_service=self.renewable_service,
-                        hydro_service=self.hydro_service,
-                        properties=area_properties.yield_area_properties(),
-                        ui=ui_properties,
-                    )
+                area = Area(
+                    name=element.name,
+                    area_service=self,
+                    storage_service=self.storage_service,
+                    thermal_service=self.thermal_service,
+                    renewable_service=self.renewable_service,
+                    hydro_service=self.hydro_service,
+                    properties=area_properties.yield_area_properties(),
+                    ui=ui_properties,
                 )
+                area.hydro.read_properties()
+                areas.append(area)
+
+        areas.sort(key=lambda area_obj: area_obj.id)
         return areas

@@ -13,18 +13,15 @@
 from configparser import ConfigParser
 from pathlib import Path
 
-from antares.craft.model.hydro import Hydro
+from antares.craft.model.hydro import Hydro, HydroProperties
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
 class TestCreateHydro:
-    def test_can_create_hydro(self, local_study_with_st_storage):
-        # When
-        local_study_with_st_storage.get_areas()["fr"].create_hydro()
-
-        # Then
-        assert local_study_with_st_storage.get_areas()["fr"].hydro
-        assert isinstance(local_study_with_st_storage.get_areas()["fr"].hydro, Hydro)
+    def test_can_create_hydro(self, local_study_with_hydro):
+        hydro = local_study_with_hydro.get_areas()["fr"].hydro
+        assert isinstance(hydro, Hydro)
+        assert hydro.properties == HydroProperties(reservoir_capacity=4.3)
 
     def test_hydro_has_properties(self, local_study_w_areas):
         assert local_study_w_areas.get_areas()["fr"].hydro.properties
@@ -42,9 +39,6 @@ class TestCreateHydro:
         """
         study_path = Path(local_study_w_areas.path)
         areas = local_study_w_areas.get_areas()
-
-        for area_id, area in areas.items():
-            area.create_hydro()
 
         for area_id in areas.keys():
             expected_paths = [
@@ -64,64 +58,64 @@ class TestCreateHydro:
     def test_hydro_ini_has_correct_default_values(self, local_study_w_areas):
         # Given
         expected_hydro_ini_content = """[inter-daily-breakdown]
-fr = 1.000000
-it = 1.000000
+fr = 1.0
+it = 1.0
 
 [intra-daily-modulation]
-fr = 24.000000
-it = 24.000000
+fr = 24.0
+it = 24.0
 
 [inter-monthly-breakdown]
-fr = 1.000000
-it = 1.000000
+fr = 1.0
+it = 1.0
 
 [reservoir]
-fr = false
-it = false
+fr = False
+it = False
 
 [reservoir capacity]
-fr = 0.000000
-it = 0.000000
+fr = 0.0
+it = 0.0
 
 [follow load]
-fr = true
-it = true
+fr = True
+it = True
 
 [use water]
-fr = false
-it = false
+fr = False
+it = False
 
 [hard bounds]
-fr = false
-it = false
+fr = False
+it = False
 
 [initialize reservoir date]
 fr = 0
 it = 0
 
 [use heuristic]
-fr = true
-it = true
+fr = True
+it = True
 
 [power to level]
-fr = false
-it = false
+fr = False
+it = False
 
 [use leeway]
-fr = false
-it = false
+fr = False
+it = False
 
 [leeway low]
-fr = 1.000000
-it = 1.000000
+fr = 1.0
+it = 1.0
 
 [leeway up]
-fr = 1.000000
-it = 1.000000
+fr = 1.0
+it = 1.0
 
 [pumping efficiency]
-fr = 1.000000
-it = 1.000000
+fr = 1.0
+it = 1.0
 
 """
         expected_hydro_ini = ConfigParser()
@@ -139,44 +133,44 @@ it = 1.000000
     def test_hydro_ini_has_correct_sorted_areas(self, actual_hydro_ini):
         # Given
         expected_hydro_ini_content = """[inter-daily-breakdown]
-at = 1.000000
-fr = 1.000000
-it = 1.000000
+at = 1.0
+fr = 1.0
+it = 1.0
 
 [intra-daily-modulation]
-at = 24.000000
-fr = 24.000000
-it = 24.000000
+at = 24.0
+fr = 24.0
+it = 24.0
 
 [inter-monthly-breakdown]
-at = 1.000000
-fr = 1.000000
-it = 1.000000
+at = 1.0
+fr = 1.0
+it = 1.0
 
 [reservoir]
-at = false
-fr = false
-it = false
+at = False
+fr = False
+it = False
 
 [reservoir capacity]
-at = 0.000000
-fr = 0.000000
-it = 0.000000
+at = 0.0
+fr = 4.3
+it = 0.0
 
 [follow load]
-at = true
-fr = true
-it = true
+at = True
+fr = True
+it = True
 
 [use water]
-at = false
-fr = false
-it = false
+at = False
+fr = False
+it = False
 
 [hard bounds]
-at = false
-fr = false
-it = false
+at = False
+fr = False
+it = False
 
 [initialize reservoir date]
 at = 0
@@ -184,34 +178,34 @@ fr = 0
 it = 0
 
 [use heuristic]
-at = true
-fr = true
-it = true
+at = True
+fr = True
+it = True
 
 [power to level]
-at = false
-fr = false
-it = false
+at = False
+fr = False
+it = False
 
 [use leeway]
-at = false
-fr = false
-it = false
+at = False
+fr = False
+it = False
 
 [leeway low]
-at = 1.000000
-fr = 1.000000
-it = 1.000000
+at = 1.0
+fr = 1.0
+it = 1.0
 
 [leeway up]
-at = 1.000000
-fr = 1.000000
-it = 1.000000
+at = 1.0
+fr = 1.0
+it = 1.0
 
 [pumping efficiency]
-at = 1.000000
-fr = 1.000000
-it = 1.000000
+at = 1.0
+fr = 1.0
+it = 1.0
 
 """
         expected_hydro_ini = ConfigParser()

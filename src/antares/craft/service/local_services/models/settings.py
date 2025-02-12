@@ -51,7 +51,7 @@ from antares.craft.model.settings.optimization import (
     SimplexOptimizationRange,
     UnfeasibleProblemBehavior,
 )
-from antares.craft.service.local_services.models import LocalBaseModel
+from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
 from pydantic import Field, field_validator
 

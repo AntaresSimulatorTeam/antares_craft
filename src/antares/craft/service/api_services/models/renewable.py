@@ -18,7 +18,7 @@ from antares.craft.model.renewable import (
     RenewableClusterPropertiesUpdate,
     TimeSeriesInterpretation,
 )
-from antares.craft.service.api_services.models import APIBaseModel
+from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 
 RenewablePropertiesType = Union[RenewableClusterProperties, RenewableClusterPropertiesUpdate]

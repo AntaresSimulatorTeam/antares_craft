@@ -119,6 +119,18 @@ class HydroCreationError(Exception):
         super().__init__(self.message)
 
 
+class HydroPropertiesUpdateError(Exception):
+    def __init__(self, area_id: str, message: str) -> None:
+        self.message = f"Could not update hydro properties for area {area_id}: " + message
+        super().__init__(self.message)
+
+
+class HydroPropertiesReadingError(Exception):
+    def __init__(self, area_id: str, message: str) -> None:
+        self.message = f"Could not read hydro properties for area {area_id}: " + message
+        super().__init__(self.message)
+
+
 class RenewableCreationError(Exception):
     def __init__(self, renewable_name: str, area_id: str, message: str) -> None:
         self.message = f"Could not create the renewable cluster {renewable_name} inside area {area_id}: " + message
