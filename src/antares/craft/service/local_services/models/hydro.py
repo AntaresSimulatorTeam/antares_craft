@@ -14,7 +14,9 @@ from typing import Union
 
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
 from antares.craft.service.local_services.models.settings import LocalBaseModel
+from antares.craft.tools.all_optional_meta import all_optional_model
 from pydantic import Field
+from typing_extensions import override
 
 HydroPropertiesType = Union[HydroProperties, HydroPropertiesUpdate]
 
@@ -58,3 +60,12 @@ class HydroPropertiesLocal(LocalBaseModel):
             leeway_up=self.leeway_up,
             pumping_efficiency=self.pumping_efficiency,
         )
+
+
+@all_optional_model
+class HydroPropertiesLocalUpdate(HydroPropertiesLocal):
+    @staticmethod
+    @override
+    def from_user_model(user_class: HydroPropertiesType) -> "HydroPropertiesLocalUpdate":
+        user_dict = asdict(user_class)
+        return HydroPropertiesLocalUpdate.model_validate(user_dict)

@@ -38,7 +38,7 @@ from antares.craft.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
-from antares.craft.service.local_services.services.hydro import create_hydro_properties
+from antares.craft.service.local_services.services.hydro import edit_hydro_properties
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
@@ -207,7 +207,8 @@ class AreaLocalService(BaseAreaService):
         matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
     ) -> Hydro:
         properties = properties or HydroProperties()
-        create_hydro_properties(self.config.study_path, area_id, properties)
+        update_properties = properties.to_update_properties()
+        edit_hydro_properties(self.config.study_path, area_id, update_properties, creation=True)
         return Hydro(self.hydro_service, area_id, properties)
 
     @override

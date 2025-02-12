@@ -14,9 +14,9 @@ from pathlib import Path
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
+from antares.craft.model.hydro import HydroPropertiesUpdate
 from antares.craft.service.base_services import BaseHydroService
-from antares.craft.service.local_services.models.hydro import HydroPropertiesLocal
+from antares.craft.service.local_services.models.hydro import HydroPropertiesLocal, HydroPropertiesLocalUpdate
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
@@ -53,40 +53,17 @@ class HydroLocalService(BaseHydroService):
         return read_timeseries(TimeSeriesFileType.HYDRO_WATER_VALUES, self.config.study_path, area_id=area_id)
 
 
-def create_hydro_properties(study_path: Path, area_id: str, properties: HydroProperties) -> None:
+def edit_hydro_properties(study_path: Path, area_id: str, properties: HydroPropertiesUpdate, creation: bool) -> None:
     list_ini = IniFile(study_path, InitializationFilesTypes.HYDRO_INI)
     current_content = list_ini.ini_dict
-    local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(mode="json", by_alias=True,
-                                                                             exclude_unset=True)
-    print(local_dict)
-    print("///////////")
 
+    if creation:
+        local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(mode="json", by_alias=True)
+    else:
+        local_update_properties = HydroPropertiesLocalUpdate.from_user_model(properties)
+        local_dict = local_update_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
 
-    list_ini = IniFile(study_path, InitializationFilesTypes.HYDRO_INI)
-    current_content = list_ini.ini_dict
-    local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(mode="json", by_alias=True)
     for key, value in local_dict.items():
         current_content.setdefault(key, {})[area_id] = value
     list_ini.ini_dict = current_content
     list_ini.write_ini_file()
-
-
-def update_hydro_properties(study_path: Path, area_id: str, properties: HydroPropertiesUpdate) -> None:
-    list_ini = IniFile(study_path, InitializationFilesTypes.HYDRO_INI)
-    current_content = list_ini.ini_dict
-    local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(mode="json", by_alias=True, exclude_unset=True)
-    print(local_dict)
-    print("///////////")
-
-    """
-    reorganized_content: dict[str, Any] = {}
-    for key, data in current_content.items():
-        for area_id, value in data.items():
-            reorganized_content.setdefault(area_id, {})[key] = value
-
-    for area_id, values in reorganized_content.items():
-        local_properties = HydroPropertiesLocal.model_validate(values)
-
-
-    # local_properties = HydroPropertiesLocal.from_user_model(properties)
-    """

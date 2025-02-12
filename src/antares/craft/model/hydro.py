@@ -31,6 +31,25 @@ class HydroMatrixName(Enum):
 
 
 @dataclass
+class HydroPropertiesUpdate:
+    inter_daily_breakdown: Optional[float] = None
+    intra_daily_modulation: Optional[float] = None
+    inter_monthly_breakdown: Optional[float] = None
+    reservoir: Optional[bool] = None
+    reservoir_capacity: Optional[float] = None
+    follow_load: Optional[bool] = None
+    use_water: Optional[bool] = None
+    hard_bounds: Optional[bool] = None
+    initialize_reservoir_date: Optional[int] = None
+    use_heuristic: Optional[bool] = None
+    power_to_level: Optional[bool] = None
+    use_leeway: Optional[bool] = None
+    leeway_low: Optional[float] = None
+    leeway_up: Optional[float] = None
+    pumping_efficiency: Optional[float] = None
+
+
+@dataclass
 class HydroProperties:
     inter_daily_breakdown: float = 1
     intra_daily_modulation: float = 24
@@ -48,24 +67,24 @@ class HydroProperties:
     leeway_up: float = 1
     pumping_efficiency: float = 1
 
-
-@dataclass
-class HydroPropertiesUpdate:
-    inter_daily_breakdown: Optional[float] = None
-    intra_daily_modulation: Optional[float] = None
-    inter_monthly_breakdown: Optional[float] = None
-    reservoir: Optional[bool] = None
-    reservoir_capacity: float = 0
-    follow_load: Optional[bool] = None
-    use_water: Optional[bool] = None
-    hard_bounds: Optional[bool] = None
-    initialize_reservoir_date: Optional[int] = None
-    use_heuristic: Optional[bool] = None
-    power_to_level: Optional[bool] = None
-    use_leeway: Optional[bool] = None
-    leeway_low: Optional[float] = None
-    leeway_up: Optional[float] = None
-    pumping_efficiency: Optional[float] = None
+    def to_update_properties(self) -> HydroPropertiesUpdate:
+        return HydroPropertiesUpdate(
+            inter_daily_breakdown=self.inter_daily_breakdown,
+            intra_daily_modulation=self.intra_daily_modulation,
+            inter_monthly_breakdown=self.inter_monthly_breakdown,
+            reservoir=self.reservoir,
+            reservoir_capacity=self.reservoir_capacity,
+            follow_load=self.follow_load,
+            use_water=self.use_water,
+            hard_bounds=self.hard_bounds,
+            initialize_reservoir_date=self.initialize_reservoir_date,
+            use_heuristic=self.use_heuristic,
+            power_to_level=self.power_to_level,
+            use_leeway=self.use_leeway,
+            leeway_low=self.use_water,
+            leeway_up=self.leeway_up,
+            pumping_efficiency=self.pumping_efficiency,
+        )
 
 
 class Hydro:
