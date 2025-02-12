@@ -57,13 +57,16 @@ class TestCreateAPI:
     def test_update_binding_constraint_properties_success(self):
         with requests_mock.Mocker() as mocker:
             update_properties = BindingConstraintPropertiesUpdate(enabled=False)
-            api_properties = BindingConstraintPropertiesAPI.from_user_model(update_properties)
+            creation_properties = BindingConstraintProperties(enabled=False)
+            api_properties = BindingConstraintPropertiesAPI.from_user_model(creation_properties)
             constraint = BindingConstraint(
                 "bc_1", ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
             )
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}"
             mocker.put(
-                url, json={"id": "id", "name": "name", "terms": [], **api_properties.model_dump()}, status_code=200
+                url,
+                json={"id": "id", "name": "name", "terms": [], **api_properties.model_dump(mode="json")},
+                status_code=200,
             )
             constraint.update_properties(properties=update_properties)
             assert constraint.properties == BindingConstraintProperties(enabled=False)

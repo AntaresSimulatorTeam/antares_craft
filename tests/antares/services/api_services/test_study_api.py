@@ -40,7 +40,6 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
-    BindingConstraint,
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
@@ -201,7 +200,9 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
             properties = BindingConstraintProperties(enabled=False, filter_synthesis="annual")
-            json_response = BindingConstraintPropertiesAPI.from_user_model(properties).model_dump(mode="json", by_alias=True)
+            json_response = BindingConstraintPropertiesAPI.from_user_model(properties).model_dump(
+                mode="json", by_alias=True
+            )
             constraint_name = "bc_1"
             mocker.post(url, json={"id": "id", "name": constraint_name, "terms": [], **json_response}, status_code=201)
             constraint = self.study.create_binding_constraint(name=constraint_name, properties=properties)
