@@ -66,7 +66,7 @@ def edit_hydro_properties(study_path: Path, area_id: str, properties: HydroPrope
     for key, value in local_dict.items():
         current_content.setdefault(key, {})[area_id] = value
     list_ini.ini_dict = current_content
-    list_ini.write_ini_file()
+    list_ini.write_ini_file(sort_section_content=True)
 
 
 def read_hydro_properties(study_path: Path, area_id: str) -> HydroProperties:
