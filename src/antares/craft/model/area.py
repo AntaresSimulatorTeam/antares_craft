@@ -209,8 +209,8 @@ class Area:
         thermals: Optional[dict[str, ThermalCluster]] = None,
         st_storages: Optional[dict[str, STStorage]] = None,
         hydro: Optional[Hydro] = None,
-        properties: Optional[AreaProperties] = None,
-        ui: Optional[AreaUi] = None,
+        properties: AreaProperties,
+        ui: AreaUi,
     ):
         self._name = name
         self._id = transform_name_to_id(name)
@@ -223,8 +223,8 @@ class Area:
         self._thermals = thermals or dict()
         self._st_storages = st_storages or dict()
         self._hydro = hydro
-        self._properties = properties or AreaProperties()
-        self._ui = ui or AreaUi()
+        self._properties = properties
+        self._ui = ui
 
     @property
     def name(self) -> str:
