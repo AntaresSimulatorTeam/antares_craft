@@ -196,9 +196,9 @@ class BindingConstraintApiService(BaseBindingConstraintService):
                 BindingConstraint(
                     constraint["name"],
                     self,
-                    BindingConstraintProperties.model_validate(
+                    BindingConstraintPropertiesAPI.model_validate(
                         {k: v for k, v in constraint.items() if k not in ["terms", "id", "name"]}
-                    ),
+                    ).to_user_model(),
                     [ConstraintTerm.model_validate(term) for term in constraint["terms"]],
                 )
                 for constraint in constraints_json
