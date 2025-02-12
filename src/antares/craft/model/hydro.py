@@ -81,7 +81,7 @@ class HydroProperties:
             use_heuristic=self.use_heuristic,
             power_to_level=self.power_to_level,
             use_leeway=self.use_leeway,
-            leeway_low=self.use_water,
+            leeway_low=self.leeway_low,
             leeway_up=self.leeway_up,
             pumping_efficiency=self.pumping_efficiency,
         )
