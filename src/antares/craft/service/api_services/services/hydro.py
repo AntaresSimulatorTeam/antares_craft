@@ -104,6 +104,34 @@ class HydroApiService(BaseHydroService):
             raise MatrixDownloadError(area_id, "water_values", e.message) from e
 
     @override
+    def get_ror_series(self, area_id: str) -> pd.DataFrame:
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/hydro/series/{area_id}/ror")
+        except APIError as e:
+            raise MatrixDownloadError(area_id, "ror", e.message) from e
+
+    @override
+    def get_mod_series(self, area_id: str) -> pd.DataFrame:
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/hydro/series/{area_id}/mod")
+        except APIError as e:
+            raise MatrixDownloadError(area_id, "mod", e.message) from e
+
+    @override
+    def get_mingen(self, area_id: str) -> pd.DataFrame:
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/hydro/series/{area_id}/mingen")
+        except APIError as e:
+            raise MatrixDownloadError(area_id, "mingen", e.message) from e
+
+    @override
+    def get_energy(self, area_id: str) -> pd.DataFrame:
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/hydro/prepro/{area_id}/energy")
+        except APIError as e:
+            raise MatrixDownloadError(area_id, "energy", e.message) from e
+
+    @override
     def update_maxpower(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             upload_series(

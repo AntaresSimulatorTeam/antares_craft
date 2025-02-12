@@ -65,6 +65,22 @@ class HydroLocalService(BaseHydroService):
         return read_timeseries(TimeSeriesFileType.HYDRO_WATER_VALUES, self.config.study_path, area_id=area_id)
 
     @override
+    def get_ror_series(self, area_id: str) -> pd.DataFrame:
+        return read_timeseries(TimeSeriesFileType.HYDRO_ROR, self.config.study_path, area_id=area_id)
+
+    @override
+    def get_mod_series(self, area_id: str) -> pd.DataFrame:
+        return read_timeseries(TimeSeriesFileType.HYDRO_MOD, self.config.study_path, area_id=area_id)
+
+    @override
+    def get_mingen(self, area_id: str) -> pd.DataFrame:
+        return read_timeseries(TimeSeriesFileType.HYDRO_MINGEN, self.config.study_path, area_id=area_id)
+
+    @override
+    def get_energy(self, area_id: str) -> pd.DataFrame:
+        return read_timeseries(TimeSeriesFileType.HYDRO_ENERGY, self.config.study_path, area_id=area_id)
+
+    @override
     def update_maxpower(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_MAX_POWER, area_id)
 

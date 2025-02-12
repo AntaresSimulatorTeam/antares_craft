@@ -315,6 +315,22 @@ class BaseHydroService(ABC):
         pass
 
     @abstractmethod
+    def get_ror_series(self, area_id: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_mod_series(self, area_id: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_mingen(self, area_id: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def get_energy(self, area_id: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
     def update_maxpower(self, area_id: str, series: pd.DataFrame) -> None:
         pass
 
