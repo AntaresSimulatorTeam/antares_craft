@@ -27,6 +27,7 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.service.base_services import BaseBindingConstraintService
 from antares.craft.service.local_services.models.binding_constraint import BindingConstraintPropertiesLocal
+from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import df_read, df_save
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
@@ -50,6 +51,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         equal_term_matrix: Optional[pd.DataFrame] = None,
         greater_term_matrix: Optional[pd.DataFrame] = None,
     ) -> BindingConstraint:
+        properties = properties or BindingConstraintProperties()
         constraint = BindingConstraint(
             name=name,
             binding_constraint_service=self,
@@ -57,8 +59,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             terms=terms,
         )
 
-        local_properties = self._generate_local_properties(constraint)
-        constraint.properties = local_properties.yield_binding_constraint_properties()
+        local_properties = BindingConstraintPropertiesLocal.from_user_model(properties)
 
         current_ini_content = self.ini_file.ini_dict_binding_constraints or {}
         if any(values.get("id") == constraint.id for values in current_ini_content.values()):
@@ -66,7 +67,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
                 constraint_name=name, message=f"A binding constraint with the name {name} already exists."
             )
 
-        self._write_binding_constraint_ini(local_properties, name, name, terms)
+        self._create_constraint_inside_ini(name, local_properties, terms)
 
         self._store_time_series(constraint, less_term_matrix, equal_term_matrix, greater_term_matrix)
 
@@ -114,11 +115,37 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         time_series_length = (365 * 24 + 24) if time_step == BindingConstraintFrequency.HOURLY else 366
         return time_series if time_series is not None else pd.DataFrame(np.zeros([time_series_length, 1]))
 
+    def _create_constraint_inside_ini(
+        self,
+        constraint_name: str,
+        properties: BindingConstraintPropertiesLocal,
+        terms: Optional[list[ConstraintTerm]] = None,
+    ) -> None:
+        current_ini_content = self.ini_file.ini_dict
+        constraint_id = transform_name_to_id(constraint_name)
+        # Ensures the constraint doesn't already exist
+        for existing_constraint in current_ini_content.values():
+            if existing_constraint["id"] == constraint_id:
+                raise BindingConstraintCreationError(
+                    constraint_name=constraint_name,
+                    message=f"A binding constraint with the name {constraint_name} already exists.",
+                )
+        new_key = str(len(current_ini_content.keys()))
+        props_content = {
+            "id": constraint_id,
+            "name": constraint_name,
+            **properties.model_dump(mode="json", by_alias=True),
+        }
+        term_content = {} if not terms else {term.id: term.weight_offset() for term in terms}
+        whole_content = props_content | term_content
+        current_ini_content[new_key] = whole_content
+        self.ini_file.ini_dict = current_ini_content
+        self.ini_file.write_ini_file()
+
     def _write_binding_constraint_ini(
         self,
         local_properties: BindingConstraintPropertiesLocal,
         constraint_name: str,
-        constraint_id: str,
         terms: Optional[list[ConstraintTerm]] = None,
     ) -> None:
         """
@@ -180,7 +207,6 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         self._write_binding_constraint_ini(
             local_properties=local_properties,
             constraint_name=constraint.name,
-            constraint_id=constraint.id,
             terms=terms_values,
         )
 
