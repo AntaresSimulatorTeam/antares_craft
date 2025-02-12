@@ -19,7 +19,7 @@ import pandas as pd
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import MatrixDownloadError, MatrixUploadError
 from antares.craft.model.area import Area
-from antares.craft.model.hydro import Hydro, HydroMatrixName
+from antares.craft.model.hydro import Hydro, HydroProperties
 from antares.craft.service.service_factory import ServiceFactory
 
 
@@ -37,18 +37,7 @@ class TestMatrixAPI:
 
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
-    matrices_hydro = {
-        HydroMatrixName.SERIES_ROR: matrix,
-        HydroMatrixName.SERIES_MOD: matrix,
-        HydroMatrixName.SERIES_MIN_GEN: matrix,
-        HydroMatrixName.PREPRO_ENERGY: matrix,
-        HydroMatrixName.COMMON_WATER_VALUES: matrix,
-        HydroMatrixName.COMMON_RESERVOIR: matrix,
-        HydroMatrixName.COMMON_MAX_POWER: matrix,
-        HydroMatrixName.COMMON_INFLOW_PATTERN: matrix,
-        HydroMatrixName.COMMON_CREDIT_MODULATIONS: matrix,
-    }
-    hydro = Hydro(ServiceFactory(api, study_id).create_hydro_service(), "area_test", properties=None)
+    hydro = Hydro(ServiceFactory(api, study_id).create_hydro_service(), "area_test", properties=HydroProperties())
 
     # =======================
     #  LOAD
