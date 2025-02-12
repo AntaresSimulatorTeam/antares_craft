@@ -13,7 +13,7 @@ from dataclasses import asdict
 from typing import Union
 
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
-from antares.craft.service.local_services.models import LocalBaseModel
+from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 
 STStoragePropertiesType = Union[STStorageProperties, STStoragePropertiesUpdate]
