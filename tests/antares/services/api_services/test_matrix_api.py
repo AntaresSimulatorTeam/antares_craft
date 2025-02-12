@@ -48,9 +48,7 @@ class TestMatrixAPI:
         HydroMatrixName.COMMON_INFLOW_PATTERN: matrix,
         HydroMatrixName.COMMON_CREDIT_MODULATIONS: matrix,
     }
-    hydro = Hydro(
-        ServiceFactory(api, study_id).create_hydro_service(), "area_test", properties=None, matrices=matrices_hydro
-    )
+    hydro = Hydro(ServiceFactory(api, study_id).create_hydro_service(), "area_test", properties=None)
 
     # =======================
     #  LOAD
