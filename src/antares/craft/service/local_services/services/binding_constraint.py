@@ -142,8 +142,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     def _update_constraint_inside_ini(
         self,
         constraint_name: str,
-        properties: Optional[BindingConstraintPropertiesLocal] = None,
-        terms: Optional[list[ConstraintTerm]] = None,
+        properties: BindingConstraintPropertiesLocal,
     ) -> None:
         current_ini_content = self.ini_file.ini_dict
         constraint_id = transform_name_to_id(constraint_name)
