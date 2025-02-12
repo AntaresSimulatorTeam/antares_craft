@@ -34,7 +34,15 @@ class HydroLocalService(BaseHydroService):
 
     @override
     def read_properties(self, area_id: str) -> HydroProperties:
-        return read_hydro_properties(self.config.study_path, area_id)
+        list_ini = IniFile(self.config.study_path, InitializationFilesTypes.HYDRO_INI)
+        current_content = list_ini.ini_dict
+
+        body = {}
+        for key, data in current_content.items():
+            if area_id in data:
+                body[key] = data[area_id]
+
+        return HydroPropertiesLocal.model_validate(body).to_user_model()
 
     @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:
@@ -71,15 +79,3 @@ def edit_hydro_properties(study_path: Path, area_id: str, properties: HydroPrope
         current_content.setdefault(key, {})[area_id] = value
     list_ini.ini_dict = current_content
     list_ini.write_ini_file(sort_section_content=True)
-
-
-def read_hydro_properties(study_path: Path, area_id: str) -> HydroProperties:
-    list_ini = IniFile(study_path, InitializationFilesTypes.HYDRO_INI)
-    current_content = list_ini.ini_dict
-
-    body = {}
-    for key, data in current_content.items():
-        if area_id in data:
-            body[key] = data[area_id]
-
-    return HydroPropertiesLocal.model_validate(body).to_user_model()
