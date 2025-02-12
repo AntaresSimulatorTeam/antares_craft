@@ -38,7 +38,7 @@ from antares.craft.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
-from antares.craft.service.local_services.models.hydro import HydroPropertiesLocal
+from antares.craft.service.local_services.services.hydro import create_hydro_properties
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
@@ -206,22 +206,9 @@ class AreaLocalService(BaseAreaService):
         properties: Optional[HydroProperties] = None,
         matrices: Optional[Dict[HydroMatrixName, pd.DataFrame]] = None,
     ) -> Hydro:
-        # todo: we first have to get the current content
-        # Then, we can create a pydantic object to store this info
-        # Then we have to update this object with our values we gathered inside properties
-        # Finally we have to model_dump the content inside a variable that will take the place of .ini_dict
-        # And we write the file: write_ini_file
         properties = properties or HydroProperties()
-        args = {"area_id": area_id, **properties.model_dump(mode="json", exclude_none=True)}
-        local_hydro_properties = HydroPropertiesLocal.model_validate(args)
-
-        list_ini = IniFile(self.config.study_path, InitializationFilesTypes.HYDRO_INI)
-        list_ini.add_section(local_hydro_properties.hydro_ini_fields, append=True)
-        list_ini.write_ini_file(sort_section_content=True)
-
-        IniFile.create_hydro_initialization_files_for_area(self.config.study_path, area_id)
-
-        return Hydro(self.hydro_service, area_id, local_hydro_properties.yield_hydro_properties())
+        create_hydro_properties(self.config.study_path, properties)
+        return Hydro(self.hydro_service, area_id, properties)
 
     @override
     def read_hydro(
