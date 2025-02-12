@@ -437,16 +437,18 @@ class AreaLocalService(BaseAreaService):
                     layer_y=ui_dict["ui"].get("layerY"),
                     layer_color=ui_dict["ui"].get("layerColor"),
                 )
-                areas.append(
-                    Area(
-                        name=element.name,
-                        area_service=self,
-                        storage_service=self.storage_service,
-                        thermal_service=self.thermal_service,
-                        renewable_service=self.renewable_service,
-                        hydro_service=self.hydro_service,
-                        properties=area_properties.yield_area_properties(),
-                        ui=ui_properties,
-                    )
+                area = Area(
+                    name=element.name,
+                    area_service=self,
+                    storage_service=self.storage_service,
+                    thermal_service=self.thermal_service,
+                    renewable_service=self.renewable_service,
+                    hydro_service=self.hydro_service,
+                    properties=area_properties.yield_area_properties(),
+                    ui=ui_properties,
                 )
+                area.read_hydro()
+                areas.append(area)
+
+        areas.sort(key=lambda area_obj: area_obj.id)
         return areas

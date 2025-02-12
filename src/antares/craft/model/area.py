@@ -381,4 +381,6 @@ class Area:
     def read_hydro(
         self,
     ) -> Hydro:
-        return self._area_service.read_hydro(self.id)
+        hydro = self._area_service.read_hydro(self.id)
+        self._hydro = hydro
+        return hydro
