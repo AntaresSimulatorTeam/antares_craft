@@ -30,7 +30,7 @@ class HydroLocalService(BaseHydroService):
 
     @override
     def update_properties(self, area_id: str, properties: HydroPropertiesUpdate) -> None:
-        raise NotImplementedError
+        edit_hydro_properties(self.config.study_path, area_id, properties, creation=False)
 
     @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:
