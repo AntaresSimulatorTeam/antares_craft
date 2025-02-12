@@ -1214,15 +1214,8 @@ class TestCreateBindingconstraint:
         ):
             local_study_with_constraint.create_binding_constraint(name=binding_constraint_name)
 
-    def test_constraints_have_default_properties(self, local_study_with_constraint):
-        # Given
-        constraint = local_study_with_constraint.get_binding_constraints()["test constraint"]
-
-        # Then
-        assert constraint.properties.model_dump(exclude_none=True)
-
-    def test_constraints_have_correct_default_properties(self, test_constraint, default_constraint_properties):
-        assert test_constraint.properties == default_constraint_properties
+    def test_constraints_have_correct_default_properties(self, test_constraint):
+        assert test_constraint.properties == BindingConstraintProperties()
 
     def test_creating_constraints_creates_ini(self, local_study_with_constraint):
         # Given
@@ -1239,11 +1232,12 @@ class TestCreateBindingconstraint:
     ):
         # Given
         expected_ini_contents = """[0]
-name = test constraint
 id = test constraint
-enabled = true
+name = test constraint
+enabled = True
 type = hourly
 operator = less
+comments = 
 filter-year-by-year = hourly
 filter-synthesis = hourly
 group = default
@@ -1274,19 +1268,20 @@ group = default
             group="test group",
         )
         expected_ini_content = """[0]
-name = test constraint
 id = test constraint
-enabled = true
+name = test constraint
+enabled = True
 type = hourly
 operator = less
+comments = 
 filter-year-by-year = hourly
 filter-synthesis = hourly
 group = default
 
 [1]
-name = test constraint two
 id = test constraint two
-enabled = false
+name = test constraint two
+enabled = False
 type = weekly
 operator = both
 comments = test comment
@@ -1318,11 +1313,12 @@ group = test group
     def test_constraint_term_and_ini_have_correct_defaults(self, local_study_with_constraint, test_constraint):
         # Given
         expected_ini_contents = """[0]
-name = test constraint
 id = test constraint
-enabled = true
+name = test constraint
+enabled = True
 type = hourly
 operator = less
+comments = 
 filter-year-by-year = hourly
 filter-synthesis = hourly
 group = default
@@ -1342,11 +1338,12 @@ at%fr = 0
     ):
         # Given
         expected_ini_contents = """[0]
-name = test constraint
 id = test constraint
-enabled = true
+name = test constraint
+enabled = True
 type = hourly
 operator = less
+comments = 
 filter-year-by-year = hourly
 filter-synthesis = hourly
 group = default
