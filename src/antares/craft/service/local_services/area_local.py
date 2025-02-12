@@ -308,15 +308,18 @@ class AreaLocalService(BaseAreaService):
             IniFile.create_link_ini_for_area(self.config.study_path, area_name)
             IniFile.create_list_ini_for_area(self.config.study_path, area_name)
 
+            # Hydro
+            area_id = transform_name_to_id(area_name)
+            default_hydro_properties = HydroProperties()
+            update_properties = default_hydro_properties.to_update_properties()
+            edit_hydro_properties(self.config.study_path, area_id, update_properties, creation=True)
+            hydro = Hydro(self.hydro_service, area_id, default_hydro_properties)
+            IniFile.create_hydro_initialization_files_for_area(self.config.study_path, area_id)
+
         except Exception as e:
             raise AreaCreationError(area_name, f"{e}") from e
 
         logging.info(f"Area {area_name} created successfully!")
-        area_id = transform_name_to_id(area_name)
-        default_hydro_properties = HydroProperties()
-        update_properties = default_hydro_properties.to_update_properties()
-        edit_hydro_properties(self.config.study_path, area_id, update_properties, creation=True)
-        hydro = Hydro(self.hydro_service, area_id, default_hydro_properties)
         created_area = Area(
             name=area_name,
             area_service=self,
