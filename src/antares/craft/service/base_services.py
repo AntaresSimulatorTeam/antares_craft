@@ -37,7 +37,12 @@ if TYPE_CHECKING:
         RenewableClusterProperties,
         RenewableClusterPropertiesUpdate,
     )
-    from antares.craft.model.st_storage import STStorage, STStorageMatrixName, STStorageProperties
+    from antares.craft.model.st_storage import (
+        STStorage,
+        STStorageMatrixName,
+        STStorageProperties,
+        STStoragePropertiesUpdate,
+    )
     from antares.craft.model.study import Study
     from antares.craft.model.thermal import (
         ThermalCluster,
@@ -700,7 +705,7 @@ class BaseRenewableService(ABC):
 class BaseShortTermStorageService(ABC):
     @abstractmethod
     def update_st_storage_properties(
-        self, st_storage: "STStorage", properties: "STStorageProperties"
+        self, st_storage: "STStorage", properties: "STStoragePropertiesUpdate"
     ) -> "STStorageProperties":
         """
         Args:

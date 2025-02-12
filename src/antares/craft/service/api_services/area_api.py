@@ -38,6 +38,7 @@ from antares.craft.model.renewable import RenewableCluster, RenewableClusterProp
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
+from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import (
@@ -257,8 +258,7 @@ class AreaApiService(BaseAreaService):
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
-            name = json_response["name"]
-            del json_response["name"]
+            name = json_response.pop("name")
             del json_response["id"]
             api_properties = RenewableClusterPropertiesAPI.model_validate(json_response)
             properties = api_properties.to_user_model()
@@ -294,14 +294,15 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages"
             body = {"name": st_storage_name}
             if properties:
-                camel_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                api_model = STStoragePropertiesAPI.from_user_model(properties)
+                camel_properties = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
-            name = json_response["name"]
-            del json_response["name"]
+            name = json_response.pop("name")
             del json_response["id"]
-            properties = STStorageProperties.model_validate(json_response)
+            api_properties = STStoragePropertiesAPI.model_validate(json_response)
+            properties = api_properties.to_user_model()
 
         except APIError as e:
             raise STStorageCreationError(st_storage_name, area_id, e.message) from e

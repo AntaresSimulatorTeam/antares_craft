@@ -53,7 +53,12 @@ from antares.craft.model.settings.general import GeneralParametersUpdate, Mode
 from antares.craft.model.settings.optimization import ExportMPS, OptimizationParametersUpdate
 from antares.craft.model.settings.study_settings import PlaylistParameters, StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
-from antares.craft.model.st_storage import STStorageGroup, STStorageMatrixName, STStorageProperties
+from antares.craft.model.st_storage import (
+    STStorageGroup,
+    STStorageMatrixName,
+    STStorageProperties,
+    STStoragePropertiesUpdate,
+)
 from antares.craft.model.study import create_study_api, create_variant_api, import_study_api, read_study_api
 from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties, ThermalClusterPropertiesUpdate
 
@@ -451,10 +456,10 @@ class TestWebClient:
         assert renewable_onshore.properties.ts_interpretation == TimeSeriesInterpretation.POWER_GENERATION
 
         # tests short term storage properties update
-        new_props = STStorageProperties()
-        new_props.group = STStorageGroup.PONDAGE
+        new_props = STStoragePropertiesUpdate(group=STStorageGroup.PONDAGE)
         battery_fr.update_properties(new_props)
         assert battery_fr.properties.group == STStorageGroup.PONDAGE
+        assert battery_fr.properties.reservoir_capacity == 0.5  # Checks old value wasn't modified
 
         # tests constraint properties update
         new_props = BindingConstraintProperties()

@@ -29,7 +29,7 @@ from antares.craft.model.area import (
 )
 from antares.craft.model.hydro import Hydro, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
-from antares.craft.model.st_storage import STStorage, STStorageProperties, STStoragePropertiesLocal
+from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.base_services import (
     BaseAreaService,
@@ -39,6 +39,7 @@ from antares.craft.service.base_services import (
     BaseThermalService,
 )
 from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
+from antares.craft.service.local_services.models.st_storage import STStoragePropertiesLocal
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
 from antares.craft.service.local_services.services.hydro import edit_hydro_properties
 from antares.craft.tools.contents_tool import transform_name_to_id
@@ -169,18 +170,18 @@ class AreaLocalService(BaseAreaService):
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
         properties = properties or STStorageProperties()
-        args = {"st_storage_name": st_storage_name, **properties.model_dump(mode="json", exclude_none=True)}
-        local_st_storage_properties = STStoragePropertiesLocal.model_validate(args)
+        local_properties = STStoragePropertiesLocal.from_user_model(properties)
+        new_section_content = {"name": st_storage_name, **local_properties.model_dump(mode="json", by_alias=True)}
 
         list_ini = IniFile(self.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area_id)
-        list_ini.add_section(local_st_storage_properties.list_ini_fields)
+        list_ini.add_section({st_storage_name: new_section_content})
         list_ini.write_ini_file(sort_sections=True)
 
         return STStorage(
             self.storage_service,
             area_id,
             st_storage_name,
-            local_st_storage_properties.yield_st_storage_properties(),
+            properties,
         )
 
     @override
