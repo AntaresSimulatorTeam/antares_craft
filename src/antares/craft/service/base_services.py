@@ -28,7 +28,7 @@ if TYPE_CHECKING:
         ConstraintMatrixName,
         ConstraintTerm,
     )
-    from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate
+    from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkUi
     from antares.craft.model.output import AggregationEntry, Output
     from antares.craft.model.renewable import (
@@ -271,13 +271,6 @@ class BaseAreaService(ABC):
         """
         Returns: Returns a list of areas
         """
-        pass
-
-    @abstractmethod
-    def read_hydro(
-        self,
-        area_id: str,
-    ) -> "Hydro":
         pass
 
 

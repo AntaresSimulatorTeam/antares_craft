@@ -37,7 +37,6 @@ from antares.craft.model.hydro import Hydro, HydroMatrixName
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
-from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, upload_series
@@ -352,19 +351,6 @@ class AreaApiService(BaseAreaService):
             upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise MatrixUploadError(area_id, "misc-gen", e.message) from e
-
-    @override
-    def read_hydro(
-        self,
-        area_id: str,
-    ) -> Hydro:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
-        json_hydro = self._wrapper.get(url).json()
-
-        hydro_props = HydroPropertiesAPI(**json_hydro).to_user_model()
-        hydro = Hydro(self.hydro_service, area_id, hydro_props)
-
-        return hydro
 
     def _create_hydro_series(self, area_id: str, matrices: dict[HydroMatrixName, pd.DataFrame]) -> None:
         command_body = []

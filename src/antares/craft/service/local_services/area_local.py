@@ -40,7 +40,7 @@ from antares.craft.service.base_services import (
 )
 from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
-from antares.craft.service.local_services.services.hydro import edit_hydro_properties, read_hydro_properties
+from antares.craft.service.local_services.services.hydro import edit_hydro_properties
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries
@@ -204,14 +204,6 @@ class AreaLocalService(BaseAreaService):
     @override
     def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
         self._write_timeseries(series, TimeSeriesFileType.MISC_GEN, area_id)
-
-    @override
-    def read_hydro(
-        self,
-        area_id: str,
-    ) -> Hydro:
-        hydro_properties = read_hydro_properties(self.config.study_path, area_id)
-        return Hydro(self.hydro_service, area_id, hydro_properties)
 
     @override
     def create_area(
@@ -426,7 +418,8 @@ class AreaLocalService(BaseAreaService):
                     layer_color=ui_dict["ui"].get("layerColor"),
                 )
                 area_id = transform_name_to_id(element.name)
-                hydro = self.read_hydro(area_id)
+                hydro_properties = self.hydro_service.read_properties(area_id)
+                hydro = Hydro(self.hydro_service, area_id, hydro_properties)
                 area = Area(
                     name=element.name,
                     area_service=self,
