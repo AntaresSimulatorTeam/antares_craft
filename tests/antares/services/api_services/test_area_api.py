@@ -207,7 +207,7 @@ class TestCreateAPI:
         json_for_post = HydroPropertiesAPI().model_dump(mode="json", by_alias=True)
         series = pd.DataFrame(data=np.ones((150, 1)))
 
-        url_for_command = f"https://antares.com/api/v1/studies/{self.study_id}/commands"
+        url_for_matrices = f"https://antares.com/api/v1/studies/{self.study_id}/raw"
 
         matrices_hydro = {
             HydroMatrixName.SERIES_ROR: series,
@@ -222,7 +222,7 @@ class TestCreateAPI:
         }
         with requests_mock.Mocker() as mocker:
             mocker.put(url_hydro_form, json=json_for_post, status_code=200)
-            mocker.post(url_for_command)
+            mocker.post(url_for_matrices, status_code=200)
             self.area.hydro.update_properties(HydroPropertiesUpdate(reservoir=True))
             # todo: use matrices
             print(matrices_hydro)

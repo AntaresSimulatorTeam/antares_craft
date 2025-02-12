@@ -33,7 +33,7 @@ from antares.craft.exceptions.exceptions import (
     ThermalDeletionError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaUi
-from antares.craft.model.hydro import Hydro, HydroMatrixName
+from antares.craft.model.hydro import Hydro
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
@@ -351,23 +351,6 @@ class AreaApiService(BaseAreaService):
             upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise MatrixUploadError(area_id, "misc-gen", e.message) from e
-
-    def _create_hydro_series(self, area_id: str, matrices: dict[HydroMatrixName, pd.DataFrame]) -> None:
-        command_body = []
-        for matrix_name, series in matrices.items():
-            if "SERIES" in matrix_name.name:
-                series_path = f"input/hydro/series/{area_id}/{matrix_name.value}"
-                command_body.append(prepare_args_replace_matrix(series, series_path))
-            if "PREPRO" in matrix_name.name:
-                series_path = f"input/hydro/prepro/{area_id}/{matrix_name.value}"
-                command_body.append(prepare_args_replace_matrix(series, series_path))
-            if "COMMON" in matrix_name.name:
-                series_path = f"input/hydro/common/capacity/{matrix_name.value}_{area_id}"
-                command_body.append(prepare_args_replace_matrix(series, series_path))
-        if command_body:
-            json_payload = command_body
-
-            self._replace_matrix_request(json_payload)
 
     @override
     def update_area_properties(self, area_id: str, properties: AreaProperties) -> AreaProperties:
