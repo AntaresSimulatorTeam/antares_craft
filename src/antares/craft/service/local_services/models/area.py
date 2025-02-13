@@ -9,13 +9,15 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from typing import Union
+import ast
+
+from typing import Any, Union
 
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, default_filtering
 from antares.craft.model.commons import FilterOption
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
-from pydantic import Field
+from pydantic import Field, field_validator
 
 AreaPropertiesType = Union[AreaProperties, AreaPropertiesUpdate]
 
@@ -31,6 +33,14 @@ class OptimizationPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
 class FilteringPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
     filter_synthesis: set[FilterOption] = Field(default_factory=default_filtering)
     filter_year_by_year: set[FilterOption] = Field(default_factory=default_filtering)
+
+    @field_validator("filter_synthesis", "filter_year_by_year", mode="before")
+    def validate_accuracy_on_correlation(cls, v: Any) -> set[str]:
+        if v is None:
+            return set()
+        if isinstance(v, set):
+            return v
+        return set(ast.literal_eval(v))
 
 
 class AdequacyPatchPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
