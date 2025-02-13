@@ -16,7 +16,7 @@ import re
 
 from pathlib import Path
 
-from antares.craft.model.study import read_study_local
+from antares.craft import read_study_local
 
 
 class TestReadStudy:

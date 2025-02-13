@@ -10,10 +10,9 @@
 #
 # This file is part of the Antares project.
 
+import pandas as pd
 import pytest
 import requests_mock
-
-import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
@@ -31,21 +30,21 @@ from antares.craft.model.st_storage import STStorage
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.area_api import AreaApiService
+from antares.craft.service.api_services.factory import ApiServiceFactory
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
-from antares.craft.service.service_factory import ServiceFactory
 
 
 class TestCreateAPI:
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
-    area_service = ServiceFactory(api, study_id).create_area_service()
-    st_storage_service = ServiceFactory(api, study_id).create_st_storage_service()
-    thermal_service = ServiceFactory(api, study_id).create_thermal_service()
-    renewable_service = ServiceFactory(api, study_id).create_renewable_service()
-    hydro_service = ServiceFactory(api, study_id).create_hydro_service()
+    area_service = ApiServiceFactory(api, study_id).create_area_service()
+    st_storage_service = ApiServiceFactory(api, study_id).create_st_storage_service()
+    thermal_service = ApiServiceFactory(api, study_id).create_thermal_service()
+    renewable_service = ApiServiceFactory(api, study_id).create_renewable_service()
+    hydro_service = ApiServiceFactory(api, study_id).create_hydro_service()
     area = Area("area_test", area_service, st_storage_service, thermal_service, renewable_service, hydro_service)
 
     area_api = AreaApiService(
@@ -58,7 +57,7 @@ class TestCreateAPI:
     )
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[1]])
-    study = Study("TestStudy", "880", ServiceFactory(api, study_id))
+    study = Study("TestStudy", "880", ApiServiceFactory(api, study_id))
 
     def test_update_area_properties_success(self):
         with requests_mock.Mocker() as mocker:

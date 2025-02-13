@@ -9,21 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from abc import ABC, abstractmethod
 
-from antares.craft.api_conf.api_conf import APIconf
-from antares.craft.config.base_configuration import BaseConfiguration
-from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.service.api_services.area_api import AreaApiService
-from antares.craft.service.api_services.binding_constraint_api import BindingConstraintApiService
-from antares.craft.service.api_services.link_api import LinkApiService
-from antares.craft.service.api_services.services.hydro import HydroApiService
-from antares.craft.service.api_services.services.output import OutputApiService
-from antares.craft.service.api_services.services.renewable import RenewableApiService
-from antares.craft.service.api_services.services.run import RunApiService
-from antares.craft.service.api_services.services.settings import StudySettingsAPIService
-from antares.craft.service.api_services.services.st_storage import ShortTermStorageApiService
-from antares.craft.service.api_services.services.thermal import ThermalApiService
-from antares.craft.service.api_services.study_api import StudyApiService
 from antares.craft.service.base_services import (
     BaseAreaService,
     BaseBindingConstraintService,
@@ -37,141 +24,58 @@ from antares.craft.service.base_services import (
     BaseStudySettingsService,
     BaseThermalService,
 )
-from antares.craft.service.local_services.area_local import AreaLocalService
-from antares.craft.service.local_services.binding_constraint_local import BindingConstraintLocalService
-from antares.craft.service.local_services.link_local import LinkLocalService
-from antares.craft.service.local_services.services.hydro import HydroLocalService
-from antares.craft.service.local_services.services.output import OutputLocalService
-from antares.craft.service.local_services.services.renewable import RenewableLocalService
-from antares.craft.service.local_services.services.run import RunLocalService
-from antares.craft.service.local_services.services.settings import StudySettingsLocalService
-from antares.craft.service.local_services.services.st_storage import ShortTermStorageLocalService
-from antares.craft.service.local_services.services.thermal import ThermalLocalService
-from antares.craft.service.local_services.study_local import StudyLocalService
 
 ERROR_MESSAGE = "Unsupported configuration type: "
 
 
-class ServiceFactory:
-    def __init__(self, config: BaseConfiguration, study_id: str = "", study_name: str = ""):
-        self.config = config
-        self.study_id = study_id
-        self.study_name = study_name
+class ServiceFactory(ABC):
+    """
+    Service factory API
+    """
 
+    @abstractmethod
     def create_area_service(self) -> BaseAreaService:
-        if isinstance(self.config, APIconf):
-            storage_service: BaseShortTermStorageService = ShortTermStorageApiService(self.config, self.study_id)
-            thermal_service: BaseThermalService = ThermalApiService(self.config, self.study_id)
-            renewable_service: BaseRenewableService = RenewableApiService(self.config, self.study_id)
-            hydro_service: BaseHydroService = HydroApiService(self.config, self.study_id)
-            area_service: BaseAreaService = AreaApiService(
-                self.config, self.study_id, storage_service, thermal_service, renewable_service, hydro_service
-            )
-        elif isinstance(self.config, LocalConfiguration):
-            storage_service = ShortTermStorageLocalService(self.config, self.study_name)
-            thermal_service = ThermalLocalService(self.config, self.study_name)
-            renewable_service = RenewableLocalService(self.config, self.study_name)
-            hydro_service = HydroLocalService(self.config, self.study_name)
-            area_service = AreaLocalService(
-                self.config, self.study_name, storage_service, thermal_service, renewable_service, hydro_service
-            )
-        else:
-            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
-        return area_service
+        ...
 
+    @abstractmethod
     def create_link_service(self) -> BaseLinkService:
-        if isinstance(self.config, APIconf):
-            link_service: BaseLinkService = LinkApiService(self.config, self.study_id)
-        elif isinstance(self.config, LocalConfiguration):
-            link_service = LinkLocalService(self.config, self.study_name)
-        else:
-            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
-        return link_service
+        ...
 
+    @abstractmethod
     def create_thermal_service(self) -> BaseThermalService:
-        if isinstance(self.config, APIconf):
-            thermal_service: BaseThermalService = ThermalApiService(self.config, self.study_id)
-        elif isinstance(self.config, LocalConfiguration):
-            thermal_service = ThermalLocalService(self.config, self.study_name)
-        else:
-            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
-        return thermal_service
+        ...
 
+    @abstractmethod
     def create_binding_constraints_service(self) -> BaseBindingConstraintService:
-        if isinstance(self.config, APIconf):
-            binding_constraint_service: BaseBindingConstraintService = BindingConstraintApiService(
-                self.config, self.study_id
-            )
-        elif isinstance(self.config, LocalConfiguration):
-            binding_constraint_service = BindingConstraintLocalService(self.config, self.study_name)
-        else:
-            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
-        return binding_constraint_service
+        ...
 
+    @abstractmethod
     def create_study_service(self) -> BaseStudyService:
-        study_service: BaseStudyService
-        output_service = self.create_output_service()
-        if isinstance(self.config, APIconf):
-            study_service = StudyApiService(self.config, self.study_id, output_service)
-        elif isinstance(self.config, LocalConfiguration):
-            study_service = StudyLocalService(self.config, self.study_name, output_service)
-        else:
-            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
+        ...
 
-        return study_service
-
+    @abstractmethod
     def create_renewable_service(self) -> BaseRenewableService:
-        if isinstance(self.config, APIconf):
-            renewable_service: BaseRenewableService = RenewableApiService(self.config, self.study_id)
-        elif isinstance(self.config, LocalConfiguration):
-            renewable_service = RenewableLocalService(self.config, self.study_name)
-        else:
-            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
-        return renewable_service
+        ...
 
+    @abstractmethod
     def create_st_storage_service(self) -> BaseShortTermStorageService:
-        if isinstance(self.config, APIconf):
-            short_term_storage_service: BaseShortTermStorageService = ShortTermStorageApiService(
-                self.config, self.study_id
-            )
-        elif isinstance(self.config, LocalConfiguration):
-            short_term_storage_service = ShortTermStorageLocalService(self.config, self.study_name)
-        else:
-            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
-        return short_term_storage_service
+        ...
 
+    @abstractmethod
     def create_run_service(self) -> BaseRunService:
-        if isinstance(self.config, APIconf):
-            run_service: BaseRunService = RunApiService(self.config, self.study_id)
-        elif isinstance(self.config, LocalConfiguration):
-            run_service = RunLocalService(self.config, self.study_name)
-        else:
-            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
-        return run_service
+        ...
 
+    @abstractmethod
     def create_output_service(self) -> BaseOutputService:
-        if isinstance(self.config, APIconf):
-            output_service: BaseOutputService = OutputApiService(self.config, self.study_id)
-        elif isinstance(self.config, LocalConfiguration):
-            output_service = OutputLocalService(self.config, self.study_name)
-        else:
-            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
-        return output_service
+        ...
 
+    @abstractmethod
     def create_settings_service(self) -> BaseStudySettingsService:
-        if isinstance(self.config, APIconf):
-            settings_service: BaseStudySettingsService = StudySettingsAPIService(self.config, self.study_id)
-        elif isinstance(self.config, LocalConfiguration):
-            settings_service = StudySettingsLocalService(self.config, self.study_name)
-        else:
-            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
-        return settings_service
+        ...
 
+    @abstractmethod
     def create_hydro_service(self) -> BaseHydroService:
-        if isinstance(self.config, APIconf):
-            hydro_service: BaseHydroService = HydroApiService(self.config, self.study_id)
-        elif isinstance(self.config, LocalConfiguration):
-            hydro_service = HydroLocalService(self.config, self.study_name)
-        else:
-            raise TypeError(f"{ERROR_MESSAGE}{repr(self.config)}")
-        return hydro_service
+        ...
+
+
+

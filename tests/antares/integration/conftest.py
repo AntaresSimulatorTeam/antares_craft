@@ -13,7 +13,7 @@
 import pytest
 
 from antares.craft.model.area import Area
-from antares.craft.model.study import Study, create_study_local
+from antares.craft import Study, create_study_local
 
 
 @pytest.fixture

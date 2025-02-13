@@ -22,6 +22,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from antares.craft import create_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
@@ -81,7 +82,6 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
-from antares.craft.model.study import create_study_local
 from antares.craft.tools.ini_tool import InitializationFilesTypes
 
 

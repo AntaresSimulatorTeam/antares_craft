@@ -27,6 +27,7 @@ from antares.craft.model.area import Area
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.study import Study
+from antares.craft.service.api_services.factory import ApiServiceFactory
 from antares.craft.service.service_factory import ServiceFactory
 
 
@@ -36,7 +37,8 @@ def expected_link():
     area_to_name = "zone4auto"
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
-    link_service = ServiceFactory(api, study_id).create_link_service()
+    factory = ApiServiceFactory(api, study_id)
+    link_service = factory.create_link_service()
     properties = {
         "hurdles-cost": False,
         "loop-flow": False,
@@ -65,7 +67,8 @@ def expected_link():
 class TestCreateAPI:
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
-    study = Study("study_test", "870", ServiceFactory(api, study_id))
+    factory = ApiServiceFactory(api, study_id)
+    study = Study("study_test", "870", factory)
     area_from = Area(
         name="area_from",
         area_service=api,
@@ -83,7 +86,7 @@ class TestCreateAPI:
         hydro_service=api,
     )
     antares_web_description_msg = "Mocked Server KO"
-    link = Link(area_from.id, area_to.id, ServiceFactory(api, study_id).create_link_service())
+    link = Link(area_from.id, area_to.id, factory.create_link_service())
     matrix = pd.DataFrame(data=[[0]])
 
     def test_update_links_properties_success(self):
