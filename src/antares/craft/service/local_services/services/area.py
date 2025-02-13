@@ -262,16 +262,13 @@ class AreaLocalService(BaseAreaService):
             with (self.config.study_path / InitializationFilesTypes.AREAS_SETS_INI.value).open("w") as sets_ini:
                 sets_ini_content.write(sets_ini)
 
-            local_properties = (
-                AreaPropertiesLocal.model_validate(properties.model_dump(mode="json", exclude_none=True))
-                if properties
-                else AreaPropertiesLocal()
-            )
+            properties = properties or AreaProperties()
+            local_properties = AreaPropertiesLocal.from_user_model(properties)
 
             adequacy_patch_ini = IniFile(
                 self.config.study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_name
             )
-            adequacy_patch_ini.add_section(local_properties.adequacy_patch())
+            adequacy_patch_ini.add_section(local_properties.to_adequacy_patch_ini())
             adequacy_patch_ini.write_ini_file()
 
             optimization_ini = ConfigParser()
