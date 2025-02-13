@@ -268,11 +268,15 @@ class AreaLocalService(BaseAreaService):
             adequacy_patch_ini = IniFile(
                 self.config.study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_name
             )
-            adequacy_patch_ini.add_section(local_properties.to_adequacy_patch_ini())
+            adequacy_patch_ini.add_section(local_properties.adequacy_patch.model_dump(mode="json"))
             adequacy_patch_ini.write_ini_file()
 
+            optimization_dict = {
+                **local_properties.nodal_optimization.model_dump(mode="json"),
+                **local_properties.filtering.model_dump(mode="json"),
+            }
             optimization_ini = ConfigParser()
-            optimization_ini.read_dict(local_properties.yield_local_dict())
+            optimization_ini.read_dict(optimization_dict)
 
             with open(new_area_directory / "optimization.ini", "w") as optimization_ini_file:
                 optimization_ini.write(optimization_ini_file)
@@ -322,7 +326,7 @@ class AreaLocalService(BaseAreaService):
             renewable_service=self.renewable_service,
             hydro_service=self.hydro_service,
             hydro=hydro,
-            properties=local_properties.yield_area_properties(),
+            properties=properties,
             ui=local_ui.yield_area_ui(),
         )
         return created_area
@@ -384,23 +388,21 @@ class AreaLocalService(BaseAreaService):
                 area_adequacy_dict = IniFile(
                     self.config.study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_id=element.name
                 ).ini_dict
+                thermal_area_dict = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_AREAS_INI).ini_dict
+                unserverd_energy_cost = thermal_area_dict.get("unserverdenergycost", {}).get(element.name, 0)
+                spilled_energy_cost = thermal_area_dict.get("spilledenergycost", {}).get(element.name, 0)
+                local_properties_dict = {
+                    **optimization_dict,
+                    **area_adequacy_dict,
+                    "energy_cost_unsupplied": unserverd_energy_cost,
+                    "energy_cost_spilled": spilled_energy_cost,
+                }
+                local_properties = AreaPropertiesLocal.model_validate(local_properties_dict)
+                area_properties = local_properties.to_user_model()
                 ui_dict = IniFile(
                     self.config.study_path, InitializationFilesTypes.AREA_UI_INI, area_id=element.name
                 ).ini_dict
-                thermal_area_dict = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_AREAS_INI).ini_dict
-                nodal_optimization = optimization_dict["nodal optimization"]
-                area_properties = AreaPropertiesLocal(
-                    non_dispatch_power=nodal_optimization.get("non-dispatchable-power"),
-                    dispatch_hydro_power=nodal_optimization.get("dispatchable-hydro-power"),
-                    other_dispatch_power=nodal_optimization.get("other-dispatchable-power"),
-                    spread_unsupplied_energy_cost=nodal_optimization.get("spread-unsupplied-energy-cost"),
-                    spread_spilled_energy_cost=nodal_optimization.get("spread-spilled-energy-cost"),
-                    energy_cost_unsupplied=thermal_area_dict["unserverdenergycost"].get(element.name),
-                    energy_cost_spilled=thermal_area_dict["spilledenergycost"].get(element.name),
-                    filter_synthesis=set(optimization_dict["filtering"].get("filter-synthesis").split(", ")),
-                    filter_by_year=set(optimization_dict["filtering"].get("filter-year-by-year").split(", ")),
-                    adequacy_patch_mode=area_adequacy_dict["adequacy-patch"].get("adequacy-patch-mode"),
-                )
+
                 ui_properties = AreaUi(
                     layer=ui_dict["ui"].get("layer"),
                     x=ui_dict["ui"].get("x"),
@@ -421,7 +423,7 @@ class AreaLocalService(BaseAreaService):
                     thermal_service=self.thermal_service,
                     renewable_service=self.renewable_service,
                     hydro_service=self.hydro_service,
-                    properties=area_properties.yield_area_properties(),
+                    properties=area_properties,
                     ui=ui_properties,
                 )
                 area.hydro.read_properties()
