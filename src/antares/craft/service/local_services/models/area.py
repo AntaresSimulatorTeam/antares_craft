@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from typing import Any, Union
+from typing import Union
 
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, default_filtering
 from antares.craft.model.commons import FilterOption
@@ -46,7 +46,7 @@ class AreaPropertiesLocal(LocalBaseModel):
 
     @staticmethod
     def from_user_model(user_class: AreaPropertiesType) -> "AreaPropertiesLocal":
-        args: dict[str, Any] = {
+        args = {
             "adequacy_patch": user_class.adequacy_patch_mode.value,
             "filtering": {
                 "filter_synthesis": user_class.filter_synthesis,
