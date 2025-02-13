@@ -16,12 +16,13 @@ electrical demand (load), generation fleet (clusters),
 //TO_DO to be completed as implementation progress
 """
 
+from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import Any, Mapping, Optional
+from typing import Any, Optional
 
 import pandas as pd
 
-from antares.craft.model.commons import FilterOption, sort_filter_values
+from antares.craft.model.commons import FilterOption
 from antares.craft.model.hydro import Hydro, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
@@ -33,8 +34,6 @@ from antares.craft.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
-from antares.craft.tools.alias_generators import to_space
-from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 from pydantic import BaseModel, computed_field
 from pydantic.alias_generators import to_camel
@@ -52,70 +51,42 @@ class AdequacyPatchMode(EnumIgnoreCase):
     VIRTUAL = "virtual"
 
 
-class DefaultAreaProperties(BaseModel, extra="forbid", populate_by_name=True):
-    """
-    DTO for updating area properties
-    """
+@dataclass
+class AreaPropertiesUpdate:
+    energy_cost_unsupplied: Optional[float] = None
+    energy_cost_spilled: Optional[float] = None
+    non_dispatch_power: Optional[bool] = None
+    dispatch_hydro_power: Optional[bool] = None
+    other_dispatch_power: Optional[bool] = None
+    filter_synthesis: Optional[set[FilterOption]] = None
+    filter_by_year: Optional[set[FilterOption]] = None
+    adequacy_patch_mode: AdequacyPatchMode = AdequacyPatchMode.OUTSIDE
+    spread_unsupplied_energy_cost: Optional[float] = None
+    spread_spilled_energy_cost: Optional[float] = None
 
+
+def default_filtering() -> set[FilterOption]:
+    return {
+        FilterOption.HOURLY,
+        FilterOption.DAILY,
+        FilterOption.WEEKLY,
+        FilterOption.MONTHLY,
+        FilterOption.ANNUAL,
+    }
+
+
+@dataclass
+class AreaProperties:
     energy_cost_unsupplied: float = 0.0
     energy_cost_spilled: float = 0.0
     non_dispatch_power: bool = True
     dispatch_hydro_power: bool = True
     other_dispatch_power: bool = True
-    filter_synthesis: set[FilterOption] = {
-        FilterOption.HOURLY,
-        FilterOption.DAILY,
-        FilterOption.WEEKLY,
-        FilterOption.MONTHLY,
-        FilterOption.ANNUAL,
-    }
-    filter_by_year: set[FilterOption] = {
-        FilterOption.HOURLY,
-        FilterOption.DAILY,
-        FilterOption.WEEKLY,
-        FilterOption.MONTHLY,
-        FilterOption.ANNUAL,
-    }
-    # version 830
+    filter_synthesis: set[FilterOption] = field(default_factory=default_filtering)
+    filter_by_year: set[FilterOption] = field(default_factory=default_filtering)
     adequacy_patch_mode: AdequacyPatchMode = AdequacyPatchMode.OUTSIDE
     spread_unsupplied_energy_cost: float = 0.0
     spread_spilled_energy_cost: float = 0.0
-
-
-@all_optional_model
-class AreaProperties(DefaultAreaProperties, alias_generator=to_camel):
-    pass
-
-
-class AreaPropertiesLocal(DefaultAreaProperties, alias_generator=to_space):
-    @property
-    def nodal_optimization(self) -> Mapping[str, str]:
-        return {
-            "non-dispatchable-power": f"{self.non_dispatch_power}".lower(),
-            "dispatchable-hydro-power": f"{self.dispatch_hydro_power}".lower(),
-            "other-dispatchable-power": f"{self.other_dispatch_power}".lower(),
-            "spread-unsupplied-energy-cost": f"{self.spread_unsupplied_energy_cost:.6f}",
-            "spread-spilled-energy-cost": f"{self.spread_spilled_energy_cost:.6f}",
-        }
-
-    @property
-    def filtering(self) -> Mapping[str, str]:
-        return {
-            "filter-synthesis": ", ".join(filter_value for filter_value in sort_filter_values(self.filter_synthesis)),
-            "filter-year-by-year": ", ".join(filter_value for filter_value in sort_filter_values(self.filter_by_year)),
-        }
-
-    def adequacy_patch(self) -> dict[str, dict[str, str]]:
-        return {"adequacy-patch": {"adequacy-patch-mode": self.adequacy_patch_mode.value}}
-
-    def yield_local_dict(self) -> dict[str, Mapping[str, str]]:
-        args = {"nodal optimization": self.nodal_optimization}
-        args.update({"filtering": self.filtering})
-        return args
-
-    def yield_area_properties(self) -> AreaProperties:
-        excludes = {"filtering", "nodal_optimization"}
-        return AreaProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
 
 
 class AreaUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):

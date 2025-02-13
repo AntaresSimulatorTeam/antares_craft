@@ -23,7 +23,6 @@ from antares.craft.exceptions.exceptions import AreaCreationError, ThermalCreati
 from antares.craft.model.area import (
     Area,
     AreaProperties,
-    AreaPropertiesLocal,
     AreaUi,
     AreaUiLocal,
 )
@@ -38,6 +37,7 @@ from antares.craft.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
+from antares.craft.service.local_services.models.area import AreaPropertiesLocal
 from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
 from antares.craft.service.local_services.models.st_storage import STStoragePropertiesLocal
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal

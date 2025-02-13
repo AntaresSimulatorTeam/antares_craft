@@ -37,6 +37,7 @@ from antares.craft.model.hydro import Hydro
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
+from antares.craft.service.api_services.models.area import AreaPropertiesAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
@@ -99,7 +100,8 @@ class AreaApiService(BaseAreaService):
 
             if properties:
                 url = f"{base_area_url}/{area_id}/properties/form"
-                body = properties.model_dump(mode="json", exclude_none=True)
+                api_model = AreaPropertiesAPI.from_user_model(properties)
+                body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
                 if body:
                     self._wrapper.put(url, json=body)
             if ui:
@@ -122,7 +124,8 @@ class AreaApiService(BaseAreaService):
 
             url = f"{base_area_url}/{area_id}/properties/form"
             response = self._wrapper.get(url)
-            area_properties = AreaProperties.model_validate(response.json())
+            api_properties = AreaPropertiesAPI.model_validate(response)
+            area_properties = api_properties.to_user_model()
 
             # TODO: Ask AntaresWeb to do the same endpoint for only one area
             url = f"{base_area_url}?type=AREA&ui=true"
@@ -357,11 +360,13 @@ class AreaApiService(BaseAreaService):
     def update_area_properties(self, area_id: str, properties: AreaProperties) -> AreaProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/properties/form"
         try:
-            body = properties.model_dump(mode="json", exclude_none=True)
+            api_model = AreaPropertiesAPI.from_user_model(properties)
+            body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
 
             self._wrapper.put(url, json=body)
             response = self._wrapper.get(url)
-            area_properties = AreaProperties.model_validate(response.json())
+            api_properties = AreaPropertiesAPI.model_validate(response)
+            area_properties = api_properties.to_user_model()
 
         except APIError as e:
             raise AreaPropertiesUpdateError(area_id, e.message) from e
