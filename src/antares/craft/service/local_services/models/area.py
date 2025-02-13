@@ -77,7 +77,7 @@ class AreaPropertiesLocal(LocalBaseModel):
 
     def to_user_model(self) -> AreaProperties:
         return AreaProperties(
-            energy_cost_unsupplied=self.energy_cost_spilled,
+            energy_cost_unsupplied=self.energy_cost_unsupplied,
             energy_cost_spilled=self.energy_cost_spilled,
             non_dispatch_power=self.nodal_optimization.non_dispatchable_power,
             dispatch_hydro_power=self.nodal_optimization.dispatchable_hydro_power,
