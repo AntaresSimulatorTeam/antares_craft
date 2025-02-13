@@ -16,7 +16,11 @@ import requests_mock
 import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
-from antares.craft.exceptions.exceptions import ConstraintMatrixDownloadError, ConstraintPropertiesUpdateError
+from antares.craft.exceptions.exceptions import (
+    ConstraintMatrixDownloadError,
+    ConstraintPropertiesUpdateError,
+    ConstraintTermEditionError,
+)
 from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -90,7 +94,7 @@ class TestCreateAPI:
             ):
                 constraint.update_properties(properties=update_properties)
 
-    def test_update_binding_constraint_terms_success(self):
+    def test_update_binding_constraint_term_success(self):
         with requests_mock.Mocker() as mocker:
             existing_term = ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=4, offset=3)
             service = ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
@@ -103,6 +107,21 @@ class TestCreateAPI:
             constraint.update_term(new_term)
             updated_term = constraint.get_terms()[existing_term.id]
             assert updated_term == ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=2, offset=3)
+
+    def test_update_binding_constraint_term_fails(self):
+        with requests_mock.Mocker() as mocker:
+            service = ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
+            constraint = BindingConstraint("bc_1", service)
+
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}/term"
+            mocker.put(url, json={"description": self.antares_web_description_msg}, status_code=422)
+
+            new_term = ConstraintTermUpdate(data=LinkData(area1="fr", area2="be"), weight=2)
+            with pytest.raises(
+                ConstraintTermEditionError,
+                match=f"Could not update the term {new_term.id} of the binding constraint {constraint.id}: {self.antares_web_description_msg}",
+            ):
+                constraint.update_term(new_term)
 
     def test_get_constraint_matrix_success(self, constraint_set):
         constraint = BindingConstraint(
