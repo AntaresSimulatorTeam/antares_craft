@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 from dataclasses import asdict
 from pathlib import PurePosixPath
-from typing import Optional
+from typing import Any, Optional
 
 import pandas as pd
 
@@ -26,6 +26,7 @@ from antares.craft.exceptions.exceptions import (
     ConstraintRetrievalError,
     ConstraintTermAdditionError,
     ConstraintTermDeletionError,
+    ConstraintTermEditionError,
 )
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -34,6 +35,7 @@ from antares.craft.model.binding_constraint import (
     ConstraintMatrixName,
     ConstraintTerm,
     ConstraintTermData,
+    ConstraintTermUpdate,
 )
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix
@@ -118,6 +120,21 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             self._wrapper.delete(url)
         except APIError as e:
             raise ConstraintTermDeletionError(constraint_id, term_id, e.message) from e
+
+    @override
+    def update_binding_constraint_term(self, constraint_id: str, term: ConstraintTermUpdate) -> ConstraintTerm:
+        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint_id}/term"
+        try:
+            body: dict[str, Any] = {"data": asdict(term.data)}
+            if term.offset:
+                body["offset"] = term.offset
+            if term.weight:
+                body["weight"] = term.weight
+            self._wrapper.put(url, json=body)
+        except APIError as e:
+            raise ConstraintTermEditionError(constraint_id, term.id, e.message) from e
+
+        return ConstraintTerm.from_update_model(term)
 
     @override
     def update_binding_constraint_properties(

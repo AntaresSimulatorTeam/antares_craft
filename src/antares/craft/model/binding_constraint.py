@@ -78,6 +78,12 @@ class ConstraintTermData:
 
 
 @dataclass
+class ConstraintTermUpdate(ConstraintTermData):
+    weight: Optional[float] = None
+    offset: Optional[int] = None
+
+
+@dataclass
 class ConstraintTerm(ConstraintTermData):
     weight: float = 1
     offset: int = 0
@@ -85,11 +91,9 @@ class ConstraintTerm(ConstraintTermData):
     def weight_offset(self) -> str:
         return f"{self.weight}%{self.offset}" if self.offset != 0 else f"{self.weight}"
 
-
-@dataclass
-class ConstraintTermUpdate(ConstraintTermData):
-    weight: Optional[float] = None
-    offset: Optional[int] = None
+    @staticmethod
+    def from_update_model(update_model: ConstraintTermUpdate) -> "ConstraintTerm":
+        return ConstraintTerm(data=update_model.data, weight=update_model.weight or 1, offset=update_model.offset or 0)
 
 
 @dataclass
@@ -151,6 +155,10 @@ class BindingConstraint:
     def delete_term(self, term: ConstraintTerm) -> None:
         self._binding_constraint_service.delete_binding_constraint_term(self.id, term.id)
         self._terms.pop(term.id)
+
+    def update_term(self, term: ConstraintTermUpdate) -> None:
+        new_term = self._binding_constraint_service.update_binding_constraint_term(self.id, term)
+        self._terms[new_term.id] = new_term
 
     def update_properties(self, properties: BindingConstraintPropertiesUpdate) -> None:
         new_properties = self._binding_constraint_service.update_binding_constraint_properties(self, properties)

@@ -28,6 +28,7 @@ if TYPE_CHECKING:
         BindingConstraintPropertiesUpdate,
         ConstraintMatrixName,
         ConstraintTerm,
+        ConstraintTermUpdate,
     )
     from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkUi
@@ -536,6 +537,15 @@ class BaseBindingConstraintService(ABC):
         Args:
             constraint_id: binding constraint's id containing the term
             term_id: binding constraint term to be deleted
+        """
+        pass
+
+    @abstractmethod
+    def update_binding_constraint_term(self, constraint_id: str, term: "ConstraintTermUpdate") -> "ConstraintTerm":
+        """
+        Args:
+            constraint_id: binding constraint's id containing the term
+            term: binding constraint term to be updated
         """
         pass
 

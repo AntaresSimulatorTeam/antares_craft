@@ -244,6 +244,12 @@ class ConstraintTermDeletionError(Exception):
         super().__init__(self.message)
 
 
+class ConstraintTermEditionError(Exception):
+    def __init__(self, constraint_id: str, term_id: str, message: str) -> None:
+        self.message = f"Could not update the term {term_id} of the binding constraint {constraint_id}: " + message
+        super().__init__(self.message)
+
+
 class StudyCreationError(Exception):
     def __init__(self, study_name: str, message: str) -> None:
         self.message = f"Could not create the study {study_name}: " + message

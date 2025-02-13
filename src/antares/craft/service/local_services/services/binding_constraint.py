@@ -27,6 +27,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintPropertiesUpdate,
     ConstraintMatrixName,
     ConstraintTerm,
+    ConstraintTermUpdate,
 )
 from antares.craft.service.base_services import BaseBindingConstraintService
 from antares.craft.service.local_services.models.binding_constraint import BindingConstraintPropertiesLocal
@@ -154,6 +155,10 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
     @override
     def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
+        raise NotImplementedError
+
+    @override
+    def update_binding_constraint_term(self, constraint_id: str, term: ConstraintTermUpdate) -> ConstraintTerm:
         raise NotImplementedError
 
     @override
