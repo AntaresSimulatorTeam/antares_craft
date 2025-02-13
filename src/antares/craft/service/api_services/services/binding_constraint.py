@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from dataclasses import asdict
 from pathlib import PurePosixPath
 from typing import Optional
 
@@ -33,6 +33,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintPropertiesUpdate,
     ConstraintMatrixName,
     ConstraintTerm,
+    ConstraintTermData,
 )
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix
@@ -95,22 +96,18 @@ class BindingConstraintApiService(BaseBindingConstraintService):
                 del created_properties[key]
             api_properties = BindingConstraintPropertiesAPI.model_validate(created_properties)
             bc_properties = api_properties.to_user_model()
-            bc_terms: list[ConstraintTerm] = []
 
             if terms:
-                json_terms = [term.model_dump() for term in terms]
+                json_terms = [
+                    {"weight": term.weight, "offset": term.offset, "data": asdict(term.data)} for term in terms
+                ]
                 url = f"{base_url}/{bc_id}/terms"
                 self._wrapper.post(url, json=json_terms)
-
-                url = f"{base_url}/{bc_id}"
-                response = self._wrapper.get(url)
-                created_terms = response.json()["terms"]
-                bc_terms = [ConstraintTerm.model_validate(term) for term in created_terms]
 
         except APIError as e:
             raise BindingConstraintCreationError(name, e.message) from e
 
-        constraint = BindingConstraint(name, self, bc_properties, bc_terms)
+        constraint = BindingConstraint(name, self, bc_properties, terms)
 
         return constraint
 
@@ -173,7 +170,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
     def add_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint.id}"
         try:
-            json_terms = [term.model_dump() for term in terms]
+            json_terms = [{"weight": term.weight, "offset": term.offset, "data": asdict(term.data)} for term in terms]
             self._wrapper.post(f"{url}/terms", json=json_terms)
 
         except APIError as e:
@@ -185,18 +182,20 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         try:
             response = self._wrapper.get(url)
             constraints_json = response.json()
+            constraints = []
 
-            constraints = [
-                BindingConstraint(
-                    constraint["name"],
-                    self,
-                    BindingConstraintPropertiesAPI.model_validate(
-                        {k: v for k, v in constraint.items() if k not in ["terms", "id", "name"]}
-                    ).to_user_model(),
-                    [ConstraintTerm.model_validate(term) for term in constraint["terms"]],
-                )
-                for constraint in constraints_json
-            ]
+            for constraint in constraints_json:
+                constraint_name = constraint.pop("name")
+                del constraint["id"]
+                api_terms = constraint.pop("terms")
+                api_properties = BindingConstraintPropertiesAPI.model_validate(constraint)
+                bc_properties = api_properties.to_user_model()
+                terms: list[ConstraintTerm] = []
+                for api_term in api_terms:
+                    term_data = ConstraintTermData.from_dict(api_term["data"])
+                    terms.append(ConstraintTerm(weight=api_term["weight"], offset=api_term["offset"], data=term_data))
+                constraints.append(BindingConstraint(constraint_name, self, bc_properties, terms))
+
             constraints.sort(key=lambda constraint: constraint.id)
             return constraints
         except APIError as e:

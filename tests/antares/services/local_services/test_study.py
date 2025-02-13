@@ -36,6 +36,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
     ConstraintTerm,
+    LinkData,
 )
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.hydro import Hydro
@@ -1306,7 +1307,7 @@ group = test group
         assert actual_ini_content == expected_ini_content
 
     def test_constraint_can_add_term(self, test_constraint):
-        new_term = [ConstraintTerm(data={"area1": "fr", "area2": "at"})]
+        new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]
         test_constraint.add_terms(new_term)
         assert test_constraint.get_terms()
 
@@ -1322,11 +1323,11 @@ comments =
 filter-year-by-year = hourly
 filter-synthesis = hourly
 group = default
-at%fr = 0
+at%fr = 1
 
 """
         # When
-        new_term = [ConstraintTerm(data={"area1": "fr", "area2": "at"})]
+        new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]
         test_constraint.add_terms(new_term)
         with local_study_with_constraint._binding_constraints_service.ini_file.ini_path.open("r") as file:
             actual_ini_content = file.read()
@@ -1347,11 +1348,11 @@ comments =
 filter-year-by-year = hourly
 filter-synthesis = hourly
 group = default
-at%fr = 0.000000%1
+at%fr = 1%1
 
 """
         # When
-        new_term = [ConstraintTerm(offset=1, data={"area1": "fr", "area2": "at"})]
+        new_term = [ConstraintTerm(offset=1, data=LinkData(area1="fr", area2="at"))]
         test_constraint.add_terms(new_term)
         with local_study_with_constraint._binding_constraints_service.ini_file.ini_path.open("r") as file:
             actual_ini_content = file.read()
