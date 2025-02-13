@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import ast
 
 from typing import Any, Union
 
@@ -40,7 +39,11 @@ class FilteringPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
             return set()
         if isinstance(v, (list, set)):
             return set(v)
-        return set(ast.literal_eval(v))
+        if isinstance(v, str):
+            if v[0] == "[":
+                v = v[1:-1]
+            return set(v.replace(" ", "").split(","))
+        raise ValueError(f"Value {v} not supported for filtering")
 
 
 class AdequacyPatchPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
