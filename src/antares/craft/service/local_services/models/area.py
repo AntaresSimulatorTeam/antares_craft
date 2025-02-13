@@ -93,4 +93,7 @@ class AreaPropertiesLocal(LocalBaseModel):
         return self.model_dump(mode="json", include={"adequacy_patch"}, by_alias=True)
 
     def to_optimization_ini(self) -> dict[str, dict[str, str]]:
-        return self.model_dump(mode="json", include={"nodal_optimization", "filtering"}, by_alias=True)
+        args = self.model_dump(mode="json", include={"nodal_optimization", "filtering"}, by_alias=True)
+        args["filtering"]["filter-synthesis"] = ", ".join(sorted(args["filtering"]["filter-synthesis"]))
+        args["filtering"]["filter-year-by-year"] = ", ".join(sorted(args["filtering"]["filter-year-by-year"]))
+        return args
