@@ -541,7 +541,7 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def update_binding_constraint_term(self, constraint_id: str, term: "ConstraintTermUpdate") -> "ConstraintTerm":
+    def update_binding_constraint_term(self, constraint_id: str, term: "ConstraintTermUpdate") -> None:
         """
         Args:
             constraint_id: binding constraint's id containing the term

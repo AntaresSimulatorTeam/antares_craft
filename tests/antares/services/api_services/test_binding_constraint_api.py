@@ -23,6 +23,9 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
     ConstraintMatrixName,
+    ConstraintTerm,
+    ConstraintTermUpdate,
+    LinkData,
 )
 from antares.craft.model.study import Study
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
@@ -73,7 +76,7 @@ class TestCreateAPI:
 
     def test_update_binding_constraint_properties_fails(self):
         with requests_mock.Mocker() as mocker:
-            properties = BindingConstraintProperties(enabled=False)
+            update_properties = BindingConstraintPropertiesUpdate(enabled=False)
             constraint = BindingConstraint(
                 "bc_1", ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
             )
@@ -85,7 +88,21 @@ class TestCreateAPI:
                 ConstraintPropertiesUpdateError,
                 match=f"Could not update properties for binding constraint {constraint.id}: {antares_web_description_msg}",
             ):
-                constraint.update_properties(properties=properties)
+                constraint.update_properties(properties=update_properties)
+
+    def test_update_binding_constraint_terms_success(self):
+        with requests_mock.Mocker() as mocker:
+            existing_term = ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=4, offset=3)
+            service = ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
+            constraint = BindingConstraint("bc_1", service, None, [existing_term])
+
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}/term"
+            mocker.put(url, status_code=200)
+
+            new_term = ConstraintTermUpdate(data=LinkData(area1="fr", area2="be"), weight=2)
+            constraint.update_term(new_term)
+            updated_term = constraint.get_terms()[existing_term.id]
+            assert updated_term == ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=2, offset=3)
 
     def test_get_constraint_matrix_success(self, constraint_set):
         constraint = BindingConstraint(
