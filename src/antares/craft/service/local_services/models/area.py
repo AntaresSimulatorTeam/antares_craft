@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 import ast
 
-from typing import Any, Union
+from typing import Any, Sequence, Union
 
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, default_filtering
 from antares.craft.model.commons import FilterOption
@@ -38,8 +38,8 @@ class FilteringPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
     def validate_accuracy_on_correlation(cls, v: Any) -> set[str]:
         if v is None:
             return set()
-        if isinstance(v, set):
-            return v
+        if isinstance(v, (Sequence, set)):
+            return set(v)
         return set(ast.literal_eval(v))
 
 
