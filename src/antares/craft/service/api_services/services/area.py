@@ -365,7 +365,7 @@ class AreaApiService(BaseAreaService):
 
             self._wrapper.put(url, json=body)
             response = self._wrapper.get(url)
-            api_properties = AreaPropertiesAPI.model_validate(response)
+            api_properties = AreaPropertiesAPI.model_validate(response.json())
             area_properties = api_properties.to_user_model()
 
         except APIError as e:
