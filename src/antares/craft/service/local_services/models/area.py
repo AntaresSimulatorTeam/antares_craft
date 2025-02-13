@@ -46,20 +46,22 @@ class AreaPropertiesLocal(LocalBaseModel):
 
     @staticmethod
     def from_user_model(user_class: AreaPropertiesType) -> "AreaPropertiesLocal":
-        args: dict[str, Any] = {"adequacy_patch": user_class.adequacy_patch_mode.value}
-        args["filtering"] = {
-            "filter_synthesis": user_class.filter_synthesis,
-            "filter_year_by_year": user_class.filter_by_year,
+        args: dict[str, Any] = {
+            "adequacy_patch": user_class.adequacy_patch_mode.value,
+            "filtering": {
+                "filter_synthesis": user_class.filter_synthesis,
+                "filter_year_by_year": user_class.filter_by_year,
+            },
+            "nodal_optimization": {
+                "non_dispatchable_power": user_class.non_dispatch_power,
+                "dispatchable_hydro_power": user_class.dispatch_hydro_power,
+                "other_dispatchable_power": user_class.other_dispatch_power,
+                "spread_unsupplied_energy_cost": user_class.spread_unsupplied_energy_cost,
+                "spread_spilled_energy_cost": user_class.spread_spilled_energy_cost,
+            },
+            "energy_cost_unsupplied": user_class.energy_cost_unsupplied,
+            "energy_cost_spilled": user_class.energy_cost_spilled,
         }
-        args["nodal_optimization"] = {
-            "non_dispatchable_power": user_class.non_dispatch_power,
-            "dispatchable_hydro_power": user_class.dispatch_hydro_power,
-            "other_dispatchable_power": user_class.other_dispatch_power,
-            "spread_unsupplied_energy_cost": user_class.spread_unsupplied_energy_cost,
-            "spread_spilled_energy_cost": user_class.spread_spilled_energy_cost,
-        }
-        args["energy_cost_unsupplied"] = user_class.energy_cost_unsupplied
-        args["energy_cost_spilled"] = user_class.energy_cost_spilled
 
         return AreaPropertiesLocal.model_validate(args)
 
