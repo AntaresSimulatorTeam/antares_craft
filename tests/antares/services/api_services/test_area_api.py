@@ -30,11 +30,11 @@ from antares.craft.model.renewable import RenewableCluster, RenewableClusterProp
 from antares.craft.model.st_storage import STStorage
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
-from antares.craft.service.api_services.area_api import AreaApiService
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
+from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.service_factory import ServiceFactory
 
 

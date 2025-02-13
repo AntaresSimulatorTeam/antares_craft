@@ -24,8 +24,8 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.area import Area
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesUpdate
-from antares.craft.service.api_services.area_api import AreaApiService
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
+from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.api_services.services.renewable import RenewableApiService
 from antares.craft.service.service_factory import ServiceFactory
 

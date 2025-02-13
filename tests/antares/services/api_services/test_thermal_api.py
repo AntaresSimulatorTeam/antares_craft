@@ -30,8 +30,8 @@ from antares.craft.model.thermal import (
     ThermalClusterProperties,
     ThermalClusterPropertiesUpdate,
 )
-from antares.craft.service.api_services.area_api import AreaApiService
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
+from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.api_services.services.thermal import ThermalApiService
 from antares.craft.service.service_factory import ServiceFactory
 
