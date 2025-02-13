@@ -122,15 +122,23 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise ConstraintTermDeletionError(constraint_id, term_id, e.message) from e
 
     @override
-    def update_binding_constraint_term(self, constraint_id: str, term: ConstraintTermUpdate) -> None:
+    def update_binding_constraint_term(
+        self, constraint_id: str, term: ConstraintTermUpdate, existing_term: ConstraintTerm
+    ) -> ConstraintTerm:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint_id}/term"
         try:
-            body: dict[str, Any] = {"data": asdict(term.data), "weight": term.weight}
+            body: dict[str, Any] = {"data": asdict(term.data), "weight": term.weight or existing_term.weight}
             if term.offset:
                 body["offset"] = term.offset
             self._wrapper.put(url, json=body)
         except APIError as e:
             raise ConstraintTermEditionError(constraint_id, term.id, e.message) from e
+
+        if term.weight:
+            existing_term.weight = term.weight
+        if term.offset:
+            existing_term.offset = term.offset
+        return existing_term
 
     @override
     def update_binding_constraint_properties(

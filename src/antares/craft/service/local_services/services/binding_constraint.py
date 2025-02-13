@@ -158,7 +158,9 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         raise NotImplementedError
 
     @override
-    def update_binding_constraint_term(self, constraint_id: str, term: ConstraintTermUpdate) -> None:
+    def update_binding_constraint_term(
+        self, constraint_id: str, term: ConstraintTermUpdate, existing_term: ConstraintTerm
+    ) -> ConstraintTerm:
         raise NotImplementedError
 
     @override
