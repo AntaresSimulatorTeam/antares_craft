@@ -101,7 +101,9 @@ class AreaApiService(BaseAreaService):
             if properties:
                 url = f"{base_area_url}/{area_id}/properties/form"
                 api_model = AreaPropertiesAPI.from_user_model(properties)
-                body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
+                # todo: change this exclude when AntaresWeb will work
+                exclude = {"spread_unsupplied_energy_cost", "spread_spilled_energy_cost"}
+                body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True, exclude=exclude)
                 if body:
                     self._wrapper.put(url, json=body)
             if ui:
@@ -361,7 +363,9 @@ class AreaApiService(BaseAreaService):
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/properties/form"
         try:
             api_model = AreaPropertiesAPI.from_user_model(properties)
-            body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
+            # todo: change this exclude when AntaresWeb will work
+            exclude = {"spread_unsupplied_energy_cost", "spread_spilled_energy_cost"}
+            body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True, exclude=exclude)
 
             self._wrapper.put(url, json=body)
             response = self._wrapper.get(url)
