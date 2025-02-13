@@ -58,7 +58,7 @@ class AreaPropertiesLocal(LocalBaseModel):
     @staticmethod
     def from_user_model(user_class: AreaPropertiesType) -> "AreaPropertiesLocal":
         args = {
-            "adequacy_patch": {"adequacy_patch_mode": user_class.adequacy_patch_mode.value},
+            "adequacy_patch": {"adequacy_patch_mode": user_class.adequacy_patch_mode},
             "filtering": {
                 "filter_synthesis": user_class.filter_synthesis,
                 "filter_year_by_year": user_class.filter_by_year,

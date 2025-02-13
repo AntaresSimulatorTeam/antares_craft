@@ -60,7 +60,7 @@ class AreaPropertiesUpdate:
     other_dispatch_power: Optional[bool] = None
     filter_synthesis: Optional[set[FilterOption]] = None
     filter_by_year: Optional[set[FilterOption]] = None
-    adequacy_patch_mode: AdequacyPatchMode = AdequacyPatchMode.OUTSIDE
+    adequacy_patch_mode: Optional[AdequacyPatchMode] = None
     spread_unsupplied_energy_cost: Optional[float] = None
     spread_spilled_energy_cost: Optional[float] = None
 
