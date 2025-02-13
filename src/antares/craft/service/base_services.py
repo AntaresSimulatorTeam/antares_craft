@@ -494,8 +494,6 @@ class BaseThermalService(ABC):
 
 
 class BaseBindingConstraintService(ABC):
-    binding_constraints: dict[str, "BindingConstraint"]
-
     @abstractmethod
     def create_binding_constraint(
         self,
