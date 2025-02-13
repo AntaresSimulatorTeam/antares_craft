@@ -28,7 +28,6 @@ from antares.craft.service.api_services.area_api import AreaApiService
 from antares.craft.service.api_services.factory import ApiServiceFactory
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.services.st_storage import ShortTermStorageApiService
-from antares.craft.service.service_factory import ServiceFactory
 
 
 class TestCreateAPI:

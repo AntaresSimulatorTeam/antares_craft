@@ -10,9 +10,10 @@
 #
 # This file is part of the Antares project.
 
-import pandas as pd
 import pytest
 import requests_mock
+
+import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (

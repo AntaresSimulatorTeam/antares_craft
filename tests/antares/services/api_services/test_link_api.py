@@ -28,7 +28,6 @@ from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.study import Study
 from antares.craft.service.api_services.factory import ApiServiceFactory
-from antares.craft.service.service_factory import ServiceFactory
 
 
 @pytest.fixture()

@@ -263,4 +263,3 @@ class Study:
 
     def generate_thermal_timeseries(self) -> None:
         self._study_service.generate_thermal_timeseries()
-

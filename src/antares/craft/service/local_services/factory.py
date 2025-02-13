@@ -12,9 +12,8 @@
 import logging
 import os
 import time
-from pathlib import Path
 
-from typing_extensions import override
+from pathlib import Path
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.settings.study_settings import StudySettings
@@ -45,6 +44,7 @@ from antares.craft.service.local_services.services.thermal import ThermalLocalSe
 from antares.craft.service.local_services.study_local import StudyLocalService
 from antares.craft.service.service_factory import ServiceFactory
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
+from typing_extensions import override
 
 
 class LocalServiceFactory(ServiceFactory):
@@ -108,7 +108,6 @@ class LocalServiceFactory(ServiceFactory):
         return HydroLocalService(self.config, self.study_name)
 
 
-
 def _create_correlation_ini_files(study_directory: Path) -> None:
     correlation_inis_to_create = [
         getattr(InitializationFilesTypes, field.upper() + "_CORRELATION_INI")
@@ -126,7 +125,6 @@ def _create_correlation_ini_files(study_directory: Path) -> None:
             ini_contents=ini_content,
         )
         ini_file.write_ini_file()
-
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:
@@ -156,6 +154,7 @@ def _create_directory_structure(study_path: Path) -> None:
     ]
     for subdirectory in subdirectories:
         (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
+
 
 def create_study_local(study_name: str, version: str, parent_directory: Path) -> "Study":
     """

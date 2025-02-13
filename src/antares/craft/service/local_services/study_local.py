@@ -9,22 +9,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import logging
-import os
-import time
 from pathlib import Path, PurePath
 from typing import TYPE_CHECKING, Any
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.binding_constraint import BindingConstraint
 from antares.craft.model.output import Output
-from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 from typing_extensions import override
-
-from antares.craft.service.local_services.services.settings import edit_study_settings
-from antares.craft.service.service_factory import ServiceFactory
-from antares.craft.tools.ini_tool import InitializationFilesTypes, IniFile
 
 if TYPE_CHECKING:
     from antares.craft.model.study import Study

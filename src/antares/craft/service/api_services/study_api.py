@@ -78,6 +78,7 @@ class StudyApiService(BaseStudyService):
     @override
     def create_variant(self, variant_name: str) -> "Study":
         from antares.craft.service.api_services.factory import read_study_api
+
         url = f"{self._base_url}/studies/{self.study_id}/variants?name={variant_name}"
         try:
             response = self._wrapper.post(url)

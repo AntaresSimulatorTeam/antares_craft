@@ -21,7 +21,6 @@ from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintMatrixName
 from antares.craft.model.study import Study
 from antares.craft.service.api_services.factory import ApiServiceFactory
-from antares.craft.service.service_factory import ServiceFactory
 
 
 @pytest.fixture

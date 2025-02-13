@@ -21,7 +21,6 @@ from antares.craft.exceptions.exceptions import MatrixDownloadError, MatrixUploa
 from antares.craft.model.area import Area
 from antares.craft.model.hydro import Hydro, HydroProperties
 from antares.craft.service.api_services.factory import ApiServiceFactory
-from antares.craft.service.service_factory import ServiceFactory
 
 
 class TestMatrixAPI:

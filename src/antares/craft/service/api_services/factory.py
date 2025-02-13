@@ -106,7 +106,6 @@ class ApiServiceFactory(ServiceFactory):
         return HydroApiService(self.config, self.study_id)
 
 
-
 def create_study_api(
     study_name: str,
     version: str,
@@ -169,7 +168,6 @@ def import_study_api(api_config: APIconf, study_path: Path, destination_path: Op
         return study
     except APIError as e:
         raise StudyImportError(study_path.name, e.message) from e
-
 
 
 def read_study_api(api_config: APIconf, study_id: str) -> "Study":

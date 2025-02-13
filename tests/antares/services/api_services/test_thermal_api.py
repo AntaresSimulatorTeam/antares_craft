@@ -9,11 +9,12 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import pytest
+import requests_mock
+
 from unittest.mock import Mock
 
 import pandas as pd
-import pytest
-import requests_mock
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
