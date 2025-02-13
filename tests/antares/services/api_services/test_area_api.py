@@ -31,7 +31,7 @@ from antares.craft.model.st_storage import STStorage
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.area_api import AreaApiService
-from antares.craft.service.api_services.factory import ApiServiceFactory
+from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
@@ -41,11 +41,12 @@ from antares.craft.service.api_services.models.thermal import ThermalClusterProp
 class TestCreateAPI:
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
-    area_service = ApiServiceFactory(api, study_id).create_area_service()
-    st_storage_service = ApiServiceFactory(api, study_id).create_st_storage_service()
-    thermal_service = ApiServiceFactory(api, study_id).create_thermal_service()
-    renewable_service = ApiServiceFactory(api, study_id).create_renewable_service()
-    hydro_service = ApiServiceFactory(api, study_id).create_hydro_service()
+    services = create_api_services(api, study_id)
+    area_service = services.area_service
+    st_storage_service = services.short_term_storage_service
+    thermal_service = services.thermal_service
+    renewable_service = services.renewable_service
+    hydro_service = services.hydro_service
     area = Area("area_test", area_service, st_storage_service, thermal_service, renewable_service, hydro_service)
 
     area_api = AreaApiService(
@@ -58,7 +59,7 @@ class TestCreateAPI:
     )
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[1]])
-    study = Study("TestStudy", "880", ApiServiceFactory(api, study_id))
+    study = Study("TestStudy", "880", services)
 
     def test_update_area_properties_success(self):
         with requests_mock.Mocker() as mocker:

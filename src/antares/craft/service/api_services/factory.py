@@ -30,80 +30,35 @@ from antares.craft.service.api_services.services.st_storage import ShortTermStor
 from antares.craft.service.api_services.services.thermal import ThermalApiService
 from antares.craft.service.api_services.study_api import StudyApiService
 from antares.craft.service.base_services import (
-    BaseAreaService,
-    BaseBindingConstraintService,
-    BaseHydroService,
-    BaseLinkService,
-    BaseOutputService,
-    BaseRenewableService,
-    BaseRunService,
-    BaseShortTermStorageService,
-    BaseStudyService,
-    BaseStudySettingsService,
-    BaseThermalService,
+    StudyServices,
 )
-from antares.craft.service.service_factory import ServiceFactory
-from typing_extensions import override
 
 
-class ApiServiceFactory(ServiceFactory):
-    def __init__(self, config: APIconf, study_id: str = "", study_name: str = ""):
-        self.config = config
-        self.study_id = study_id
-        self.study_name = study_name
-
-    @override
-    def create_area_service(self) -> BaseAreaService:
-        # TODO: we should not have multiple instances of those services
-        storage_service: BaseShortTermStorageService = ShortTermStorageApiService(self.config, self.study_id)
-        thermal_service: BaseThermalService = ThermalApiService(self.config, self.study_id)
-        renewable_service: BaseRenewableService = RenewableApiService(self.config, self.study_id)
-        hydro_service: BaseHydroService = HydroApiService(self.config, self.study_id)
-        area_service: BaseAreaService = AreaApiService(
-            self.config, self.study_id, storage_service, thermal_service, renewable_service, hydro_service
-        )
-        return area_service
-
-    @override
-    def create_link_service(self) -> BaseLinkService:
-        return LinkApiService(self.config, self.study_id)
-
-    @override
-    def create_thermal_service(self) -> BaseThermalService:
-        return ThermalApiService(self.config, self.study_id)
-
-    @override
-    def create_binding_constraints_service(self) -> BaseBindingConstraintService:
-        return BindingConstraintApiService(self.config, self.study_id)
-
-    @override
-    def create_study_service(self) -> BaseStudyService:
-        output_service = self.create_output_service()
-        return StudyApiService(self.config, self.study_id, output_service)
-
-    @override
-    def create_renewable_service(self) -> BaseRenewableService:
-        return RenewableApiService(self.config, self.study_id)
-
-    @override
-    def create_st_storage_service(self) -> BaseShortTermStorageService:
-        return ShortTermStorageApiService(self.config, self.study_id)
-
-    @override
-    def create_run_service(self) -> BaseRunService:
-        return RunApiService(self.config, self.study_id)
-
-    @override
-    def create_output_service(self) -> BaseOutputService:
-        return OutputApiService(self.config, self.study_id)
-
-    @override
-    def create_settings_service(self) -> BaseStudySettingsService:
-        return StudySettingsAPIService(self.config, self.study_id)
-
-    @override
-    def create_hydro_service(self) -> BaseHydroService:
-        return HydroApiService(self.config, self.study_id)
+def create_api_services(config: APIconf, study_id: str = "") -> StudyServices:
+    storage_service = ShortTermStorageApiService(config, study_id)
+    thermal_service = ThermalApiService(config, study_id)
+    renewable_service = RenewableApiService(config, study_id)
+    hydro_service = HydroApiService(config, study_id)
+    area_service = AreaApiService(config, study_id, storage_service, thermal_service, renewable_service, hydro_service)
+    link_service = LinkApiService(config, study_id)
+    output_service = OutputApiService(config, study_id)
+    study_service = StudyApiService(config, study_id, output_service)
+    bc_service = BindingConstraintApiService(config, study_id)
+    run_service = RunApiService(config, study_id)
+    settings_service = StudySettingsAPIService(config, study_id)
+    return StudyServices(
+        area_service=area_service,
+        bc_service=bc_service,
+        run_service=run_service,
+        thermal_service=thermal_service,
+        hydro_service=hydro_service,
+        output_service=output_service,
+        study_service=study_service,
+        link_service=link_service,
+        renewable_service=renewable_service,
+        settings_service=settings_service,
+        short_term_storage_service=storage_service,
+    )
 
 
 def create_study_api(
@@ -132,7 +87,7 @@ def create_study_api(
         response = wrapper.post(url)
         study_id = response.json()
         # Settings part
-        study = Study(study_name, version, ApiServiceFactory(api_config, study_id))
+        study = Study(study_name, version, create_api_services(api_config, study_id))
         study.read_settings()
         # Move part
         if parent_path:
@@ -181,7 +136,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     path = json_study.pop("folder")
     pure_path = PurePath(path) if path else PurePath(".")
 
-    study = Study(study_name, study_version, ApiServiceFactory(api_config, study_id, study_name), pure_path)
+    study = Study(study_name, study_version, create_api_services(api_config, study_id), pure_path)
 
     study.read_settings()
     study.read_areas()
@@ -200,7 +155,5 @@ def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) ->
         variant_name: the name of the new variant
     Returns: The variant in the form of a Study object
     """
-    factory = ApiServiceFactory(api_config, study_id)
-    api_service = factory.create_study_service()
-
-    return api_service.create_variant(variant_name)
+    services = create_api_services(api_config, study_id)
+    return services.study_service.create_variant(variant_name)

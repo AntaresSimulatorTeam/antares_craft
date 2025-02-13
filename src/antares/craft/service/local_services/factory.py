@@ -19,17 +19,7 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.study import Study
 from antares.craft.service.base_services import (
-    BaseAreaService,
-    BaseBindingConstraintService,
-    BaseHydroService,
-    BaseLinkService,
-    BaseOutputService,
-    BaseRenewableService,
-    BaseRunService,
-    BaseShortTermStorageService,
-    BaseStudyService,
-    BaseStudySettingsService,
-    BaseThermalService,
+    StudyServices,
 )
 from antares.craft.service.local_services.area_local import AreaLocalService
 from antares.craft.service.local_services.binding_constraint_local import BindingConstraintLocalService
@@ -42,70 +32,37 @@ from antares.craft.service.local_services.services.settings import StudySettings
 from antares.craft.service.local_services.services.st_storage import ShortTermStorageLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService
 from antares.craft.service.local_services.study_local import StudyLocalService
-from antares.craft.service.service_factory import ServiceFactory
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
-from typing_extensions import override
 
 
-class LocalServiceFactory(ServiceFactory):
-    def __init__(self, config: LocalConfiguration, study_id: str = "", study_name: str = ""):
-        self.config = config
-        self.study_id = study_id
-        self.study_name = study_name
-
-    @override
-    def create_area_service(self) -> BaseAreaService:
-        # TODO: we should not have multiple instances of those services
-        storage_service = ShortTermStorageLocalService(self.config, self.study_name)
-        thermal_service = ThermalLocalService(self.config, self.study_name)
-        renewable_service = RenewableLocalService(self.config, self.study_name)
-        hydro_service = HydroLocalService(self.config, self.study_name)
-        area_service = AreaLocalService(
-            self.config, self.study_name, storage_service, thermal_service, renewable_service, hydro_service
-        )
-        return area_service
-
-    @override
-    def create_link_service(self) -> BaseLinkService:
-        return LinkLocalService(self.config, self.study_name)
-
-    @override
-    def create_thermal_service(self) -> BaseThermalService:
-        return ThermalLocalService(self.config, self.study_name)
-
-    @override
-    def create_binding_constraints_service(self) -> BaseBindingConstraintService:
-        return BindingConstraintLocalService(self.config, self.study_name)
-
-    @override
-    def create_study_service(self) -> BaseStudyService:
-        output_service = self.create_output_service()
-        study_service = StudyLocalService(self.config, self.study_name, output_service)
-        return study_service
-
-    @override
-    def create_renewable_service(self) -> BaseRenewableService:
-        return RenewableLocalService(self.config, self.study_name)
-
-    @override
-    def create_st_storage_service(self) -> BaseShortTermStorageService:
-        return ShortTermStorageLocalService(self.config, self.study_name)
-
-    @override
-    def create_run_service(self) -> BaseRunService:
-        return RunLocalService(self.config, self.study_name)
-
-    @override
-    def create_output_service(self) -> BaseOutputService:
-        return OutputLocalService(self.config, self.study_name)
-
-    @override
-    def create_settings_service(self) -> BaseStudySettingsService:
-        return StudySettingsLocalService(self.config, self.study_name)
-
-    @override
-    def create_hydro_service(self) -> BaseHydroService:
-        return HydroLocalService(self.config, self.study_name)
+def create_local_services(config: LocalConfiguration, study_name: str = "") -> StudyServices:
+    storage_service = ShortTermStorageLocalService(config, study_name)
+    thermal_service = ThermalLocalService(config, study_name)
+    renewable_service = RenewableLocalService(config, study_name)
+    hydro_service = HydroLocalService(config, study_name)
+    area_service = AreaLocalService(
+        config, study_name, storage_service, thermal_service, renewable_service, hydro_service
+    )
+    link_service = LinkLocalService(config, study_name)
+    output_service = OutputLocalService(config, study_name)
+    study_service = StudyLocalService(config, study_name, output_service)
+    bc_service = BindingConstraintLocalService(config, study_name)
+    run_service = RunLocalService(config, study_name)
+    settings_service = StudySettingsLocalService(config, study_name)
+    short_term_storage_service = ShortTermStorageLocalService(config, study_name)
+    return StudyServices(
+        area_service=area_service,
+        bc_service=bc_service,
+        run_service=run_service,
+        thermal_service=thermal_service,
+        hydro_service=hydro_service,
+        output_service=output_service,
+        study_service=study_service,
+        link_service=link_service,
+        renewable_service=renewable_service,
+        settings_service=settings_service,
+        short_term_storage_service=short_term_storage_service,
+    )
 
 
 def _create_correlation_ini_files(study_directory: Path) -> None:
@@ -207,7 +164,7 @@ InfoTip = Antares Study {version}: {study_name}
     study = Study(
         name=study_name,
         version=version,
-        service_factory=LocalServiceFactory(config=local_config, study_name=study_name),
+        services=create_local_services(config=local_config, study_name=study_name),
         path=study_directory,
     )
     # We need to create the file with default value
@@ -243,7 +200,7 @@ def read_study_local(study_directory: Path) -> "Study":
     study = Study(
         name=study_params["caption"],
         version=study_params["version"],
-        service_factory=LocalServiceFactory(config=local_config, study_name=study_params["caption"]),
+        services=create_local_services(config=local_config, study_name=study_params["caption"]),
         path=study_directory,
     )
     study.read_settings()

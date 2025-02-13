@@ -20,7 +20,7 @@ from antares.craft.exceptions.exceptions import ConstraintMatrixDownloadError, C
 from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import BindingConstraint, BindingConstraintProperties, ConstraintMatrixName
 from antares.craft.model.study import Study
-from antares.craft.service.api_services.factory import ApiServiceFactory
+from antares.craft.service.api_services.factory import create_api_services
 
 
 @pytest.fixture
@@ -36,15 +36,15 @@ def constraint_set():
 class TestCreateAPI:
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
-    factory = ApiServiceFactory(api, study_id)
-    study = Study("study_test", "870", factory)
+    services = create_api_services(api, study_id)
+    study = Study("study_test", "870", services)
     area = Area(
         "study_test",
-        factory.create_area_service(),
-        factory.create_st_storage_service(),
-        factory.create_thermal_service(),
-        factory.create_renewable_service(),
-        factory.create_hydro_service(),
+        services.area_service,
+        services.short_term_storage_service,
+        services.thermal_service,
+        services.renewable_service,
+        services.hydro_service,
     )
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
@@ -52,9 +52,7 @@ class TestCreateAPI:
     def test_update_binding_constraint_properties_success(self):
         with requests_mock.Mocker() as mocker:
             properties = BindingConstraintProperties(enabled=False)
-            constraint = BindingConstraint(
-                "bc_1", ApiServiceFactory(self.api, self.study_id).create_binding_constraints_service()
-            )
+            constraint = BindingConstraint("bc_1", self.services.bc_service)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}"
             mocker.put(url, json={"id": "id", "name": "name", "terms": [], **properties.model_dump()}, status_code=200)
             constraint.update_properties(properties=properties)
@@ -62,9 +60,7 @@ class TestCreateAPI:
     def test_update_binding_constraint_properties_fails(self):
         with requests_mock.Mocker() as mocker:
             properties = BindingConstraintProperties(enabled=False)
-            constraint = BindingConstraint(
-                "bc_1", ApiServiceFactory(self.api, self.study_id).create_binding_constraints_service()
-            )
+            constraint = BindingConstraint("bc_1", self.services.bc_service)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}"
             antares_web_description_msg = "Server KO"
             mocker.put(url, json={"description": antares_web_description_msg}, status_code=404)
@@ -76,9 +72,7 @@ class TestCreateAPI:
                 constraint.update_properties(properties=properties)
 
     def test_get_constraint_matrix_success(self, constraint_set):
-        constraint = BindingConstraint(
-            "bc_test", ApiServiceFactory(self.api, self.study_id).create_binding_constraints_service()
-        )
+        constraint = BindingConstraint("bc_test", self.services.bc_service)
         for matrix_method, enum_value, path, expected_matrix in constraint_set:
             with requests_mock.Mocker() as mocker:
                 url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path={path}"
@@ -87,9 +81,7 @@ class TestCreateAPI:
             assert constraint_matrix.equals(self.matrix)
 
     def test_get_constraint_matrix_fails(self, constraint_set):
-        constraint = BindingConstraint(
-            "bc_test", ApiServiceFactory(self.api, self.study_id).create_binding_constraints_service()
-        )
+        constraint = BindingConstraint("bc_test", self.services.bc_service)
         for matrix_method, enum_value, path, _ in constraint_set:
             with requests_mock.Mocker() as mocker:
                 url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path={path}"

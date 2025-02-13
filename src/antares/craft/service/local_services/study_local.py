@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.binding_constraint import BindingConstraint
@@ -23,10 +23,7 @@ if TYPE_CHECKING:
 
 
 class StudyLocalService(BaseStudyService):
-    def __init__(
-        self, config: LocalConfiguration, study_name: str, output_service: BaseOutputService, **kwargs: Any
-    ) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, config: LocalConfiguration, study_name: str, output_service: BaseOutputService) -> None:
         self._config = config
         self._study_name = study_name
         self._output_service: BaseOutputService = output_service

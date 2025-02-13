@@ -29,8 +29,7 @@ from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
-from antares.craft.service.base_services import BaseLinkService, BaseStudyService
-from antares.craft.service.service_factory import ServiceFactory
+from antares.craft.service.base_services import BaseLinkService, BaseStudyService, StudyServices
 
 """
 The study module defines the data model for antares study.
@@ -46,18 +45,18 @@ class Study:
         self,
         name: str,
         version: str,
-        service_factory: ServiceFactory,
+        services: StudyServices,
         path: PurePath = PurePath("."),
     ):
         self.name = name
         self.version = version
         self.path = path
-        self._study_service = service_factory.create_study_service()
-        self._area_service = service_factory.create_area_service()
-        self._link_service = service_factory.create_link_service()
-        self._run_service = service_factory.create_run_service()
-        self._binding_constraints_service = service_factory.create_binding_constraints_service()
-        self._settings_service = service_factory.create_settings_service()
+        self._study_service = services.study_service
+        self._area_service = services.area_service
+        self._link_service = services.link_service
+        self._run_service = services.run_service
+        self._binding_constraints_service = services.bc_service
+        self._settings_service = services.settings_service
         self._settings = StudySettings()
         self._areas: dict[str, Area] = dict()
         self._links: dict[str, Link] = dict()

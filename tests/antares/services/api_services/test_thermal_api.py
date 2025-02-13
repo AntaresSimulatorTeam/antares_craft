@@ -31,7 +31,7 @@ from antares.craft.model.thermal import (
     ThermalClusterPropertiesUpdate,
 )
 from antares.craft.service.api_services.area_api import AreaApiService
-from antares.craft.service.api_services.factory import ApiServiceFactory
+from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.services.thermal import ThermalApiService
 
@@ -51,17 +51,17 @@ def thermal_matrix_set():
 class TestCreateAPI:
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
-    factory = ApiServiceFactory(api, study_id)
-    study = Study("study_test", "870", factory)
+    services = create_api_services(api, study_id)
+    study = Study("study_test", "870", services)
     area = Area(
         "area-test",
-        factory.create_area_service(),
-        factory.create_st_storage_service(),
-        factory.create_thermal_service(),
-        factory.create_renewable_service(),
-        factory.create_hydro_service(),
+        services.area_service,
+        services.short_term_storage_service,
+        services.thermal_service,
+        services.renewable_service,
+        services.hydro_service,
     )
-    thermal = ThermalCluster(factory.create_thermal_service(), "area-test", "thermal-test")
+    thermal = ThermalCluster(services.thermal_service, "area-test", "thermal-test")
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
 

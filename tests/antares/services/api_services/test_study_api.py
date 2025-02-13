@@ -54,7 +54,7 @@ from antares.craft.model.settings.general import GeneralParametersUpdate, Mode
 from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
 from antares.craft.model.study import Study
-from antares.craft.service.api_services.factory import ApiServiceFactory
+from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.services.output import OutputApiService
 
@@ -63,15 +63,15 @@ class TestCreateAPI:
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
     antares_web_description_msg = "Mocked Server KO"
-    factory = ApiServiceFactory(api, study_id)
-    study = Study("TestStudy", "880", factory)
+    services = create_api_services(api, study_id)
+    study = Study("TestStudy", "880", services)
     area = Area(
         "area_test",
-        factory.create_area_service(),
-        factory.create_st_storage_service(),
-        factory.create_thermal_service(),
-        factory.create_renewable_service(),
-        factory.create_hydro_service(),
+        services.area_service,
+        services.short_term_storage_service,
+        services.thermal_service,
+        services.renewable_service,
+        services.hydro_service,
     )
 
     def test_create_study_test_ok(self) -> None:
@@ -268,13 +268,12 @@ class TestCreateAPI:
             actual_study = read_study_api(self.api, self.study_id)
 
             expected_study_name = json_study.pop("name")
-            expected_study_id = json_study.pop("id")
             expected_study_version = json_study.pop("version")
 
             expected_study = Study(
                 expected_study_name,
                 expected_study_version,
-                ApiServiceFactory(self.api, expected_study_id, expected_study_name),
+                self.services,
                 None,
             )
 

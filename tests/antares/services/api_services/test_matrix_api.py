@@ -20,25 +20,25 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import MatrixDownloadError, MatrixUploadError
 from antares.craft.model.area import Area
 from antares.craft.model.hydro import Hydro, HydroProperties
-from antares.craft.service.api_services.factory import ApiServiceFactory
+from antares.craft.service.api_services.factory import create_api_services
 
 
 class TestMatrixAPI:
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
-    factory = ApiServiceFactory(api, study_id)
+    services = create_api_services(api, study_id)
     area = Area(
         "area_test",
-        factory.create_area_service(),
-        factory.create_st_storage_service(),
-        factory.create_thermal_service(),
-        factory.create_renewable_service(),
-        factory.create_hydro_service(),
+        services.area_service,
+        services.short_term_storage_service,
+        services.thermal_service,
+        services.renewable_service,
+        services.hydro_service,
     )
 
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
-    hydro = Hydro(factory.create_hydro_service(), "area_test", properties=HydroProperties())
+    hydro = Hydro(services.hydro_service, "area_test", properties=HydroProperties())
 
     # =======================
     #  LOAD
