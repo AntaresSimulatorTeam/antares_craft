@@ -23,6 +23,7 @@ from antares.craft.exceptions.exceptions import AreaCreationError, ThermalCreati
 from antares.craft.model.area import (
     Area,
     AreaProperties,
+    AreaPropertiesUpdate,
     AreaUi,
     AreaUiLocal,
 )
@@ -336,7 +337,7 @@ class AreaLocalService(BaseAreaService):
         raise NotImplementedError
 
     @override
-    def update_area_properties(self, area_id: str, properties: AreaProperties) -> AreaProperties:
+    def update_area_properties(self, area_id: str, properties: AreaPropertiesUpdate) -> AreaProperties:
         raise NotImplementedError
 
     @override

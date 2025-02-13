@@ -294,7 +294,7 @@ class Area:
     def delete_st_storage(self, storage: STStorage) -> None:
         self.delete_st_storages([storage])
 
-    def update_properties(self, properties: AreaProperties) -> None:
+    def update_properties(self, properties: AreaPropertiesUpdate) -> None:
         new_properties = self._area_service.update_area_properties(self.id, properties)
         self._properties = new_properties
 

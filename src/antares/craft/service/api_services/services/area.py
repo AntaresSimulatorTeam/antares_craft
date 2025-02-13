@@ -32,7 +32,7 @@ from antares.craft.exceptions.exceptions import (
     ThermalCreationError,
     ThermalDeletionError,
 )
-from antares.craft.model.area import Area, AreaProperties, AreaUi
+from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
 from antares.craft.model.hydro import Hydro
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
@@ -357,7 +357,7 @@ class AreaApiService(BaseAreaService):
             raise MatrixUploadError(area_id, "misc-gen", e.message) from e
 
     @override
-    def update_area_properties(self, area_id: str, properties: AreaProperties) -> AreaProperties:
+    def update_area_properties(self, area_id: str, properties: AreaPropertiesUpdate) -> AreaProperties:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/properties/form"
         try:
             api_model = AreaPropertiesAPI.from_user_model(properties)
