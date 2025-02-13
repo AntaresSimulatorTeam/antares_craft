@@ -35,6 +35,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintPropertiesUpdate,
     ClusterData,
     ConstraintTerm,
+    ConstraintTermUpdate,
     LinkData,
 )
 from antares.craft.model.hydro import HydroPropertiesUpdate
@@ -410,6 +411,13 @@ class TestWebClient:
             constraint_2.id: constraint_2,
             constraint_3.id: constraint_3,
         }
+
+        # tests updating an existing term
+        new_term = ConstraintTermUpdate(data=cluster_data, offset=12)
+        constraint_1.update_term(new_term)
+        updated_term = constraint_1.get_terms()[new_term.id]
+        assert updated_term.weight == 100  # Checks the weight wasn't modified
+        assert updated_term.offset == 12
 
         # test area property edition
         new_props = AreaProperties()

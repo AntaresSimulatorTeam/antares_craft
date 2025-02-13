@@ -158,9 +158,14 @@ class BindingConstraint:
         self._terms.pop(term.id)
 
     def update_term(self, term: ConstraintTermUpdate) -> None:
-        self._binding_constraint_service.update_binding_constraint_term(self.id, term)
         existing_term = self._terms[term.id]
-        self._terms[term.id] = existing_term.from_update_model(term)
+        if not term.weight:
+            term.weight = existing_term.weight
+        self._binding_constraint_service.update_binding_constraint_term(self.id, term)
+        if term.offset:
+            existing_term.offset = term.offset
+        existing_term.weight = term.weight
+        self._terms[term.id] = existing_term
 
     def update_properties(self, properties: BindingConstraintPropertiesUpdate) -> None:
         new_properties = self._binding_constraint_service.update_binding_constraint_properties(self, properties)

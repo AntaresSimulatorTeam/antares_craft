@@ -110,8 +110,9 @@ class TestCreateAPI:
 
     def test_update_binding_constraint_term_fails(self):
         with requests_mock.Mocker() as mocker:
+            existing_term = ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=4, offset=3)
             service = ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
-            constraint = BindingConstraint("bc_1", service)
+            constraint = BindingConstraint("bc_1", service, None, [existing_term])
 
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}/term"
             mocker.put(url, json={"description": self.antares_web_description_msg}, status_code=422)
