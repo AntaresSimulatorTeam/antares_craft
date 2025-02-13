@@ -13,7 +13,7 @@ import pytest
 
 import pandas as pd
 
-from antares.craft.model.area import Area
+from antares.craft.model.area import Area, AreaProperties
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintFrequency,
@@ -31,7 +31,6 @@ from antares.craft.model.thermal import (
     ThermalClusterProperties,
     ThermalCostGeneration,
 )
-from antares.craft.service.local_services.models.area import AreaPropertiesLocal
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
@@ -46,8 +45,8 @@ def local_study(tmp_path) -> Study:
 def local_study_w_areas(tmp_path, local_study) -> Study:
     areas_to_create = ["fr", "it"]
     for area in areas_to_create:
-        area_properties = AreaPropertiesLocal(energy_cost_spilled="1.000000", energy_cost_unsupplied="0.500000")
-        local_study.create_area(area, properties=area_properties.to_user_model())
+        area_properties = AreaProperties(energy_cost_spilled=1, energy_cost_unsupplied=0.5)
+        local_study.create_area(area, properties=area_properties)
     return local_study
 
 
