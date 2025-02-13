@@ -35,8 +35,6 @@ class FilteringPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
 
     @field_validator("filter_synthesis", "filter_year_by_year", mode="before")
     def validate_accuracy_on_correlation(cls, v: Any) -> set[str]:
-        if v is None:
-            return set()
         if isinstance(v, (list, set)):
             return set(v)
         if isinstance(v, str):
