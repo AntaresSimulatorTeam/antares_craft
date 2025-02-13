@@ -517,11 +517,11 @@ ghi
         expected_optimization_ini_path = study_antares_path / "input" / "areas" / "area1" / "optimization.ini"
 
         expected_optimization_ini_content = """[nodal optimization]
-non-dispatchable-power = true
-dispatchable-hydro-power = true
-other-dispatchable-power = true
-spread-unsupplied-energy-cost = 0.000000
-spread-spilled-energy-cost = 0.000000
+non-dispatchable-power = True
+dispatchable-hydro-power = True
+other-dispatchable-power = True
+spread-unsupplied-energy-cost = 0.0
+spread-spilled-energy-cost = 0.0
 
 [filtering]
 filter-synthesis = hourly, daily, weekly, monthly, annual
