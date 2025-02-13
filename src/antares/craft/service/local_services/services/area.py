@@ -269,15 +269,11 @@ class AreaLocalService(BaseAreaService):
             adequacy_patch_ini = IniFile(
                 self.config.study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_name
             )
-            adequacy_patch_ini.add_section(local_properties.adequacy_patch.model_dump(mode="json"))
+            adequacy_patch_ini.add_section(local_properties.to_adequacy_ini())
             adequacy_patch_ini.write_ini_file()
 
-            optimization_dict = {
-                **local_properties.nodal_optimization.model_dump(mode="json"),
-                **local_properties.filtering.model_dump(mode="json"),
-            }
             optimization_ini = ConfigParser()
-            optimization_ini.read_dict(optimization_dict)
+            optimization_ini.read_dict(local_properties.to_optimization_ini())
 
             with open(new_area_directory / "optimization.ini", "w") as optimization_ini_file:
                 optimization_ini.write(optimization_ini_file)
@@ -327,7 +323,7 @@ class AreaLocalService(BaseAreaService):
             renewable_service=self.renewable_service,
             hydro_service=self.hydro_service,
             hydro=hydro,
-            properties=properties,
+            properties=local_properties.to_user_model(),  # round-trip to do the validation inside Pydantic
             ui=local_ui.yield_area_ui(),
         )
         return created_area

@@ -47,7 +47,7 @@ class AreaPropertiesLocal(LocalBaseModel):
     @staticmethod
     def from_user_model(user_class: AreaPropertiesType) -> "AreaPropertiesLocal":
         args = {
-            "adequacy_patch": user_class.adequacy_patch_mode.value,
+            "adequacy_patch": {"adequacy_patch_mode": user_class.adequacy_patch_mode.value},
             "filtering": {
                 "filter_synthesis": user_class.filter_synthesis,
                 "filter_year_by_year": user_class.filter_by_year,
@@ -78,3 +78,9 @@ class AreaPropertiesLocal(LocalBaseModel):
             spread_unsupplied_energy_cost=self.nodal_optimization.spread_unsupplied_energy_cost,
             spread_spilled_energy_cost=self.nodal_optimization.spread_spilled_energy_cost,
         )
+
+    def to_adequacy_ini(self) -> dict[str, dict[str, str]]:
+        return self.model_dump(mode="json", include={"adequacy_patch"}, by_alias=True)
+
+    def to_optimization_ini(self) -> dict[str, dict[str, str]]:
+        return self.model_dump(mode="json", include={"nodal_optimization", "filtering"}, by_alias=True)

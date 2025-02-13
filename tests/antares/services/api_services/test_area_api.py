@@ -24,7 +24,7 @@ from antares.craft.exceptions.exceptions import (
     STStorageCreationError,
     ThermalCreationError,
 )
-from antares.craft.model.area import Area, AreaProperties, AreaUi, AreaPropertiesUpdate
+from antares.craft.model.area import Area, AreaPropertiesUpdate, AreaUi
 from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage
@@ -74,8 +74,7 @@ class TestCreateAPI:
     def test_update_area_properties_fails(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/properties/form"
-            properties = AreaProperties()
-            properties.energy_cost_unsupplied = 100
+            properties = AreaPropertiesUpdate(energy_cost_unsupplied=100)
             antares_web_description_msg = "Server KO"
             mocker.put(url, json={"description": antares_web_description_msg}, status_code=404)
             with pytest.raises(
@@ -325,7 +324,7 @@ class TestCreateAPI:
                 renewables={renewable_id: renewable_cluster},
                 st_storages={storage_id: st_storage},
                 hydro=hydro,
-                properties=json_properties,
+                properties=AreaPropertiesAPI.model_validate(json_properties).to_user_model(),
                 ui=area_ui,
             )
 

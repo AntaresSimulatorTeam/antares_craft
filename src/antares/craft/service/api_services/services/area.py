@@ -124,7 +124,7 @@ class AreaApiService(BaseAreaService):
 
             url = f"{base_area_url}/{area_id}/properties/form"
             response = self._wrapper.get(url)
-            api_properties = AreaPropertiesAPI.model_validate(response)
+            api_properties = AreaPropertiesAPI.model_validate(response.json())
             area_properties = api_properties.to_user_model()
 
             # TODO: Ask AntaresWeb to do the same endpoint for only one area
