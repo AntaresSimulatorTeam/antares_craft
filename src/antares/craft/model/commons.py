@@ -22,6 +22,16 @@ class FilterOption(Enum):
     ANNUAL = "annual"
 
 
+def default_filtering() -> set[FilterOption]:
+    return {
+        FilterOption.HOURLY,
+        FilterOption.DAILY,
+        FilterOption.WEEKLY,
+        FilterOption.MONTHLY,
+        FilterOption.ANNUAL,
+    }
+
+
 def sort_filter_values(filter_options: Set[FilterOption]) -> List[str]:
     filter_defaults = ["hourly", "daily", "weekly", "monthly", "annual"]
     filter_values = [filter_option.value for filter_option in filter_options]

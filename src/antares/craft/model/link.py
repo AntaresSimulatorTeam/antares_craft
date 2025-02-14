@@ -9,13 +9,13 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Mapping, Optional, Set
 
 import pandas as pd
 
-from antares.craft.model.commons import FilterOption, sort_filter_values
+from antares.craft.model.commons import FilterOption, default_filtering
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
@@ -44,59 +44,30 @@ class LinkStyle(Enum):
     DOT_DASH = "dotdash"
 
 
-class DefaultLinkProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_kebab):
-    """
-    DTO for updating link properties
-    """
+@dataclass
+class LinkPropertiesUpdate:
+    hurdles_cost: Optional[bool] = None
+    loop_flow: Optional[bool] = None
+    use_phase_shifter: Optional[bool] = None
+    transmission_capacities: Optional[TransmissionCapacities] = None
+    asset_type: Optional[AssetType] = None
+    display_comments: Optional[bool] = None
+    comments: Optional[str] = None
+    filter_synthesis: Optional[Set[FilterOption]] = None
+    filter_year_by_year: Optional[Set[FilterOption]] = None
 
+
+@dataclass
+class LinkProperties:
     hurdles_cost: bool = False
     loop_flow: bool = False
     use_phase_shifter: bool = False
     transmission_capacities: TransmissionCapacities = TransmissionCapacities.ENABLED
     asset_type: AssetType = AssetType.AC
     display_comments: bool = True
-    filter_synthesis: Set[FilterOption] = {
-        FilterOption.HOURLY,
-        FilterOption.DAILY,
-        FilterOption.WEEKLY,
-        FilterOption.MONTHLY,
-        FilterOption.ANNUAL,
-    }
-    filter_year_by_year: Set[FilterOption] = {
-        FilterOption.HOURLY,
-        FilterOption.DAILY,
-        FilterOption.WEEKLY,
-        FilterOption.MONTHLY,
-        FilterOption.ANNUAL,
-    }
     comments: str = ""
-
-
-@all_optional_model
-class LinkProperties(DefaultLinkProperties):
-    pass
-
-
-class LinkPropertiesLocal(DefaultLinkProperties):
-    @property
-    def ini_fields(self) -> Mapping[str, str]:
-        return {
-            "hurdles-cost": f"{self.hurdles_cost}".lower(),
-            "loop-flow": f"{self.loop_flow}".lower(),
-            "use-phase-shifter": f"{self.use_phase_shifter}".lower(),
-            "transmission-capacities": f"{self.transmission_capacities.value}",
-            "asset-type": f"{self.asset_type.value}",
-            "display-comments": f"{self.display_comments}".lower(),
-            "filter-synthesis": ", ".join(filter_value for filter_value in sort_filter_values(self.filter_synthesis)),
-            "filter-year-by-year": ", ".join(
-                filter_value for filter_value in sort_filter_values(self.filter_year_by_year)
-            ),
-            "comments": f"{self.comments}".lower(),
-        }
-
-    def yield_link_properties(self) -> LinkProperties:
-        excludes = {"ini_fields"}
-        return LinkProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
+    filter_synthesis: Set[FilterOption] = field(default_factory=default_filtering)
+    filter_year_by_year: Set[FilterOption] = field(default_factory=default_filtering)
 
 
 class DefaultLinkUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_kebab):
