@@ -30,8 +30,8 @@ from antares.craft.service.local_services.services.renewable import RenewableLoc
 from antares.craft.service.local_services.services.run import RunLocalService
 from antares.craft.service.local_services.services.settings import StudySettingsLocalService, edit_study_settings
 from antares.craft.service.local_services.services.st_storage import ShortTermStorageLocalService
+from antares.craft.service.local_services.services.study import StudyLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService
-from antares.craft.service.local_services.study_local import StudyLocalService
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 

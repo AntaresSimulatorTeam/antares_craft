@@ -27,8 +27,8 @@ from antares.craft.service.api_services.services.renewable import RenewableApiSe
 from antares.craft.service.api_services.services.run import RunApiService
 from antares.craft.service.api_services.services.settings import StudySettingsAPIService
 from antares.craft.service.api_services.services.st_storage import ShortTermStorageApiService
+from antares.craft.service.api_services.services.study import StudyApiService
 from antares.craft.service.api_services.services.thermal import ThermalApiService
-from antares.craft.service.api_services.study_api import StudyApiService
 from antares.craft.service.base_services import (
     StudyServices,
 )
