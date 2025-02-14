@@ -14,14 +14,24 @@ from dataclasses import asdict, field
 from typing import Any, Union
 
 from antares.craft.model.commons import FilterOption, default_filtering
-from antares.craft.model.link import AssetType, LinkProperties, LinkPropertiesUpdate, TransmissionCapacities
+from antares.craft.model.link import (
+    AssetType,
+    LinkProperties,
+    LinkPropertiesUpdate,
+    LinkStyle,
+    LinkUi,
+    LinkUiUpdate,
+    TransmissionCapacities,
+)
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
+from antares.craft.tools.alias_generators import to_kebab
 from pydantic import field_validator
 
 LinkPropertiesType = Union[LinkProperties, LinkPropertiesUpdate]
+LinkUiType = Union[LinkUi, LinkUiUpdate]
 
 
-class LinkPropertiesLocal(LocalBaseModel):
+class LinkPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
     hurdles_cost: bool = False
     loop_flow: bool = False
     use_phase_shifter: bool = False
@@ -58,4 +68,26 @@ class LinkPropertiesLocal(LocalBaseModel):
             comments=self.comments,
             filter_synthesis=self.filter_synthesis,
             filter_year_by_year=self.filter_year_by_year,
+        )
+
+
+class LinkUiLocal(LocalBaseModel, alias_generator=to_kebab):
+    link_style: LinkStyle
+    link_width: float
+    colorr: int
+    colorg: int
+    colorb: int
+
+    @staticmethod
+    def from_user_model(user_class: LinkUiType) -> "LinkUiLocal":
+        user_dict = asdict(user_class)
+        return LinkUiLocal.model_validate(user_dict)
+
+    def to_user_model(self) -> LinkUi:
+        return LinkUi(
+            link_style=self.link_style,
+            link_width=self.link_width,
+            colorr=self.colorr,
+            colorg=self.colorg,
+            colorb=self.colorb,
         )

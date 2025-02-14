@@ -19,9 +19,9 @@ import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import LinkCreationError
-from antares.craft.model.link import Link, LinkProperties, LinkUi, LinkUiLocal
+from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.service.base_services import BaseLinkService
-from antares.craft.service.local_services.models.link import LinkPropertiesLocal
+from antares.craft.service.local_services.models.link import LinkPropertiesLocal, LinkUiLocal
 from antares.craft.tools.contents_tool import sort_ini_sections
 from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes

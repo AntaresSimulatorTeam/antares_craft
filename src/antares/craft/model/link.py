@@ -11,16 +11,13 @@
 # This file is part of the Antares project.
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Mapping, Optional, Set
+from typing import Optional, Set
 
 import pandas as pd
 
 from antares.craft.model.commons import FilterOption, default_filtering
 from antares.craft.service.base_services import BaseLinkService
-from antares.craft.tools.alias_generators import to_kebab
-from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import transform_name_to_id
-from pydantic import BaseModel
 
 
 class TransmissionCapacities(Enum):
@@ -70,11 +67,8 @@ class LinkProperties:
     filter_year_by_year: Set[FilterOption] = field(default_factory=default_filtering)
 
 
-class DefaultLinkUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_kebab):
-    """
-    DTO for updating link UI
-    """
-
+@dataclass
+class LinkUi:
     link_style: LinkStyle = LinkStyle.PLAIN
     link_width: float = 1
     colorr: int = 112
@@ -82,26 +76,13 @@ class DefaultLinkUi(BaseModel, extra="forbid", populate_by_name=True, alias_gene
     colorb: int = 112
 
 
-@all_optional_model
-class LinkUi(DefaultLinkUi):
-    pass
-
-
-class LinkUiLocal(DefaultLinkUi):
-    @property
-    def ini_fields(self) -> Mapping[str, str]:
-        # todo: can be replaced with alias i believe
-        return {
-            "link-style": f"{self.link_style.value}",
-            "link-width": f"{self.link_width}",
-            "colorr": f"{self.colorr}",
-            "colorg": f"{self.colorg}",
-            "colorb": f"{self.colorb}",
-        }
-
-    def yield_link_ui(self) -> LinkUi:
-        excludes = {"ini_fields"}
-        return LinkUi.model_validate(self.model_dump(mode="json", exclude=excludes))
+@dataclass
+class LinkUiUpdate:
+    link_style: Optional[LinkStyle] = None
+    link_width: Optional[float] = None
+    colorr: Optional[int] = None
+    colorg: Optional[int] = None
+    colorb: Optional[int] = None
 
 
 class Link:
