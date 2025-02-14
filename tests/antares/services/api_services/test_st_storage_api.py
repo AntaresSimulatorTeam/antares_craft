@@ -24,9 +24,9 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.area import Area
 from antares.craft.model.st_storage import STStorage, STStorageProperties
-from antares.craft.service.api_services.area_api import AreaApiService
 from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
+from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.api_services.services.st_storage import ShortTermStorageApiService
 
 
