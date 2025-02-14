@@ -82,3 +82,7 @@ class LinkUiAPI(APIBaseModel):
             colorg=self.colorg,
             colorb=self.colorb,
         )
+
+
+class LinkAPIResponseModel(LinkUiAPI, LinkPropertiesAPI):
+    pass

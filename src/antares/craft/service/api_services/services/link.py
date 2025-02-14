@@ -27,7 +27,7 @@ from antares.craft.exceptions.exceptions import (
     LinkUploadError,
 )
 from antares.craft.model.link import Link, LinkProperties, LinkUi
-from antares.craft.service.api_services.models.link import LinkPropertiesAPI
+from antares.craft.service.api_services.models.link import LinkAPIResponseModel, LinkPropertiesAPI, LinkUiAPI
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import BaseLinkService
 from typing_extensions import override
@@ -63,42 +63,31 @@ class LinkApiService(BaseLinkService):
             MissingTokenError if api_token is missing
             LinkCreationError if an HTTP Exception occurs
         """
-        base_url = f"{self._base_url}/studies/{self.study_id}"
-
-        raw_url = f"{base_url}/raw?path=input/links/{area_from}/properties/{area_to}"
-
         try:
-            url = f"{base_url}/links"
+            url = f"{self._base_url}/studies/{self.study_id}/links"
             body = {"area1": area_from, "area2": area_to}
+
             if properties:
                 api_properties = LinkPropertiesAPI.from_user_model(properties)
                 body.update(api_properties.model_dump(mode="json", by_alias=True, exclude_none=True))
-            self._wrapper.post(url, json=body)
 
-            response = self._wrapper.get(raw_url)
-            json_file = response.json()
             if ui:
-                link_ui = (ui or LinkUi()).model_dump(mode="json", by_alias=True, exclude_none=True)
-                if link_ui:
-                    self._wrapper.post(raw_url, json=link_ui)
+                api_ui = LinkUiAPI.from_user_model(ui)
+                body.update(api_ui.model_dump(mode="json", by_alias=True, exclude_none=True))
 
-            properties_keys = LinkProperties().model_dump(by_alias=True).keys()
-            json_properties = {}
-            for key in properties_keys:
-                # TODO: This is ugly but the web structure sucks.
-                value = json_file[key]
-                if key in ["filter-synthesis", "filter-year-by-year"]:
-                    json_properties[key] = value.split(", ") if value else value
-                else:
-                    json_properties[key] = value
-                del json_file[key]
-            ui = LinkUi.model_validate(json_file)
-            created_properties = LinkProperties.model_validate(json_properties)
+            response = self._wrapper.post(url, json=body)
+            link_response_model = LinkAPIResponseModel.model_validate(response.json())
+
+            link_properties_dict = link_response_model.model_dump(mode="json", include=LinkPropertiesAPI.model_fields)
+            link_properties = LinkPropertiesAPI.model_validate(link_properties_dict).to_user_model()
+
+            link_ui_dict = link_response_model.model_dump(mode="json", include=LinkUiAPI.model_fields)
+            link_ui = LinkUiAPI.model_validate(link_ui_dict).to_user_model()
 
         except APIError as e:
             raise LinkCreationError(area_from, area_to, e.message) from e
 
-        return Link(area_from, area_to, self, created_properties, ui)
+        return Link(area_from, area_to, self, link_properties, link_ui)
 
     @override
     def delete_link(self, link: Link) -> None:
