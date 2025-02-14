@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from dataclasses import asdict
-from typing import Set, Union
+from typing import Optional, Set, Union
 
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import (
@@ -31,7 +31,7 @@ LinkUiType = Union[LinkUi, LinkUiUpdate]
 
 
 @all_optional_model
-class LinkPropertiesAPI(APIBaseModel):
+class LinkPropertiesAndUiAPI(APIBaseModel):
     hurdles_cost: bool
     loop_flow: bool
     use_phase_shifter: bool
@@ -41,13 +41,30 @@ class LinkPropertiesAPI(APIBaseModel):
     comments: str
     filter_synthesis: Set[FilterOption]
     filter_year_by_year: Set[FilterOption]
+    link_style: LinkStyle
+    link_width: float
+    colorr: int
+    colorg: int
+    colorb: int
 
     @staticmethod
-    def from_user_model(user_class: LinkPropertiesType) -> "LinkPropertiesAPI":
-        user_dict = asdict(user_class)
-        return LinkPropertiesAPI.model_validate(user_dict)
+    def from_user_model(
+        ui_class: Optional[LinkUiType] = None, properties_class: Optional[LinkPropertiesType] = None
+    ) -> "LinkPropertiesAndUiAPI":
+        ui_dict = asdict(ui_class) if ui_class else {}
+        properties_dict = asdict(properties_class) if properties_class else {}
+        return LinkPropertiesAndUiAPI.model_validate({**ui_dict, **properties_dict})
 
-    def to_user_model(self) -> LinkProperties:
+    def to_ui_user_model(self) -> LinkUi:
+        return LinkUi(
+            link_style=self.link_style,
+            link_width=self.link_width,
+            colorr=self.colorr,
+            colorg=self.colorg,
+            colorb=self.colorb,
+        )
+
+    def to_properties_model(self) -> LinkProperties:
         return LinkProperties(
             hurdles_cost=self.hurdles_cost,
             loop_flow=self.loop_flow,
@@ -59,30 +76,3 @@ class LinkPropertiesAPI(APIBaseModel):
             filter_synthesis=self.filter_synthesis,
             filter_year_by_year=self.filter_year_by_year,
         )
-
-
-@all_optional_model
-class LinkUiAPI(APIBaseModel):
-    link_style: LinkStyle
-    link_width: float
-    colorr: int
-    colorg: int
-    colorb: int
-
-    @staticmethod
-    def from_user_model(user_class: LinkUiType) -> "LinkUiAPI":
-        user_dict = asdict(user_class)
-        return LinkUiAPI.model_validate(user_dict)
-
-    def to_user_model(self) -> LinkUi:
-        return LinkUi(
-            link_style=self.link_style,
-            link_width=self.link_width,
-            colorr=self.colorr,
-            colorg=self.colorg,
-            colorb=self.colorb,
-        )
-
-
-class LinkAPIResponseModel(LinkUiAPI, LinkPropertiesAPI):
-    pass
