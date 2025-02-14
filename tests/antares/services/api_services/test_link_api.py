@@ -76,7 +76,8 @@ class TestCreateAPI:
             update_properties = LinkPropertiesUpdate(filter_synthesis=filter_opt, filter_year_by_year=filter_opt)
             api_model = LinkPropertiesAndUiAPI.from_user_model(None, properties)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/links/{self.area_from.id}/{self.area_to.id}"
-            mocker.put(url, status_code=200, json=api_model.model_dump(mode="json", by_alias=True))
+            response = {"area1": "", "area2": "", **api_model.model_dump(mode="json", by_alias=True)}
+            mocker.put(url, status_code=200, json=response)
 
             self.link.update_properties(update_properties)
             assert self.link.properties == properties
@@ -101,7 +102,8 @@ class TestCreateAPI:
             update_ui = LinkUiUpdate(link_width=12)
             api_model = LinkPropertiesAndUiAPI.from_user_model(ui, None)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/links/{self.area_from.id}/{self.area_to.id}"
-            mocker.put(url, status_code=200, json=api_model.model_dump(mode="json", by_alias=True))
+            response = {"area1": "", "area2": "", **api_model.model_dump(mode="json", by_alias=True)}
+            mocker.put(url, status_code=200, json=response)
 
             self.link.update_ui(update_ui)
             assert self.link.ui == ui
