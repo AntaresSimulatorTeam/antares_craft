@@ -26,8 +26,10 @@ if TYPE_CHECKING:
     from antares.craft.model.binding_constraint import (
         BindingConstraint,
         BindingConstraintProperties,
+        BindingConstraintPropertiesUpdate,
         ConstraintMatrixName,
         ConstraintTerm,
+        ConstraintTermUpdate,
     )
     from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkUi
@@ -494,8 +496,6 @@ class BaseThermalService(ABC):
 
 
 class BaseBindingConstraintService(ABC):
-    binding_constraints: dict[str, "BindingConstraint"]
-
     @abstractmethod
     def create_binding_constraint(
         self,
@@ -521,9 +521,7 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def add_constraint_terms(
-        self, constraint: "BindingConstraint", terms: list["ConstraintTerm"]
-    ) -> list["ConstraintTerm"]:
+    def add_constraint_terms(self, constraint: "BindingConstraint", terms: list["ConstraintTerm"]) -> None:
         """
         Args:
             constraint: the concerned binding constraint
@@ -544,8 +542,20 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
+    def update_binding_constraint_term(
+        self, constraint_id: str, term: "ConstraintTermUpdate", existing_term: "ConstraintTerm"
+    ) -> "ConstraintTerm":
+        """
+        Args:
+            constraint_id: binding constraint's id containing the term
+            term: term with new values
+            existing_term: existing term with existing values
+        """
+        pass
+
+    @abstractmethod
     def update_binding_constraint_properties(
-        self, binding_constraint: "BindingConstraint", properties: "BindingConstraintProperties"
+        self, binding_constraint: "BindingConstraint", properties: "BindingConstraintPropertiesUpdate"
     ) -> "BindingConstraintProperties":
         """
         Args:

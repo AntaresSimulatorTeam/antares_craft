@@ -41,7 +41,6 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
-    BindingConstraint,
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
@@ -55,6 +54,7 @@ from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
 from antares.craft.model.study import Study
 from antares.craft.service.api_services.factory import create_api_services
+from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.services.output import OutputApiService
 
@@ -201,11 +201,15 @@ class TestCreateAPI:
     def test_create_binding_constraint_success(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
-            json_response = BindingConstraintProperties().model_dump(mode="json", by_alias=True)
+            properties = BindingConstraintProperties(enabled=False, filter_synthesis="annual")
+            json_response = BindingConstraintPropertiesAPI.from_user_model(properties).model_dump(
+                mode="json", by_alias=True
+            )
             constraint_name = "bc_1"
             mocker.post(url, json={"id": "id", "name": constraint_name, "terms": [], **json_response}, status_code=201)
-            constraint = self.study.create_binding_constraint(name=constraint_name)
-            assert isinstance(constraint, BindingConstraint)
+            constraint = self.study.create_binding_constraint(name=constraint_name, properties=properties)
+            assert constraint.name == constraint_name
+            assert constraint.properties == properties
 
     def test_create_binding_constraint_fails(self):
         with requests_mock.Mocker() as mocker:

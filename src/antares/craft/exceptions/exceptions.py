@@ -205,6 +205,12 @@ class ConstraintPropertiesUpdateError(Exception):
         super().__init__(self.message)
 
 
+class ConstraintDoesNotExistError(Exception):
+    def __init__(self, constraint_name: str) -> None:
+        self.message = f"The binding constraint {constraint_name} doesn't exist: "
+        super().__init__(self.message)
+
+
 class ConstraintMatrixUpdateError(Exception):
     def __init__(self, constraint_name: str, matrix_name: str, message: str) -> None:
         self.message = f"Could not update matrix {matrix_name} for binding constraint {constraint_name}: " + message
@@ -235,6 +241,12 @@ class BindingConstraintDeletionError(Exception):
 class ConstraintTermDeletionError(Exception):
     def __init__(self, constraint_id: str, term_id: str, message: str) -> None:
         self.message = f"Could not delete the term {term_id} of the binding constraint {constraint_id}: " + message
+        super().__init__(self.message)
+
+
+class ConstraintTermEditionError(Exception):
+    def __init__(self, constraint_id: str, term_id: str, message: str) -> None:
+        self.message = f"Could not update the term {term_id} of the binding constraint {constraint_id}: " + message
         super().__init__(self.message)
 
 
