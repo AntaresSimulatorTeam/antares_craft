@@ -175,7 +175,7 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
             json_response = LinkPropertiesAndUiAPI().model_dump(by_alias=True)
-            mocker.post(url, status_code=200, json=json_response)
+            mocker.post(url, status_code=200, json={"area1": "", "area2": "", **json_response})
             self.study._areas["area"] = Area(
                 "area",
                 self.study._area_service,

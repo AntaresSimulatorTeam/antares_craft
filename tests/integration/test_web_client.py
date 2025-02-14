@@ -40,7 +40,7 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.hydro import HydroPropertiesUpdate
-from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi, LinkPropertiesUpdate, LinkUiUpdate
+from antares.craft.model.link import LinkProperties, LinkPropertiesUpdate, LinkStyle, LinkUi, LinkUiUpdate
 from antares.craft.model.renewable import (
     RenewableClusterGroup,
     RenewableClusterProperties,
