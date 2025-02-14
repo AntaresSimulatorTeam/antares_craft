@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from dataclasses import asdict
-from typing import Optional, Set, Union
+from typing import Any, Optional, Set, Union
 
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import (
@@ -49,7 +49,9 @@ class LinkPropertiesAndUiAPI(APIBaseModel):
     colorb: int
 
     @field_validator("filter_synthesis", "filter_year_by_year", mode="before")
-    def validate_accuracy_on_correlation(cls, v: str) -> set[str]:
+    def validate_filters(cls, v: Any) -> set[str]:
+        if v is None:
+            return set()
         if isinstance(v, (list, set)):
             return set(v)
         if isinstance(v, str):
