@@ -45,10 +45,8 @@ from antares.craft.model.link import (
     AssetType,
     Link,
     LinkProperties,
-    LinkPropertiesLocal,
     LinkStyle,
     LinkUi,
-    LinkUiLocal,
     TransmissionCapacities,
 )
 from antares.craft.model.settings.adequacy_patch import (
@@ -83,6 +81,7 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
+from antares.craft.service.local_services.models.link import LinkPropertiesLocal, LinkUiLocal
 from antares.craft.tools.ini_tool import InitializationFilesTypes
 
 
