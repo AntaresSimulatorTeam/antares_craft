@@ -21,7 +21,7 @@ from antares.craft.model.study import Study
 from antares.craft.service.base_services import (
     StudyServices,
 )
-from antares.craft.service.local_services.area_local import AreaLocalService
+from antares.craft.service.local_services.services.area import AreaLocalService
 from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
 from antares.craft.service.local_services.services.hydro import HydroLocalService
 from antares.craft.service.local_services.services.link import LinkLocalService

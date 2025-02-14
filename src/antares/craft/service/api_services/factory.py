@@ -18,7 +18,7 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import APIError, StudyCreationError, StudyImportError, StudyMoveError
 from antares.craft.model.study import Study
-from antares.craft.service.api_services.area_api import AreaApiService
+from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.api_services.services.binding_constraint import BindingConstraintApiService
 from antares.craft.service.api_services.services.hydro import HydroApiService
 from antares.craft.service.api_services.services.link import LinkApiService

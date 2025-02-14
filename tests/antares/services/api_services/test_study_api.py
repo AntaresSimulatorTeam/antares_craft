@@ -39,7 +39,7 @@ from antares.craft.exceptions.exceptions import (
     StudyVariantCreationError,
     ThermalTimeseriesGenerationError,
 )
-from antares.craft.model.area import Area, AreaProperties, AreaUi
+from antares.craft.model.area import Area, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
@@ -54,6 +54,7 @@ from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
 from antares.craft.model.study import Study
 from antares.craft.service.api_services.factory import create_api_services
+from antares.craft.service.api_services.models.area import AreaPropertiesAPI
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAPI
@@ -154,7 +155,7 @@ class TestCreateAPI:
             url2 = f"{base_url}/studies/{self.study_id}/areas/{area_name}/properties/form"
             url3 = f"{base_url}/studies/{self.study_id}/areas/{area_name}/hydro/form"
             mocker.put(url2, status_code=201)
-            mocker.get(url2, json=AreaProperties().model_dump(), status_code=200)
+            mocker.get(url2, json=AreaPropertiesAPI().model_dump(), status_code=200)
             mocker.get(url3, json=HydroPropertiesAPI().model_dump())
             area = self.study.create_area(area_name)
         assert isinstance(area, Area)

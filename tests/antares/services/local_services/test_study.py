@@ -30,7 +30,7 @@ from antares.craft.exceptions.exceptions import (
     CustomError,
     LinkCreationError,
 )
-from antares.craft.model.area import AreaProperties, AreaPropertiesLocal, AreaUi, AreaUiLocal
+from antares.craft.model.area import AreaProperties, AreaUi, AreaUiLocal
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintFrequency,
@@ -515,15 +515,15 @@ ghi
         expected_optimization_ini_path = study_antares_path / "input" / "areas" / "area1" / "optimization.ini"
 
         expected_optimization_ini_content = """[nodal optimization]
-non-dispatchable-power = true
-dispatchable-hydro-power = true
-other-dispatchable-power = true
-spread-unsupplied-energy-cost = 0.000000
-spread-spilled-energy-cost = 0.000000
+non-dispatchable-power = True
+dispatchable-hydro-power = True
+other-dispatchable-power = True
+spread-unsupplied-energy-cost = 0.0
+spread-spilled-energy-cost = 0.0
 
 [filtering]
-filter-synthesis = hourly, daily, weekly, monthly, annual
-filter-year-by-year = hourly, daily, weekly, monthly, annual
+filter-synthesis = annual, daily, hourly, monthly, weekly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
 
 """
 
@@ -558,15 +558,15 @@ filter-year-by-year = hourly, daily, weekly, monthly, annual
             tmp_path / local_study.name / "input/areas" / area_to_create / "optimization.ini"
         )
         expected_optimization_ini_content = """[nodal optimization]
-non-dispatchable-power = true
-dispatchable-hydro-power = false
-other-dispatchable-power = true
-spread-unsupplied-energy-cost = 0.000000
-spread-spilled-energy-cost = 0.000000
+non-dispatchable-power = True
+dispatchable-hydro-power = False
+other-dispatchable-power = True
+spread-unsupplied-energy-cost = 0.0
+spread-spilled-energy-cost = 0.0
 
 [filtering]
-filter-synthesis = hourly, daily, weekly, monthly, annual
-filter-year-by-year = hourly, weekly, annual
+filter-synthesis = annual, daily, hourly, monthly, weekly
+filter-year-by-year = annual, hourly, weekly
 
 """
 
@@ -624,7 +624,9 @@ layers = 0
 
         area_id = "test"
 
-        monkeypatch.setattr("antares.craft.service.local_services.area_local._sets_ini_content", mock_error_in_sets_ini)
+        monkeypatch.setattr(
+            "antares.craft.service.local_services.services.area._sets_ini_content", mock_error_in_sets_ini
+        )
         with pytest.raises(
             AreaCreationError,
             match=f"Could not create the area {area_id}: {error_message}",
@@ -688,27 +690,8 @@ layers = 0
             local_study_w_areas.create_area(area_to_create)
 
     def test_areas_have_default_properties(self, tmp_path, local_study_w_areas):
-        # Given
-        expected_default_properties = {
-            "nodal optimization": {
-                "non-dispatchable-power": "true",
-                "dispatchable-hydro-power": "true",
-                "other-dispatchable-power": "true",
-                "spread-unsupplied-energy-cost": "0.000000",
-                "spread-spilled-energy-cost": "0.000000",
-            },
-            "filtering": {
-                "filter-synthesis": "hourly, daily, weekly, monthly, annual",
-                "filter-year-by-year": "hourly, daily, weekly, monthly, annual",
-            },
-        }
-
-        # When
         actual_area_properties = local_study_w_areas.get_areas()["fr"].properties
-        created_properties = actual_area_properties.model_dump(mode="json", exclude_none=True)
-        actual_properties = AreaPropertiesLocal.model_validate(created_properties).yield_local_dict()
-
-        assert expected_default_properties == actual_properties
+        assert actual_area_properties == AreaProperties(energy_cost_spilled=1, energy_cost_unsupplied=0.5)
 
     def test_areas_with_custom_properties(self, tmp_path, local_study):
         # Given
@@ -719,25 +702,10 @@ layers = 0
             energy_cost_spilled=3.5,
             filter_by_year={FilterOption.ANNUAL, FilterOption.ANNUAL, FilterOption.HOURLY, FilterOption.WEEKLY},
         )
-        expected_properties = {
-            "nodal optimization": {
-                "non-dispatchable-power": "true",
-                "dispatchable-hydro-power": "false",
-                "other-dispatchable-power": "true",
-                "spread-unsupplied-energy-cost": "1.000000",
-                "spread-spilled-energy-cost": "0.000000",
-            },
-            "filtering": {
-                "filter-synthesis": "hourly, daily, weekly, monthly, annual",
-                "filter-year-by-year": "hourly, weekly, annual",
-            },
-        }
 
         # When
         created_area = local_study.create_area(area_name=area_to_create, properties=area_properties)
-        created_properties = created_area.properties.model_dump(mode="json", exclude_none=True)
-        actual_properties = AreaPropertiesLocal.model_validate(created_properties).yield_local_dict()
-        assert expected_properties == actual_properties
+        assert created_area.properties == area_properties
 
     def test_areas_ini_has_correct_sections(self, actual_thermal_areas_ini):
         # Given

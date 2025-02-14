@@ -14,7 +14,7 @@ import pytest
 import pandas as pd
 
 from antares.craft import create_study_local
-from antares.craft.model.area import Area, AreaPropertiesLocal
+from antares.craft.model.area import Area, AreaProperties
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintFrequency,
@@ -46,7 +46,7 @@ def local_study(tmp_path) -> Study:
 def local_study_w_areas(tmp_path, local_study) -> Study:
     areas_to_create = ["fr", "it"]
     for area in areas_to_create:
-        area_properties = AreaPropertiesLocal(energy_cost_spilled="1.000000", energy_cost_unsupplied="0.500000")
+        area_properties = AreaProperties(energy_cost_spilled=1, energy_cost_unsupplied=0.5)
         local_study.create_area(area, properties=area_properties)
     return local_study
 

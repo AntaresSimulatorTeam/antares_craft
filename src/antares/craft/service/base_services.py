@@ -22,7 +22,7 @@ from antares.craft.model.settings.study_settings import StudySettings, StudySett
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 
 if TYPE_CHECKING:
-    from antares.craft.model.area import Area, AreaProperties, AreaUi
+    from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
     from antares.craft.model.binding_constraint import (
         BindingConstraint,
         BindingConstraintProperties,
@@ -179,7 +179,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def update_area_properties(self, area_id: str, properties: "AreaProperties") -> "AreaProperties":
+    def update_area_properties(self, area_id: str, properties: "AreaPropertiesUpdate") -> "AreaProperties":
         """
         Args:
             area_id: concerned area

@@ -124,9 +124,7 @@ class TestWebClient:
         assert area_be.ui.color_rgb == area_ui.color_rgb
 
         # tests area creation with properties
-        properties = AreaProperties()
-        properties.energy_cost_spilled = 100
-        properties.adequacy_patch_mode = AdequacyPatchMode.INSIDE
+        properties = AreaProperties(energy_cost_spilled=100, adequacy_patch_mode=AdequacyPatchMode.INSIDE)
         properties.filter_synthesis = [FilterOption.HOURLY, FilterOption.DAILY, FilterOption.HOURLY]
         area_name = "DE"
         area_de = study.create_area(area_name, properties=properties)
