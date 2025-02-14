@@ -36,8 +36,8 @@ from antares.craft.service.api_services.services.hydro import HydroApiService
 from antares.craft.service.api_services.services.output import OutputApiService
 from antares.craft.service.api_services.services.renewable import RenewableApiService
 from antares.craft.service.api_services.services.st_storage import ShortTermStorageApiService
+from antares.craft.service.api_services.services.study import StudyApiService
 from antares.craft.service.api_services.services.thermal import ThermalApiService
-from antares.craft.service.api_services.study_api import StudyApiService
 
 
 class TestDeleteAPI:
