@@ -51,19 +51,19 @@ class TestCreateAPI:
     study = Study("study_test", "870", services)
     area_from = Area(
         name="area_from",
-        area_service=api,
-        storage_service=api,
-        thermal_service=api,
-        renewable_service=api,
-        hydro_service=api,
+        area_service=services.area_service,
+        storage_service=services.short_term_storage_service,
+        thermal_service=services.thermal_service,
+        renewable_service=services.renewable_service,
+        hydro_service=services.hydro_service,
     )
     area_to = Area(
         name="area_to",
-        area_service=api,
-        storage_service=api,
-        thermal_service=api,
-        renewable_service=api,
-        hydro_service=api,
+        area_service=services.area_service,
+        storage_service=services.short_term_storage_service,
+        thermal_service=services.thermal_service,
+        renewable_service=services.renewable_service,
+        hydro_service=services.hydro_service,
     )
     antares_web_description_msg = "Mocked Server KO"
     link = Link(area_from.id, area_to.id, services.link_service)
