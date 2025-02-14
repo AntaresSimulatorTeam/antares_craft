@@ -64,7 +64,7 @@ class LinkPropertiesAndUiAPI(APIBaseModel):
             colorb=self.colorb,
         )
 
-    def to_properties_model(self) -> LinkProperties:
+    def to_properties_user_model(self) -> LinkProperties:
         return LinkProperties(
             hurdles_cost=self.hurdles_cost,
             loop_flow=self.loop_flow,

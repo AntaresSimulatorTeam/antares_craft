@@ -73,7 +73,7 @@ class LinkApiService(BaseLinkService):
 
             response = self._wrapper.post(url, json=body)
             api_response = LinkPropertiesAndUiAPI.model_validate(response.json())
-            link_properties = api_response.to_properties_model()
+            link_properties = api_response.to_properties_user_model()
             link_ui = api_response.to_ui_user_model()
 
         except APIError as e:
@@ -104,7 +104,7 @@ class LinkApiService(BaseLinkService):
             response = self._wrapper.put(url, json=body)
 
             api_response = LinkPropertiesAndUiAPI.model_validate(response.json())
-            link_properties = api_response.to_properties_model()
+            link_properties = api_response.to_properties_user_model()
 
         except APIError as e:
             raise LinkPropertiesUpdateError(link.id, e.message) from e

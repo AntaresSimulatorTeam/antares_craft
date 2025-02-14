@@ -21,7 +21,7 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import LinkCreationError
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
 from antares.craft.service.base_services import BaseLinkService
-from antares.craft.service.local_services.models.link import LinkPropertiesLocal, LinkUiLocal
+from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
 from antares.craft.tools.contents_tool import sort_ini_sections
 from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
@@ -61,12 +61,7 @@ class LinkLocalService(BaseLinkService):
 
         link_dir = self.config.study_path / "input/links" / area_from
         os.makedirs(link_dir, exist_ok=True)
-        local_properties = (
-            LinkPropertiesLocal.model_validate(properties.model_dump(mode="json", exclude_none=True))
-            if properties
-            else LinkPropertiesLocal()
-        )
-        local_ui = LinkUiLocal.model_validate(ui.model_dump(mode="json", exclude_none=True)) if ui else LinkUiLocal()
+        local_model = LinkPropertiesAndUiLocal.from_user_model(ui, properties)
 
         properties_ini_file = link_dir / "properties.ini"
         properties_ini = CustomRawConfigParser()
@@ -82,8 +77,7 @@ class LinkLocalService(BaseLinkService):
                 area_to=area_to,
                 message=f"Link exists already between '{area_from}' and '{area_to}'.",
             )
-        ini_dict = dict(local_properties.ini_fields)
-        ini_dict.update(local_ui.ini_fields)
+        ini_dict = local_model.model_dump(mode="json", by_alias=True)
         properties_ini[area_to] = self.sort_link_properties_dict(ini_dict)
 
         properties_ini = sort_ini_sections(properties_ini)
@@ -95,8 +89,8 @@ class LinkLocalService(BaseLinkService):
             area_from=area_from,
             area_to=area_to,
             link_service=self,
-            properties=local_properties.yield_link_properties(),
-            ui=local_ui.yield_link_ui(),
+            properties=local_model.to_properties_user_model(),  # round-trip for pydantic validation
+            ui=local_model.to_ui_user_model(),
         )
 
     @override
@@ -193,29 +187,17 @@ class LinkLocalService(BaseLinkService):
             ).ini_dict
             # If the properties.ini doesn't exist, we stop the reading process
             if links_dict:
-                for area_to in links_dict:
-                    # Extract and delete from original dictionnary, the ui related properties
-                    ui_fields = ["link-style", "link-width", "colorr", "colorg", "colorb"]
-                    properties_field = {
-                        field: links_dict[area_to].pop(field) for field in ui_fields if field in links_dict[area_to]
-                    }
-
-                    ui_properties = LinkUiLocal.model_validate(properties_field)
-
-                    links_dict[area_to]["filter-synthesis"] = set(links_dict[area_to]["filter-synthesis"].split(", "))
-                    links_dict[area_to]["filter-year-by-year"] = set(
-                        links_dict[area_to]["filter-year-by-year"].split(", ")
-                    )
-
-                    link_properties = LinkPropertiesLocal.model_validate(links_dict[area_to])
-
+                for area_to, values in links_dict.items():
+                    local_model = LinkPropertiesAndUiLocal.model_validate(values)
+                    properties = local_model.to_properties_user_model()
+                    ui = local_model.to_ui_user_model()
                     link_clusters.append(
                         Link(
                             area_from=area_from,
                             area_to=area_to,
                             link_service=self,
-                            properties=link_properties.yield_link_properties(),
-                            ui=ui_properties.yield_link_ui(),
+                            properties=properties,
+                            ui=ui,
                         )
                     )
         return link_clusters
