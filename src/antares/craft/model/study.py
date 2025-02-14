@@ -265,8 +265,6 @@ class Study:
         self._study_service.generate_thermal_timeseries()
 
 
-
-
 # Design note:
 # all following methods are entry points for study creation.
 # They use methods defined in "local" and "API" implementation services,
