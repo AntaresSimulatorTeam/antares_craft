@@ -102,8 +102,11 @@ class LinkApiService(BaseLinkService):
             body = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
 
             response = self._wrapper.put(url, json=body)
+            json_response = response.json()
 
-            api_response = LinkPropertiesAndUiAPI.model_validate(response.json())
+            json_response.pop("area1")
+            json_response.pop("area2")
+            api_response = LinkPropertiesAndUiAPI.model_validate(json_response)
             link_properties = api_response.to_properties_user_model()
 
         except APIError as e:
@@ -119,8 +122,11 @@ class LinkApiService(BaseLinkService):
             body = api_ui.model_dump(mode="json", by_alias=True, exclude_none=True)
 
             response = self._wrapper.put(url, json=body)
+            json_response = response.json()
 
-            api_response = LinkPropertiesAndUiAPI.model_validate(response.json())
+            json_response.pop("area1")
+            json_response.pop("area2")
+            api_response = LinkPropertiesAndUiAPI.model_validate(json_response)
             link_ui = api_response.to_ui_user_model()
 
         except APIError as e:
