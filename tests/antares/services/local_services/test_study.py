@@ -81,7 +81,7 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
-from antares.craft.service.local_services.models.link import LinkPropertiesLocal, LinkUiLocal
+from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
 from antares.craft.tools.ini_tool import InitializationFilesTypes
 
 
