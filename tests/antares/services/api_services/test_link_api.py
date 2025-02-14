@@ -292,8 +292,8 @@ class TestCreateAPI:
                 "colorg": 112,
                 "linkWidth": 1,
                 "linkStyle": "plain",
-                "filterSynthesis": "hourly, daily, weekly, monthly, annual",
-                "filterYearByYear": "hourly, daily, weekly, monthly, annual",
+                "filterSynthesis": ["hourly", "daily", "weekly", "monthly", "annual"],
+                "filterYearByYear": ["hourly", "daily", "weekly", "monthly", "annual"],
                 "area1": "zone1 auto",
                 "area2": "zone4auto",
             }

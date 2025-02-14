@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Any, Optional
+from typing import Optional
 
 import pandas as pd
 
