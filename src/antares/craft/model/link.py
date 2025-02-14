@@ -15,7 +15,7 @@ from typing import Optional, Set
 
 import pandas as pd
 
-from antares.craft.model.commons import FilterOption, default_filtering
+from antares.craft.model.commons import FILTER_VALUES, FilterOption, comma_separated_enum_set
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.tools.contents_tool import transform_name_to_id
 
@@ -63,8 +63,8 @@ class LinkProperties:
     asset_type: AssetType = AssetType.AC
     display_comments: bool = True
     comments: str = ""
-    filter_synthesis: Set[FilterOption] = field(default_factory=default_filtering)
-    filter_year_by_year: Set[FilterOption] = field(default_factory=default_filtering)
+    filter_synthesis: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
+    filter_year_by_year: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
 
 
 @dataclass

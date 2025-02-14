@@ -78,8 +78,6 @@ class LinkLocalService(BaseLinkService):
                 message=f"Link exists already between '{area_from}' and '{area_to}'.",
             )
         ini_dict = local_model.model_dump(mode="json", by_alias=True)
-        ini_dict["filter-synthesis"] = ", ".join(sorted(ini_dict["filter-synthesis"]))
-        ini_dict["filter-year-by-year"] = ", ".join(sorted(ini_dict["filter-year-by-year"]))
         properties_ini[area_to] = self.sort_link_properties_dict(ini_dict)
 
         properties_ini = sort_ini_sections(properties_ini)

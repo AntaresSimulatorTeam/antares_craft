@@ -420,3 +420,11 @@ class ThermalTimeseriesGenerationError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
         self.message = f"Could not generate thermal timeseries for study {study_id}: " + message
         super().__init__(self.message)
+
+
+class FilteringValueError(Exception):
+    def __init__(self, invalid_options: list[str], valid_values: set[str]) -> None:
+        self.message = (
+            f"Invalid value(s) in filters: {', '.join(invalid_options)}. Allowed values are: {', '.join(valid_values)}."
+        )
+        super().__init__(self.message)

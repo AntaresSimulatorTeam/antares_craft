@@ -28,7 +28,7 @@ from antares.craft.exceptions.exceptions import (
     STStorageMatrixUploadError,
     StudySettingsUpdateError,
 )
-from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption, AreaPropertiesUpdate
+from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, FilterOption
 from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,

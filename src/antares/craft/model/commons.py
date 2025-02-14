@@ -11,7 +11,10 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import List, Set
+from typing import Annotated
+
+from antares.craft.exceptions.exceptions import FilteringValueError
+from pydantic import BeforeValidator, PlainSerializer
 
 
 class FilterOption(Enum):
@@ -22,17 +25,39 @@ class FilterOption(Enum):
     ANNUAL = "annual"
 
 
-def default_filtering() -> set[FilterOption]:
-    return {
-        FilterOption.HOURLY,
-        FilterOption.DAILY,
-        FilterOption.WEEKLY,
-        FilterOption.MONTHLY,
-        FilterOption.ANNUAL,
-    }
+def validate_filters(filter_value: list[FilterOption] | str) -> list[FilterOption]:
+    if isinstance(filter_value, str):
+        filter_value = filter_value.strip()
+        if not filter_value:
+            return []
+
+        valid_values = {str(e.value) for e in FilterOption}
+
+        options = filter_value.replace(" ", "").split(",")
+
+        invalid_options = [opt for opt in options if opt not in valid_values]
+        if invalid_options:
+            raise FilteringValueError(invalid_options, valid_values)
+        options_enum: list[FilterOption] = list(dict.fromkeys(FilterOption(opt) for opt in options))
+        return options_enum
+
+    return filter_value
 
 
-def sort_filter_values(filter_options: Set[FilterOption]) -> List[str]:
-    filter_defaults = ["hourly", "daily", "weekly", "monthly", "annual"]
-    filter_values = [filter_option.value for filter_option in filter_options]
-    return sorted(filter_values, key=lambda x: filter_defaults.index(x))
+def join_with_comma(values: set[FilterOption]) -> str:
+    return ", ".join(sorted(filtering.value for filtering in values))
+
+
+comma_separated_enum_set = Annotated[
+    set[FilterOption],
+    BeforeValidator(lambda x: validate_filters(x)),
+    PlainSerializer(lambda x: join_with_comma(x)),
+]
+
+FILTER_VALUES: set[FilterOption] = {
+    FilterOption.HOURLY,
+    FilterOption.DAILY,
+    FilterOption.WEEKLY,
+    FilterOption.MONTHLY,
+    FilterOption.ANNUAL,
+}

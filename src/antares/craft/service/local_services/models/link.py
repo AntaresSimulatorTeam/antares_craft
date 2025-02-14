@@ -11,9 +11,9 @@
 # This file is part of the Antares project.
 
 from dataclasses import asdict, field
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
-from antares.craft.model.commons import FilterOption, default_filtering
+from antares.craft.model.commons import FILTER_VALUES, comma_separated_enum_set
 from antares.craft.model.link import (
     AssetType,
     LinkProperties,
@@ -25,7 +25,6 @@ from antares.craft.model.link import (
 )
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
-from pydantic import field_validator
 
 LinkPropertiesType = Union[LinkProperties, LinkPropertiesUpdate]
 LinkUiType = Union[LinkUi, LinkUiUpdate]
@@ -39,25 +38,13 @@ class LinkPropertiesAndUiLocal(LocalBaseModel, alias_generator=to_kebab):
     asset_type: AssetType = AssetType.AC
     display_comments: bool = True
     comments: str = ""
-    filter_synthesis: set[FilterOption] = field(default_factory=default_filtering)
-    filter_year_by_year: set[FilterOption] = field(default_factory=default_filtering)
+    filter_synthesis: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
+    filter_year_by_year: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
     link_style: LinkStyle
     link_width: float
     colorr: int
     colorg: int
     colorb: int
-
-    @field_validator("filter_synthesis", "filter_year_by_year", mode="before")
-    def validate_filtering(cls, v: Any) -> set[str]:
-        if not v:
-            return set()
-        if isinstance(v, (list, set)):
-            return set(v)
-        if isinstance(v, str):
-            if v[0] == "[":
-                v = v[1:-1]
-            return set(v.replace(" ", "").split(","))
-        raise ValueError(f"Value {v} not supported for filtering")
 
     @staticmethod
     def from_user_model(
