@@ -25,9 +25,10 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.area import Area
 from antares.craft.model.commons import FilterOption
-from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi
 from antares.craft.model.study import Study
 from antares.craft.service.api_services.factory import create_api_services
+from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAPI
 
 
 @pytest.fixture()
@@ -89,23 +90,16 @@ class TestCreateAPI:
     matrix = pd.DataFrame(data=[[0]])
 
     def test_update_links_properties_success(self):
+        filter_opt = {FilterOption.DAILY}
         with requests_mock.Mocker() as mocker:
-            properties = LinkProperties()
-            properties.filter_synthesis = {FilterOption.DAILY}
-            properties.filter_year_by_year = {FilterOption.DAILY}
-            ui = LinkUi()
-            raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/links/"
-                f"{self.area_from.id}/properties/{self.area_to.id}"
-            )
-            mocker.post(raw_url, status_code=200)
-            mocker.get(
-                raw_url,
-                json={**ui.model_dump(by_alias=True), **properties.model_dump(mode="json", by_alias=True)},
-                status_code=200,
-            )
+            properties = LinkProperties(filter_synthesis=filter_opt, filter_year_by_year=filter_opt)
+            update_properties = LinkPropertiesUpdate(filter_synthesis=filter_opt, filter_year_by_year=filter_opt)
+            api_model = LinkPropertiesAndUiAPI.from_user_model(None, properties)
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/links/{self.area_from.id}/{self.area_to.id}"
+            mocker.put(url, status_code=200, json=api_model.model_dump(mode='json', by_alias=True))
 
-            self.link.update_properties(properties)
+            self.link.update_properties(update_properties)
+            assert self.link.properties == properties
 
     def test_update_links_properties_fails(self):
         with requests_mock.Mocker() as mocker:
