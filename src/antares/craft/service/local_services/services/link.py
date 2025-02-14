@@ -19,7 +19,7 @@ import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import LinkCreationError
-from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.service.local_services.models.link import LinkPropertiesLocal, LinkUiLocal
 from antares.craft.tools.contents_tool import sort_ini_sections
@@ -104,11 +104,11 @@ class LinkLocalService(BaseLinkService):
         raise NotImplementedError
 
     @override
-    def update_link_properties(self, link: Link, properties: LinkProperties) -> LinkProperties:
+    def update_link_properties(self, link: Link, properties: LinkPropertiesUpdate) -> LinkProperties:
         raise NotImplementedError
 
     @override
-    def update_link_ui(self, link: Link, ui: LinkUi) -> LinkUi:
+    def update_link_ui(self, link: Link, ui: LinkUiUpdate) -> LinkUi:
         raise NotImplementedError
 
     # TODO maybe put sorting functions together

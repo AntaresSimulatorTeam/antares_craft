@@ -26,7 +26,7 @@ from antares.craft.exceptions.exceptions import (
     LinkUiUpdateError,
     LinkUploadError,
 )
-from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
 from antares.craft.service.api_services.models.link import LinkAPIResponseModel, LinkPropertiesAPI, LinkUiAPI
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import BaseLinkService
@@ -100,8 +100,7 @@ class LinkApiService(BaseLinkService):
             raise LinkDeletionError(link.id, e.message) from e
 
     @override
-    def update_link_properties(self, link: Link, properties: LinkProperties) -> LinkProperties:
-        # todo: change this code when AntaresWeb will have a real endpoint
+    def update_link_properties(self, link: Link, properties: LinkPropertiesUpdate) -> LinkProperties:
         area1_id = link.area_from_id
         area2_id = link.area_to_id
         raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path=input/links/{area1_id}/properties/{area2_id}"
@@ -134,7 +133,7 @@ class LinkApiService(BaseLinkService):
         return link_properties
 
     @override
-    def update_link_ui(self, link: Link, ui: LinkUi) -> LinkUi:
+    def update_link_ui(self, link: Link, ui: LinkUiUpdate) -> LinkUi:
         # todo: change this code when AntaresWeb will have a real endpoint
         area1_id = link.area_from_id
         area2_id = link.area_to_id

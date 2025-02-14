@@ -119,12 +119,12 @@ class Link:
     def ui(self) -> LinkUi:
         return self._ui
 
-    def update_properties(self, properties: LinkProperties) -> LinkProperties:
+    def update_properties(self, properties: LinkPropertiesUpdate) -> LinkProperties:
         new_properties = self._link_service.update_link_properties(self, properties)
         self._properties = new_properties
         return new_properties
 
-    def update_ui(self, ui: LinkUi) -> LinkUi:
+    def update_ui(self, ui: LinkUiUpdate) -> LinkUi:
         new_ui = self._link_service.update_link_ui(self, ui)
         self._ui = new_ui
         return new_ui
