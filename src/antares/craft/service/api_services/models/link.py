@@ -11,9 +11,9 @@
 # This file is part of the Antares project.
 
 from dataclasses import asdict
-from typing import Any, Optional, Set, Union
+from typing import Optional, Union
 
-from antares.craft.model.commons import FilterOption
+from antares.craft.model.commons import comma_separated_enum_set
 from antares.craft.model.link import (
     AssetType,
     LinkProperties,
@@ -25,7 +25,6 @@ from antares.craft.model.link import (
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import field_validator
 
 LinkPropertiesType = Union[LinkProperties, LinkPropertiesUpdate]
 LinkUiType = Union[LinkUi, LinkUiUpdate]
@@ -40,25 +39,13 @@ class LinkPropertiesAndUiAPI(APIBaseModel):
     asset_type: AssetType
     display_comments: bool
     comments: str
-    filter_synthesis: Set[FilterOption]
-    filter_year_by_year: Set[FilterOption]
+    filter_synthesis: comma_separated_enum_set
+    filter_year_by_year: comma_separated_enum_set
     link_style: LinkStyle
     link_width: float
     colorr: int
     colorg: int
     colorb: int
-
-    @field_validator("filter_synthesis", "filter_year_by_year", mode="before")
-    def validate_filters(cls, v: Any) -> set[str]:
-        if not v:
-            return set()
-        if isinstance(v, (list, set)):
-            return set(v)
-        if isinstance(v, str):
-            if v[0] == "[":
-                v = v[1:-1]
-            return set(v.replace(" ", "").split(","))
-        raise ValueError(f"Value {v} not supported for filtering")
 
     @staticmethod
     def from_user_model(

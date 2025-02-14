@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Annotated, Union
+from typing import Annotated, Optional, Union
 
 from antares.craft.exceptions.exceptions import FilteringValueError
 from pydantic import BeforeValidator, PlainSerializer
@@ -44,8 +44,10 @@ def validate_filters(filter_value: Union[list[FilterOption], str]) -> list[Filte
     return filter_value
 
 
-def join_with_comma(values: set[FilterOption]) -> str:
-    return ", ".join(sorted(filtering.value for filtering in values))
+def join_with_comma(values: Optional[set[FilterOption]] = None) -> str:
+    if values:
+        return ", ".join(sorted(filtering.value for filtering in values))
+    return ""
 
 
 comma_separated_enum_set = Annotated[
