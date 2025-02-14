@@ -72,7 +72,10 @@ class LinkApiService(BaseLinkService):
                 body.update(api_model.model_dump(mode="json", by_alias=True, exclude_none=True))
 
             response = self._wrapper.post(url, json=body)
-            api_response = LinkPropertiesAndUiAPI.model_validate(response.json())
+            json_response = response.json()
+            area_from = json_response.pop("area1")
+            area_to = json_response.pop("area2")
+            api_response = LinkPropertiesAndUiAPI.model_validate(json_response)
             link_properties = api_response.to_properties_user_model()
             link_ui = api_response.to_ui_user_model()
 

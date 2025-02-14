@@ -40,7 +40,7 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.hydro import HydroPropertiesUpdate
-from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
+from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi, LinkPropertiesUpdate, LinkUiUpdate
 from antares.craft.model.renewable import (
     RenewableClusterGroup,
     RenewableClusterProperties,
@@ -216,14 +216,14 @@ class TestWebClient:
         prepro = thermal_value_be.get_prepro_data_matrix()
         modulation = thermal_value_be.get_prepro_modulation_matrix()
         series = thermal_value_be.get_series_matrix()
-        CO2 = thermal_value_be.get_co2_cost_matrix()
+        co2 = thermal_value_be.get_co2_cost_matrix()
         fuel = thermal_value_be.get_fuel_cost_matrix()
 
         # tests get thermal matrix
         assert prepro.equals(prepro_modulation_matrix)
         assert modulation.equals(modulation_matrix)
         assert series.equals(series_matrix)
-        assert CO2.equals(co2_cost_matrix)
+        assert co2.equals(co2_cost_matrix)
         assert fuel.equals(fuel_cost_matrix)
 
         # test renewable cluster creation with default values
@@ -432,14 +432,12 @@ class TestWebClient:
         assert area_fr.ui.x == 100
 
         # test link property edition
-        new_props = LinkProperties()
-        new_props.hurdles_cost = False
+        new_props = LinkPropertiesUpdate(hurdles_cost=False)
         link_be_fr.update_properties(new_props)
         assert not link_be_fr.properties.hurdles_cost
 
         # tests link ui edition
-        new_ui = LinkUi()
-        new_ui.link_style = LinkStyle.PLAIN
+        new_ui = LinkUiUpdate(link_style=LinkStyle.PLAIN)
         link_be_fr.update_ui(new_ui)
         assert link_be_fr.ui.link_style == LinkStyle.PLAIN
 
