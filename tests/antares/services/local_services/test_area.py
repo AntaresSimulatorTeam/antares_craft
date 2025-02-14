@@ -22,6 +22,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from antares.craft import read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.renewable import (
     RenewableCluster,
@@ -30,7 +31,6 @@ from antares.craft.model.renewable import (
     TimeSeriesInterpretation,
 )
 from antares.craft.model.st_storage import STStorage, STStorageGroup, STStorageProperties
-from antares.craft.model.study import read_study_local
 from antares.craft.model.thermal import ThermalCluster
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import df_save

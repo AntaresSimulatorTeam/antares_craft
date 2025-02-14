@@ -13,6 +13,7 @@ import pytest
 
 import pandas as pd
 
+from antares.craft import create_study_local
 from antares.craft.model.area import Area, AreaProperties
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -23,7 +24,7 @@ from antares.craft.model.binding_constraint import (
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
-from antares.craft.model.study import Study, create_study_local
+from antares.craft.model.study import Study
 from antares.craft.model.thermal import (
     LawOption,
     LocalTSGenerationBehavior,

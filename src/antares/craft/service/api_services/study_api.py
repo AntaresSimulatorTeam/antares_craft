@@ -12,8 +12,6 @@
 from pathlib import Path, PurePath
 from typing import TYPE_CHECKING
 
-import antares.craft.model.study as study
-
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
@@ -79,11 +77,13 @@ class StudyApiService(BaseStudyService):
 
     @override
     def create_variant(self, variant_name: str) -> "Study":
+        from antares.craft.service.api_services.factory import read_study_api
+
         url = f"{self._base_url}/studies/{self.study_id}/variants?name={variant_name}"
         try:
             response = self._wrapper.post(url)
             variant_id = response.json()
-            return study.read_study_api(self.config, variant_id)
+            return read_study_api(self.config, variant_id)
         except APIError as e:
             raise StudyVariantCreationError(self.study_id, e.message) from e
 
