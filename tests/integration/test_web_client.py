@@ -28,7 +28,7 @@ from antares.craft.exceptions.exceptions import (
     STStorageMatrixUploadError,
     StudySettingsUpdateError,
 )
-from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
+from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption, AreaPropertiesUpdate
 from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
@@ -418,8 +418,7 @@ class TestWebClient:
         assert updated_term.offset == 12
 
         # test area property edition
-        new_props = AreaProperties()
-        new_props.adequacy_patch_mode = AdequacyPatchMode.VIRTUAL
+        new_props = AreaPropertiesUpdate(adequacy_patch_mode=AdequacyPatchMode.VIRTUAL)
         area_fr.update_properties(new_props)
         assert area_fr.properties.adequacy_patch_mode == AdequacyPatchMode.VIRTUAL
 
