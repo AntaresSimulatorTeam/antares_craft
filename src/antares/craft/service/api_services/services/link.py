@@ -96,13 +96,10 @@ class LinkApiService(BaseLinkService):
 
     @override
     def update_link_properties(self, link: Link, properties: LinkPropertiesUpdate) -> LinkProperties:
-        area_from_id = link.area_from_id
-        area_to_id = link.area_to_id
         try:
-            url = f"{self._base_url}/studies/{self.study_id}/links/{area_from_id}/{area_to_id}"
-            body = {"area1": area_from_id, "area2": area_to_id}
+            url = f"{self._base_url}/studies/{self.study_id}/links/{link.area_from_id}/{link.area_to_id}"
             api_properties = LinkPropertiesAndUiAPI.from_user_model(None, properties)
-            body.update(api_properties.model_dump(mode="json", by_alias=True, exclude_none=True))
+            body = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
 
             response = self._wrapper.put(url, json=body)
 
@@ -116,13 +113,10 @@ class LinkApiService(BaseLinkService):
 
     @override
     def update_link_ui(self, link: Link, ui: LinkUiUpdate) -> LinkUi:
-        area_from_id = link.area_from_id
-        area_to_id = link.area_to_id
         try:
-            url = f"{self._base_url}/studies/{self.study_id}/links/{area_from_id}/{area_to_id}"
-            body = {"area1": area_from_id, "area2": area_to_id}
+            url = f"{self._base_url}/studies/{self.study_id}/links/{link.area_from_id}/{link.area_to_id}"
             api_ui = LinkPropertiesAndUiAPI.from_user_model(ui, None)
-            body.update(api_ui.model_dump(mode="json", by_alias=True, exclude_none=True))
+            body = api_ui.model_dump(mode="json", by_alias=True, exclude_none=True)
 
             response = self._wrapper.put(url, json=body)
 

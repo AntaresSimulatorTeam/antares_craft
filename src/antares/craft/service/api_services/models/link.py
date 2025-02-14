@@ -50,7 +50,7 @@ class LinkPropertiesAndUiAPI(APIBaseModel):
 
     @field_validator("filter_synthesis", "filter_year_by_year", mode="before")
     def validate_filters(cls, v: Any) -> set[str]:
-        if v is None:
+        if not v:
             return set()
         if isinstance(v, (list, set)):
             return set(v)
