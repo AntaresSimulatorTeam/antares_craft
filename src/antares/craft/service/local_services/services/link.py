@@ -61,7 +61,7 @@ class LinkLocalService(BaseLinkService):
 
         link_dir = self.config.study_path / "input/links" / area_from
         os.makedirs(link_dir, exist_ok=True)
-        local_model = LinkPropertiesAndUiLocal.from_user_model(ui, properties)
+        local_model = LinkPropertiesAndUiLocal.from_user_model(ui or LinkUi(), properties or LinkProperties())
 
         properties_ini_file = link_dir / "properties.ini"
         properties_ini = CustomRawConfigParser()
