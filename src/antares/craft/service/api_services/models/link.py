@@ -25,6 +25,7 @@ from antares.craft.model.link import (
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
+from pydantic import field_validator
 
 LinkPropertiesType = Union[LinkProperties, LinkPropertiesUpdate]
 LinkUiType = Union[LinkUi, LinkUiUpdate]
@@ -46,6 +47,16 @@ class LinkPropertiesAndUiAPI(APIBaseModel):
     colorr: int
     colorg: int
     colorb: int
+
+    @field_validator("filter_synthesis", "filter_year_by_year", mode="before")
+    def validate_accuracy_on_correlation(cls, v: str) -> set[str]:
+        if isinstance(v, (list, set)):
+            return set(v)
+        if isinstance(v, str):
+            if v[0] == "[":
+                v = v[1:-1]
+            return set(v.replace(" ", "").split(","))
+        raise ValueError(f"Value {v} not supported for filtering")
 
     @staticmethod
     def from_user_model(
