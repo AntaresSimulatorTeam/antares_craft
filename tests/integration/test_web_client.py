@@ -32,8 +32,10 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
+    BindingConstraintPropertiesUpdate,
     ClusterData,
     ConstraintTerm,
+    ConstraintTermUpdate,
     LinkData,
 )
 from antares.craft.model.hydro import HydroPropertiesUpdate
@@ -381,7 +383,7 @@ class TestWebClient:
             constraint_2.update_equal_term_matrix(wrong_matrix)
 
         # Case that succeeds
-        properties = BindingConstraintProperties(operator="less")
+        properties = BindingConstraintProperties(operator=BindingConstraintOperator.LESS)
         matrix = pd.DataFrame(data=(np.ones((8784, 1))))
         constraint_3 = study.create_binding_constraint(name="bc_3", less_term_matrix=matrix, properties=properties)
         assert constraint_3.get_less_term_matrix().equals(matrix)
@@ -389,8 +391,8 @@ class TestWebClient:
         # test update constraint matrices
         new_matrix = pd.DataFrame(data=(np.ones((8784, 1))))
         new_matrix.iloc[0, 0] = 72
-        properties.operator = "equal"
-        constraint_3.update_properties(properties)
+        update_properties = BindingConstraintPropertiesUpdate(operator=BindingConstraintOperator.EQUAL)
+        constraint_3.update_properties(update_properties)
         constraint_3.update_equal_term_matrix(new_matrix)
         assert constraint_3.get_equal_term_matrix().equals(new_matrix)
 
@@ -409,6 +411,13 @@ class TestWebClient:
             constraint_2.id: constraint_2,
             constraint_3.id: constraint_3,
         }
+
+        # tests updating an existing term
+        new_term = ConstraintTermUpdate(data=cluster_data, offset=12)
+        constraint_1.update_term(new_term)
+        updated_term = constraint_1.get_terms()[new_term.id]
+        assert updated_term.weight == 100  # Checks the weight wasn't modified
+        assert updated_term.offset == 12
 
         # test area property edition
         new_props = AreaProperties()
@@ -462,10 +471,10 @@ class TestWebClient:
         assert battery_fr.properties.reservoir_capacity == 0.5  # Checks old value wasn't modified
 
         # tests constraint properties update
-        new_props = BindingConstraintProperties()
-        new_props.group = "another_group"
+        new_props = BindingConstraintPropertiesUpdate(group="another_group")
         constraint_1.update_properties(new_props)
         assert constraint_1.properties.group == "another_group"
+        assert constraint_1.properties.enabled is False  # Checks old value wasn't modified
 
         # tests constraint deletion
         study.delete_binding_constraint(constraint_1)

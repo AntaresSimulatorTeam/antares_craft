@@ -36,6 +36,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
     ConstraintTerm,
+    LinkData,
 )
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.hydro import Hydro
@@ -1214,15 +1215,8 @@ class TestCreateBindingconstraint:
         ):
             local_study_with_constraint.create_binding_constraint(name=binding_constraint_name)
 
-    def test_constraints_have_default_properties(self, local_study_with_constraint):
-        # Given
-        constraint = local_study_with_constraint.get_binding_constraints()["test constraint"]
-
-        # Then
-        assert constraint.properties.model_dump(exclude_none=True)
-
-    def test_constraints_have_correct_default_properties(self, test_constraint, default_constraint_properties):
-        assert test_constraint.properties == default_constraint_properties
+    def test_constraints_have_correct_default_properties(self, test_constraint):
+        assert test_constraint.properties == BindingConstraintProperties()
 
     def test_creating_constraints_creates_ini(self, local_study_with_constraint):
         # Given
@@ -1239,11 +1233,12 @@ class TestCreateBindingconstraint:
     ):
         # Given
         expected_ini_contents = """[0]
-name = test constraint
 id = test constraint
-enabled = true
+name = test constraint
+enabled = True
 type = hourly
 operator = less
+comments = 
 filter-year-by-year = hourly
 filter-synthesis = hourly
 group = default
@@ -1274,19 +1269,20 @@ group = default
             group="test group",
         )
         expected_ini_content = """[0]
-name = test constraint
 id = test constraint
-enabled = true
+name = test constraint
+enabled = True
 type = hourly
 operator = less
+comments = 
 filter-year-by-year = hourly
 filter-synthesis = hourly
 group = default
 
 [1]
-name = test constraint two
 id = test constraint two
-enabled = false
+name = test constraint two
+enabled = False
 type = weekly
 operator = both
 comments = test comment
@@ -1311,26 +1307,27 @@ group = test group
         assert actual_ini_content == expected_ini_content
 
     def test_constraint_can_add_term(self, test_constraint):
-        new_term = [ConstraintTerm(data={"area1": "fr", "area2": "at"})]
+        new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]
         test_constraint.add_terms(new_term)
         assert test_constraint.get_terms()
 
     def test_constraint_term_and_ini_have_correct_defaults(self, local_study_with_constraint, test_constraint):
         # Given
         expected_ini_contents = """[0]
-name = test constraint
 id = test constraint
-enabled = true
+name = test constraint
+enabled = True
 type = hourly
 operator = less
+comments = 
 filter-year-by-year = hourly
 filter-synthesis = hourly
 group = default
-at%fr = 0
+at%fr = 1
 
 """
         # When
-        new_term = [ConstraintTerm(data={"area1": "fr", "area2": "at"})]
+        new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]
         test_constraint.add_terms(new_term)
         with local_study_with_constraint._binding_constraints_service.ini_file.ini_path.open("r") as file:
             actual_ini_content = file.read()
@@ -1342,19 +1339,20 @@ at%fr = 0
     ):
         # Given
         expected_ini_contents = """[0]
-name = test constraint
 id = test constraint
-enabled = true
+name = test constraint
+enabled = True
 type = hourly
 operator = less
+comments = 
 filter-year-by-year = hourly
 filter-synthesis = hourly
 group = default
-at%fr = 0.000000%1
+at%fr = 1%1
 
 """
         # When
-        new_term = [ConstraintTerm(offset=1, data={"area1": "fr", "area2": "at"})]
+        new_term = [ConstraintTerm(offset=1, data=LinkData(area1="fr", area2="at"))]
         test_constraint.add_terms(new_term)
         with local_study_with_constraint._binding_constraints_service.ini_file.ini_path.open("r") as file:
             actual_ini_content = file.read()

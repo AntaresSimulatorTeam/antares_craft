@@ -18,7 +18,13 @@ import pandas as pd
 
 from antares.craft.exceptions.exceptions import AreaCreationError, LinkCreationError
 from antares.craft.model.area import AdequacyPatchMode, Area, AreaProperties, AreaUi
-from antares.craft.model.binding_constraint import BindingConstraintProperties, ClusterData, ConstraintTerm, LinkData
+from antares.craft.model.binding_constraint import (
+    BindingConstraintOperator,
+    BindingConstraintProperties,
+    ClusterData,
+    ConstraintTerm,
+    LinkData,
+)
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties
@@ -240,7 +246,7 @@ class TestLocalClient:
         assert constraint_1.get_terms() == {link_term_1.id: link_term_1, cluster_term.id: cluster_term}
 
         # Case that succeeds
-        properties = BindingConstraintProperties(operator="less")
+        properties = BindingConstraintProperties(operator=BindingConstraintOperator.LESS)
         matrix = pd.DataFrame(data=(np.ones((8784, 1))))
         constraint_3 = test_study.create_binding_constraint(name="bc_3", less_term_matrix=matrix, properties=properties)
         assert constraint_3.get_less_term_matrix().equals(matrix)
