@@ -27,6 +27,7 @@ from antares.craft.exceptions.exceptions import (
     LinkUploadError,
 )
 from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.service.api_services.models.link import LinkPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import BaseLinkService
 from typing_extensions import override
@@ -63,26 +64,23 @@ class LinkApiService(BaseLinkService):
             LinkCreationError if an HTTP Exception occurs
         """
         base_url = f"{self._base_url}/studies/{self.study_id}"
-        # TODO: Currently, AntaresWeb does not have a specific endpoint for links. Once it will, we should change this logic.
 
         raw_url = f"{base_url}/raw?path=input/links/{area_from}/properties/{area_to}"
 
         try:
             url = f"{base_url}/links"
-            self._wrapper.post(url, json={"area1": area_from, "area2": area_to})
+            body = {"area1": area_from, "area2": area_to}
+            if properties:
+                api_properties = LinkPropertiesAPI.from_user_model(properties)
+                body.update(api_properties.model_dump(mode="json", by_alias=True, exclude_none=True))
+            self._wrapper.post(url, json=body)
 
             response = self._wrapper.get(raw_url)
             json_file = response.json()
-            # TODO update to use check_if_none or similar
-            if properties or ui:
-                link_properties = (properties or LinkProperties()).model_dump(
-                    mode="json", by_alias=True, exclude_none=True
-                )
+            if ui:
                 link_ui = (ui or LinkUi()).model_dump(mode="json", by_alias=True, exclude_none=True)
-                body = {**link_properties, **link_ui}
-                if body:
-                    json_file = _join_filter_values_for_json(json_file, body)
-                    self._wrapper.post(raw_url, json=json_file)
+                if link_ui:
+                    self._wrapper.post(raw_url, json=link_ui)
 
             properties_keys = LinkProperties().model_dump(by_alias=True).keys()
             json_properties = {}
@@ -268,12 +266,3 @@ class LinkApiService(BaseLinkService):
         api_link["filter-year-by-year"] = set(api_link["filter-year-by-year"].split(", "))
         link_properties = LinkProperties(**api_link)
         return Link(link_area_from_id, link_area_to_id, self, link_properties, link_ui)
-
-
-def _join_filter_values_for_json(json_dict: dict[str, Any], dict_to_extract: dict[str, Any]) -> dict[str, Any]:
-    for key in dict_to_extract:
-        if key in ["filter-synthesis", "filter-year-by-year"]:
-            json_dict[key] = ",".join(dict_to_extract[key])
-        else:
-            json_dict[key] = dict_to_extract[key]
-    return json_dict
