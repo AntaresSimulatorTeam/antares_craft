@@ -9,18 +9,15 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Mapping, Optional, Set
+from typing import Optional, Set
 
 import pandas as pd
 
-from antares.craft.model.commons import FilterOption, sort_filter_values
+from antares.craft.model.commons import FILTER_VALUES, FilterOption, comma_separated_enum_set
 from antares.craft.service.base_services import BaseLinkService
-from antares.craft.tools.alias_generators import to_kebab
-from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import transform_name_to_id
-from pydantic import BaseModel
 
 
 class TransmissionCapacities(Enum):
@@ -44,66 +41,34 @@ class LinkStyle(Enum):
     DOT_DASH = "dotdash"
 
 
-class DefaultLinkProperties(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_kebab):
-    """
-    DTO for updating link properties
-    """
+@dataclass
+class LinkPropertiesUpdate:
+    hurdles_cost: Optional[bool] = None
+    loop_flow: Optional[bool] = None
+    use_phase_shifter: Optional[bool] = None
+    transmission_capacities: Optional[TransmissionCapacities] = None
+    asset_type: Optional[AssetType] = None
+    display_comments: Optional[bool] = None
+    comments: Optional[str] = None
+    filter_synthesis: Optional[Set[FilterOption]] = None
+    filter_year_by_year: Optional[Set[FilterOption]] = None
 
+
+@dataclass
+class LinkProperties:
     hurdles_cost: bool = False
     loop_flow: bool = False
     use_phase_shifter: bool = False
     transmission_capacities: TransmissionCapacities = TransmissionCapacities.ENABLED
     asset_type: AssetType = AssetType.AC
     display_comments: bool = True
-    filter_synthesis: Set[FilterOption] = {
-        FilterOption.HOURLY,
-        FilterOption.DAILY,
-        FilterOption.WEEKLY,
-        FilterOption.MONTHLY,
-        FilterOption.ANNUAL,
-    }
-    filter_year_by_year: Set[FilterOption] = {
-        FilterOption.HOURLY,
-        FilterOption.DAILY,
-        FilterOption.WEEKLY,
-        FilterOption.MONTHLY,
-        FilterOption.ANNUAL,
-    }
     comments: str = ""
+    filter_synthesis: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
+    filter_year_by_year: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
 
 
-@all_optional_model
-class LinkProperties(DefaultLinkProperties):
-    pass
-
-
-class LinkPropertiesLocal(DefaultLinkProperties):
-    @property
-    def ini_fields(self) -> Mapping[str, str]:
-        return {
-            "hurdles-cost": f"{self.hurdles_cost}".lower(),
-            "loop-flow": f"{self.loop_flow}".lower(),
-            "use-phase-shifter": f"{self.use_phase_shifter}".lower(),
-            "transmission-capacities": f"{self.transmission_capacities.value}",
-            "asset-type": f"{self.asset_type.value}",
-            "display-comments": f"{self.display_comments}".lower(),
-            "filter-synthesis": ", ".join(filter_value for filter_value in sort_filter_values(self.filter_synthesis)),
-            "filter-year-by-year": ", ".join(
-                filter_value for filter_value in sort_filter_values(self.filter_year_by_year)
-            ),
-            "comments": f"{self.comments}".lower(),
-        }
-
-    def yield_link_properties(self) -> LinkProperties:
-        excludes = {"ini_fields"}
-        return LinkProperties.model_validate(self.model_dump(mode="json", exclude=excludes))
-
-
-class DefaultLinkUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_kebab):
-    """
-    DTO for updating link UI
-    """
-
+@dataclass
+class LinkUi:
     link_style: LinkStyle = LinkStyle.PLAIN
     link_width: float = 1
     colorr: int = 112
@@ -111,26 +76,13 @@ class DefaultLinkUi(BaseModel, extra="forbid", populate_by_name=True, alias_gene
     colorb: int = 112
 
 
-@all_optional_model
-class LinkUi(DefaultLinkUi):
-    pass
-
-
-class LinkUiLocal(DefaultLinkUi):
-    @property
-    def ini_fields(self) -> Mapping[str, str]:
-        # todo: can be replaced with alias i believe
-        return {
-            "link-style": f"{self.link_style.value}",
-            "link-width": f"{self.link_width}",
-            "colorr": f"{self.colorr}",
-            "colorg": f"{self.colorg}",
-            "colorb": f"{self.colorb}",
-        }
-
-    def yield_link_ui(self) -> LinkUi:
-        excludes = {"ini_fields"}
-        return LinkUi.model_validate(self.model_dump(mode="json", exclude=excludes))
+@dataclass
+class LinkUiUpdate:
+    link_style: Optional[LinkStyle] = None
+    link_width: Optional[float] = None
+    colorr: Optional[int] = None
+    colorg: Optional[int] = None
+    colorb: Optional[int] = None
 
 
 class Link:
@@ -167,12 +119,12 @@ class Link:
     def ui(self) -> LinkUi:
         return self._ui
 
-    def update_properties(self, properties: LinkProperties) -> LinkProperties:
+    def update_properties(self, properties: LinkPropertiesUpdate) -> LinkProperties:
         new_properties = self._link_service.update_link_properties(self, properties)
         self._properties = new_properties
         return new_properties
 
-    def update_ui(self, ui: LinkUi) -> LinkUi:
+    def update_ui(self, ui: LinkUiUpdate) -> LinkUi:
         new_ui = self._link_service.update_link_ui(self, ui)
         self._ui = new_ui
         return new_ui

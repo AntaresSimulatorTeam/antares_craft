@@ -166,7 +166,7 @@ class TestLocalClient:
         be_links_in_file = IniFile(
             test_study.service.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, area_be.id
         )
-        assert be_links_in_file.ini_dict["fr"]["hurdles-cost"] == "true"
+        assert be_links_in_file.ini_dict["fr"]["hurdles-cost"] == "True"
         assert be_links_in_file.ini_dict["fr"]["filter-year-by-year"] == "hourly"
 
         # asserts study contains all links and areas

@@ -9,14 +9,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from dataclasses import field
+from typing import Union
 
-from typing import Any, Union
-
-from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, default_filtering
-from antares.craft.model.commons import FilterOption
+from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate
+from antares.craft.model.commons import FILTER_VALUES, comma_separated_enum_set
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
-from pydantic import Field, field_validator
+from pydantic import Field
 
 AreaPropertiesType = Union[AreaProperties, AreaPropertiesUpdate]
 
@@ -30,18 +30,8 @@ class OptimizationPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
 
 
 class FilteringPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
-    filter_synthesis: set[FilterOption] = Field(default_factory=default_filtering)
-    filter_year_by_year: set[FilterOption] = Field(default_factory=default_filtering)
-
-    @field_validator("filter_synthesis", "filter_year_by_year", mode="before")
-    def validate_accuracy_on_correlation(cls, v: Any) -> set[str]:
-        if isinstance(v, (list, set)):
-            return set(v)
-        if isinstance(v, str):
-            if v[0] == "[":
-                v = v[1:-1]
-            return set(v.replace(" ", "").split(","))
-        raise ValueError(f"Value {v} not supported for filtering")
+    filter_synthesis: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
+    filter_year_by_year: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
 
 
 class AdequacyPatchPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
@@ -94,7 +84,4 @@ class AreaPropertiesLocal(LocalBaseModel):
         return self.model_dump(mode="json", include={"adequacy_patch"}, by_alias=True)
 
     def to_optimization_ini(self) -> dict[str, dict[str, str]]:
-        args = self.model_dump(mode="json", include={"nodal_optimization", "filtering"}, by_alias=True)
-        args["filtering"]["filter-synthesis"] = ", ".join(sorted(args["filtering"]["filter-synthesis"]))
-        args["filtering"]["filter-year-by-year"] = ", ".join(sorted(args["filtering"]["filter-year-by-year"]))
-        return args
+        return self.model_dump(mode="json", include={"nodal_optimization", "filtering"}, by_alias=True)

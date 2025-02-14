@@ -29,10 +29,10 @@ from antares.craft.model.link import Link
 from antares.craft.model.renewable import RenewableCluster
 from antares.craft.model.st_storage import STStorage
 from antares.craft.model.thermal import ThermalCluster
-from antares.craft.service.api_services.link_api import LinkApiService
 from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.api_services.services.binding_constraint import BindingConstraintApiService
 from antares.craft.service.api_services.services.hydro import HydroApiService
+from antares.craft.service.api_services.services.link import LinkApiService
 from antares.craft.service.api_services.services.output import OutputApiService
 from antares.craft.service.api_services.services.renewable import RenewableApiService
 from antares.craft.service.api_services.services.st_storage import ShortTermStorageApiService

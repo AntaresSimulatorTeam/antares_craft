@@ -32,7 +32,7 @@ if TYPE_CHECKING:
         ConstraintTermUpdate,
     )
     from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
-    from antares.craft.model.link import Link, LinkProperties, LinkUi
+    from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
     from antares.craft.model.output import AggregationEntry, Output
     from antares.craft.model.renewable import (
         RenewableCluster,
@@ -405,7 +405,7 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def update_link_properties(self, link: "Link", properties: "LinkProperties") -> "LinkProperties":
+    def update_link_properties(self, link: "Link", properties: "LinkPropertiesUpdate") -> "LinkProperties":
         """
         Args:
             link: concerned link
@@ -414,7 +414,7 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def update_link_ui(self, link: "Link", ui: "LinkUi") -> "LinkUi":
+    def update_link_ui(self, link: "Link", ui: "LinkUiUpdate") -> "LinkUi":
         """
         Args:
             link: concerned link
