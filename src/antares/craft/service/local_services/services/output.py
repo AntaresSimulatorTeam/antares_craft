@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from typing import Any
 
 import pandas as pd
 
@@ -20,8 +19,7 @@ from typing_extensions import override
 
 
 class OutputLocalService(BaseOutputService):
-    def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, config: LocalConfiguration, study_name: str) -> None:
         self.config = config
         self.study_name = study_name
 

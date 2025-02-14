@@ -21,6 +21,7 @@ from unittest.mock import Mock, patch
 
 import pandas as pd
 
+from antares.craft import create_study_api, create_variant_api, import_study_api, read_study_api
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
@@ -51,25 +52,26 @@ from antares.craft.model.output import (
 from antares.craft.model.settings.general import GeneralParametersUpdate, Mode
 from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
-from antares.craft.model.study import Study, create_study_api, create_variant_api, import_study_api, read_study_api
+from antares.craft.model.study import Study
+from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.services.output import OutputApiService
-from antares.craft.service.service_factory import ServiceFactory
 
 
 class TestCreateAPI:
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
     antares_web_description_msg = "Mocked Server KO"
-    study = Study("TestStudy", "880", ServiceFactory(api, study_id))
+    services = create_api_services(api, study_id)
+    study = Study("TestStudy", "880", services)
     area = Area(
         "area_test",
-        ServiceFactory(api, study_id).create_area_service(),
-        ServiceFactory(api, study_id).create_st_storage_service(),
-        ServiceFactory(api, study_id).create_thermal_service(),
-        ServiceFactory(api, study_id).create_renewable_service(),
-        ServiceFactory(api, study_id).create_hydro_service(),
+        services.area_service,
+        services.short_term_storage_service,
+        services.thermal_service,
+        services.renewable_service,
+        services.hydro_service,
     )
 
     def test_create_study_test_ok(self) -> None:
@@ -270,13 +272,12 @@ class TestCreateAPI:
             actual_study = read_study_api(self.api, self.study_id)
 
             expected_study_name = json_study.pop("name")
-            expected_study_id = json_study.pop("id")
             expected_study_version = json_study.pop("version")
 
             expected_study = Study(
                 expected_study_name,
                 expected_study_version,
-                ServiceFactory(self.api, expected_study_id, expected_study_name),
+                self.services,
                 None,
             )
 

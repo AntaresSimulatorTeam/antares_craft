@@ -25,23 +25,24 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.area import Area
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesUpdate
 from antares.craft.service.api_services.area_api import AreaApiService
+from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.services.renewable import RenewableApiService
-from antares.craft.service.service_factory import ServiceFactory
 
 
 class TestCreateAPI:
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
+    services = create_api_services(api, study_id)
     area = Area(
         "study_test",
-        ServiceFactory(api, study_id).create_area_service(),
-        ServiceFactory(api, study_id).create_st_storage_service(),
-        ServiceFactory(api, study_id).create_thermal_service(),
-        ServiceFactory(api, study_id).create_renewable_service(),
-        ServiceFactory(api, study_id).create_hydro_service(),
+        services.area_service,
+        services.short_term_storage_service,
+        services.thermal_service,
+        services.renewable_service,
+        services.hydro_service,
     )
-    renewable = RenewableCluster(ServiceFactory(api, study_id).create_renewable_service(), area.id, "onshore_fr")
+    renewable = RenewableCluster(services.renewable_service, area.id, "onshore_fr")
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
 

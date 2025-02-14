@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from pathlib import Path, PurePath
 from typing import TYPE_CHECKING, Optional
 
@@ -813,3 +814,18 @@ class BaseStudySettingsService(ABC):
         Reads the settings of a study
         """
         pass
+
+
+@dataclass(frozen=True)
+class StudyServices:
+    settings_service: BaseStudySettingsService
+    study_service: BaseStudyService
+    area_service: BaseAreaService
+    link_service: BaseLinkService
+    thermal_service: BaseThermalService
+    hydro_service: BaseHydroService
+    bc_service: BaseBindingConstraintService
+    renewable_service: BaseRenewableService
+    short_term_storage_service: BaseShortTermStorageService
+    run_service: BaseRunService
+    output_service: BaseOutputService

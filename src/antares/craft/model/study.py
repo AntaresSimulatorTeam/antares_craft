@@ -9,10 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import io
-import logging
-import os
-import time
 
 from pathlib import Path, PurePath
 from types import MappingProxyType
@@ -20,15 +16,9 @@ from typing import List, Optional, cast
 
 import pandas as pd
 
-from antares.craft.api_conf.api_conf import APIconf
-from antares.craft.api_conf.request_wrapper import RequestWrapper
-from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft import APIconf
 from antares.craft.exceptions.exceptions import (
-    APIError,
     LinkCreationError,
-    StudyCreationError,
-    StudyImportError,
-    StudyMoveError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -40,10 +30,7 @@ from antares.craft.model.link import Link, LinkProperties, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
-from antares.craft.service.base_services import BaseLinkService, BaseStudyService
-from antares.craft.service.local_services.services.settings import edit_study_settings
-from antares.craft.service.service_factory import ServiceFactory
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
+from antares.craft.service.base_services import BaseLinkService, BaseStudyService, StudyServices
 
 """
 The study module defines the data model for antares study.
@@ -54,218 +41,23 @@ _study_path if stored in a disk
 """
 
 
-def create_study_api(
-    study_name: str,
-    version: str,
-    api_config: APIconf,
-    parent_path: Optional[Path] = None,
-) -> "Study":
-    """
-    Args:
-        study_name: antares study name to be created
-        version: antares version
-        api_config: host and token config for API
-
-    Raises:
-        MissingTokenError if api_token is missing
-        StudyCreationError if an HTTP Exception occurs
-    """
-
-    session = api_config.set_up_api_conf()
-    wrapper = RequestWrapper(session)
-    base_url = f"{api_config.get_host()}/api/v1"
-
-    try:
-        url = f"{base_url}/studies?name={study_name}&version={version}"
-        response = wrapper.post(url)
-        study_id = response.json()
-        # Settings part
-        study = Study(study_name, version, ServiceFactory(api_config, study_id))
-        study.read_settings()
-        # Move part
-        if parent_path:
-            study.move(parent_path)
-            url = f"{base_url}/studies/{study_id}"
-            json_study = wrapper.get(url).json()
-            folder = json_study.pop("folder")
-            study.path = PurePath(folder) if folder else PurePath(".")
-        return study
-    except (APIError, StudyMoveError) as e:
-        raise StudyCreationError(study_name, e.message) from e
-
-
-def import_study_api(api_config: APIconf, study_path: Path, destination_path: Optional[Path] = None) -> "Study":
-    session = api_config.set_up_api_conf()
-    wrapper = RequestWrapper(session)
-    base_url = f"{api_config.get_host()}/api/v1"
-
-    if study_path.suffix not in {".zip", ".7z"}:
-        raise StudyImportError(
-            study_path.name, f"File doesn't have the right extensions (.zip/.7z): {study_path.suffix}"
-        )
-
-    try:
-        files = {"study": io.BytesIO(study_path.read_bytes())}
-        url = f"{base_url}/studies/_import"
-        study_id = wrapper.post(url, files=files).json()
-
-        study = read_study_api(api_config, study_id)
-        if destination_path is not None:
-            study.move(destination_path)
-
-        return study
-    except APIError as e:
-        raise StudyImportError(study_path.name, e.message) from e
-
-
-def create_study_local(study_name: str, version: str, parent_directory: Path) -> "Study":
-    """
-    Create a directory structure for the study with empty files.
-
-    Args:
-        study_name: antares study name to be created
-        version: antares version for study
-        parent_directory: Local directory to store the study in.
-
-    Raises:
-        FileExistsError if the study already exists in the given location
-    """
-    local_config = LocalConfiguration(parent_directory, study_name)
-
-    study_directory = local_config.local_path / study_name
-
-    _verify_study_already_exists(study_directory)
-
-    # Create the directory structure
-    _create_directory_structure(study_directory)
-
-    # Create study.antares file with timestamps and study_name
-    antares_file_path = os.path.join(study_directory, "study.antares")
-    current_time = int(time.time())
-    antares_content = f"""[antares]
-version = {version}
-caption = {study_name}
-created = {current_time}
-lastsave = {current_time}
-author = Unknown
-"""
-    with open(antares_file_path, "w") as antares_file:
-        antares_file.write(antares_content)
-
-    # Create Desktop.ini file
-    desktop_ini_path = study_directory / "Desktop.ini"
-    desktop_ini_content = f"""[.ShellClassInfo]
-IconFile = settings/resources/study.ico
-IconIndex = 0
-InfoTip = Antares Study {version}: {study_name}
-"""
-    with open(desktop_ini_path, "w") as desktop_ini_file:
-        desktop_ini_file.write(desktop_ini_content)
-
-    # Create various .ini files for the study
-    _create_correlation_ini_files(study_directory)
-
-    logging.info(f"Study successfully created: {study_name}")
-    study = Study(
-        name=study_name,
-        version=version,
-        service_factory=ServiceFactory(config=local_config, study_name=study_name),
-        path=study_directory,
-    )
-    # We need to create the file with default value
-    default_settings = StudySettings()
-    update_settings = default_settings.to_update_settings()
-    edit_study_settings(study_directory, update_settings, True)
-    study._settings = default_settings
-    return study
-
-
-def read_study_local(study_directory: Path) -> "Study":
-    """
-    Read a study structure by returning a study object.
-    Args:
-        study_directory: antares study path to be read
-
-    Raises:
-        FileNotFoundError: If the provided directory does not exist.
-
-    """
-
-    def _directory_not_exists(local_path: Path) -> None:
-        if not local_path.is_dir():
-            raise FileNotFoundError(f"The path {local_path} doesn't exist or isn't a folder.")
-
-    _directory_not_exists(study_directory)
-
-    study_antares = IniFile(study_directory, InitializationFilesTypes.ANTARES)
-
-    study_params = study_antares.ini_dict["antares"]
-
-    local_config = LocalConfiguration(study_directory.parent, study_directory.name)
-
-    study = Study(
-        name=study_params["caption"],
-        version=study_params["version"],
-        service_factory=ServiceFactory(config=local_config, study_name=study_params["caption"]),
-        path=study_directory,
-    )
-    study.read_settings()
-    return study
-
-
-def read_study_api(api_config: APIconf, study_id: str) -> "Study":
-    session = api_config.set_up_api_conf()
-    wrapper = RequestWrapper(session)
-    base_url = f"{api_config.get_host()}/api/v1"
-    json_study = wrapper.get(f"{base_url}/studies/{study_id}").json()
-
-    study_name = json_study.pop("name")
-    study_version = str(json_study.pop("version"))
-    path = json_study.pop("folder")
-    pure_path = PurePath(path) if path else PurePath(".")
-
-    study = Study(study_name, study_version, ServiceFactory(api_config, study_id, study_name), pure_path)
-
-    study.read_settings()
-    study.read_areas()
-    study.read_outputs()
-    study.read_binding_constraints()
-
-    return study
-
-
-def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) -> "Study":
-    """
-    Creates a variant from a study_id
-    Args:
-        api_config: API configuration
-        study_id: The id of the study to create a variant of
-        variant_name: the name of the new variant
-    Returns: The variant in the form of a Study object
-    """
-    factory = ServiceFactory(api_config, study_id)
-    api_service = factory.create_study_service()
-
-    return api_service.create_variant(variant_name)
-
-
 class Study:
     def __init__(
         self,
         name: str,
         version: str,
-        service_factory: ServiceFactory,
+        services: StudyServices,
         path: PurePath = PurePath("."),
     ):
         self.name = name
         self.version = version
         self.path = path
-        self._study_service = service_factory.create_study_service()
-        self._area_service = service_factory.create_area_service()
-        self._link_service = service_factory.create_link_service()
-        self._run_service = service_factory.create_run_service()
-        self._binding_constraints_service = service_factory.create_binding_constraints_service()
-        self._settings_service = service_factory.create_settings_service()
+        self._study_service = services.study_service
+        self._area_service = services.area_service
+        self._link_service = services.link_service
+        self._run_service = services.run_service
+        self._binding_constraints_service = services.bc_service
+        self._settings_service = services.settings_service
         self._settings = StudySettings()
         self._areas: dict[str, Area] = dict()
         self._links: dict[str, Link] = dict()
@@ -473,49 +265,48 @@ class Study:
         self._study_service.generate_thermal_timeseries()
 
 
-def _verify_study_already_exists(study_directory: Path) -> None:
-    if study_directory.exists():
-        raise FileExistsError(f"Study {study_directory.name} already exists.")
+# Design note:
+# all following methods are entry points for study creation.
+# They use methods defined in "local" and "API" implementation services,
+# that we inject here.
+# Generally speaking, implementations should reference the API, not the
+# opposite. Here we perform dependency injection, and because of python
+# import mechanics, we need to use local imports to avoid circular dependencies.
 
 
-def _create_directory_structure(study_path: Path) -> None:
-    subdirectories = [
-        "input/hydro/allocation",
-        "input/hydro/common/capacity",
-        "input/hydro/series",
-        "input/links",
-        "input/load/series",
-        "input/misc-gen",
-        "input/reserves",
-        "input/solar/series",
-        "input/thermal/clusters",
-        "input/thermal/prepro",
-        "input/thermal/series",
-        "input/wind/series",
-        "layers",
-        "output",
-        "settings/resources",
-        "settings/simulations",
-        "user",
-    ]
-    for subdirectory in subdirectories:
-        (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
+def create_study_local(study_name: str, version: str, parent_directory: "Path") -> "Study":
+    from antares.craft.service.local_services.factory import create_study_local
+
+    return create_study_local(study_name, version, parent_directory)
 
 
-def _create_correlation_ini_files(study_directory: Path) -> None:
-    correlation_inis_to_create = [
-        getattr(InitializationFilesTypes, field.upper() + "_CORRELATION_INI")
-        for field in ["hydro", "load", "solar", "wind"]
-    ]
+def read_study_local(study_path: "Path") -> "Study":
+    from antares.craft.service.local_services.factory import read_study_local
 
-    ini_content = {"general": {"mode": "annual"}, "annual": {}}
-    for k in range(12):
-        ini_content[str(k)] = {}
+    return read_study_local(study_path)
 
-    for file_type in correlation_inis_to_create:
-        ini_file = IniFile(
-            study_directory,
-            file_type,
-            ini_contents=ini_content,
-        )
-        ini_file.write_ini_file()
+
+def create_study_api(
+    study_name: str, version: str, api_config: APIconf, parent_path: "Optional[Path]" = None
+) -> "Study":
+    from antares.craft.service.api_services.factory import create_study_api
+
+    return create_study_api(study_name, version, api_config, parent_path)
+
+
+def import_study_api(api_config: APIconf, study_path: "Path", destination_path: "Optional[Path]" = None) -> "Study":
+    from antares.craft.service.api_services.factory import import_study_api
+
+    return import_study_api(api_config, study_path, destination_path)
+
+
+def read_study_api(api_config: APIconf, study_id: str) -> "Study":
+    from antares.craft.service.api_services.factory import read_study_api
+
+    return read_study_api(api_config, study_id)
+
+
+def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) -> "Study":
+    from antares.craft.service.api_services.factory import create_variant_api
+
+    return create_variant_api(api_config, study_id, variant_name)

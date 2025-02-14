@@ -32,8 +32,8 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.study import Study
+from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
-from antares.craft.service.service_factory import ServiceFactory
 
 
 @pytest.fixture
@@ -49,14 +49,15 @@ def constraint_set():
 class TestCreateAPI:
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
-    study = Study("study_test", "870", ServiceFactory(api, study_id))
+    services = create_api_services(api, study_id)
+    study = Study("study_test", "870", services)
     area = Area(
         "study_test",
-        ServiceFactory(api, study_id).create_area_service(),
-        ServiceFactory(api, study_id).create_st_storage_service(),
-        ServiceFactory(api, study_id).create_thermal_service(),
-        ServiceFactory(api, study_id).create_renewable_service(),
-        ServiceFactory(api, study_id).create_hydro_service(),
+        services.area_service,
+        services.short_term_storage_service,
+        services.thermal_service,
+        services.renewable_service,
+        services.hydro_service,
     )
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
@@ -66,9 +67,7 @@ class TestCreateAPI:
             update_properties = BindingConstraintPropertiesUpdate(enabled=False)
             creation_properties = BindingConstraintProperties(enabled=False)
             api_properties = BindingConstraintPropertiesAPI.from_user_model(creation_properties)
-            constraint = BindingConstraint(
-                "bc_1", ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
-            )
+            constraint = BindingConstraint("bc_1", self.services.bc_service)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}"
             mocker.put(
                 url,
@@ -81,9 +80,7 @@ class TestCreateAPI:
     def test_update_binding_constraint_properties_fails(self):
         with requests_mock.Mocker() as mocker:
             update_properties = BindingConstraintPropertiesUpdate(enabled=False)
-            constraint = BindingConstraint(
-                "bc_1", ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
-            )
+            constraint = BindingConstraint("bc_1", self.services.bc_service)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}"
             antares_web_description_msg = "Server KO"
             mocker.put(url, json={"description": antares_web_description_msg}, status_code=404)
@@ -97,8 +94,7 @@ class TestCreateAPI:
     def test_update_binding_constraint_term_success(self):
         with requests_mock.Mocker() as mocker:
             existing_term = ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=4, offset=3)
-            service = ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
-            constraint = BindingConstraint("bc_1", service, None, [existing_term])
+            constraint = BindingConstraint("bc_1", self.services.bc_service, None, [existing_term])
 
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}/term"
             mocker.put(url, status_code=200)
@@ -111,8 +107,7 @@ class TestCreateAPI:
     def test_update_binding_constraint_term_fails(self):
         with requests_mock.Mocker() as mocker:
             existing_term = ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=4, offset=3)
-            service = ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
-            constraint = BindingConstraint("bc_1", service, None, [existing_term])
+            constraint = BindingConstraint("bc_1", self.services.bc_service, None, [existing_term])
 
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}/term"
             mocker.put(url, json={"description": self.antares_web_description_msg}, status_code=422)
@@ -125,9 +120,7 @@ class TestCreateAPI:
                 constraint.update_term(new_term)
 
     def test_get_constraint_matrix_success(self, constraint_set):
-        constraint = BindingConstraint(
-            "bc_test", ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
-        )
+        constraint = BindingConstraint("bc_test", self.services.bc_service)
         for matrix_method, enum_value, path, expected_matrix in constraint_set:
             with requests_mock.Mocker() as mocker:
                 url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path={path}"
@@ -136,9 +129,7 @@ class TestCreateAPI:
             assert constraint_matrix.equals(self.matrix)
 
     def test_get_constraint_matrix_fails(self, constraint_set):
-        constraint = BindingConstraint(
-            "bc_test", ServiceFactory(self.api, self.study_id).create_binding_constraints_service()
-        )
+        constraint = BindingConstraint("bc_test", self.services.bc_service)
         for matrix_method, enum_value, path, _ in constraint_set:
             with requests_mock.Mocker() as mocker:
                 url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path={path}"

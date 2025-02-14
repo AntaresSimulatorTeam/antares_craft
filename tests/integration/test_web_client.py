@@ -18,6 +18,7 @@ from pathlib import Path, PurePath
 import numpy as np
 import pandas as pd
 
+from antares.craft import create_study_api, create_variant_api, import_study_api, read_study_api
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
     AreaDeletionError,
@@ -61,7 +62,6 @@ from antares.craft.model.st_storage import (
     STStorageProperties,
     STStoragePropertiesUpdate,
 )
-from antares.craft.model.study import create_study_api, create_variant_api, import_study_api, read_study_api
 from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties, ThermalClusterPropertiesUpdate
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop

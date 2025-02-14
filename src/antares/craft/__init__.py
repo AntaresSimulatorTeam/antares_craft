@@ -10,6 +10,26 @@
 #
 # This file is part of the Antares project.
 
-from antares.craft.model.study import create_study_api, create_study_local
+from antares.craft.api_conf.api_conf import APIconf
+from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.model.study import (
+    Study,
+    create_study_api,
+    create_study_local,
+    create_variant_api,
+    import_study_api,
+    read_study_api,
+    read_study_local,
+)
 
-__all__ = ["create_study_api", "create_study_local"]
+__all__ = [
+    "Study",
+    "APIconf",
+    "LocalConfiguration",
+    "create_study_api",
+    "import_study_api",
+    "read_study_api",
+    "create_variant_api",
+    "read_study_local",
+    "create_study_local",
+]
