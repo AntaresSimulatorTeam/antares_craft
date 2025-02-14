@@ -27,7 +27,7 @@ from antares.craft.exceptions.exceptions import (
     LinkUploadError,
 )
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
-from antares.craft.service.api_services.models.link import LinkAPIResponseModel, LinkPropertiesAPI, LinkUiAPI
+from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAPI
 from antares.craft.service.api_services.utils import get_matrix, upload_series
 from antares.craft.service.base_services import BaseLinkService
 from typing_extensions import override
@@ -67,22 +67,14 @@ class LinkApiService(BaseLinkService):
             url = f"{self._base_url}/studies/{self.study_id}/links"
             body = {"area1": area_from, "area2": area_to}
 
-            if properties:
-                api_properties = LinkPropertiesAPI.from_user_model(properties)
-                body.update(api_properties.model_dump(mode="json", by_alias=True, exclude_none=True))
-
-            if ui:
-                api_ui = LinkUiAPI.from_user_model(ui)
-                body.update(api_ui.model_dump(mode="json", by_alias=True, exclude_none=True))
+            if properties or ui:
+                api_model = LinkPropertiesAndUiAPI.from_user_model(ui, properties)
+                body.update(api_model.model_dump(mode="json", by_alias=True, exclude_none=True))
 
             response = self._wrapper.post(url, json=body)
-            link_response_model = LinkAPIResponseModel.model_validate(response.json())
-
-            link_properties_dict = link_response_model.model_dump(mode="json", include=LinkPropertiesAPI.model_fields)
-            link_properties = LinkPropertiesAPI.model_validate(link_properties_dict).to_user_model()
-
-            link_ui_dict = link_response_model.model_dump(mode="json", include=LinkUiAPI.model_fields)
-            link_ui = LinkUiAPI.model_validate(link_ui_dict).to_user_model()
+            api_response = LinkPropertiesAndUiAPI.model_validate(response.json())
+            link_properties = api_response.to_properties_model()
+            link_ui = api_response.to_ui_user_model()
 
         except APIError as e:
             raise LinkCreationError(area_from, area_to, e.message) from e
@@ -101,31 +93,18 @@ class LinkApiService(BaseLinkService):
 
     @override
     def update_link_properties(self, link: Link, properties: LinkPropertiesUpdate) -> LinkProperties:
-        area1_id = link.area_from_id
-        area2_id = link.area_to_id
-        raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path=input/links/{area1_id}/properties/{area2_id}"
+        area_from_id = link.area_from_id
+        area_to_id = link.area_to_id
         try:
-            new_properties = properties.model_dump(mode="json", by_alias=True, exclude_none=True)
-            if not new_properties:
-                return link.properties
+            url = f"{self._base_url}/studies/{self.study_id}/links/{area_from_id}/{area_to_id}"
+            body = {"area1": area_from_id, "area2": area_to_id}
+            api_properties = LinkPropertiesAndUiAPI.from_user_model(None, properties)
+            body.update(api_properties.model_dump(mode="json", by_alias=True, exclude_none=True))
 
-            response = self._wrapper.get(raw_url)
-            json_response = response.json()
-            for key in new_properties:
-                if key in ["filter-synthesis", "filter-year-by-year"]:
-                    json_response[key] = ",".join(new_properties[key])
-                else:
-                    json_response[key] = new_properties[key]
-            self._wrapper.post(raw_url, json=json_response)
+            response = self._wrapper.put(url, json=body)
 
-            keys_to_remove = set(LinkUi().model_dump(by_alias=True).keys())
-            for key in keys_to_remove:
-                del json_response[key]
-            for key in json_response:
-                if key in ["filter-synthesis", "filter-year-by-year"]:
-                    json_response[key] = json_response[key].split(", ")
-
-            link_properties = LinkProperties.model_validate(json_response)
+            api_response = LinkPropertiesAndUiAPI.model_validate(response.json())
+            link_properties = api_response.to_properties_model()
 
         except APIError as e:
             raise LinkPropertiesUpdateError(link.id, e.message) from e
@@ -134,25 +113,18 @@ class LinkApiService(BaseLinkService):
 
     @override
     def update_link_ui(self, link: Link, ui: LinkUiUpdate) -> LinkUi:
-        # todo: change this code when AntaresWeb will have a real endpoint
-        area1_id = link.area_from_id
-        area2_id = link.area_to_id
-        raw_url = f"{self._base_url}/studies/{self.study_id}/raw?path=input/links/{area1_id}/properties/{area2_id}"
+        area_from_id = link.area_from_id
+        area_to_id = link.area_to_id
         try:
-            new_ui = ui.model_dump(mode="json", by_alias=True, exclude_none=True)
-            if not new_ui:
-                return link.ui
+            url = f"{self._base_url}/studies/{self.study_id}/links/{area_from_id}/{area_to_id}"
+            body = {"area1": area_from_id, "area2": area_to_id}
+            api_ui = LinkPropertiesAndUiAPI.from_user_model(ui, None)
+            body.update(api_ui.model_dump(mode="json", by_alias=True, exclude_none=True))
 
-            response = self._wrapper.get(raw_url)
-            json_response = response.json()
-            json_response.update(new_ui)
-            self._wrapper.post(raw_url, json=json_response)
+            response = self._wrapper.put(url, json=body)
 
-            keys_to_remove = set(LinkProperties().model_dump(by_alias=True).keys())
-            for key in keys_to_remove:
-                del json_response[key]
-
-            link_ui = LinkUi.model_validate(json_response)
+            api_response = LinkPropertiesAndUiAPI.model_validate(response.json())
+            link_ui = api_response.to_ui_user_model()
 
         except APIError as e:
             raise LinkUiUpdateError(link.id, e.message) from e
