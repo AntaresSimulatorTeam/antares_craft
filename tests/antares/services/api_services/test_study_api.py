@@ -173,9 +173,9 @@ class TestCreateAPI:
 
     def test_create_link_success(self):
         with requests_mock.Mocker() as mocker:
-            base_url = f"https://antares.com/api/v1/studies/{self.study_id}"
-            url = f"{base_url}/links"
-            mocker.post(url, status_code=200)
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
+            json_response = LinkPropertiesAndUiAPI().model_dump(by_alias=True)
+            mocker.post(url, status_code=200, json=json_response)
             self.study._areas["area"] = Area(
                 "area",
                 self.study._area_service,
@@ -193,9 +193,6 @@ class TestCreateAPI:
                 Mock(),
             )
 
-            raw_url = f"{base_url}/raw?path=input/links/area/properties/area_to"
-            json_response = LinkPropertiesAndUiAPI().model_dump(by_alias=True)
-            mocker.get(raw_url, json=json_response, status_code=200)
             link = self.study.create_link(area_from="area", area_to="area_to")
             assert isinstance(link, Link)
 
