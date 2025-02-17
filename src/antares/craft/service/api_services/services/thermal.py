@@ -67,14 +67,15 @@ class ThermalApiService(BaseThermalService):
         return new_properties
 
     @override
-    def update_thermal_matrix(self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame) -> None:
+    def update_thermal_matrix(self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame, ts_name: ThermalClusterMatrixName) -> None:
+        keyword = "series" if "SERIES" in ts_name.name else "prepro"
         path = (
             PurePosixPath("input")
             / "thermal"
-            / "series"
+            / keyword
             / f"{thermal_cluster.area_id}"
             / f"{thermal_cluster.id}"
-            / "series"
+            / ts_name.value
         )
         try:
             upload_series(self._base_url, self.study_id, self._wrapper, matrix, path.as_posix())

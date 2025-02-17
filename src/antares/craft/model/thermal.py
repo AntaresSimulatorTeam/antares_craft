@@ -195,5 +195,20 @@ class ThermalCluster:
     def get_fuel_cost_matrix(self) -> pd.DataFrame:
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_FUEL_COST)
 
+    def update_prepro_data_matrix(self, matrix: pd.DataFrame) -> None:
+        self._thermal_service.update_thermal_matrix(self, matrix, ThermalClusterMatrixName.PREPRO_DATA)
+
+    def update_prepro_modulation_matrix(self, matrix: pd.DataFrame) -> None:
+        self._thermal_service.update_thermal_matrix(self, matrix, ThermalClusterMatrixName.PREPRO_MODULATION)
+
+    def update_series_matrix(self, matrix: pd.DataFrame) -> None:
+        self._thermal_service.update_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES)
+
+    def update_co2_cost_matrix(self, matrix: pd.DataFrame) -> None:
+        self._thermal_service.update_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES_CO2_COST)
+
+    def update_fuel_cost_matrix(self, matrix: pd.DataFrame) -> None:
+        self._thermal_service.update_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES_FUEL_COST)
+
     def update_thermal_matrix(self, matrix: pd.DataFrame) -> None:
-        self._thermal_service.update_thermal_matrix(self, matrix)
+        self._thermal_service.update_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES)
