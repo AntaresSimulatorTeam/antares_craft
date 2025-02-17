@@ -581,6 +581,19 @@ class TestWebClient:
         actual_water_matrix.equals(series)
         actual_credit_matrix.equals(series)
 
+        # updating each hydro matrices
+        area_fr.hydro.update_maxpower(series)
+        area_fr.hydro.update_reservoir(series)
+        area_fr.hydro.update_inflow_pattern(series)
+        area_fr.hydro.update_water_values(series)
+        area_fr.hydro.update_credits_modulation(series)
+
+        actual_reservoir_matrix.equals(series)
+        actual_maxpower_matrix.equals(series)
+        actual_inflow_matrix.equals(series)
+        actual_water_matrix.equals(series)
+        actual_credit_matrix.equals(series)
+
         # tests variant creation
         variant_name = "variant_test"
         variant_from_api_name = "variant_from_api_test"

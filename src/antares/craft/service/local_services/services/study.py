@@ -12,7 +12,6 @@
 from pathlib import Path, PurePath
 from typing import TYPE_CHECKING
 
-from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.binding_constraint import BindingConstraint
 from antares.craft.model.output import Output
@@ -73,7 +72,4 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def generate_thermal_timeseries(self) -> None:
-        raise NotImplementedError
-
-    def import_study(self, config: APIconf, study_path: Path, destination_path: Path) -> None:
         raise NotImplementedError
