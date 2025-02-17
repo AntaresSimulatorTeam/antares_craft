@@ -474,7 +474,9 @@ class BaseThermalService(ABC):
         pass
 
     @abstractmethod
-    def update_thermal_matrix(self, thermal_cluster: "ThermalCluster", matrix: pd.DataFrame, ts_name: "ThermalClusterMatrixName") -> None:
+    def update_thermal_matrix(
+        self, thermal_cluster: "ThermalCluster", matrix: pd.DataFrame, ts_name: "ThermalClusterMatrixName"
+    ) -> None:
         pass
 
     @abstractmethod

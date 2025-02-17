@@ -15,7 +15,6 @@ import requests_mock
 from unittest.mock import Mock
 
 import pandas as pd
-from numpy.matrixlib.defmatrix import matrix
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
@@ -183,7 +182,6 @@ class TestCreateAPI:
 
             assert expected_thermal.id == actual_thermal.id
             assert expected_thermal.name == actual_thermal.name
-
 
     def test_update_prepro_data_success(self):
         with requests_mock.Mocker() as mocker:

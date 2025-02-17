@@ -143,6 +143,7 @@ class StudyApiService(BaseStudyService):
         except (APIError, TaskFailedError, TaskTimeOutError) as e:
             raise ThermalTimeseriesGenerationError(self.study_id, e.message)
 
+    @override
     def import_study(self, config: APIconf, study_path: Path, destination_path: Path) -> None:
         def has_valid_extension(path: Path) -> bool:
             valid_extensions = {".zip", ".7z"}
