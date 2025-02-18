@@ -494,7 +494,6 @@ class TestWebClient:
         thermal_fr.update_fuel_cost_matrix(thermal_fr_matrix)
         thermal_fr.update_co2_cost_matrix(thermal_fr_matrix)
         thermal_fr.update_series_matrix(thermal_fr_matrix)
-        thermal_fr.update_thermal_matrix(thermal_fr_matrix)
         renewable_fr.update_renewable_matrix(renewable_fr_matrix)
 
         actual_thermal_series_matrix = thermal_fr.get_series_matrix()

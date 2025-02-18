@@ -209,6 +209,3 @@ class ThermalCluster:
 
     def update_fuel_cost_matrix(self, matrix: pd.DataFrame) -> None:
         self._thermal_service.update_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES_FUEL_COST)
-
-    def update_thermal_matrix(self, matrix: pd.DataFrame) -> None:
-        self._thermal_service.update_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES)

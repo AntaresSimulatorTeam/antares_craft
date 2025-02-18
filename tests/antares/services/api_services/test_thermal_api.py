@@ -120,29 +120,6 @@ class TestCreateAPI:
                 ):
                     getattr(self.thermal, matrix_method)()
 
-    def test_upload_thermal_matrix_success(self):
-        with requests_mock.Mocker() as mocker:
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
-                f"{self.area.id}/{self.thermal.name}/series"
-            )
-            mocker.post(url, status_code=200)
-            self.thermal.update_thermal_matrix(self.matrix)
-
-    def test_upload_thermal_matrix_fail(self):
-        with requests_mock.Mocker() as mocker:
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
-                f"{self.area.id}/{self.thermal.name}/series"
-            )
-            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
-            with pytest.raises(
-                ThermalMatrixUpdateError,
-                match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.name}: "
-                + self.antares_web_description_msg,
-            ):
-                self.thermal.update_thermal_matrix(self.matrix)
-
     def test_read_thermals(self):
         json_thermal = [
             {
@@ -193,7 +170,44 @@ class TestCreateAPI:
             self.thermal.update_prepro_data_matrix(self.matrix)
 
     def test_update_prepro_data_fail(self):
-        pass
+        with requests_mock.Mocker() as mocker:
+            url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/prepro/"
+                f"{self.area.id}/{self.thermal.name}/data"
+            )
+            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                ThermalMatrixUpdateError,
+                match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.id}: "
+                + self.antares_web_description_msg,
+            ):
+                self.thermal.update_prepro_data_matrix(self.matrix)
+
+    def test_get_prepro_data_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}"
+                f"/raw?path=input/thermal/prepro/"
+                f"{self.thermal.area_id}/{self.thermal.name}/data"
+            )
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            result_matrix = self.thermal.get_prepro_data_matrix()
+            result_matrix.equals(self.matrix)
+
+    def test_get_prepro_data_fail(self):
+        with requests_mock.Mocker() as mocker:
+            url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/prepro/"
+                f"{self.area.id}/{self.thermal.name}/data"
+            )
+
+            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                ThermalMatrixDownloadError,
+                match=f"Could not download data for cluster {self.thermal.name}"
+                f" inside area {self.area.id}: {self.antares_web_description_msg}",
+            ):
+                self.thermal.get_prepro_data_matrix()
 
     def test_update_prepro_modulation_success(self):
         with requests_mock.Mocker() as mocker:
@@ -205,7 +219,44 @@ class TestCreateAPI:
             self.thermal.update_prepro_modulation_matrix(self.matrix)
 
     def test_update_prepro_modulation_fail(self):
-        pass
+        with requests_mock.Mocker() as mocker:
+            url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/prepro/"
+                f"{self.area.id}/{self.thermal.name}/modulation"
+            )
+            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                ThermalMatrixUpdateError,
+                match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.id}: "
+                + self.antares_web_description_msg,
+            ):
+                self.thermal.update_prepro_modulation_matrix(self.matrix)
+
+    def test_get_prepro_modulation_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}"
+                f"/raw?path=input/thermal/prepro/"
+                f"{self.thermal.area_id}/{self.thermal.name}/modulation"
+            )
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            result_matrix = self.thermal.get_prepro_modulation_matrix()
+            result_matrix.equals(self.matrix)
+
+    def test_get_prepro_modulation_fail(self):
+        with requests_mock.Mocker() as mocker:
+            url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/prepro/"
+                f"{self.area.id}/{self.thermal.name}/modulation"
+            )
+
+            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                ThermalMatrixDownloadError,
+                match=f"Could not download modulation for cluster {self.thermal.name}"
+                f" inside area {self.area.id}: {self.antares_web_description_msg}",
+            ):
+                self.thermal.get_prepro_modulation_matrix()
 
     def test_update_series_success(self):
         with requests_mock.Mocker() as mocker:
@@ -217,7 +268,44 @@ class TestCreateAPI:
             self.thermal.update_series_matrix(self.matrix)
 
     def test_update_series_fail(self):
-        pass
+        with requests_mock.Mocker() as mocker:
+            url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
+                f"{self.area.id}/{self.thermal.name}/series"
+            )
+            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                ThermalMatrixUpdateError,
+                match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.id}: "
+                + self.antares_web_description_msg,
+            ):
+                self.thermal.update_series_matrix(self.matrix)
+
+    def test_get_series_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}"
+                f"/raw?path=input/thermal/series/"
+                f"{self.thermal.area_id}/{self.thermal.name}/series"
+            )
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            result_matrix = self.thermal.get_series_matrix()
+            result_matrix.equals(self.matrix)
+
+    def test_get_series_fail(self):
+        with requests_mock.Mocker() as mocker:
+            url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
+                f"{self.area.id}/{self.thermal.name}/series"
+            )
+
+            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                ThermalMatrixDownloadError,
+                match=f"Could not download series for cluster {self.thermal.name}"
+                f" inside area {self.area.id}: {self.antares_web_description_msg}",
+            ):
+                self.thermal.get_series_matrix()
 
     def test_update_co2_cost_success(self):
         with requests_mock.Mocker() as mocker:
@@ -229,7 +317,44 @@ class TestCreateAPI:
             self.thermal.update_co2_cost_matrix(self.matrix)
 
     def test_update_co2_cost_fail(self):
-        pass
+        with requests_mock.Mocker() as mocker:
+            url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
+                f"{self.area.id}/{self.thermal.name}/CO2Cost"
+            )
+            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                ThermalMatrixUpdateError,
+                match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.id}: "
+                + self.antares_web_description_msg,
+            ):
+                self.thermal.update_co2_cost_matrix(self.matrix)
+
+    def test_get_co2_cost_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}"
+                f"/raw?path=input/thermal/series/"
+                f"{self.thermal.area_id}/{self.thermal.name}/CO2Cost"
+            )
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            result_matrix = self.thermal.get_co2_cost_matrix()
+            result_matrix.equals(self.matrix)
+
+    def test_get_co2_cost_fail(self):
+        with requests_mock.Mocker() as mocker:
+            url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
+                f"{self.area.id}/{self.thermal.name}/CO2Cost"
+            )
+
+            mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                ThermalMatrixDownloadError,
+                match=f"Could not download CO2Cost for cluster {self.thermal.name}"
+                f" inside area {self.area.id}: {self.antares_web_description_msg}",
+            ):
+                self.thermal.get_co2_cost_matrix()
 
     def test_update_fuel_cost_success(self):
         with requests_mock.Mocker() as mocker:
@@ -241,4 +366,15 @@ class TestCreateAPI:
             self.thermal.update_fuel_cost_matrix(self.matrix)
 
     def test_update_fuel_cost_fail(self):
-        pass
+        with requests_mock.Mocker() as mocker:
+            url = (
+                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
+                f"{self.area.id}/{self.thermal.name}/fuelCost"
+            )
+            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                ThermalMatrixUpdateError,
+                match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.id}: "
+                + self.antares_web_description_msg,
+            ):
+                self.thermal.update_fuel_cost_matrix(self.matrix)
