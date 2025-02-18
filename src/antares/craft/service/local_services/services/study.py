@@ -72,8 +72,9 @@ class StudyLocalService(BaseStudyService):
         raise NotImplementedError
 
     @override
-    def generate_thermal_timeseries(self) -> None:
+    def generate_thermal_timeseries(self, number_of_years: int) -> None:
         raise NotImplementedError
 
+    @override
     def import_study(self, config: APIconf, study_path: Path, destination_path: Path) -> None:
         raise NotImplementedError

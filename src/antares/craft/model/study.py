@@ -261,8 +261,8 @@ class Study:
     def move(self, parent_path: Path) -> None:
         self.path = self._study_service.move_study(parent_path)
 
-    def generate_thermal_timeseries(self) -> None:
-        self._study_service.generate_thermal_timeseries()
+    def generate_thermal_timeseries(self, number_of_years: int) -> None:
+        self._study_service.generate_thermal_timeseries(number_of_years)
 
 
 # Design note:

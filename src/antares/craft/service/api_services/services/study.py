@@ -134,8 +134,9 @@ class StudyApiService(BaseStudyService):
             raise StudyMoveError(self.study_id, new_parent_path.as_posix(), e.message) from e
 
     @override
-    def generate_thermal_timeseries(self) -> None:
+    def generate_thermal_timeseries(self, number_of_years: int) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/timeseries/generate"
+        #json_thermal_timeseries =""
         try:
             response = self._wrapper.put(url)
             task_id = response.json()
@@ -143,6 +144,7 @@ class StudyApiService(BaseStudyService):
         except (APIError, TaskFailedError, TaskTimeOutError) as e:
             raise ThermalTimeseriesGenerationError(self.study_id, e.message)
 
+    @override
     def import_study(self, config: APIconf, study_path: Path, destination_path: Path) -> None:
         def has_valid_extension(path: Path) -> bool:
             valid_extensions = {".zip", ".7z"}
