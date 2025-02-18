@@ -489,11 +489,25 @@ class TestWebClient:
         # tests uploading thermal and renewable matrices
         thermal_fr_matrix = pd.DataFrame(data=np.ones((8760, 1)))
         renewable_fr_matrix = pd.DataFrame(data=np.ones((8760, 1)))
-        thermal_fr.update_thermal_matrix(thermal_fr_matrix)
+        thermal_fr.update_prepro_data_matrix(thermal_fr_matrix)
+        thermal_fr.update_prepro_modulation_matrix(thermal_fr_matrix)
+        thermal_fr.update_fuel_cost_matrix(thermal_fr_matrix)
+        thermal_fr.update_co2_cost_matrix(thermal_fr_matrix)
+        thermal_fr.update_series_matrix(thermal_fr_matrix)
         renewable_fr.update_renewable_matrix(renewable_fr_matrix)
 
-        actual_thermal_matrix = thermal_fr.get_series_matrix()
-        actual_thermal_matrix.equals(thermal_fr_matrix)
+        actual_thermal_series_matrix = thermal_fr.get_series_matrix()
+        actual_thermal_data_matrix = thermal_fr.get_prepro_data_matrix()
+        actual_thermal_modulation_matrix = thermal_fr.get_prepro_modulation_matrix()
+        actual_thermal_fuel_cost_matrix = thermal_fr.get_fuel_cost_matrix()
+        actual_thermal_co2_cost_matrix = thermal_fr.get_co2_cost_matrix()
+
+        actual_thermal_series_matrix.equals(thermal_fr_matrix)
+        actual_thermal_data_matrix.equals(thermal_fr_matrix)
+        actual_thermal_modulation_matrix.equals(thermal_fr_matrix)
+        actual_thermal_fuel_cost_matrix.equals(thermal_fr_matrix)
+        actual_thermal_co2_cost_matrix.equals(thermal_fr_matrix)
+
         actual_renewable_matrix = renewable_fr.get_timeseries()
         actual_renewable_matrix.equals(renewable_fr_matrix)
         # tests thermal cluster deletion
