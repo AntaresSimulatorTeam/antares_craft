@@ -82,7 +82,9 @@ class ThermalApiService(BaseThermalService):
         try:
             upload_series(self._base_url, self.study_id, self._wrapper, matrix, path.as_posix())
         except APIError as e:
-            raise ThermalMatrixUpdateError(thermal_cluster.area_id, thermal_cluster.name, e.message) from e
+            raise ThermalMatrixUpdateError(
+                thermal_cluster.area_id, thermal_cluster.name, ts_name.value, e.message
+            ) from e
 
     @override
     def get_thermal_matrix(self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName) -> pd.DataFrame:

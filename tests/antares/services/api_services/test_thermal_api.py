@@ -178,7 +178,7 @@ class TestCreateAPI:
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 ThermalMatrixUpdateError,
-                match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.id}: "
+                match=f"Could not upload data for cluster {self.thermal.name} inside area {self.area.id}: "
                 + self.antares_web_description_msg,
             ):
                 self.thermal.update_prepro_data_matrix(self.matrix)
@@ -227,7 +227,7 @@ class TestCreateAPI:
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 ThermalMatrixUpdateError,
-                match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.id}: "
+                match=f"Could not upload modulation for cluster {self.thermal.name} inside area {self.area.id}: "
                 + self.antares_web_description_msg,
             ):
                 self.thermal.update_prepro_modulation_matrix(self.matrix)
@@ -276,7 +276,7 @@ class TestCreateAPI:
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 ThermalMatrixUpdateError,
-                match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.id}: "
+                match=f"Could not upload series for cluster {self.thermal.name} inside area {self.area.id}: "
                 + self.antares_web_description_msg,
             ):
                 self.thermal.update_series_matrix(self.matrix)
@@ -325,7 +325,7 @@ class TestCreateAPI:
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 ThermalMatrixUpdateError,
-                match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.id}: "
+                match=f"Could not upload CO2Cost for cluster {self.thermal.name} inside area {self.area.id}: "
                 + self.antares_web_description_msg,
             ):
                 self.thermal.update_co2_cost_matrix(self.matrix)
@@ -374,7 +374,7 @@ class TestCreateAPI:
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 ThermalMatrixUpdateError,
-                match=f"Could not upload matrix for cluster {self.thermal.name} inside area {self.area.id}: "
+                match=f"Could not upload fuelCost for cluster {self.thermal.name} inside area {self.area.id}: "
                 + self.antares_web_description_msg,
             ):
                 self.thermal.update_fuel_cost_matrix(self.matrix)

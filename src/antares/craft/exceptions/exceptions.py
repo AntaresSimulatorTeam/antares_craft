@@ -301,8 +301,8 @@ class ThermalMatrixDownloadError(Exception):
 
 
 class ThermalMatrixUpdateError(Exception):
-    def __init__(self, area_name: str, cluster_name: str, message: str) -> None:
-        self.message = f"Could not upload matrix for cluster {cluster_name} inside area {area_name}: " + message
+    def __init__(self, area_name: str, cluster_name: str, matrix_name: str, message: str) -> None:
+        self.message = f"Could not upload {matrix_name} for cluster {cluster_name} inside area {area_name}: " + message
         super().__init__(self.message)
 
 
