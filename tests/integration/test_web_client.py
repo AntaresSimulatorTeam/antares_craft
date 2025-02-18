@@ -574,12 +574,20 @@ class TestWebClient:
         actual_inflow_matrix = area_fr.hydro.get_inflow_pattern()
         actual_water_matrix = area_fr.hydro.get_water_values()
         actual_credit_matrix = area_fr.hydro.get_credit_modulations()
+        actual_ror_matrix = area_fr.hydro.get_ror_series()
+        actual_mod_matrix = area_fr.hydro.get_mod_series()
+        actual_mingen_matrix = area_fr.hydro.get_mingen()
+        actual_energy_matrix = area_fr.hydro.get_energy()
 
         actual_reservoir_matrix.equals(series)
         actual_maxpower_matrix.equals(series)
         actual_inflow_matrix.equals(series)
         actual_water_matrix.equals(series)
         actual_credit_matrix.equals(series)
+        actual_ror_matrix.equals(series)
+        actual_mod_matrix.equals(series)
+        actual_mingen_matrix.equals(series)
+        actual_energy_matrix.equals(series)
 
         # updating each hydro matrices
         area_fr.hydro.update_maxpower(series)
@@ -587,12 +595,20 @@ class TestWebClient:
         area_fr.hydro.update_inflow_pattern(series)
         area_fr.hydro.update_water_values(series)
         area_fr.hydro.update_credits_modulation(series)
+        area_fr.hydro.update_ror_series(series)
+        area_fr.hydro.update_mod_series(series)
+        area_fr.hydro.update_mingen(series)
+        area_fr.hydro.update_energy(series)
 
-        actual_reservoir_matrix.equals(series)
-        actual_maxpower_matrix.equals(series)
-        actual_inflow_matrix.equals(series)
-        actual_water_matrix.equals(series)
-        actual_credit_matrix.equals(series)
+        area_fr.hydro.get_maxpower().equals(series)
+        area_fr.hydro.get_reservoir().equals(series)
+        area_fr.hydro.get_inflow_pattern().equals(series)
+        area_fr.hydro.get_water_values().equals(series)
+        area_fr.hydro.get_credit_modulations().equals(series)
+        area_fr.hydro.get_ror_series().equals(series)
+        area_fr.hydro.get_mod_series().equals(series)
+        area_fr.hydro.get_mingen().equals(series)
+        area_fr.hydro.get_energy().equals(series)
 
         # tests variant creation
         variant_name = "variant_test"
