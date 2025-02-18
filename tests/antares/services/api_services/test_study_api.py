@@ -722,7 +722,7 @@ class TestCreateAPI:
             mocker.get(task_url, json={"result": {"success": True}}, status_code=200)
 
             with patch("antares.craft.service.api_services.utils.wait_task_completion", return_value=None):
-                self.study.generate_thermal_timeseries(0)
+                self.study.generate_thermal_timeseries(1)
 
     def test_generate_thermal_timeseries_failure(self):
         with requests_mock.Mocker() as mocker:
@@ -733,7 +733,7 @@ class TestCreateAPI:
             mocker.put(url, json={"description": error_message}, status_code=404)
 
             with pytest.raises(ThermalTimeseriesGenerationError, match=error_message):
-                self.study.generate_thermal_timeseries(0)
+                self.study.generate_thermal_timeseries(1)
 
     def test_import_study_success(self, tmp_path):
         json_study = {

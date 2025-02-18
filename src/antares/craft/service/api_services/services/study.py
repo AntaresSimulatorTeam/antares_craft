@@ -134,10 +134,10 @@ class StudyApiService(BaseStudyService):
             raise StudyMoveError(self.study_id, new_parent_path.as_posix(), e.message) from e
 
     @override
-    def generate_thermal_timeseries(self, number_of_years: int) -> None:
+    def generate_thermal_timeseries(self, nb_years: int) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/timeseries/generate"
         url_config = f"{self._base_url}/studies/{self.study_id}/timeseries/config"
-        json_thermal_timeseries = {"thermal": {"number": number_of_years}}
+        json_thermal_timeseries = {"thermal": {"number": nb_years}}
         try:
             self._wrapper.put(url_config, json=json_thermal_timeseries)
             response = self._wrapper.put(url)
@@ -145,17 +145,3 @@ class StudyApiService(BaseStudyService):
             wait_task_completion(self._base_url, self._wrapper, task_id)
         except (APIError, TaskFailedError, TaskTimeOutError) as e:
             raise ThermalTimeseriesGenerationError(self.study_id, e.message)
-
-    @override
-    def import_study(self, config: APIconf, study_path: Path, destination_path: Path) -> None:
-        def has_valid_extension(path: Path) -> bool:
-            valid_extensions = {".zip", ".7z"}
-            return path.suffix in valid_extensions
-
-        try:
-            if has_valid_extension(study_path):
-                url = f"{self._base_url}/studies/_import?study={study_path}&encode=multipart"
-                self._wrapper.post(url)
-                self.move_study(destination_path)
-        except APIError:
-            raise NotImplementedError

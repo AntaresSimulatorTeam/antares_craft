@@ -160,13 +160,13 @@ class TestWebClient:
         assert thermal_fr.id == "cluster_test"
 
         # ===== Test generate thermal timeseries =====
-        study.generate_thermal_timeseries()
+        study.generate_thermal_timeseries(2)
         thermal_timeseries = thermal_fr.get_series_matrix()
         assert isinstance(
             thermal_timeseries,
             pd.DataFrame,
         )
-        assert thermal_timeseries.shape == (8760, 1)
+        assert thermal_timeseries.shape == (8760, 2)
         assert (
             (thermal_timeseries == 1000).all().all()
         )  # first all() returns a one column matrix with booleans, second all() checks that they're all true
