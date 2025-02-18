@@ -136,8 +136,10 @@ class StudyApiService(BaseStudyService):
     @override
     def generate_thermal_timeseries(self, number_of_years: int) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/timeseries/generate"
-        #json_thermal_timeseries =""
+        url_config = f"{self._base_url}/studies/{self.study_id}/timeseries/config"
+        json_thermal_timeseries = {"thermal": {"number": number_of_years}}
         try:
+            self._wrapper.put(url_config, json=json_thermal_timeseries)
             response = self._wrapper.put(url)
             task_id = response.json()
             wait_task_completion(self._base_url, self._wrapper, task_id)
