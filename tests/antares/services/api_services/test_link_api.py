@@ -25,9 +25,10 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.area import Area
 from antares.craft.model.commons import FilterOption
-from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
 from antares.craft.model.study import Study
 from antares.craft.service.api_services.factory import create_api_services
+from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAPI
 
 
 @pytest.fixture()
@@ -38,29 +39,9 @@ def expected_link():
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
     services = create_api_services(api, study_id)
     link_service = services.link_service
-    properties = {
-        "hurdles-cost": False,
-        "loop-flow": False,
-        "use-phase-shifter": False,
-        "transmission-capacities": "enabled",
-        "asset-type": "ac",
-        "display-comments": True,
-        "colorr": 112,
-        "colorb": 112,
-        "colorg": 112,
-        "linkWidth": 1,
-        "linkStyle": "plain",
-        "filter-synthesis": set("hourly, daily, weekly, monthly, annual".split(", ")),
-        "filter-year-by-year": set("hourly, daily, weekly, monthly, annual".split(", ")),
-    }
-    color_r = properties.pop("colorr")
-    color_b = properties.pop("colorb")
-    color_g = properties.pop("colorg")
-    link_width = properties.pop("linkWidth")
-    link_style = properties.pop("linkStyle")
-    link_properties = LinkProperties(**properties)
-    link_ui = LinkUi(colorg=color_g, colorb=color_b, colorr=color_r, link_style=link_style, link_width=link_width)
-    return Link(area_from_name, area_to_name, link_service, link_properties, link_ui)
+    properties = LinkProperties(filter_synthesis={FilterOption.ANNUAL}, loop_flow=True)
+    ui = LinkUi(colorg=2, link_width=22)
+    return Link(area_from_name, area_to_name, link_service, properties, ui)
 
 
 class TestCreateAPI:
@@ -70,92 +51,74 @@ class TestCreateAPI:
     study = Study("study_test", "870", services)
     area_from = Area(
         name="area_from",
-        area_service=api,
-        storage_service=api,
-        thermal_service=api,
-        renewable_service=api,
-        hydro_service=api,
+        area_service=services.area_service,
+        storage_service=services.short_term_storage_service,
+        thermal_service=services.thermal_service,
+        renewable_service=services.renewable_service,
+        hydro_service=services.hydro_service,
     )
     area_to = Area(
         name="area_to",
-        area_service=api,
-        storage_service=api,
-        thermal_service=api,
-        renewable_service=api,
-        hydro_service=api,
+        area_service=services.area_service,
+        storage_service=services.short_term_storage_service,
+        thermal_service=services.thermal_service,
+        renewable_service=services.renewable_service,
+        hydro_service=services.hydro_service,
     )
     antares_web_description_msg = "Mocked Server KO"
     link = Link(area_from.id, area_to.id, services.link_service)
     matrix = pd.DataFrame(data=[[0]])
 
     def test_update_links_properties_success(self):
+        filter_opt = {FilterOption.DAILY}
         with requests_mock.Mocker() as mocker:
-            properties = LinkProperties()
-            properties.filter_synthesis = {FilterOption.DAILY}
-            properties.filter_year_by_year = {FilterOption.DAILY}
-            ui = LinkUi()
-            raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/links/"
-                f"{self.area_from.id}/properties/{self.area_to.id}"
-            )
-            mocker.post(raw_url, status_code=200)
-            mocker.get(
-                raw_url,
-                json={**ui.model_dump(by_alias=True), **properties.model_dump(mode="json", by_alias=True)},
-                status_code=200,
-            )
+            properties = LinkProperties(filter_synthesis=filter_opt, filter_year_by_year=filter_opt)
+            update_properties = LinkPropertiesUpdate(filter_synthesis=filter_opt, filter_year_by_year=filter_opt)
+            api_model = LinkPropertiesAndUiAPI.from_user_model(None, properties)
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/links/{self.area_from.id}/{self.area_to.id}"
+            response = {"area1": "", "area2": "", **api_model.model_dump(mode="json", by_alias=True)}
+            mocker.put(url, status_code=200, json=response)
 
-            self.link.update_properties(properties)
+            self.link.update_properties(update_properties)
+            assert self.link.properties == properties
 
     def test_update_links_properties_fails(self):
+        filter_opt = {FilterOption.DAILY}
         with requests_mock.Mocker() as mocker:
-            properties = LinkProperties()
-            properties.filter_synthesis = {FilterOption.DAILY}
-            properties.filter_year_by_year = {FilterOption.DAILY}
-            raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/links/"
-                f"{self.area_from.id}/properties/{self.area_to.id}"
-            )
+            update_properties = LinkPropertiesUpdate(filter_synthesis=filter_opt, filter_year_by_year=filter_opt)
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/links/{self.area_from.id}/{self.area_to.id}"
             antares_web_description_msg = "Server KO"
-            mocker.get(raw_url, json={"description": antares_web_description_msg}, status_code=404)
+            mocker.put(url, json={"description": antares_web_description_msg}, status_code=404)
 
             with pytest.raises(
                 LinkPropertiesUpdateError,
                 match=f"Could not update properties for link {self.link.id}: {antares_web_description_msg}",
             ):
-                self.link.update_properties(properties)
+                self.link.update_properties(update_properties)
 
     def test_update_links_ui_success(self):
         with requests_mock.Mocker() as mocker:
-            properties = LinkProperties()
-            ui = LinkUi()
-            ui.link_width = 12
-            raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/links/{self.area_from.id}"
-                f"/properties/{self.area_to.id}"
-            )
-            mocker.post(raw_url, status_code=200)
-            mocker.get(
-                raw_url, json={**ui.model_dump(by_alias=True), **properties.model_dump(by_alias=True)}, status_code=200
-            )
+            ui = LinkUi(link_width=12)
+            update_ui = LinkUiUpdate(link_width=12)
+            api_model = LinkPropertiesAndUiAPI.from_user_model(ui, None)
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/links/{self.area_from.id}/{self.area_to.id}"
+            response = {"area1": "", "area2": "", **api_model.model_dump(mode="json", by_alias=True)}
+            mocker.put(url, status_code=200, json=response)
 
-            self.link.update_ui(ui)
+            self.link.update_ui(update_ui)
+            assert self.link.ui == ui
 
     def test_update_links_ui_fails(self):
         with requests_mock.Mocker() as mocker:
-            ui = LinkUi()
-            ui.link_width = 12
-            raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/links/{self.area_from.id}"
-                f"/properties/{self.area_to.id}"
-            )
+            update_ui = LinkUiUpdate(link_width=12)
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/links/{self.area_from.id}/{self.area_to.id}"
             antares_web_description_msg = "Server KO"
-            mocker.get(raw_url, json={"description": antares_web_description_msg}, status_code=404)
+            mocker.put(url, json={"description": antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 LinkUiUpdateError,
                 match=f"Could not update ui for link {self.link.id}: {antares_web_description_msg}",
             ):
-                self.link.update_ui(ui)
+                self.link.update_ui(update_ui)
 
     def test_create_parameters_success(self):
         with requests_mock.Mocker() as mocker:
@@ -321,18 +284,19 @@ class TestCreateAPI:
         json_links = [
             {
                 "hurdlesCost": False,
-                "loopFlow": False,
+                "loopFlow": True,
                 "usePhaseShifter": False,
                 "transmissionCapacities": "enabled",
                 "assetType": "ac",
                 "displayComments": True,
+                "comments": "",
                 "colorr": 112,
                 "colorb": 112,
-                "colorg": 112,
-                "linkWidth": 1,
+                "colorg": 2,
+                "linkWidth": 22,
                 "linkStyle": "plain",
-                "filterSynthesis": "hourly, daily, weekly, monthly, annual",
-                "filterYearByYear": "hourly, daily, weekly, monthly, annual",
+                "filterSynthesis": ["annual"],
+                "filterYearByYear": ["hourly", "daily", "weekly", "monthly", "annual"],
                 "area1": "zone1 auto",
                 "area2": "zone4auto",
             }
