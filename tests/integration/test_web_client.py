@@ -28,7 +28,7 @@ from antares.craft.exceptions.exceptions import (
     STStorageMatrixUploadError,
     StudySettingsUpdateError,
 )
-from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaUi, FilterOption
+from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, FilterOption
 from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
@@ -40,7 +40,7 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.hydro import HydroPropertiesUpdate
-from antares.craft.model.link import LinkProperties, LinkStyle, LinkUi
+from antares.craft.model.link import LinkProperties, LinkPropertiesUpdate, LinkStyle, LinkUi, LinkUiUpdate
 from antares.craft.model.renewable import (
     RenewableClusterGroup,
     RenewableClusterProperties,
@@ -214,14 +214,14 @@ class TestWebClient:
         prepro = thermal_value_be.get_prepro_data_matrix()
         modulation = thermal_value_be.get_prepro_modulation_matrix()
         series = thermal_value_be.get_series_matrix()
-        CO2 = thermal_value_be.get_co2_cost_matrix()
+        co2 = thermal_value_be.get_co2_cost_matrix()
         fuel = thermal_value_be.get_fuel_cost_matrix()
 
         # tests get thermal matrix
         assert prepro.equals(prepro_modulation_matrix)
         assert modulation.equals(modulation_matrix)
         assert series.equals(series_matrix)
-        assert CO2.equals(co2_cost_matrix)
+        assert co2.equals(co2_cost_matrix)
         assert fuel.equals(fuel_cost_matrix)
 
         # test renewable cluster creation with default values
@@ -418,8 +418,7 @@ class TestWebClient:
         assert updated_term.offset == 12
 
         # test area property edition
-        new_props = AreaProperties()
-        new_props.adequacy_patch_mode = AdequacyPatchMode.VIRTUAL
+        new_props = AreaPropertiesUpdate(adequacy_patch_mode=AdequacyPatchMode.VIRTUAL)
         area_fr.update_properties(new_props)
         assert area_fr.properties.adequacy_patch_mode == AdequacyPatchMode.VIRTUAL
 
@@ -430,14 +429,12 @@ class TestWebClient:
         assert area_fr.ui.x == 100
 
         # test link property edition
-        new_props = LinkProperties()
-        new_props.hurdles_cost = False
+        new_props = LinkPropertiesUpdate(hurdles_cost=False)
         link_be_fr.update_properties(new_props)
         assert not link_be_fr.properties.hurdles_cost
 
         # tests link ui edition
-        new_ui = LinkUi()
-        new_ui.link_style = LinkStyle.PLAIN
+        new_ui = LinkUiUpdate(link_style=LinkStyle.PLAIN)
         link_be_fr.update_ui(new_ui)
         assert link_be_fr.ui.link_style == LinkStyle.PLAIN
 
@@ -489,11 +486,25 @@ class TestWebClient:
         # tests uploading thermal and renewable matrices
         thermal_fr_matrix = pd.DataFrame(data=np.ones((8760, 1)))
         renewable_fr_matrix = pd.DataFrame(data=np.ones((8760, 1)))
-        thermal_fr.update_thermal_matrix(thermal_fr_matrix)
+        thermal_fr.update_prepro_data_matrix(thermal_fr_matrix)
+        thermal_fr.update_prepro_modulation_matrix(thermal_fr_matrix)
+        thermal_fr.update_fuel_cost_matrix(thermal_fr_matrix)
+        thermal_fr.update_co2_cost_matrix(thermal_fr_matrix)
+        thermal_fr.update_series_matrix(thermal_fr_matrix)
         renewable_fr.update_renewable_matrix(renewable_fr_matrix)
 
-        actual_thermal_matrix = thermal_fr.get_series_matrix()
-        actual_thermal_matrix.equals(thermal_fr_matrix)
+        actual_thermal_series_matrix = thermal_fr.get_series_matrix()
+        actual_thermal_data_matrix = thermal_fr.get_prepro_data_matrix()
+        actual_thermal_modulation_matrix = thermal_fr.get_prepro_modulation_matrix()
+        actual_thermal_fuel_cost_matrix = thermal_fr.get_fuel_cost_matrix()
+        actual_thermal_co2_cost_matrix = thermal_fr.get_co2_cost_matrix()
+
+        actual_thermal_series_matrix.equals(thermal_fr_matrix)
+        actual_thermal_data_matrix.equals(thermal_fr_matrix)
+        actual_thermal_modulation_matrix.equals(thermal_fr_matrix)
+        actual_thermal_fuel_cost_matrix.equals(thermal_fr_matrix)
+        actual_thermal_co2_cost_matrix.equals(thermal_fr_matrix)
+
         actual_renewable_matrix = renewable_fr.get_timeseries()
         actual_renewable_matrix.equals(renewable_fr_matrix)
         # tests thermal cluster deletion
@@ -560,12 +571,42 @@ class TestWebClient:
         actual_inflow_matrix = area_fr.hydro.get_inflow_pattern()
         actual_water_matrix = area_fr.hydro.get_water_values()
         actual_credit_matrix = area_fr.hydro.get_credit_modulations()
+        actual_ror_matrix = area_fr.hydro.get_ror_series()
+        actual_mod_matrix = area_fr.hydro.get_mod_series()
+        actual_mingen_matrix = area_fr.hydro.get_mingen()
+        actual_energy_matrix = area_fr.hydro.get_energy()
 
         actual_reservoir_matrix.equals(series)
         actual_maxpower_matrix.equals(series)
         actual_inflow_matrix.equals(series)
         actual_water_matrix.equals(series)
         actual_credit_matrix.equals(series)
+        actual_ror_matrix.equals(series)
+        actual_mod_matrix.equals(series)
+        actual_mingen_matrix.equals(series)
+        actual_energy_matrix.equals(series)
+
+        updated_series = pd.DataFrame(data=np.ones((365, 2)))
+        # updating each hydro matrices
+        area_fr.hydro.update_maxpower(updated_series)
+        area_fr.hydro.update_reservoir(updated_series)
+        area_fr.hydro.update_inflow_pattern(updated_series)
+        area_fr.hydro.update_water_values(updated_series)
+        area_fr.hydro.update_credits_modulation(updated_series)
+        area_fr.hydro.update_ror_series(updated_series)
+        area_fr.hydro.update_mod_series(updated_series)
+        area_fr.hydro.update_mingen(updated_series)
+        area_fr.hydro.update_energy(updated_series)
+
+        area_fr.hydro.get_maxpower().equals(updated_series)
+        area_fr.hydro.get_reservoir().equals(updated_series)
+        area_fr.hydro.get_inflow_pattern().equals(updated_series)
+        area_fr.hydro.get_water_values().equals(updated_series)
+        area_fr.hydro.get_credit_modulations().equals(updated_series)
+        area_fr.hydro.get_ror_series().equals(updated_series)
+        area_fr.hydro.get_mod_series().equals(updated_series)
+        area_fr.hydro.get_mingen().equals(updated_series)
+        area_fr.hydro.get_energy().equals(updated_series)
 
         # tests variant creation
         variant_name = "variant_test"

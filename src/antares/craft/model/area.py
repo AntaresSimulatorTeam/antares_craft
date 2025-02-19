@@ -22,7 +22,7 @@ from typing import Any, Optional
 
 import pandas as pd
 
-from antares.craft.model.commons import FilterOption
+from antares.craft.model.commons import FILTER_VALUES, FilterOption
 from antares.craft.model.hydro import Hydro, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
@@ -65,16 +65,6 @@ class AreaPropertiesUpdate:
     spread_spilled_energy_cost: Optional[float] = None
 
 
-def default_filtering() -> set[FilterOption]:
-    return {
-        FilterOption.HOURLY,
-        FilterOption.DAILY,
-        FilterOption.WEEKLY,
-        FilterOption.MONTHLY,
-        FilterOption.ANNUAL,
-    }
-
-
 @dataclass
 class AreaProperties:
     energy_cost_unsupplied: float = 0.0
@@ -82,8 +72,8 @@ class AreaProperties:
     non_dispatch_power: bool = True
     dispatch_hydro_power: bool = True
     other_dispatch_power: bool = True
-    filter_synthesis: set[FilterOption] = field(default_factory=default_filtering)
-    filter_by_year: set[FilterOption] = field(default_factory=default_filtering)
+    filter_synthesis: set[FilterOption] = field(default_factory=lambda: FILTER_VALUES)
+    filter_by_year: set[FilterOption] = field(default_factory=lambda: FILTER_VALUES)
     adequacy_patch_mode: AdequacyPatchMode = AdequacyPatchMode.OUTSIDE
     spread_unsupplied_energy_cost: float = 0.0
     spread_spilled_energy_cost: float = 0.0
