@@ -572,7 +572,7 @@ class TestWebClient:
         default_reservoir = pd.DataFrame(default_reservoir_matrix)
         assert area_fr.hydro.get_reservoir().equals(pd.DataFrame(default_reservoir))
 
-        default_credit_modulation = pd.DataFrame(np.ones((2, 100), dtype=np.float64))
+        default_credit_modulation = pd.DataFrame(np.ones((2, 101), dtype=np.float64))
         assert area_fr.hydro.get_credit_modulations().equals(default_credit_modulation)
 
         default_water_values = pd.DataFrame(np.zeros((365, 101), dtype=np.float64))
@@ -600,11 +600,14 @@ class TestWebClient:
         assert area_fr.hydro.get_energy().equals(default_energy)
 
         # tests the update for hydro matrices
-        mod_series = pd.DataFrame(data=np.ones((365, 1)))
+        mod_series = pd.DataFrame(data=np.full((365, 1), 100, dtype=np.float64))
         ror_series = pd.DataFrame(data=np.ones((8760, 1)))
         mingen_series = pd.DataFrame(data=np.ones((8760, 1)))
         energy_matrix = pd.DataFrame(data=np.ones((12, 5)))
-        maxpower_matrix = pd.DataFrame(data=np.ones((365, 4)))
+        max_power = np.full((365, 4), 1000, dtype=np.float64)
+        max_power[:, 1] = 24
+        max_power[:, 3] = 24
+        maxpower_matrix = pd.DataFrame(data=max_power)
         reservoir_matrix = pd.DataFrame(data=np.ones((365, 3)))
         inflow_pattern_matrix = pd.DataFrame(data=np.zeros((365, 1)))
         credits_matrix = pd.DataFrame(data=np.zeros((2, 101)))
