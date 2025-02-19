@@ -124,7 +124,7 @@ class TestCreateAPI:
         json_renewable = [
             {
                 "id": "test_renouvelable",
-                "group": "Solar Thermal",
+                "group": "solar thermal",
                 "name": "test_renouvelable",
                 "enabled": "true",
                 "unitCount": 1,

@@ -31,16 +31,16 @@ class LawOption(Enum):
 
 
 class ThermalClusterGroup(Enum):
-    NUCLEAR = "Nuclear"
-    LIGNITE = "Lignite"
-    HARD_COAL = "Hard Coal"
-    GAS = "Gas"
-    OIL = "Oil"
-    MIXED_FUEL = "Mixed Fuel"
-    OTHER1 = "Other 1"
-    OTHER2 = "Other 2"
-    OTHER3 = "Other 3"
-    OTHER4 = "Other 4"
+    NUCLEAR = "nuclear"
+    LIGNITE = "lignite"
+    HARD_COAL = "hard coal"
+    GAS = "gas"
+    OIL = "oil"
+    MIXED_FUEL = "mixed fuel"
+    OTHER1 = "other 1"
+    OTHER2 = "other 2"
+    OTHER3 = "other 3"
+    OTHER4 = "other 4"
 
 
 class LocalTSGenerationBehavior(Enum):
