@@ -674,7 +674,7 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
-    def generate_thermal_timeseries(self) -> None:
+    def generate_thermal_timeseries(self, number_of_years: int) -> None:
         pass
 
 
