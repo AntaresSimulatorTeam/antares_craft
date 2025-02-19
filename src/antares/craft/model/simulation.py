@@ -9,11 +9,9 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Any, Optional
-
-from pydantic import BaseModel, Field
 
 
 class Solver(Enum):
@@ -22,10 +20,11 @@ class Solver(Enum):
     SIRIUS = "sirius"
 
 
-class AntaresSimulationParameters(BaseModel):
+@dataclass
+class AntaresSimulationParameters:
     solver: Solver = Solver.SIRIUS
     nb_cpu: Optional[int] = None
-    unzip_output: bool = Field(alias="auto_unzip", default=True)
+    unzip_output: bool = True
     output_suffix: Optional[str] = None
     presolve: bool = False
 
@@ -39,11 +38,22 @@ class AntaresSimulationParameters(BaseModel):
         return " ".join(options)
 
     def to_api(self) -> dict[str, Any]:
-        data = self.model_dump(by_alias=True)
+        data = asdict(self)
+
+        # Rename arg
+        data["auto_unzip"] = data.pop("unzip_output")
+
+        # Fill other options for the API model
         if self.other_options:
             data["other_options"] = self.other_options
-        data.pop("solver", None)
-        data.pop("presolve", None)
+        data.pop("solver")
+        data.pop("presolve")
+
+        # Removes optional options if not filled
+        for key in ["nb_cpu", "output_suffix"]:
+            if data[key] is None:
+                data.pop(key)
+
         return data
 
 
@@ -58,8 +68,9 @@ class JobStatus(Enum):
         return JobStatus.__getitem__(input.upper())
 
 
-class Job(BaseModel):
+@dataclass
+class Job:
     job_id: str
     status: JobStatus
-    output_id: Optional[str] = None
     parameters: AntaresSimulationParameters
+    output_id: Optional[str] = None
