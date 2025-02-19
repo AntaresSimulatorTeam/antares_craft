@@ -144,7 +144,7 @@ class TestCreateSTStorage:
         # Given
         expected_st_storage_list_ini_content = """[short term storage]
 name = short term storage
-group = Other1
+group = other1
 injectionnominalcapacity = 0.0
 withdrawalnominalcapacity = 0.0
 reservoircapacity = 0.0
@@ -176,7 +176,7 @@ enabled = True
         # Then
         expected_st_storage_list_ini_content = """[short term storage]
 name = short term storage
-group = Battery
+group = battery
 injectionnominalcapacity = 0.0
 withdrawalnominalcapacity = 0.0
 reservoircapacity = 12.345
