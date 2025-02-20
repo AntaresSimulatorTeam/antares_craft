@@ -31,8 +31,7 @@ Not handled yet
 ### How to create an area with given properties:
 
 ```
-area_properties = AreaProperties()
-area_properties.energy_cost_unsupplied = 10  
+area_properties = AreaProperties(energy_cost_unsupplied=10)
 study.create_area("fr", area_properties)
 ```
 

@@ -12,8 +12,7 @@ To typecheck your code, use this command line: `mypy`
 
 ### integration testing
 
-To launch integration tests you'll need an AntaresWebDesktop instance on your local env (at least the v.2.17.3, 
-**currently running in 2.17.5**).  
+To launch integration tests you'll need an AntaresWebDesktop instance on your local env (since v0.2.0, use at least the **v.2.19.0**)  
 To install it, download it from the last [Antares Web release](https://github.com/AntaresSimulatorTeam/AntaREST/releases) 
 (inside the assets list).  
 Then, unzip it at the root of this repository and rename the folder `AntaresWebDesktop`.  
