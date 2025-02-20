@@ -328,11 +328,11 @@ class TestWebClient:
             match=f"Could not upload {STStorageMatrixName.INFLOWS.value} matrix for storage {battery_fr.id}"
             f" inside area {area_fr.id}",
         ):
-            battery_fr.upload_storage_inflows(wrong_matrix)
+            battery_fr.update_storage_inflows(wrong_matrix)
 
         # Case that succeeds
         injection_matrix = pd.DataFrame(data=np.zeros((8760, 1)))
-        battery_fr.upload_pmax_injection(injection_matrix)
+        battery_fr.update_pmax_injection(injection_matrix)
 
         # tests get pmax_injection matrix
         assert battery_fr.get_pmax_injection().equals(injection_matrix)

@@ -100,16 +100,16 @@ class TestCreateAPI:
             ):
                 self.storage.get_storage_inflows()
 
-    def test_upload_storage_matrix_success(self):
+    def test_update_storage_matrix_success(self):
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.storage.area_id}"
                 f"/storages/{self.storage.id}/series/inflows"
             )
             mocker.put(url, status_code=200)
-            self.storage.upload_storage_inflows(self.matrix)
+            self.storage.update_storage_inflows(self.matrix)
 
-    def test_upload_storage_matrix_fails(self):
+    def test_update_storage_matrix_fails(self):
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.storage.area_id}"
@@ -121,7 +121,7 @@ class TestCreateAPI:
                 match=f"Could not upload inflows matrix for storage {self.storage.id} inside area {self.area.id}:"
                 f" {self.antares_web_description_msg}",
             ):
-                self.storage.upload_storage_inflows(self.matrix)
+                self.storage.update_storage_inflows(self.matrix)
 
     def test_read_st_storages(self):
         json_storage = [

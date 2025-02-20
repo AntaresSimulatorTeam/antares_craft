@@ -285,10 +285,6 @@ class StudyMoveError(Exception):
         self.message = f"Could not move the study {study_id} to folder {new_folder_name}: " + message
         super().__init__(self.message)
 
-class StudyImportError(Exception):
-    def __init__(self, study_name: str, destination_folder_name: str, message: str):
-        self.message = f"Could not import the study {study_name} to folder {destination_folder_name}: " + message
-        super().__init__(self.message)
 
 class StudyImportError(Exception):
     def __init__(self, study_id: str, message: str):

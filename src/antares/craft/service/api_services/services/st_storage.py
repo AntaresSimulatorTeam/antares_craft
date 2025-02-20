@@ -64,7 +64,7 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
         return new_properties
 
     @override
-    def upload_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:
+    def update_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{storage.area_id}/storages/{storage.id}/series/{ts_name.value}"
         try:
             body = {

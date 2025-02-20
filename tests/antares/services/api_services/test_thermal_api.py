@@ -120,7 +120,7 @@ class TestCreateAPI:
                 ):
                     getattr(self.thermal, matrix_method)()
 
-    def test_upload_thermal_matrix_success(self):
+    def test_update_thermal_matrix_success(self):
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
@@ -129,7 +129,7 @@ class TestCreateAPI:
             mocker.post(url, status_code=200)
             self.thermal.update_thermal_matrix(self.matrix)
 
-    def test_upload_thermal_matrix_fail(self):
+    def test_update_thermal_matrix_fail(self):
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"

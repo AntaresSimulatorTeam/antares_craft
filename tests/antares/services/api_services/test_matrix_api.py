@@ -77,7 +77,7 @@ class TestMatrixAPI:
             ):
                 self.area.create_load(pd.DataFrame(data=np.ones((8760, 1))))
 
-    def test_upload_wrongly_formatted_load_matrix_fails(self):
+    def test_update_wrongly_formatted_load_matrix_fails(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)

@@ -97,7 +97,7 @@ class TestCreateAPI:
             ):
                 self.renewable.get_timeseries()
 
-    def test_upload_renewable_matrices_success(self):
+    def test_update_renewable_matrices_success(self):
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/renewables/series/"
@@ -106,7 +106,7 @@ class TestCreateAPI:
             mocker.post(url, status_code=200)
             self.renewable.update_renewable_matrix(self.matrix)
 
-    def test_upload_renewable_matrices_fail(self):
+    def test_update_renewable_matrices_fail(self):
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/renewables/series/"

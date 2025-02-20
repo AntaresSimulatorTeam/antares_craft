@@ -30,7 +30,7 @@ from antares.craft.model.thermal import (
     ThermalClusterPropertiesUpdate,
 )
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
-from antares.craft.service.api_services.utils import get_matrix, upload_series
+from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseThermalService
 from typing_extensions import override
 
@@ -77,7 +77,7 @@ class ThermalApiService(BaseThermalService):
             / "series"
         )
         try:
-            upload_series(self._base_url, self.study_id, self._wrapper, matrix, path.as_posix())
+            update_series(self._base_url, self.study_id, self._wrapper, matrix, path.as_posix())
         except APIError as e:
             raise ThermalMatrixUpdateError(thermal_cluster.area_id, thermal_cluster.name, e.message) from e
 

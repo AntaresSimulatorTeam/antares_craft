@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING, Optional
 
 import pandas as pd
 
-from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.config.base_configuration import BaseConfiguration
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
@@ -676,10 +675,6 @@ class BaseStudyService(ABC):
     def generate_thermal_timeseries(self) -> None:
         pass
 
-    @abstractmethod
-    def import_study(self, config: APIconf, study_path: Path, destination_path: Path) -> None:
-        pass
-
 
 class BaseRenewableService(ABC):
     @abstractmethod
@@ -740,7 +735,7 @@ class BaseShortTermStorageService(ABC):
         pass
 
     @abstractmethod
-    def upload_storage_matrix(self, storage: "STStorage", ts_name: "STStorageMatrixName", matrix: pd.DataFrame) -> None:
+    def update_storage_matrix(self, storage: "STStorage", ts_name: "STStorageMatrixName", matrix: pd.DataFrame) -> None:
         pass
 
 

@@ -17,7 +17,7 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import TaskFailedError, TaskTimeOutError
 
 
-def upload_series(base_url: str, study_id: str, wrapper: RequestWrapper, series: pd.DataFrame, path: str) -> None:
+def update_series(base_url: str, study_id: str, wrapper: RequestWrapper, series: pd.DataFrame, path: str) -> None:
     url = f"{base_url}/studies/{study_id}/raw?path={path}"
     array_data = series.to_numpy().tolist()
     wrapper.post(url, json=array_data)

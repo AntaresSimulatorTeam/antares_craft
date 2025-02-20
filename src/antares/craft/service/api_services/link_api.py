@@ -27,7 +27,7 @@ from antares.craft.exceptions.exceptions import (
     LinkUploadError,
 )
 from antares.craft.model.link import Link, LinkProperties, LinkUi
-from antares.craft.service.api_services.utils import get_matrix, upload_series
+from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseLinkService
 from typing_extensions import override
 
@@ -187,7 +187,7 @@ class LinkApiService(BaseLinkService):
     def create_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         try:
             series_path = f"input/links/{area_from}/{area_to}_parameters"
-            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise LinkUploadError(area_from, area_to, "parameters", e.message) from e
 
@@ -204,7 +204,7 @@ class LinkApiService(BaseLinkService):
     def create_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         try:
             series_path = f"input/links/{area_from}/capacities/{area_to}_direct"
-            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise LinkUploadError(area_from, area_to, "directcapacity", e.message) from e
 
@@ -221,7 +221,7 @@ class LinkApiService(BaseLinkService):
     def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         try:
             series_path = f"input/links/{area_from}/capacities/{area_to}_indirect"
-            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise LinkUploadError(area_from, area_to, "indirectcapacity", e.message) from e
 
