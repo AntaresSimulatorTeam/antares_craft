@@ -45,10 +45,8 @@ from antares.craft.model.link import (
     AssetType,
     Link,
     LinkProperties,
-    LinkPropertiesLocal,
     LinkStyle,
     LinkUi,
-    LinkUiLocal,
     TransmissionCapacities,
 )
 from antares.craft.model.settings.adequacy_patch import (
@@ -817,19 +815,19 @@ class TestCreateLink:
         # Given
         link_to_create = "fr_it"
         expected_content = """[it]
-hurdles-cost = false
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = False
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
-link-width = 1
+link-width = 1.0
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
-filter-synthesis = hourly, daily, weekly, monthly, annual
-filter-year-by-year = hourly, daily, weekly, monthly, annual
+display-comments = True
+filter-synthesis = annual, daily, hourly, monthly, weekly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
 comments = 
 
 """
@@ -852,25 +850,24 @@ comments =
         # Given
         link_to_create = "fr_it"
         expected_ini_content = """[it]
-hurdles-cost = false
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = False
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
-link-width = 1
+link-width = 1.0
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
-filter-synthesis = hourly, daily, weekly, monthly, annual
-filter-year-by-year = hourly, daily, weekly, monthly, annual
+display-comments = True
+filter-synthesis = annual, daily, hourly, monthly, weekly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
 comments = 
 
 """
         expected_ini = ConfigParser()
         expected_ini.read_string(expected_ini_content)
-        default_properties = LinkPropertiesLocal().yield_link_properties()
 
         # When
         area_from, area_to = link_to_create.split("_")
@@ -886,8 +883,7 @@ comments =
             actual_ini_content = file.read()
 
         assert isinstance(created_link.properties, LinkProperties)
-        assert created_link.properties.model_dump(exclude_none=True)
-        assert created_link.properties == default_properties
+        assert created_link.properties == LinkProperties()
         assert actual_ini == expected_ini
         assert actual_ini_content == expected_ini_content
 
@@ -901,18 +897,18 @@ comments =
             filter_year_by_year={FilterOption.WEEKLY, FilterOption.DAILY},
         )
         expected_ini_content = """[it]
-hurdles-cost = false
-loop-flow = true
-use-phase-shifter = true
+hurdles-cost = False
+loop-flow = True
+use-phase-shifter = True
 transmission-capacities = infinite
 asset-type = ac
 link-style = plain
-link-width = 1
+link-width = 1.0
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
-filter-synthesis = hourly, daily, weekly, monthly, annual
+display-comments = True
+filter-synthesis = annual, daily, hourly, monthly, weekly
 filter-year-by-year = daily, weekly
 comments = 
 
@@ -932,8 +928,7 @@ comments =
 
         # Then
         assert actual_ini_content == expected_ini_content
-        created_properties = link_properties.model_dump(mode="json", exclude_none=True)
-        assert link_created.properties == LinkPropertiesLocal.model_validate(created_properties).yield_link_properties()
+        assert link_created.properties == link_properties
         assert expected_ini == actual_ini
 
     def test_multiple_links_created_from_same_area(self, tmp_path, local_study_w_areas):
@@ -941,35 +936,35 @@ comments =
         local_study_w_areas.create_area("at")
         links_to_create = ["fr_at", "at_it"]
         expected_ini_string = """[fr]
-hurdles-cost = false
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = False
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
-link-width = 1
+link-width = 1.0
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
-filter-synthesis = hourly, daily, weekly, monthly, annual
-filter-year-by-year = hourly, daily, weekly, monthly, annual
+display-comments = True
+filter-synthesis = annual, daily, hourly, monthly, weekly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
 comments = 
 
 [it]
-hurdles-cost = false
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = False
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
-link-width = 1
+link-width = 1.0
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
-filter-synthesis = hourly, daily, weekly, monthly, annual
-filter-year-by-year = hourly, daily, weekly, monthly, annual
+display-comments = True
+filter-synthesis = annual, daily, hourly, monthly, weekly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
 comments = 
 
 """
@@ -1000,35 +995,35 @@ comments =
         local_study_w_areas.create_area("at")
         links_to_create = ["at_it", "fr_at"]
         expected_ini_string = """[fr]
-hurdles-cost = false
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = False
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
-link-width = 1
+link-width = 1.0
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
-filter-synthesis = hourly, daily, weekly, monthly, annual
-filter-year-by-year = hourly, daily, weekly, monthly, annual
+display-comments = True
+filter-synthesis = annual, daily, hourly, monthly, weekly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
 comments = 
 
 [it]
-hurdles-cost = false
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = False
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
-link-width = 1
+link-width = 1.0
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
-filter-synthesis = hourly, daily, weekly, monthly, annual
-filter-year-by-year = hourly, daily, weekly, monthly, annual
+display-comments = True
+filter-synthesis = annual, daily, hourly, monthly, weekly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
 comments = 
 
 """
@@ -1074,19 +1069,19 @@ comments =
         actual_ini_file = tmp_path / local_study_w_areas.name / "input" / "links" / "fr" / "properties.ini"
         actual_ini = ConfigParser()
         expected_ini_string = """[it]
-hurdles-cost = false
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = False
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = enabled
 asset-type = ac
 link-style = plain
-link-width = 1
+link-width = 1.0
 colorr = 112
 colorg = 112
 colorb = 112
-display-comments = true
-filter-synthesis = hourly, daily, weekly, monthly, annual
-filter-year-by-year = hourly, daily, weekly, monthly, annual
+display-comments = True
+filter-synthesis = annual, daily, hourly, monthly, weekly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
 comments = 
 
 """
@@ -1112,19 +1107,19 @@ comments =
         actual_ini_file = tmp_path / local_study_w_areas.name / "input" / "links" / "fr" / "properties.ini"
         actual_ini = ConfigParser()
         expected_ini_string = """[it]
-hurdles-cost = true
-loop-flow = false
-use-phase-shifter = false
+hurdles-cost = True
+loop-flow = False
+use-phase-shifter = False
 transmission-capacities = ignore
 asset-type = gaz
 link-style = dot
-link-width = 1
+link-width = 1.0
 colorr = 234
 colorg = 123
 colorb = 0
-display-comments = true
-filter-synthesis = hourly, weekly, monthly
-filter-year-by-year = hourly, daily, weekly, monthly, annual
+display-comments = True
+filter-synthesis = hourly, monthly, weekly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
 comments = 
 
 """
@@ -1157,10 +1152,8 @@ comments =
         assert isinstance(local_study_w_areas.get_links()[link_to_create].ui, LinkUi)
         assert actual_ini == expected_ini
         assert actual_ini_string == expected_ini_string
-        created_properties = expected_properties.model_dump(mode="json", exclude_none=True)
-        assert actual_properties == LinkPropertiesLocal.model_validate(created_properties).yield_link_properties()
-        created_ui = expected_ui.model_dump(mode="json", exclude_none=True)
-        assert actual_ui == LinkUiLocal.model_validate(created_ui).yield_link_ui()
+        assert actual_properties == expected_properties
+        assert actual_ui == expected_ui
 
 
 class TestCreateBindingconstraint:

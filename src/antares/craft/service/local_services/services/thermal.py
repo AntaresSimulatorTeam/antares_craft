@@ -80,5 +80,7 @@ class ThermalLocalService(BaseThermalService):
         ]
 
     @override
-    def update_thermal_matrix(self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame) -> None:
+    def update_thermal_matrix(
+        self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame, ts_name: ThermalClusterMatrixName
+    ) -> None:
         raise NotImplementedError

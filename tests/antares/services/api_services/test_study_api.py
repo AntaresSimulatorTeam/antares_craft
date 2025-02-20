@@ -45,7 +45,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
 )
-from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.model.link import Link
 from antares.craft.model.output import (
     Output,
 )
@@ -57,6 +57,7 @@ from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.area import AreaPropertiesAPI
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
+from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAPI
 from antares.craft.service.api_services.services.output import OutputApiService
 
 
@@ -173,9 +174,9 @@ class TestCreateAPI:
 
     def test_create_link_success(self):
         with requests_mock.Mocker() as mocker:
-            base_url = f"https://antares.com/api/v1/studies/{self.study_id}"
-            url = f"{base_url}/links"
-            mocker.post(url, status_code=200)
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
+            json_response = LinkPropertiesAndUiAPI().model_dump(by_alias=True)
+            mocker.post(url, status_code=200, json={"area1": "", "area2": "", **json_response})
             self.study._areas["area"] = Area(
                 "area",
                 self.study._area_service,
@@ -193,9 +194,6 @@ class TestCreateAPI:
                 Mock(),
             )
 
-            raw_url = f"{base_url}/raw?path=input/links/area/properties/area_to"
-            json_response = {**LinkProperties().model_dump(by_alias=True), **LinkUi().model_dump(by_alias=True)}
-            mocker.get(raw_url, json=json_response, status_code=200)
             link = self.study.create_link(area_from="area", area_to="area_to")
             assert isinstance(link, Link)
 
@@ -713,23 +711,27 @@ class TestCreateAPI:
     def test_generate_thermal_timeseries_success(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/generate"
+            url_config = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/config"
             task_id = "task-5678"
+            mocker.put(url_config, json={})
             mocker.put(url, json=task_id, status_code=200)
 
             task_url = f"https://antares.com/api/v1/tasks/{task_id}"
             mocker.get(task_url, json={"result": {"success": True}}, status_code=200)
 
             with patch("antares.craft.service.api_services.utils.wait_task_completion", return_value=None):
-                self.study.generate_thermal_timeseries()
+                self.study.generate_thermal_timeseries(1)
 
     def test_generate_thermal_timeseries_failure(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/generate"
+            url_config = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/config"
             error_message = f"Thermal timeseries generation failed for study {self.study_id}"
+            mocker.put(url_config, json={"description": error_message}, status_code=404)
             mocker.put(url, json={"description": error_message}, status_code=404)
 
             with pytest.raises(ThermalTimeseriesGenerationError, match=error_message):
-                self.study.generate_thermal_timeseries()
+                self.study.generate_thermal_timeseries(1)
 
     def test_import_study_success(self, tmp_path):
         json_study = {

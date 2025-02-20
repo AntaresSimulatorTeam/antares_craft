@@ -301,8 +301,8 @@ class ThermalMatrixDownloadError(Exception):
 
 
 class ThermalMatrixUpdateError(Exception):
-    def __init__(self, area_name: str, cluster_name: str, message: str) -> None:
-        self.message = f"Could not upload matrix for cluster {cluster_name} inside area {area_name}: " + message
+    def __init__(self, area_name: str, cluster_name: str, matrix_name: str, message: str) -> None:
+        self.message = f"Could not upload {matrix_name} for cluster {cluster_name} inside area {area_name}: " + message
         super().__init__(self.message)
 
 
@@ -419,4 +419,12 @@ class AggregateCreationError(Exception):
 class ThermalTimeseriesGenerationError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
         self.message = f"Could not generate thermal timeseries for study {study_id}: " + message
+        super().__init__(self.message)
+
+
+class FilteringValueError(Exception):
+    def __init__(self, invalid_options: list[str], valid_values: set[str]) -> None:
+        self.message = (
+            f"Invalid value(s) in filters: {', '.join(invalid_options)}. Allowed values are: {', '.join(valid_values)}."
+        )
         super().__init__(self.message)
