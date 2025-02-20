@@ -9,13 +9,13 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Union
 
 import pandas as pd
 
 from antares.craft.service.base_services import BaseOutputService
-from pydantic import BaseModel
 
 
 class MCIndAreas(Enum):
@@ -50,7 +50,8 @@ class Frequency(Enum):
     ANNUAL = "annual"
 
 
-class AggregationEntry(BaseModel):
+@dataclass
+class AggregationEntry:
     """
     Represents an entry for aggregation queries
 
