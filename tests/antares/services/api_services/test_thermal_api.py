@@ -27,7 +27,6 @@ from antares.craft.model.study import Study
 from antares.craft.model.thermal import (
     ThermalCluster,
     ThermalClusterMatrixName,
-    ThermalClusterProperties,
     ThermalClusterPropertiesUpdate,
 )
 from antares.craft.service.api_services.factory import create_api_services
@@ -77,7 +76,7 @@ class TestCreateAPI:
 
     def test_update_thermal_properties_fails(self):
         with requests_mock.Mocker() as mocker:
-            properties = ThermalClusterProperties(co2=4)
+            properties = ThermalClusterPropertiesUpdate(co2=4)
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/"
                 f"areas/{self.thermal.area_id}/clusters/thermal/{self.thermal.id}"
