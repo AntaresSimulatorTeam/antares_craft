@@ -494,20 +494,13 @@ class TestWebClient:
         thermal_fr.update_series_matrix(series_matrix)
         renewable_fr.update_renewable_matrix(series_matrix)
 
-        actual_thermal_series_matrix = thermal_fr.get_series_matrix()
-        actual_thermal_data_matrix = thermal_fr.get_prepro_data_matrix()
-        actual_thermal_modulation_matrix = thermal_fr.get_prepro_modulation_matrix()
-        actual_thermal_fuel_cost_matrix = thermal_fr.get_fuel_cost_matrix()
-        actual_thermal_co2_cost_matrix = thermal_fr.get_co2_cost_matrix()
+        assert thermal_fr.get_series_matrix().equals(series_matrix)
+        assert thermal_fr.get_prepro_data_matrix().equals(prepro_data_matrix)
+        assert thermal_fr.get_prepro_modulation_matrix().equals(prepro_modulation_matrix)
+        assert thermal_fr.get_fuel_cost_matrix().equals(series_matrix)
+        assert thermal_fr.get_co2_cost_matrix().equals(series_matrix)
+        assert renewable_fr.get_timeseries().equals(series_matrix)
 
-        actual_thermal_series_matrix.equals(series_matrix)
-        actual_thermal_data_matrix.equals(prepro_data_matrix)
-        actual_thermal_modulation_matrix.equals(prepro_modulation_matrix)
-        actual_thermal_fuel_cost_matrix.equals(series_matrix)
-        actual_thermal_co2_cost_matrix.equals(series_matrix)
-
-        actual_renewable_matrix = renewable_fr.get_timeseries()
-        actual_renewable_matrix.equals(series_matrix)
         # tests thermal cluster deletion
         area_be.delete_thermal_cluster(thermal_be)
         assert area_be.get_thermals() == {}

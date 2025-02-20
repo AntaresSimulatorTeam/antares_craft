@@ -46,8 +46,8 @@ class AntaresSimulationParameters:
         # Fill other options for the API model
         if self.other_options:
             data["other_options"] = self.other_options
-        data.pop("solver")
-        data.pop("presolve")
+        data.pop("solver", None)
+        data.pop("presolve", None)
 
         # Removes optional options if not filled
         for key in ["nb_cpu", "output_suffix"]:
