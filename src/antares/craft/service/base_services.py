@@ -737,7 +737,7 @@ class BaseShortTermStorageService(ABC):
         pass
 
     @abstractmethod
-    def upload_storage_matrix(self, storage: "STStorage", ts_name: "STStorageMatrixName", matrix: pd.DataFrame) -> None:
+    def update_storage_matrix(self, storage: "STStorage", ts_name: "STStorageMatrixName", matrix: pd.DataFrame) -> None:
         pass
 
 

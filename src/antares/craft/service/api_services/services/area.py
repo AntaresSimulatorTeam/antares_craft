@@ -41,7 +41,7 @@ from antares.craft.service.api_services.models.area import AreaPropertiesAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
-from antares.craft.service.api_services.utils import get_matrix, upload_series
+from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import (
     BaseAreaService,
     BaseHydroService,
@@ -202,19 +202,19 @@ class AreaApiService(BaseAreaService):
             # Upload matrices
             if prepro is not None:
                 matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/data"
-                upload_series(self._base_url, self.study_id, self._wrapper, prepro, matrix_path)
+                update_series(self._base_url, self.study_id, self._wrapper, prepro, matrix_path)
             if modulation is not None:
                 matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/modulation"
-                upload_series(self._base_url, self.study_id, self._wrapper, modulation, matrix_path)
+                update_series(self._base_url, self.study_id, self._wrapper, modulation, matrix_path)
             if series is not None:
                 matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/series"
-                upload_series(self._base_url, self.study_id, self._wrapper, series, matrix_path)
+                update_series(self._base_url, self.study_id, self._wrapper, series, matrix_path)
             if co2_cost is not None:
                 matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/CO2Cost"
-                upload_series(self._base_url, self.study_id, self._wrapper, co2_cost, matrix_path)
+                update_series(self._base_url, self.study_id, self._wrapper, co2_cost, matrix_path)
             if fuel_cost is not None:
                 matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/fuelCost"
-                upload_series(self._base_url, self.study_id, self._wrapper, fuel_cost, matrix_path)
+                update_series(self._base_url, self.study_id, self._wrapper, fuel_cost, matrix_path)
 
         except APIError as e:
             raise ThermalCreationError(cluster_name, area_id, e.message) from e
@@ -322,7 +322,7 @@ class AreaApiService(BaseAreaService):
             expected_rows = 8760
             if rows_number < expected_rows:
                 raise MatrixUploadError(area_id, "load", f"Expected {expected_rows} rows and received {rows_number}.")
-            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise MatrixUploadError(area_id, "load", e.message) from e
 
@@ -330,7 +330,7 @@ class AreaApiService(BaseAreaService):
     def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/wind/series/wind_{area_id}"
-            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise MatrixUploadError(area_id, "wind", e.message) from e
 
@@ -338,7 +338,7 @@ class AreaApiService(BaseAreaService):
     def create_reserves(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/reserves/{area_id}"
-            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise MatrixUploadError(area_id, "reserves", e.message) from e
 
@@ -346,7 +346,7 @@ class AreaApiService(BaseAreaService):
     def create_solar(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/solar/series/solar_{area_id}"
-            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise MatrixUploadError(area_id, "solar", e.message) from e
 
@@ -354,7 +354,7 @@ class AreaApiService(BaseAreaService):
     def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/misc-gen/miscgen-{area_id}"
-            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise MatrixUploadError(area_id, "misc-gen", e.message) from e
 

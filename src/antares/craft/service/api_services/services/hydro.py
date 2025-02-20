@@ -23,7 +23,7 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
-from antares.craft.service.api_services.utils import get_matrix, upload_series
+from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseHydroService
 from typing_extensions import override
 
@@ -134,7 +134,7 @@ class HydroApiService(BaseHydroService):
     @override
     def update_maxpower(self, area_id: str, series: pd.DataFrame) -> None:
         try:
-            upload_series(
+            update_series(
                 self._base_url, self.study_id, self._wrapper, series, f"input/hydro/common/capacity/maxpower_{area_id}"
             )
         except APIError as e:
@@ -143,7 +143,7 @@ class HydroApiService(BaseHydroService):
     @override
     def update_reservoir(self, area_id: str, series: pd.DataFrame) -> None:
         try:
-            upload_series(
+            update_series(
                 self._base_url, self.study_id, self._wrapper, series, f"input/hydro/common/capacity/reservoir_{area_id}"
             )
         except APIError as e:
@@ -152,7 +152,7 @@ class HydroApiService(BaseHydroService):
     @override
     def update_inflow_pattern(self, area_id: str, series: pd.DataFrame) -> None:
         try:
-            upload_series(
+            update_series(
                 self._base_url,
                 self.study_id,
                 self._wrapper,
@@ -165,7 +165,7 @@ class HydroApiService(BaseHydroService):
     @override
     def update_credits_modulation(self, area_id: str, series: pd.DataFrame) -> None:
         try:
-            upload_series(
+            update_series(
                 self._base_url,
                 self.study_id,
                 self._wrapper,
@@ -178,7 +178,7 @@ class HydroApiService(BaseHydroService):
     @override
     def update_water_values(self, area_id: str, series: pd.DataFrame) -> None:
         try:
-            upload_series(
+            update_series(
                 self._base_url,
                 self.study_id,
                 self._wrapper,
@@ -191,14 +191,14 @@ class HydroApiService(BaseHydroService):
     @override
     def update_ror_series(self, area_id: str, series: pd.DataFrame) -> None:
         try:
-            upload_series(self._base_url, self.study_id, self._wrapper, series, f"input/hydro/series/{area_id}/ror")
+            update_series(self._base_url, self.study_id, self._wrapper, series, f"input/hydro/series/{area_id}/ror")
         except APIError as e:
             raise MatrixUploadError(area_id, "ror", e.message) from e
 
     @override
     def update_mod_series(self, area_id: str, series: pd.DataFrame) -> None:
         try:
-            upload_series(
+            update_series(
                 self._base_url,
                 self.study_id,
                 self._wrapper,
@@ -211,7 +211,7 @@ class HydroApiService(BaseHydroService):
     @override
     def update_mingen(self, area_id: str, series: pd.DataFrame) -> None:
         try:
-            upload_series(
+            update_series(
                 self._base_url,
                 self.study_id,
                 self._wrapper,
@@ -224,7 +224,7 @@ class HydroApiService(BaseHydroService):
     @override
     def update_energy(self, area_id: str, series: pd.DataFrame) -> None:
         try:
-            upload_series(
+            update_series(
                 self._base_url,
                 self.study_id,
                 self._wrapper,

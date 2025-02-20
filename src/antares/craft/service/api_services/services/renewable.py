@@ -25,7 +25,7 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesUpdate
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
-from antares.craft.service.api_services.utils import get_matrix, upload_series
+from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseRenewableService
 from typing_extensions import override
 
@@ -73,7 +73,7 @@ class RenewableApiService(BaseRenewableService):
                 / "series"
             )
 
-            upload_series(self._base_url, self.study_id, self._wrapper, matrix, path.as_posix())
+            update_series(self._base_url, self.study_id, self._wrapper, matrix, path.as_posix())
         except APIError as e:
             raise RenewableMatrixUpdateError(renewable_cluster.area_id, renewable_cluster.id, e.message) from e
 
