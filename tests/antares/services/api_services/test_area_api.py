@@ -9,9 +9,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
 import requests_mock
+
+import re
 
 import pandas as pd
 
@@ -24,7 +25,7 @@ from antares.craft.exceptions.exceptions import (
     STStorageCreationError,
     ThermalCreationError,
 )
-from antares.craft.model.area import Area, AreaPropertiesUpdate, AreaUiUpdate
+from antares.craft.model.area import Area, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage
@@ -83,6 +84,16 @@ class TestCreateAPI:
                 match=f"Could not update properties for area {self.area.id}: {antares_web_description_msg}",
             ):
                 self.area.update_properties(properties=properties)
+
+    def test_instantiate_area_ui_color(self):
+        wrong_colors = [12]  # not enough values
+        expected_msg = re.escape(f"The `color_rgb` list must contain exactly 3 values, currently {wrong_colors}")
+
+        with pytest.raises(ValueError, match=expected_msg):
+            AreaUi(color_rgb=wrong_colors)
+
+        with pytest.raises(ValueError, match=expected_msg):
+            AreaUiUpdate(color_rgb=wrong_colors)
 
     def test_update_area_ui_success(self):
         with requests_mock.Mocker() as mocker:
