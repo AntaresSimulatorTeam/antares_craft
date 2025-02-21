@@ -90,7 +90,7 @@ class AreaUiAPI(APIBaseModel):
         return AreaUiAPI.model_validate(args)
 
     def update_from_get(self, api_response: dict[str, Any]) -> None:
-        current_ui = {"ui": api_response["ui"]}
+        current_ui = api_response["ui"]
         self.ui.x = current_ui["x"]
         self.ui.y = current_ui["y"]
         self.ui.color_r = current_ui["color_r"]

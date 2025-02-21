@@ -24,14 +24,14 @@ from antares.craft.exceptions.exceptions import (
     STStorageCreationError,
     ThermalCreationError,
 )
-from antares.craft.model.area import Area, AreaPropertiesUpdate, AreaUi
+from antares.craft.model.area import Area, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.factory import create_api_services
-from antares.craft.service.api_services.models.area import AreaPropertiesAPI
+from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaUiAPI
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
@@ -86,10 +86,9 @@ class TestCreateAPI:
 
     def test_update_area_ui_success(self):
         with requests_mock.Mocker() as mocker:
-            ui = AreaUi(layerX={"1": 0}, layerY={"1": 0}, layerColor={"1": "0"})
+            ui = AreaUiUpdate(x=12, y=4, color_rgb=[16, 23, 3])
             url1 = f"https://antares.com/api/v1/studies/{self.study_id}/areas?type=AREA&ui=true"
-            ui_info = {"ui": {"x": 0, "y": 0, "layers": 0, "color_r": 0, "color_g": 0, "color_b": 0}}
-            area_ui = {**ui.model_dump(by_alias=True), **ui_info}
+            area_ui = AreaUiAPI.from_user_model(ui).model_dump()
             mocker.get(url1, json={self.area.id: area_ui}, status_code=201)
             url2 = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/ui"
             mocker.put(url2, status_code=200)
