@@ -88,7 +88,7 @@ class AreaUiUpdate:
 class AreaUi:
     x: int = 0
     y: int = 0
-    color_rgb: list[int] = field(default_factory=lambda: [0, 0, 0])
+    color_rgb: list[int] = field(default_factory=lambda: [230, 108, 44])
 
 
 class Area:
