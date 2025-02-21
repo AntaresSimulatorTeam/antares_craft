@@ -121,7 +121,7 @@ class AreaUiLocal(LocalBaseModel, alias_generator=to_camel):
                     "color_b": user_class.color_rgb[2],
                 }
             )
-            args.update({"layerColor": {0: ",".join(str(c) for c in user_class.color_rgb)}})
+            args["layerColor"] = {0: ",".join(str(c) for c in user_class.color_rgb)}
         return AreaUiLocal.model_validate(args)
 
     def to_user_model(self) -> AreaUi:
