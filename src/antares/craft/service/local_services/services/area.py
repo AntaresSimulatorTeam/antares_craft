@@ -25,6 +25,7 @@ from antares.craft.model.area import (
     AreaProperties,
     AreaPropertiesUpdate,
     AreaUi,
+    AreaUiUpdate,
 )
 from antares.craft.model.hydro import Hydro, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
@@ -336,7 +337,7 @@ class AreaLocalService(BaseAreaService):
         raise NotImplementedError
 
     @override
-    def update_area_ui(self, area_id: str, ui: AreaUi) -> AreaUi:
+    def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
         raise NotImplementedError
 
     @override

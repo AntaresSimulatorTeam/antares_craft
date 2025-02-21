@@ -32,7 +32,7 @@ from antares.craft.exceptions.exceptions import (
     ThermalCreationError,
     ThermalDeletionError,
 )
-from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
+from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.hydro import Hydro
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
@@ -378,7 +378,7 @@ class AreaApiService(BaseAreaService):
         return area_properties
 
     @override
-    def update_area_ui(self, area_id: str, ui: AreaUi) -> AreaUi:
+    def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
         base_url = f"{self._base_url}/studies/{self.study_id}/areas"
         try:
             url = f"{base_url}/{area_id}/ui"

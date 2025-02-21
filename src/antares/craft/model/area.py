@@ -223,7 +223,7 @@ class Area:
         new_properties = self._area_service.update_area_properties(self.id, properties)
         self._properties = new_properties
 
-    def update_ui(self, ui: AreaUi) -> None:
+    def update_ui(self, ui: AreaUiUpdate) -> None:
         new_ui = self._area_service.update_area_ui(self.id, ui)
         self._ui = new_ui
 
