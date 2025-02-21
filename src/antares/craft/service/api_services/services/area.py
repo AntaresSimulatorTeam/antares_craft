@@ -37,7 +37,7 @@ from antares.craft.model.hydro import Hydro
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
-from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaUiResponse
+from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaUiAPI, AreaUiResponse
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
@@ -90,7 +90,6 @@ class AreaApiService(BaseAreaService):
             MissingTokenError if api_token is missing
             AreaCreationError if an HTTP Exception occurs
         """
-        # todo: AntaresWeb is stupid and x, y and color_rgb fields are mandatory ...
         base_area_url = f"{self._base_url}/studies/{self.study_id}/areas"
 
         try:
@@ -105,35 +104,19 @@ class AreaApiService(BaseAreaService):
                 body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True, exclude=exclude)
                 if body:
                     self._wrapper.put(url, json=body)
+
+            user_ui = None
             if ui:
-                json_content = ui.model_dump(exclude_none=True)
-                url = f"{base_area_url}/{area_id}/ui"
-                if "layer" in json_content:
-                    layer = json_content["layer"]
-                    url += f"?layer={layer}"
-                    del json_content["layer"]
-                if json_content:
-                    # Gets current UI
-                    response = self._wrapper.get(f"{base_area_url}?type=AREA&ui=true")
-                    json_ui = response.json()[area_id]
-                    ui_response = AreaUiResponse.model_validate(json_ui)
-                    current_ui = ui_response.to_craft()
-                    del current_ui["layer"]
-                    # Updates the UI
-                    current_ui.update(json_content)
-                    self._wrapper.put(url, json=current_ui)
+                ui_api_model = AreaUiAPI.from_user_model(ui)
+                json_content = ui_api_model.model_dump(mode="json")
+                url = f"{base_area_url}/{area_id}/ui?layer=0"
+                self._wrapper.put(url, json=json_content)
+                user_ui = ui_api_model.to_user_model()  # round-trip to validate with pydantic
 
             url = f"{base_area_url}/{area_id}/properties/form"
             response = self._wrapper.get(url)
             api_properties = AreaPropertiesAPI.model_validate(response.json())
             area_properties = api_properties.to_user_model()
-
-            # TODO: Ask AntaresWeb to do the same endpoint for only one area
-            url = f"{base_area_url}?type=AREA&ui=true"
-            response = self._wrapper.get(url)
-            json_ui = response.json()[area_id]
-            ui_response = AreaUiResponse.model_validate(json_ui)
-            ui_properties = AreaUi.model_validate(ui_response.to_craft())
 
             hydro_properties = self.hydro_service.read_properties(area_id)
             hydro = Hydro(self.hydro_service, area_id, hydro_properties)
@@ -149,7 +132,7 @@ class AreaApiService(BaseAreaService):
             self.renewable_service,
             self.hydro_service,
             properties=area_properties,
-            ui=ui_properties,
+            ui=user_ui,
             hydro=hydro,
         )
 
