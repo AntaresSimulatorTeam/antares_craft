@@ -104,7 +104,7 @@ class AreaUiLocal(LocalBaseModel, alias_generator=to_camel):
     ui: Ui
     layer_x: dict[int, int] = {0: 0}
     layer_y: dict[int, int] = {0: 0}
-    layer_color: dict[int, str] = {0: 0}
+    layer_color: dict[int, str] = {0: "0,0,0"}
 
     @staticmethod
     def from_user_model(user_class: AreaUiType) -> "AreaUiLocal":
