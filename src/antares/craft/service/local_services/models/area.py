@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import field
-from typing import Union
+from typing import Any, Union
 
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FILTER_VALUES, comma_separated_enum_set
@@ -104,17 +104,24 @@ class AreaUiLocal(LocalBaseModel, alias_generator=to_camel):
     ui: Ui
     layer_x: dict[int, int] = {0: 0}
     layer_y: dict[int, int] = {0: 0}
-    layer_color: dict[int, int] = {0: 0}
+    layer_color: dict[int, str] = {0: 0}
 
     @staticmethod
     def from_user_model(user_class: AreaUiType) -> "AreaUiLocal":
-        args = {"ui": {"x": user_class.x, "y": user_class.y}}
+        args: dict[str, Any] = {"ui": {"x": user_class.x, "y": user_class.y}}
         if user_class.color_rgb:
             args["ui"].update(
                 {
                     "color_r": user_class.color_rgb[0],
                     "color_g": user_class.color_rgb[1],
                     "color_b": user_class.color_rgb[2],
+                }
+            )
+            args.update(
+                {
+                    "layerX": {0: user_class.x},
+                    "layerY": {0: user_class.y},
+                    "layerColor": {0: ",".join(str(c) for c in user_class.color_rgb)},
                 }
             )
         return AreaUiLocal.model_validate(args)
