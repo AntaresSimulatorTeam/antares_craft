@@ -37,7 +37,7 @@ from antares.craft.model.hydro import Hydro
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
-from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaUiAPI, AreaUiResponse
+from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaUiAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
@@ -452,15 +452,6 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise MatrixDownloadError(area_id, "misc-gen", e.message)
 
-    def craft_ui(self, url_str: str, area_id: str) -> AreaUi:
-        response = self._wrapper.get(url_str)
-        json_ui = response.json()[area_id]
-
-        ui_response = AreaUiResponse.model_validate(json_ui)
-        current_ui = AreaUi.model_validate(ui_response.to_craft())
-
-        return current_ui
-
     @override
     def read_areas(self) -> list[Area]:
         area_list = []
@@ -475,7 +466,8 @@ class AreaApiService(BaseAreaService):
 
                 json_properties = self._wrapper.get(area_url + url_properties_form).json()
 
-                ui_response = self.craft_ui(f"{base_api_url}?type=AREA&{ui_url}", area)
+                ui_api = AreaUiAPI.model_validate(json_resp[area])
+                ui_properties = ui_api.to_user_model()
 
                 assert self.renewable_service is not None
                 assert self.thermal_service is not None
@@ -501,7 +493,7 @@ class AreaApiService(BaseAreaService):
                     thermals=dict_thermals,
                     st_storages=dict_st_storage,
                     properties=json_properties,
-                    ui=ui_response,
+                    ui=ui_properties,
                 )
                 area_obj.hydro.read_properties()
 
