@@ -365,7 +365,6 @@ class AreaApiService(BaseAreaService):
         try:
             # As AntaresWeb expects x, y and color fields we have to get the current ui before updating it :/
             # Gets current UI
-            url = f"{base_url}/{area_id}/ui"
             response = self._wrapper.get(f"{base_url}?type=AREA&ui=true")
             json_ui = response.json()[area_id]
 
@@ -375,7 +374,7 @@ class AreaApiService(BaseAreaService):
             body = update_api_model.to_update_dict()
 
             # Calls the API
-            url += f"?layer={0}"
+            url = f"{base_url}/{area_id}/ui?layer={0}"
             self._wrapper.put(url, json=body)
 
         except APIError as e:
