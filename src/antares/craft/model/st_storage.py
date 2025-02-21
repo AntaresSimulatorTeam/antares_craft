@@ -21,15 +21,15 @@ from antares.craft.tools.contents_tool import transform_name_to_id
 
 class STStorageGroup(Enum):
     # todo: this class should disappear with Simulator version 9.1
-    PSP_OPEN = "PSP_open"
-    PSP_CLOSED = "PSP_closed"
-    PONDAGE = "Pondage"
-    BATTERY = "Battery"
-    OTHER1 = "Other1"
-    OTHER2 = "Other2"
-    OTHER3 = "Other3"
-    OTHER4 = "Other4"
-    OTHER5 = "Other5"
+    PSP_OPEN = "psp_open"
+    PSP_CLOSED = "psp_closed"
+    PONDAGE = "pondage"
+    BATTERY = "battery"
+    OTHER1 = "other1"
+    OTHER2 = "other2"
+    OTHER3 = "other3"
+    OTHER4 = "other4"
+    OTHER5 = "other5"
 
 
 class STStorageMatrixName(Enum):

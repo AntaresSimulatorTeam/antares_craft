@@ -195,7 +195,7 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             url = f"{base_url}/studies/{self.study_id}/areas/{self.area.id}/clusters/thermal"
             cluster_name = "cluster_test"
-            creation_response = {"name": cluster_name, "id": cluster_name, "group": "Nuclear"}
+            creation_response = {"name": cluster_name, "id": cluster_name, "group": "nuclear"}
             mocker.post(url, json=creation_response, status_code=200)
 
             raw_url = f"{base_url}/studies/{self.study_id}/raw"
@@ -244,7 +244,7 @@ class TestCreateAPI:
         json_thermal = [
             {
                 "id": "therm_un",
-                "group": "Gas",
+                "group": "gas",
                 "name": "therm_un",
                 "enabled": "true",
                 "unitCount": 1,
@@ -254,7 +254,7 @@ class TestCreateAPI:
         json_renewable = [
             {
                 "id": "test_renouvelable",
-                "group": "Solar Thermal",
+                "group": "solar thermal",
                 "name": "test_renouvelable",
                 "enabled": "true",
                 "unitCount": 1,
@@ -265,7 +265,7 @@ class TestCreateAPI:
         json_st_storage = [
             {
                 "id": "test_storage",
-                "group": "Pondage",
+                "group": "pondage",
                 "name": "test_storage",
                 "injectionNominalCapacity": 0,
                 "withdrawalNominalCapacity": 0,

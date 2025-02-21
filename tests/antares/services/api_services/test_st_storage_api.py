@@ -127,7 +127,7 @@ class TestCreateAPI:
         json_storage = [
             {
                 "id": "test_storage",
-                "group": "Pondage",
+                "group": "pondage",
                 "name": "test_storage",
                 "injectionNominalCapacity": 0,
                 "withdrawalNominalCapacity": 0,

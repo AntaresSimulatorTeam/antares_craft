@@ -71,7 +71,7 @@ name = renewable cluster
 enabled = True
 unitcount = 1
 nominalcapacity = 0.0
-group = Other RES 1
+group = other res 1
 ts-interpretation = power-generation
 
 """
@@ -97,7 +97,7 @@ name = renewable cluster
 enabled = True
 unitcount = 1
 nominalcapacity = 0.0
-group = Wind Offshore
+group = wind offshore
 ts-interpretation = production-factor
 
 """
@@ -144,7 +144,7 @@ class TestCreateSTStorage:
         # Given
         expected_st_storage_list_ini_content = """[short term storage]
 name = short term storage
-group = Other1
+group = other1
 injectionnominalcapacity = 0.0
 withdrawalnominalcapacity = 0.0
 reservoircapacity = 0.0
@@ -176,7 +176,7 @@ enabled = True
         # Then
         expected_st_storage_list_ini_content = """[short term storage]
 name = short term storage
-group = Battery
+group = battery
 injectionnominalcapacity = 0.0
 withdrawalnominalcapacity = 0.0
 reservoircapacity = 12.345
@@ -736,7 +736,7 @@ class TestReadRenewable:
                 assert renewable.properties.ts_interpretation.value == "power-generation"
                 assert renewable.properties.nominal_capacity == 0.000000
                 assert renewable.properties.enabled
-                assert renewable.properties.group.value == "Other RES 1"
+                assert renewable.properties.group.value == "other res 1"
 
                 # Create folder and file for timeserie.
                 cluster_path = study_path / "input" / "renewables" / "series" / Path(area.id) / Path(renewable.id)
@@ -889,7 +889,7 @@ class TestReadThermal:
 
             for thermal in thermals_list:
                 assert thermal.name == "test thermal cluster"
-                assert thermal.properties.group.value == "Other 1"
+                assert thermal.properties.group.value == "other 1"
                 assert thermal.properties.unit_count == 1
                 assert thermal.properties.efficiency == 100.000000
                 assert thermal.properties.nominal_capacity == 0.000000

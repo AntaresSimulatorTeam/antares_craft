@@ -567,8 +567,6 @@ class TestWebClient:
         assert new_study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP
 
         # test each hydro matrices returns the good values
-        # todo: uncomment this with AntaresWeb version 2.20
-        """
         default_reservoir_matrix = np.zeros((365, 3), dtype=np.float64)
         default_reservoir_matrix[:, 1] = 0.5
         default_reservoir_matrix[:, 2] = 1
@@ -601,7 +599,6 @@ class TestWebClient:
 
         default_energy = pd.DataFrame(np.zeros((12, 5), dtype=np.float64))
         assert area_fr.hydro.get_energy().equals(default_energy)
-        """
 
         # tests the update for hydro matrices
         mod_series = pd.DataFrame(data=np.full((365, 1), 100, dtype=np.float64))
