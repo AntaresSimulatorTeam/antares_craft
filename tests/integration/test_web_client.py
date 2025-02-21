@@ -28,7 +28,8 @@ from antares.craft.exceptions.exceptions import (
     STStorageMatrixUploadError,
     StudySettingsUpdateError,
 )
-from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, FilterOption
+from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, FilterOption, \
+    AreaUiUpdate
 from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
@@ -75,7 +76,6 @@ def antares_web() -> AntaresWebDesktop:
     app.kill()
 
 
-# todo add integration tests for matrices
 class TestWebClient:
     def test_creation_lifecycle(self, antares_web: AntaresWebDesktop, tmp_path):
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
@@ -423,10 +423,12 @@ class TestWebClient:
         assert area_fr.properties.adequacy_patch_mode == AdequacyPatchMode.VIRTUAL
 
         # test area ui edition
-        new_ui = AreaUi()
-        new_ui.x = 100
+        assert area_fr.ui.x == 53
+        assert area_fr.ui.y == 250
+        new_ui = AreaUiUpdate(x=100)
         area_fr.update_ui(new_ui)
         assert area_fr.ui.x == 100
+        assert area_fr.ui.y == 250
 
         # test link property edition
         new_props = LinkPropertiesUpdate(hurdles_cost=False)

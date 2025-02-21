@@ -108,7 +108,7 @@ class AreaApiService(BaseAreaService):
             user_ui = None
             if ui:
                 ui_api_model = AreaUiAPI.from_user_model(ui)
-                json_content = ui_api_model.model_dump(mode="json")
+                json_content = ui_api_model.to_api_dict()
                 url = f"{base_area_url}/{area_id}/ui?layer=0"
                 self._wrapper.put(url, json=json_content)
                 user_ui = ui_api_model.to_user_model()  # round-trip to validate with pydantic
@@ -371,7 +371,7 @@ class AreaApiService(BaseAreaService):
             # Builds update object
             update_api_model = AreaUiAPI.from_user_model(ui)
             update_api_model.update_from_get(json_ui)
-            body = update_api_model.to_update_dict()
+            body = update_api_model.to_api_dict()
 
             # Calls the API
             url = f"{base_url}/{area_id}/ui?layer={0}"

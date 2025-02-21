@@ -97,7 +97,7 @@ class AreaUiAPI(APIBaseModel):
         self.ui.color_g = current_ui["color_g"]
         self.ui.color_b = current_ui["color_b"]
 
-    def to_update_dict(self) -> dict[str, Any]:
+    def to_api_dict(self) -> dict[str, Any]:
         update_args = self.ui.model_dump(mode="json", by_alias=True, exclude={"layers"})
         update_args["color_rgb"] = [update_args.pop("color_r"), update_args.pop("color_g"), update_args.pop("color_b")]
         return update_args
