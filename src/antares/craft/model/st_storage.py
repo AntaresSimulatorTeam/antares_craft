@@ -113,17 +113,17 @@ class STStorage:
     def get_storage_inflows(self) -> pd.DataFrame:
         return self._storage_service.get_storage_matrix(self, STStorageMatrixName.INFLOWS)
 
-    def upload_pmax_injection(self, p_max_injection_matrix: pd.DataFrame) -> None:
-        self._storage_service.upload_storage_matrix(self, STStorageMatrixName.PMAX_INJECTION, p_max_injection_matrix)
+    def update_pmax_injection(self, p_max_injection_matrix: pd.DataFrame) -> None:
+        self._storage_service.update_storage_matrix(self, STStorageMatrixName.PMAX_INJECTION, p_max_injection_matrix)
 
-    def upload_pmax_withdrawal(self, p_max_withdrawal_matrix: pd.DataFrame) -> None:
-        self._storage_service.upload_storage_matrix(self, STStorageMatrixName.PMAX_WITHDRAWAL, p_max_withdrawal_matrix)
+    def update_pmax_withdrawal(self, p_max_withdrawal_matrix: pd.DataFrame) -> None:
+        self._storage_service.update_storage_matrix(self, STStorageMatrixName.PMAX_WITHDRAWAL, p_max_withdrawal_matrix)
 
-    def upload_lower_rule_curve(self, lower_rule_curve_matrix: pd.DataFrame) -> None:
-        self._storage_service.upload_storage_matrix(self, STStorageMatrixName.LOWER_CURVE_RULE, lower_rule_curve_matrix)
+    def update_lower_rule_curve(self, lower_rule_curve_matrix: pd.DataFrame) -> None:
+        self._storage_service.update_storage_matrix(self, STStorageMatrixName.LOWER_CURVE_RULE, lower_rule_curve_matrix)
 
-    def upload_upper_rule_curve(self, upper_rule_curve_matrix: pd.DataFrame) -> None:
-        self._storage_service.upload_storage_matrix(self, STStorageMatrixName.UPPER_RULE_CURVE, upper_rule_curve_matrix)
+    def update_upper_rule_curve(self, upper_rule_curve_matrix: pd.DataFrame) -> None:
+        self._storage_service.update_storage_matrix(self, STStorageMatrixName.UPPER_RULE_CURVE, upper_rule_curve_matrix)
 
-    def upload_storage_inflows(self, inflows_matrix: pd.DataFrame) -> None:
-        self._storage_service.upload_storage_matrix(self, STStorageMatrixName.INFLOWS, inflows_matrix)
+    def update_storage_inflows(self, inflows_matrix: pd.DataFrame) -> None:
+        self._storage_service.update_storage_matrix(self, STStorageMatrixName.INFLOWS, inflows_matrix)

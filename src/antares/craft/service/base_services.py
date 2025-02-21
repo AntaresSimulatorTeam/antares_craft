@@ -22,7 +22,7 @@ from antares.craft.model.settings.study_settings import StudySettings, StudySett
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 
 if TYPE_CHECKING:
-    from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
+    from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
     from antares.craft.model.binding_constraint import (
         BindingConstraint,
         BindingConstraintProperties,
@@ -188,7 +188,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def update_area_ui(self, area_id: str, ui: "AreaUi") -> "AreaUi":
+    def update_area_ui(self, area_id: str, ui: "AreaUiUpdate") -> "AreaUi":
         """
         Args:
             area_id: concerned area
@@ -737,7 +737,7 @@ class BaseShortTermStorageService(ABC):
         pass
 
     @abstractmethod
-    def upload_storage_matrix(self, storage: "STStorage", ts_name: "STStorageMatrixName", matrix: pd.DataFrame) -> None:
+    def update_storage_matrix(self, storage: "STStorage", ts_name: "STStorageMatrixName", matrix: pd.DataFrame) -> None:
         pass
 
 

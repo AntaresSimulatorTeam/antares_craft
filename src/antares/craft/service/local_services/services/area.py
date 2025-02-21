@@ -25,7 +25,7 @@ from antares.craft.model.area import (
     AreaProperties,
     AreaPropertiesUpdate,
     AreaUi,
-    AreaUiLocal,
+    AreaUiUpdate,
 )
 from antares.craft.model.hydro import Hydro, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
@@ -38,7 +38,7 @@ from antares.craft.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
-from antares.craft.service.local_services.models.area import AreaPropertiesLocal
+from antares.craft.service.local_services.models.area import AreaPropertiesLocal, AreaUiLocal
 from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
 from antares.craft.service.local_services.models.st_storage import STStoragePropertiesLocal
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
@@ -288,9 +288,10 @@ class AreaLocalService(BaseAreaService):
             areas_ini.parsed_ini["spilledenergycost"][area_name] = str(local_properties.energy_cost_spilled)
             areas_ini.write_ini_file()
 
-            local_ui = AreaUiLocal(ui) if ui else AreaUiLocal()
+            ui = ui or AreaUi()
+            local_ui = AreaUiLocal.from_user_model(ui)
             ui_ini = ConfigParser()
-            ui_ini.read_dict(local_ui.model_dump(exclude_none=True))
+            ui_ini.read_dict(local_ui.model_dump(mode="json", by_alias=True))
             with open(new_area_directory / "ui.ini", "w") as ui_ini_file:
                 ui_ini.write(ui_ini_file)
 
@@ -324,7 +325,7 @@ class AreaLocalService(BaseAreaService):
             hydro_service=self.hydro_service,
             hydro=hydro,
             properties=local_properties.to_user_model(),  # round-trip to do the validation inside Pydantic
-            ui=local_ui.yield_area_ui(),
+            ui=local_ui.to_user_model(),
         )
         return created_area
 
@@ -337,7 +338,7 @@ class AreaLocalService(BaseAreaService):
         raise NotImplementedError
 
     @override
-    def update_area_ui(self, area_id: str, ui: AreaUi) -> AreaUi:
+    def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
         raise NotImplementedError
 
     @override
@@ -400,19 +401,9 @@ class AreaLocalService(BaseAreaService):
                     self.config.study_path, InitializationFilesTypes.AREA_UI_INI, area_id=element.name
                 ).ini_dict
 
-                ui_properties = AreaUi(
-                    layer=ui_dict["ui"].get("layer"),
-                    x=ui_dict["ui"].get("x"),
-                    y=ui_dict["ui"].get("y"),
-                    color_rgb=[
-                        ui_dict["ui"].get("color_r", 0),
-                        ui_dict["ui"].get("color_g", 0),
-                        ui_dict["ui"].get("color_b", 0),
-                    ],
-                    layer_x=ui_dict["ui"].get("layerX"),
-                    layer_y=ui_dict["ui"].get("layerY"),
-                    layer_color=ui_dict["ui"].get("layerColor"),
-                )
+                local_ui = AreaUiLocal.model_validate(ui_dict)
+                ui_properties = local_ui.to_user_model()
+
                 area = Area(
                     name=element.name,
                     area_service=self,

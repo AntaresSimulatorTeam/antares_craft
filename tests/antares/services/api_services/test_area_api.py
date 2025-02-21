@@ -9,9 +9,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
 import requests_mock
+
+import re
 
 import pandas as pd
 
@@ -24,14 +25,14 @@ from antares.craft.exceptions.exceptions import (
     STStorageCreationError,
     ThermalCreationError,
 )
-from antares.craft.model.area import Area, AreaPropertiesUpdate, AreaUi
+from antares.craft.model.area import Area, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.factory import create_api_services
-from antares.craft.service.api_services.models.area import AreaPropertiesAPI
+from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaUiAPI
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
@@ -84,12 +85,21 @@ class TestCreateAPI:
             ):
                 self.area.update_properties(properties=properties)
 
+    def test_instantiate_area_ui_color(self):
+        wrong_colors = [12]  # not enough values
+        expected_msg = re.escape(f"The `color_rgb` list must contain exactly 3 values, currently {wrong_colors}")
+
+        with pytest.raises(ValueError, match=expected_msg):
+            AreaUi(color_rgb=wrong_colors)
+
+        with pytest.raises(ValueError, match=expected_msg):
+            AreaUiUpdate(color_rgb=wrong_colors)
+
     def test_update_area_ui_success(self):
         with requests_mock.Mocker() as mocker:
-            ui = AreaUi(layerX={"1": 0}, layerY={"1": 0}, layerColor={"1": "0"})
+            ui = AreaUiUpdate(x=12, y=4, color_rgb=[16, 23, 3])
             url1 = f"https://antares.com/api/v1/studies/{self.study_id}/areas?type=AREA&ui=true"
-            ui_info = {"ui": {"x": 0, "y": 0, "layers": 0, "color_r": 0, "color_g": 0, "color_b": 0}}
-            area_ui = {**ui.model_dump(by_alias=True), **ui_info}
+            area_ui = AreaUiAPI.from_user_model(ui).model_dump()
             mocker.get(url1, json={self.area.id: area_ui}, status_code=201)
             url2 = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/ui"
             mocker.put(url2, status_code=200)
@@ -98,10 +108,9 @@ class TestCreateAPI:
 
     def test_update_area_ui_fails(self):
         with requests_mock.Mocker() as mocker:
-            ui = AreaUi(layerX={"1": 0}, layerY={"1": 0}, layerColor={"1": "0"})
+            ui = AreaUiUpdate(x=12, y=4, color_rgb=[16, 23, 3])
             url1 = f"https://antares.com/api/v1/studies/{self.study_id}/areas?type=AREA&ui=true"
-            ui_info = {"ui": {"x": 0, "y": 0, "layers": 0, "color_r": 0, "color_g": 0, "color_b": 0}}
-            area_ui = {**ui.model_dump(by_alias=True), **ui_info}
+            area_ui = AreaUiAPI.from_user_model(ui).model_dump()
             mocker.get(url1, json={self.area.id: area_ui}, status_code=201)
             url2 = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/ui"
             antares_web_description_msg = "Server KO"
@@ -289,7 +298,6 @@ class TestCreateAPI:
             mocker.get(hydro_url, json={"reservoir_capacity": 4.5})
 
             actual_area_list = self.study.read_areas()
-            area_ui = self.area_api.craft_ui(url + "?type=AREA&ui=true", "zone")
 
             thermal_ = json_thermal[0]
             thermal_id = thermal_.pop("id")
@@ -326,7 +334,7 @@ class TestCreateAPI:
                 st_storages={storage_id: st_storage},
                 hydro=hydro,
                 properties=AreaPropertiesAPI.model_validate(json_properties).to_user_model(),
-                ui=area_ui,
+                ui=None,
             )
 
             assert len(actual_area_list) == 1

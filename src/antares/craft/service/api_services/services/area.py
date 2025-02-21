@@ -32,16 +32,16 @@ from antares.craft.exceptions.exceptions import (
     ThermalCreationError,
     ThermalDeletionError,
 )
-from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
+from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.hydro import Hydro
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
-from antares.craft.service.api_services.models.area import AreaPropertiesAPI
+from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaUiAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
-from antares.craft.service.api_services.utils import get_matrix, upload_series
+from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import (
     BaseAreaService,
     BaseHydroService,
@@ -49,7 +49,6 @@ from antares.craft.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
-from antares.craft.tools.contents_tool import AreaUiResponse
 from antares.craft.tools.matrix_tool import prepare_args_replace_matrix
 from typing_extensions import override
 
@@ -91,7 +90,6 @@ class AreaApiService(BaseAreaService):
             MissingTokenError if api_token is missing
             AreaCreationError if an HTTP Exception occurs
         """
-        # todo: AntaresWeb is stupid and x, y and color_rgb fields are mandatory ...
         base_area_url = f"{self._base_url}/studies/{self.study_id}/areas"
 
         try:
@@ -101,40 +99,24 @@ class AreaApiService(BaseAreaService):
             if properties:
                 url = f"{base_area_url}/{area_id}/properties/form"
                 api_model = AreaPropertiesAPI.from_user_model(properties)
-                # todo: change this exclude when AntaresWeb will work
+                # todo: change this exclude with AntaresWeb 2.20
                 exclude = {"spread_unsupplied_energy_cost", "spread_spilled_energy_cost"}
                 body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True, exclude=exclude)
                 if body:
                     self._wrapper.put(url, json=body)
+
+            user_ui = None
             if ui:
-                json_content = ui.model_dump(exclude_none=True)
-                url = f"{base_area_url}/{area_id}/ui"
-                if "layer" in json_content:
-                    layer = json_content["layer"]
-                    url += f"?layer={layer}"
-                    del json_content["layer"]
-                if json_content:
-                    # Gets current UI
-                    response = self._wrapper.get(f"{base_area_url}?type=AREA&ui=true")
-                    json_ui = response.json()[area_id]
-                    ui_response = AreaUiResponse.model_validate(json_ui)
-                    current_ui = ui_response.to_craft()
-                    del current_ui["layer"]
-                    # Updates the UI
-                    current_ui.update(json_content)
-                    self._wrapper.put(url, json=current_ui)
+                ui_api_model = AreaUiAPI.from_user_model(ui)
+                json_content = ui_api_model.to_api_dict()
+                url = f"{base_area_url}/{area_id}/ui?layer=0"
+                self._wrapper.put(url, json=json_content)
+                user_ui = ui_api_model.to_user_model()  # round-trip to validate with pydantic
 
             url = f"{base_area_url}/{area_id}/properties/form"
             response = self._wrapper.get(url)
             api_properties = AreaPropertiesAPI.model_validate(response.json())
             area_properties = api_properties.to_user_model()
-
-            # TODO: Ask AntaresWeb to do the same endpoint for only one area
-            url = f"{base_area_url}?type=AREA&ui=true"
-            response = self._wrapper.get(url)
-            json_ui = response.json()[area_id]
-            ui_response = AreaUiResponse.model_validate(json_ui)
-            ui_properties = AreaUi.model_validate(ui_response.to_craft())
 
             hydro_properties = self.hydro_service.read_properties(area_id)
             hydro = Hydro(self.hydro_service, area_id, hydro_properties)
@@ -150,7 +132,7 @@ class AreaApiService(BaseAreaService):
             self.renewable_service,
             self.hydro_service,
             properties=area_properties,
-            ui=ui_properties,
+            ui=user_ui,
             hydro=hydro,
         )
 
@@ -202,19 +184,19 @@ class AreaApiService(BaseAreaService):
             # Upload matrices
             if prepro is not None:
                 matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/data"
-                upload_series(self._base_url, self.study_id, self._wrapper, prepro, matrix_path)
+                update_series(self._base_url, self.study_id, self._wrapper, prepro, matrix_path)
             if modulation is not None:
                 matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/modulation"
-                upload_series(self._base_url, self.study_id, self._wrapper, modulation, matrix_path)
+                update_series(self._base_url, self.study_id, self._wrapper, modulation, matrix_path)
             if series is not None:
                 matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/series"
-                upload_series(self._base_url, self.study_id, self._wrapper, series, matrix_path)
+                update_series(self._base_url, self.study_id, self._wrapper, series, matrix_path)
             if co2_cost is not None:
                 matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/CO2Cost"
-                upload_series(self._base_url, self.study_id, self._wrapper, co2_cost, matrix_path)
+                update_series(self._base_url, self.study_id, self._wrapper, co2_cost, matrix_path)
             if fuel_cost is not None:
                 matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/fuelCost"
-                upload_series(self._base_url, self.study_id, self._wrapper, fuel_cost, matrix_path)
+                update_series(self._base_url, self.study_id, self._wrapper, fuel_cost, matrix_path)
 
         except APIError as e:
             raise ThermalCreationError(cluster_name, area_id, e.message) from e
@@ -322,7 +304,7 @@ class AreaApiService(BaseAreaService):
             expected_rows = 8760
             if rows_number < expected_rows:
                 raise MatrixUploadError(area_id, "load", f"Expected {expected_rows} rows and received {rows_number}.")
-            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise MatrixUploadError(area_id, "load", e.message) from e
 
@@ -330,7 +312,7 @@ class AreaApiService(BaseAreaService):
     def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/wind/series/wind_{area_id}"
-            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise MatrixUploadError(area_id, "wind", e.message) from e
 
@@ -338,7 +320,7 @@ class AreaApiService(BaseAreaService):
     def create_reserves(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/reserves/{area_id}"
-            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise MatrixUploadError(area_id, "reserves", e.message) from e
 
@@ -346,7 +328,7 @@ class AreaApiService(BaseAreaService):
     def create_solar(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/solar/series/solar_{area_id}"
-            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise MatrixUploadError(area_id, "solar", e.message) from e
 
@@ -354,7 +336,7 @@ class AreaApiService(BaseAreaService):
     def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/misc-gen/miscgen-{area_id}"
-            upload_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise MatrixUploadError(area_id, "misc-gen", e.message) from e
 
@@ -363,7 +345,7 @@ class AreaApiService(BaseAreaService):
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/properties/form"
         try:
             api_model = AreaPropertiesAPI.from_user_model(properties)
-            # todo: change this exclude when AntaresWeb will work
+            # todo: change this exclude with AntaresWeb 2.20
             exclude = {"spread_unsupplied_energy_cost", "spread_spilled_energy_cost"}
             body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True, exclude=exclude)
 
@@ -378,36 +360,27 @@ class AreaApiService(BaseAreaService):
         return area_properties
 
     @override
-    def update_area_ui(self, area_id: str, ui: AreaUi) -> AreaUi:
+    def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
         base_url = f"{self._base_url}/studies/{self.study_id}/areas"
         try:
-            url = f"{base_url}/{area_id}/ui"
-            json_content = ui.model_dump(exclude_none=True)
-            if "layer" in json_content:
-                layer = json_content["layer"]
-                url += f"?layer={layer}"
-                del json_content["layer"]
-
+            # As AntaresWeb expects x, y and color fields we have to get the current ui before updating it :/
             # Gets current UI
             response = self._wrapper.get(f"{base_url}?type=AREA&ui=true")
             json_ui = response.json()[area_id]
-            ui_response = AreaUiResponse.model_validate(json_ui)
-            current_ui = ui_response.to_craft()
-            del current_ui["layer"]
-            # Updates the UI
-            current_ui.update(json_content)
-            self._wrapper.put(url, json=current_ui)
 
-            url = f"{base_url}?type=AREA&ui=true"
-            response = self._wrapper.get(url)
-            json_ui = response.json()[area_id]
-            ui_response = AreaUiResponse.model_validate(json_ui)
-            area_ui = AreaUi.model_validate(ui_response.to_craft())
+            # Builds update object
+            update_api_model = AreaUiAPI.from_user_model(ui)
+            update_api_model.update_from_get(json_ui)
+            body = update_api_model.to_api_dict()
+
+            # Calls the API
+            url = f"{base_url}/{area_id}/ui?layer={0}"
+            self._wrapper.put(url, json=body)
 
         except APIError as e:
             raise AreaUiUpdateError(area_id, e.message) from e
 
-        return area_ui
+        return update_api_model.to_user_model()
 
     @override
     def delete_area(self, area_id: str) -> None:
@@ -479,15 +452,6 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise MatrixDownloadError(area_id, "misc-gen", e.message)
 
-    def craft_ui(self, url_str: str, area_id: str) -> AreaUi:
-        response = self._wrapper.get(url_str)
-        json_ui = response.json()[area_id]
-
-        ui_response = AreaUiResponse.model_validate(json_ui)
-        current_ui = AreaUi.model_validate(ui_response.to_craft())
-
-        return current_ui
-
     @override
     def read_areas(self) -> list[Area]:
         area_list = []
@@ -502,7 +466,8 @@ class AreaApiService(BaseAreaService):
 
                 json_properties = self._wrapper.get(area_url + url_properties_form).json()
 
-                ui_response = self.craft_ui(f"{base_api_url}?type=AREA&{ui_url}", area)
+                ui_api = AreaUiAPI.model_validate(json_resp[area])
+                ui_properties = ui_api.to_user_model()
 
                 assert self.renewable_service is not None
                 assert self.thermal_service is not None
@@ -528,7 +493,7 @@ class AreaApiService(BaseAreaService):
                     thermals=dict_thermals,
                     st_storages=dict_st_storage,
                     properties=json_properties,
-                    ui=ui_response,
+                    ui=ui_properties,
                 )
                 area_obj.hydro.read_properties()
 

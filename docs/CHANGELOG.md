@@ -1,3 +1,58 @@
+v0.2.0 (2025-02-20)
+-------------------
+
+### Compatiblity with AntaresWeb
+This version is only compatible with AntaresWeb v2.19.0 and higher
+
+### Breaking changes
+- It is no longer possible to create a study while giving settings. The user will have to update them afterward.
+- All user classes are now dataclasses and not Pydantic model.
+- All user class (except for update) have no optional fields meaning it will be clearer for the users to see what they are really sending.
+It will also silent typing issues inside user scripts
+- New classes have been introduced for update. They are all optional which makes it also clear to understand which fields are updated.
+- STStorage methods for updating matrices have been renamed `update_xxx` instead of `upload_xxx`.
+
+Example of an old code:
+```python
+import AreaProperties
+
+area_properties = AreaProperties()
+area_properties.energy_cost_unsupplied = 10
+area_properties.energy_cost_spilled = 4
+area_fr = study.create_area("fr", area_properties)
+
+new_properties = AreaProperties()
+new_properties.energy_cost_unsupplied = 6
+area_fr.update_properties(new_properties)
+```
+
+Example of a new code:
+```python
+import AreaProperties, AreaPropertiesUpdate
+
+area_properties = AreaProperties(energy_cost_unsupplied=10, energy_cost_spilled=4)
+area_fr = study.create_area("fr", area_properties)
+
+new_properties = AreaPropertiesUpdate(energy_cost_unsupplied=6)
+area_fr.update_properties(new_properties)
+```
+
+### Features
+- API: add `import_study_api` method
+- API: add update_thermal_matrices methods
+- API: specify number of years to generate for thermal TS-generation
+
+### Fixes
+- LOCAL: `get_thermal_matrix` method checked the wrong path
+- API: `read_renewables` method doesn't fail when settings are aggregated instead of clusters
+- API: `read_settings` doesn't fail when horizon is a year
+- API: disable proxy when using the Desktop version to avoid any issue
+
+### Miscellaneous
+- enforce strict type checking with mypy
+- enforce override with mypy
+- Moves all local and api related classes and methods outside the `model` package
+
 v0.1.8_RC2 (2025-01-22)
 -------------------
 - upload renewable thermal matrices method added

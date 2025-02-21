@@ -28,7 +28,14 @@ from antares.craft.exceptions.exceptions import (
     STStorageMatrixUploadError,
     StudySettingsUpdateError,
 )
-from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, FilterOption
+from antares.craft.model.area import (
+    AdequacyPatchMode,
+    AreaProperties,
+    AreaPropertiesUpdate,
+    AreaUi,
+    AreaUiUpdate,
+    FilterOption,
+)
 from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
@@ -75,7 +82,6 @@ def antares_web() -> AntaresWebDesktop:
     app.kill()
 
 
-# todo add integration tests for matrices
 class TestWebClient:
     def test_creation_lifecycle(self, antares_web: AntaresWebDesktop, tmp_path):
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
@@ -328,11 +334,11 @@ class TestWebClient:
             match=f"Could not upload {STStorageMatrixName.INFLOWS.value} matrix for storage {battery_fr.id}"
             f" inside area {area_fr.id}",
         ):
-            battery_fr.upload_storage_inflows(wrong_matrix)
+            battery_fr.update_storage_inflows(wrong_matrix)
 
         # Case that succeeds
         injection_matrix = pd.DataFrame(data=np.zeros((8760, 1)))
-        battery_fr.upload_pmax_injection(injection_matrix)
+        battery_fr.update_pmax_injection(injection_matrix)
 
         # tests get pmax_injection matrix
         assert battery_fr.get_pmax_injection().equals(injection_matrix)
@@ -423,10 +429,12 @@ class TestWebClient:
         assert area_fr.properties.adequacy_patch_mode == AdequacyPatchMode.VIRTUAL
 
         # test area ui edition
-        new_ui = AreaUi()
-        new_ui.x = 100
+        assert area_fr.ui.x == 0
+        assert area_fr.ui.y == 0
+        new_ui = AreaUiUpdate(x=100)
         area_fr.update_ui(new_ui)
         assert area_fr.ui.x == 100
+        assert area_fr.ui.y == 0
 
         # test link property edition
         new_props = LinkPropertiesUpdate(hurdles_cost=False)
