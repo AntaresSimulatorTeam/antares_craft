@@ -363,33 +363,25 @@ class AreaApiService(BaseAreaService):
     def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
         base_url = f"{self._base_url}/studies/{self.study_id}/areas"
         try:
-            url = f"{base_url}/{area_id}/ui"
-            json_content = ui.model_dump(exclude_none=True)
-            if "layer" in json_content:
-                layer = json_content["layer"]
-                url += f"?layer={layer}"
-                del json_content["layer"]
-
+            # As AntaresWeb expects x, y and color fields we have to get the current ui before updating it :/
             # Gets current UI
+            url = f"{base_url}/{area_id}/ui"
             response = self._wrapper.get(f"{base_url}?type=AREA&ui=true")
             json_ui = response.json()[area_id]
-            ui_response = AreaUiResponse.model_validate(json_ui)
-            current_ui = ui_response.to_craft()
-            del current_ui["layer"]
-            # Updates the UI
-            current_ui.update(json_content)
-            self._wrapper.put(url, json=current_ui)
 
-            url = f"{base_url}?type=AREA&ui=true"
-            response = self._wrapper.get(url)
-            json_ui = response.json()[area_id]
-            ui_response = AreaUiResponse.model_validate(json_ui)
-            area_ui = AreaUi.model_validate(ui_response.to_craft())
+            # Builds update object
+            update_api_model = AreaUiAPI.from_user_model(ui)
+            update_api_model.update_from_get(json_ui)
+            body = update_api_model.to_update_dict()
+
+            # Calls the API
+            url += f"?layer={0}"
+            self._wrapper.put(url, json=body)
 
         except APIError as e:
             raise AreaUiUpdateError(area_id, e.message) from e
 
-        return area_ui
+        return update_api_model.to_user_model()
 
     @override
     def delete_area(self, area_id: str) -> None:
