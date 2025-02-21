@@ -81,7 +81,6 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
-from antares.craft.service.local_services.models.area import AreaUiLocal
 from antares.craft.tools.ini_tool import InitializationFilesTypes
 
 
@@ -661,7 +660,7 @@ layers = 0
 0 = 321
 
 [layerColor]
-0 = 255 , 230 , 210
+0 = 255,230,210
 
 """
 
@@ -673,7 +672,7 @@ layers = 0
     def test_created_area_has_ui(self, tmp_path, local_study):
         # Given
         area = "area1"
-        area_ui = AreaUiLocal(AreaUi(x=123, y=321, color_rgb=[255, 230, 210])).yield_area_ui()
+        area_ui = AreaUi(x=123, y=321, color_rgb=[255, 230, 210])
 
         # When
         local_study.create_area(area, ui=area_ui)
