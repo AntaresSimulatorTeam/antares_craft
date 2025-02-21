@@ -30,7 +30,7 @@ from antares.craft.exceptions.exceptions import (
     CustomError,
     LinkCreationError,
 )
-from antares.craft.model.area import AreaProperties, AreaUi, AreaUiLocal
+from antares.craft.model.area import AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintFrequency,
@@ -81,6 +81,7 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
+from antares.craft.service.local_services.models.area import AreaUiLocal
 from antares.craft.tools.ini_tool import InitializationFilesTypes
 
 
