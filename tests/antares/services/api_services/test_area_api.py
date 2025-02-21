@@ -24,7 +24,7 @@ from antares.craft.exceptions.exceptions import (
     STStorageCreationError,
     ThermalCreationError,
 )
-from antares.craft.model.area import Area, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
+from antares.craft.model.area import Area, AreaPropertiesUpdate, AreaUiUpdate
 from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage
