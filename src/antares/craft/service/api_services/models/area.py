@@ -10,12 +10,13 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Union
+from typing import Any, Union
 
-from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate
+from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FilterOption
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
+from pydantic import BaseModel, ConfigDict
 
 AreaPropertiesType = Union[AreaProperties, AreaPropertiesUpdate]
 
@@ -50,4 +51,60 @@ class AreaPropertiesAPI(APIBaseModel):
             adequacy_patch_mode=self.adequacy_patch_mode,
             spread_unsupplied_energy_cost=self.spread_unsupplied_energy_cost,
             spread_spilled_energy_cost=self.spread_spilled_energy_cost,
+        )
+
+
+AreaUiType = Union[AreaUi, AreaUiUpdate]
+
+
+@all_optional_model
+class Ui(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    x: int
+    y: int
+    color_r: int
+    color_g: int
+    color_b: int
+    layers: str
+
+
+@all_optional_model
+class AreaUiAPI(APIBaseModel):
+    ui: Ui
+    layer_x: dict[int, int]
+    layer_y: dict[int, int]
+    layer_color: dict[int, str]
+
+    @staticmethod
+    def from_user_model(user_class: AreaUiType) -> "AreaUiAPI":
+        args = {"ui": {"x": user_class.x, "y": user_class.y}}
+        if user_class.color_rgb:
+            args["ui"].update(
+                {
+                    "color_r": user_class.color_rgb[0],
+                    "color_g": user_class.color_rgb[1],
+                    "color_b": user_class.color_rgb[2],
+                }
+            )
+        return AreaUiAPI.model_validate(args)
+
+    def update_from_get(self, api_response: dict[str, Any]) -> None:
+        current_ui = api_response["ui"]
+        self.ui.x = self.ui.x or current_ui["x"]
+        self.ui.y = self.ui.y or current_ui["y"]
+        self.ui.color_r = self.ui.color_r or current_ui["color_r"]
+        self.ui.color_g = self.ui.color_g or current_ui["color_g"]
+        self.ui.color_b = self.ui.color_b or current_ui["color_b"]
+
+    def to_api_dict(self) -> dict[str, Any]:
+        update_args = self.ui.model_dump(mode="json", by_alias=True, exclude={"layers"})
+        update_args["color_rgb"] = [update_args.pop("color_r"), update_args.pop("color_g"), update_args.pop("color_b")]
+        return update_args
+
+    def to_user_model(self) -> AreaUi:
+        return AreaUi(
+            x=self.ui.x,
+            y=self.ui.y,
+            color_rgb=[self.ui.color_r, self.ui.color_g, self.ui.color_b],
         )

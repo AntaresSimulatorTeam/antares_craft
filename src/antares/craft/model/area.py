@@ -18,7 +18,7 @@ electrical demand (load), generation fleet (clusters),
 
 from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import Any, Optional
+from typing import Optional
 
 import pandas as pd
 
@@ -35,8 +35,6 @@ from antares.craft.service.base_services import (
     BaseThermalService,
 )
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
-from pydantic import BaseModel, computed_field
-from pydantic.alias_generators import to_camel
 
 
 class AdequacyPatchMode(EnumIgnoreCase):
@@ -79,81 +77,26 @@ class AreaProperties:
     spread_spilled_energy_cost: float = 0.0
 
 
-class AreaUi(BaseModel, extra="forbid", populate_by_name=True, alias_generator=to_camel):
-    """
-    DTO for updating area UI
-    """
-
-    # TODO: What do these fields mean ?
-
-    layer: Optional[int] = None
+@dataclass
+class AreaUiUpdate:
     x: Optional[int] = None
     y: Optional[int] = None
     color_rgb: Optional[list[int]] = None
 
-    layer_x: Optional[dict[int, int]] = None
-    layer_y: Optional[dict[int, int]] = None
-    layer_color: Optional[dict[int, str]] = None
+    def __post_init__(self) -> None:
+        if self.color_rgb and len(self.color_rgb) != 3:
+            raise ValueError(f"The `color_rgb` list must contain exactly 3 values, currently {self.color_rgb}")
 
 
-class AreaUiLocal(BaseModel):
-    """
-    DTO for updating area UI locally in the ini files
-    """
+@dataclass
+class AreaUi:
+    x: int = 0
+    y: int = 0
+    color_rgb: list[int] = field(default_factory=lambda: [230, 108, 44])
 
-    def __init__(
-        self,
-        input_area_ui: AreaUi = AreaUi(),
-        **kwargs: Optional[Any],
-    ):
-        super().__init__(**kwargs)
-        self._x = input_area_ui.x or 0
-        self._y = input_area_ui.y or 0
-        self._color_r, self._color_g, self._color_b = input_area_ui.color_rgb or [230, 108, 44]
-        self._layers = input_area_ui.layer or 0
-        self._layer_x = input_area_ui.layer_x or {self._layers: self._x}
-        self._layer_y = input_area_ui.layer_y or {self._layers: self._y}
-        self._layer_color = input_area_ui.layer_color or {
-            self._layers: f"{self._color_r} , {self._color_g} , {self._color_b}"
-        }
-
-    @computed_field  # type: ignore[misc]
-    @property
-    def ui(self) -> dict[str, Optional[int]]:
-        return dict(
-            x=self._x,
-            y=self._y,
-            color_r=self._color_r,
-            color_g=self._color_g,
-            color_b=self._color_b,
-            layers=self._layers,
-        )
-
-    @computed_field  # type: ignore[misc]
-    @property
-    def layerX(self) -> dict[int, int]:
-        return self._layer_x
-
-    @computed_field  # type: ignore[misc]
-    @property
-    def layerY(self) -> dict[int, int]:
-        return self._layer_y
-
-    @computed_field  # type: ignore[misc]
-    @property
-    def layerColor(self) -> dict[int, str]:
-        return self._layer_color
-
-    def yield_area_ui(self) -> AreaUi:
-        return AreaUi(
-            layer=self._layers,
-            x=self._x,
-            y=self._y,
-            color_rgb=[self._color_r, self._color_g, self._color_b],
-            layer_x=self._layer_x,
-            layer_y=self._layer_y,
-            layer_color=self._layer_color,
-        )
+    def __post_init__(self) -> None:
+        if len(self.color_rgb) != 3:
+            raise ValueError(f"The `color_rgb` list must contain exactly 3 values, currently {self.color_rgb}")
 
 
 class Area:
@@ -288,7 +231,7 @@ class Area:
         new_properties = self._area_service.update_area_properties(self.id, properties)
         self._properties = new_properties
 
-    def update_ui(self, ui: AreaUi) -> None:
+    def update_ui(self, ui: AreaUiUpdate) -> None:
         new_ui = self._area_service.update_area_ui(self.id, ui)
         self._ui = new_ui
 
