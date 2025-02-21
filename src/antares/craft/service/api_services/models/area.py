@@ -91,11 +91,11 @@ class AreaUiAPI(APIBaseModel):
 
     def update_from_get(self, api_response: dict[str, Any]) -> None:
         current_ui = api_response["ui"]
-        self.ui.x = current_ui["x"]
-        self.ui.y = current_ui["y"]
-        self.ui.color_r = current_ui["color_r"]
-        self.ui.color_g = current_ui["color_g"]
-        self.ui.color_b = current_ui["color_b"]
+        self.ui.x = self.ui.x or current_ui["x"]
+        self.ui.y = self.ui.y or current_ui["y"]
+        self.ui.color_r = self.ui.color_r or current_ui["color_r"]
+        self.ui.color_g = self.ui.color_g or current_ui["color_g"]
+        self.ui.color_b = self.ui.color_b or current_ui["color_b"]
 
     def to_api_dict(self) -> dict[str, Any]:
         update_args = self.ui.model_dump(mode="json", by_alias=True, exclude={"layers"})
