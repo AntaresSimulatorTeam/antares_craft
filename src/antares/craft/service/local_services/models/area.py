@@ -12,11 +12,12 @@
 from dataclasses import field
 from typing import Union
 
-from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate
+from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FILTER_VALUES, comma_separated_enum_set
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
 from pydantic import Field
+from pydantic.alias_generators import to_camel
 
 AreaPropertiesType = Union[AreaProperties, AreaPropertiesUpdate]
 
@@ -85,3 +86,42 @@ class AreaPropertiesLocal(LocalBaseModel):
 
     def to_optimization_ini(self) -> dict[str, dict[str, str]]:
         return self.model_dump(mode="json", include={"nodal_optimization", "filtering"}, by_alias=True)
+
+
+AreaUiType = Union[AreaUi, AreaUiUpdate]
+
+
+class Ui(LocalBaseModel):
+    x: int = 0
+    y: int = 0
+    color_r: int = 230
+    color_g: int = 108
+    color_b: int = 44
+    layers: str = "0"
+
+
+class AreaUiLocal(LocalBaseModel, alias_generator=to_camel):
+    ui: Ui
+    layer_x: dict[int, int] = {0: 0}
+    layer_y: dict[int, int] = {0: 0}
+    layer_color: dict[int, int] = {0: 0}
+
+    @staticmethod
+    def from_user_model(user_class: AreaUiType) -> "AreaUiLocal":
+        args = {"ui": {"x": user_class.x, "y": user_class.y}}
+        if user_class.color_rgb:
+            args["ui"].update(
+                {
+                    "color_r": user_class.color_rgb[0],
+                    "color_g": user_class.color_rgb[1],
+                    "color_b": user_class.color_rgb[2],
+                }
+            )
+        return AreaUiLocal.model_validate(args)
+
+    def to_user_model(self) -> AreaUi:
+        return AreaUi(
+            x=self.ui.x,
+            y=self.ui.y,
+            color_rgb=[self.ui.color_r, self.ui.color_g, self.ui.color_b],
+        )
