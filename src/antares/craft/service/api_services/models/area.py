@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Union
+from typing import Any, Union
 
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FilterOption
@@ -95,3 +95,34 @@ class AreaUiAPI(APIBaseModel):
             y=self.ui.y,
             color_rgb=[self.ui.color_r, self.ui.color_g, self.ui.color_b],
         )
+
+
+class AreaUiResponse(BaseModel):
+    """
+    Utility class to convert the AntaresWebResponse to Antares-Craft object.
+    """
+
+    class MapResponse(BaseModel):
+        color_r: int
+        color_g: int
+        color_b: int
+        layers: int
+        x: int
+        y: int
+
+    layerColor: dict[str, str]
+    layerX: dict[str, float]
+    layerY: dict[str, float]
+    ui: MapResponse
+
+    def to_craft(self) -> dict[str, Any]:
+        json_ui = {
+            "layer": self.ui.layers,
+            "x": self.ui.x,
+            "y": self.ui.y,
+            "layer_x": self.layerX,
+            "layer_y": self.layerY,
+            "layer_color": self.layerColor,
+            "color_rgb": [self.ui.color_r, self.ui.color_g, self.ui.color_b],
+        }
+        return json_ui

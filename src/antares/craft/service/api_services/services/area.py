@@ -37,7 +37,7 @@ from antares.craft.model.hydro import Hydro
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
-from antares.craft.service.api_services.models.area import AreaPropertiesAPI
+from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaUiResponse
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
@@ -49,7 +49,6 @@ from antares.craft.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
-from antares.craft.tools.contents_tool import AreaUiResponse
 from antares.craft.tools.matrix_tool import prepare_args_replace_matrix
 from typing_extensions import override
 
