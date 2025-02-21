@@ -288,9 +288,10 @@ class AreaLocalService(BaseAreaService):
             areas_ini.parsed_ini["spilledenergycost"][area_name] = str(local_properties.energy_cost_spilled)
             areas_ini.write_ini_file()
 
-            local_ui = AreaUiLocal(ui) if ui else AreaUiLocal()
+            ui = ui or AreaUi()
+            local_ui = AreaUiLocal.from_user_model(ui)
             ui_ini = ConfigParser()
-            ui_ini.read_dict(local_ui.model_dump(exclude_none=True))
+            ui_ini.read_dict(local_ui.model_dump(mode="json", by_alias=True))
             with open(new_area_directory / "ui.ini", "w") as ui_ini_file:
                 ui_ini.write(ui_ini_file)
 
@@ -324,7 +325,7 @@ class AreaLocalService(BaseAreaService):
             hydro_service=self.hydro_service,
             hydro=hydro,
             properties=local_properties.to_user_model(),  # round-trip to do the validation inside Pydantic
-            ui=local_ui.yield_area_ui(),
+            ui=local_ui.to_user_model(),
         )
         return created_area
 
