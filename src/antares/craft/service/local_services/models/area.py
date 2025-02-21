@@ -108,7 +108,11 @@ class AreaUiLocal(LocalBaseModel, alias_generator=to_camel):
 
     @staticmethod
     def from_user_model(user_class: AreaUiType) -> "AreaUiLocal":
-        args: dict[str, Any] = {"ui": {"x": user_class.x, "y": user_class.y}}
+        args: dict[str, Any] = {
+            "ui": {"x": user_class.x, "y": user_class.y},
+            "layerX": {0: user_class.x},
+            "layerY": {0: user_class.y},
+        }
         if user_class.color_rgb:
             args["ui"].update(
                 {
@@ -117,13 +121,7 @@ class AreaUiLocal(LocalBaseModel, alias_generator=to_camel):
                     "color_b": user_class.color_rgb[2],
                 }
             )
-            args.update(
-                {
-                    "layerX": {0: user_class.x},
-                    "layerY": {0: user_class.y},
-                    "layerColor": {0: ",".join(str(c) for c in user_class.color_rgb)},
-                }
-            )
+            args.update({"layerColor": {0: ",".join(str(c) for c in user_class.color_rgb)}})
         return AreaUiLocal.model_validate(args)
 
     def to_user_model(self) -> AreaUi:

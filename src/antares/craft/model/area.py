@@ -83,12 +83,20 @@ class AreaUiUpdate:
     y: Optional[int] = None
     color_rgb: Optional[list[int]] = None
 
+    def __post_init__(self) -> None:
+        if self.color_rgb and len(self.color_rgb) != 3:
+            raise ValueError(f"The `color_rgb` list must contain exactly 3 values, currently {self.color_rgb}")
+
 
 @dataclass
 class AreaUi:
     x: int = 0
     y: int = 0
     color_rgb: list[int] = field(default_factory=lambda: [230, 108, 44])
+
+    def __post_init__(self) -> None:
+        if len(self.color_rgb) != 3:
+            raise ValueError(f"The `color_rgb` list must contain exactly 3 values, currently {self.color_rgb}")
 
 
 class Area:
