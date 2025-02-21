@@ -401,19 +401,9 @@ class AreaLocalService(BaseAreaService):
                     self.config.study_path, InitializationFilesTypes.AREA_UI_INI, area_id=element.name
                 ).ini_dict
 
-                ui_properties = AreaUi(
-                    layer=ui_dict["ui"].get("layer"),
-                    x=ui_dict["ui"].get("x"),
-                    y=ui_dict["ui"].get("y"),
-                    color_rgb=[
-                        ui_dict["ui"].get("color_r", 0),
-                        ui_dict["ui"].get("color_g", 0),
-                        ui_dict["ui"].get("color_b", 0),
-                    ],
-                    layer_x=ui_dict["ui"].get("layerX"),
-                    layer_y=ui_dict["ui"].get("layerY"),
-                    layer_color=ui_dict["ui"].get("layerColor"),
-                )
+                local_ui = AreaUiLocal.model_validate(ui_dict)
+                ui_properties = local_ui.to_user_model()
+
                 area = Area(
                     name=element.name,
                     area_service=self,
