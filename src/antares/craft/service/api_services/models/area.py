@@ -74,7 +74,7 @@ class AreaUiAPI(APIBaseModel):
     ui: Ui
     layer_x: dict[int, int]
     layer_y: dict[int, int]
-    layer_color: dict[int, int]
+    layer_color: dict[int, str]
 
     @staticmethod
     def from_user_model(user_class: AreaUiType) -> "AreaUiAPI":

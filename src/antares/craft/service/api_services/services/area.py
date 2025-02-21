@@ -101,7 +101,7 @@ class AreaApiService(BaseAreaService):
             if properties:
                 url = f"{base_area_url}/{area_id}/properties/form"
                 api_model = AreaPropertiesAPI.from_user_model(properties)
-                # todo: change this exclude when AntaresWeb will work
+                # todo: change this exclude with AntaresWeb 2.20
                 exclude = {"spread_unsupplied_energy_cost", "spread_spilled_energy_cost"}
                 body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True, exclude=exclude)
                 if body:
@@ -363,7 +363,7 @@ class AreaApiService(BaseAreaService):
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/properties/form"
         try:
             api_model = AreaPropertiesAPI.from_user_model(properties)
-            # todo: change this exclude when AntaresWeb will work
+            # todo: change this exclude with AntaresWeb 2.20
             exclude = {"spread_unsupplied_energy_cost", "spread_spilled_energy_cost"}
             body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True, exclude=exclude)
 
