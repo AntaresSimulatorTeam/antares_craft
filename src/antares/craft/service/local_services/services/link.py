@@ -201,3 +201,7 @@ class LinkLocalService(BaseLinkService):
                         )
                     )
         return link_clusters
+
+    @override
+    def update_multiple_links(self) -> Dict[str, LinkPropertiesUpdate]:
+        raise NotImplementedError

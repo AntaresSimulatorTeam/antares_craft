@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Optional
+from typing import Dict, Optional
 
 import pandas as pd
 
@@ -204,3 +204,10 @@ class LinkApiService(BaseLinkService):
         except APIError as e:
             raise LinksRetrievalError(self.study_id, e.message) from e
         return links
+
+    @override
+    def update_multiple_links(self) -> Dict[str, LinkPropertiesUpdate]:
+        url = f"{self._base_url}/studies/{self.study_id}/table-mode/links"
+        self._wrapper.put(url)
+
+        raise NotImplementedError

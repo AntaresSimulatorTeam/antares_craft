@@ -12,7 +12,7 @@
 
 from pathlib import Path, PurePath
 from types import MappingProxyType
-from typing import List, Optional, cast
+from typing import Dict, List, Optional, cast
 
 import pandas as pd
 
@@ -26,7 +26,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintProperties,
     ConstraintTerm,
 )
-from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
@@ -311,3 +311,7 @@ def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) ->
     from antares.craft.service.api_services.factory import create_variant_api
 
     return create_variant_api(api_config, study_id, variant_name)
+
+
+def update_multiple_links(dict_links: Dict[str, LinkPropertiesUpdate]) -> None:
+    pass
