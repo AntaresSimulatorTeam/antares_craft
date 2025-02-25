@@ -90,6 +90,12 @@ class LinksRetrievalError(Exception):
         super().__init__(self.message)
 
 
+class LinksUpdateError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not update links from study {study_id} : {message}"
+        super().__init__(self.message)
+
+
 class ThermalCreationError(Exception):
     def __init__(self, thermal_name: str, area_id: str, message: str) -> None:
         self.message = f"Could not create the thermal cluster {thermal_name} inside area {area_id}: " + message

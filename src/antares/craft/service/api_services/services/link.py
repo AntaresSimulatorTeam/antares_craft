@@ -23,6 +23,7 @@ from antares.craft.exceptions.exceptions import (
     LinkDownloadError,
     LinkPropertiesUpdateError,
     LinksRetrievalError,
+    LinksUpdateError,
     LinkUiUpdateError,
     LinkUploadError,
 )
@@ -206,8 +207,24 @@ class LinkApiService(BaseLinkService):
         return links
 
     @override
-    def update_multiple_links(self) -> Dict[str, LinkPropertiesUpdate]:
-        url = f"{self._base_url}/studies/{self.study_id}/table-mode/links"
-        self._wrapper.put(url)
+    def update_multiple_links(self, dict_links: Dict[str, LinkPropertiesUpdate]) -> Dict[str, LinkProperties]:
+        try:
+            url = f"{self._base_url}/studies/{self.study_id}/table-mode/links"
+            links = self._wrapper.put(url, dict_links).json()
+            updated_links: Dict[str, LinkProperties] = {}
 
-        raise NotImplementedError
+            for link in links:
+                links[link].pop("area1")
+                links[link].pop("area2")
+                links[link].pop("colorr")
+                links[link].pop("colorb")
+                links[link].pop("colorg")
+                links[link].pop("linkWidth")
+                links[link].pop("linkStyle")
+
+                updated_links.update({link: links[link]})
+
+        except APIError as e:
+            raise LinksUpdateError(self.study_id, e.message) from e
+
+        return updated_links

@@ -66,19 +66,6 @@ class LinkProperties:
     filter_synthesis: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
     filter_year_by_year: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
 
-    def update_link_properties(self, link_props: LinkPropertiesUpdate) -> "LinkProperties":
-        self.hurdles_cost = link_props.hurdles_cost
-        self.loop_flow = link_props.loop_flow
-        self.use_phase_shifter = link_props.use_phase_shifter
-        self.transmission_capacities = link_props.transmission_capacities
-        self.asset_type = link_props.asset_type
-        self.display_comments = link_props.display_comments
-        self.comments = link_props.comments
-        self.filter_synthesis = link_props.filter_synthesis
-        self.filter_year_by_year = link_props.filter_year_by_year
-
-        return self
-
 
 @dataclass
 class LinkUi:

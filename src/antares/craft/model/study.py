@@ -265,6 +265,12 @@ class Study:
         self._study_service.generate_thermal_timeseries(nb_years)
         self._settings.general_parameters.nb_timeseries_thermal = nb_years
 
+    def update_multiple_links(self, dict_links: Dict[str, LinkPropertiesUpdate]) -> None:
+        new_links_props = self._link_service.update_multiple_links(dict_links)
+        # parcourir les nouvelles properties et changer les links de la study
+        for link_props in new_links_props:
+            self._links[link_props]._properties = new_links_props[link_props]
+
 
 # Design note:
 # all following methods are entry points for study creation.
@@ -311,7 +317,3 @@ def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) ->
     from antares.craft.service.api_services.factory import create_variant_api
 
     return create_variant_api(api_config, study_id, variant_name)
-
-
-def update_multiple_links(dict_links: Dict[str, LinkPropertiesUpdate]) -> None:
-    pass
