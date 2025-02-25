@@ -156,7 +156,13 @@ class AreaLocalService(BaseAreaService):
         list_ini.add_section({renewable_name: new_section_content})
         list_ini.write_ini_file()
         if isinstance(series, pd.DataFrame) and not series.empty:
-            write_timeseries(self.config.study_path, series, TimeSeriesFileType.RENEWABLE_DATA_SERIES, area_id, cluster_id=transform_name_to_id(renewable_name))
+            write_timeseries(
+                self.config.study_path,
+                series,
+                TimeSeriesFileType.RENEWABLE_DATA_SERIES,
+                area_id,
+                cluster_id=transform_name_to_id(renewable_name),
+            )
 
         return RenewableCluster(self.renewable_service, area_id, renewable_name, properties)
 

@@ -65,7 +65,14 @@ def read_timeseries(
     return _time_series
 
 
-def write_timeseries(study_path: Path, series: pd.DataFrame, ts_file_type: TimeSeriesFileType, area_id: str, cluster_id: Optional[str] = None, second_area_id: Optional[str] = None) -> None:
+def write_timeseries(
+    study_path: Path,
+    series: pd.DataFrame,
+    ts_file_type: TimeSeriesFileType,
+    area_id: str,
+    cluster_id: Optional[str] = None,
+    second_area_id: Optional[str] = None,
+) -> None:
     if second_area_id:
         file_path = study_path.joinpath(ts_file_type.value.format(area_id=area_id, second_area_id=second_area_id))
     elif cluster_id:
