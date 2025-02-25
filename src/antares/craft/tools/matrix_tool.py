@@ -72,13 +72,20 @@ def write_timeseries(
     area_id: str,
     cluster_id: Optional[str] = None,
     second_area_id: Optional[str] = None,
+    constraint_id: Optional[str] = None,
 ) -> None:
+    # This method does not concern binding constraints timeseries, which is handled differently
+
+    format_kwargs = {"area_id": area_id}
+    if cluster_id:
+        format_kwargs["cluster_id"] = cluster_id
     if second_area_id:
-        file_path = study_path.joinpath(ts_file_type.value.format(area_id=area_id, second_area_id=second_area_id))
-    elif cluster_id:
-        file_path = study_path.joinpath(ts_file_type.value.format(area_id=area_id, cluster_id=cluster_id))
-    else:
-        file_path = study_path.joinpath(ts_file_type.value.format(area_id=area_id))
-    if not file_path.parent.is_dir():
-        file_path.parent.mkdir(parents=True)
+        format_kwargs["second_area_id"] = second_area_id
+    if constraint_id:
+        format_kwargs["constraint_id"] = constraint_id
+
+    file_path = study_path / ts_file_type.value.format(**format_kwargs)
+
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+
     series.to_csv(file_path, sep="\t", header=False, index=False, encoding="utf-8")
