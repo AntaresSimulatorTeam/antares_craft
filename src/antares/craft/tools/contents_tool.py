@@ -13,10 +13,9 @@
 import re
 
 from enum import Enum
-from typing import Any, Optional
+from typing import Optional
 
 from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
-from pydantic import BaseModel
 from typing_extensions import override
 
 # Invalid chars was taken from Antares Simulator (C++).
@@ -40,37 +39,6 @@ class EnumIgnoreCase(Enum):
                 if member.value.upper() == value.upper():
                     return member
         return None
-
-
-class AreaUiResponse(BaseModel):
-    """
-    Utility class to convert the AntaresWebResponse to Antares-Craft object.
-    """
-
-    class MapResponse(BaseModel):
-        color_r: int
-        color_g: int
-        color_b: int
-        layers: int
-        x: int
-        y: int
-
-    layerColor: dict[str, str]
-    layerX: dict[str, float]
-    layerY: dict[str, float]
-    ui: MapResponse
-
-    def to_craft(self) -> dict[str, Any]:
-        json_ui = {
-            "layer": self.ui.layers,
-            "x": self.ui.x,
-            "y": self.ui.y,
-            "layer_x": self.layerX,
-            "layer_y": self.layerY,
-            "layer_color": self.layerColor,
-            "color_rgb": [self.ui.color_r, self.ui.color_g, self.ui.color_b],
-        }
-        return json_ui
 
 
 # TODO maybe put sorting functions together

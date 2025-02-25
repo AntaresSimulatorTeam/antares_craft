@@ -30,7 +30,7 @@ from antares.craft.exceptions.exceptions import (
     CustomError,
     LinkCreationError,
 )
-from antares.craft.model.area import AreaProperties, AreaUi, AreaUiLocal
+from antares.craft.model.area import AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintFrequency,
@@ -603,7 +603,7 @@ layers = 0
 0 = 0
 
 [layerColor]
-0 = 230 , 108 , 44
+0 = 230,108,44
 
 """
 
@@ -660,7 +660,7 @@ layers = 0
 0 = 321
 
 [layerColor]
-0 = 255 , 230 , 210
+0 = 255,230,210
 
 """
 
@@ -672,7 +672,7 @@ layers = 0
     def test_created_area_has_ui(self, tmp_path, local_study):
         # Given
         area = "area1"
-        area_ui = AreaUiLocal(AreaUi(x=123, y=321, color_rgb=[255, 230, 210])).yield_area_ui()
+        area_ui = AreaUi(x=123, y=321, color_rgb=[255, 230, 210])
 
         # When
         local_study.create_area(area, ui=area_ui)

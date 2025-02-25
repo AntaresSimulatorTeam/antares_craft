@@ -56,7 +56,7 @@ from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
 from antares.craft.model.study import Study
 from antares.craft.service.api_services.factory import create_api_services
-from antares.craft.service.api_services.models.area import AreaPropertiesAPI
+from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaUiAPI
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAPI
@@ -165,13 +165,10 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             base_url = "https://antares.com/api/v1"
 
+            ui = AreaUi(x=12, y=4, color_rgb=[16, 23, 3])
             url1 = f"{base_url}/studies/{self.study_id}/areas"
             mocker.post(url1, json={"id": area_name}, status_code=201)
-            ui_info = {"ui": {"x": 0, "y": 0, "layers": 0, "color_r": 0, "color_g": 0, "color_b": 0}}
-            area_ui = {
-                **AreaUi(layerX={"1": 0}, layerY={"1": 0}, layerColor={"1": "0"}).model_dump(by_alias=True),
-                **ui_info,
-            }
+            area_ui = AreaUiAPI.from_user_model(ui).model_dump()
             mocker.get(url1, json={area_name: area_ui}, status_code=201)
             url2 = f"{base_url}/studies/{self.study_id}/areas/{area_name}/properties/form"
             url3 = f"{base_url}/studies/{self.study_id}/areas/{area_name}/hydro/form"
