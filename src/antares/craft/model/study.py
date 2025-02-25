@@ -12,7 +12,7 @@
 
 from pathlib import Path, PurePath
 from types import MappingProxyType
-from typing import List, Optional, cast
+from typing import Dict, List, Optional, cast
 
 import pandas as pd
 
@@ -26,7 +26,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintProperties,
     ConstraintTerm,
 )
-from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
@@ -264,6 +264,12 @@ class Study:
     def generate_thermal_timeseries(self, nb_years: int) -> None:
         self._study_service.generate_thermal_timeseries(nb_years)
         self._settings.general_parameters.nb_timeseries_thermal = nb_years
+
+    def update_multiple_links(self, dict_links: Dict[str, LinkPropertiesUpdate]) -> None:
+        new_links_props = self._link_service.update_multiple_links(dict_links)
+        # parcourir les nouvelles properties et changer les links de la study
+        for link_props in new_links_props:
+            self._links[link_props]._properties = new_links_props[link_props]
 
 
 # Design note:
