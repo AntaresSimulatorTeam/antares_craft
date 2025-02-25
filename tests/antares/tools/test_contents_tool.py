@@ -52,3 +52,7 @@ def test_write_timeseries(tmpdir):
     link_capacity_direct_path = file_path / "input/links/fr/capacities/es_direct.txt"
     assert link_capacity_direct_path.exists()
     assert link_capacity_direct_path.is_file()
+    write_timeseries(file_path, df, TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL, constraint_id="constraint_1")
+    thermal_modulation_path = file_path / "input/bindingconstraints/constraint_1_eq.txt"
+    assert thermal_modulation_path.exists()
+    assert thermal_modulation_path.is_file()

@@ -69,21 +69,21 @@ def write_timeseries(
     study_path: Path,
     series: pd.DataFrame,
     ts_file_type: TimeSeriesFileType,
-    area_id: str,
+    area_id: Optional[str] = None,
     cluster_id: Optional[str] = None,
     second_area_id: Optional[str] = None,
     constraint_id: Optional[str] = None,
 ) -> None:
-    # This method does not concern binding constraints timeseries, which is handled differently
-
-    format_kwargs = {"area_id": area_id}
+    format_kwargs = {}
+    if area_id: 
+        format_kwargs["area_id"] = area_id
     if cluster_id:
         format_kwargs["cluster_id"] = cluster_id
     if second_area_id:
         format_kwargs["second_area_id"] = second_area_id
     if constraint_id:
         format_kwargs["constraint_id"] = constraint_id
-
+        
     file_path = study_path / ts_file_type.value.format(**format_kwargs)
 
     file_path.parent.mkdir(parents=True, exist_ok=True)

@@ -33,7 +33,7 @@ from antares.craft.service.base_services import BaseBindingConstraintService
 from antares.craft.service.local_services.models.binding_constraint import BindingConstraintPropertiesLocal
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
-from antares.craft.tools.matrix_tool import df_read, df_save
+from antares.craft.tools.matrix_tool import df_read, write_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 from typing_extensions import override
 
@@ -78,23 +78,15 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         equal_term_matrix: Optional[pd.DataFrame],
         greater_term_matrix: Optional[pd.DataFrame],
     ) -> None:
-        time_series = []
-        file_types = []
         # Lesser or greater can happen together when operator is both
         if constraint.properties.operator in (BindingConstraintOperator.LESS, BindingConstraintOperator.BOTH):
-            time_series += [self._check_if_empty_ts(constraint.properties.time_step, less_term_matrix)]
-            file_types += [TimeSeriesFileType.BINDING_CONSTRAINT_LESS]
+            write_timeseries(self.config.study_path, self._check_if_empty_ts(constraint.properties.time_step, less_term_matrix), TimeSeriesFileType.BINDING_CONSTRAINT_LESS, constraint_id=constraint.id)  
         if constraint.properties.operator in (BindingConstraintOperator.GREATER, BindingConstraintOperator.BOTH):
-            time_series += [self._check_if_empty_ts(constraint.properties.time_step, greater_term_matrix)]
-            file_types += [TimeSeriesFileType.BINDING_CONSTRAINT_GREATER]
+            write_timeseries(self.config.study_path, self._check_if_empty_ts(constraint.properties.time_step, greater_term_matrix), TimeSeriesFileType.BINDING_CONSTRAINT_GREATER, constraint_id=constraint.id)  
         # Equal is always exclusive
         if constraint.properties.operator == BindingConstraintOperator.EQUAL:
-            time_series = [self._check_if_empty_ts(constraint.properties.time_step, equal_term_matrix)]
-            file_types = [TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL]
+            write_timeseries(self.config.study_path, self._check_if_empty_ts(constraint.properties.time_step, equal_term_matrix), TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL, constraint_id=constraint.id)  
 
-        for ts, file_type in zip(time_series, file_types):
-            matrix_path = self.config.study_path.joinpath(file_type.value.format(constraint_id=constraint.id))
-            df_save(ts, matrix_path)
 
     @staticmethod
     def _check_if_empty_ts(time_step: BindingConstraintFrequency, time_series: Optional[pd.DataFrame]) -> pd.DataFrame:
