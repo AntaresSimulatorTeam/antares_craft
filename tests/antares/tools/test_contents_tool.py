@@ -10,9 +10,11 @@
 #
 # This file is part of the Antares project.
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
+
 from antares.craft.tools.matrix_tool import prepare_args_replace_matrix, write_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
