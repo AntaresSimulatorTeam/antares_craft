@@ -460,7 +460,7 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def update_multiple_links(self, dict_links: Dict[str, "LinkPropertiesUpdate"]) -> Dict[str, LinkProperties]:
+    def update_multiple_links(self, dict_links: Dict[str, "LinkPropertiesUpdate"]) -> Dict[str, "LinkProperties"]:
         pass
 
 
