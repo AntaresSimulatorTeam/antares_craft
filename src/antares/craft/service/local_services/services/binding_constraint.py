@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 from typing import Any, Optional
 
-import numpy as np
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
@@ -21,7 +20,6 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
-    BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
