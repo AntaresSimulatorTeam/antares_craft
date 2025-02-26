@@ -120,16 +120,31 @@ ts-interpretation = production-factor
         local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
             "generation_1", RenewableClusterProperties(), series=pd.DataFrame()
         )
-        full_path = local_study_w_thermal.service.config.study_path / "input" / "renewables" / "series" / "fr" / "generation_1" / "series.txt"
+        full_path = (
+            local_study_w_thermal.service.config.study_path
+            / "input"
+            / "renewables"
+            / "series"
+            / "fr"
+            / "generation_1"
+            / "series.txt"
+        )
         assert full_path.exists()
         assert full_path.stat().st_size == 0
         local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
             "generation_2", RenewableClusterProperties(), series=None
         )
-        full_path = local_study_w_thermal.service.config.study_path / "input" / "renewables" / "series" / "fr" / "generation_2" / "series.txt"
+        full_path = (
+            local_study_w_thermal.service.config.study_path
+            / "input"
+            / "renewables"
+            / "series"
+            / "fr"
+            / "generation_2"
+            / "series.txt"
+        )
         assert full_path.exists()
         assert full_path.stat().st_size == 0
-        
 
 
 class TestCreateSTStorage:
