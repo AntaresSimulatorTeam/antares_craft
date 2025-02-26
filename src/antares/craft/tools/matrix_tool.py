@@ -67,7 +67,7 @@ def read_timeseries(
 
 def write_timeseries(
     study_path: Path,
-    series: pd.DataFrame,
+    series: Optional[pd.DataFrame],
     ts_file_type: TimeSeriesFileType,
     area_id: Optional[str] = None,
     cluster_id: Optional[str] = None,
