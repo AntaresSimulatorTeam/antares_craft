@@ -14,6 +14,7 @@ import pytest
 import shutil
 
 from pathlib import Path, PurePath
+from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -47,7 +48,15 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.hydro import HydroPropertiesUpdate
-from antares.craft.model.link import LinkProperties, LinkPropertiesUpdate, LinkStyle, LinkUi, LinkUiUpdate
+from antares.craft.model.link import (
+    AssetType,
+    LinkProperties,
+    LinkPropertiesUpdate,
+    LinkStyle,
+    LinkUi,
+    LinkUiUpdate,
+    TransmissionCapacities,
+)
 from antares.craft.model.renewable import (
     RenewableClusterGroup,
     RenewableClusterProperties,
@@ -478,6 +487,22 @@ class TestWebClient:
         constraint_1.update_properties(new_props)
         assert constraint_1.properties.group == "another_group"
         assert constraint_1.properties.enabled is False  # Checks old value wasn't modified
+
+        link_up_1 = LinkPropertiesUpdate(hurdles_cost=True, use_phase_shifter=True)
+        link_up_2 = LinkPropertiesUpdate(
+            transmission_capacities=TransmissionCapacities.ENABLED, asset_type=AssetType.GAZ
+        )
+        links_updates: Dict[str, LinkPropertiesUpdate] = {link_be_fr.id: link_up_1, link_de_fr.id: link_up_2}
+        study.update_multiple_links(links_updates)
+
+        assert study.get_links()["be / fr"].properties.hurdles_cost
+        assert study.get_links()["be / fr"].properties.use_phase_shifter
+        assert study.get_links()["be / fr"].properties.display_comments
+        assert not study.get_links()["be / fr"].properties.loop_flow
+
+        assert study.get_links()["de / fr"].properties.transmission_capacities == TransmissionCapacities.ENABLED
+        assert study.get_links()["de / fr"].properties.asset_type == AssetType.GAZ
+        assert not study.get_links()["de / fr"].properties.hurdles_cost
 
         # tests constraint deletion
         study.delete_binding_constraint(constraint_1)
