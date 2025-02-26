@@ -75,7 +75,7 @@ def write_timeseries(
     constraint_id: Optional[str] = None,
 ) -> None:
     format_kwargs = {}
-    if area_id: 
+    if area_id:
         format_kwargs["area_id"] = area_id
     if cluster_id:
         format_kwargs["cluster_id"] = cluster_id
@@ -83,7 +83,7 @@ def write_timeseries(
         format_kwargs["second_area_id"] = second_area_id
     if constraint_id:
         format_kwargs["constraint_id"] = constraint_id
-        
+
     file_path = study_path / ts_file_type.value.format(**format_kwargs)
 
     file_path.parent.mkdir(parents=True, exist_ok=True)

@@ -116,6 +116,9 @@ ts-interpretation = production-factor
         )
         assert actual_renewable_list_ini_content == expected_renewables_list_ini_content
 
+    def test_renewable_cluster_and_series_is_empty(self, local_study_with_renewable_and_empty_dataframe):
+        assert local_study_with_renewable_and_empty_dataframe.service.config.study_path.exists()
+
 
 class TestCreateSTStorage:
     def test_can_create_st_storage(self, local_study_with_renewable):

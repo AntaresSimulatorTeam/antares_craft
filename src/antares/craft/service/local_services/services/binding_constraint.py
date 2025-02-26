@@ -80,18 +80,27 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     ) -> None:
         # Lesser or greater can happen together when operator is both
         if constraint.properties.operator in (BindingConstraintOperator.LESS, BindingConstraintOperator.BOTH):
-            write_timeseries(self.config.study_path, self._check_if_empty_ts(constraint.properties.time_step, less_term_matrix), TimeSeriesFileType.BINDING_CONSTRAINT_LESS, constraint_id=constraint.id)  
+            write_timeseries(
+                self.config.study_path,
+                pd.DataFrame() if less_term_matrix is None or less_term_matrix.empty else less_term_matrix,
+                TimeSeriesFileType.BINDING_CONSTRAINT_LESS,
+                constraint_id=constraint.id,
+            )
         if constraint.properties.operator in (BindingConstraintOperator.GREATER, BindingConstraintOperator.BOTH):
-            write_timeseries(self.config.study_path, self._check_if_empty_ts(constraint.properties.time_step, greater_term_matrix), TimeSeriesFileType.BINDING_CONSTRAINT_GREATER, constraint_id=constraint.id)  
+            write_timeseries(
+                self.config.study_path,
+                pd.DataFrame() if greater_term_matrix is None or greater_term_matrix.empty else greater_term_matrix,
+                TimeSeriesFileType.BINDING_CONSTRAINT_GREATER,
+                constraint_id=constraint.id,
+            )
         # Equal is always exclusive
         if constraint.properties.operator == BindingConstraintOperator.EQUAL:
-            write_timeseries(self.config.study_path, self._check_if_empty_ts(constraint.properties.time_step, equal_term_matrix), TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL, constraint_id=constraint.id)  
-
-
-    @staticmethod
-    def _check_if_empty_ts(time_step: BindingConstraintFrequency, time_series: Optional[pd.DataFrame]) -> pd.DataFrame:
-        time_series_length = (365 * 24 + 24) if time_step == BindingConstraintFrequency.HOURLY else 366
-        return time_series if time_series is not None else pd.DataFrame(np.zeros([time_series_length, 1]))
+            write_timeseries(
+                self.config.study_path,
+                pd.DataFrame() if equal_term_matrix is None or equal_term_matrix.empty else equal_term_matrix,
+                TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL,
+                constraint_id=constraint.id,
+            )
 
     def _create_constraint_inside_ini(
         self,

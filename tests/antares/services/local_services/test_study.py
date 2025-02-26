@@ -1322,8 +1322,6 @@ at%fr = 1%1
 
     def test_binding_constraints_have_correct_default_time_series(self, test_constraint, local_study_with_constraint):
         # Given
-        expected_time_series_hourly = pd.DataFrame(np.zeros([365 * 24 + 24, 1]))
-        expected_time_series_daily_weekly = pd.DataFrame(np.zeros([365 + 1, 1]))
         local_study_with_constraint.create_binding_constraint(
             name="test greater",
             properties=BindingConstraintProperties(
@@ -1348,24 +1346,19 @@ at%fr = 1%1
         study_path = local_config.study_path
 
         actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test greater_gt.txt")
-        actual_time_series_greater = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
-        assert actual_time_series_greater.equals(expected_time_series_daily_weekly)
+        assert not actual_file_path.read_text()
 
         actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test equal_eq.txt")
-        actual_time_series_equal = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
-        assert actual_time_series_equal.equals(expected_time_series_daily_weekly)
+        assert not actual_file_path.read_text()
 
         actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / f"{test_constraint.id}_lt.txt")
-        actual_time_series_pre_created = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
-        assert actual_time_series_pre_created.equals(expected_time_series_hourly)
+        assert not actual_file_path.read_text()
 
         actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test both_lt.txt")
-        actual_time_series_both_lesser = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
-        assert actual_time_series_both_lesser.equals(expected_time_series_hourly)
+        assert not actual_file_path.read_text()
 
         actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test both_gt.txt")
-        actual_time_series_both_greater = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
-        assert actual_time_series_both_greater.equals(expected_time_series_hourly)
+        assert not actual_file_path.read_text()
 
     def test_submitted_time_series_is_saved(self, local_study):
         # Given
