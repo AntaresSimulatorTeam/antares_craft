@@ -74,6 +74,7 @@ def write_timeseries(
     second_area_id: Optional[str] = None,
     constraint_id: Optional[str] = None,
 ) -> None:
+    series = pd.DataFrame() if series is None else series
     format_kwargs = {}
     if area_id:
         format_kwargs["area_id"] = area_id
