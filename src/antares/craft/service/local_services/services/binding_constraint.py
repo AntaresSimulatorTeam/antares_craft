@@ -82,14 +82,14 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         if constraint.properties.operator in (BindingConstraintOperator.LESS, BindingConstraintOperator.BOTH):
             write_timeseries(
                 self.config.study_path,
-                pd.DataFrame() if less_term_matrix is None or less_term_matrix.empty else less_term_matrix,
+                pd.DataFrame() if less_term_matrix is None else less_term_matrix,
                 TimeSeriesFileType.BINDING_CONSTRAINT_LESS,
                 constraint_id=constraint.id,
             )
         if constraint.properties.operator in (BindingConstraintOperator.GREATER, BindingConstraintOperator.BOTH):
             write_timeseries(
                 self.config.study_path,
-                pd.DataFrame() if greater_term_matrix is None or greater_term_matrix.empty else greater_term_matrix,
+                pd.DataFrame() if greater_term_matrix is None else greater_term_matrix,
                 TimeSeriesFileType.BINDING_CONSTRAINT_GREATER,
                 constraint_id=constraint.id,
             )
@@ -97,7 +97,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         if constraint.properties.operator == BindingConstraintOperator.EQUAL:
             write_timeseries(
                 self.config.study_path,
-                pd.DataFrame() if equal_term_matrix is None or equal_term_matrix.empty else equal_term_matrix,
+                pd.DataFrame() if equal_term_matrix is None else equal_term_matrix,
                 TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL,
                 constraint_id=constraint.id,
             )

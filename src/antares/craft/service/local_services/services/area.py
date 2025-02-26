@@ -155,7 +155,7 @@ class AreaLocalService(BaseAreaService):
         list_ini = IniFile(self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id)
         list_ini.add_section({renewable_name: new_section_content})
         list_ini.write_ini_file()
-        series = pd.DataFrame() if series is None or series.empty else series
+        series = pd.DataFrame() if series is None else series
         write_timeseries(
             self.config.study_path,
             series,
