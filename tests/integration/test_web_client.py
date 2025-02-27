@@ -495,6 +495,8 @@ class TestWebClient:
         study.update_multiple_links({link_be_fr.id: link_properties_update_1, link_de_fr.id: link_properties_update_2})
 
         link_be_fr = study.get_links()["be / fr"]
+
+        # Checking values are well modified
         assert link_be_fr.properties.hurdles_cost
         assert link_be_fr.properties.use_phase_shifter
         assert link_be_fr.properties.display_comments
