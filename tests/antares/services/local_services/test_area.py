@@ -116,6 +116,36 @@ ts-interpretation = production-factor
         )
         assert actual_renewable_list_ini_content == expected_renewables_list_ini_content
 
+    def test_renewable_cluster_and_series_is_empty(self, local_study_w_thermal):
+        local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
+            "generation_1", RenewableClusterProperties(), series=pd.DataFrame()
+        )
+        full_path = (
+            local_study_w_thermal.service.config.study_path
+            / "input"
+            / "renewables"
+            / "series"
+            / "fr"
+            / "generation_1"
+            / "series.txt"
+        )
+        assert full_path.exists()
+        assert full_path.stat().st_size == 0
+        local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
+            "generation_2", RenewableClusterProperties(), series=None
+        )
+        full_path = (
+            local_study_w_thermal.service.config.study_path
+            / "input"
+            / "renewables"
+            / "series"
+            / "fr"
+            / "generation_2"
+            / "series.txt"
+        )
+        assert full_path.exists()
+        assert full_path.stat().st_size == 0
+
 
 class TestCreateSTStorage:
     def test_can_create_st_storage(self, local_study_with_renewable):

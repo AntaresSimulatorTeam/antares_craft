@@ -127,16 +127,13 @@ class AreaLocalService(BaseAreaService):
         list_ini.write_ini_file(sort_sections=True)
 
         # Upload matrices
-        if prepro:
-            write_timeseries(self.config.study_path, prepro, TimeSeriesFileType.THERMAL_DATA, area_id)
-        if modulation:
-            write_timeseries(self.config.study_path, modulation, TimeSeriesFileType.THERMAL_MODULATION, area_id)
-        if series:
-            write_timeseries(self.config.study_path, series, TimeSeriesFileType.THERMAL_SERIES, area_id)
-        if co2_cost:
-            write_timeseries(self.config.study_path, co2_cost, TimeSeriesFileType.THERMAL_CO2, area_id)
-        if fuel_cost:
-            write_timeseries(self.config.study_path, fuel_cost, TimeSeriesFileType.THERMAL_FUEL, area_id)
+        cluster_id = cluster_id = transform_name_to_id(thermal_name)
+
+        write_timeseries(self.config.study_path, prepro, TimeSeriesFileType.THERMAL_DATA, area_id, cluster_id)
+        write_timeseries(self.config.study_path, modulation, TimeSeriesFileType.THERMAL_MODULATION, area_id, cluster_id)
+        write_timeseries(self.config.study_path, series, TimeSeriesFileType.THERMAL_SERIES, area_id, cluster_id)
+        write_timeseries(self.config.study_path, co2_cost, TimeSeriesFileType.THERMAL_CO2, area_id, cluster_id)
+        write_timeseries(self.config.study_path, fuel_cost, TimeSeriesFileType.THERMAL_FUEL, area_id, cluster_id)
 
         return ThermalCluster(self.thermal_service, area_id, thermal_name, properties)
 
@@ -155,10 +152,13 @@ class AreaLocalService(BaseAreaService):
         list_ini = IniFile(self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id)
         list_ini.add_section({renewable_name: new_section_content})
         list_ini.write_ini_file()
-
-        if series:
-            write_timeseries(self.config.study_path, series, TimeSeriesFileType.RENEWABLE_DATA_SERIES, area_id)
-
+        write_timeseries(
+            self.config.study_path,
+            series,
+            TimeSeriesFileType.RENEWABLE_DATA_SERIES,
+            area_id,
+            cluster_id=transform_name_to_id(renewable_name),
+        )
         return RenewableCluster(self.renewable_service, area_id, renewable_name, properties)
 
     @override
