@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from dataclasses import replace
 from pathlib import Path, PurePath
 from types import MappingProxyType
 from typing import List, Optional, cast
@@ -263,7 +263,10 @@ class Study:
 
     def generate_thermal_timeseries(self, nb_years: int) -> None:
         self._study_service.generate_thermal_timeseries(nb_years)
-        self._settings.general_parameters.nb_timeseries_thermal = nb_years
+        # Copies objects to bypass the fact that the class is frozen
+        new_general_parameters = replace(self._settings.general_parameters, nb_timeseries_thermal=nb_years)
+        new_settings = replace(self._settings, general_parameters=new_general_parameters)
+        self._settings = new_settings
 
 
 # Design note:

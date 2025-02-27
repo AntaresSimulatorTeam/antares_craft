@@ -63,7 +63,7 @@ class AreaPropertiesUpdate:
     spread_spilled_energy_cost: Optional[float] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class AreaProperties:
     energy_cost_unsupplied: float = 0.0
     energy_cost_spilled: float = 0.0
@@ -88,7 +88,7 @@ class AreaUiUpdate:
             raise ValueError(f"The `color_rgb` list must contain exactly 3 values, currently {self.color_rgb}")
 
 
-@dataclass
+@dataclass(frozen=True)
 class AreaUi:
     x: int = 0
     y: int = 0

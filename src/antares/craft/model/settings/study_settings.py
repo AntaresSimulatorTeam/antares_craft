@@ -36,7 +36,7 @@ class StudySettingsUpdate:
     playlist_parameters: Optional[dict[int, PlaylistParameters]] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class StudySettings:
     general_parameters: GeneralParameters = field(default_factory=GeneralParameters)
     optimization_parameters: OptimizationParameters = field(default_factory=OptimizationParameters)

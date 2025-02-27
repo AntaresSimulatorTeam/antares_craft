@@ -135,10 +135,11 @@ class TestLocalClient:
         assert be_ui_file.is_file()
 
         # tests area creation with properties
-        properties = AreaProperties()
-        properties.energy_cost_spilled = 123
-        properties.adequacy_patch_mode = AdequacyPatchMode.INSIDE
-        properties.filter_synthesis = [FilterOption.HOURLY, FilterOption.DAILY, FilterOption.HOURLY]
+        properties = AreaProperties(
+            energy_cost_spilled=123,
+            adequacy_patch_mode=AdequacyPatchMode.INSIDE,
+            filter_synthesis={FilterOption.HOURLY, FilterOption.DAILY, FilterOption.HOURLY},
+        )
         area_name = "DE"
         area_de = test_study.create_area(area_name, properties=properties)
         assert area_de.properties.energy_cost_spilled == 123
@@ -153,8 +154,7 @@ class TestLocalClient:
 
         # tests link creation with ui and properties
         link_ui = LinkUi(colorr=44)
-        link_properties = LinkProperties(hurdles_cost=True)
-        link_properties.filter_year_by_year = [FilterOption.HOURLY]
+        link_properties = LinkProperties(hurdles_cost=True, filter_year_by_year={FilterOption.HOURLY})
         link_be_fr = test_study.create_link(area_from=area_be.id, area_to=fr.id, ui=link_ui, properties=link_properties)
         assert link_be_fr.ui.colorr == 44
         assert link_be_fr.properties.hurdles_cost
@@ -181,8 +181,7 @@ class TestLocalClient:
 
         # test thermal cluster creation with properties
         thermal_name = "gaz_be"
-        thermal_properties = ThermalClusterProperties(efficiency=55)
-        thermal_properties.group = ThermalClusterGroup.GAS
+        thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS)
         thermal_be = area_be.create_thermal_cluster(thermal_name, thermal_properties)
         properties = thermal_be.properties
         assert properties.efficiency == 55
@@ -196,8 +195,7 @@ class TestLocalClient:
 
         # test renewable cluster creation with properties
         renewable_name = "wind_onshore"
-        renewable_properties = RenewableClusterProperties(enabled=False)
-        renewable_properties.group = RenewableClusterGroup.WIND_ON_SHORE
+        renewable_properties = RenewableClusterProperties(enabled=False, group=RenewableClusterGroup.WIND_ON_SHORE)
         renewable_onshore = fr.create_renewable_cluster(renewable_name, renewable_properties, None)
         properties = renewable_onshore.properties
         assert not properties.enabled
@@ -211,16 +209,14 @@ class TestLocalClient:
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
-        storage_properties = STStorageProperties(reservoir_capacity=0.5)
-        storage_properties.group = STStorageGroup.BATTERY
+        storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY)
         battery_fr = fr.create_st_storage(st_storage_name, storage_properties)
         properties = battery_fr.properties
         assert properties.reservoir_capacity == 0.5
         assert properties.group == STStorageGroup.BATTERY
 
         # test binding constraint creation without terms
-        properties = BindingConstraintProperties(enabled=False)
-        properties.group = "group_1"
+        properties = BindingConstraintProperties(enabled=False, group="group_1")
         constraint_1 = test_study.create_binding_constraint(name="bc_1", properties=properties)
         assert constraint_1.name == "bc_1"
         assert not constraint_1.properties.enabled

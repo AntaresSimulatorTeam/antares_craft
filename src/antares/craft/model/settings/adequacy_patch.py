@@ -19,7 +19,7 @@ class PriceTakingOrder(Enum):
     LOAD = "Load"
 
 
-@dataclass
+@dataclass(frozen=True)
 class AdequacyPatchParameters:
     include_adq_patch: bool = False
     set_to_null_ntc_from_physical_out_to_physical_in_for_first_step: bool = True

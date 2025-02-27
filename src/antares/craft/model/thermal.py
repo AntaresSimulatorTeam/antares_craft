@@ -64,7 +64,7 @@ class ThermalCostGeneration(Enum):
     USE_COST_TIME_SERIES = "useCostTimeseries"
 
 
-@dataclass
+@dataclass(frozen=True)
 class ThermalClusterProperties(ClusterProperties):
     group: ThermalClusterGroup = ThermalClusterGroup.OTHER1
     gen_ts: LocalTSGenerationBehavior = LocalTSGenerationBehavior.USE_GLOBAL

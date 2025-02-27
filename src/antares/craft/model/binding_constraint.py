@@ -38,7 +38,7 @@ class ConstraintMatrixName(Enum):
     GREATER_TERM = "gt"
 
 
-@dataclass
+@dataclass(frozen=True)
 class LinkData:
     """
     DTO for a constraint term on a link between two areas.
@@ -48,7 +48,7 @@ class LinkData:
     area2: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class ClusterData:
     """
     DTO for a constraint term on a cluster in an area.
@@ -58,7 +58,7 @@ class ClusterData:
     cluster: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class ConstraintTermData:
     data: Union[LinkData, ClusterData]
 
@@ -77,13 +77,13 @@ class ConstraintTermData:
         raise ValueError(f"Dict {input} couldn't be serialized as a ConstraintTermData object")
 
 
-@dataclass
+@dataclass(frozen=True)
 class ConstraintTermUpdate(ConstraintTermData):
     weight: Optional[float] = None
     offset: Optional[int] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class ConstraintTerm(ConstraintTermData):
     weight: float = 1
     offset: int = 0
@@ -103,7 +103,7 @@ class BindingConstraintPropertiesUpdate:
     group: Optional[str] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class BindingConstraintProperties:
     enabled: bool = True
     time_step: BindingConstraintFrequency = BindingConstraintFrequency.HOURLY

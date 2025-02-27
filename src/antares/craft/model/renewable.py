@@ -54,7 +54,7 @@ class TimeSeriesInterpretation(Enum):
     PRODUCTION_FACTOR = "production-factor"
 
 
-@dataclass
+@dataclass(frozen=True)
 class RenewableClusterProperties(ClusterProperties):
     group: RenewableClusterGroup = RenewableClusterGroup.OTHER1
     ts_interpretation: TimeSeriesInterpretation = TimeSeriesInterpretation.POWER_GENERATION
