@@ -47,7 +47,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
 )
-from antares.craft.model.link import Link
+from antares.craft.model.link import Link, LinkPropertiesUpdate, LinkProperties, AssetType
 from antares.craft.model.output import (
     Output,
 )
@@ -823,32 +823,31 @@ class TestCreateAPI:
 
     def test_update_multiple_links_success(self):
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/links"
+
+        link_up_1 = LinkPropertiesUpdate(hurdles_cost=True, loop_flow=True)
+        link_up_2 = LinkPropertiesUpdate(display_comments=False, asset_type=AssetType.AC)
         json_update_links = {
             "area_test / area_test_1": {
-                "hurdlesCost": "false",
-                "loopFlow": "false",
-                "usePhaseShifter": "false",
-                "transmissionCapacities": "enabled",
-                "assetType": "virt",
-                "displayComments": "true",
+                "hurdles_cost": "false",
+                "loop_flow": "false",
+                "use_phase_shifter": "false",
+                "transmission_capacities": "enabled",
+                "asset_type": "virt",
+                "display_comments": "true",
                 "comments": "",
-                "filterSynthesis": "hourly, daily, weekly, monthly, annual",
-                "filterYearByYear": "hourly, daily, weekly, monthly, annual",
-                "area1": "area_test",
-                "area2": "area_test_1",
+                "filter_synthesis": "hourly, daily, weekly, monthly, annual",
+                "filter_year_by_year": "hourly, daily, weekly, monthly, annual",
             },
             "area_test / area_test_2": {
-                "hurdlesCost": "false",
-                "loopFlow": "false",
-                "usePhaseShifter": "false",
-                "transmissionCapacities": "enabled",
-                "assetType": "virt",
-                "displayComments": "true",
+                "hurdles_cost": "false",
+                "loop_flow": "false",
+                "use_phase_shifter": "false",
+                "transmission_capacities": "enabled",
+                "asset_type": "virt",
+                "display_comments": "true",
                 "comments": "",
-                "filterSynthesis": "hourly, daily, weekly, monthly, annual",
-                "filterYearByYear": "hourly, daily, weekly, monthly, annual",
-                "area1": "area_test",
-                "area2": "area_test_2",
+                "filter_synthesis": "hourly, daily, weekly, monthly, annual",
+                "filter_year_by_year": "hourly, daily, weekly, monthly, annual",
             },
         }
 
@@ -862,7 +861,8 @@ class TestCreateAPI:
 
         with requests_mock.Mocker() as mocker:
             for link in json_update_links:
-                updated_links.update({link: json_update_links[link]})
+                link_up = LinkPropertiesUpdate(**json_update_links[link])
+                updated_links.update({link: link_up})
 
             mocker.put(url=url, status_code=200, json=json_update_links)
             self.study.update_multiple_links(updated_links)
