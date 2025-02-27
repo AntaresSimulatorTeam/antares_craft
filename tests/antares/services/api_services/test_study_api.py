@@ -47,7 +47,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
 )
-from antares.craft.model.link import Link, LinkPropertiesUpdate, LinkProperties
+from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate
 from antares.craft.model.output import (
     Output,
 )
