@@ -47,7 +47,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
 )
-from antares.craft.model.link import Link, LinkPropertiesUpdate, LinkProperties, AssetType
+from antares.craft.model.link import Link, LinkPropertiesUpdate
 from antares.craft.model.output import (
     Output,
 )
@@ -823,9 +823,6 @@ class TestCreateAPI:
 
     def test_update_multiple_links_success(self):
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/links"
-
-        link_up_1 = LinkPropertiesUpdate(hurdles_cost=True, loop_flow=True)
-        link_up_2 = LinkPropertiesUpdate(display_comments=False, asset_type=AssetType.AC)
         json_update_links = {
             "area_test / area_test_1": {
                 "hurdles_cost": "false",
