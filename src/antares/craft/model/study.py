@@ -265,9 +265,13 @@ class Study:
         self._study_service.generate_thermal_timeseries(nb_years)
         self._settings.general_parameters.nb_timeseries_thermal = nb_years
 
-    def update_multiple_links(self, dict_links: Dict[str, LinkPropertiesUpdate]) -> None:
-        new_links_props = self._link_service.update_multiple_links(dict_links)
-        # parcourir les nouvelles properties et changer les links de la study
+    def update_multiple_links(self, new_properties: Dict[str, LinkPropertiesUpdate]) -> None:
+        """
+        update several links with multiple new properties
+        Args:
+            new_properties: the properties dictionary we will update our links with
+        """
+        new_links_props = self._link_service.update_multiple_links(new_properties)
         for link_props in new_links_props:
             self._links[link_props]._properties = new_links_props[link_props]
 

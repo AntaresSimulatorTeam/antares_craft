@@ -220,15 +220,10 @@ class LinkApiService(BaseLinkService):
             updated_links: Dict[str, LinkProperties] = {}
 
             for link in links:
-                if "area1" in links[link].keys():
-                    links[link].pop("area1")
-                if "area2" in links[link].keys():
-                    links[link].pop("area2")
-
                 api_response = LinkPropertiesAndUiAPI.model_validate(links[link])
                 link_properties = api_response.to_properties_user_model()
 
-                updated_links.update({link: link_properties})
+                updated_links[link] = link_properties
 
         except APIError as e:
             raise LinksUpdateError(self.study_id, e.message) from e

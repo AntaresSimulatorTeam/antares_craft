@@ -14,7 +14,6 @@ import pytest
 import shutil
 
 from pathlib import Path, PurePath
-from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -488,21 +487,23 @@ class TestWebClient:
         assert constraint_1.properties.group == "another_group"
         assert constraint_1.properties.enabled is False  # Checks old value wasn't modified
 
-        link_up_1 = LinkPropertiesUpdate(hurdles_cost=True, use_phase_shifter=True)
-        link_up_2 = LinkPropertiesUpdate(
+        link_properties_update_1 = LinkPropertiesUpdate(hurdles_cost=True, use_phase_shifter=True)
+        link_properties_update_2 = LinkPropertiesUpdate(
             transmission_capacities=TransmissionCapacities.ENABLED, asset_type=AssetType.GAZ
         )
-        links_updates: Dict[str, LinkPropertiesUpdate] = {link_be_fr.id: link_up_1, link_de_fr.id: link_up_2}
-        study.update_multiple_links(links_updates)
 
-        assert study.get_links()["be / fr"].properties.hurdles_cost
-        assert study.get_links()["be / fr"].properties.use_phase_shifter
-        assert study.get_links()["be / fr"].properties.display_comments
-        assert not study.get_links()["be / fr"].properties.loop_flow
+        study.update_multiple_links({link_be_fr.id: link_properties_update_1, link_de_fr.id: link_properties_update_2})
 
-        assert study.get_links()["de / fr"].properties.transmission_capacities == TransmissionCapacities.ENABLED
-        assert study.get_links()["de / fr"].properties.asset_type == AssetType.GAZ
-        assert not study.get_links()["de / fr"].properties.hurdles_cost
+        link_be_fr = study.get_links()["be / fr"]
+        assert link_be_fr.properties.hurdles_cost
+        assert link_be_fr.properties.use_phase_shifter
+        assert link_be_fr.properties.display_comments
+        assert not link_be_fr.properties.loop_flow
+
+        link_de_fr = study.get_links()["de / fr"]
+        assert link_de_fr.properties.transmission_capacities == TransmissionCapacities.ENABLED
+        assert link_de_fr.properties.asset_type == AssetType.GAZ
+        assert not link_de_fr.properties.hurdles_cost
 
         # tests constraint deletion
         study.delete_binding_constraint(constraint_1)
