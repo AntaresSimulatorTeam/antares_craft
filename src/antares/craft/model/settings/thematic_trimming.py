@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 
-@dataclass
+@dataclass(frozen=True)
 class ThematicTrimmingParameters:
     ov_cost: bool = False
     op_cost: bool = False

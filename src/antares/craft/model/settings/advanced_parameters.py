@@ -61,7 +61,7 @@ class RenewableGenerationModeling(Enum):
     CLUSTERS = "clusters"
 
 
-@dataclass
+@dataclass(frozen=True)
 class AdvancedParameters:
     initial_reservoir_levels: InitialReservoirLevel = InitialReservoirLevel.COLD_START
     hydro_heuristic_policy: HydroHeuristicPolicy = HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES

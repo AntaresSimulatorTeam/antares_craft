@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import PurePosixPath
 from typing import Any, Optional
 
@@ -134,10 +134,11 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         except APIError as e:
             raise ConstraintTermEditionError(constraint_id, term.id, e.message) from e
 
+        # Copies object to bypass the fact that the class is frozen
         if term.weight:
-            existing_term.weight = term.weight
+            existing_term = replace(existing_term, weight=term.weight)
         if term.offset:
-            existing_term.offset = term.offset
+            existing_term = replace(existing_term, offset=term.offset)
         return existing_term
 
     @override

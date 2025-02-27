@@ -67,7 +67,7 @@ class OutputFormat(EnumIgnoreCase):
     ZIP = "zip-files"
 
 
-@dataclass
+@dataclass(frozen=True)
 class GeneralParameters:
     mode: Mode = Mode.ECONOMY
     horizon: str = ""
