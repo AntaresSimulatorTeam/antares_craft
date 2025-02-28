@@ -13,6 +13,8 @@
 
 from pathlib import Path
 
+import pandas as pd
+
 from antares.craft import Study
 from antares.craft.model.st_storage import STStorageProperties, STStoragePropertiesUpdate
 
@@ -31,10 +33,28 @@ class TestSTStorage:
         assert storage.properties == expected_properties
 
     def test_matrices(self, tmp_path: Path, local_study_w_storage: Study) -> None:
-        # Checks all matrices exist and area empty
+        # Checks all matrices exist and are empty
         storage = local_study_w_storage.get_areas()["fr"].get_st_storages()["sts_1"]
         assert storage.get_pmax_injection().empty
         assert storage.get_pmax_withdrawal().empty
         assert storage.get_lower_rule_curve().empty
         assert storage.get_upper_rule_curve().empty
         assert storage.get_storage_inflows().empty
+
+        # Replace matrices
+        matrix = pd.DataFrame(data=[[1, 2], [3, 4]])
+
+        storage.update_pmax_injection(matrix)
+        assert storage.get_pmax_injection().equals(matrix)
+
+        storage.update_pmax_withdrawal(matrix)
+        assert storage.get_pmax_withdrawal().equals(matrix)
+
+        storage.update_lower_rule_curve(matrix)
+        assert storage.get_lower_rule_curve().equals(matrix)
+
+        storage.update_upper_rule_curve(matrix)
+        assert storage.get_upper_rule_curve().equals(matrix)
+
+        storage.update_storage_inflows(matrix)
+        assert storage.get_storage_inflows().equals(matrix)
