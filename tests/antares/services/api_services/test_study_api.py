@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+
 import pytest
 import requests_mock
 
@@ -28,6 +29,7 @@ from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
     ConstraintRetrievalError,
     LinkCreationError,
+    LinksUpdateError,
     OutputDeletionError,
     OutputsRetrievalError,
     SimulationFailedError,
@@ -45,7 +47,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
 )
-from antares.craft.model.link import Link
+from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate
 from antares.craft.model.output import (
     Output,
 )
@@ -75,6 +77,25 @@ class TestCreateAPI:
         services.renewable_service,
         services.hydro_service,
     )
+    area_1 = Area(
+        "area_test_1",
+        services.area_service,
+        services.short_term_storage_service,
+        services.thermal_service,
+        services.renewable_service,
+        services.hydro_service,
+    )
+    area_2 = Area(
+        "area_test_2",
+        services.area_service,
+        services.short_term_storage_service,
+        services.thermal_service,
+        services.renewable_service,
+        services.hydro_service,
+    )
+
+    first_link = Link(area.id, area_1.id, services.link_service)
+    second_link = Link(area.id, area_2.id, services.link_service)
 
     def test_create_study_test_ok(self) -> None:
         with requests_mock.Mocker() as mocker:
@@ -799,3 +820,80 @@ class TestCreateAPI:
                 StudyImportError, match=f"Could not import the study test.zip : {self.antares_web_description_msg}"
             ):
                 import_study_api(self.api, study_path)
+
+    def test_update_multiple_links_success(self):
+        updated_links = {}
+        self.study._areas["area_test"] = self.area
+        self.study._areas["area_test_1"] = self.area_1
+        self.study._areas["area_test_2"] = self.area_2
+
+        self.study._links["area_test / area_test_1"] = self.first_link
+        self.study._links["area_test / area_test_2"] = self.second_link
+
+        url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/links"
+        json_update_links = {
+            "area_test / area_test_1": {
+                "hurdles_cost": False,
+                "loop_flow": False,
+                "use_phase_shifter": False,
+                "transmission_capacities": "enabled",
+                "asset_type": "virt",
+                "display_comments": True,
+                "comments": "",
+                "filter_synthesis": "hourly, daily, weekly, monthly, annual",
+                "filter_year_by_year": "hourly, daily, weekly, monthly, annual",
+                "area1": "area_test",
+                "area2": "area_test_1",
+            },
+            "area_test / area_test_2": {
+                "hurdles_cost": False,
+                "loop_flow": False,
+                "use_phase_shifter": False,
+                "transmission_capacities": "enabled",
+                "asset_type": "virt",
+                "display_comments": True,
+                "comments": "",
+                "filter_synthesis": "hourly, daily, weekly, monthly, annual",
+                "filter_year_by_year": "hourly, daily, weekly, monthly, annual",
+                "area1": "area_test",
+                "area2": "area_test_2",
+            },
+        }
+
+        with requests_mock.Mocker() as mocker:
+            for link in json_update_links:
+                json_update_links[link].pop("area1")
+                json_update_links[link].pop("area2")
+                link_up = LinkPropertiesUpdate(**json_update_links[link])
+                updated_links.update({link: link_up})
+                json_update_links[link].update({"area1": "area_test"})
+                json_update_links[link].update({"area2": "area_test_2"})
+
+            mocker.put(url=url, status_code=200, json=json_update_links)
+            self.study.update_multiple_links(updated_links)
+            json_update_links["area_test / area_test_1"].pop("area1")
+            json_update_links["area_test / area_test_1"].pop("area2")
+            json_update_links["area_test / area_test_2"].pop("area1")
+            json_update_links["area_test / area_test_2"].pop("area2")
+
+            link_props_1 = LinkProperties(**json_update_links["area_test / area_test_1"])
+            link_props_2 = LinkProperties(**json_update_links["area_test / area_test_2"])
+
+            test_links_1 = self.study.get_links()["area_test / area_test_1"]
+            assert test_links_1.properties.hurdles_cost == link_props_1.hurdles_cost
+            assert test_links_1.properties.display_comments == link_props_1.display_comments
+            test_links_2 = self.study.get_links()["area_test / area_test_2"]
+            assert test_links_2.properties.hurdles_cost == link_props_2.hurdles_cost
+            assert test_links_2.properties.display_comments == link_props_2.display_comments
+
+    def test_update_multiple_links_fail(self):
+        url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/links"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.put(url, status_code=404, json={"description": self.antares_web_description_msg})
+
+            with pytest.raises(
+                LinksUpdateError,
+                match=f"Could not update links from study {self.study_id} : {self.antares_web_description_msg}",
+            ):
+                self.study.update_multiple_links({})

@@ -47,7 +47,15 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.hydro import HydroPropertiesUpdate
-from antares.craft.model.link import LinkProperties, LinkPropertiesUpdate, LinkStyle, LinkUi, LinkUiUpdate
+from antares.craft.model.link import (
+    AssetType,
+    LinkProperties,
+    LinkPropertiesUpdate,
+    LinkStyle,
+    LinkUi,
+    LinkUiUpdate,
+    TransmissionCapacities,
+)
 from antares.craft.model.renewable import (
     RenewableClusterGroup,
     RenewableClusterProperties,
@@ -476,6 +484,27 @@ class TestWebClient:
         constraint_1.update_properties(new_props)
         assert constraint_1.properties.group == "another_group"
         assert constraint_1.properties.enabled is False  # Checks old value wasn't modified
+
+        # creating link properties update to modify all the actual links
+        link_properties_update_1 = LinkPropertiesUpdate(hurdles_cost=True, use_phase_shifter=True)
+        link_properties_update_2 = LinkPropertiesUpdate(
+            transmission_capacities=TransmissionCapacities.ENABLED, asset_type=AssetType.GAZ
+        )
+
+        study.update_multiple_links({link_be_fr.id: link_properties_update_1, link_de_fr.id: link_properties_update_2})
+
+        link_be_fr = study.get_links()["be / fr"]
+
+        # Checking given values are well modified
+        assert link_be_fr.properties.hurdles_cost
+        assert link_be_fr.properties.use_phase_shifter
+        assert link_be_fr.properties.display_comments
+        assert not link_be_fr.properties.loop_flow
+
+        link_de_fr = study.get_links()["de / fr"]
+        assert link_de_fr.properties.transmission_capacities == TransmissionCapacities.ENABLED
+        assert link_de_fr.properties.asset_type == AssetType.GAZ
+        assert not link_de_fr.properties.hurdles_cost
 
         # tests constraint deletion
         study.delete_binding_constraint(constraint_1)

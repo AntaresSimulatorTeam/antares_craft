@@ -13,7 +13,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 import pandas as pd
 
@@ -457,6 +457,10 @@ class BaseLinkService(ABC):
 
     @abstractmethod
     def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        pass
+
+    @abstractmethod
+    def update_multiple_links(self, dict_links: Dict[str, "LinkPropertiesUpdate"]) -> Dict[str, "LinkProperties"]:
         pass
 
 

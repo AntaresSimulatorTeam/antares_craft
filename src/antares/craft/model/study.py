@@ -12,7 +12,7 @@
 from dataclasses import replace
 from pathlib import Path, PurePath
 from types import MappingProxyType
-from typing import List, Optional, cast
+from typing import Dict, List, Optional, cast
 
 import pandas as pd
 
@@ -26,7 +26,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintProperties,
     ConstraintTerm,
 )
-from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
@@ -332,6 +332,16 @@ class Study:
         self._study_service.generate_thermal_timeseries(nb_years)
         # Copies objects to bypass the fact that the class is frozen
         self._settings.general_parameters = replace(self._settings.general_parameters, nb_timeseries_thermal=nb_years)
+
+    def update_multiple_links(self, new_properties: Dict[str, LinkPropertiesUpdate]) -> None:
+        """
+        update several links with multiple new properties
+        Args:
+            new_properties: the properties dictionary we will update our links with
+        """
+        new_links_props = self._link_service.update_multiple_links(new_properties)
+        for link_props in new_links_props:
+            self._links[link_props]._properties = new_links_props[link_props]
 
 
 # Design note:
