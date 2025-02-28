@@ -190,6 +190,15 @@ class STStorageMatrixUploadError(Exception):
         super().__init__(self.message)
 
 
+class STStorageMatrixFormatError(Exception):
+    def __init__(self, area_name: str, storage_name: str, matrix_name: str, shape: tuple[int, int]) -> None:
+        self.message = (
+            f"Wrong format for {matrix_name} matrix for storage {storage_name} inside area {area_name}."
+            f"Expected shape is (8760, 1) and was : {shape}"
+        )
+        super().__init__(self.message)
+
+
 class STStorageDeletionError(Exception):
     def __init__(self, area_id: str, st_storage_names: List[str], message: str) -> None:
         self.message = (

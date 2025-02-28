@@ -9,13 +9,16 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import pytest
 
+import re
 
 from pathlib import Path
 
 import pandas as pd
 
 from antares.craft import Study
+from antares.craft.exceptions.exceptions import STStorageMatrixFormatError
 from antares.craft.model.st_storage import STStorageProperties, STStoragePropertiesUpdate
 
 
@@ -42,7 +45,7 @@ class TestSTStorage:
         assert storage.get_storage_inflows().empty
 
         # Replace matrices
-        matrix = pd.DataFrame(data=[[1, 2], [3, 4]])
+        matrix = pd.DataFrame(data=8760 * [[3]])
 
         storage.update_pmax_injection(matrix)
         assert storage.get_pmax_injection().equals(matrix)
@@ -58,3 +61,13 @@ class TestSTStorage:
 
         storage.update_storage_inflows(matrix)
         assert storage.get_storage_inflows().equals(matrix)
+
+        # Try to update with wrongly formatted matrix
+        matrix = pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]])
+        with pytest.raises(
+            STStorageMatrixFormatError,
+            match=re.escape(
+                "Wrong format for pmax_injection matrix for storage sts_1 inside area fr.Expected shape is (8760, 1) and was : (2, 3)"
+            ),
+        ):
+            storage.update_pmax_injection(matrix)
