@@ -158,8 +158,6 @@ class ThermalCluster:
         self._id = transform_name_to_id(name)
         self._properties = properties or ThermalClusterProperties()
 
-    # TODO: Add matrices.
-
     @property
     def area_id(self) -> str:
         return self._area_id
