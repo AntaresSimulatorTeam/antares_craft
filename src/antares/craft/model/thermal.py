@@ -174,9 +174,10 @@ class ThermalCluster:
     def properties(self) -> ThermalClusterProperties:
         return self._properties
 
-    def update_properties(self, properties: ThermalClusterPropertiesUpdate) -> None:
+    def update_properties(self, properties: ThermalClusterPropertiesUpdate) -> ThermalClusterProperties:
         new_properties = self._thermal_service.update_thermal_properties(self, properties)
         self._properties = new_properties
+        return self._properties
 
     def get_prepro_data_matrix(self) -> pd.DataFrame:
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.PREPRO_DATA)

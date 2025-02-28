@@ -96,9 +96,10 @@ class RenewableCluster:
     def properties(self) -> RenewableClusterProperties:
         return self._properties
 
-    def update_properties(self, properties: RenewableClusterPropertiesUpdate) -> None:
+    def update_properties(self, properties: RenewableClusterPropertiesUpdate) -> RenewableClusterProperties:
         new_properties = self._renewable_service.update_renewable_properties(self, properties)
         self._properties = new_properties
+        return self._properties
 
     def get_timeseries(self) -> pd.DataFrame:
         return self._renewable_service.get_renewable_matrix(self.id, self.area_id)

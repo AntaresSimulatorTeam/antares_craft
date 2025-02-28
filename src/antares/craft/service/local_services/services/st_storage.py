@@ -56,7 +56,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
             if storage["name"] == st_storage.name:
                 # Update properties
                 upd_properties = STStoragePropertiesLocal.from_user_model(properties)
-                upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_unset=True)
+                upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 storage.update(upd_props_as_dict)
 
                 # Prepare the object to return
