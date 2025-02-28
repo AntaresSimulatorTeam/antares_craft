@@ -80,8 +80,6 @@ class RenewableCluster:
         self._id = transform_name_to_id(name)
         self._properties = properties or RenewableClusterProperties()
 
-    # TODO: Add matrices.
-
     @property
     def area_id(self) -> str:
         return self._area_id
