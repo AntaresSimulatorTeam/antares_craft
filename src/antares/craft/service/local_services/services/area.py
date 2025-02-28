@@ -178,12 +178,26 @@ class AreaLocalService(BaseAreaService):
         list_ini.add_section({st_storage_name: new_section_content})
         list_ini.write_ini_file(sort_sections=True)
 
-        return STStorage(
+        storage = STStorage(
             self.storage_service,
             area_id,
             st_storage_name,
             properties,
         )
+
+        # Create empty matrices
+        series = pd.DataFrame()
+        cluster_id = storage.id
+        for ts in [
+            TimeSeriesFileType.ST_STORAGE_PMAX_INJECTION,
+            TimeSeriesFileType.ST_STORAGE_PMAX_WITHDRAWAL,
+            TimeSeriesFileType.ST_STORAGE_INFLOWS,
+            TimeSeriesFileType.ST_STORAGE_LOWER_RULE_CURVE,
+            TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE,
+        ]:
+            write_timeseries(self.config.study_path, series, ts, area_id, cluster_id=cluster_id)
+
+        return storage
 
     @override
     def create_wind(self, area_id: str, series: pd.DataFrame) -> None:

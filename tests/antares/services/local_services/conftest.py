@@ -70,6 +70,13 @@ def local_study_w_thermal(tmp_path, local_study_w_links) -> Study:
 
 
 @pytest.fixture
+def local_study_w_storage(tmp_path, local_study_w_areas) -> Study:
+    st_properties = STStorageProperties(efficiency=0.4, initial_level_optim=True)
+    local_study_w_areas.get_areas()["fr"].create_st_storage("sts_1", st_properties)
+    return local_study_w_areas
+
+
+@pytest.fixture
 def default_thermal_cluster_properties() -> ThermalClusterProperties:
     return ThermalClusterProperties(
         group=ThermalClusterGroup.OTHER1,
