@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-import pytest
 
 import os
 import typing as t
@@ -1013,13 +1012,19 @@ class TestReadLinks:
             assert isinstance(link.properties.filter_synthesis, set)
 
 
-class TestReadSTstorage:
-    def test_read_storage_local(self, local_study_w_thermal):
-        # TODO not finished at all, just here to validate area.read_st_storage
-        study_path = local_study_w_thermal.service.config.study_path
+class TestReadSTStorage:
+    def test_read_st_storage_local(self, local_study_w_storage):
+        study_path = t.cast(LocalConfiguration, local_study_w_storage.service.config).study_path
         local_study_object = read_study_local(study_path)
         areas = local_study_object.read_areas()
 
         for area in areas:
-            with pytest.raises(NotImplementedError):
-                area.read_st_storages()
+            storages = area.read_st_storages()
+            if area.name == "fr":
+                assert len(storages) == 1
+                storage = storages[0]
+                assert storage.name == "sts_1"
+                assert storage.properties.efficiency == 0.4
+                assert storage.properties.initial_level_optim is True
+            else:
+                assert storages == []
