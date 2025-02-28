@@ -822,6 +822,14 @@ class TestCreateAPI:
                 import_study_api(self.api, study_path)
 
     def test_update_multiple_links_success(self):
+        updated_links = {}
+        self.study._areas["area_test"] = self.area
+        self.study._areas["area_test_1"] = self.area_1
+        self.study._areas["area_test_2"] = self.area_2
+
+        self.study._links["area_test / area_test_1"] = self.first_link
+        self.study._links["area_test / area_test_2"] = self.second_link
+
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/links"
         json_update_links = {
             "area_test / area_test_1": {
@@ -852,23 +860,22 @@ class TestCreateAPI:
             },
         }
 
-        updated_links = {}
-        self.study._areas["area_test"] = self.area
-        self.study._areas["area_test_1"] = self.area_1
-        self.study._areas["area_test_2"] = self.area_2
-
-        self.study._links["area_test / area_test_1"] = self.first_link
-        self.study._links["area_test / area_test_2"] = self.second_link
-
         with requests_mock.Mocker() as mocker:
             for link in json_update_links:
                 json_update_links[link].pop("area1")
                 json_update_links[link].pop("area2")
                 link_up = LinkPropertiesUpdate(**json_update_links[link])
                 updated_links.update({link: link_up})
+                json_update_links[link].update({"area1": "area_test"})
+                json_update_links[link].update({"area2": "area_test_2"})
 
             mocker.put(url=url, status_code=200, json=json_update_links)
             self.study.update_multiple_links(updated_links)
+            json_update_links["area_test / area_test_1"].pop("area1")
+            json_update_links["area_test / area_test_1"].pop("area2")
+            json_update_links["area_test / area_test_2"].pop("area1")
+            json_update_links["area_test / area_test_2"].pop("area2")
+
             link_props_1 = LinkProperties(**json_update_links["area_test / area_test_1"])
             link_props_2 = LinkProperties(**json_update_links["area_test / area_test_2"])
 

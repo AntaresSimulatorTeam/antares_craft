@@ -220,6 +220,8 @@ class LinkApiService(BaseLinkService):
             updated_links: Dict[str, LinkProperties] = {}
 
             for link in links:
+                links[link].pop("area1")
+                links[link].pop("area2")
                 api_response = LinkPropertiesAndUiAPI.model_validate(links[link])
                 link_properties = api_response.to_properties_user_model()
 

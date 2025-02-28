@@ -487,6 +487,7 @@ class TestWebClient:
         assert constraint_1.properties.group == "another_group"
         assert constraint_1.properties.enabled is False  # Checks old value wasn't modified
 
+        # creating link properties update to modify all the actual links
         link_properties_update_1 = LinkPropertiesUpdate(hurdles_cost=True, use_phase_shifter=True)
         link_properties_update_2 = LinkPropertiesUpdate(
             transmission_capacities=TransmissionCapacities.ENABLED, asset_type=AssetType.GAZ
@@ -496,7 +497,7 @@ class TestWebClient:
 
         link_be_fr = study.get_links()["be / fr"]
 
-        # Checking values are well modified
+        # Checking given values are well modified
         assert link_be_fr.properties.hurdles_cost
         assert link_be_fr.properties.use_phase_shifter
         assert link_be_fr.properties.display_comments
