@@ -64,7 +64,7 @@ class ThermalCostGeneration(Enum):
     USE_COST_TIME_SERIES = "useCostTimeseries"
 
 
-@dataclass
+@dataclass(frozen=True)
 class ThermalClusterProperties(ClusterProperties):
     group: ThermalClusterGroup = ThermalClusterGroup.OTHER1
     gen_ts: LocalTSGenerationBehavior = LocalTSGenerationBehavior.USE_GLOBAL
@@ -157,8 +157,6 @@ class ThermalCluster:
         self._name = name
         self._id = transform_name_to_id(name)
         self._properties = properties or ThermalClusterProperties()
-
-    # TODO: Add matrices.
 
     @property
     def area_id(self) -> str:

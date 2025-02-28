@@ -54,7 +54,7 @@ class TimeSeriesInterpretation(Enum):
     PRODUCTION_FACTOR = "production-factor"
 
 
-@dataclass
+@dataclass(frozen=True)
 class RenewableClusterProperties(ClusterProperties):
     group: RenewableClusterGroup = RenewableClusterGroup.OTHER1
     ts_interpretation: TimeSeriesInterpretation = TimeSeriesInterpretation.POWER_GENERATION
@@ -79,8 +79,6 @@ class RenewableCluster:
         self._name = name
         self._id = transform_name_to_id(name)
         self._properties = properties or RenewableClusterProperties()
-
-    # TODO: Add matrices.
 
     @property
     def area_id(self) -> str:

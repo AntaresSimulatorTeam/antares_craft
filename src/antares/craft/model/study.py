@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from dataclasses import replace
 from pathlib import Path, PurePath
 from types import MappingProxyType
 from typing import Dict, List, Optional, cast
@@ -74,22 +74,70 @@ class Study:
         Returns: the synchronized area list
         """
         area_list = self._area_service.read_areas()
-        self._areas = {area.id: area for area in area_list}
-        return area_list
+
+        # Updates in memory objects rather than replacing them
+        existing_ids = set()
+        for area in area_list:
+            existing_ids.add(area.id)
+            if area.id not in self._areas:
+                self._areas[area.id] = area
+            else:
+                current_area = self._areas[area.id]
+                current_area._properties = area._properties
+                current_area._ui = area._ui
+
+        # Deletes objects stored in memory but do not exist anymore
+        for area_id in list(self._areas.keys()):
+            if area_id not in existing_ids:
+                del self._areas[area_id]
+
+        # Returns a sorted list
+        areas = list(self._areas.values())
+        areas.sort(key=lambda area: area.id)
+        return areas
 
     def read_links(self) -> list[Link]:
         link_list = self._link_service.read_links()
-        self._links = {link.id: link for link in link_list}
-        return link_list
+
+        # Updates in memory objects rather than replacing them
+        existing_ids = set()
+        for link in link_list:
+            existing_ids.add(link.id)
+            if link.id not in self._links:
+                self._links[link.id] = link
+            else:
+                current_link = self._links[link.id]
+                current_link._properties = link._properties
+                current_link._ui = link._ui
+
+        # Deletes objects stored in memory but do not exist anymore
+        for link_id in list(self._links.keys()):
+            if link_id not in existing_ids:
+                del self._links[link_id]
+
+        # Returns a sorted list
+        links = list(self._links.values())
+        links.sort(key=lambda link: link.id)
+        return links
+
+    def _replace_settings(self, new_settings: StudySettings) -> None:
+        self._settings.general_parameters = new_settings.general_parameters
+        self._settings.optimization_parameters = new_settings.optimization_parameters
+        self._settings.advanced_parameters = new_settings.advanced_parameters
+        self._settings.seed_parameters = new_settings.seed_parameters
+        self._settings.adequacy_patch_parameters = new_settings.adequacy_patch_parameters
+        self._settings.thematic_trimming_parameters = new_settings.thematic_trimming_parameters
+        self._settings.playlist_parameters = new_settings.playlist_parameters
 
     def read_settings(self) -> StudySettings:
         study_settings = self._settings_service.read_study_settings()
-        self._settings = study_settings
-        return study_settings
+        self._replace_settings(study_settings)
+        return self._settings
 
     def update_settings(self, settings: StudySettingsUpdate) -> None:
         self._settings_service.edit_study_settings(settings)
-        self._settings = self._settings_service.read_study_settings()
+        new_settings = self._settings_service.read_study_settings()
+        self._replace_settings(new_settings)
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
@@ -177,7 +225,26 @@ class Study:
 
     def read_binding_constraints(self) -> list[BindingConstraint]:
         constraints = self._binding_constraints_service.read_binding_constraints()
-        self._binding_constraints = {constraint.id: constraint for constraint in constraints}
+
+        # Updates in memory objects rather than replacing them
+        existing_ids = set()
+        for constraint in constraints:
+            existing_ids.add(constraint.id)
+            if constraint.id not in self._binding_constraints:
+                self._binding_constraints[constraint.id] = constraint
+            else:
+                current_constraint = self._binding_constraints[constraint.id]
+                current_constraint._properties = constraint._properties
+                current_constraint._terms = constraint._terms
+
+        # Deletes objects stored in memory but do not exist anymore
+        for bc_id in list(self._binding_constraints.keys()):
+            if bc_id not in existing_ids:
+                del self._binding_constraints[bc_id]
+
+        # Returns a sorted list
+        constraints = list(self._binding_constraints.values())
+        constraints.sort(key=lambda bc: bc.id)
         return constraints
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
@@ -263,7 +330,8 @@ class Study:
 
     def generate_thermal_timeseries(self, nb_years: int) -> None:
         self._study_service.generate_thermal_timeseries(nb_years)
-        self._settings.general_parameters.nb_timeseries_thermal = nb_years
+        # Copies objects to bypass the fact that the class is frozen
+        self._settings.general_parameters = replace(self._settings.general_parameters, nb_timeseries_thermal=nb_years)
 
     def update_multiple_links(self, new_properties: Dict[str, LinkPropertiesUpdate]) -> None:
         """

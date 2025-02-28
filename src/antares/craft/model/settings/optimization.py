@@ -41,7 +41,7 @@ class ExportMPS(Enum):
     OPTIM2 = "optim2"
 
 
-@dataclass
+@dataclass(frozen=True)
 class OptimizationParameters:
     simplex_range: SimplexOptimizationRange = SimplexOptimizationRange.WEEK
     transmission_capacities: OptimizationTransmissionCapacities = OptimizationTransmissionCapacities.LOCAL_VALUES

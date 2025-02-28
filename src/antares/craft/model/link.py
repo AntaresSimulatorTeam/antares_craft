@@ -54,7 +54,7 @@ class LinkPropertiesUpdate:
     filter_year_by_year: Optional[Set[FilterOption]] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class LinkProperties:
     hurdles_cost: bool = False
     loop_flow: bool = False
@@ -67,7 +67,7 @@ class LinkProperties:
     filter_year_by_year: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
 
 
-@dataclass
+@dataclass(frozen=True)
 class LinkUi:
     link_style: LinkStyle = LinkStyle.PLAIN
     link_width: float = 1

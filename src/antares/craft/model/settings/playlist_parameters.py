@@ -12,7 +12,7 @@
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(frozen=True)
 class PlaylistParameters:
     status: bool
     weight: float

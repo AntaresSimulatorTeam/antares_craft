@@ -138,8 +138,11 @@ class TestWebClient:
         assert area_be.ui.color_rgb == area_ui.color_rgb
 
         # tests area creation with properties
-        properties = AreaProperties(energy_cost_spilled=100, adequacy_patch_mode=AdequacyPatchMode.INSIDE)
-        properties.filter_synthesis = [FilterOption.HOURLY, FilterOption.DAILY, FilterOption.HOURLY]
+        properties = AreaProperties(
+            energy_cost_spilled=100,
+            adequacy_patch_mode=AdequacyPatchMode.INSIDE,
+            filter_synthesis={FilterOption.HOURLY, FilterOption.DAILY, FilterOption.HOURLY},
+        )
         area_name = "DE"
         area_de = study.create_area(area_name, properties=properties)
         assert area_de.properties.energy_cost_spilled == 100
@@ -154,8 +157,7 @@ class TestWebClient:
 
         # tests link creation with ui and properties
         link_ui = LinkUi(colorr=44)
-        link_properties = LinkProperties(hurdles_cost=True)
-        link_properties.filter_year_by_year = [FilterOption.HOURLY]
+        link_properties = LinkProperties(hurdles_cost=True, filter_year_by_year={FilterOption.HOURLY})
         link_be_fr = study.create_link(area_from=area_be.id, area_to=area_fr.id, ui=link_ui, properties=link_properties)
         assert link_be_fr.ui.colorr == 44
         assert link_be_fr.properties.hurdles_cost
@@ -187,8 +189,7 @@ class TestWebClient:
 
         # test thermal cluster creation with properties
         thermal_name = "gaz_be"
-        thermal_properties = ThermalClusterProperties(efficiency=55)
-        thermal_properties.group = ThermalClusterGroup.GAS
+        thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS)
         thermal_be = area_be.create_thermal_cluster(thermal_name, thermal_properties)
         properties = thermal_be.properties
         assert properties.efficiency == 55
@@ -246,8 +247,7 @@ class TestWebClient:
 
         # test renewable cluster creation with properties
         renewable_name = "wind_onshore"
-        renewable_properties = RenewableClusterProperties(enabled=False)
-        renewable_properties.group = RenewableClusterGroup.WIND_ON_SHORE
+        renewable_properties = RenewableClusterProperties(enabled=False, group=RenewableClusterGroup.WIND_ON_SHORE)
         renewable_onshore = area_fr.create_renewable_cluster(renewable_name, renewable_properties, None)
         properties = renewable_onshore.properties
         assert not properties.enabled
@@ -259,27 +259,21 @@ class TestWebClient:
         assert storage_fr.name == st_storage_name
         assert storage_fr.id == "cluster_test"
 
-        # test each list of clusters has the same length and objects by comparing their id
+        # tests that `read` methods don't create copies of objects but rather updates their internal properties
+        previous_thermals = list(area_fr.get_thermals().values())
+        previous_thermals.sort(key=lambda th: th.id)
         thermal_list = area_fr.read_thermal_clusters()
+        assert thermal_list == previous_thermals
+
+        previous_renewables = list(area_fr.get_renewables().values())
+        previous_renewables.sort(key=lambda renew: renew.id)
         renewable_list = area_fr.read_renewables()
+        assert renewable_list == previous_renewables
+
+        previous_storages = list(area_fr.get_st_storages().values())
+        previous_storages.sort(key=lambda sts: sts.id)
         storage_list = area_fr.read_st_storages()
-
-        assert len(thermal_list) == 2
-        assert len(renewable_list) == 2
-        assert len(storage_list) == 1
-
-        actual_thermal_cluster_1 = thermal_list[0]
-        actual_thermal_cluster_2 = thermal_list[1]
-        assert actual_thermal_cluster_1.id == thermal_fr.id
-        assert actual_thermal_cluster_2.id == thermal_value_be.id
-
-        actual_renewable_1 = renewable_list[0]
-        actual_renewable_2 = renewable_list[1]
-        assert actual_renewable_1.id == renewable_fr.id
-        assert actual_renewable_2.id == renewable_onshore.id
-
-        actual_storage = storage_list[0]
-        assert actual_storage.id == storage_fr.id
+        assert storage_list == previous_storages
 
         # test actual_hydro has the same datas (id, properties and matrices) than area_fr hydro
         actual_hydro = area_fr.hydro
@@ -311,15 +305,17 @@ class TestWebClient:
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
-        storage_properties = STStorageProperties(reservoir_capacity=0.5)
-        storage_properties.group = STStorageGroup.BATTERY
+        storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY)
         battery_fr = area_fr.create_st_storage(st_storage_name, storage_properties)
         properties = battery_fr.properties
         assert properties.reservoir_capacity == 0.5
         assert properties.group == STStorageGroup.BATTERY
 
         # test reading list of areas
+        previous_areas = list(study.get_areas().values())
+        previous_areas.sort(key=lambda area: area.id)
         area_list = study.read_areas()
+        assert area_list == previous_areas  # Checks objects aren't copied
         assert len(area_list) == 3
         # asserts areas are sorted by id
         assert area_list[0].id == area_be.id
@@ -360,8 +356,7 @@ class TestWebClient:
         assert area_fr.get_st_storages() == {battery_fr.id: battery_fr, storage_fr.id: storage_fr}
 
         # test binding constraint creation without terms
-        properties = BindingConstraintProperties(enabled=False)
-        properties.group = "group_1"
+        properties = BindingConstraintProperties(enabled=False, group="group_1")
         constraint_1 = study.create_binding_constraint(name="bc_1", properties=properties)
         assert constraint_1.name == "bc_1"
         assert not constraint_1.properties.enabled
@@ -461,7 +456,10 @@ class TestWebClient:
         assert thermal_fr.properties.group == ThermalClusterGroup.NUCLEAR
 
         # assert study got all links
+        previous_links = list(study.get_links().values())
+        previous_links.sort(key=lambda link: link.id)
         links = study.read_links()
+        assert links == previous_links  # Checks objects aren't copied
         assert len(links) == 2
         test_link_be_fr = links[0]
         test_link_de_fr = links[1]
@@ -743,7 +741,10 @@ class TestWebClient:
         assert expected_values == matrix_values
 
         # ===== Test read binding constraints =====
+        previous_bcs = list(study.get_binding_constraints().values())
+        previous_bcs.sort(key=lambda bc: bc.id)
         constraints = study.read_binding_constraints()
+        assert constraints == previous_bcs  # Checks objects aren't copied
 
         assert len(constraints) == 2
         constraint = constraints[0]

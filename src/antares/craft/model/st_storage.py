@@ -52,7 +52,7 @@ class STStoragePropertiesUpdate:
     enabled: Optional[bool] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class STStorageProperties:
     group: STStorageGroup = STStorageGroup.OTHER1
     injection_nominal_capacity: float = 0

@@ -63,7 +63,7 @@ class AreaPropertiesUpdate:
     spread_spilled_energy_cost: Optional[float] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class AreaProperties:
     energy_cost_unsupplied: float = 0.0
     energy_cost_spilled: float = 0.0
@@ -88,7 +88,7 @@ class AreaUiUpdate:
             raise ValueError(f"The `color_rgb` list must contain exactly 3 values, currently {self.color_rgb}")
 
 
-@dataclass
+@dataclass(frozen=True)
 class AreaUi:
     x: int = 0
     y: int = 0
@@ -250,17 +250,69 @@ class Area:
     def create_misc_gen(self, series: pd.DataFrame) -> None:
         self._area_service.create_misc_gen(self.id, series)
 
-    def read_st_storages(
-        self,
-    ) -> list[STStorage]:
-        return self._storage_service.read_st_storages(self.id)
+    def read_st_storages(self) -> list[STStorage]:
+        st_storages = self._storage_service.read_st_storages(self.id)
 
-    def read_renewables(
-        self,
-    ) -> list[RenewableCluster]:
-        return self._renewable_service.read_renewables(self.id)
+        # Updates in memory objects rather than replacing them
+        existing_ids = set()
+        for storage in st_storages:
+            existing_ids.add(storage.id)
+            if storage.id not in self._st_storages:
+                self._st_storages[storage.id] = storage
+            else:
+                self._st_storages[storage.id]._properties = storage._properties
 
-    def read_thermal_clusters(
-        self,
-    ) -> list[ThermalCluster]:
-        return self._thermal_service.read_thermal_clusters(self.id)
+        # Deletes objects stored in memory but do not exist anymore
+        for storage_id in list(self._st_storages.keys()):
+            if storage_id not in existing_ids:
+                del self._st_storages[storage_id]
+
+        # Returns a sorted list
+        storages = list(self._st_storages.values())
+        storages.sort(key=lambda sts: sts.id)
+        return storages
+
+    def read_renewables(self) -> list[RenewableCluster]:
+        renewables = self._renewable_service.read_renewables(self.id)
+
+        # Updates in memory objects rather than replacing them
+        existing_ids = set()
+        for renewable in renewables:
+            existing_ids.add(renewable.id)
+            if renewable.id not in self._renewables:
+                self._renewables[renewable.id] = renewable
+            else:
+                self._renewables[renewable.id]._properties = renewable._properties
+
+        # Deletes objects stored in memory but do not exist anymore
+
+        for renewable_id in list(self._renewables.keys()):
+            if renewable_id not in existing_ids:
+                del self._renewables[renewable_id]
+
+        # Returns a sorted list
+        renewables = list(self._renewables.values())
+        renewables.sort(key=lambda renewable: renewable.id)
+        return renewables
+
+    def read_thermal_clusters(self) -> list[ThermalCluster]:
+        thermals = self._thermal_service.read_thermal_clusters(self.id)
+
+        # Updates in memory objects rather than replacing them
+        existing_ids = set()
+        for thermal in thermals:
+            existing_ids.add(thermal.id)
+            if thermal.id not in self._thermals:
+                self._thermals[thermal.id] = thermal
+            else:
+                self._thermals[thermal.id]._properties = thermal._properties
+
+        # Deletes objects stored in memory but do not exist anymore
+        for thermal_id in list(self._thermals.keys()):
+            if thermal_id not in existing_ids:
+                del self._thermals[thermal_id]
+
+        # Returns a sorted list
+        thermals = list(self._thermals.values())
+        thermals.sort(key=lambda th: th.id)
+        return thermals

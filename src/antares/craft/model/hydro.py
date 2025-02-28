@@ -36,7 +36,7 @@ class HydroPropertiesUpdate:
     pumping_efficiency: Optional[float] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class HydroProperties:
     inter_daily_breakdown: float = 1
     intra_daily_modulation: float = 24
