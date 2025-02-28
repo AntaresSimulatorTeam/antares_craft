@@ -29,3 +29,12 @@ class TestSTStorage:
         expected_properties = STStorageProperties(efficiency=0.1, initial_level_optim=True, reservoir_capacity=1.2)
         assert new_properties == expected_properties
         assert storage.properties == expected_properties
+
+    def test_matrices(self, tmp_path: Path, local_study_w_storage: Study) -> None:
+        # Checks all matrices exist and area empty
+        storage = local_study_w_storage.get_areas()["fr"].get_st_storages()["sts_1"]
+        assert storage.get_pmax_injection().empty
+        assert storage.get_pmax_withdrawal().empty
+        assert storage.get_lower_rule_curve().empty
+        assert storage.get_upper_rule_curve().empty
+        assert storage.get_storage_inflows().empty
