@@ -16,7 +16,9 @@ from typing import Any
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import STStorageMatrixFormatError, STStoragePropertiesUpdateError
+from antares.craft.exceptions.exceptions import (
+    STStoragePropertiesUpdateError,
+)
 from antares.craft.model.st_storage import (
     STStorage,
     STStorageMatrixName,
@@ -25,6 +27,7 @@ from antares.craft.model.st_storage import (
 )
 from antares.craft.service.base_services import BaseShortTermStorageService
 from antares.craft.service.local_services.models.st_storage import STStoragePropertiesLocal
+from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
@@ -87,11 +90,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
 
     @override
     def update_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:
-        # Checks matrices dimensions
-        if not matrix.empty:
-            matrix_shape = matrix.shape
-            if matrix_shape != (8760, 1):
-                raise STStorageMatrixFormatError(storage.area_id, storage.name, ts_name.value, matrix_shape)
+        checks_matrix_dimensions(matrix, f"storage/{storage.area_id}/{storage.name}", ts_name.value)
         write_timeseries(self.config.study_path, matrix, MAPPING[ts_name], storage.area_id, storage.id)
 
     @override
