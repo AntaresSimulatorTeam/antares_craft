@@ -39,14 +39,6 @@ MAPPING = {
     ThermalClusterMatrixName.SERIES_FUEL_COST: TimeSeriesFileType.THERMAL_FUEL,
 }
 
-EXPECTED_SHAPE_MAPPING = {
-    ThermalClusterMatrixName.PREPRO_DATA: (365, 6),
-    ThermalClusterMatrixName.PREPRO_MODULATION: (8760, 4),
-    ThermalClusterMatrixName.SERIES: (8760, Any),
-    ThermalClusterMatrixName.SERIES_CO2_COST: (8760, Any),
-    ThermalClusterMatrixName.SERIES_FUEL_COST: (8760, Any),
-}
-
 
 class ThermalLocalService(BaseThermalService):
     def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
