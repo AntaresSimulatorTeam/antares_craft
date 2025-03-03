@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import List
+from typing import Any, List
 
 
 class InvalidChoiceError(ValueError):
@@ -186,15 +186,6 @@ class STStorageMatrixUploadError(Exception):
     def __init__(self, area_name: str, storage_name: str, matrix_name: str, message: str) -> None:
         self.message = (
             f"Could not upload {matrix_name} matrix for storage {storage_name} inside area {area_name}: " + message
-        )
-        super().__init__(self.message)
-
-
-class STStorageMatrixFormatError(Exception):
-    def __init__(self, area_name: str, storage_name: str, matrix_name: str, shape: tuple[int, int]) -> None:
-        self.message = (
-            f"Wrong format for {matrix_name} matrix for storage {storage_name} inside area {area_name}."
-            f"Expected shape is (8760, 1) and was : {shape}"
         )
         super().__init__(self.message)
 
@@ -442,4 +433,10 @@ class FilteringValueError(Exception):
         self.message = (
             f"Invalid value(s) in filters: {', '.join(invalid_options)}. Allowed values are: {', '.join(valid_values)}."
         )
+        super().__init__(self.message)
+
+
+class MatrixFormatError(Exception):
+    def __init__(self, matrix_name: str, expected_shape: tuple[int, Any], actual_shape: tuple[int, int]) -> None:
+        self.message = f"Wrong format for {matrix_name} matrix, expected shape is ({expected_shape[0]}, {expected_shape[1]}) and was : {actual_shape}"
         super().__init__(self.message)

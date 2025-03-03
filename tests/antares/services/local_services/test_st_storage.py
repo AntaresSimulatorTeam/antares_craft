@@ -18,7 +18,7 @@ from pathlib import Path
 import pandas as pd
 
 from antares.craft import Study
-from antares.craft.exceptions.exceptions import STStorageMatrixFormatError
+from antares.craft.exceptions.exceptions import MatrixFormatError
 from antares.craft.model.st_storage import STStorageProperties, STStoragePropertiesUpdate
 
 
@@ -65,9 +65,9 @@ class TestSTStorage:
         # Try to update with wrongly formatted matrix
         matrix = pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]])
         with pytest.raises(
-            STStorageMatrixFormatError,
+            MatrixFormatError,
             match=re.escape(
-                "Wrong format for pmax_injection matrix for storage sts_1 inside area fr.Expected shape is (8760, 1) and was : (2, 3)"
+                "Wrong format for storage/fr/sts_1/pmax_injection matrix, expected shape is (8760, 1) and was : (2, 3)"
             ),
         ):
             storage.update_pmax_injection(matrix)
