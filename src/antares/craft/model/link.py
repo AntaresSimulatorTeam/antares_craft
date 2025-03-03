@@ -129,13 +129,13 @@ class Link:
         self._ui = new_ui
         return new_ui
 
-    def create_parameters(self, series: pd.DataFrame) -> None:
+    def update_parameters(self, series: pd.DataFrame) -> None:
         self._link_service.create_parameters(series, self.area_from_id, self.area_to_id)
 
-    def create_capacity_direct(self, series: pd.DataFrame) -> None:
+    def update_capacity_direct(self, series: pd.DataFrame) -> None:
         self._link_service.create_capacity_direct(series, self.area_from_id, self.area_to_id)
 
-    def create_capacity_indirect(self, series: pd.DataFrame) -> None:
+    def update_capacity_indirect(self, series: pd.DataFrame) -> None:
         self._link_service.create_capacity_indirect(series, self.area_from_id, self.area_to_id)
 
     def get_capacity_direct(self) -> pd.DataFrame:

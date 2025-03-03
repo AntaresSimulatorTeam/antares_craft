@@ -270,6 +270,7 @@ class TestCreateAPI:
         output_url = f"{url}/outputs"
         constraints_url = f"{base_url}/studies/{self.study_id}/bindingconstraints"
         hydro_url = f"{area_url}/zone/hydro/form"
+        links_url = f"{url}/links"
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url, json=json_study)
@@ -285,6 +286,7 @@ class TestCreateAPI:
                 json=[],
             )
             mocker.get(constraints_url, json=[])
+            mocker.get(links_url, json=[])
             mocker.get(hydro_url, json={})
             actual_study = read_study_api(self.api, self.study_id)
 
@@ -334,6 +336,9 @@ class TestCreateAPI:
 
             constraints_url = f"{base_url}/studies/{variant_id}/bindingconstraints"
             mocker.get(constraints_url, json=[], status_code=200)
+
+            links_url = f"{base_url}/studies/{variant_id}/links"
+            mocker.get(links_url, json=[], status_code=200)
 
             variant = self.study.create_variant(variant_name)
             variant_from_api = create_variant_api(self.api, self.study_id, variant_name)
@@ -772,6 +777,7 @@ class TestCreateAPI:
         storage_url = f"{area_url}/zone/storages"
         output_url = f"{url}/outputs"
         constraints_url = f"{base_url}/studies/{self.study_id}/bindingconstraints"
+        links_url = f"{base_url}/studies/{self.study_id}/links"
         config_urls = re.compile(f"{base_url}/studies/{self.study_id}/config/.*")
         ts_settings_url = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/config"
 
@@ -792,6 +798,7 @@ class TestCreateAPI:
             mocker.get(storage_url, json=[])
             mocker.get(output_url, json=[])
             mocker.get(constraints_url, json=[])
+            mocker.get(links_url, json=[])
 
             mocker.put(url_move)
             mocker.get(url_study, json=json_study)

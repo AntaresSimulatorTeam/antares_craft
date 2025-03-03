@@ -127,7 +127,7 @@ class AreaLocalService(BaseAreaService):
         list_ini.write_ini_file(sort_sections=True)
 
         # Upload matrices
-        cluster_id = cluster_id = transform_name_to_id(thermal_name)
+        cluster_id = transform_name_to_id(thermal_name)
 
         write_timeseries(self.config.study_path, prepro, TimeSeriesFileType.THERMAL_DATA, area_id, cluster_id)
         write_timeseries(self.config.study_path, modulation, TimeSeriesFileType.THERMAL_MODULATION, area_id, cluster_id)
