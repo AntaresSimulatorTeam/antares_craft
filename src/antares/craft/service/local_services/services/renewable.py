@@ -9,13 +9,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+import copy
 
 from typing import Any
 
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.exceptions.exceptions import RenewablePropertiesUpdateError
 from antares.craft.model.renewable import (
     RenewableCluster,
     RenewableClusterProperties,
@@ -23,8 +24,9 @@ from antares.craft.model.renewable import (
 )
 from antares.craft.service.base_services import BaseRenewableService
 from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
+from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
-from antares.craft.tools.matrix_tool import read_timeseries
+from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 from typing_extensions import override
 
@@ -39,7 +41,25 @@ class RenewableLocalService(BaseRenewableService):
     def update_renewable_properties(
         self, renewable_cluster: RenewableCluster, properties: RenewableClusterPropertiesUpdate
     ) -> RenewableClusterProperties:
-        raise NotImplementedError
+        renewable_dict = IniFile(
+            self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=renewable_cluster.area_id
+        ).ini_dict
+        for renewable in renewable_dict.values():
+            if renewable["name"] == renewable_cluster.name:
+                # Update properties
+                upd_properties = RenewableClusterPropertiesLocal.from_user_model(properties)
+                upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                renewable.update(upd_props_as_dict)
+
+                # Prepare the object to return
+                local_dict = copy.deepcopy(renewable)
+                del local_dict["name"]
+                local_properties = RenewableClusterPropertiesLocal.model_validate(local_dict)
+
+                return local_properties.to_user_model()
+        raise RenewablePropertiesUpdateError(
+            renewable_cluster.name, renewable_cluster.area_id, "The cluster does not exist"
+        )
 
     @override
     def get_renewable_matrix(self, cluster_id: str, area_id: str) -> pd.DataFrame:
@@ -68,4 +88,13 @@ class RenewableLocalService(BaseRenewableService):
 
     @override
     def update_renewable_matrix(self, renewable_cluster: RenewableCluster, matrix: pd.DataFrame) -> None:
-        raise NotImplementedError
+        checks_matrix_dimensions(
+            matrix, f"renewable/{renewable_cluster.area_id}/{renewable_cluster.id}", "renewable_series"
+        )
+        write_timeseries(
+            self.config.study_path,
+            matrix,
+            TimeSeriesFileType.RENEWABLE_DATA_SERIES,
+            renewable_cluster.area_id,
+            renewable_cluster.id,
+        )

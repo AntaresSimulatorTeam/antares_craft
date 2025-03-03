@@ -176,7 +176,10 @@ class Area:
         return thermal
 
     def create_renewable_cluster(
-        self, renewable_name: str, properties: Optional[RenewableClusterProperties], series: Optional[pd.DataFrame]
+        self,
+        renewable_name: str,
+        properties: Optional[RenewableClusterProperties] = None,
+        series: Optional[pd.DataFrame] = None,
     ) -> RenewableCluster:
         renewable = self._area_service.create_renewable_cluster(self.id, renewable_name, properties, series=series)
         self._renewables[renewable.id] = renewable

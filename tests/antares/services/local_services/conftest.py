@@ -139,9 +139,7 @@ def actual_adequacy_patch_ini(local_study_w_areas) -> IniFile:
 @pytest.fixture
 def local_study_with_renewable(local_study_w_thermal) -> Study:
     renewable_cluster_name = "renewable cluster"
-    local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
-        renewable_cluster_name, RenewableClusterProperties(), series=None
-    )
+    local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(renewable_cluster_name)
     return local_study_w_thermal
 
 
