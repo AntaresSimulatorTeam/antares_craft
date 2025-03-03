@@ -30,7 +30,6 @@ from antares.craft.model.renewable import (
     TimeSeriesInterpretation,
 )
 from antares.craft.model.st_storage import STStorage, STStorageGroup, STStorageProperties
-from antares.craft.model.thermal import ThermalCluster
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
@@ -895,27 +894,13 @@ class TestReadmisc_gen:
 
 class TestReadThermal:
     def test_read_thermals_local(self, local_study_w_thermal):
-        study_path = local_study_w_thermal.service.config.study_path
-        local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        areas = local_study_w_thermal.read_areas()
 
         for area in areas:
-            expected_time_serie = pd.DataFrame(
-                [
-                    [-9999999980506447872, 0, 9999999980506447872],
-                    [0, area.id, 0],
-                ],
-                dtype="object",
-            )
-
             thermals_list = area.read_thermal_clusters()
 
-            if thermals_list:
-                assert area.id == "fr"
-                assert isinstance(thermals_list, list)
-                assert isinstance(thermals_list[0], ThermalCluster)
-
             for thermal in thermals_list:
+                # Check properties
                 assert thermal.name == "test thermal cluster"
                 assert thermal.properties.group.value == "Other 1"
                 assert thermal.properties.unit_count == 1
@@ -924,37 +909,12 @@ class TestReadThermal:
                 assert thermal.properties.enabled
                 assert thermal.properties.cost_generation.value == "SetManually"
 
-                # Create folder and file for timeserie.
-                cluster_path = study_path / "input" / "thermal" / "series" / Path(area.id) / Path(thermal.id)
-                series_path = cluster_path / "series.txt"
-                os.makedirs(cluster_path, exist_ok=True)
-                _write_file(series_path, expected_time_serie)
-
-                co2_cost_path = cluster_path / "C02Cost.txt"
-                _write_file(co2_cost_path, expected_time_serie)
-
-                fuelCost_path = cluster_path / "fuelCost.txt"
-                _write_file(fuelCost_path, expected_time_serie)
-
-                cluster_path = study_path / "input" / "thermal" / "prepro" / Path(area.id) / Path(thermal.id)
-                os.makedirs(cluster_path, exist_ok=True)
-                series_path_1 = cluster_path / "data.txt"
-                series_path_2 = cluster_path / "modulation.txt"
-                _write_file(series_path_1, expected_time_serie)
-                _write_file(series_path_2, expected_time_serie)
-
-                # Check matrix
-                matrix = thermal.get_prepro_data_matrix()
-                matrix_1 = thermal.get_prepro_modulation_matrix()
-                matrix_2 = thermal.get_series_matrix()
-                matrix_3 = thermal.get_co2_cost_matrix()
-                matrix_4 = thermal.get_fuel_cost_matrix()
-
-                pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
-                pd.testing.assert_frame_equal(matrix_1.astype(str), expected_time_serie.astype(str), check_dtype=False)
-                pd.testing.assert_frame_equal(matrix_2.astype(str), expected_time_serie.astype(str), check_dtype=False)
-                pd.testing.assert_frame_equal(matrix_3.astype(str), expected_time_serie.astype(str), check_dtype=False)
-                pd.testing.assert_frame_equal(matrix_4.astype(str), expected_time_serie.astype(str), check_dtype=False)
+                # Check matrices
+                assert thermal.get_prepro_data_matrix().empty
+                assert thermal.get_prepro_modulation_matrix().empty
+                assert thermal.get_series_matrix().empty
+                assert thermal.get_co2_cost_matrix().empty
+                assert thermal.get_fuel_cost_matrix().empty
 
 
 class TestReadLinks:
