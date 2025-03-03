@@ -12,8 +12,6 @@
 
 from enum import Enum
 
-import pandas as pd
-
 
 class TimeSeriesFileType(Enum):
     """
@@ -71,19 +69,3 @@ class TimeSeriesFileType(Enum):
     WIND_DATA = "input/wind/prepro/{area_id}/data.txt"
     WIND_K = "input/wind/prepro/{area_id}/k.txt"
     WIND_TRANSLATION = "input/wind/prepro/{area_id}/translation.txt"
-
-
-class TimeSeries:
-    """
-    A time series for use in Antares
-
-    Args:
-        time_series: Pandas DataFrame containing the time series.
-    """
-
-    def __init__(self, time_series: pd.DataFrame = pd.DataFrame([])) -> None:
-        self._time_series = time_series
-
-    @property
-    def time_series(self) -> pd.DataFrame:
-        return self._time_series

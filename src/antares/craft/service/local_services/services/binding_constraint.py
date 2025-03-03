@@ -31,9 +31,15 @@ from antares.craft.service.base_services import BaseBindingConstraintService
 from antares.craft.service.local_services.models.binding_constraint import BindingConstraintPropertiesLocal
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
-from antares.craft.tools.matrix_tool import df_read, write_timeseries
+from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 from typing_extensions import override
+
+MAPPING = {
+    ConstraintMatrixName.LESS_TERM: TimeSeriesFileType.BINDING_CONSTRAINT_LESS,
+    ConstraintMatrixName.EQUAL_TERM: TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL,
+    ConstraintMatrixName.GREATER_TERM: TimeSeriesFileType.BINDING_CONSTRAINT_GREATER,
+}
 
 
 class BindingConstraintLocalService(BaseBindingConstraintService):
@@ -176,10 +182,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
     @override
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
-        file_path = self.config.study_path.joinpath(
-            "input", "bindingconstraints", f"{constraint.id}_{matrix_name.value}.txt"
-        )
-        return df_read(file_path)
+        return read_timeseries(MAPPING[matrix_name], self.config.study_path, constraint_id=constraint.id)
 
     @override
     def update_constraint_matrix(

@@ -12,34 +12,11 @@
 import os
 
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 import pandas as pd
 
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
-
-
-def prepare_args_replace_matrix(series: pd.DataFrame, series_path: str) -> dict[str, Union[str, dict[str, str]]]:
-    """
-
-    Args:
-        series: matrix to be created in AntaresWeb with command "replace_matrix"
-        series_path: Antares study path for matrix
-
-    Returns:
-        Dictionary containing command action and its arguments.
-    """
-    matrix = series.to_numpy().tolist()
-    body = {"target": series_path, "matrix": matrix}
-    return {"action": "replace_matrix", "args": body}
-
-
-def df_save(df: pd.DataFrame, path: Path) -> None:
-    df.to_csv(path, sep="\t", header=False, index=False, encoding="utf-8")
-
-
-def df_read(path: Path) -> pd.DataFrame:
-    return pd.read_csv(path, sep="\t", header=None)
 
 
 def read_timeseries(
@@ -58,7 +35,7 @@ def read_timeseries(
         )
     )
     if os.path.getsize(file_path) != 0:
-        _time_series = df_read(file_path)
+        _time_series = pd.read_csv(file_path, sep="\t", header=None)
     else:
         _time_series = pd.DataFrame()
 
