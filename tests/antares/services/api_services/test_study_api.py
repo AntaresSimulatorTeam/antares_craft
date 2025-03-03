@@ -857,7 +857,7 @@ class TestCreateAPI:
                 area_up_props = AreaPropertiesUpdate(**areas[area])
                 dict_areas.update({area: area_up_props})
 
-            mocker.put(url, json=json_areas)
+            mocker.put(url, json=areas)
             self.study.update_multiple_areas(dict_areas)
 
             elec_props = self.study._areas["elec"]._properties

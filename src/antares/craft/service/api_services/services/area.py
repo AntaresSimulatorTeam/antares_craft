@@ -520,7 +520,7 @@ class AreaApiService(BaseAreaService):
             body[area_id] = api_dict
 
         try:
-            areas = self._wrapper.put(url, json=body).json()[0]
+            areas = self._wrapper.put(url, json=body).json()
 
             for area in areas:
                 api_response = AreaPropertiesAPI.model_validate(areas[area])

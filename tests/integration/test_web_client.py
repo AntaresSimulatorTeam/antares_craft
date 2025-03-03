@@ -325,6 +325,11 @@ class TestWebClient:
         assert storage_fr.id == third_area.get_st_storages().get("cluster_test").id
         assert thermal_be.id == area_list[0].get_thermals().get("gaz_be").id
 
+        area_props_update_1 = AreaPropertiesUpdate(adequacy_patch_mode=AdequacyPatchMode.VIRTUAL)
+        area_props_update_2 = AreaPropertiesUpdate(adequacy_patch_mode=AdequacyPatchMode.INSIDE)
+        dict_area_props = {area_fr.id: area_props_update_1, area_be.id:area_props_update_2}
+        study.update_multiple_areas(dict_area_props)
+
         # tests upload matrix for short term storage.
         # Case that fails
         wrong_matrix = pd.DataFrame(data=[[0]])
