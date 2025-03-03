@@ -34,10 +34,6 @@ def prepare_args_replace_matrix(series: pd.DataFrame, series_path: str) -> dict[
     return {"action": "replace_matrix", "args": body}
 
 
-def df_read(path: Path) -> pd.DataFrame:
-    return pd.read_csv(path, sep="\t", header=None)
-
-
 def read_timeseries(
     ts_file_type: TimeSeriesFileType,
     study_path: Path,
