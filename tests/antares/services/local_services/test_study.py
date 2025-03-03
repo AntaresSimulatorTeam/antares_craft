@@ -635,8 +635,7 @@ layers = 0
 
     def test_create_area_with_custom_ui(self, tmp_path, local_study):
         # Given
-        study_antares_path = tmp_path / local_study.name
-        # TODO: This should've been local_study._service.path, but ABCService doesn't have path
+        study_antares_path = local_study.service.config.study_path
 
         area = "area1"
         ui_ini_path = study_antares_path / "input" / "areas" / area / "ui.ini"

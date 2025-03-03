@@ -49,7 +49,7 @@ class TestRenewable:
         with pytest.raises(
             MatrixFormatError,
             match=re.escape(
-                "Wrong format for renewable/fr/renewable cluster/renewable_series matrix, expected shape is (8760, Any) and was : (2, 3)"
+                "Wrong format for renewable/fr/renewable cluster/series matrix, expected shape is (8760, Any) and was : (2, 3)"
             ),
         ):
             renewable.update_renewable_matrix(matrix)

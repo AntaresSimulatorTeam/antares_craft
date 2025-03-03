@@ -19,6 +19,7 @@ from antares.craft.exceptions.exceptions import LinkCreationError, LinkPropertie
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
+from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
 from antares.craft.tools.contents_tool import sort_ini_sections
 from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
@@ -148,6 +149,7 @@ class LinkLocalService(BaseLinkService):
 
     @override
     def create_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        checks_matrix_dimensions(series, f"links/{area_from}/{area_to}", "links_parameters")
         write_timeseries(
             self.config.study_path,
             series,
@@ -158,6 +160,7 @@ class LinkLocalService(BaseLinkService):
 
     @override
     def create_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        checks_matrix_dimensions(series, f"links/{area_from}/{area_to}", "series")
         write_timeseries(
             self.config.study_path,
             series,
@@ -168,6 +171,7 @@ class LinkLocalService(BaseLinkService):
 
     @override
     def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+        checks_matrix_dimensions(series, f"links/{area_from}/{area_to}", "series")
         write_timeseries(
             self.config.study_path,
             series,

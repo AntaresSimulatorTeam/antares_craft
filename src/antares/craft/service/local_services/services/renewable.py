@@ -88,9 +88,7 @@ class RenewableLocalService(BaseRenewableService):
 
     @override
     def update_renewable_matrix(self, renewable_cluster: RenewableCluster, matrix: pd.DataFrame) -> None:
-        checks_matrix_dimensions(
-            matrix, f"renewable/{renewable_cluster.area_id}/{renewable_cluster.id}", "renewable_series"
-        )
+        checks_matrix_dimensions(matrix, f"renewable/{renewable_cluster.area_id}/{renewable_cluster.id}", "series")
         write_timeseries(
             self.config.study_path,
             matrix,
