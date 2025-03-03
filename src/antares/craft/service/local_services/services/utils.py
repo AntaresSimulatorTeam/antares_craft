@@ -44,7 +44,8 @@ EXPECTED_SHAPE_MAPPING = {
     STStorageMatrixName.LOWER_CURVE_RULE.value: (8760, 1),
     STStorageMatrixName.UPPER_RULE_CURVE.value: (8760, 1),
     STStorageMatrixName.INFLOWS.value: (8760, 1),
-    "renewable_series": (8760, AlwaysEqual()),
+    "series": (8760, AlwaysEqual()),
+    "links_parameters": (8760, 6),
 }
 
 

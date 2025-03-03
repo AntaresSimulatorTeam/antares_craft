@@ -9,11 +9,17 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import pytest
 
+import re
 
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
+
 from antares.craft import Study
+from antares.craft.exceptions.exceptions import MatrixFormatError
 from antares.craft.model.link import AssetType, LinkProperties, LinkPropertiesUpdate
 
 
@@ -38,4 +44,23 @@ class TestLink:
         assert link.get_capacity_indirect().empty
 
         # Replace matrices
-        # todo
+        matrix = pd.DataFrame(data=8760 * [[3]])
+        link.update_capacity_direct(matrix)
+        assert link.get_capacity_direct().equals(matrix)
+
+        link.update_capacity_indirect(matrix)
+        assert link.get_capacity_indirect().equals(matrix)
+
+        parameters_matrix = pd.DataFrame(data=np.ones((8760, 6)))
+        link.update_parameters(parameters_matrix)
+        assert link.get_parameters().equals(parameters_matrix)
+
+        # Try to update with wrongly formatted matrix
+        matrix = pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]])
+        with pytest.raises(
+            MatrixFormatError,
+            match=re.escape(
+                "Wrong format for links/at/fr/links_parameters matrix, expected shape is (8760, 6) and was : (2, 3)"
+            ),
+        ):
+            link.update_parameters(matrix)
