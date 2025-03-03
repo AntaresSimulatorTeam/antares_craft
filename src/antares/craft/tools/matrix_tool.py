@@ -34,10 +34,6 @@ def prepare_args_replace_matrix(series: pd.DataFrame, series_path: str) -> dict[
     return {"action": "replace_matrix", "args": body}
 
 
-def df_save(df: pd.DataFrame, path: Path) -> None:
-    df.to_csv(path, sep="\t", header=False, index=False, encoding="utf-8")
-
-
 def df_read(path: Path) -> pd.DataFrame:
     return pd.read_csv(path, sep="\t", header=None)
 
@@ -58,7 +54,7 @@ def read_timeseries(
         )
     )
     if os.path.getsize(file_path) != 0:
-        _time_series = df_read(file_path)
+        _time_series = pd.read_csv(file_path, sep="\t", header=None)
     else:
         _time_series = pd.DataFrame()
 
