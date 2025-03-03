@@ -39,7 +39,7 @@ from antares.craft.exceptions.exceptions import (
     StudyVariantCreationError,
     ThermalTimeseriesGenerationError,
 )
-from antares.craft.model.area import Area, AreaUi
+from antares.craft.model.area import Area, AreaPropertiesUpdate, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
@@ -69,6 +69,22 @@ class TestCreateAPI:
     study = Study("TestStudy", "880", services)
     area = Area(
         "area_test",
+        services.area_service,
+        services.short_term_storage_service,
+        services.thermal_service,
+        services.renewable_service,
+        services.hydro_service,
+    )
+    area_1 = Area(
+        "elec",
+        services.area_service,
+        services.short_term_storage_service,
+        services.thermal_service,
+        services.renewable_service,
+        services.hydro_service,
+    )
+    area_2 = Area(
+        "gaz",
         services.area_service,
         services.short_term_storage_service,
         services.thermal_service,
@@ -799,3 +815,59 @@ class TestCreateAPI:
                 StudyImportError, match=f"Could not import the study test.zip : {self.antares_web_description_msg}"
             ):
                 import_study_api(self.api, study_path)
+
+    def test_update_multiple_areas(self):
+        url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/areas"
+        self.study._areas["elec"] = self.area_1
+        self.study._areas["gaz"] = self.area_2
+        dict_areas = {}
+
+        json_areas = [
+            {
+                "elec": {
+                    "adequacy_patch_mode": "outside",
+                    "non_dispatch_power": True,
+                    "dispatch_hydro_power": True,
+                    "other_dispatch_power": True,
+                    "energy_cost_unsupplied": 0,
+                    "energy_cost_spilled": 0,
+                    "filter_synthesis": ["annual"],
+                    "filter_by_year": ["hourly", "daily", "annual"],
+                    "spread_unsupplied_energy_cost": 3000,
+                    "spread_spilled_energy_cost": 0,
+                },
+                "gaz": {
+                    "adequacy_patch_mode": "outside",
+                    "non_dispatch_power": True,
+                    "dispatch_hydro_power": True,
+                    "other_dispatch_power": True,
+                    "energy_cost_unsupplied": 0,
+                    "energy_cost_spilled": 0,
+                    "filter_synthesis": ["hourly", "daily", "weekly"],
+                    "filter_by_year": ["weekly", "monthly", "annual"],
+                    "spread_unsupplied_energy_cost": 1400,
+                    "spread_spilled_energy_cost": 0,
+                },
+            }
+        ]
+
+        with requests_mock.Mocker() as mocker:
+            areas = json_areas[0]
+            for area in areas:
+                area_up_props = AreaPropertiesUpdate(**areas[area])
+                dict_areas.update({area: area_up_props})
+
+            mocker.put(url, json=json_areas)
+            self.study.update_multiple_areas(dict_areas)
+
+            elec_props = self.study._areas["elec"]._properties
+            gaz_props = self.study._areas["gaz"]._properties
+
+            expected_elec = areas["elec"]
+            expected_gaz = areas["gaz"]
+            assert elec_props["energyCostUnsupplied"] == expected_elec["energy_cost_unsupplied"]
+            assert gaz_props["energyCostUnsupplied"] == expected_gaz["energy_cost_unsupplied"]
+            assert elec_props["adequacyPatchMode"] == expected_elec["adequacy_patch_mode"]
+            assert gaz_props["adequacyPatchMode"] == expected_gaz["adequacy_patch_mode"]
+            assert elec_props["dispatchHydroPower"] == expected_elec["dispatch_hydro_power"]
+            assert gaz_props["dispatchHydroPower"] == expected_gaz["dispatch_hydro_power"]

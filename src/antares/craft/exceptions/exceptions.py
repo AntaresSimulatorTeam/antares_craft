@@ -60,6 +60,12 @@ class AreasRetrievalError(Exception):
         super().__init__(self.message)
 
 
+class AreasUpdateError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not update the areas from the study {study_id} : {message}"
+        super().__init__(self.message)
+
+
 class LinkCreationError(Exception):
     def __init__(self, area_from: str, area_to: str, message: str) -> None:
         self.message = f"Could not create the link {area_from} / {area_to}: " + message
@@ -285,10 +291,6 @@ class StudyMoveError(Exception):
         self.message = f"Could not move the study {study_id} to folder {new_folder_name}: " + message
         super().__init__(self.message)
 
-class StudyImportError(Exception):
-    def __init__(self, study_name: str, destination_folder_name: str, message: str):
-        self.message = f"Could not import the study {study_name} to folder {destination_folder_name}: " + message
-        super().__init__(self.message)
 
 class StudyImportError(Exception):
     def __init__(self, study_id: str, message: str):

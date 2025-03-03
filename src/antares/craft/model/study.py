@@ -12,7 +12,7 @@
 from dataclasses import replace
 from pathlib import Path, PurePath
 from types import MappingProxyType
-from typing import List, Optional, cast
+from typing import Dict, List, Optional, cast
 
 import pandas as pd
 
@@ -20,7 +20,7 @@ from antares.craft import APIconf
 from antares.craft.exceptions.exceptions import (
     LinkCreationError,
 )
-from antares.craft.model.area import Area, AreaProperties, AreaUi
+from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintProperties,
@@ -76,6 +76,11 @@ class Study:
         area_list = self._area_service.read_areas()
         self._areas = {area.id: area for area in area_list}
         return area_list
+
+    def update_multiple_areas(self, new_properties: Dict[str, "AreaPropertiesUpdate"]) -> None:
+        new_areas_props = self._area_service.update_multiple_areas(new_properties)
+        for area_prop in new_areas_props:
+            self._areas[area_prop]._properties = new_areas_props[area_prop]
 
     def read_links(self) -> list[Link]:
         link_list = self._link_service.read_links()

@@ -13,11 +13,10 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 import pandas as pd
 
-from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.config.base_configuration import BaseConfiguration
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
@@ -280,6 +279,10 @@ class BaseAreaService(ABC):
         """
         Returns: Returns a list of areas
         """
+        pass
+
+    @abstractmethod
+    def update_multiple_areas(self, dict_areas: Dict[str, "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
         pass
 
 
@@ -676,10 +679,6 @@ class BaseStudyService(ABC):
 
     @abstractmethod
     def generate_thermal_timeseries(self, number_of_years: int) -> None:
-        pass
-
-    @abstractmethod
-    def import_study(self, config: APIconf, study_path: Path, destination_path: Path) -> None:
         pass
 
 

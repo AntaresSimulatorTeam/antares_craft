@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Any, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import pandas as pd
 
@@ -22,6 +22,7 @@ from antares.craft.exceptions.exceptions import (
     AreaDeletionError,
     AreaPropertiesUpdateError,
     AreasRetrievalError,
+    AreasUpdateError,
     AreaUiUpdateError,
     MatrixDownloadError,
     MatrixUploadError,
@@ -506,3 +507,27 @@ class AreaApiService(BaseAreaService):
             raise AreasRetrievalError(self.study_id, e.message) from e
 
         return area_list
+
+    @override
+    def update_multiple_areas(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
+        body = {}
+        updated_areas: Dict[str, AreaProperties] = {}
+        url = f"{self._base_url}/studies/{self.study_id}/table-mode/areas"
+
+        for area_id, props in dict_areas.items():
+            api_properties = AreaPropertiesAPI.from_user_model(props)
+            api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+            body[area_id] = api_dict
+
+        try:
+            areas = self._wrapper.put(url, json=body).json()[0]
+
+            for area in areas:
+                api_response = AreaPropertiesAPI.model_validate(areas[area])
+                area_properties = api_response.model_dump(mode="json", by_alias=True, exclude_none=True)
+                updated_areas.update({area: area_properties})
+
+        except APIError as e:
+            raise AreasUpdateError(self.study_id, e.message) from e
+
+        return updated_areas
