@@ -9,15 +9,13 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
-
 from configparser import DuplicateSectionError
 from typing import Any, Dict, Optional
 
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import LinkCreationError
+from antares.craft.exceptions.exceptions import LinkCreationError, LinkPropertiesUpdateError
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
@@ -107,7 +105,21 @@ class LinkLocalService(BaseLinkService):
 
     @override
     def update_link_properties(self, link: Link, properties: LinkPropertiesUpdate) -> LinkProperties:
-        raise NotImplementedError
+        links_dict = IniFile(
+            self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, area_id=link.area_from_id
+        ).ini_dict
+        for area_to, link_props in links_dict.items():
+            if area_to == link.area_to_id:
+                # Update properties
+                upd_properties = LinkPropertiesAndUiLocal.from_user_model(None, properties)
+                upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                link_props.update(upd_props_as_dict)
+
+                # Prepare the object to return
+                local_properties = LinkPropertiesAndUiLocal.model_validate(link_props)
+                return local_properties.to_properties_user_model()
+
+        raise LinkPropertiesUpdateError(link.id, "The link does not exist")
 
     @override
     def update_link_ui(self, link: Link, ui: LinkUiUpdate) -> LinkUi:

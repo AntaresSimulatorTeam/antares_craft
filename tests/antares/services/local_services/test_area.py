@@ -919,11 +919,7 @@ class TestReadThermal:
 
 class TestReadLinks:
     def test_read_links_local(self, local_study_w_links):
-        study_path = local_study_w_links.service.config.study_path
-        local_study_object = read_study_local(study_path)
-
-        links = local_study_object.read_links()
-
+        links = local_study_w_links.read_links()
         for link in links:
             assert link.get_parameters().empty
             assert link.get_capacity_direct().empty
