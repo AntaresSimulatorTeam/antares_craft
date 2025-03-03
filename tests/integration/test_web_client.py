@@ -204,9 +204,9 @@ class TestWebClient:
         fuel_cost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
 
         # creating parameters and capacities for this link and testing them
-        link_be_fr.create_parameters(series_matrix)
-        link_be_fr.create_capacity_direct(series_matrix)
-        link_be_fr.create_capacity_indirect(series_matrix)
+        link_be_fr.update_parameters(series_matrix)
+        link_be_fr.update_capacity_direct(series_matrix)
+        link_be_fr.update_capacity_indirect(series_matrix)
 
         parameters_matrix = link_be_fr.get_parameters()
         direct_matrix = link_be_fr.get_capacity_direct()
