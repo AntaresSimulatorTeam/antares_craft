@@ -39,13 +39,15 @@ from antares.craft.exceptions.exceptions import (
     StudyMoveError,
     StudySettingsUpdateError,
     StudyVariantCreationError,
-    ThermalTimeseriesGenerationError,
+    ThermalTimeseriesGenerationError, BindingConstraintsUpdateError,
 )
 from antares.craft.model.area import Area, AreaUi
 from antares.craft.model.binding_constraint import (
+    BindingConstraint,
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
+    BindingConstraintPropertiesUpdate,
 )
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate
 from antares.craft.model.output import (
@@ -96,6 +98,9 @@ class TestCreateAPI:
 
     first_link = Link(area.id, area_1.id, services.link_service)
     second_link = Link(area.id, area_2.id, services.link_service)
+
+    b_constraint_1 = BindingConstraint("battery_state_evolution", services.bc_service)
+    b_constraint_2 = BindingConstraint("battery_state_update", services.bc_service)
 
     def test_create_study_test_ok(self) -> None:
         with requests_mock.Mocker() as mocker:
@@ -904,3 +909,44 @@ class TestCreateAPI:
                 match=f"Could not update links from study {self.study_id} : {self.antares_web_description_msg}",
             ):
                 self.study.update_multiple_links({})
+
+    def test_update_multiple_binding_constraints_success(self):
+        self.study._binding_constraints["battery_state_evolution"] = self.b_constraint_1
+        self.study._binding_constraints["battery_state_update"] = self.b_constraint_2
+
+        dict_binding_constraints = {}
+
+        url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/binding-constraints"
+        json_binding_constraints = {
+            "battery_state_evolution": {"enabled": True, "time_step": "hourly", "operator": "equal", "comments": ""},
+            "battery_state_update": {"enabled": True, "time_step": "hourly", "operator": "less", "comments": ""},
+        }
+
+        for bc_id in json_binding_constraints:
+            bc_props = BindingConstraintPropertiesUpdate(**json_binding_constraints[bc_id])
+            dict_binding_constraints.update({bc_id: bc_props})
+
+        with requests_mock.Mocker() as mocker:
+            mocker.put(url, json=json_binding_constraints)
+            self.study.update_multiple_binding_constraints(dict_binding_constraints)
+
+            bc_test_1 = self.study._binding_constraints["battery_state_evolution"]
+            bc_test_2 = self.study._binding_constraints["battery_state_update"]
+
+            assert bc_test_1._properties["enabled"] == dict_binding_constraints["battery_state_evolution"].enabled
+            assert bc_test_1._properties["timeStep"] == dict_binding_constraints["battery_state_evolution"].time_step
+
+            assert bc_test_2._properties["enabled"] == dict_binding_constraints["battery_state_update"].enabled
+            assert bc_test_2._properties["timeStep"] == dict_binding_constraints["battery_state_update"].time_step
+
+    def test_update_multiple_binding_constraints_fail(self):
+        url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/binding-constraints"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.put(url, status_code=400, json={"description": self.antares_web_description_msg})
+
+            with pytest.raises(
+                BindingConstraintsUpdateError,
+                match=f"Could not update binding constraints from the study {self.study_id}: {self.antares_web_description_msg}"
+            ):
+                self.study.update_multiple_binding_constraints({})

@@ -644,8 +644,8 @@ class BaseStudyService(ABC):
 
     @abstractmethod
     def update_multiple_binding_constraints(
-        self, constraint_name: str, b_constraint_update: Dict[str, BindingConstraintPropertiesUpdate]
-    ) -> Dict[str, BindingConstraintProperties]:
+        self, b_constraint_update: Dict[str, "BindingConstraintPropertiesUpdate"]
+    ) -> Dict[str, "BindingConstraintProperties"]:
         pass
 
     @abstractmethod

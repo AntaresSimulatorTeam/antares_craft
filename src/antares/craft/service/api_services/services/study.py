@@ -154,9 +154,9 @@ class StudyApiService(BaseStudyService):
 
     @override
     def update_multiple_binding_constraints(
-        self, constraint_name: str, b_constraint_update: Dict[str, BindingConstraintPropertiesUpdate]
-    ) -> dict[str, BindingConstraintProperties]:
-        url = f"{self._base_url}/studies/bindingconstraints/{constraint_name}"
+        self, b_constraint_update: Dict[str, "BindingConstraintPropertiesUpdate"]
+    ) -> dict[str, "BindingConstraintProperties"]:
+        url = f"{self._base_url}/studies/{self.study_id}/table-mode/binding-constraints"
         body = {}
         updated_constraints: Dict[str, BindingConstraintProperties] = {}
 

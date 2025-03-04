@@ -253,10 +253,11 @@ class Study:
         self._binding_constraints.pop(constraint.id)
 
     def update_multiple_binding_constraints(
-        self, binding_constraint_name: str, b_constraint_update: Dict[str, BindingConstraintPropertiesUpdate]
+        self, b_constraint_update: Dict[str, "BindingConstraintPropertiesUpdate"]
     ) -> None:
-        self._study_service.update_multiple_binding_constraints(binding_constraint_name, b_constraint_update)
-        raise NotImplementedError
+        new_bc_props = self._study_service.update_multiple_binding_constraints(b_constraint_update)
+        for bc_props in new_bc_props:
+            self._binding_constraints[bc_props]._properties = new_bc_props[bc_props]
 
     def delete(self, children: bool = False) -> None:
         self._study_service.delete(children)
