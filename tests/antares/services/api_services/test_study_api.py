@@ -27,6 +27,7 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
+    BindingConstraintsUpdateError,
     ConstraintRetrievalError,
     LinkCreationError,
     LinksUpdateError,
@@ -39,7 +40,7 @@ from antares.craft.exceptions.exceptions import (
     StudyMoveError,
     StudySettingsUpdateError,
     StudyVariantCreationError,
-    ThermalTimeseriesGenerationError, BindingConstraintsUpdateError,
+    ThermalTimeseriesGenerationError,
 )
 from antares.craft.model.area import Area, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -947,6 +948,6 @@ class TestCreateAPI:
 
             with pytest.raises(
                 BindingConstraintsUpdateError,
-                match=f"Could not update binding constraints from the study {self.study_id}: {self.antares_web_description_msg}"
+                match=f"Could not update binding constraints from the study {self.study_id}: {self.antares_web_description_msg}",
             ):
                 self.study.update_multiple_binding_constraints({})
