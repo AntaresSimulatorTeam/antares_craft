@@ -24,6 +24,7 @@ from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintProperties,
+    BindingConstraintPropertiesUpdate,
     ConstraintTerm,
 )
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi
@@ -250,6 +251,12 @@ class Study:
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         self._study_service.delete_binding_constraint(constraint)
         self._binding_constraints.pop(constraint.id)
+
+    def update_multiple_binding_constraints(
+        self, binding_constraint_name: str, b_constraint_update: Dict[str, BindingConstraintPropertiesUpdate]
+    ) -> None:
+        self._study_service.update_multiple_binding_constraints(binding_constraint_name, b_constraint_update)
+        raise NotImplementedError
 
     def delete(self, children: bool = False) -> None:
         self._study_service.delete(children)

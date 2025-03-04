@@ -10,10 +10,14 @@
 #
 # This file is part of the Antares project.
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.binding_constraint import BindingConstraint
+from antares.craft.model.binding_constraint import (
+    BindingConstraint,
+    BindingConstraintProperties,
+    BindingConstraintPropertiesUpdate,
+)
 from antares.craft.model.output import Output
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 from typing_extensions import override
@@ -72,4 +76,10 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def generate_thermal_timeseries(self, number_of_years: int) -> None:
+        raise NotImplementedError
+
+    @override
+    def update_multiple_binding_constraints(
+        self, constraint_name: str, b_constraint_update: Dict[str, BindingConstraintPropertiesUpdate]
+    ) -> Dict[str, BindingConstraintProperties]:
         raise NotImplementedError

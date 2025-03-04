@@ -643,6 +643,12 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
+    def update_multiple_binding_constraints(
+        self, constraint_name: str, b_constraint_update: Dict[str, BindingConstraintPropertiesUpdate]
+    ) -> Dict[str, BindingConstraintProperties]:
+        pass
+
+    @abstractmethod
     def move_study(self, new_parent_path: Path) -> PurePath:
         """
         Moves the study to the new parent path
