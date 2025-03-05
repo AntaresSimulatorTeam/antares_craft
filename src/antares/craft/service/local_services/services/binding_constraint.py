@@ -162,10 +162,14 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         current_ini_content = self.ini_file.ini_dict
         existing_constraint = self._get_constraint_inside_ini(current_ini_content, binding_constraint)
         local_properties = BindingConstraintPropertiesLocal.from_user_model(properties)
-        existing_constraint.update(local_properties.model_dump(mode="json", by_alias=True))
+        existing_constraint.update(local_properties.model_dump(mode="json", by_alias=True, exclude_unset=True))
         self.ini_file.ini_dict = current_ini_content
         self.ini_file.write_ini_file()
-        return local_properties.to_user_model()
+        # Return a user object based on what's written inside the INI file
+        del existing_constraint["name"]
+        del existing_constraint["id"]
+        modified_local_properties = BindingConstraintPropertiesLocal.model_validate(existing_constraint)
+        return modified_local_properties.to_user_model()
 
     @override
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:

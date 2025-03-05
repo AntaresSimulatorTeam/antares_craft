@@ -167,9 +167,10 @@ class BindingConstraint:
         new_term = self._binding_constraint_service.update_binding_constraint_term(self.id, term, existing_term)
         self._terms[term.id] = new_term
 
-    def update_properties(self, properties: BindingConstraintPropertiesUpdate) -> None:
+    def update_properties(self, properties: BindingConstraintPropertiesUpdate) -> BindingConstraintProperties:
         new_properties = self._binding_constraint_service.update_binding_constraint_properties(self, properties)
         self._properties = new_properties
+        return new_properties
 
     def get_less_term_matrix(self) -> pd.DataFrame:
         return self._binding_constraint_service.get_constraint_matrix(self, ConstraintMatrixName.LESS_TERM)

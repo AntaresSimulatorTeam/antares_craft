@@ -20,6 +20,7 @@ from antares.craft.exceptions.exceptions import MatrixFormatError
 from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
+    BindingConstraintPropertiesUpdate,
     ConstraintTerm,
     LinkData,
 )
@@ -39,8 +40,23 @@ class TestBindingConstraints:
         assert bc_2.properties == BindingConstraintProperties()
         assert bc_2.get_terms() == {"at%fr": ConstraintTerm(data=LinkData(area1="at", area2="fr"), weight=2)}
 
+    def test_update_properties(self, local_study_w_constraints: Study) -> None:
+        # Checks values before update
+        bc = local_study_w_constraints.get_binding_constraints()["bc_1"]
+        current_properties = BindingConstraintProperties(operator=BindingConstraintOperator.GREATER, enabled=False)
+        assert bc.properties == current_properties
+        # Updates properties
+        update_properties = BindingConstraintPropertiesUpdate(
+            operator=BindingConstraintOperator.LESS, comments="new comment"
+        )
+        new_properties = bc.update_properties(update_properties)
+        expected_properties = BindingConstraintProperties(
+            enabled=False, operator=BindingConstraintOperator.LESS, comments="new comment"
+        )
+        assert new_properties == expected_properties
+        assert bc.properties == expected_properties
+
     def test_matrices(self, local_study_w_constraints: Study) -> None:
-        # Checks all matrices exist and are empty
         bc = local_study_w_constraints.get_binding_constraints()["bc_1"]
 
         # Replace matrices
