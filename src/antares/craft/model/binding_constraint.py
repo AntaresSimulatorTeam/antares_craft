@@ -76,6 +76,16 @@ class ConstraintTermData:
             return ClusterData(area=input["area"], cluster=input["cluster"])
         raise ValueError(f"Dict {input} couldn't be serialized as a ConstraintTermData object")
 
+    @staticmethod
+    def from_ini(input: str) -> Union[LinkData, ClusterData]:
+        if "%" in input:
+            area_1, area_2 = input.split("%")
+            return LinkData(area1=area_1, area2=area_2)
+        elif "." in input:
+            area, cluster = input.split(".")
+            return ClusterData(area=area, cluster=cluster)
+        raise ValueError(f"Input {input} couldn't be serialized as a ConstraintTermData object")
+
 
 @dataclass(frozen=True)
 class ConstraintTermUpdate(ConstraintTermData):

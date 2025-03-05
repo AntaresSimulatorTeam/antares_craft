@@ -20,6 +20,8 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
+    ConstraintTerm,
+    LinkData,
 )
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
@@ -60,6 +62,16 @@ def local_study_w_links(tmp_path, local_study_w_areas):
         local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
 
     return local_study_w_areas
+
+
+@pytest.fixture
+def local_study_w_constraints(tmp_path, local_study_w_links) -> Study:
+    bc_props = BindingConstraintProperties(operator=BindingConstraintOperator.GREATER, enabled=False)
+    local_study_w_links.create_binding_constraint(name="bc_1", properties=bc_props)
+
+    term = ConstraintTerm(data=LinkData(area1="at", area2="fr"), weight=2)
+    local_study_w_links.create_binding_constraint(name="bc_2", terms=[term])
+    return local_study_w_links
 
 
 @pytest.fixture

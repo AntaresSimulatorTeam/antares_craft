@@ -204,4 +204,8 @@ def read_study_local(study_directory: Path) -> "Study":
         path=study_directory,
     )
     study.read_settings()
+    study.read_areas()
+    study.read_links()
+    study.read_binding_constraints()
+
     return study
