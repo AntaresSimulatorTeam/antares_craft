@@ -46,6 +46,9 @@ EXPECTED_SHAPE_MAPPING = {
     STStorageMatrixName.INFLOWS.value: (8760, 1),
     "series": (8760, AlwaysEqual()),
     "links_parameters": (8760, 6),
+    "bc_hourly": (8784, AlwaysEqual()),
+    "bc_daily": (366, AlwaysEqual()),
+    "bc_weekly": (366, AlwaysEqual()),
 }
 
 

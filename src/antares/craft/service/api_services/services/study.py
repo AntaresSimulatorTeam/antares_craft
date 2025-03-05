@@ -17,7 +17,6 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
     BindingConstraintDeletionError,
-    BindingConstraintsUpdateError,
     OutputDeletionError,
     OutputsRetrievalError,
     StudyDeletionError,
@@ -29,11 +28,8 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
-    BindingConstraintProperties,
-    BindingConstraintPropertiesUpdate,
 )
 from antares.craft.model.output import Output
-from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 from typing_extensions import override
@@ -151,29 +147,3 @@ class StudyApiService(BaseStudyService):
             wait_task_completion(self._base_url, self._wrapper, task_id)
         except (APIError, TaskFailedError, TaskTimeOutError) as e:
             raise ThermalTimeseriesGenerationError(self.study_id, e.message)
-
-    @override
-    def update_multiple_binding_constraints(
-        self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
-    ) -> dict[str, BindingConstraintProperties]:
-        url = f"{self._base_url}/studies/{self.study_id}/table-mode/binding-constraints"
-        body = {}
-        updated_constraints: dict[str, BindingConstraintProperties] = {}
-
-        for bc_id, props in new_properties.items():
-            api_properties = BindingConstraintPropertiesAPI.from_user_model(props)
-            api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
-            body[bc_id] = api_dict
-
-        try:
-            binding_constraints_dict = self._wrapper.put(url, json=body).json()
-
-            for binding_constraint, props in binding_constraints_dict.items():
-                api_response = BindingConstraintPropertiesAPI.model_validate(props)
-                constraints_properties = api_response.to_user_model()
-                updated_constraints[binding_constraint] = constraints_properties
-
-        except APIError as e:
-            raise BindingConstraintsUpdateError(self.study_id, e.message) from e
-
-        return updated_constraints
