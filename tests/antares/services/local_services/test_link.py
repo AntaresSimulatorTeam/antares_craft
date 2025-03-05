@@ -13,8 +13,6 @@ import pytest
 
 import re
 
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 
@@ -24,7 +22,7 @@ from antares.craft.model.link import AssetType, LinkProperties, LinkPropertiesUp
 
 
 class TestLink:
-    def test_update_properties(self, tmp_path: Path, local_study_w_links: Study) -> None:
+    def test_update_properties(self, local_study_w_links: Study) -> None:
         # Checks values before update
         link = local_study_w_links.get_links()["at / fr"]
         current_properties = LinkProperties(hurdles_cost=False, asset_type=AssetType.AC)
@@ -36,7 +34,31 @@ class TestLink:
         assert new_properties == expected_properties
         assert link.properties == expected_properties
 
-    def test_matrices(self, tmp_path: Path, local_study_w_links: Study) -> None:
+    def test_update_multiple_update_properties(self, local_study_w_links: Study) -> None:
+        # Checks values before update
+        link_at_fr = local_study_w_links.get_links()["at / fr"]
+        link_fr_it = local_study_w_links.get_links()["fr / it"]
+        link_at_it = local_study_w_links.get_links()["at / it"]
+        current_properties = LinkProperties(hurdles_cost=False, asset_type=AssetType.AC)
+        assert link_at_fr.properties == current_properties
+        assert link_fr_it.properties == current_properties
+        assert link_at_it.properties == current_properties
+        # Updates properties
+        update_properties_at_fr = LinkPropertiesUpdate(hurdles_cost=True, comments="new comment")
+        update_properties_fr_it = LinkPropertiesUpdate(use_phase_shifter=True, asset_type=AssetType.DC)
+        body = {link_at_fr.id: update_properties_at_fr, link_fr_it.id: update_properties_fr_it}
+        local_study_w_links.update_multiple_links(body)
+        # Asserts links properties were modified
+        assert link_at_fr.properties == LinkProperties(
+            hurdles_cost=True, asset_type=AssetType.AC, comments="new comment"
+        )
+        assert link_fr_it.properties == LinkProperties(
+            hurdles_cost=False, asset_type=AssetType.DC, use_phase_shifter=True
+        )
+        # Asserts links properties aren't updated as we didn't ask to
+        assert link_at_it.properties == current_properties
+
+    def test_matrices(self, local_study_w_links: Study) -> None:
         # Checks all matrices exist and are empty
         link = local_study_w_links.get_links()["at / fr"]
         assert link.get_parameters().empty

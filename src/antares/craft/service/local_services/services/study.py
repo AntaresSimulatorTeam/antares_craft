@@ -81,5 +81,5 @@ class StudyLocalService(BaseStudyService):
     @override
     def update_multiple_binding_constraints(
         self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
-    ) -> dict[str, "BindingConstraintProperties"]:
+    ) -> dict[str, BindingConstraintProperties]:
         raise NotImplementedError

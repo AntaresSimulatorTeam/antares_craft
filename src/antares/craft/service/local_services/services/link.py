@@ -244,4 +244,10 @@ class LinkLocalService(BaseLinkService):
 
     @override
     def update_multiple_links(self, dict_links: Dict[str, LinkPropertiesUpdate]) -> Dict[str, LinkProperties]:
-        raise NotImplementedError
+        new_properties_dict = {}
+        for link_name, update_properties in dict_links.items():
+            area_from, area_to = link_name.split(" / ")
+            link = Link(area_from, area_to, link_service=self)
+            new_properties = self.update_link_properties(link, update_properties)
+            new_properties_dict[link.id] = new_properties
+        return new_properties_dict
