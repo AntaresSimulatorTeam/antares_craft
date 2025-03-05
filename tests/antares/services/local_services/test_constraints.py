@@ -56,6 +56,26 @@ class TestBindingConstraints:
         assert new_properties == expected_properties
         assert bc.properties == expected_properties
 
+    def test_update_multiple_update_properties(self, local_study_w_constraints: Study) -> None:
+        # Checks values before update
+        bc_1 = local_study_w_constraints.get_binding_constraints()["bc_1"]
+        bc_2 = local_study_w_constraints.get_binding_constraints()["bc_2"]
+
+        current_properties = BindingConstraintProperties(operator=BindingConstraintOperator.GREATER, enabled=False)
+        assert bc_1.properties == current_properties
+        assert bc_2.properties == BindingConstraintProperties()
+
+        # Updates properties
+        update_properties_1 = BindingConstraintPropertiesUpdate(group="group_1")
+        update_properties_2 = BindingConstraintPropertiesUpdate(enabled=False)
+        body = {bc_1.id: update_properties_1, bc_2.id: update_properties_2}
+        local_study_w_constraints.update_multiple_binding_constraints(body)
+        # Asserts constraints properties were modified
+        assert bc_1.properties == BindingConstraintProperties(
+            group="group_1", operator=BindingConstraintOperator.GREATER, enabled=False
+        )
+        assert bc_2.properties == BindingConstraintProperties(group="default", enabled=False)
+
     def test_matrices(self, local_study_w_constraints: Study) -> None:
         bc = local_study_w_constraints.get_binding_constraints()["bc_1"]
 
