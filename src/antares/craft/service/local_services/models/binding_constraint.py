@@ -37,7 +37,8 @@ class BindingConstraintPropertiesLocal(LocalBaseModel):
     @staticmethod
     def from_user_model(user_class: BindingConstraintPropertiesType) -> "BindingConstraintPropertiesLocal":
         user_dict = asdict(user_class)
-        return BindingConstraintPropertiesLocal.model_validate(user_dict)
+        dict_without_none = {k: v for k, v in user_dict.items() if v is not None}
+        return BindingConstraintPropertiesLocal.model_validate(dict_without_none)
 
     def to_user_model(self) -> BindingConstraintProperties:
         return BindingConstraintProperties(

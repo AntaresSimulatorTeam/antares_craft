@@ -602,6 +602,12 @@ class BaseBindingConstraintService(ABC):
         """
         pass
 
+    @abstractmethod
+    def update_multiple_binding_constraints(
+        self, new_properties: Dict[str, "BindingConstraintPropertiesUpdate"]
+    ) -> Dict[str, "BindingConstraintProperties"]:
+        pass
+
 
 class BaseStudyService(ABC):
     @property
@@ -640,12 +646,6 @@ class BaseStudyService(ABC):
             variant_name: the name of the new variant
         Returns: the variant
         """
-        pass
-
-    @abstractmethod
-    def update_multiple_binding_constraints(
-        self, new_properties: Dict[str, "BindingConstraintPropertiesUpdate"]
-    ) -> Dict[str, "BindingConstraintProperties"]:
         pass
 
     @abstractmethod
