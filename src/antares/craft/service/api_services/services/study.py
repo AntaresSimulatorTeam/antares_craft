@@ -169,9 +169,7 @@ class StudyApiService(BaseStudyService):
             binding_constraints_dict = self._wrapper.put(url, json=body).json()
 
             for binding_constraint, props in binding_constraints_dict.items():
-                api_response = BindingConstraintPropertiesAPI.model_validate(
-                    props
-                )
+                api_response = BindingConstraintPropertiesAPI.model_validate(props)
                 constraints_properties = api_response.to_user_model()
                 updated_constraints[binding_constraint] = constraints_properties
 

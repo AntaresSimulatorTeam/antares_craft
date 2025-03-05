@@ -932,10 +932,16 @@ class TestCreateAPI:
             self.study.update_multiple_binding_constraints(dict_binding_constraints)
 
             assert self.b_constraint_1.properties.enabled == dict_binding_constraints["battery_state_evolution"].enabled
-            assert self.b_constraint_1.properties.time_step.value == dict_binding_constraints["battery_state_evolution"].time_step
+            assert (
+                self.b_constraint_1.properties.time_step.value
+                == dict_binding_constraints["battery_state_evolution"].time_step
+            )
 
             assert self.b_constraint_2.properties.enabled == dict_binding_constraints["battery_state_update"].enabled
-            assert self.b_constraint_2.properties.time_step.value == dict_binding_constraints["battery_state_update"].time_step
+            assert (
+                self.b_constraint_2.properties.time_step.value
+                == dict_binding_constraints["battery_state_update"].time_step
+            )
 
     def test_update_multiple_binding_constraints_fail(self):
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/binding-constraints"
