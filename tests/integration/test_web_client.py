@@ -390,7 +390,7 @@ class TestWebClient:
 
         # checking an non updated properties of constraint hasn't been changed
         assert constraint_1.properties.comments == ""
-        assert constraint_1.properties.operator.value == BindingConstraintOperator.LESS.value
+        assert constraint_1.properties.operator == BindingConstraintOperator.LESS
 
         # test constraint creation with matrices
         # Case that fails
