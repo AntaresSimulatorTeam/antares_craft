@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
@@ -154,7 +154,7 @@ class StudyApiService(BaseStudyService):
 
     @override
     def update_multiple_binding_constraints(
-        self, new_properties: Dict[str, BindingConstraintPropertiesUpdate]
+        self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
     ) -> dict[str, BindingConstraintProperties]:
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/binding-constraints"
         body = {}
@@ -168,12 +168,12 @@ class StudyApiService(BaseStudyService):
         try:
             binding_constraints_dict = self._wrapper.put(url, json=body).json()
 
-            for binding_constraints in binding_constraints_dict:
+            for binding_constraint, props in binding_constraints_dict.items():
                 api_response = BindingConstraintPropertiesAPI.model_validate(
-                    binding_constraints_dict[binding_constraints]
+                    props
                 )
                 constraints_properties = api_response.to_user_model()
-                updated_constraints.update({binding_constraints: constraints_properties})
+                updated_constraints[binding_constraint] = constraints_properties
 
         except APIError as e:
             raise BindingConstraintsUpdateError(self.study_id, e.message) from e

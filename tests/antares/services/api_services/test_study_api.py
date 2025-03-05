@@ -925,20 +925,17 @@ class TestCreateAPI:
 
         for bc_id in json_binding_constraints:
             bc_props = BindingConstraintPropertiesUpdate(**json_binding_constraints[bc_id])
-            dict_binding_constraints.update({bc_id: bc_props})
+            dict_binding_constraints[bc_id] = bc_props
 
         with requests_mock.Mocker() as mocker:
             mocker.put(url, json=json_binding_constraints)
             self.study.update_multiple_binding_constraints(dict_binding_constraints)
 
-            bc_test_1 = self.study._binding_constraints["battery_state_evolution"]
-            bc_test_2 = self.study._binding_constraints["battery_state_update"]
+            assert self.b_constraint_1.properties.enabled == dict_binding_constraints["battery_state_evolution"].enabled
+            assert self.b_constraint_1.properties.time_step.value == dict_binding_constraints["battery_state_evolution"].time_step
 
-            assert bc_test_1.properties.enabled == dict_binding_constraints["battery_state_evolution"].enabled
-            assert bc_test_1.properties.time_step.value == dict_binding_constraints["battery_state_evolution"].time_step
-
-            assert bc_test_2.properties.enabled == dict_binding_constraints["battery_state_update"].enabled
-            assert bc_test_2.properties.time_step.value == dict_binding_constraints["battery_state_update"].time_step
+            assert self.b_constraint_2.properties.enabled == dict_binding_constraints["battery_state_update"].enabled
+            assert self.b_constraint_2.properties.time_step.value == dict_binding_constraints["battery_state_update"].time_step
 
     def test_update_multiple_binding_constraints_fail(self):
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/binding-constraints"

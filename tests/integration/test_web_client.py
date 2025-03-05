@@ -382,9 +382,9 @@ class TestWebClient:
 
         study.update_multiple_binding_constraints(dict_binding_constraints_update)
 
-        assert constraint_1.properties.time_step.value == BindingConstraintFrequency.DAILY.value
+        assert constraint_1.properties.time_step == BindingConstraintFrequency.DAILY
         assert not constraint_1.properties.enabled
-        assert constraint_2.properties.time_step.value == BindingConstraintFrequency.HOURLY.value
+        assert constraint_2.properties.time_step == BindingConstraintFrequency.HOURLY
         assert constraint_2.properties.enabled
         assert constraint_2.properties.comments == "Bonjour"
 
