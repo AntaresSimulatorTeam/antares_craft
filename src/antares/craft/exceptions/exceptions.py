@@ -211,6 +211,12 @@ class ConstraintPropertiesUpdateError(Exception):
         super().__init__(self.message)
 
 
+class BindingConstraintsUpdateError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not update binding constraints from the study {study_id}: {message}"
+        super().__init__(self.message)
+
+
 class ConstraintDoesNotExistError(Exception):
     def __init__(self, constraint_name: str) -> None:
         self.message = f"The binding constraint {constraint_name} doesn't exist: "

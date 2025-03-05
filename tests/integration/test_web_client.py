@@ -373,6 +373,25 @@ class TestWebClient:
         assert constraint_2.name == "bc_2"
         assert constraint_2.get_terms() == {link_term_2.id: link_term_2, cluster_term.id: cluster_term}
 
+        # test updating constraints
+        update_bc_props_1 = BindingConstraintPropertiesUpdate(time_step=BindingConstraintFrequency.DAILY, enabled=False)
+        update_bc_props_2 = BindingConstraintPropertiesUpdate(
+            enabled=True, time_step=BindingConstraintFrequency.HOURLY, comments="Bonjour"
+        )
+        dict_binding_constraints_update = {constraint_1.name: update_bc_props_1, constraint_2.name: update_bc_props_2}
+
+        study.update_multiple_binding_constraints(dict_binding_constraints_update)
+
+        assert constraint_1.properties.time_step == BindingConstraintFrequency.DAILY
+        assert not constraint_1.properties.enabled
+        assert constraint_2.properties.time_step == BindingConstraintFrequency.HOURLY
+        assert constraint_2.properties.enabled
+        assert constraint_2.properties.comments == "Bonjour"
+
+        # checking an non updated properties of constraint hasn't been changed
+        assert constraint_1.properties.comments == ""
+        assert constraint_1.properties.operator == BindingConstraintOperator.LESS
+
         # test constraint creation with matrices
         # Case that fails
         wrong_matrix = pd.DataFrame(data=(np.ones((12, 1))))
