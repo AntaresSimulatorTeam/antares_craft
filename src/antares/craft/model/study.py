@@ -252,10 +252,8 @@ class Study:
         self._study_service.delete_binding_constraint(constraint)
         self._binding_constraints.pop(constraint.id)
 
-    def update_multiple_binding_constraints(
-        self, b_constraint_update: Dict[str, "BindingConstraintPropertiesUpdate"]
-    ) -> None:
-        new_bc_props = self._study_service.update_multiple_binding_constraints(b_constraint_update)
+    def update_multiple_binding_constraints(self, new_properties: Dict[str, BindingConstraintPropertiesUpdate]) -> None:
+        new_bc_props = self._study_service.update_multiple_binding_constraints(new_properties)
         for bc_props in new_bc_props:
             self._binding_constraints[bc_props]._properties = new_bc_props[bc_props]
 

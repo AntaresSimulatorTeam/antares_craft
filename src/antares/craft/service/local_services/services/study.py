@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.binding_constraint import (
@@ -80,6 +80,6 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def update_multiple_binding_constraints(
-        self, b_constraint_update: Dict[str, "BindingConstraintPropertiesUpdate"]
-    ) -> Dict[str, "BindingConstraintProperties"]:
+        self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
+    ) -> dict[str, "BindingConstraintProperties"]:
         raise NotImplementedError

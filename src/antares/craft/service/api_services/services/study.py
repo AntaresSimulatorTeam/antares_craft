@@ -154,13 +154,13 @@ class StudyApiService(BaseStudyService):
 
     @override
     def update_multiple_binding_constraints(
-        self, b_constraint_update: Dict[str, "BindingConstraintPropertiesUpdate"]
-    ) -> dict[str, "BindingConstraintProperties"]:
+        self, new_properties: Dict[str, BindingConstraintPropertiesUpdate]
+    ) -> dict[str, BindingConstraintProperties]:
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/binding-constraints"
         body = {}
-        updated_constraints: Dict[str, BindingConstraintProperties] = {}
+        updated_constraints: dict[str, BindingConstraintProperties] = {}
 
-        for bc_id, props in b_constraint_update.items():
+        for bc_id, props in new_properties.items():
             api_properties = BindingConstraintPropertiesAPI.from_user_model(props)
             api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
             body[bc_id] = api_dict
@@ -172,7 +172,7 @@ class StudyApiService(BaseStudyService):
                 api_response = BindingConstraintPropertiesAPI.model_validate(
                     binding_constraints_dict[binding_constraints]
                 )
-                constraints_properties = api_response.model_dump(mode="json", by_alias=True, exclude_none=True)
+                constraints_properties = api_response.to_user_model()
                 updated_constraints.update({binding_constraints: constraints_properties})
 
         except APIError as e:

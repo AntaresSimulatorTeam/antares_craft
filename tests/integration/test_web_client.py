@@ -382,14 +382,15 @@ class TestWebClient:
 
         study.update_multiple_binding_constraints(dict_binding_constraints_update)
 
-        constraint_1 = study._binding_constraints["bc_1"]
-        constraint_2 = study._binding_constraints["bc_2"]
+        assert constraint_1.properties.time_step.value == BindingConstraintFrequency.DAILY.value
+        assert not constraint_1.properties.enabled
+        assert constraint_2.properties.time_step.value == BindingConstraintFrequency.HOURLY.value
+        assert constraint_2.properties.enabled
+        assert constraint_2.properties.comments == "Bonjour"
 
-        assert constraint_1._properties["timeStep"] == "daily"
-        assert not constraint_1._properties["enabled"]
-        assert constraint_2._properties["timeStep"] == "hourly"
-        assert constraint_2._properties["enabled"]
-        assert constraint_2._properties["comments"] == "Bonjour"
+        # checking an non updated properties of constraint hasn't been changed
+        assert constraint_1.properties.comments == ""
+        assert constraint_1.properties.operator.value == BindingConstraintOperator.LESS.value
 
         # test constraint creation with matrices
         # Case that fails
