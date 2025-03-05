@@ -25,6 +25,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintPropertiesUpdate,
     ConstraintMatrixName,
     ConstraintTerm,
+    ConstraintTermData,
     ConstraintTermUpdate,
 )
 from antares.craft.service.base_services import BaseBindingConstraintService
@@ -192,7 +193,43 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
     @override
     def read_binding_constraints(self) -> list[BindingConstraint]:
-        raise NotImplementedError
+        constraints = []
+        current_ini_content = self.ini_file.ini_dict
+        for constraint in current_ini_content.values():
+            name = constraint.pop("name")
+            del constraint["id"]
+
+            # Separate properties from terms
+            properties_fields = BindingConstraintPropertiesLocal().model_dump(by_alias=True)  # type: ignore
+            terms_dict = {}
+            local_properties_dict = {}
+            for k, v in constraint.items():
+                if k in properties_fields:
+                    local_properties_dict[k] = v
+                else:
+                    terms_dict[k] = v
+
+            # Build properties
+            local_properties = BindingConstraintPropertiesLocal.model_validate(local_properties_dict)
+            properties = local_properties.to_user_model()
+
+            # Build terms
+            terms = []
+            for key, value in terms_dict.items():
+                term_data = ConstraintTermData.from_ini(key)
+                if "%" in value:
+                    weight, offset = value.split("%")
+                else:
+                    weight = value
+                    offset = 0
+                term = ConstraintTerm(weight=float(weight), offset=int(offset), data=term_data)
+                terms.append(term)
+
+            bc = BindingConstraint(name=name, binding_constraint_service=self, properties=properties, terms=terms)
+            constraints.append(bc)
+
+        constraints.sort(key=lambda bc: bc.id)
+        return constraints
 
     @staticmethod
     def _get_constraint_inside_ini(ini_content: dict[str, Any], constraint: BindingConstraint) -> dict[str, Any]:
