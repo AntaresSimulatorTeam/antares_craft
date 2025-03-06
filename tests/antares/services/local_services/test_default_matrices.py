@@ -11,12 +11,6 @@
 # This file is part of the Antares project.
 
 
-
-import pandas as pd
-
-from antares.craft.tools.time_series_tool import TimeSeriesFileType
-
-
 class TestDefaultMatrices:
     def test_all_matrices(self, local_study_with_constraint):
         area_fr = local_study_with_constraint.get_areas()["fr"]
@@ -33,45 +27,41 @@ class TestDefaultMatrices:
         wind = area_fr.get_wind_matrix()
         print(wind)
         # Solar
-        solar = area_fr.get_solar_matrix()
-        print(solar)
+        area_fr.get_solar_matrix()
         # Hydro
-
+        area_fr.hydro.get_mod_series()
+        area_fr.hydro.get_ror_series()
+        area_fr.hydro.get_energy()
+        area_fr.hydro.get_mingen()
+        area_fr.hydro.get_reservoir()
+        area_fr.hydro.get_credit_modulations()
+        area_fr.hydro.get_maxpower()
+        area_fr.hydro.get_inflow_pattern()
+        area_fr.hydro.get_water_values()
         # Binding constraint
-
+        bc = local_study_with_constraint.get_binding_constraints()["test constraint"]
+        bc.get_equal_term_matrix()
+        bc.get_greater_term_matrix()
+        bc.get_less_term_matrix()
         # Links
-
+        link = local_study_with_constraint.get_links()["at / fr"]
+        link.get_parameters()
+        link.get_capacity_direct()
+        link.get_capacity_indirect()
         # Renewables
-
+        renewable = area_fr.get_renewables()["renewable cluster"]
+        renewable.get_timeseries()
         # St storages
-
+        storage = area_fr.get_st_storages()["short term storage"]
+        storage.get_storage_inflows()
+        storage.get_pmax_injection()
+        storage.get_pmax_withdrawal()
+        storage.get_lower_rule_curve()
+        storage.get_upper_rule_curve()
         # Thermal
-
-        DEFAULT_MATRIX_MAPPING = {
-            TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL: pd.DataFrame(),
-            TimeSeriesFileType.BINDING_CONSTRAINT_GREATER: pd.DataFrame(),
-            TimeSeriesFileType.BINDING_CONSTRAINT_LESS: pd.DataFrame(),
-            TimeSeriesFileType.HYDRO_MAX_POWER: pd.DataFrame(),
-            TimeSeriesFileType.HYDRO_RESERVOIR: pd.DataFrame(),
-            TimeSeriesFileType.HYDRO_INFLOW_PATTERN: pd.DataFrame(),
-            TimeSeriesFileType.HYDRO_CREDITS_MODULATION: pd.DataFrame(),
-            TimeSeriesFileType.HYDRO_WATER_VALUES: pd.DataFrame(),
-            TimeSeriesFileType.HYDRO_ROR: pd.DataFrame(),
-            TimeSeriesFileType.HYDRO_MOD: pd.DataFrame(),
-            TimeSeriesFileType.HYDRO_MINGEN: pd.DataFrame(),
-            TimeSeriesFileType.HYDRO_ENERGY: pd.DataFrame(),
-            TimeSeriesFileType.LINKS_CAPACITIES_DIRECT: pd.DataFrame(),
-            TimeSeriesFileType.LINKS_CAPACITIES_INDIRECT: pd.DataFrame(),
-            TimeSeriesFileType.LINKS_PARAMETERS: pd.DataFrame(),
-            TimeSeriesFileType.RENEWABLE_DATA_SERIES: pd.DataFrame(),
-            TimeSeriesFileType.ST_STORAGE_PMAX_INJECTION: pd.DataFrame(),
-            TimeSeriesFileType.ST_STORAGE_PMAX_WITHDRAWAL: pd.DataFrame(),
-            TimeSeriesFileType.ST_STORAGE_INFLOWS: pd.DataFrame(),
-            TimeSeriesFileType.ST_STORAGE_LOWER_RULE_CURVE: pd.DataFrame(),
-            TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE: pd.DataFrame(),
-            TimeSeriesFileType.THERMAL_SERIES: pd.DataFrame(),
-            TimeSeriesFileType.THERMAL_DATA: pd.DataFrame(),
-            TimeSeriesFileType.THERMAL_MODULATION: pd.DataFrame(),
-            TimeSeriesFileType.THERMAL_CO2: pd.DataFrame(),
-            TimeSeriesFileType.THERMAL_FUEL: pd.DataFrame(),
-        }
+        thermal = area_fr.get_thermals()["test thermal cluster"]
+        thermal.get_series_matrix()
+        thermal.get_prepro_data_matrix()
+        thermal.get_prepro_modulation_matrix()
+        thermal.get_fuel_cost_matrix()
+        thermal.get_co2_cost_matrix()
