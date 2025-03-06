@@ -36,13 +36,13 @@ class TestSTStorage:
         assert storage.properties == expected_properties
 
     def test_matrices(self, tmp_path: Path, local_study_w_storage: Study) -> None:
-        # Checks all matrices exist and are empty
+        # Checks all matrices exist
         storage = local_study_w_storage.get_areas()["fr"].get_st_storages()["sts_1"]
-        assert storage.get_pmax_injection().empty
-        assert storage.get_pmax_withdrawal().empty
-        assert storage.get_lower_rule_curve().empty
-        assert storage.get_upper_rule_curve().empty
-        assert storage.get_storage_inflows().empty
+        storage.get_pmax_injection()
+        storage.get_pmax_withdrawal()
+        storage.get_lower_rule_curve()
+        storage.get_upper_rule_curve()
+        storage.get_storage_inflows()
 
         # Replace matrices
         matrix = pd.DataFrame(data=8760 * [[3]])

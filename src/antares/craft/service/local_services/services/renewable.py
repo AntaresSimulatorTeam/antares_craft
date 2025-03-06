@@ -64,7 +64,7 @@ class RenewableLocalService(BaseRenewableService):
     @override
     def get_renewable_matrix(self, cluster_id: str, area_id: str) -> pd.DataFrame:
         return read_timeseries(
-            TimeSeriesFileType.RENEWABLE_DATA_SERIES, self.config.study_path, area_id=area_id, cluster_id=cluster_id
+            TimeSeriesFileType.RENEWABLE_SERIES, self.config.study_path, area_id=area_id, cluster_id=cluster_id
         )
 
     @override
@@ -92,7 +92,7 @@ class RenewableLocalService(BaseRenewableService):
         write_timeseries(
             self.config.study_path,
             matrix,
-            TimeSeriesFileType.RENEWABLE_DATA_SERIES,
+            TimeSeriesFileType.RENEWABLE_SERIES,
             renewable_cluster.area_id,
             renewable_cluster.id,
         )

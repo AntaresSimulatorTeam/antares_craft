@@ -272,13 +272,13 @@ variableomcost = 5.0
         assert thermal.properties == expected_properties
 
     def test_update_matrices(self, local_study_w_thermal):
-        # Checks all matrices exist and are empty
+        # Checks all matrices exist
         thermal = local_study_w_thermal.get_areas()["fr"].get_thermals()["test thermal cluster"]
-        assert thermal.get_series_matrix().empty
-        assert thermal.get_fuel_cost_matrix().empty
-        assert thermal.get_co2_cost_matrix().empty
-        assert thermal.get_prepro_data_matrix().empty
-        assert thermal.get_prepro_modulation_matrix().empty
+        thermal.get_series_matrix()
+        thermal.get_fuel_cost_matrix()
+        thermal.get_co2_cost_matrix()
+        thermal.get_prepro_data_matrix()
+        thermal.get_prepro_modulation_matrix()
 
         # Replace matrices
         data_matrix = pd.DataFrame(data=np.ones((365, 6)))

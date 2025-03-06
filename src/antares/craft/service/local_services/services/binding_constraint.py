@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 from typing import Any, Optional
 
+import numpy as np
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
@@ -20,6 +21,7 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
+    BindingConstraintFrequency,
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
     ConstraintMatrixName,
@@ -40,6 +42,12 @@ MAPPING = {
     ConstraintMatrixName.LESS_TERM: TimeSeriesFileType.BINDING_CONSTRAINT_LESS,
     ConstraintMatrixName.EQUAL_TERM: TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL,
     ConstraintMatrixName.GREATER_TERM: TimeSeriesFileType.BINDING_CONSTRAINT_GREATER,
+}
+
+DEFAULT_VALUE_MAPPING = {
+    BindingConstraintFrequency.HOURLY: (8784, 1),
+    BindingConstraintFrequency.WEEKLY: (366, 1),
+    BindingConstraintFrequency.DAILY: (366, 1),
 }
 
 
@@ -173,7 +181,11 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
     @override
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
-        return read_timeseries(MAPPING[matrix_name], self.config.study_path, constraint_id=constraint.id)
+        df = read_timeseries(MAPPING[matrix_name], self.config.study_path, constraint_id=constraint.id)
+        if not df.empty:
+            return df
+        default_matrix_shape = DEFAULT_VALUE_MAPPING[constraint.properties.time_step]
+        return pd.DataFrame(np.zeros(default_matrix_shape))
 
     @override
     def update_constraint_matrix(

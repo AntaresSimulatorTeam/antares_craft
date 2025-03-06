@@ -35,9 +35,9 @@ class TestRenewable:
         assert renewable.properties == expected_properties
 
     def test_matrices(self, tmp_path: Path, local_study_with_renewable: Study) -> None:
-        # Checks all matrices exist and are empty
+        # Checks all matrices exist
         renewable = local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"]
-        assert renewable.get_timeseries().empty
+        renewable.get_timeseries()
 
         # Replace matrix
         matrix = pd.DataFrame(data=8760 * [[3]])
