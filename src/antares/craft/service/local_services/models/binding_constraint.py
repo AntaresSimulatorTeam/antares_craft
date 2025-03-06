@@ -19,7 +19,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
 )
-from antares.craft.model.commons import filtering_option, FilterOption
+from antares.craft.model.commons import FilterOption, filtering_option
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from pydantic import Field
 
