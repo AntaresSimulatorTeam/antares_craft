@@ -25,6 +25,7 @@ from antares.craft import create_study_api, create_variant_api, import_study_api
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
+    AreasUpdateError,
     BindingConstraintCreationError,
     ConstraintRetrievalError,
     LinkCreationError,
@@ -76,7 +77,7 @@ class TestCreateAPI:
         services.hydro_service,
     )
     area_1 = Area(
-        "elec",
+        "area_test_1",
         services.area_service,
         services.short_term_storage_service,
         services.thermal_service,
@@ -84,7 +85,7 @@ class TestCreateAPI:
         services.hydro_service,
     )
     area_2 = Area(
-        "gaz",
+        "area_test_2",
         services.area_service,
         services.short_term_storage_service,
         services.thermal_service,
@@ -816,15 +817,15 @@ class TestCreateAPI:
             ):
                 import_study_api(self.api, study_path)
 
-    def test_update_multiple_areas(self):
+    def test_update_multiple_areas_success(self):
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/areas"
-        self.study._areas["elec"] = self.area_1
-        self.study._areas["gaz"] = self.area_2
+        self.study._areas["area_test_1"] = self.area_1
+        self.study._areas["area_test_2"] = self.area_2
         dict_areas = {}
 
         json_areas = [
             {
-                "elec": {
+                "area_test_1": {
                     "adequacy_patch_mode": "outside",
                     "non_dispatch_power": True,
                     "dispatch_hydro_power": True,
@@ -836,7 +837,7 @@ class TestCreateAPI:
                     "spread_unsupplied_energy_cost": 3000,
                     "spread_spilled_energy_cost": 0,
                 },
-                "gaz": {
+                "area_test_2": {
                     "adequacy_patch_mode": "outside",
                     "non_dispatch_power": True,
                     "dispatch_hydro_power": True,
@@ -853,7 +854,7 @@ class TestCreateAPI:
 
         json_areas_1 = [
             {
-                "elec": {
+                "area_test_1": {
                     "adequacyPatchMode": "outside",
                     "nonDispatchablePower": True,
                     "dispatchableHydroPower": True,
@@ -865,7 +866,7 @@ class TestCreateAPI:
                     "spreadUnsuppliedEnergyCost": 3000,
                     "spreadSpilledEnergyCost": 0,
                 },
-                "gaz": {
+                "area_test_2": {
                     "adequacyPatchMode": "outside",
                     "nonDispatchablePower": True,
                     "dispatchableHydroPower": True,
@@ -890,14 +891,25 @@ class TestCreateAPI:
             mocker.put(url, json=areas_1)  # CamelCase
             self.study.update_multiple_areas(dict_areas)
 
-            elec_props = self.study._areas["elec"]._properties
-            gaz_props = self.study._areas["gaz"]._properties
+            elec_props = self.study._areas["area_test_1"]._properties
+            gaz_props = self.study._areas["area_test_2"]._properties
 
-            expected_elec = areas["elec"]
-            expected_gaz = areas["gaz"]
+            expected_elec = areas["area_test_1"]
+            expected_gaz = areas["area_test_2"]
             assert elec_props["energyCostUnsupplied"] == expected_elec["energy_cost_unsupplied"]
             assert gaz_props["energyCostUnsupplied"] == expected_gaz["energy_cost_unsupplied"]
             assert elec_props["adequacyPatchMode"] == expected_elec["adequacy_patch_mode"]
             assert gaz_props["adequacyPatchMode"] == expected_gaz["adequacy_patch_mode"]
             assert elec_props["dispatchableHydroPower"] == expected_elec["dispatch_hydro_power"]
             assert gaz_props["dispatchableHydroPower"] == expected_gaz["dispatch_hydro_power"]
+
+    def test_update_multiple_areas_fail(self):
+        url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/areas"
+        with requests_mock.Mocker() as mocker:
+            mocker.put(url, status_code=400, json={"description": self.antares_web_description_msg})
+
+            with pytest.raises(
+                AreasUpdateError,
+                match=f"Could not update the areas from the study {self.study_id} : {self.antares_web_description_msg}",
+            ):
+                self.study.update_multiple_areas({})
