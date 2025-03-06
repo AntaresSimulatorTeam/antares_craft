@@ -15,7 +15,7 @@ from typing import Optional
 
 import pandas as pd
 
-from antares.craft.model.commons import FILTER_VALUES, filtering_option
+from antares.craft.model.commons import FILTER_VALUES, FilterOption
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.tools.contents_tool import transform_name_to_id
 
@@ -50,8 +50,8 @@ class LinkPropertiesUpdate:
     asset_type: Optional[AssetType] = None
     display_comments: Optional[bool] = None
     comments: Optional[str] = None
-    filter_synthesis: Optional[filtering_option] = None
-    filter_year_by_year: Optional[filtering_option] = None
+    filter_synthesis: Optional[set[FilterOption]] = None
+    filter_year_by_year: Optional[set[FilterOption]] = None
 
 
 @dataclass(frozen=True)
@@ -63,8 +63,8 @@ class LinkProperties:
     asset_type: AssetType = AssetType.AC
     display_comments: bool = True
     comments: str = ""
-    filter_synthesis: filtering_option = field(default_factory=lambda: FILTER_VALUES)
-    filter_year_by_year: filtering_option = field(default_factory=lambda: FILTER_VALUES)
+    filter_synthesis: set[FilterOption] = field(default_factory=lambda: FILTER_VALUES)
+    filter_year_by_year: set[FilterOption] = field(default_factory=lambda: FILTER_VALUES)
 
 
 @dataclass(frozen=True)
