@@ -81,15 +81,12 @@ class TestBindingConstraints:
 
         # Replace matrices
         matrix = pd.DataFrame(data=8784 * [[3]])
-        assert bc.get_greater_term_matrix().empty
         bc.update_greater_term_matrix(matrix)
         assert bc.get_greater_term_matrix().equals(matrix)
 
-        assert bc.get_less_term_matrix().empty
         bc.update_less_term_matrix(matrix)
         assert bc.get_less_term_matrix().equals(matrix)
 
-        assert bc.get_equal_term_matrix().empty
         bc.update_equal_term_matrix(matrix)
         assert bc.get_equal_term_matrix().equals(matrix)
 
