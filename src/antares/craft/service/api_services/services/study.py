@@ -26,6 +26,7 @@ from antares.craft.exceptions.exceptions import (
     TaskTimeOutError,
     ThermalTimeseriesGenerationError,
 )
+from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
 )
@@ -136,7 +137,7 @@ class StudyApiService(BaseStudyService):
             raise StudyMoveError(self.study_id, new_parent_path.as_posix(), e.message) from e
 
     @override
-    def generate_thermal_timeseries(self, nb_years: int) -> None:
+    def generate_thermal_timeseries(self, nb_years: int, areas: dict[str, Area], seed: int) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/timeseries/generate"
         url_config = f"{self._base_url}/studies/{self.study_id}/timeseries/config"
         json_thermal_timeseries = {"thermal": {"number": nb_years}}

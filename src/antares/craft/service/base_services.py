@@ -684,7 +684,7 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
-    def generate_thermal_timeseries(self, number_of_years: int) -> None:
+    def generate_thermal_timeseries(self, number_of_years: int, areas: dict[str, "Area"], seed: int) -> None:
         pass
 
 

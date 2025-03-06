@@ -335,7 +335,8 @@ class Study:
         self.path = self._study_service.move_study(parent_path)
 
     def generate_thermal_timeseries(self, nb_years: int) -> None:
-        self._study_service.generate_thermal_timeseries(nb_years)
+        seed = self._settings.seed_parameters.seed_tsgen_thermal
+        self._study_service.generate_thermal_timeseries(nb_years, self._areas, seed)
         # Copies objects to bypass the fact that the class is frozen
         self._settings.general_parameters = replace(self._settings.general_parameters, nb_timeseries_thermal=nb_years)
 
