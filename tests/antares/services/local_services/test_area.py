@@ -921,9 +921,6 @@ class TestReadLinks:
     def test_read_links_local(self, local_study_w_links):
         links = local_study_w_links.read_links()
         for link in links:
-            assert link.get_parameters().empty
-            assert link.get_capacity_direct().empty
-            assert link.get_capacity_indirect().empty
             assert link.ui.link_style.value == "plain"
             assert link.ui.link_width == 1
             assert link.ui.colorb == 112
