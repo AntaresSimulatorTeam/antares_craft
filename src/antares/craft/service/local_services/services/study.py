@@ -108,7 +108,7 @@ def _build_timeseries(number_of_years: int, areas_dict: dict[str, Area], seed: i
                     f"Thermal cluster ts-generation advancement {round(generation_performed * 100 / total_generations, 1)} %"
                 )
             except Exception as e:
-                e.args = f"Area {area_id}, cluster {thermal.id}: " + e.args[0]
+                e.args = tuple([f"Area {area_id}, cluster {thermal.id}: {e.args[0]}"])
                 raise
 
 
