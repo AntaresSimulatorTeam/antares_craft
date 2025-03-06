@@ -50,7 +50,6 @@ from antares.craft.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
-from antares.craft.tools.matrix_tool import prepare_args_replace_matrix
 from typing_extensions import override
 
 
@@ -204,17 +203,6 @@ class AreaApiService(BaseAreaService):
 
         return ThermalCluster(self.thermal_service, area_id, name, properties)
 
-    def _replace_matrix_request(self, json_payload: Union[dict[str, Any], list[dict[str, Any]]]) -> None:
-        """
-        Send a POST request with the given JSON payload to commands endpoint.
-
-        Args: dict or list([dict] with action = "replace_matrix" and matrix values
-        """
-
-        url = f"{self._base_url}/studies/{self.study_id}/commands"
-        response = self._wrapper.post(url, json=json_payload)
-        response.raise_for_status()
-
     @override
     def create_renewable_cluster(
         self,
@@ -253,8 +241,7 @@ class AreaApiService(BaseAreaService):
 
             if series is not None:
                 series_path = f"input/renewables/series/{area_id}/{renewable_name.lower()}/series"
-                command_body = [prepare_args_replace_matrix(series, series_path)]
-                self._replace_matrix_request(command_body)
+                update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
 
         except APIError as e:
             raise RenewableCreationError(renewable_name, area_id, e.message) from e

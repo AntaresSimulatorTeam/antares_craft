@@ -76,6 +76,16 @@ class ConstraintTermData:
             return ClusterData(area=input["area"], cluster=input["cluster"])
         raise ValueError(f"Dict {input} couldn't be serialized as a ConstraintTermData object")
 
+    @staticmethod
+    def from_ini(input: str) -> Union[LinkData, ClusterData]:
+        if "%" in input:
+            area_1, area_2 = input.split("%")
+            return LinkData(area1=area_1, area2=area_2)
+        elif "." in input:
+            area, cluster = input.split(".")
+            return ClusterData(area=area, cluster=cluster)
+        raise ValueError(f"Input {input} couldn't be serialized as a ConstraintTermData object")
+
 
 @dataclass(frozen=True)
 class ConstraintTermUpdate(ConstraintTermData):
@@ -157,9 +167,10 @@ class BindingConstraint:
         new_term = self._binding_constraint_service.update_binding_constraint_term(self.id, term, existing_term)
         self._terms[term.id] = new_term
 
-    def update_properties(self, properties: BindingConstraintPropertiesUpdate) -> None:
+    def update_properties(self, properties: BindingConstraintPropertiesUpdate) -> BindingConstraintProperties:
         new_properties = self._binding_constraint_service.update_binding_constraint_properties(self, properties)
         self._properties = new_properties
+        return new_properties
 
     def get_less_term_matrix(self) -> pd.DataFrame:
         return self._binding_constraint_service.get_constraint_matrix(self, ConstraintMatrixName.LESS_TERM)

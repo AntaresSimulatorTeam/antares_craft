@@ -40,11 +40,11 @@ class LinkPropertiesAndUiLocal(LocalBaseModel, alias_generator=to_kebab):
     comments: str = ""
     filter_synthesis: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
     filter_year_by_year: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
-    link_style: LinkStyle
-    link_width: float
-    colorr: int
-    colorg: int
-    colorb: int
+    link_style: LinkStyle = LinkStyle.PLAIN
+    link_width: float = 1
+    colorr: int = 112
+    colorg: int = 112
+    colorb: int = 112
 
     @staticmethod
     def from_user_model(

@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import List
+from typing import Any, List
 
 
 class InvalidChoiceError(ValueError):
@@ -93,6 +93,12 @@ class LinkDeletionError(Exception):
 class LinksRetrievalError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
         self.message = f"Could not retrieve links from study {study_id} : {message}"
+        super().__init__(self.message)
+
+
+class LinksUpdateError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not update links from study {study_id} : {message}"
         super().__init__(self.message)
 
 
@@ -208,6 +214,12 @@ class BindingConstraintCreationError(Exception):
 class ConstraintPropertiesUpdateError(Exception):
     def __init__(self, constraint_name: str, message: str) -> None:
         self.message = f"Could not update properties for binding constraint {constraint_name}: " + message
+        super().__init__(self.message)
+
+
+class BindingConstraintsUpdateError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not update binding constraints from the study {study_id}: {message}"
         super().__init__(self.message)
 
 
@@ -433,4 +445,10 @@ class FilteringValueError(Exception):
         self.message = (
             f"Invalid value(s) in filters: {', '.join(invalid_options)}. Allowed values are: {', '.join(valid_values)}."
         )
+        super().__init__(self.message)
+
+
+class MatrixFormatError(Exception):
+    def __init__(self, matrix_name: str, expected_shape: tuple[int, Any], actual_shape: tuple[int, int]) -> None:
+        self.message = f"Wrong format for {matrix_name} matrix, expected shape is ({expected_shape[0]}, {expected_shape[1]}) and was : {actual_shape}"
         super().__init__(self.message)

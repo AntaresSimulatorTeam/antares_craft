@@ -635,8 +635,7 @@ layers = 0
 
     def test_create_area_with_custom_ui(self, tmp_path, local_study):
         # Given
-        study_antares_path = tmp_path / local_study.name
-        # TODO: This should've been local_study._service.path, but ABCService doesn't have path
+        study_antares_path = local_study.service.config.study_path
 
         area = "area1"
         ui_ini_path = study_antares_path / "input" / "areas" / area / "ui.ini"
@@ -1382,7 +1381,7 @@ at%fr = 1%1
 
     def test_get_constraint_matrix(self, local_study):
         # Given
-        expected_time_series = pd.DataFrame(np.random.random([365 * 24, 1]))
+        expected_time_series = pd.DataFrame(np.random.randint(0, 100, [365 * 24, 1]))
         bc_name = "test time series"
         local_study.create_binding_constraint(
             name=bc_name,
@@ -1396,4 +1395,4 @@ at%fr = 1%1
         actual_time_series = local_study.get_binding_constraints()[bc_name].get_greater_term_matrix()
 
         # Then
-        assert actual_time_series.round(10).equals(expected_time_series.round(10))
+        assert actual_time_series.equals(expected_time_series)

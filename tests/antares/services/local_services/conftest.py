@@ -20,6 +20,8 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
+    ConstraintTerm,
+    LinkData,
 )
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
@@ -63,10 +65,34 @@ def local_study_w_links(tmp_path, local_study_w_areas):
 
 
 @pytest.fixture
+def local_study_w_constraints(tmp_path, local_study_w_links) -> Study:
+    bc_props = BindingConstraintProperties(operator=BindingConstraintOperator.GREATER, enabled=False)
+    local_study_w_links.create_binding_constraint(name="bc_1", properties=bc_props)
+
+    term = ConstraintTerm(data=LinkData(area1="at", area2="fr"), weight=2)
+    local_study_w_links.create_binding_constraint(name="bc_2", terms=[term])
+    return local_study_w_links
+
+
+@pytest.fixture
 def local_study_w_thermal(tmp_path, local_study_w_links) -> Study:
     thermal_name = "test thermal cluster"
     local_study_w_links.get_areas()["fr"].create_thermal_cluster(thermal_name)
     return local_study_w_links
+
+
+@pytest.fixture
+def local_study_w_thermals(tmp_path, local_study_w_thermal) -> Study:
+    local_study_w_thermal.get_areas()["fr"].create_thermal_cluster("thermal_fr_2")
+    local_study_w_thermal.get_areas()["it"].create_thermal_cluster("thermal_it")
+    return local_study_w_thermal
+
+
+@pytest.fixture
+def local_study_w_storage(tmp_path, local_study_w_areas) -> Study:
+    st_properties = STStorageProperties(efficiency=0.4, initial_level_optim=True)
+    local_study_w_areas.get_areas()["fr"].create_st_storage("sts_1", st_properties)
+    return local_study_w_areas
 
 
 @pytest.fixture
@@ -132,9 +158,7 @@ def actual_adequacy_patch_ini(local_study_w_areas) -> IniFile:
 @pytest.fixture
 def local_study_with_renewable(local_study_w_thermal) -> Study:
     renewable_cluster_name = "renewable cluster"
-    local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
-        renewable_cluster_name, RenewableClusterProperties(), series=None
-    )
+    local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(renewable_cluster_name)
     return local_study_w_thermal
 
 

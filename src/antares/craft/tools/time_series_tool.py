@@ -12,8 +12,6 @@
 
 from enum import Enum
 
-import pandas as pd
-
 
 class TimeSeriesFileType(Enum):
     """
@@ -49,7 +47,12 @@ class TimeSeriesFileType(Enum):
     LOAD_K = "input/load/prepro/{area_id}/k.txt"
     LOAD_TRANSLATION = "input/load/prepro/{area_id}/translation.txt"
     MISC_GEN = "input/misc-gen/miscgen-{area_id}.txt"
-    RENEWABLE_DATA_SERIES = "input/renewables/series/{area_id}/{cluster_id}/series.txt"
+    RENEWABLE_SERIES = "input/renewables/series/{area_id}/{cluster_id}/series.txt"
+    ST_STORAGE_PMAX_INJECTION = "input/st-storage/series/{area_id}/{cluster_id}/pmax_injection.txt"
+    ST_STORAGE_PMAX_WITHDRAWAL = "input/st-storage/series/{area_id}/{cluster_id}/pmax_withdrawal.txt"
+    ST_STORAGE_INFLOWS = "input/st-storage/series/{area_id}/{cluster_id}/inflows.txt"
+    ST_STORAGE_LOWER_RULE_CURVE = "input/st-storage/series/{area_id}/{cluster_id}/lower_rule_curve.txt"
+    ST_STORAGE_UPPER_RULE_CURVE = "input/st-storage/series/{area_id}/{cluster_id}/upper_rule_curve.txt"
     RESERVES = "input/reserves/{area_id}.txt"
     SOLAR = "input/solar/series/solar_{area_id}.txt"
     SOLAR_CONVERSION = "input/solar/prepro/{area_id}/conversion.txt"
@@ -66,19 +69,3 @@ class TimeSeriesFileType(Enum):
     WIND_DATA = "input/wind/prepro/{area_id}/data.txt"
     WIND_K = "input/wind/prepro/{area_id}/k.txt"
     WIND_TRANSLATION = "input/wind/prepro/{area_id}/translation.txt"
-
-
-class TimeSeries:
-    """
-    A time series for use in Antares
-
-    Args:
-        time_series: Pandas DataFrame containing the time series.
-    """
-
-    def __init__(self, time_series: pd.DataFrame = pd.DataFrame([])) -> None:
-        self._time_series = time_series
-
-    @property
-    def time_series(self) -> pd.DataFrame:
-        return self._time_series

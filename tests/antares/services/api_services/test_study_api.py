@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+
 import pytest
 import requests_mock
 
@@ -27,8 +28,10 @@ from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     AreasUpdateError,
     BindingConstraintCreationError,
+    BindingConstraintsUpdateError,
     ConstraintRetrievalError,
     LinkCreationError,
+    LinksUpdateError,
     OutputDeletionError,
     OutputsRetrievalError,
     SimulationFailedError,
@@ -42,11 +45,13 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.area import Area, AreaPropertiesUpdate, AreaUi
 from antares.craft.model.binding_constraint import (
+    BindingConstraint,
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
+    BindingConstraintPropertiesUpdate,
 )
-from antares.craft.model.link import Link
+from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate
 from antares.craft.model.output import (
     Output,
 )
@@ -92,6 +97,13 @@ class TestCreateAPI:
         services.renewable_service,
         services.hydro_service,
     )
+
+    first_link = Link(area.id, area_1.id, services.link_service)
+    second_link = Link(area.id, area_2.id, services.link_service)
+
+    b_constraint_1 = BindingConstraint("battery_state_evolution", services.bc_service)
+    b_constraint_2 = BindingConstraint("battery_state_update", services.bc_service)
+
 
     def test_create_study_test_ok(self) -> None:
         with requests_mock.Mocker() as mocker:
@@ -266,6 +278,7 @@ class TestCreateAPI:
         output_url = f"{url}/outputs"
         constraints_url = f"{base_url}/studies/{self.study_id}/bindingconstraints"
         hydro_url = f"{area_url}/zone/hydro/form"
+        links_url = f"{url}/links"
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url, json=json_study)
@@ -281,6 +294,7 @@ class TestCreateAPI:
                 json=[],
             )
             mocker.get(constraints_url, json=[])
+            mocker.get(links_url, json=[])
             mocker.get(hydro_url, json={})
             actual_study = read_study_api(self.api, self.study_id)
 
@@ -330,6 +344,9 @@ class TestCreateAPI:
 
             constraints_url = f"{base_url}/studies/{variant_id}/bindingconstraints"
             mocker.get(constraints_url, json=[], status_code=200)
+
+            links_url = f"{base_url}/studies/{variant_id}/links"
+            mocker.get(links_url, json=[], status_code=200)
 
             variant = self.study.create_variant(variant_name)
             variant_from_api = create_variant_api(self.api, self.study_id, variant_name)
@@ -768,6 +785,7 @@ class TestCreateAPI:
         storage_url = f"{area_url}/zone/storages"
         output_url = f"{url}/outputs"
         constraints_url = f"{base_url}/studies/{self.study_id}/bindingconstraints"
+        links_url = f"{base_url}/studies/{self.study_id}/links"
         config_urls = re.compile(f"{base_url}/studies/{self.study_id}/config/.*")
         ts_settings_url = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/config"
 
@@ -788,6 +806,7 @@ class TestCreateAPI:
             mocker.get(storage_url, json=[])
             mocker.get(output_url, json=[])
             mocker.get(constraints_url, json=[])
+            mocker.get(links_url, json=[])
 
             mocker.put(url_move)
             mocker.get(url_study, json=json_study)
@@ -909,7 +928,129 @@ class TestCreateAPI:
             mocker.put(url, status_code=400, json={"description": self.antares_web_description_msg})
 
             with pytest.raises(
+
                 AreasUpdateError,
                 match=f"Could not update the areas from the study {self.study_id} : {self.antares_web_description_msg}",
             ):
                 self.study.update_multiple_areas({})
+
+    def test_update_multiple_links_success(self):
+        updated_links = {}
+        self.study._areas["area_test"] = self.area
+        self.study._areas["area_test_1"] = self.area_1
+        self.study._areas["area_test_2"] = self.area_2
+
+        self.study._links["area_test / area_test_1"] = self.first_link
+        self.study._links["area_test / area_test_2"] = self.second_link
+
+        url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/links"
+        json_update_links = {
+            "area_test / area_test_1": {
+                "hurdles_cost": False,
+                "loop_flow": False,
+                "use_phase_shifter": False,
+                "transmission_capacities": "enabled",
+                "asset_type": "virt",
+                "display_comments": True,
+                "comments": "",
+                "filter_synthesis": "hourly, daily, weekly, monthly, annual",
+                "filter_year_by_year": "hourly, daily, weekly, monthly, annual",
+                "area1": "area_test",
+                "area2": "area_test_1",
+            },
+            "area_test / area_test_2": {
+                "hurdles_cost": False,
+                "loop_flow": False,
+                "use_phase_shifter": False,
+                "transmission_capacities": "enabled",
+                "asset_type": "virt",
+                "display_comments": True,
+                "comments": "",
+                "filter_synthesis": "hourly, daily, weekly, monthly, annual",
+                "filter_year_by_year": "hourly, daily, weekly, monthly, annual",
+                "area1": "area_test",
+                "area2": "area_test_2",
+            },
+        }
+
+        with requests_mock.Mocker() as mocker:
+            for link in json_update_links:
+                json_update_links[link].pop("area1")
+                json_update_links[link].pop("area2")
+                link_up = LinkPropertiesUpdate(**json_update_links[link])
+                updated_links.update({link: link_up})
+                json_update_links[link].update({"area1": "area_test"})
+                json_update_links[link].update({"area2": "area_test_2"})
+
+            mocker.put(url=url, status_code=200, json=json_update_links)
+            self.study.update_multiple_links(updated_links)
+            json_update_links["area_test / area_test_1"].pop("area1")
+            json_update_links["area_test / area_test_1"].pop("area2")
+            json_update_links["area_test / area_test_2"].pop("area1")
+            json_update_links["area_test / area_test_2"].pop("area2")
+
+            link_props_1 = LinkProperties(**json_update_links["area_test / area_test_1"])
+            link_props_2 = LinkProperties(**json_update_links["area_test / area_test_2"])
+
+            test_links_1 = self.study.get_links()["area_test / area_test_1"]
+            assert test_links_1.properties.hurdles_cost == link_props_1.hurdles_cost
+            assert test_links_1.properties.display_comments == link_props_1.display_comments
+            test_links_2 = self.study.get_links()["area_test / area_test_2"]
+            assert test_links_2.properties.hurdles_cost == link_props_2.hurdles_cost
+            assert test_links_2.properties.display_comments == link_props_2.display_comments
+
+    def test_update_multiple_links_fail(self):
+        url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/links"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.put(url, status_code=404, json={"description": self.antares_web_description_msg})
+
+            with pytest.raises(
+                LinksUpdateError,
+                match=f"Could not update links from study {self.study_id} : {self.antares_web_description_msg}",
+            ):
+                self.study.update_multiple_links({})
+
+    def test_update_multiple_binding_constraints_success(self):
+        self.study._binding_constraints["battery_state_evolution"] = self.b_constraint_1
+        self.study._binding_constraints["battery_state_update"] = self.b_constraint_2
+
+        dict_binding_constraints = {}
+
+        url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/binding-constraints"
+        json_binding_constraints = {
+            "battery_state_evolution": {"enabled": True, "time_step": "hourly", "operator": "equal", "comments": ""},
+            "battery_state_update": {"enabled": True, "time_step": "hourly", "operator": "less", "comments": ""},
+        }
+
+        for bc_id in json_binding_constraints:
+            bc_props = BindingConstraintPropertiesUpdate(**json_binding_constraints[bc_id])
+            dict_binding_constraints[bc_id] = bc_props
+
+        with requests_mock.Mocker() as mocker:
+            mocker.put(url, json=json_binding_constraints)
+            self.study.update_multiple_binding_constraints(dict_binding_constraints)
+
+            assert self.b_constraint_1.properties.enabled == dict_binding_constraints["battery_state_evolution"].enabled
+            assert (
+                self.b_constraint_1.properties.time_step.value
+                == dict_binding_constraints["battery_state_evolution"].time_step
+            )
+
+            assert self.b_constraint_2.properties.enabled == dict_binding_constraints["battery_state_update"].enabled
+            assert (
+                self.b_constraint_2.properties.time_step.value
+                == dict_binding_constraints["battery_state_update"].time_step
+            )
+
+    def test_update_multiple_binding_constraints_fail(self):
+        url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/binding-constraints"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.put(url, status_code=400, json={"description": self.antares_web_description_msg})
+
+            with pytest.raises(
+                BindingConstraintsUpdateError,
+                match=f"Could not update binding constraints from the study {self.study_id}: {self.antares_web_description_msg}",
+            ):
+                self.study.update_multiple_binding_constraints({})

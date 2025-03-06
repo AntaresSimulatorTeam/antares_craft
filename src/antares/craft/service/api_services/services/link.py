@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Optional
+from typing import Dict, Optional
 
 import pandas as pd
 
@@ -23,6 +23,7 @@ from antares.craft.exceptions.exceptions import (
     LinkDownloadError,
     LinkPropertiesUpdateError,
     LinksRetrievalError,
+    LinksUpdateError,
     LinkUiUpdateError,
     LinkUploadError,
 )
@@ -204,3 +205,29 @@ class LinkApiService(BaseLinkService):
         except APIError as e:
             raise LinksRetrievalError(self.study_id, e.message) from e
         return links
+
+    @override
+    def update_multiple_links(self, dict_links: Dict[str, LinkPropertiesUpdate]) -> Dict[str, LinkProperties]:
+        body = {}
+        for link_id, props in dict_links.items():
+            api_properties = LinkPropertiesAndUiAPI.from_user_model(None, props)
+            api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+            body[link_id] = api_dict
+
+        try:
+            url = f"{self._base_url}/studies/{self.study_id}/table-mode/links"
+            links = self._wrapper.put(url, json=body).json()
+            updated_links: Dict[str, LinkProperties] = {}
+
+            for link in links:
+                links[link].pop("area1")
+                links[link].pop("area2")
+                api_response = LinkPropertiesAndUiAPI.model_validate(links[link])
+                link_properties = api_response.to_properties_user_model()
+
+                updated_links[link] = link_properties
+
+        except APIError as e:
+            raise LinksUpdateError(self.study_id, e.message) from e
+
+        return updated_links

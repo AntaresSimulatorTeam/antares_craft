@@ -12,28 +12,10 @@
 
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
-from antares.craft.tools.matrix_tool import prepare_args_replace_matrix, write_timeseries
+from antares.craft.tools.matrix_tool import write_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
-
-
-def test_prepare_args():
-    # Given
-
-    matrix = np.random.randint(0, 2, size=(8760, 1))
-    series = pd.DataFrame(matrix, columns=["Value"])
-    series_path = "input/thermal/series/area_id/cluster_name/series"
-
-    # Expected result
-    expected_result = {"action": "replace_matrix", "args": {"target": series_path, "matrix": matrix.tolist()}}
-
-    # When
-    result = prepare_args_replace_matrix(series, series_path)
-
-    # Then
-    assert result == expected_result
 
 
 def test_write_timeseries(tmpdir):

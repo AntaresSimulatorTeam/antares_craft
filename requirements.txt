@@ -1,3 +1,5 @@
+antares-timeseries-generation==0.1.7
+
 absl-py~=1.4.0
 click~=8.1.7
 configparser~=5.0.2

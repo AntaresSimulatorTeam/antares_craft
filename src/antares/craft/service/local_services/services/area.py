@@ -127,7 +127,7 @@ class AreaLocalService(BaseAreaService):
         list_ini.write_ini_file(sort_sections=True)
 
         # Upload matrices
-        cluster_id = cluster_id = transform_name_to_id(thermal_name)
+        cluster_id = transform_name_to_id(thermal_name)
 
         write_timeseries(self.config.study_path, prepro, TimeSeriesFileType.THERMAL_DATA, area_id, cluster_id)
         write_timeseries(self.config.study_path, modulation, TimeSeriesFileType.THERMAL_MODULATION, area_id, cluster_id)
@@ -155,7 +155,7 @@ class AreaLocalService(BaseAreaService):
         write_timeseries(
             self.config.study_path,
             series,
-            TimeSeriesFileType.RENEWABLE_DATA_SERIES,
+            TimeSeriesFileType.RENEWABLE_SERIES,
             area_id,
             cluster_id=transform_name_to_id(renewable_name),
         )
@@ -178,12 +178,26 @@ class AreaLocalService(BaseAreaService):
         list_ini.add_section({st_storage_name: new_section_content})
         list_ini.write_ini_file(sort_sections=True)
 
-        return STStorage(
+        storage = STStorage(
             self.storage_service,
             area_id,
             st_storage_name,
             properties,
         )
+
+        # Create empty matrices
+        series = pd.DataFrame()
+        cluster_id = storage.id
+        for ts in [
+            TimeSeriesFileType.ST_STORAGE_PMAX_INJECTION,
+            TimeSeriesFileType.ST_STORAGE_PMAX_WITHDRAWAL,
+            TimeSeriesFileType.ST_STORAGE_INFLOWS,
+            TimeSeriesFileType.ST_STORAGE_LOWER_RULE_CURVE,
+            TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE,
+        ]:
+            write_timeseries(self.config.study_path, series, ts, area_id, cluster_id=cluster_id)
+
+        return storage
 
     @override
     def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
@@ -228,8 +242,8 @@ class AreaLocalService(BaseAreaService):
             """
             return line_to_add.strip() in file_content.split("\n")
 
-        study_directory = self.config.local_path.joinpath(self.study_name, "input")
-        areas_directory = study_directory.joinpath("areas")
+        study_path = self.config.study_path
+        areas_directory = study_path / "input" / "areas"
         new_area_directory = areas_directory.joinpath(transform_name_to_id(area_name))
 
         if new_area_directory.is_dir():
@@ -260,15 +274,13 @@ class AreaLocalService(BaseAreaService):
             # TODO: Handle districts in sets.ini later
             sets_ini_content = _sets_ini_content()
 
-            with (self.config.study_path / InitializationFilesTypes.AREAS_SETS_INI.value).open("w") as sets_ini:
+            with (study_path / InitializationFilesTypes.AREAS_SETS_INI.value).open("w") as sets_ini:
                 sets_ini_content.write(sets_ini)
 
             properties = properties or AreaProperties()
             local_properties = AreaPropertiesLocal.from_user_model(properties)
 
-            adequacy_patch_ini = IniFile(
-                self.config.study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_name
-            )
+            adequacy_patch_ini = IniFile(study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_name)
             adequacy_patch_ini.add_section(local_properties.to_adequacy_ini())
             adequacy_patch_ini.write_ini_file()
 
@@ -278,7 +290,7 @@ class AreaLocalService(BaseAreaService):
             with open(new_area_directory / "optimization.ini", "w") as optimization_ini_file:
                 optimization_ini.write(optimization_ini_file)
 
-            areas_ini = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_AREAS_INI)
+            areas_ini = IniFile(study_path, InitializationFilesTypes.THERMAL_AREAS_INI)
             if not areas_ini.ini_dict:
                 areas_ini.add_section({"unserverdenergycost": {}})
                 areas_ini.add_section({"spilledenergycost": {}})
@@ -301,16 +313,29 @@ class AreaLocalService(BaseAreaService):
             self.create_load(area_name, empty_df)
             self.create_solar(area_name, empty_df)
             self.create_wind(area_name, empty_df)
-            IniFile.create_link_ini_for_area(self.config.study_path, area_name)
-            IniFile.create_list_ini_for_area(self.config.study_path, area_name)
+            IniFile.create_link_ini_for_area(study_path, area_name)
+            IniFile.create_list_ini_for_area(study_path, area_name)
 
             # Hydro
             area_id = transform_name_to_id(area_name)
             default_hydro_properties = HydroProperties()
             update_properties = default_hydro_properties.to_update_properties()
-            edit_hydro_properties(self.config.study_path, area_id, update_properties, creation=True)
+            edit_hydro_properties(study_path, area_id, update_properties, creation=True)
             hydro = Hydro(self.hydro_service, area_id, default_hydro_properties)
-            IniFile.create_hydro_initialization_files_for_area(self.config.study_path, area_id)
+            # Create files
+            IniFile.create_hydro_initialization_files_for_area(study_path, area_id)
+            for ts in [
+                TimeSeriesFileType.HYDRO_MAX_POWER,
+                TimeSeriesFileType.HYDRO_RESERVOIR,
+                TimeSeriesFileType.HYDRO_INFLOW_PATTERN,
+                TimeSeriesFileType.HYDRO_CREDITS_MODULATION,
+                TimeSeriesFileType.HYDRO_WATER_VALUES,
+                TimeSeriesFileType.HYDRO_ROR,
+                TimeSeriesFileType.HYDRO_MOD,
+                TimeSeriesFileType.HYDRO_MINGEN,
+                TimeSeriesFileType.HYDRO_ENERGY,
+            ]:
+                write_timeseries(study_path, pd.DataFrame(), ts, area_id=area_id)
 
         except Exception as e:
             raise AreaCreationError(area_name, f"{e}") from e
