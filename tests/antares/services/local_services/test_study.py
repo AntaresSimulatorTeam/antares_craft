@@ -1199,8 +1199,8 @@ enabled = True
 type = hourly
 operator = less
 comments = 
-filter-year-by-year = hourly
-filter-synthesis = hourly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
+filter-synthesis = annual, daily, hourly, monthly, weekly
 group = default
 
 """
@@ -1224,7 +1224,7 @@ group = default
             time_step=BindingConstraintFrequency.WEEKLY,
             operator=BindingConstraintOperator.BOTH,
             comments="test comment",
-            filter_year_by_year="yearly",
+            filter_year_by_year="annual",
             filter_synthesis="monthly",
             group="test group",
         )
@@ -1235,8 +1235,8 @@ enabled = True
 type = hourly
 operator = less
 comments = 
-filter-year-by-year = hourly
-filter-synthesis = hourly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
+filter-synthesis = annual, daily, hourly, monthly, weekly
 group = default
 
 [1]
@@ -1246,7 +1246,7 @@ enabled = False
 type = weekly
 operator = both
 comments = test comment
-filter-year-by-year = yearly
+filter-year-by-year = annual
 filter-synthesis = monthly
 group = test group
 
@@ -1280,8 +1280,8 @@ enabled = True
 type = hourly
 operator = less
 comments = 
-filter-year-by-year = hourly
-filter-synthesis = hourly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
+filter-synthesis = annual, daily, hourly, monthly, weekly
 group = default
 at%fr = 1
 
@@ -1305,8 +1305,8 @@ enabled = True
 type = hourly
 operator = less
 comments = 
-filter-year-by-year = hourly
-filter-synthesis = hourly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
+filter-synthesis = annual, daily, hourly, monthly, weekly
 group = default
 at%fr = 1%1
 

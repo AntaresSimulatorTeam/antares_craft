@@ -9,12 +9,13 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional, Union
 
 import pandas as pd
 
+from antares.craft.model.commons import FILTER_VALUES, filtering_option
 from antares.craft.service.base_services import BaseBindingConstraintService
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 
@@ -108,8 +109,8 @@ class BindingConstraintPropertiesUpdate:
     time_step: Optional[BindingConstraintFrequency] = None
     operator: Optional[BindingConstraintOperator] = None
     comments: Optional[str] = None
-    filter_year_by_year: Optional[str] = None
-    filter_synthesis: Optional[str] = None
+    filter_year_by_year: Optional[filtering_option] = None
+    filter_synthesis: Optional[filtering_option] = None
     group: Optional[str] = None
 
 
@@ -119,8 +120,8 @@ class BindingConstraintProperties:
     time_step: BindingConstraintFrequency = BindingConstraintFrequency.HOURLY
     operator: BindingConstraintOperator = BindingConstraintOperator.LESS
     comments: str = ""
-    filter_year_by_year: str = "hourly"
-    filter_synthesis: str = "hourly"
+    filter_year_by_year: filtering_option = field(default_factory=lambda: FILTER_VALUES)
+    filter_synthesis: filtering_option = field(default_factory=lambda: FILTER_VALUES)
     group: str = "default"
 
 

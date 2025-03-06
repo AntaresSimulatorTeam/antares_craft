@@ -13,7 +13,7 @@
 from dataclasses import asdict, field
 from typing import Optional, Union
 
-from antares.craft.model.commons import FILTER_VALUES, comma_separated_enum_set
+from antares.craft.model.commons import FILTER_VALUES, filtering_option
 from antares.craft.model.link import (
     AssetType,
     LinkProperties,
@@ -38,8 +38,8 @@ class LinkPropertiesAndUiLocal(LocalBaseModel, alias_generator=to_kebab):
     asset_type: AssetType = AssetType.AC
     display_comments: bool = True
     comments: str = ""
-    filter_synthesis: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
-    filter_year_by_year: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
+    filter_synthesis: filtering_option = field(default_factory=lambda: FILTER_VALUES)
+    filter_year_by_year: filtering_option = field(default_factory=lambda: FILTER_VALUES)
     link_style: LinkStyle = LinkStyle.PLAIN
     link_width: float = 1
     colorr: int = 112
