@@ -831,8 +831,8 @@ class TestCreateAPI:
                     "other_dispatch_power": True,
                     "energy_cost_unsupplied": 0,
                     "energy_cost_spilled": 0,
-                    "filter_synthesis": ["annual"],
-                    "filter_by_year": ["hourly", "daily", "annual"],
+                    "filter_synthesis": "annual",
+                    "filter_by_year": "hourly, daily, annual",
                     "spread_unsupplied_energy_cost": 3000,
                     "spread_spilled_energy_cost": 0,
                 },
@@ -843,21 +843,51 @@ class TestCreateAPI:
                     "other_dispatch_power": True,
                     "energy_cost_unsupplied": 0,
                     "energy_cost_spilled": 0,
-                    "filter_synthesis": ["hourly", "daily", "weekly"],
-                    "filter_by_year": ["weekly", "monthly", "annual"],
+                    "filter_synthesis": "hourly, daily, weekly",
+                    "filter_by_year": "weekly, monthly, annual",
                     "spread_unsupplied_energy_cost": 1400,
                     "spread_spilled_energy_cost": 0,
                 },
             }
         ]
 
+        json_areas_1 = [
+            {
+                "elec": {
+                    "adequacyPatchMode": "outside",
+                    "nonDispatchablePower": True,
+                    "dispatchableHydroPower": True,
+                    "otherDispatchablePower": True,
+                    "energy_cost_unsupplied": 0,
+                    "energy_cost_spilled": 0,
+                    "filterSynthesis": "annual",
+                    "filterYearByYear": "hourly, daily, annual",
+                    "spreadUnsuppliedEnergyCost": 3000,
+                    "spreadSpilledEnergyCost": 0,
+                },
+                "gaz": {
+                    "adequacyPatchMode": "outside",
+                    "nonDispatchablePower": True,
+                    "dispatchableHydroPower": True,
+                    "otherDispatchablePower": True,
+                    "energy_cost_unsupplied": 0,
+                    "energy_cost_spilled": 0,
+                    "filterSynthesis": "hourly, daily, weekly",
+                    "filterYearByYear": "weekly, monthly, annual",
+                    "spreadUnsuppliedEnergyCost": 1400,
+                    "spreadSpilledEnergyCost": 0,
+                },
+            }
+        ]
+
         with requests_mock.Mocker() as mocker:
             areas = json_areas[0]
-            for area in areas:
-                area_up_props = AreaPropertiesUpdate(**areas[area])
+            areas_1 = json_areas_1[0]
+            for area, props in areas.items():
+                area_up_props = AreaPropertiesUpdate(**areas[area])  # snake_case
                 dict_areas.update({area: area_up_props})
 
-            mocker.put(url, json=areas)
+            mocker.put(url, json=areas_1)  # CamelCase
             self.study.update_multiple_areas(dict_areas)
 
             elec_props = self.study._areas["elec"]._properties
@@ -869,5 +899,5 @@ class TestCreateAPI:
             assert gaz_props["energyCostUnsupplied"] == expected_gaz["energy_cost_unsupplied"]
             assert elec_props["adequacyPatchMode"] == expected_elec["adequacy_patch_mode"]
             assert gaz_props["adequacyPatchMode"] == expected_gaz["adequacy_patch_mode"]
-            assert elec_props["dispatchHydroPower"] == expected_elec["dispatch_hydro_power"]
-            assert gaz_props["dispatchHydroPower"] == expected_gaz["dispatch_hydro_power"]
+            assert elec_props["dispatchableHydroPower"] == expected_elec["dispatch_hydro_power"]
+            assert gaz_props["dispatchableHydroPower"] == expected_gaz["dispatch_hydro_power"]

@@ -54,6 +54,38 @@ class AreaPropertiesAPI(APIBaseModel):
         )
 
 
+@all_optional_model
+class AreaPropertiesAPITableMode(APIBaseModel):
+    energy_cost_unsupplied: float
+    energy_cost_spilled: float
+    non_dispatchable_power: bool
+    dispatchable_hydro_power: bool
+    other_dispatchable_power: bool
+    filter_synthesis: str
+    filter_year_by_year: str
+    adequacy_patch_mode: AdequacyPatchMode
+    average_unsupplied_energy_cost: float
+    average_spilled_energy_cost: float
+
+    @staticmethod
+    def from_user_model(user_class: AreaPropertiesType) -> "AreaPropertiesAPITableMode":
+        mapping = {
+            "energy_cost_unsupplied": "energy_cost_unsupplied",
+            "energy_cost_spilled": "energy_cost_spilled",
+            "non_dispatch_power": "nonDispatchablePower",
+            "dispatch_hydro_power": "dispatchableHydroPower",
+            "other_dispatch_power": "otherDispatchablePower",
+            "filter_synthesis": "filterSynthesis",
+            "filter_by_year": "filterYearByYear",
+            "adequacy_patch_mode": "adequacyPatchMode",
+            "spread_unsupplied_energy_cost": "averageUnsuppliedEnergyCost",
+            "spread_spilled_energy_cost": "averageSpilledEnergyCost",
+        }
+        user_dict = asdict(user_class)
+        remapped_user_dict = {mapping.get(k, k): v for k, v in user_dict.items()}
+        return AreaPropertiesAPITableMode.model_validate(remapped_user_dict)
+
+
 AreaUiType = Union[AreaUi, AreaUiUpdate]
 
 

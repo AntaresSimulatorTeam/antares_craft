@@ -38,7 +38,7 @@ from antares.craft.model.hydro import Hydro
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
-from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaUiAPI
+from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaPropertiesAPITableMode, AreaUiAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
@@ -514,16 +514,20 @@ class AreaApiService(BaseAreaService):
         updated_areas: Dict[str, AreaProperties] = {}
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/areas"
 
+        exclude = {"spread_unsupplied_energy_cost", "spread_spilled_energy_cost"}
+
         for area_id, props in dict_areas.items():
-            api_properties = AreaPropertiesAPI.from_user_model(props)
-            api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+            api_properties = AreaPropertiesAPITableMode.from_user_model(props)
+            api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True, exclude=exclude)
             body[area_id] = api_dict
 
         try:
             areas = self._wrapper.put(url, json=body).json()
 
             for area in areas:
-                api_response = AreaPropertiesAPI.model_validate(areas[area])
+                areas[area].pop("spreadUnsuppliedEnergyCost")
+                areas[area].pop("spreadSpilledEnergyCost")
+                api_response = AreaPropertiesAPITableMode.model_validate(areas[area])
                 area_properties = api_response.model_dump(mode="json", by_alias=True, exclude_none=True)
                 updated_areas.update({area: area_properties})
 
