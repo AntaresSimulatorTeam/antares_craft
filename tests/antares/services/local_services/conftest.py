@@ -82,6 +82,13 @@ def local_study_w_thermal(tmp_path, local_study_w_links) -> Study:
 
 
 @pytest.fixture
+def local_study_w_thermals(tmp_path, local_study_w_thermal) -> Study:
+    local_study_w_thermal.get_areas()["fr"].create_thermal_cluster("thermal_fr_2")
+    local_study_w_thermal.get_areas()["it"].create_thermal_cluster("thermal_it")
+    return local_study_w_thermal
+
+
+@pytest.fixture
 def local_study_w_storage(tmp_path, local_study_w_areas) -> Study:
     st_properties = STStorageProperties(efficiency=0.4, initial_level_optim=True)
     local_study_w_areas.get_areas()["fr"].create_st_storage("sts_1", st_properties)
