@@ -13,7 +13,7 @@
 from dataclasses import asdict
 from typing import Optional, Union
 
-from antares.craft.model.commons import comma_separated_enum_set
+from antares.craft.model.commons import filtering_option
 from antares.craft.model.link import (
     AssetType,
     LinkProperties,
@@ -39,8 +39,8 @@ class LinkPropertiesAndUiAPI(APIBaseModel):
     asset_type: AssetType
     display_comments: bool
     comments: str
-    filter_synthesis: comma_separated_enum_set
-    filter_year_by_year: comma_separated_enum_set
+    filter_synthesis: filtering_option
+    filter_year_by_year: filtering_option
     link_style: LinkStyle
     link_width: float
     colorr: int

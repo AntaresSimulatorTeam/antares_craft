@@ -19,6 +19,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
 )
+from antares.craft.model.commons import filtering_option, FilterOption
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from pydantic import Field
 
@@ -30,8 +31,8 @@ class BindingConstraintPropertiesLocal(LocalBaseModel):
     time_step: BindingConstraintFrequency = Field(BindingConstraintFrequency.HOURLY, alias="type")
     operator: BindingConstraintOperator = BindingConstraintOperator.LESS
     comments: str = ""
-    filter_year_by_year: str = Field("hourly", alias="filter-year-by-year")
-    filter_synthesis: str = Field("hourly", alias="filter-synthesis")
+    filter_year_by_year: filtering_option = Field({FilterOption.HOURLY}, alias="filter-year-by-year")
+    filter_synthesis: filtering_option = Field({FilterOption.HOURLY}, alias="filter-synthesis")
     group: str = "default"
 
     @staticmethod
