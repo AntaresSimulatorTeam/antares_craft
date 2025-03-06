@@ -13,12 +13,14 @@ import pandas as pd
 
 from antares.craft.tools.matrix_tool import (
     default_credit_modulation,
+    default_data_matrix,
     default_energy,
     default_inflow_pattern,
     default_link_parameters,
     default_maxpower,
     default_mingen,
     default_mod,
+    default_modulation_matrix,
     default_reserves,
     default_reservoir,
     default_series,
@@ -84,51 +86,25 @@ class TestDefaultMatrices:
         assert renewable_series.equals(pd.DataFrame(default_series))
         # St storages
         storage = area_fr.get_st_storages()["short term storage"]
-        storage.get_storage_inflows()
-        storage.get_pmax_injection()
-        storage.get_pmax_withdrawal()
-        storage.get_lower_rule_curve()
-        storage.get_upper_rule_curve()
+        storage_inflow = storage.get_storage_inflows()
+        assert storage_inflow.equals(pd.DataFrame(default_series))
+        pmax_injection = storage.get_pmax_injection()
+        assert pmax_injection.equals(pd.DataFrame(default_series_with_ones))
+        pmax_withdrawal = storage.get_pmax_withdrawal()
+        assert pmax_withdrawal.equals(pd.DataFrame(default_series_with_ones))
+        lower_curve = storage.get_lower_rule_curve()
+        assert lower_curve.equals(pd.DataFrame(default_series))
+        upper_curve = storage.get_upper_rule_curve()
+        assert upper_curve.equals(pd.DataFrame(default_series_with_ones))
         # Thermal
         thermal = area_fr.get_thermals()["test thermal cluster"]
-        thermal.get_series_matrix()
-        thermal.get_prepro_data_matrix()
-        thermal.get_prepro_modulation_matrix()
-        thermal.get_fuel_cost_matrix()
-        thermal.get_co2_cost_matrix()
-
-        """
-        DEFAULT_MATRIX_MAPPING = {
-            TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL: pd.DataFrame(),
-            TimeSeriesFileType.BINDING_CONSTRAINT_GREATER: pd.DataFrame(),
-            TimeSeriesFileType.BINDING_CONSTRAINT_LESS: pd.DataFrame(),
-            TimeSeriesFileType.HYDRO_MAX_POWER: pd.DataFrame(default_maxpower),
-            TimeSeriesFileType.HYDRO_RESERVOIR: pd.DataFrame(default_reservoir),
-            TimeSeriesFileType.HYDRO_INFLOW_PATTERN: pd.DataFrame(default_inflow_pattern),
-            TimeSeriesFileType.HYDRO_CREDITS_MODULATION: pd.DataFrame(default_credit_modulation),
-            TimeSeriesFileType.HYDRO_WATER_VALUES: pd.DataFrame(default_water_values),
-            TimeSeriesFileType.HYDRO_ROR: pd.DataFrame(default_series),
-            TimeSeriesFileType.HYDRO_MOD: pd.DataFrame(default_mod),
-            TimeSeriesFileType.HYDRO_MINGEN: pd.DataFrame(default_series),
-            TimeSeriesFileType.HYDRO_ENERGY: pd.DataFrame(default_energy),
-            TimeSeriesFileType.LINKS_CAPACITIES_DIRECT: pd.DataFrame(default_series_with_ones),
-            TimeSeriesFileType.LINKS_CAPACITIES_INDIRECT: pd.DataFrame(default_series_with_ones),
-            TimeSeriesFileType.LINKS_PARAMETERS: pd.DataFrame(default_link_parameters),
-            TimeSeriesFileType.LOAD: pd.DataFrame(default_series),
-            TimeSeriesFileType.MISC_GEN: pd.DataFrame(default_mingen),
-            TimeSeriesFileType.RENEWABLE_SERIES: pd.DataFrame(default_series),
-            TimeSeriesFileType.ST_STORAGE_PMAX_INJECTION: pd.DataFrame(default_series_with_ones),
-            TimeSeriesFileType.ST_STORAGE_PMAX_WITHDRAWAL: pd.DataFrame(default_series_with_ones),
-            TimeSeriesFileType.ST_STORAGE_INFLOWS: pd.DataFrame(default_series),
-            TimeSeriesFileType.ST_STORAGE_LOWER_RULE_CURVE: pd.DataFrame(default_series),
-            TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE: pd.DataFrame(default_series_with_ones),
-            TimeSeriesFileType.RESERVES: pd.DataFrame(default_reserves),
-            TimeSeriesFileType.SOLAR: pd.DataFrame(default_series),
-            TimeSeriesFileType.THERMAL_SERIES: pd.DataFrame(default_series),
-            TimeSeriesFileType.THERMAL_DATA: pd.DataFrame(default_data_matrix),
-            TimeSeriesFileType.THERMAL_MODULATION: pd.DataFrame(default_modulation_matrix),
-            TimeSeriesFileType.THERMAL_CO2: pd.DataFrame(default_series),
-            TimeSeriesFileType.THERMAL_FUEL: pd.DataFrame(default_series),
-            TimeSeriesFileType.WIND: pd.DataFrame(default_series),
-        }
-        """
+        thermal_series = thermal.get_series_matrix()
+        assert thermal_series.equals(pd.DataFrame(default_series))
+        prepro_data = thermal.get_prepro_data_matrix()
+        assert prepro_data.equals(pd.DataFrame(default_data_matrix))
+        prepro_modulation = thermal.get_prepro_modulation_matrix()
+        assert prepro_modulation.equals(pd.DataFrame(default_modulation_matrix))
+        fuel_matrix = thermal.get_fuel_cost_matrix()
+        assert fuel_matrix.equals(pd.DataFrame(default_series))
+        co2_matrix = thermal.get_co2_cost_matrix()
+        assert co2_matrix.equals(pd.DataFrame(default_series))
