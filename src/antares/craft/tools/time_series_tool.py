@@ -47,7 +47,7 @@ class TimeSeriesFileType(Enum):
     LOAD_K = "input/load/prepro/{area_id}/k.txt"
     LOAD_TRANSLATION = "input/load/prepro/{area_id}/translation.txt"
     MISC_GEN = "input/misc-gen/miscgen-{area_id}.txt"
-    RENEWABLE_DATA_SERIES = "input/renewables/series/{area_id}/{cluster_id}/series.txt"
+    RENEWABLE_SERIES = "input/renewables/series/{area_id}/{cluster_id}/series.txt"
     ST_STORAGE_PMAX_INJECTION = "input/st-storage/series/{area_id}/{cluster_id}/pmax_injection.txt"
     ST_STORAGE_PMAX_WITHDRAWAL = "input/st-storage/series/{area_id}/{cluster_id}/pmax_withdrawal.txt"
     ST_STORAGE_INFLOWS = "input/st-storage/series/{area_id}/{cluster_id}/inflows.txt"

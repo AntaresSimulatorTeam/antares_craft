@@ -155,7 +155,7 @@ class AreaLocalService(BaseAreaService):
         write_timeseries(
             self.config.study_path,
             series,
-            TimeSeriesFileType.RENEWABLE_DATA_SERIES,
+            TimeSeriesFileType.RENEWABLE_SERIES,
             area_id,
             cluster_id=transform_name_to_id(renewable_name),
         )
