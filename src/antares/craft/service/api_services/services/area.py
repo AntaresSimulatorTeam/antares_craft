@@ -510,8 +510,6 @@ class AreaApiService(BaseAreaService):
             areas = self._wrapper.put(url, json=body).json()
 
             for area in areas:
-                areas[area].pop("spreadUnsuppliedEnergyCost")
-                areas[area].pop("spreadSpilledEnergyCost")
                 api_response = AreaPropertiesAPITableMode.model_validate(areas[area])
                 area_properties = api_response.to_user_model()
                 updated_areas.update({area: area_properties})

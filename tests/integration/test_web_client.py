@@ -340,8 +340,8 @@ class TestWebClient:
         dict_area_props = {area_fr.id: area_props_update_1, area_be.id: area_props_update_2}
         study.update_multiple_areas(dict_area_props)
 
-        area_fr_props = study._areas["fr"].properties
-        area_be_props = study._areas["be"].properties
+        area_fr_props = area_fr.properties
+        area_be_props = area_be.properties
 
         assert area_fr_props.adequacy_patch_mode == AdequacyPatchMode.VIRTUAL
         assert not area_fr_props.other_dispatch_power
