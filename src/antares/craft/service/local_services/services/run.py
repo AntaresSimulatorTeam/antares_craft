@@ -44,14 +44,17 @@ class RunLocalService(BaseRunService):
     ) -> Job:
         if not solver_path:
             raise AntaresSimulationRunningError(self.study_name, "No solver path was provided")
-        args = [str(solver_path)]
-        if parameters:
-            solver_version = _get_solver_version(solver_path)
-            args += parameters.to_local(solver_version)
-        args.append(str(self.config.study_path))
 
+        # Builds command line call
+        args = [str(solver_path)]
         parameters = parameters or AntaresSimulationParameters()
+        solver_version = _get_solver_version(solver_path)
+        args += parameters.to_local(solver_version)
+        args += ["-i", str(self.config.study_path)]
+
+        # Launches the simulation
         process = subprocess.Popen(args, universal_newlines=True, encoding="utf-8")
+
         return Job(job_id=str(process.pid), status=JobStatus.RUNNING, parameters=parameters, output_id=None)
 
     @override

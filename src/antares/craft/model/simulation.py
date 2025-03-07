@@ -70,11 +70,8 @@ class AntaresSimulationParameters:
         if self.output_suffix:
             args.append(f"-n={self.output_suffix}")
 
-        if solver_version >= SolverVersion.parse("9.2"):
+        if solver_version >= SolverVersion.parse("9.2") or self.solver != Solver.SIRIUS:
             args.append(f"--use-ortools --ortools-solver {self.solver.value}")
-        else:
-            if self.solver != Solver.SIRIUS:
-                args.append(f"--use-ortools --ortools-solver {self.solver.value}")
 
         if self.presolve:
             args += ["--solver-parameters", "PRESOLVE 1"]
