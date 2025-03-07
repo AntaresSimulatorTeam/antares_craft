@@ -13,6 +13,8 @@ from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Any, Optional
 
+from antares.study.version import SolverVersion
+
 
 class Solver(Enum):
     COIN = "coin"
@@ -55,6 +57,29 @@ class AntaresSimulationParameters:
                 data.pop(key)
 
         return data
+
+    def to_local(self, solver_version: SolverVersion) -> list[str]:
+        args = []
+
+        if self.nb_cpu:
+            args.append(f"--force-parallel={self.nb_cpu}")
+
+        if not self.unzip_output:
+            args.append("-z")
+
+        if self.output_suffix:
+            args.append(f"-n={self.output_suffix}")
+
+        if solver_version >= SolverVersion.parse("9.2"):
+            args.append(f"--use-ortools --ortools-solver {self.solver.value}")
+        else:
+            if self.solver != Solver.SIRIUS:
+                args.append(f"--use-ortools --ortools-solver {self.solver.value}")
+
+        if self.presolve:
+            args += ["--solver-parameters", "PRESOLVE 1"]
+
+        return args
 
 
 class JobStatus(Enum):
