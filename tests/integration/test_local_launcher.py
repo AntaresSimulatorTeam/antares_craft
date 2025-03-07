@@ -17,6 +17,7 @@ from pathlib import Path
 
 from antares.craft import create_study_local, read_study_local
 from antares.craft.exceptions.exceptions import AntaresSimulationRunningError
+from antares.craft.model.simulation import JobStatus, AntaresSimulationParameters
 
 
 def find_executable_path() -> Path:
@@ -41,6 +42,12 @@ class TestLocalLauncher:
 
         solver_path = find_executable_path()
         study = read_study_local(tmp_path / "test study", solver_path)
+
+        # Asserts running a simulation without areas fail and doesn't create an output file
         job = study.run_antares_simulation()
         study.wait_job_completion(job)
-        print(job)
+        assert job.status == JobStatus.FAILED
+        assert job.parameters == AntaresSimulationParameters()
+        assert job.output_id is None
+        output_path = Path(study.path / "output")
+        assert list(output_path.iterdir()) == []
