@@ -19,6 +19,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
 )
+from antares.craft.model.commons import filtering_option
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 
@@ -31,8 +32,8 @@ class BindingConstraintPropertiesAPI(APIBaseModel):
     time_step: BindingConstraintFrequency
     operator: BindingConstraintOperator
     comments: str
-    filter_year_by_year: str
-    filter_synthesis: str
+    filter_year_by_year: filtering_option
+    filter_synthesis: filtering_option
     group: str
 
     @staticmethod

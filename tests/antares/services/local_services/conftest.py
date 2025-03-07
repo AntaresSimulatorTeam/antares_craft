@@ -23,6 +23,7 @@ from antares.craft.model.binding_constraint import (
     ConstraintTerm,
     LinkData,
 )
+from antares.craft.model.commons import FILTER_VALUES
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
@@ -281,7 +282,7 @@ def default_constraint_properties() -> BindingConstraintProperties:
         time_step=BindingConstraintFrequency.HOURLY,
         operator=BindingConstraintOperator.LESS,
         comments="",
-        filter_year_by_year="hourly",
-        filter_synthesis="hourly",
+        filter_year_by_year=FILTER_VALUES,
+        filter_synthesis=FILTER_VALUES,
         group="default",
     )

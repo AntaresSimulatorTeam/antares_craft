@@ -379,7 +379,11 @@ class TestWebClient:
         assert constraint_2.get_terms() == {link_term_2.id: link_term_2, cluster_term.id: cluster_term}
 
         # test updating constraints
-        update_bc_props_1 = BindingConstraintPropertiesUpdate(time_step=BindingConstraintFrequency.DAILY, enabled=False)
+        update_bc_props_1 = BindingConstraintPropertiesUpdate(
+            time_step=BindingConstraintFrequency.DAILY,
+            enabled=False,
+            filter_synthesis={FilterOption.WEEKLY, FilterOption.ANNUAL},
+        )
         update_bc_props_2 = BindingConstraintPropertiesUpdate(
             enabled=True, time_step=BindingConstraintFrequency.HOURLY, comments="Bonjour"
         )
@@ -388,6 +392,7 @@ class TestWebClient:
         study.update_multiple_binding_constraints(dict_binding_constraints_update)
 
         assert constraint_1.properties.time_step == BindingConstraintFrequency.DAILY
+        assert constraint_1.properties.filter_synthesis == {FilterOption.WEEKLY, FilterOption.ANNUAL}
         assert not constraint_1.properties.enabled
         assert constraint_2.properties.time_step == BindingConstraintFrequency.HOURLY
         assert constraint_2.properties.enabled
@@ -510,7 +515,9 @@ class TestWebClient:
         assert constraint_1.properties.enabled is False  # Checks old value wasn't modified
 
         # creating link properties update to modify all the actual links
-        link_properties_update_1 = LinkPropertiesUpdate(hurdles_cost=True, use_phase_shifter=True)
+        link_properties_update_1 = LinkPropertiesUpdate(
+            hurdles_cost=True, use_phase_shifter=True, filter_synthesis={FilterOption.DAILY}
+        )
         link_properties_update_2 = LinkPropertiesUpdate(
             transmission_capacities=TransmissionCapacities.ENABLED, asset_type=AssetType.GAZ
         )
@@ -522,6 +529,7 @@ class TestWebClient:
         # Checking given values are well modified
         assert link_be_fr.properties.hurdles_cost
         assert link_be_fr.properties.use_phase_shifter
+        assert link_be_fr.properties.filter_synthesis == {FilterOption.DAILY}
         assert link_be_fr.properties.display_comments
         assert not link_be_fr.properties.loop_flow
 

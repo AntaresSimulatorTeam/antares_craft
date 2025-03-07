@@ -51,6 +51,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
 )
+from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate
 from antares.craft.model.output import (
     Output,
@@ -225,7 +226,7 @@ class TestCreateAPI:
     def test_create_binding_constraint_success(self):
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
-            properties = BindingConstraintProperties(enabled=False, filter_synthesis="annual")
+            properties = BindingConstraintProperties(enabled=False, filter_synthesis={FilterOption.ANNUAL})
             json_response = BindingConstraintPropertiesAPI.from_user_model(properties).model_dump(
                 mode="json", by_alias=True
             )
