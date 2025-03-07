@@ -104,7 +104,6 @@ class TestCreateAPI:
     b_constraint_1 = BindingConstraint("battery_state_evolution", services.bc_service)
     b_constraint_2 = BindingConstraint("battery_state_update", services.bc_service)
 
-
     def test_create_study_test_ok(self) -> None:
         with requests_mock.Mocker() as mocker:
             expected_url = "https://antares.com/api/v1/studies?name=TestStudy&version=880"
@@ -928,7 +927,6 @@ class TestCreateAPI:
             mocker.put(url, status_code=400, json={"description": self.antares_web_description_msg})
 
             with pytest.raises(
-
                 AreasUpdateError,
                 match=f"Could not update the areas from the study {self.study_id} : {self.antares_web_description_msg}",
             ):
