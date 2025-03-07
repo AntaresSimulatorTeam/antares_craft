@@ -49,6 +49,7 @@ class Study:
         version: str,
         services: StudyServices,
         path: PurePath = PurePath("."),
+        solver_path: Optional[Path] = None,
     ):
         self.name = name
         self.version = version
@@ -64,6 +65,7 @@ class Study:
         self._links: dict[str, Link] = dict()
         self._binding_constraints: dict[str, BindingConstraint] = dict()
         self._outputs: dict[str, Output] = dict()
+        self._solver_path: Optional[Path] = solver_path
 
     @property
     def service(self) -> BaseStudyService:
@@ -283,7 +285,7 @@ class Study:
 
         Returns: A job representing the simulation task
         """
-        return self._run_service.run_antares_simulation(parameters)
+        return self._run_service.run_antares_simulation(parameters, self._solver_path)
 
     def wait_job_completion(self, job: Job, time_out: int = 172800) -> None:
         """
@@ -365,16 +367,18 @@ class Study:
 # import mechanics, we need to use local imports to avoid circular dependencies.
 
 
-def create_study_local(study_name: str, version: str, parent_directory: "Path") -> "Study":
+def create_study_local(
+    study_name: str, version: str, parent_directory: "Path", solver_path: Optional[Path] = None
+) -> "Study":
     from antares.craft.service.local_services.factory import create_study_local
 
-    return create_study_local(study_name, version, parent_directory)
+    return create_study_local(study_name, version, parent_directory, solver_path)
 
 
-def read_study_local(study_path: "Path") -> "Study":
+def read_study_local(study_path: "Path", solver_path: Optional[Path] = None) -> "Study":
     from antares.craft.service.local_services.factory import read_study_local
 
-    return read_study_local(study_path)
+    return read_study_local(study_path, solver_path)
 
 
 def create_study_api(
