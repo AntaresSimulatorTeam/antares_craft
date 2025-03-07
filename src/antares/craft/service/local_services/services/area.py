@@ -14,7 +14,7 @@ import logging
 import os
 
 from configparser import ConfigParser, DuplicateSectionError
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -444,3 +444,7 @@ class AreaLocalService(BaseAreaService):
 
         areas.sort(key=lambda area_obj: area_obj.id)
         return areas
+
+    @override
+    def update_multiple_areas(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
+        raise NotImplementedError

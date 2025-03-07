@@ -281,6 +281,10 @@ class BaseAreaService(ABC):
         """
         pass
 
+    @abstractmethod
+    def update_multiple_areas(self, dict_areas: Dict[str, "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
+        pass
+
 
 class BaseHydroService(ABC):
     @abstractmethod
