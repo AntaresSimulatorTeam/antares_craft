@@ -9,8 +9,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import shutil
 import subprocess
 
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
@@ -65,34 +67,51 @@ class RunLocalService(BaseRunService):
                 self._handle_failure(job)
 
         except psutil.NoSuchProcess:
-            return self._handle_simulation_ending()
+            return self._handle_simulation_ending(job)
         except psutil.TimeoutExpired:
             raise SimulationTimeOutError(job.job_id, time_out)
 
-    def _handle_simulation_ending(self):
-        pass
-        # todo: we should find what happened
+    def _handle_simulation_ending(self, job: Job) -> None:
+        output_id = self._find_most_recent_output(job.parameters.unzip_output)
+        if output_id.endswith(".zip"):
+            job.status = JobStatus.SUCCESS
+            job.output_id = output_id
+        else:
+            output_path = self.config.study_path / "output" / output_id
+            if (output_path / "execution_info.ini").exists():
+                job.status = JobStatus.SUCCESS
+                job.output_id = output_id
+            else:
+                job.status = JobStatus.FAILED
+                shutil.rmtree(output_path)
 
-    def _handle_success(self, job: Job):
+    def _handle_success(self, job: Job) -> None:
         job.status = JobStatus.SUCCESS
-        # todo: we should find the job.output_id
+        job.output_id = self._find_most_recent_output(job.parameters.unzip_output)
 
-    def _handle_failure(self, job: Job):
+    def _handle_failure(self, job: Job) -> None:
         job.status = JobStatus.FAILED
-        # todo: we should find the job.output_id
+        output_id = self._find_most_recent_output(job.parameters.unzip_output)
+        shutil.rmtree(self.config.study_path / "output" / output_id)
 
-    def _find_output_id(self, job: Job) -> str:
+    def _find_most_recent_output(self, output_is_unzipped: bool) -> str:
         output_path = self.config.study_path / "output"
         all_outputs = output_path.iterdir()
         zipped_outputs = []
         unzipped_outputs = []
         for output in all_outputs:
             if output.name.endswith(".zip"):
-                zipped_outputs.append(output)
+                zipped_outputs.append(output.name)
             else:
-                unzipped_outputs.append(output)
+                unzipped_outputs.append(output.name)
 
-        if job.parameters.unzip_output:
-            # todo: look inside unzipped_outputs
-        else:
-            # todo: look inside zipped_outputs
+        end_of_date_pattern = 13
+        concerned_list = unzipped_outputs if output_is_unzipped else zipped_outputs
+        output_result_tuple: tuple[float, str] = (0, "")
+        for output_name in concerned_list:
+            output_date_as_str = output_name[:end_of_date_pattern]
+            output_date_as_datetime = datetime.strptime(output_date_as_str, "%Y%m%d-%H%M")
+            total_seconds = output_date_as_datetime.timestamp()
+            if total_seconds > output_result_tuple[0]:
+                output_result_tuple = (total_seconds, output_name)
+        return output_result_tuple[1]
