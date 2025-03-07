@@ -277,9 +277,7 @@ class Study:
         """
         return self._study_service.create_variant(variant_name)
 
-    def run_antares_simulation(
-        self, parameters: Optional[AntaresSimulationParameters] = None, solver_path: Optional[Path] = None
-    ) -> Job:
+    def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
         """
         Runs the Antares simulation.
 
@@ -287,7 +285,7 @@ class Study:
 
         Returns: A job representing the simulation task
         """
-        return self._run_service.run_antares_simulation(parameters, solver_path)
+        return self._run_service.run_antares_simulation(parameters, self._solver_path)
 
     def wait_job_completion(self, job: Job, time_out: int = 172800) -> None:
         """
