@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.exceptions.exceptions import AntaresSimulationRunningError
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.service.base_services import BaseRunService
 from typing_extensions import override
@@ -28,6 +29,8 @@ class RunLocalService(BaseRunService):
     def run_antares_simulation(
         self, parameters: Optional[AntaresSimulationParameters] = None, solver_path: Optional[Path] = None
     ) -> Job:
+        if not solver_path:
+            raise AntaresSimulationRunningError(self.study_name, "No solver path was provided")
         raise NotImplementedError
 
     @override
