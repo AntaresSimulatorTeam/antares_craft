@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from pathlib import Path
 from typing import Any, Optional
 
 from antares.craft.config.local_configuration import LocalConfiguration
@@ -24,7 +25,9 @@ class RunLocalService(BaseRunService):
         self.study_name = study_name
 
     @override
-    def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
+    def run_antares_simulation(
+        self, parameters: Optional[AntaresSimulationParameters] = None, solver_path: Optional[Path] = None
+    ) -> Job:
         raise NotImplementedError
 
     @override

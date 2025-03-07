@@ -14,6 +14,7 @@ import os
 import time
 
 from pathlib import Path
+from typing import Optional
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.settings.study_settings import StudySettings
@@ -113,7 +114,9 @@ def _create_directory_structure(study_path: Path) -> None:
         (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
 
 
-def create_study_local(study_name: str, version: str, parent_directory: Path) -> "Study":
+def create_study_local(
+    study_name: str, version: str, parent_directory: Path, solver_path: Optional[Path] = None
+) -> "Study":
     """
     Create a directory structure for the study with empty files.
 
@@ -121,6 +124,7 @@ def create_study_local(study_name: str, version: str, parent_directory: Path) ->
         study_name: antares study name to be created
         version: antares version for study
         parent_directory: Local directory to store the study in.
+        solver_path: antares solver path to use to run simulations
 
     Raises:
         FileExistsError if the study already exists in the given location
@@ -166,6 +170,7 @@ InfoTip = Antares Study {version}: {study_name}
         version=version,
         services=create_local_services(config=local_config, study_name=study_name),
         path=study_directory,
+        solver_path=solver_path,
     )
     # We need to create the file with default value
     default_settings = StudySettings()
@@ -175,11 +180,12 @@ InfoTip = Antares Study {version}: {study_name}
     return study
 
 
-def read_study_local(study_directory: Path) -> "Study":
+def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) -> "Study":
     """
     Read a study structure by returning a study object.
     Args:
         study_directory: antares study path to be read
+        solver_path: antares solver path to use to run simulations
 
     Raises:
         FileNotFoundError: If the provided directory does not exist.
@@ -202,6 +208,7 @@ def read_study_local(study_directory: Path) -> "Study":
         version=study_params["version"],
         services=create_local_services(config=local_config, study_name=study_params["caption"]),
         path=study_directory,
+        solver_path=solver_path,
     )
     study.read_settings()
     study.read_areas()
