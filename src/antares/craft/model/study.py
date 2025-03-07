@@ -97,7 +97,7 @@ class Study:
         areas.sort(key=lambda area: area.id)
         return areas
 
-    def update_multiple_areas(self, new_properties: Dict[str, "AreaPropertiesUpdate"]) -> None:
+    def update_multiple_areas(self, new_properties: Dict[str, AreaPropertiesUpdate]) -> None:
         new_areas_props = self._area_service.update_multiple_areas(new_properties)
         for area_prop in new_areas_props:
             self._areas[area_prop]._properties = new_areas_props[area_prop]

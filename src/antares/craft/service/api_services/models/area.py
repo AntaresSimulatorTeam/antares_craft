@@ -85,6 +85,21 @@ class AreaPropertiesAPITableMode(APIBaseModel):
         remapped_user_dict = {mapping.get(k, k): v for k, v in user_dict.items()}
         return AreaPropertiesAPITableMode.model_validate(remapped_user_dict)
 
+    def to_user_model(self) -> AreaProperties:
+        self.filter_synthesis: set[FilterOption]
+        return AreaProperties(
+            energy_cost_unsupplied=self.energy_cost_spilled,
+            energy_cost_spilled=self.energy_cost_spilled,
+            non_dispatch_power=self.non_dispatchable_power,
+            dispatch_hydro_power=self.dispatchable_hydro_power,
+            other_dispatch_power=self.other_dispatchable_power,
+            filter_synthesis=self.filter_synthesis,
+            filter_by_year=self.filter_year_by_year,
+            adequacy_patch_mode=self.adequacy_patch_mode,
+            spread_unsupplied_energy_cost=self.average_unsupplied_energy_cost,
+            spread_spilled_energy_cost=self.average_spilled_energy_cost,
+        )
+
 
 AreaUiType = Union[AreaUi, AreaUiUpdate]
 
