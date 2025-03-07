@@ -373,10 +373,10 @@ def create_study_local(study_name: str, version: str, parent_directory: "Path") 
     return create_study_local(study_name, version, parent_directory)
 
 
-def read_study_local(study_path: "Path") -> "Study":
+def read_study_local(study_path: "Path", solver_path: Optional[Path] = None) -> "Study":
     from antares.craft.service.local_services.factory import read_study_local
 
-    return read_study_local(study_path)
+    return read_study_local(study_path, solver_path)
 
 
 def create_study_api(

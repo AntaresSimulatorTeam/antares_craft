@@ -15,15 +15,32 @@ import re
 
 from pathlib import Path
 
-from antares.craft import create_study_local
+from antares.craft import create_study_local, read_study_local
 from antares.craft.exceptions.exceptions import AntaresSimulationRunningError
+
+
+def find_executable_path() -> Path:
+    solver_parent_path = (
+        [p for p in Path(__file__).parents if p.name == "antares_craft"][0]
+        / "AntaresWebDesktop"
+        / "AntaresWeb"
+        / "antares_solver"
+    )
+    return list(solver_parent_path.glob("antares-*"))[0]
 
 
 class TestLocalLauncher:
     def test_lifecycle(self, tmp_path: Path):
-        study = create_study_local("test study", "880", tmp_path)
+        study_wo_solver = create_study_local("test study", "880", tmp_path)
+        # Ensure it's impossible to run a study without giving a solver path at the instantiation
         with pytest.raises(
             AntaresSimulationRunningError,
             match=re.escape("Could not run the simulation for study test study: No solver path was provided"),
         ):
-            study.run_antares_simulation()
+            study_wo_solver.run_antares_simulation()
+
+        solver_path = find_executable_path()
+        study = read_study_local(tmp_path / "test study", solver_path)
+        job = study.run_antares_simulation()
+        study.wait_job_completion(job)
+        print(job)

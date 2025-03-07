@@ -402,6 +402,8 @@ class AreaLocalService(BaseAreaService):
     def read_areas(self) -> List[Area]:
         local_path = self.config.local_path
         areas_path = local_path / self.study_name / "input" / "areas"
+        if not areas_path.exists():
+            return []
         areas = []
         for element in areas_path.iterdir():
             if element.is_dir():
