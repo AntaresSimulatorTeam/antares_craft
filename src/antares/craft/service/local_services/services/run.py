@@ -53,7 +53,9 @@ class RunLocalService(BaseRunService):
         args += ["-i", str(self.config.study_path)]
 
         # Launches the simulation
-        process = subprocess.Popen(args, universal_newlines=True, encoding="utf-8")
+        process = subprocess.Popen(
+            args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, universal_newlines=True, encoding="utf-8"
+        )
 
         return Job(job_id=str(process.pid), status=JobStatus.RUNNING, parameters=parameters, output_id=None)
 
