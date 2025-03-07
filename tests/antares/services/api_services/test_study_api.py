@@ -878,8 +878,8 @@ class TestCreateAPI:
                     "nonDispatchablePower": True,
                     "dispatchableHydroPower": True,
                     "otherDispatchablePower": True,
-                    "energy_cost_unsupplied": 0,
-                    "energy_cost_spilled": 0,
+                    "averageUnsuppliedEnergyCost": 0,
+                    "averageSpilledEnergyCost": 0,
                     "filterSynthesis": "annual",
                     "filterYearByYear": "hourly, daily, annual",
                     "spreadUnsuppliedEnergyCost": 3000,
@@ -890,8 +890,8 @@ class TestCreateAPI:
                     "nonDispatchablePower": True,
                     "dispatchableHydroPower": True,
                     "otherDispatchablePower": True,
-                    "energy_cost_unsupplied": 0,
-                    "energy_cost_spilled": 0,
+                    "averageUnsuppliedEnergyCost": 0,
+                    "averageSpilledEnergyCost": 0,
                     "filterSynthesis": "hourly, daily, weekly",
                     "filterYearByYear": "weekly, monthly, annual",
                     "spreadUnsuppliedEnergyCost": 1400,
@@ -910,17 +910,17 @@ class TestCreateAPI:
             mocker.put(url, json=areas_1)  # CamelCase
             self.study.update_multiple_areas(dict_areas)
 
-            elec_props = self.study._areas["area_test_1"]._properties
-            gaz_props = self.study._areas["area_test_2"]._properties
+            elec_props = self.study._areas["area_test_1"].properties
+            gaz_props = self.study._areas["area_test_2"].properties
 
             expected_elec = areas["area_test_1"]
             expected_gaz = areas["area_test_2"]
-            assert elec_props["energyCostUnsupplied"] == expected_elec["energy_cost_unsupplied"]
-            assert gaz_props["energyCostUnsupplied"] == expected_gaz["energy_cost_unsupplied"]
-            assert elec_props["adequacyPatchMode"] == expected_elec["adequacy_patch_mode"]
-            assert gaz_props["adequacyPatchMode"] == expected_gaz["adequacy_patch_mode"]
-            assert elec_props["dispatchableHydroPower"] == expected_elec["dispatch_hydro_power"]
-            assert gaz_props["dispatchableHydroPower"] == expected_gaz["dispatch_hydro_power"]
+            assert elec_props.energy_cost_unsupplied == expected_elec["energy_cost_unsupplied"]
+            assert gaz_props.energy_cost_unsupplied == expected_gaz["energy_cost_unsupplied"]
+            assert elec_props.adequacy_patch_mode.value == expected_elec["adequacy_patch_mode"]
+            assert gaz_props.adequacy_patch_mode.value == expected_gaz["adequacy_patch_mode"]
+            assert elec_props.dispatch_hydro_power == expected_elec["dispatch_hydro_power"]
+            assert gaz_props.dispatch_hydro_power == expected_gaz["dispatch_hydro_power"]
 
     def test_update_multiple_areas_fail(self):
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/areas"

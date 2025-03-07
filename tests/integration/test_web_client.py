@@ -330,10 +330,28 @@ class TestWebClient:
         assert storage_fr.id == third_area.get_st_storages().get("cluster_test").id
         assert thermal_be.id == area_list[0].get_thermals().get("gaz_be").id
 
-        area_props_update_1 = AreaPropertiesUpdate(adequacy_patch_mode=AdequacyPatchMode.VIRTUAL)
-        area_props_update_2 = AreaPropertiesUpdate(adequacy_patch_mode=AdequacyPatchMode.INSIDE)
+        # checking multiple areas properties update
+        area_props_update_1 = AreaPropertiesUpdate(
+            adequacy_patch_mode=AdequacyPatchMode.VIRTUAL, other_dispatch_power=False
+        )
+        area_props_update_2 = AreaPropertiesUpdate(
+            non_dispatch_power=False, energy_cost_spilled=0.45, energy_cost_unsupplied=3.0
+        )
         dict_area_props = {area_fr.id: area_props_update_1, area_be.id: area_props_update_2}
         study.update_multiple_areas(dict_area_props)
+
+        area_fr_props = study._areas["fr"].properties
+        area_be_props = study._areas["be"].properties
+
+        assert area_fr_props.adequacy_patch_mode == AdequacyPatchMode.VIRTUAL
+        assert not area_fr_props.other_dispatch_power
+        assert not area_be_props.non_dispatch_power
+        assert area_be_props.energy_cost_spilled == 0.45
+        assert area_be_props.energy_cost_unsupplied == 3.0
+
+        # checking the non updated properties aren't affected
+        assert area_fr_props.non_dispatch_power
+        assert area_be_props.dispatch_hydro_power
 
         # tests upload matrix for short term storage.
         # Case that fails
