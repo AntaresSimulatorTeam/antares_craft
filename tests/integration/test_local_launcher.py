@@ -32,14 +32,14 @@ def find_executable_path() -> Path:
 
 
 class TestLocalLauncher:
-    def test_lifecycle(self, tmp_path: Path):
-        study_wo_solver = create_study_local("test study", "880", tmp_path)
+    def test_error_case(self, tmp_path: Path):
+        study = create_study_local("test study", "880", tmp_path)
         # Ensure it's impossible to run a study without giving a solver path at the instantiation
         with pytest.raises(
             AntaresSimulationRunningError,
             match=re.escape("Could not run the simulation for study test study: No solver path was provided"),
         ):
-            study_wo_solver.run_antares_simulation()
+            study.run_antares_simulation()
 
         solver_path = find_executable_path()
         study = read_study_local(tmp_path / "test study", solver_path)
@@ -53,6 +53,11 @@ class TestLocalLauncher:
         output_path = Path(study.path / "output")
         assert list(output_path.iterdir()) == []
 
+    def test_lifecycle(self, tmp_path: Path):
+        solver_path = find_executable_path()
+        study = create_study_local("test study", "880", tmp_path, solver_path)
+        output_path = Path(study.path / "output")
+
         # Simulation succeeds
         area_1 = study.create_area("area_1")
         area_1.hydro.update_properties(HydroPropertiesUpdate(reservoir_capacity=1))  # make the simulation succeeds
@@ -64,3 +69,16 @@ class TestLocalLauncher:
         assert len(outputs) == 1
         output_id = outputs[0].name
         assert job.output_id == output_id
+        assert not output_id.endswith(".zip")
+
+        # Runs simulation with parameters
+        simulation_parameters = AntaresSimulationParameters(unzip_output=False, output_suffix="test_integration")
+        second_job = study.run_antares_simulation(simulation_parameters)
+        study.wait_job_completion(second_job)
+        assert second_job.status == JobStatus.SUCCESS
+        assert second_job.parameters == simulation_parameters
+        outputs = list(output_path.iterdir())
+        assert len(outputs) == 2
+        second_output = [otp.name for otp in outputs if otp.name.endswith(".zip")][0]
+        assert second_job.output_id == second_output
+        assert second_output.endswith(".zip")

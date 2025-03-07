@@ -62,13 +62,13 @@ class AntaresSimulationParameters:
         args = []
 
         if self.nb_cpu:
-            args.append(f"--force-parallel={self.nb_cpu}")
+            args += ["--force-parallel", str(self.nb_cpu)]
 
         if not self.unzip_output:
             args.append("-z")
 
         if self.output_suffix:
-            args.append(f"-n={self.output_suffix}")
+            args += ["-n", self.output_suffix]
 
         if solver_version >= SolverVersion.parse("9.2") or self.solver != Solver.SIRIUS:
             args.append(f"--use-ortools --ortools-solver {self.solver.value}")

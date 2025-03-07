@@ -367,10 +367,12 @@ class Study:
 # import mechanics, we need to use local imports to avoid circular dependencies.
 
 
-def create_study_local(study_name: str, version: str, parent_directory: "Path") -> "Study":
+def create_study_local(
+    study_name: str, version: str, parent_directory: "Path", solver_path: Optional[Path] = None
+) -> "Study":
     from antares.craft.service.local_services.factory import create_study_local
 
-    return create_study_local(study_name, version, parent_directory)
+    return create_study_local(study_name, version, parent_directory, solver_path)
 
 
 def read_study_local(study_path: "Path", solver_path: Optional[Path] = None) -> "Study":
