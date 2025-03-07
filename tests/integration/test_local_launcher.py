@@ -17,7 +17,8 @@ from pathlib import Path
 
 from antares.craft import create_study_local, read_study_local
 from antares.craft.exceptions.exceptions import AntaresSimulationRunningError
-from antares.craft.model.simulation import JobStatus, AntaresSimulationParameters
+from antares.craft.model.hydro import HydroPropertiesUpdate
+from antares.craft.model.simulation import AntaresSimulationParameters, JobStatus
 
 
 def find_executable_path() -> Path:
@@ -51,3 +52,15 @@ class TestLocalLauncher:
         assert job.output_id is None
         output_path = Path(study.path / "output")
         assert list(output_path.iterdir()) == []
+
+        # Simulation succeeds
+        area_1 = study.create_area("area_1")
+        area_1.hydro.update_properties(HydroPropertiesUpdate(reservoir_capacity=1))  # make the simulation succeeds
+        job = study.run_antares_simulation()
+        study.wait_job_completion(job)
+        assert job.status == JobStatus.SUCCESS
+        assert job.parameters == AntaresSimulationParameters()
+        outputs = list(output_path.iterdir())
+        assert len(outputs) == 1
+        output_id = outputs[0].name
+        assert job.output_id == output_id
