@@ -252,10 +252,9 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             new_properties_dict[constraint_id] = modified_properties
         return new_properties_dict
 
-    @staticmethod
-    def _get_constraint_inside_ini(ini_content: dict[str, Any], constraint: BindingConstraint) -> dict[str, Any]:
+    def _get_constraint_inside_ini(self, ini_content: dict[str, Any], constraint: BindingConstraint) -> dict[str, Any]:
         existing_key = next((key for key, bc in ini_content.items() if bc["id"] == constraint.id), None)
         if not existing_key:
-            raise ConstraintDoesNotExistError(constraint.name)
+            raise ConstraintDoesNotExistError(constraint.name, self.study_name)
 
         return ini_content[existing_key]  # type: ignore

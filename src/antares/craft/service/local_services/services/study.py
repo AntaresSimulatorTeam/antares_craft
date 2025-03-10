@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import copy
 import logging
 import shutil
 import tempfile
@@ -20,6 +21,7 @@ import numpy as np
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.exceptions.exceptions import ConstraintDoesNotExistError
 from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -27,6 +29,7 @@ from antares.craft.model.binding_constraint import (
 from antares.craft.model.output import Output
 from antares.craft.model.thermal import LocalTSGenerationBehavior
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
+from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.tsgen.duration_generator import ProbabilityLaw
 from antares.tsgen.random_generator import MersenneTwisterRNG
 from antares.tsgen.ts_generator import OutageGenerationParameters, ThermalCluster, TimeseriesGenerator
@@ -135,7 +138,18 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
-        raise NotImplementedError
+        study_path = self.config.study_path
+        ini_file = IniFile(study_path, InitializationFilesTypes.BINDING_CONSTRAINTS_INI)
+        current_content = ini_file.ini_dict
+        copied_content = copy.deepcopy(current_content)
+        for index, bc in current_content.items():
+            if bc["id"] == constraint.id:
+                copied_content.pop(index)
+                new_dict = {str(i): v for i, (k, v) in enumerate(copied_content.items())}
+                ini_file.ini_dict = new_dict
+                ini_file.write_ini_file()
+                return
+        raise ConstraintDoesNotExistError(constraint.name, self._study_name)
 
     @override
     def delete(self, children: bool) -> None:
@@ -143,7 +157,7 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def create_variant(self, variant_name: str) -> "Study":
-        raise NotImplementedError
+        raise ValueError("The variant creation should only be used for API studies not for local ones")
 
     @override
     def read_outputs(self) -> list[Output]:
