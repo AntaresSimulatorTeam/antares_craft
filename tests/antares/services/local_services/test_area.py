@@ -23,7 +23,7 @@ import pandas as pd
 
 from antares.craft import read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate
+from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.renewable import (
     RenewableCluster,
@@ -916,8 +916,8 @@ class TestReadSTStorage:
                 assert storages == []
 
 
-class TestUpateProperties:
-    def test_update_properties_local(self, local_study_w_areas):
+class TestUpateArea:
+    def test_update_properties(self, local_study_w_areas):
         # Checks values before update
         area = local_study_w_areas.get_areas()["fr"]
         current_properties = AreaProperties(energy_cost_spilled=1, energy_cost_unsupplied=0.5)
@@ -956,4 +956,25 @@ class TestUpateProperties:
         assert thermal_ini.ini_dict == {
             "unserverdenergycost": {"fr": "0.5", "it": "0.5"},
             "spilledenergycost": {"fr": "0.4", "it": "1.0"},
+        }
+
+    def test_update_ui(self, local_study_w_areas):
+        # Checks values before update
+        area = local_study_w_areas.get_areas()["fr"]
+        current_ui = AreaUi()
+        assert area.ui == current_ui
+        # Updates properties
+        update_ui = AreaUiUpdate(x=12, color_rgb=[5, 6, 7])
+        new_ui = area.update_ui(update_ui)
+        expected_ui = AreaUi(x=12, color_rgb=[5, 6, 7], y=0)
+        assert new_ui == expected_ui
+        assert area.ui == expected_ui
+        # Asserts the ini file is properly modified
+        study_path = Path(local_study_w_areas.path)
+        ui_ini_file = IniFile(study_path, InitializationFilesTypes.AREA_UI_INI, area.id)
+        assert ui_ini_file.ini_dict == {
+            "ui": {"x": "12", "y": "0", "color_r": "5", "color_g": "6", "color_b": "7"},
+            "layerX": {"0": "12"},
+            "layerY": {"0": "0"},
+            "layerColor": {"0": "5,6,7"},
         }

@@ -410,7 +410,17 @@ class AreaLocalService(BaseAreaService):
 
     @override
     def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
-        raise NotImplementedError
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.AREA_UI_INI, area_id=area_id)
+        current_content = ini_file.ini_dict
+        # Update ui
+        local_ui = AreaUiLocal.from_user_model(ui).model_dump(mode="json", exclude_unset=True, by_alias=True)
+        current_content.update(local_ui)
+        # Update ini file
+        ini_file.ini_dict = current_content
+        ini_file.write_ini_file()
+        # Prepare object to return
+        updated_ui = AreaUiLocal.model_validate(current_content)
+        return updated_ui.to_user_model()
 
     @staticmethod
     def _delete_clusters(ini_file: IniFile, names_to_delete: set[str]) -> None:
