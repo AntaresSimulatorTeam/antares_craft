@@ -817,9 +817,8 @@ class TestReadReserves:
 
 class TestReadWind:
     def test_read_wind_local(self, local_study_w_areas):
-        study_path = local_study_w_areas.service.config.study_path
-        local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        study_path = t.cast(LocalConfiguration, local_study_w_areas.service.config).study_path
+        areas = local_study_w_areas.read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -839,9 +838,8 @@ class TestReadWind:
 
 class TestReadmisc_gen:
     def test_read_misc_gen_local(self, local_study_w_areas):
-        study_path = local_study_w_areas.service.config.study_path
-        local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        study_path = t.cast(LocalConfiguration, local_study_w_areas.service.config).study_path
+        areas = local_study_w_areas.read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -904,9 +902,7 @@ class TestReadLinks:
 
 class TestReadSTStorage:
     def test_read_st_storage_local(self, local_study_w_storage):
-        study_path = t.cast(LocalConfiguration, local_study_w_storage.service.config).study_path
-        local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        areas = local_study_w_storage.read_areas()
 
         for area in areas:
             storages = area.read_st_storages()
