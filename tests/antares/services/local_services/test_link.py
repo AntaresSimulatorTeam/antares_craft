@@ -20,11 +20,44 @@ import pandas as pd
 
 from antares.craft import Study
 from antares.craft.exceptions.exceptions import MatrixFormatError
-from antares.craft.model.link import AssetType, LinkProperties, LinkPropertiesUpdate
+from antares.craft.model.link import AssetType, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
 class TestLink:
+    def test_update_ui(self, local_study_w_links: Study) -> None:
+        # Checks values before update
+        link = local_study_w_links.get_links()["at / fr"]
+        current_ui = LinkUi()
+        assert link.ui == current_ui
+        # Updates ui
+        update_ui = LinkUiUpdate(link_width=4.2, colorg=255)
+        new_ui = link.update_ui(update_ui)
+        expected_ui = LinkUi(link_width=4.2, colorg=255)
+        assert new_ui == expected_ui
+        assert link.ui == expected_ui
+        # Asserts the ini file is properly modified
+        ini_file = IniFile(
+            Path(local_study_w_links.path), InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id
+        )
+        links_dict = ini_file.ini_dict
+        assert links_dict["fr"] == {
+            "asset-type": "ac",
+            "colorb": "112",
+            "colorg": "255",
+            "colorr": "112",
+            "comments": "",
+            "display-comments": "True",
+            "filter-synthesis": "annual, daily, hourly, monthly, weekly",
+            "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
+            "hurdles-cost": "False",
+            "link-style": "plain",
+            "link-width": "4.2",
+            "loop-flow": "False",
+            "transmission-capacities": "enabled",
+            "use-phase-shifter": "False",
+        }
+
     def test_update_properties(self, local_study_w_links: Study) -> None:
         # Checks values before update
         link = local_study_w_links.get_links()["at / fr"]
