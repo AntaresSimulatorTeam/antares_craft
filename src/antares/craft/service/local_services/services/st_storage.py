@@ -52,9 +52,9 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
     def update_st_storage_properties(
         self, st_storage: STStorage, properties: STStoragePropertiesUpdate
     ) -> STStorageProperties:
-        storage_dict = IniFile(
-            self.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=st_storage.area_id
-        ).ini_dict
+        area_id = st_storage.area_id
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area_id)
+        storage_dict = ini_file.ini_dict
         for storage in storage_dict.values():
             if storage["name"] == st_storage.name:
                 # Update properties
@@ -62,13 +62,17 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
                 upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 storage.update(upd_props_as_dict)
 
+                # Update ini file
+                ini_file.ini_dict = storage_dict
+                ini_file.write_ini_file()
+
                 # Prepare the object to return
                 local_dict = copy.deepcopy(storage)
                 del local_dict["name"]
                 local_properties = STStoragePropertiesLocal.model_validate(local_dict)
 
                 return local_properties.to_user_model()
-        raise STStoragePropertiesUpdateError(st_storage.name, st_storage.area_id, "The storage does not exist")
+        raise STStoragePropertiesUpdateError(st_storage.name, area_id, "The storage does not exist")
 
     @override
     def read_st_storages(self, area_id: str) -> list[STStorage]:

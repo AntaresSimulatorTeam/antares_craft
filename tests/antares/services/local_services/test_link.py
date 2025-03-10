@@ -13,12 +13,15 @@ import pytest
 
 import re
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
 from antares.craft import Study
 from antares.craft.exceptions.exceptions import MatrixFormatError
 from antares.craft.model.link import AssetType, LinkProperties, LinkPropertiesUpdate
+from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
 class TestLink:
@@ -33,6 +36,27 @@ class TestLink:
         expected_properties = LinkProperties(hurdles_cost=True, asset_type=AssetType.AC, comments="new comment")
         assert new_properties == expected_properties
         assert link.properties == expected_properties
+        # Asserts the ini file is properly modified
+        ini_file = IniFile(
+            Path(local_study_w_links.path), InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id
+        )
+        links_dict = ini_file.ini_dict
+        assert links_dict["fr"] == {
+            "hurdles-cost": "True",
+            "loop-flow": "False",
+            "use-phase-shifter": "False",
+            "transmission-capacities": "enabled",
+            "asset-type": "ac",
+            "link-style": "plain",
+            "link-width": "1.0",
+            "colorr": "112",
+            "colorg": "112",
+            "colorb": "112",
+            "display-comments": "True",
+            "filter-synthesis": "annual, daily, hourly, monthly, weekly",
+            "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
+            "comments": "new comment",
+        }
 
     def test_update_multiple_update_properties(self, local_study_w_links: Study) -> None:
         # Checks values before update
