@@ -23,6 +23,8 @@ import pandas as pd
 
 from antares.craft import read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
+from antares.craft.model.commons import FilterOption
 from antares.craft.model.renewable import (
     RenewableCluster,
     RenewableClusterGroup,
@@ -815,9 +817,8 @@ class TestReadReserves:
 
 class TestReadWind:
     def test_read_wind_local(self, local_study_w_areas):
-        study_path = local_study_w_areas.service.config.study_path
-        local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        study_path = t.cast(LocalConfiguration, local_study_w_areas.service.config).study_path
+        areas = local_study_w_areas.read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -837,9 +838,8 @@ class TestReadWind:
 
 class TestReadmisc_gen:
     def test_read_misc_gen_local(self, local_study_w_areas):
-        study_path = local_study_w_areas.service.config.study_path
-        local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        study_path = t.cast(LocalConfiguration, local_study_w_areas.service.config).study_path
+        areas = local_study_w_areas.read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -902,9 +902,7 @@ class TestReadLinks:
 
 class TestReadSTStorage:
     def test_read_st_storage_local(self, local_study_w_storage):
-        study_path = t.cast(LocalConfiguration, local_study_w_storage.service.config).study_path
-        local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        areas = local_study_w_storage.read_areas()
 
         for area in areas:
             storages = area.read_st_storages()
@@ -916,3 +914,67 @@ class TestReadSTStorage:
                 assert storage.properties.initial_level_optim is True
             else:
                 assert storages == []
+
+
+class TestUpateArea:
+    def test_update_properties(self, local_study_w_areas):
+        # Checks values before update
+        area = local_study_w_areas.get_areas()["fr"]
+        current_properties = AreaProperties(energy_cost_spilled=1, energy_cost_unsupplied=0.5)
+        assert area.properties == current_properties
+        # Updates properties
+        update_properties = AreaPropertiesUpdate(
+            adequacy_patch_mode=AdequacyPatchMode.VIRTUAL,
+            filter_synthesis={FilterOption.DAILY},
+            energy_cost_spilled=0.4,
+        )
+        new_properties = area.update_properties(update_properties)
+        expected_properties = AreaProperties(
+            adequacy_patch_mode=AdequacyPatchMode.VIRTUAL,
+            filter_synthesis={FilterOption.DAILY},
+            energy_cost_spilled=0.4,
+            energy_cost_unsupplied=0.5,
+        )
+        assert new_properties == expected_properties
+        assert area.properties == expected_properties
+        # Asserts the ini files are properly modified
+        study_path = Path(local_study_w_areas.path)
+        optimization_ini_file = IniFile(study_path, InitializationFilesTypes.AREA_OPTIMIZATION_INI, area.id)
+        assert optimization_ini_file.ini_dict == {
+            "nodal optimization": {
+                "non-dispatchable-power": "True",
+                "dispatchable-hydro-power": "True",
+                "other-dispatchable-power": "True",
+                "spread-unsupplied-energy-cost": "0.0",
+                "spread-spilled-energy-cost": "0.0",
+            },
+            "filtering": {"filter-synthesis": "daily", "filter-year-by-year": "annual, daily, hourly, monthly, weekly"},
+        }
+        adequacy_ini = IniFile(study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area.id)
+        assert adequacy_ini.ini_dict == {"adequacy-patch": {"adequacy-patch-mode": "virtual"}}
+        thermal_ini = IniFile(study_path, InitializationFilesTypes.THERMAL_AREAS_INI)
+        assert thermal_ini.ini_dict == {
+            "unserverdenergycost": {"fr": "0.5", "it": "0.5"},
+            "spilledenergycost": {"fr": "0.4", "it": "1.0"},
+        }
+
+    def test_update_ui(self, local_study_w_areas):
+        # Checks values before update
+        area = local_study_w_areas.get_areas()["fr"]
+        current_ui = AreaUi()
+        assert area.ui == current_ui
+        # Updates properties
+        update_ui = AreaUiUpdate(x=12, color_rgb=[5, 6, 7])
+        new_ui = area.update_ui(update_ui)
+        expected_ui = AreaUi(x=12, color_rgb=[5, 6, 7], y=0)
+        assert new_ui == expected_ui
+        assert area.ui == expected_ui
+        # Asserts the ini file is properly modified
+        study_path = Path(local_study_w_areas.path)
+        ui_ini_file = IniFile(study_path, InitializationFilesTypes.AREA_UI_INI, area.id)
+        assert ui_ini_file.ini_dict == {
+            "ui": {"x": "12", "y": "0", "color_r": "5", "color_g": "6", "color_b": "7"},
+            "layerX": {"0": "12"},
+            "layerY": {"0": "0"},
+            "layerColor": {"0": "5,6,7"},
+        }

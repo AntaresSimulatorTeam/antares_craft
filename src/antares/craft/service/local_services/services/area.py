@@ -360,11 +360,67 @@ class AreaLocalService(BaseAreaService):
 
     @override
     def update_area_properties(self, area_id: str, properties: AreaPropertiesUpdate) -> AreaProperties:
-        raise NotImplementedError
+        study_path = self.config.study_path
+        local_properties = AreaPropertiesLocal.from_user_model(properties)
+
+        # Adequacy patch
+        adequacy_patch_ini = IniFile(study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_id)
+        updated_properties_dict: dict[str, Any] = adequacy_patch_ini.ini_dict
+        if properties.adequacy_patch_mode:
+            updated_properties_dict = local_properties.to_adequacy_ini()
+            adequacy_patch_ini.ini_dict = updated_properties_dict
+            adequacy_patch_ini.write_ini_file()
+
+        # Thermal properties
+        thermal_ini = IniFile(study_path, InitializationFilesTypes.THERMAL_AREAS_INI)
+        current_content = thermal_ini.ini_dict
+        updated_properties_dict["energy_cost_unsupplied"] = current_content["unserverdenergycost"][area_id]
+        updated_properties_dict["energy_cost_spilled"] = current_content["spilledenergycost"][area_id]
+        if properties.energy_cost_spilled or properties.energy_cost_unsupplied:
+            if properties.energy_cost_spilled:
+                current_content["spilledenergycost"][area_id] = properties.energy_cost_spilled
+                updated_properties_dict["energy_cost_spilled"] = properties.energy_cost_spilled
+            if properties.energy_cost_unsupplied:
+                current_content["unserverdenergycost"][area_id] = properties.energy_cost_unsupplied
+                updated_properties_dict["energy_cost_unsupplied"] = properties.energy_cost_unsupplied
+            thermal_ini.ini_dict = current_content
+            thermal_ini.write_ini_file()
+
+        # Optimization properties
+        optimization_ini = IniFile(study_path, InitializationFilesTypes.AREA_OPTIMIZATION_INI, area_id=area_id)
+        current_content = optimization_ini.ini_dict
+        updated_properties_dict.update(current_content)
+        if (
+            properties.filter_synthesis
+            or properties.filter_by_year
+            or properties.non_dispatch_power
+            or properties.dispatch_hydro_power
+            or properties.other_dispatch_power
+            or properties.spread_spilled_energy_cost
+            or properties.spread_unsupplied_energy_cost
+        ):
+            new_content = local_properties.to_optimization_ini()
+            current_content.update(new_content)
+            updated_properties_dict.update(new_content)
+            optimization_ini.ini_dict = current_content
+            optimization_ini.write_ini_file()
+
+        new_properties = AreaPropertiesLocal.model_validate(updated_properties_dict)
+        return new_properties.to_user_model()
 
     @override
     def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
-        raise NotImplementedError
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.AREA_UI_INI, area_id=area_id)
+        current_content = ini_file.ini_dict
+        # Update ui
+        local_ui = AreaUiLocal.from_user_model(ui).model_dump(mode="json", exclude_unset=True, by_alias=True)
+        current_content.update(local_ui)
+        # Update ini file
+        ini_file.ini_dict = current_content
+        ini_file.write_ini_file()
+        # Prepare object to return
+        updated_ui = AreaUiLocal.model_validate(current_content)
+        return updated_ui.to_user_model()
 
     @staticmethod
     def _delete_clusters(ini_file: IniFile, names_to_delete: set[str]) -> None:
@@ -465,4 +521,8 @@ class AreaLocalService(BaseAreaService):
 
     @override
     def update_multiple_areas(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
-        raise NotImplementedError
+        new_properties_dict = {}
+        for area_id, update_properties in dict_areas.items():
+            new_properties = self.update_area_properties(area_id, update_properties)
+            new_properties_dict[area_id] = new_properties
+        return new_properties_dict
