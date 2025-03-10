@@ -1,8 +1,4 @@
-# antares_craft
-
-[![github ci](https://github.com/AntaresSimulatorTeam/antares_craft/actions/workflows/ci.yml/badge.svg)](https://github.com/AntaresSimulatorTeam/antares_craft/actions/workflows/ci.yml)
-
-## About
+# Antares Craft python library
 
 Antares Craft is an open source python library meant at reading and
 editing [antares-simulator](https://antares-simulator.readthedocs.io/en/stable/) studies
