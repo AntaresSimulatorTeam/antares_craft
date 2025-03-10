@@ -23,6 +23,8 @@ import pandas as pd
 
 from antares.craft import read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate
+from antares.craft.model.commons import FilterOption
 from antares.craft.model.renewable import (
     RenewableCluster,
     RenewableClusterGroup,
@@ -916,3 +918,46 @@ class TestReadSTStorage:
                 assert storage.properties.initial_level_optim is True
             else:
                 assert storages == []
+
+
+class TestUpateProperties:
+    def test_update_properties_local(self, local_study_w_areas):
+        # Checks values before update
+        area = local_study_w_areas.get_areas()["fr"]
+        current_properties = AreaProperties(energy_cost_spilled=1, energy_cost_unsupplied=0.5)
+        assert area.properties == current_properties
+        # Updates properties
+        update_properties = AreaPropertiesUpdate(
+            adequacy_patch_mode=AdequacyPatchMode.VIRTUAL,
+            filter_synthesis={FilterOption.DAILY},
+            energy_cost_spilled=0.4,
+        )
+        new_properties = area.update_properties(update_properties)
+        expected_properties = AreaProperties(
+            adequacy_patch_mode=AdequacyPatchMode.VIRTUAL,
+            filter_synthesis={FilterOption.DAILY},
+            energy_cost_spilled=0.4,
+            energy_cost_unsupplied=0.5,
+        )
+        assert new_properties == expected_properties
+        assert area.properties == expected_properties
+        # Asserts the ini files are properly modified
+        study_path = Path(local_study_w_areas.path)
+        optimization_ini_file = IniFile(study_path, InitializationFilesTypes.AREA_OPTIMIZATION_INI, area.id)
+        assert optimization_ini_file.ini_dict == {
+            "nodal optimization": {
+                "non-dispatchable-power": "True",
+                "dispatchable-hydro-power": "True",
+                "other-dispatchable-power": "True",
+                "spread-unsupplied-energy-cost": "0.0",
+                "spread-spilled-energy-cost": "0.0",
+            },
+            "filtering": {"filter-synthesis": "daily", "filter-year-by-year": "annual, daily, hourly, monthly, weekly"},
+        }
+        adequacy_ini = IniFile(study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area.id)
+        assert adequacy_ini.ini_dict == {"adequacy-patch": {"adequacy-patch-mode": "virtual"}}
+        thermal_ini = IniFile(study_path, InitializationFilesTypes.THERMAL_AREAS_INI)
+        assert thermal_ini.ini_dict == {
+            "unserverdenergycost": {"fr": "0.5", "it": "0.5"},
+            "spilledenergycost": {"fr": "0.4", "it": "1.0"},
+        }
