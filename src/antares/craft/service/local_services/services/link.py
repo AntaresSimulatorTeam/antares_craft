@@ -106,15 +106,18 @@ class LinkLocalService(BaseLinkService):
 
     @override
     def update_link_properties(self, link: Link, properties: LinkPropertiesUpdate) -> LinkProperties:
-        links_dict = IniFile(
-            self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, area_id=link.area_from_id
-        ).ini_dict
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id)
+        links_dict = ini_file.ini_dict
         for area_to, link_props in links_dict.items():
             if area_to == link.area_to_id:
                 # Update properties
                 upd_properties = LinkPropertiesAndUiLocal.from_user_model(None, properties)
                 upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 link_props.update(upd_props_as_dict)
+
+                # Update ini file
+                ini_file.ini_dict = links_dict
+                ini_file.write_ini_file()
 
                 # Prepare the object to return
                 local_properties = LinkPropertiesAndUiLocal.model_validate(link_props)
