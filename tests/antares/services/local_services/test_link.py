@@ -19,12 +19,44 @@ import numpy as np
 import pandas as pd
 
 from antares.craft import Study
-from antares.craft.exceptions.exceptions import MatrixFormatError
-from antares.craft.model.link import AssetType, LinkProperties, LinkPropertiesUpdate
+from antares.craft.exceptions.exceptions import LinkDeletionError, MatrixFormatError
+from antares.craft.model.link import AssetType, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
 class TestLink:
+    def test_update_ui(self, local_study_w_links: Study) -> None:
+        # Checks values before update
+        link = local_study_w_links.get_links()["at / fr"]
+        current_ui = LinkUi()
+        assert link.ui == current_ui
+        # Updates ui
+        update_ui = LinkUiUpdate(link_width=4.2, colorg=255)
+        new_ui = link.update_ui(update_ui)
+        expected_ui = LinkUi(link_width=4.2, colorg=255)
+        assert new_ui == expected_ui
+        assert link.ui == expected_ui
+        # Asserts the ini file is properly modified
+        ini_file = IniFile(
+            Path(local_study_w_links.path), InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id
+        )
+        assert ini_file.ini_dict["fr"] == {
+            "asset-type": "ac",
+            "colorb": "112",
+            "colorg": "255",
+            "colorr": "112",
+            "comments": "",
+            "display-comments": "True",
+            "filter-synthesis": "annual, daily, hourly, monthly, weekly",
+            "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
+            "hurdles-cost": "False",
+            "link-style": "plain",
+            "link-width": "4.2",
+            "loop-flow": "False",
+            "transmission-capacities": "enabled",
+            "use-phase-shifter": "False",
+        }
+
     def test_update_properties(self, local_study_w_links: Study) -> None:
         # Checks values before update
         link = local_study_w_links.get_links()["at / fr"]
@@ -40,8 +72,7 @@ class TestLink:
         ini_file = IniFile(
             Path(local_study_w_links.path), InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id
         )
-        links_dict = ini_file.ini_dict
-        assert links_dict["fr"] == {
+        assert ini_file.ini_dict["fr"] == {
             "hurdles-cost": "True",
             "loop-flow": "False",
             "use-phase-shifter": "False",
@@ -110,3 +141,14 @@ class TestLink:
             ),
         ):
             link.update_parameters(matrix)
+
+    def test_deletion(self, local_study_w_links: Study) -> None:
+        link = local_study_w_links.get_links()["at / fr"]
+        local_study_w_links.delete_link(link)
+        ini_file = IniFile(
+            Path(local_study_w_links.path), InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id
+        )
+        assert "fr" not in ini_file.ini_dict
+
+        with pytest.raises(LinkDeletionError, match=re.escape("Could not delete the link at / fr: it doesn't exist")):
+            local_study_w_links.delete_link(link)

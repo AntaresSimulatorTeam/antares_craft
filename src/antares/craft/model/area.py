@@ -211,9 +211,12 @@ class Area:
 
     def delete_thermal_clusters(self, thermal_clusters: list[ThermalCluster]) -> None:
         # Checks deletion is possible
+        bad_cluster_ids = []
         for cluster in thermal_clusters:
             if cluster.id not in self._thermals:
-                raise ThermalDeletionError(cluster.area_id, [cluster.id], DELETION_ERROR_MSG)
+                bad_cluster_ids.append(cluster.id)
+        if bad_cluster_ids:
+            raise ThermalDeletionError(self.id, bad_cluster_ids, DELETION_ERROR_MSG)
         # Performs deletion
         self._area_service.delete_thermal_clusters(self.id, thermal_clusters)
         for cluster in thermal_clusters:
@@ -224,9 +227,12 @@ class Area:
 
     def delete_renewable_clusters(self, renewable_clusters: list[RenewableCluster]) -> None:
         # Checks deletion is possible
+        bad_cluster_ids = []
         for cluster in renewable_clusters:
             if cluster.id not in self._renewables:
-                raise RenewableDeletionError(cluster.area_id, [cluster.id], DELETION_ERROR_MSG)
+                bad_cluster_ids.append(cluster.id)
+        if bad_cluster_ids:
+            raise RenewableDeletionError(self.id, bad_cluster_ids, DELETION_ERROR_MSG)
         # Performs deletion
         self._area_service.delete_renewable_clusters(self.id, renewable_clusters)
         for cluster in renewable_clusters:
@@ -237,9 +243,12 @@ class Area:
 
     def delete_st_storages(self, storages: list[STStorage]) -> None:
         # Checks deletion is possible
+        bad_cluster_ids = []
         for cluster in storages:
             if cluster.id not in self._st_storages:
-                raise STStorageDeletionError(cluster.area_id, [cluster.id], DELETION_ERROR_MSG)
+                bad_cluster_ids.append(cluster.id)
+        if bad_cluster_ids:
+            raise STStorageDeletionError(self.id, bad_cluster_ids, DELETION_ERROR_MSG)
         # Performs deletion
         self._area_service.delete_st_storages(self.id, storages)
         for storage in storages:
