@@ -22,6 +22,7 @@ from typing import Optional
 
 import pandas as pd
 
+from antares.craft.exceptions.exceptions import RenewableDeletionError, STStorageDeletionError, ThermalDeletionError
 from antares.craft.model.commons import FILTER_VALUES, FilterOption
 from antares.craft.model.hydro import Hydro, HydroProperties
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
@@ -207,6 +208,11 @@ class Area:
         return self._area_service.get_misc_gen_matrix(self.id)
 
     def delete_thermal_clusters(self, thermal_clusters: list[ThermalCluster]) -> None:
+        # Checks deletion is possible
+        for cluster in thermal_clusters:
+            if cluster.id not in self._thermals:
+                raise ThermalDeletionError(cluster.area_id, [cluster.id], "it doesn't exist")
+        # Performs deletion
         self._area_service.delete_thermal_clusters(self.id, thermal_clusters)
         for cluster in thermal_clusters:
             self._thermals.pop(cluster.id)
@@ -215,6 +221,11 @@ class Area:
         self.delete_thermal_clusters([thermal_cluster])
 
     def delete_renewable_clusters(self, renewable_clusters: list[RenewableCluster]) -> None:
+        # Checks deletion is possible
+        for cluster in renewable_clusters:
+            if cluster.id not in self._renewables:
+                raise RenewableDeletionError(cluster.area_id, [cluster.id], "it doesn't exist")
+        # Performs deletion
         self._area_service.delete_renewable_clusters(self.id, renewable_clusters)
         for cluster in renewable_clusters:
             self._renewables.pop(cluster.id)
@@ -223,6 +234,10 @@ class Area:
         self.delete_renewable_clusters([renewable_cluster])
 
     def delete_st_storages(self, storages: list[STStorage]) -> None:
+        # Checks deletion is possible
+        for cluster in storages:
+            if cluster.id not in self._st_storages:
+                raise STStorageDeletionError(cluster.area_id, [cluster.id], "it doesn't exist")
         self._area_service.delete_st_storages(self.id, storages)
         for storage in storages:
             self._st_storages.pop(storage.id)
