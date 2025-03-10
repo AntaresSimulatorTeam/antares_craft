@@ -1,3 +1,3 @@
 # User guide
 
-TODO
+This section of the documentation is under construction.
