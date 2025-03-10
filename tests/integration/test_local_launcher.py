@@ -82,3 +82,30 @@ class TestLocalLauncher:
         second_output = [otp.name for otp in outputs if otp.name.endswith(".zip")][0]
         assert second_job.output_id == second_output
         assert second_output.endswith(".zip")
+
+        # Runs a third simulation just for the rest of the test
+        third_job = study.run_antares_simulation()
+        study.wait_job_completion(third_job)
+        assert third_job.status == JobStatus.SUCCESS
+        outputs = list(output_path.iterdir())
+        assert len(outputs) == 3
+        expected_outputs = sorted([output.name for output in outputs])
+
+        # Asserts read_outputs return the expected result
+        assert [o.name for o in study.read_outputs()] == expected_outputs
+
+        # Asserts read_study_local reads the outputs
+        second_study = read_study_local(tmp_path / "test study", solver_path)
+        assert list((second_study.get_outputs()).keys()) == expected_outputs
+
+        # Deletes the first output
+        study.delete_output(output_id)
+        outputs = list(output_path.iterdir())
+        assert len(outputs) == 2
+        assert len(study.read_outputs()) == 2
+
+        # Deletes all outputs
+        study.delete_outputs()
+        outputs = list(output_path.iterdir())
+        assert len(outputs) == 0
+        assert study.read_outputs() == []

@@ -117,6 +117,7 @@ class StudyLocalService(BaseStudyService):
         self._config = config
         self._study_name = study_name
         self._output_service: BaseOutputService = output_service
+        self._output_path = self.config.study_path / "output"
 
     @property
     @override
@@ -146,15 +147,27 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def read_outputs(self) -> list[Output]:
-        raise NotImplementedError
+        outputs = []
+        for folder in self._output_path.iterdir():
+            output_name = folder.name
+            archived = True if output_name.endswith(".zip") else False
+            output = Output(name=output_name, archived=archived, output_service=self.output_service)
+            outputs.append(output)
+        outputs.sort(key=lambda o: o.name)
+        return outputs
 
     @override
     def delete_outputs(self) -> None:
-        raise NotImplementedError
+        for resource in self._output_path.iterdir():
+            if resource.is_file():
+                resource.unlink()
+            else:
+                shutil.rmtree(resource, ignore_errors=True)
 
     @override
     def delete_output(self, output_name: str) -> None:
-        raise NotImplementedError
+        for name in [output_name, f"{output_name}.zip"]:
+            shutil.rmtree(self._output_path / name, ignore_errors=True)
 
     @override
     def move_study(self, new_parent_path: Path) -> PurePath:
