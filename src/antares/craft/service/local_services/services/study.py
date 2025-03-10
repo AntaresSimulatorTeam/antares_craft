@@ -139,7 +139,7 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def delete(self, children: bool) -> None:
-        raise NotImplementedError
+        shutil.rmtree(self.config.study_path, ignore_errors=True)
 
     @override
     def create_variant(self, variant_name: str) -> "Study":

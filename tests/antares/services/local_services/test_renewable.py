@@ -53,3 +53,13 @@ class TestRenewable:
             ),
         ):
             renewable.update_renewable_matrix(matrix)
+
+    def test_deletion(self, local_study_with_renewable):
+        area_fr = local_study_with_renewable.get_areas()["fr"]
+        renewable = area_fr.get_renewables()["renewable cluster"]
+        area_fr.delete_renewable_clusters([renewable])
+        # Asserts the area dict is empty
+        assert area_fr.get_renewables() == {}
+        # Asserts the file is empty
+        ini_path = Path(local_study_with_renewable.path / "input" / "renewables" / "clusters" / "fr" / "list.ini")
+        assert not ini_path.read_text()
