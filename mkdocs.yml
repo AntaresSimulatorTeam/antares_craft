@@ -36,3 +36,6 @@ theme:
 plugins:
   - search
   - mkdocstrings
+
+extra_css:
+  - stylesheets/extra.css
