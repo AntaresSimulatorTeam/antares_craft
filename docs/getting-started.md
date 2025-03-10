@@ -43,7 +43,7 @@ study = read_study_api(api_config=api_config,
                        study_id="my-study-id")
 ```
 
-## Filesystem studies
+### Filesystem studies
 
 In order to create a study on your filesystem, you can use the the `create_study_local` method.
 
