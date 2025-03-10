@@ -37,6 +37,8 @@ from antares.craft.service.base_services import (
 )
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 
+DELETION_ERROR_MSG = "it doesn't exist"
+
 
 class AdequacyPatchMode(EnumIgnoreCase):
     """
@@ -211,7 +213,7 @@ class Area:
         # Checks deletion is possible
         for cluster in thermal_clusters:
             if cluster.id not in self._thermals:
-                raise ThermalDeletionError(cluster.area_id, [cluster.id], "it doesn't exist")
+                raise ThermalDeletionError(cluster.area_id, [cluster.id], DELETION_ERROR_MSG)
         # Performs deletion
         self._area_service.delete_thermal_clusters(self.id, thermal_clusters)
         for cluster in thermal_clusters:
@@ -224,7 +226,7 @@ class Area:
         # Checks deletion is possible
         for cluster in renewable_clusters:
             if cluster.id not in self._renewables:
-                raise RenewableDeletionError(cluster.area_id, [cluster.id], "it doesn't exist")
+                raise RenewableDeletionError(cluster.area_id, [cluster.id], DELETION_ERROR_MSG)
         # Performs deletion
         self._area_service.delete_renewable_clusters(self.id, renewable_clusters)
         for cluster in renewable_clusters:
@@ -237,7 +239,8 @@ class Area:
         # Checks deletion is possible
         for cluster in storages:
             if cluster.id not in self._st_storages:
-                raise STStorageDeletionError(cluster.area_id, [cluster.id], "it doesn't exist")
+                raise STStorageDeletionError(cluster.area_id, [cluster.id], DELETION_ERROR_MSG)
+        # Performs deletion
         self._area_service.delete_st_storages(self.id, storages)
         for storage in storages:
             self._st_storages.pop(storage.id)
