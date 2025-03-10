@@ -15,7 +15,12 @@ from typing import Any, Dict, Optional
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import LinkCreationError, LinkPropertiesUpdateError, LinkUiUpdateError
+from antares.craft.exceptions.exceptions import (
+    LinkCreationError,
+    LinkDeletionError,
+    LinkPropertiesUpdateError,
+    LinkUiUpdateError,
+)
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
@@ -101,7 +106,16 @@ class LinkLocalService(BaseLinkService):
 
     @override
     def delete_link(self, link: Link) -> None:
-        raise NotImplementedError
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id)
+        links_dict = ini_file.ini_dict
+        for area_to, link_props in links_dict.items():
+            if area_to == link.area_to_id:
+                links_dict.pop(area_to)
+                ini_file.ini_dict = links_dict
+                ini_file.write_ini_file()
+                return
+
+        raise LinkDeletionError(link.id, "it doesn't exist")
 
     def _update_link(
         self, link: Link, properties: Optional[LinkPropertiesUpdate] = None, ui: Optional[LinkUiUpdate] = None
