@@ -224,8 +224,8 @@ class BindingConstraintsUpdateError(Exception):
 
 
 class ConstraintDoesNotExistError(Exception):
-    def __init__(self, constraint_name: str) -> None:
-        self.message = f"The binding constraint {constraint_name} doesn't exist: "
+    def __init__(self, constraint_name: str, study_name: str) -> None:
+        self.message = f"The binding constraint {constraint_name} doesn't exist inside study {study_name}."
         super().__init__(self.message)
 
 
