@@ -13,10 +13,12 @@ import pytest
 
 import re
 
+from pathlib import Path
+
 import pandas as pd
 
 from antares.craft import Study
-from antares.craft.exceptions.exceptions import MatrixFormatError
+from antares.craft.exceptions.exceptions import ConstraintDoesNotExistError, MatrixFormatError
 from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
@@ -24,6 +26,7 @@ from antares.craft.model.binding_constraint import (
     ConstraintTerm,
     LinkData,
 )
+from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
 class TestBindingConstraints:
@@ -99,3 +102,31 @@ class TestBindingConstraints:
             ),
         ):
             bc.update_less_term_matrix(matrix)
+
+    def test_delete(self, local_study_w_constraints: Study) -> None:
+        bc = local_study_w_constraints.get_binding_constraints()["bc_1"]
+        local_study_w_constraints.delete_binding_constraint(bc)
+        assert bc.id not in local_study_w_constraints.get_binding_constraints()
+        # Checks ini file
+        study_path = Path(local_study_w_constraints.path)
+        ini_file = IniFile(study_path, InitializationFilesTypes.BINDING_CONSTRAINTS_INI)
+        assert ini_file.ini_dict == {
+            "0": {
+                "at%fr": "2",
+                "comments": "",
+                "enabled": "True",
+                "filter-synthesis": "annual, daily, hourly, monthly, weekly",
+                "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
+                "group": "default",
+                "id": "bc_2",
+                "name": "bc_2",
+                "operator": "less",
+                "type": "hourly",
+            }
+        }
+
+        with pytest.raises(
+            ConstraintDoesNotExistError,
+            match=re.escape("The binding constraint bc_1 doesn't exist inside study studyTest."),
+        ):
+            local_study_w_constraints.delete_binding_constraint(bc)

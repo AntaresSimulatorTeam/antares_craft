@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import copy
 import logging
 import shutil
 import tempfile
@@ -140,12 +141,14 @@ class StudyLocalService(BaseStudyService):
         study_path = self.config.study_path
         ini_file = IniFile(study_path, InitializationFilesTypes.BINDING_CONSTRAINTS_INI)
         current_content = ini_file.ini_dict
+        copied_content = copy.deepcopy(current_content)
         for index, bc in current_content.items():
-            if current_content["name"] == constraint.name:
-                current_content.pop(index)
-                new_dict = {str(i): v for i, (k, v) in enumerate(current_content.items(), 1)}
+            if bc["id"] == constraint.id:
+                copied_content.pop(index)
+                new_dict = {str(i): v for i, (k, v) in enumerate(copied_content.items())}
                 ini_file.ini_dict = new_dict
                 ini_file.write_ini_file()
+                return
         raise ConstraintDoesNotExistError(constraint.name, self._study_name)
 
     @override
