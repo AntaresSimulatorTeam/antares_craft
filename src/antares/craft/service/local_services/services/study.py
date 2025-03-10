@@ -166,10 +166,11 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def delete_output(self, output_name: str) -> None:
-        if output_name.endswith(".zip"):
-            (self._output_path / output_name).unlink()
+        output_path = self._output_path / output_name
+        if output_path.is_file():
+            output_path.unlink()
         else:
-            shutil.rmtree(self._output_path / output_name, ignore_errors=True)
+            shutil.rmtree(output_path, ignore_errors=True)
 
     @override
     def move_study(self, new_parent_path: Path) -> PurePath:
