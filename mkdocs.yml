@@ -35,7 +35,11 @@ theme:
 
 plugins:
   - search
-  - mkdocstrings
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [ src ]
 
 extra_css:
   - stylesheets/extra.css
