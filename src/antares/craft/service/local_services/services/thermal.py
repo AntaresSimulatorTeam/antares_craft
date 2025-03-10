@@ -50,9 +50,9 @@ class ThermalLocalService(BaseThermalService):
     def update_thermal_properties(
         self, thermal_cluster: ThermalCluster, properties: ThermalClusterPropertiesUpdate
     ) -> ThermalClusterProperties:
-        thermal_dict = IniFile(
-            self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=thermal_cluster.area_id
-        ).ini_dict
+        area_id = thermal_cluster.area_id
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id)
+        thermal_dict = ini_file.ini_dict
         for thermal in thermal_dict.values():
             if thermal["name"] == thermal_cluster.name:
                 # Update properties
@@ -60,13 +60,17 @@ class ThermalLocalService(BaseThermalService):
                 upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 thermal.update(upd_props_as_dict)
 
+                # Update ini file
+                ini_file.ini_dict = thermal_dict
+                ini_file.write_ini_file()
+
                 # Prepare the object to return
                 local_dict = copy.deepcopy(thermal)
                 del local_dict["name"]
                 local_properties = ThermalClusterPropertiesLocal.model_validate(local_dict)
 
                 return local_properties.to_user_model()
-        raise ThermalPropertiesUpdateError(thermal_cluster.name, thermal_cluster.area_id, "The cluster does not exist")
+        raise ThermalPropertiesUpdateError(thermal_cluster.name, area_id, "The cluster does not exist")
 
     @override
     def get_thermal_matrix(self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName) -> pd.DataFrame:

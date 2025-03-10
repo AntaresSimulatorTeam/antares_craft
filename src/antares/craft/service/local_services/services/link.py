@@ -15,7 +15,12 @@ from typing import Any, Dict, Optional
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import LinkCreationError, LinkPropertiesUpdateError
+from antares.craft.exceptions.exceptions import (
+    LinkCreationError,
+    LinkDeletionError,
+    LinkPropertiesUpdateError,
+    LinkUiUpdateError,
+)
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
@@ -48,7 +53,6 @@ class LinkLocalService(BaseLinkService):
             area_to: area where the link goes to
             properties: link's properties
             ui: link's ui characteristics
-            existing_areas: existing areas from study
 
         Returns:
             The created link
@@ -102,29 +106,50 @@ class LinkLocalService(BaseLinkService):
 
     @override
     def delete_link(self, link: Link) -> None:
-        raise NotImplementedError
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id)
+        links_dict = ini_file.ini_dict
+        for area_to, link_props in links_dict.items():
+            if area_to == link.area_to_id:
+                links_dict.pop(area_to)
+                ini_file.ini_dict = links_dict
+                ini_file.write_ini_file()
+                return
 
-    @override
-    def update_link_properties(self, link: Link, properties: LinkPropertiesUpdate) -> LinkProperties:
-        links_dict = IniFile(
-            self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, area_id=link.area_from_id
-        ).ini_dict
+        raise LinkDeletionError(link.id, "it doesn't exist")
+
+    def _update_link(
+        self, link: Link, properties: Optional[LinkPropertiesUpdate] = None, ui: Optional[LinkUiUpdate] = None
+    ) -> Optional[LinkPropertiesAndUiLocal]:
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id)
+        links_dict = ini_file.ini_dict
         for area_to, link_props in links_dict.items():
             if area_to == link.area_to_id:
                 # Update properties
-                upd_properties = LinkPropertiesAndUiLocal.from_user_model(None, properties)
+                upd_properties = LinkPropertiesAndUiLocal.from_user_model(ui, properties)
                 upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 link_props.update(upd_props_as_dict)
 
-                # Prepare the object to return
-                local_properties = LinkPropertiesAndUiLocal.model_validate(link_props)
-                return local_properties.to_properties_user_model()
+                # Update ini file
+                ini_file.ini_dict = links_dict
+                ini_file.write_ini_file()
 
-        raise LinkPropertiesUpdateError(link.id, "The link does not exist")
+                # Prepare the object to return
+                return LinkPropertiesAndUiLocal.model_validate(link_props)
+        return None
+
+    @override
+    def update_link_properties(self, link: Link, properties: LinkPropertiesUpdate) -> LinkProperties:
+        local_properties = self._update_link(link, properties, None)
+        if not local_properties:
+            raise LinkPropertiesUpdateError(link.id, "The link does not exist")
+        return local_properties.to_properties_user_model()
 
     @override
     def update_link_ui(self, link: Link, ui: LinkUiUpdate) -> LinkUi:
-        raise NotImplementedError
+        local_properties = self._update_link(link, None, ui)
+        if not local_properties:
+            raise LinkUiUpdateError(link.id, "The link does not exist")
+        return local_properties.to_ui_user_model()
 
     # TODO maybe put sorting functions together
     @staticmethod
