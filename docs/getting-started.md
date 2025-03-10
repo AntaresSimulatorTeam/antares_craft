@@ -1,9 +1,9 @@
-# Introduction
+# Getting started
 
-With antares-craft you can interact with studies using AntaresWeb API or in local mode.
-To interact with AntaresWeb you need a token.
+On this page you will find information for getting started quickly with `antares_craft`, together with a brief
+introduction to main features.
 
-## Install antares_craft
+## Install it
 
 You can install `antares_craft` using your usual python package manager:
 
@@ -21,6 +21,8 @@ stored in an antares-web application.
 ### antares-web studies
 
 In order to create a study on your antares-web server, you can use the the `create_study_api` method.
+In order to use it, you will need to define the URL of your server, and provide a token generated in the application in
+order to authenticate:
 
 ```python
 from antares.craft import APIconf, create_study_api
