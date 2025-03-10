@@ -308,3 +308,13 @@ variableomcost = 5.0
             ),
         ):
             thermal.update_series_matrix(matrix)
+
+    def test_deletion(self, local_study_w_thermal):
+        area_fr = local_study_w_thermal.get_areas()["fr"]
+        thermal = area_fr.get_thermals()["test thermal cluster"]
+        area_fr.delete_thermal_clusters([thermal])
+        # Asserts the area dict is empty
+        assert area_fr.get_thermals() == {}
+        # Asserts the file is empty
+        ini_path = Path(local_study_w_thermal.path / "input" / "thermal" / "clusters" / "fr" / "list.ini")
+        assert not ini_path.read_text()

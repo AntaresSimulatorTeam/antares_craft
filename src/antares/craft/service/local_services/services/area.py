@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+import copy
 import logging
 import os
 
@@ -366,17 +366,33 @@ class AreaLocalService(BaseAreaService):
     def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
         raise NotImplementedError
 
+    @staticmethod
+    def _delete_clusters(ini_file: IniFile, names_to_delete: set[str]) -> None:
+        clusters_dict = ini_file.ini_dict
+        clusters_dict_after_deletion = copy.deepcopy(clusters_dict)
+        for cluster_id, cluster in clusters_dict.items():
+            if cluster["name"] in names_to_delete:
+                del clusters_dict_after_deletion[cluster_id]
+        ini_file.ini_dict = clusters_dict_after_deletion
+        ini_file.write_ini_file()
+
     @override
     def delete_thermal_clusters(self, area_id: str, thermal_clusters: List[ThermalCluster]) -> None:
-        raise NotImplementedError
+        thermal_names_to_delete = {th.name for th in thermal_clusters}
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id)
+        self._delete_clusters(ini_file, thermal_names_to_delete)
 
     @override
     def delete_renewable_clusters(self, area_id: str, renewable_clusters: List[RenewableCluster]) -> None:
-        raise NotImplementedError
+        renewable_names_to_delete = {renewable.name for renewable in renewable_clusters}
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id)
+        self._delete_clusters(ini_file, renewable_names_to_delete)
 
     @override
     def delete_st_storages(self, area_id: str, storages: List[STStorage]) -> None:
-        raise NotImplementedError
+        storage_names_to_delete = {st.name for st in storages}
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area_id)
+        self._delete_clusters(ini_file, storage_names_to_delete)
 
     @override
     def get_load_matrix(self, area_id: str) -> pd.DataFrame:

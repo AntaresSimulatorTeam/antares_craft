@@ -71,3 +71,13 @@ class TestSTStorage:
             ),
         ):
             storage.update_pmax_injection(matrix)
+
+    def test_deletion(self, local_study_w_storage):
+        area_fr = local_study_w_storage.get_areas()["fr"]
+        storage = area_fr.get_st_storages()["sts_1"]
+        area_fr.delete_st_storages([storage])
+        # Asserts the area dict is empty
+        assert area_fr.get_st_storages() == {}
+        # Asserts the file is empty
+        ini_path = Path(local_study_w_storage.path / "input" / "st-storage" / "clusters" / "fr" / "list.ini")
+        assert not ini_path.read_text()
