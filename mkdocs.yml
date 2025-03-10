@@ -2,13 +2,17 @@ site_name: Antares Craft
 repo_url: https://github.com/AntaresSimulatorTeam/antares_craft
 nav:
   - Home: index.md
-  - Quickstart: quickstart.md
+  - Getting started: getting-started.md
+  - User guide: user-guide.md
+  - Reference: reference.md
+  - Developers: developer.md
+
 theme:
   name: material
   logo: assets/logo.png
   favicon: assets/Icone.png
   prev_next_buttons_location: none
-#  custom_dir: docs/overrides
+  #  custom_dir: docs/overrides
   features:
     - navigation.instant
     - navigation.top
@@ -30,5 +34,5 @@ theme:
         name: Switch to light mode
 
 plugins:
-- search
-- mkdocstrings
+  - search
+  - mkdocstrings
