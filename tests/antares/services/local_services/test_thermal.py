@@ -19,7 +19,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.craft.exceptions.exceptions import MatrixFormatError, ThermalCreationError
+from antares.craft.exceptions.exceptions import MatrixFormatError, ThermalCreationError, ThermalDeletionError
 from antares.craft.model.thermal import (
     LawOption,
     LocalTSGenerationBehavior,
@@ -310,11 +310,31 @@ variableomcost = 5.0
             thermal.update_series_matrix(matrix)
 
     def test_deletion(self, local_study_w_thermal):
+        # Creates 3 cluster to test all cases
         area_fr = local_study_w_thermal.get_areas()["fr"]
-        thermal = area_fr.get_thermals()["test thermal cluster"]
-        area_fr.delete_thermal_clusters([thermal])
+        thermal_1 = area_fr.get_thermals()["test thermal cluster"]
+        thermal_2 = area_fr.create_thermal_cluster("th_2")
+        thermal_3 = area_fr.create_thermal_cluster("th_3")
+
+        # Deletes one cluster
+        area_fr.delete_thermal_cluster(thermal_1)
+        assert list(area_fr.get_thermals().keys()) == ["th_2", "th_3"]
+        # Checks ini content
+        ini_file = IniFile(Path(local_study_w_thermal.path), InitializationFilesTypes.THERMAL_LIST_INI, area_id="fr")
+        assert list(ini_file.ini_dict.keys()) == ["th_2", "th_3"]
+
+        # Deletes the remaining clusters
+        area_fr.delete_thermal_clusters([thermal_2, thermal_3])
         # Asserts the area dict is empty
         assert area_fr.get_thermals() == {}
         # Asserts the file is empty
         ini_path = Path(local_study_w_thermal.path / "input" / "thermal" / "clusters" / "fr" / "list.ini")
         assert not ini_path.read_text()
+
+        with pytest.raises(
+            ThermalDeletionError,
+            match=re.escape(
+                "Could not delete the following thermal clusters: test thermal cluster inside area fr: it doesn't exist"
+            ),
+        ):
+            area_fr.delete_thermal_cluster(thermal_1)
