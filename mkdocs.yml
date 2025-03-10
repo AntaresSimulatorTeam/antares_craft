@@ -4,7 +4,7 @@ nav:
   - Home: index.md
   - Getting started: getting-started.md
   - User guide: user-guide.md
-  - Reference: reference.md
+  - Reference: api-reference.md
   - Developers: developer.md
 
 theme:
