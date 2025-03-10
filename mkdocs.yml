@@ -40,6 +40,8 @@ plugins:
       handlers:
         python:
           paths: [ src ]
+          show_bases: false
+          show_source: false
 
 extra_css:
   - stylesheets/extra.css
