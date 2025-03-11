@@ -1,9 +1,14 @@
+antares-timeseries-generation==0.1.7
+antares-study-version==1.0.9
+
 absl-py~=1.4.0
 click~=8.1.7
 configparser~=5.0.2
 numpy~=1.26.4
 pandas~=2.2.2
 pandas-stubs~=2.2.2
+psutil~=7.0.0
+types-psutil~=7.0.0.20250218
 pydantic~=2.7.1
 pytest~=7.2.1
 python-dateutil~=2.9.0

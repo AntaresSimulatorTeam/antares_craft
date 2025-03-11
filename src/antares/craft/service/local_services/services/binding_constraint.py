@@ -22,20 +22,33 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintFrequency,
-    BindingConstraintOperator,
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
     ConstraintMatrixName,
     ConstraintTerm,
+    ConstraintTermData,
     ConstraintTermUpdate,
 )
 from antares.craft.service.base_services import BaseBindingConstraintService
 from antares.craft.service.local_services.models.binding_constraint import BindingConstraintPropertiesLocal
+from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
-from antares.craft.tools.matrix_tool import df_read, df_save
+from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 from typing_extensions import override
+
+MAPPING = {
+    ConstraintMatrixName.LESS_TERM: TimeSeriesFileType.BINDING_CONSTRAINT_LESS,
+    ConstraintMatrixName.EQUAL_TERM: TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL,
+    ConstraintMatrixName.GREATER_TERM: TimeSeriesFileType.BINDING_CONSTRAINT_GREATER,
+}
+
+DEFAULT_VALUE_MAPPING = {
+    BindingConstraintFrequency.HOURLY: (8784, 1),
+    BindingConstraintFrequency.WEEKLY: (366, 1),
+    BindingConstraintFrequency.DAILY: (366, 1),
+}
 
 
 class BindingConstraintLocalService(BaseBindingConstraintService):
@@ -78,28 +91,15 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         equal_term_matrix: Optional[pd.DataFrame],
         greater_term_matrix: Optional[pd.DataFrame],
     ) -> None:
-        time_series = []
-        file_types = []
-        # Lesser or greater can happen together when operator is both
-        if constraint.properties.operator in (BindingConstraintOperator.LESS, BindingConstraintOperator.BOTH):
-            time_series += [self._check_if_empty_ts(constraint.properties.time_step, less_term_matrix)]
-            file_types += [TimeSeriesFileType.BINDING_CONSTRAINT_LESS]
-        if constraint.properties.operator in (BindingConstraintOperator.GREATER, BindingConstraintOperator.BOTH):
-            time_series += [self._check_if_empty_ts(constraint.properties.time_step, greater_term_matrix)]
-            file_types += [TimeSeriesFileType.BINDING_CONSTRAINT_GREATER]
-        # Equal is always exclusive
-        if constraint.properties.operator == BindingConstraintOperator.EQUAL:
-            time_series = [self._check_if_empty_ts(constraint.properties.time_step, equal_term_matrix)]
-            file_types = [TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL]
-
-        for ts, file_type in zip(time_series, file_types):
-            matrix_path = self.config.study_path.joinpath(file_type.value.format(constraint_id=constraint.id))
-            df_save(ts, matrix_path)
-
-    @staticmethod
-    def _check_if_empty_ts(time_step: BindingConstraintFrequency, time_series: Optional[pd.DataFrame]) -> pd.DataFrame:
-        time_series_length = (365 * 24 + 24) if time_step == BindingConstraintFrequency.HOURLY else 366
-        return time_series if time_series is not None else pd.DataFrame(np.zeros([time_series_length, 1]))
+        study_path = self.config.study_path
+        bc_id = constraint.id
+        write_timeseries(study_path, less_term_matrix, TimeSeriesFileType.BINDING_CONSTRAINT_LESS, constraint_id=bc_id)
+        write_timeseries(
+            study_path, greater_term_matrix, TimeSeriesFileType.BINDING_CONSTRAINT_GREATER, constraint_id=bc_id
+        )
+        write_timeseries(
+            study_path, equal_term_matrix, TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL, constraint_id=bc_id
+        )
 
     def _create_constraint_inside_ini(
         self,
@@ -170,32 +170,91 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         current_ini_content = self.ini_file.ini_dict
         existing_constraint = self._get_constraint_inside_ini(current_ini_content, binding_constraint)
         local_properties = BindingConstraintPropertiesLocal.from_user_model(properties)
-        existing_constraint.update(local_properties.model_dump(mode="json", by_alias=True))
+        existing_constraint.update(local_properties.model_dump(mode="json", by_alias=True, exclude_unset=True))
         self.ini_file.ini_dict = current_ini_content
         self.ini_file.write_ini_file()
-        return local_properties.to_user_model()
+        # Return a user object based on what's written inside the INI file
+        del existing_constraint["name"]
+        del existing_constraint["id"]
+        modified_local_properties = BindingConstraintPropertiesLocal.model_validate(existing_constraint)
+        return modified_local_properties.to_user_model()
 
     @override
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
-        file_path = self.config.study_path.joinpath(
-            "input", "bindingconstraints", f"{constraint.id}_{matrix_name.value}.txt"
-        )
-        return df_read(file_path)
+        df = read_timeseries(MAPPING[matrix_name], self.config.study_path, constraint_id=constraint.id)
+        if not df.empty:
+            return df
+        default_matrix_shape = DEFAULT_VALUE_MAPPING[constraint.properties.time_step]
+        return pd.DataFrame(np.zeros(default_matrix_shape))
 
     @override
     def update_constraint_matrix(
         self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName, matrix: pd.DataFrame
     ) -> None:
-        raise NotImplementedError
+        checks_matrix_dimensions(
+            matrix, f"bindingconstraints/{constraint.id}", f"bc_{constraint.properties.time_step.value}"
+        )
+        write_timeseries(
+            self.config.study_path,
+            matrix,
+            MAPPING[matrix_name],
+            constraint_id=constraint.id,
+        )
 
     @override
     def read_binding_constraints(self) -> list[BindingConstraint]:
-        raise NotImplementedError
+        constraints = []
+        current_ini_content = self.ini_file.ini_dict
+        for constraint in current_ini_content.values():
+            name = constraint.pop("name")
+            del constraint["id"]
 
-    @staticmethod
-    def _get_constraint_inside_ini(ini_content: dict[str, Any], constraint: BindingConstraint) -> dict[str, Any]:
+            # Separate properties from terms
+            properties_fields = BindingConstraintPropertiesLocal().model_dump(by_alias=True)  # type: ignore
+            terms_dict = {}
+            local_properties_dict = {}
+            for k, v in constraint.items():
+                if k in properties_fields:
+                    local_properties_dict[k] = v
+                else:
+                    terms_dict[k] = v
+
+            # Build properties
+            local_properties = BindingConstraintPropertiesLocal.model_validate(local_properties_dict)
+            properties = local_properties.to_user_model()
+
+            # Build terms
+            terms = []
+            for key, value in terms_dict.items():
+                term_data = ConstraintTermData.from_ini(key)
+                if "%" in value:
+                    weight, offset = value.split("%")
+                else:
+                    weight = value
+                    offset = 0
+                term = ConstraintTerm(weight=float(weight), offset=int(offset), data=term_data)
+                terms.append(term)
+
+            bc = BindingConstraint(name=name, binding_constraint_service=self, properties=properties, terms=terms)
+            constraints.append(bc)
+
+        constraints.sort(key=lambda bc: bc.id)
+        return constraints
+
+    @override
+    def update_multiple_binding_constraints(
+        self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
+    ) -> dict[str, BindingConstraintProperties]:
+        new_properties_dict = {}
+        for constraint_id, new_props in new_properties.items():
+            bc = BindingConstraint(constraint_id, self)
+            modified_properties = self.update_binding_constraint_properties(bc, new_props)
+            new_properties_dict[constraint_id] = modified_properties
+        return new_properties_dict
+
+    def _get_constraint_inside_ini(self, ini_content: dict[str, Any], constraint: BindingConstraint) -> dict[str, Any]:
         existing_key = next((key for key, bc in ini_content.items() if bc["id"] == constraint.id), None)
         if not existing_key:
-            raise ConstraintDoesNotExistError(constraint.name)
+            raise ConstraintDoesNotExistError(constraint.name, self.study_name)
 
         return ini_content[existing_key]  # type: ignore

@@ -25,7 +25,9 @@ class FilterOption(Enum):
     ANNUAL = "annual"
 
 
-def validate_filters(filter_value: Union[list[FilterOption], str]) -> list[FilterOption]:
+def validate_filters(filter_value: Union[list[FilterOption], str, None]) -> list[FilterOption]:
+    if not filter_value:
+        return []
     if isinstance(filter_value, str):
         filter_value = filter_value.strip()
         if not filter_value:
@@ -50,7 +52,7 @@ def join_with_comma(values: Optional[set[FilterOption]] = None) -> str:
     return ""
 
 
-comma_separated_enum_set = Annotated[
+filtering_option = Annotated[
     set[FilterOption],
     BeforeValidator(lambda x: validate_filters(x)),
     PlainSerializer(lambda x: join_with_comma(x)),

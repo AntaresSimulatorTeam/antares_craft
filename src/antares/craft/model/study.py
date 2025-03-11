@@ -9,10 +9,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from dataclasses import replace
 from pathlib import Path, PurePath
 from types import MappingProxyType
-from typing import List, Optional, cast
+from typing import Dict, List, Optional, cast
 
 import pandas as pd
 
@@ -20,13 +20,14 @@ from antares.craft import APIconf
 from antares.craft.exceptions.exceptions import (
     LinkCreationError,
 )
-from antares.craft.model.area import Area, AreaProperties, AreaUi
+from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintProperties,
+    BindingConstraintPropertiesUpdate,
     ConstraintTerm,
 )
-from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
@@ -48,6 +49,7 @@ class Study:
         version: str,
         services: StudyServices,
         path: PurePath = PurePath("."),
+        solver_path: Optional[Path] = None,
     ):
         self.name = name
         self.version = version
@@ -63,6 +65,7 @@ class Study:
         self._links: dict[str, Link] = dict()
         self._binding_constraints: dict[str, BindingConstraint] = dict()
         self._outputs: dict[str, Output] = dict()
+        self._solver_path: Optional[Path] = solver_path
 
     @property
     def service(self) -> BaseStudyService:
@@ -74,22 +77,75 @@ class Study:
         Returns: the synchronized area list
         """
         area_list = self._area_service.read_areas()
-        self._areas = {area.id: area for area in area_list}
-        return area_list
+
+        # Updates in memory objects rather than replacing them
+        existing_ids = set()
+        for area in area_list:
+            existing_ids.add(area.id)
+            if area.id not in self._areas:
+                self._areas[area.id] = area
+            else:
+                current_area = self._areas[area.id]
+                current_area._properties = area._properties
+                current_area._ui = area._ui
+
+        # Deletes objects stored in memory but do not exist anymore
+        for area_id in list(self._areas.keys()):
+            if area_id not in existing_ids:
+                del self._areas[area_id]
+
+        # Returns a sorted list
+        areas = list(self._areas.values())
+        areas.sort(key=lambda area: area.id)
+        return areas
+
+    def update_multiple_areas(self, new_properties: Dict[str, AreaPropertiesUpdate]) -> None:
+        new_areas_props = self._area_service.update_multiple_areas(new_properties)
+        for area_prop in new_areas_props:
+            self._areas[area_prop]._properties = new_areas_props[area_prop]
 
     def read_links(self) -> list[Link]:
         link_list = self._link_service.read_links()
-        self._links = {link.id: link for link in link_list}
-        return link_list
+
+        # Updates in memory objects rather than replacing them
+        existing_ids = set()
+        for link in link_list:
+            existing_ids.add(link.id)
+            if link.id not in self._links:
+                self._links[link.id] = link
+            else:
+                current_link = self._links[link.id]
+                current_link._properties = link._properties
+                current_link._ui = link._ui
+
+        # Deletes objects stored in memory but do not exist anymore
+        for link_id in list(self._links.keys()):
+            if link_id not in existing_ids:
+                del self._links[link_id]
+
+        # Returns a sorted list
+        links = list(self._links.values())
+        links.sort(key=lambda link: link.id)
+        return links
+
+    def _replace_settings(self, new_settings: StudySettings) -> None:
+        self._settings.general_parameters = new_settings.general_parameters
+        self._settings.optimization_parameters = new_settings.optimization_parameters
+        self._settings.advanced_parameters = new_settings.advanced_parameters
+        self._settings.seed_parameters = new_settings.seed_parameters
+        self._settings.adequacy_patch_parameters = new_settings.adequacy_patch_parameters
+        self._settings.thematic_trimming_parameters = new_settings.thematic_trimming_parameters
+        self._settings.playlist_parameters = new_settings.playlist_parameters
 
     def read_settings(self) -> StudySettings:
         study_settings = self._settings_service.read_study_settings()
-        self._settings = study_settings
-        return study_settings
+        self._replace_settings(study_settings)
+        return self._settings
 
     def update_settings(self, settings: StudySettingsUpdate) -> None:
         self._settings_service.edit_study_settings(settings)
-        self._settings = self._settings_service.read_study_settings()
+        new_settings = self._settings_service.read_study_settings()
+        self._replace_settings(new_settings)
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
@@ -177,12 +233,36 @@ class Study:
 
     def read_binding_constraints(self) -> list[BindingConstraint]:
         constraints = self._binding_constraints_service.read_binding_constraints()
-        self._binding_constraints = {constraint.id: constraint for constraint in constraints}
+
+        # Updates in memory objects rather than replacing them
+        existing_ids = set()
+        for constraint in constraints:
+            existing_ids.add(constraint.id)
+            if constraint.id not in self._binding_constraints:
+                self._binding_constraints[constraint.id] = constraint
+            else:
+                current_constraint = self._binding_constraints[constraint.id]
+                current_constraint._properties = constraint._properties
+                current_constraint._terms = constraint._terms
+
+        # Deletes objects stored in memory but do not exist anymore
+        for bc_id in list(self._binding_constraints.keys()):
+            if bc_id not in existing_ids:
+                del self._binding_constraints[bc_id]
+
+        # Returns a sorted list
+        constraints = list(self._binding_constraints.values())
+        constraints.sort(key=lambda bc: bc.id)
         return constraints
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         self._study_service.delete_binding_constraint(constraint)
         self._binding_constraints.pop(constraint.id)
+
+    def update_multiple_binding_constraints(self, new_properties: Dict[str, BindingConstraintPropertiesUpdate]) -> None:
+        new_bc_props = self._binding_constraints_service.update_multiple_binding_constraints(new_properties)
+        for bc_props in new_bc_props:
+            self._binding_constraints[bc_props]._properties = new_bc_props[bc_props]
 
     def delete(self, children: bool = False) -> None:
         self._study_service.delete(children)
@@ -205,7 +285,7 @@ class Study:
 
         Returns: A job representing the simulation task
         """
-        return self._run_service.run_antares_simulation(parameters)
+        return self._run_service.run_antares_simulation(parameters, self._solver_path)
 
     def wait_job_completion(self, job: Job, time_out: int = 172800) -> None:
         """
@@ -262,8 +342,20 @@ class Study:
         self.path = self._study_service.move_study(parent_path)
 
     def generate_thermal_timeseries(self, nb_years: int) -> None:
-        self._study_service.generate_thermal_timeseries(nb_years)
-        self._settings.general_parameters.nb_timeseries_thermal = nb_years
+        seed = self._settings.seed_parameters.seed_tsgen_thermal
+        self._study_service.generate_thermal_timeseries(nb_years, self._areas, seed)
+        # Copies objects to bypass the fact that the class is frozen
+        self._settings.general_parameters = replace(self._settings.general_parameters, nb_timeseries_thermal=nb_years)
+
+    def update_multiple_links(self, new_properties: Dict[str, LinkPropertiesUpdate]) -> None:
+        """
+        update several links with multiple new properties
+        Args:
+            new_properties: the properties dictionary we will update our links with
+        """
+        new_links_props = self._link_service.update_multiple_links(new_properties)
+        for link_props in new_links_props:
+            self._links[link_props]._properties = new_links_props[link_props]
 
 
 # Design note:
@@ -275,16 +367,18 @@ class Study:
 # import mechanics, we need to use local imports to avoid circular dependencies.
 
 
-def create_study_local(study_name: str, version: str, parent_directory: "Path") -> "Study":
+def create_study_local(
+    study_name: str, version: str, parent_directory: "Path", solver_path: Optional[Path] = None
+) -> "Study":
     from antares.craft.service.local_services.factory import create_study_local
 
-    return create_study_local(study_name, version, parent_directory)
+    return create_study_local(study_name, version, parent_directory, solver_path)
 
 
-def read_study_local(study_path: "Path") -> "Study":
+def read_study_local(study_path: "Path", solver_path: Optional[Path] = None) -> "Study":
     from antares.craft.service.local_services.factory import read_study_local
 
-    return read_study_local(study_path)
+    return read_study_local(study_path, solver_path)
 
 
 def create_study_api(

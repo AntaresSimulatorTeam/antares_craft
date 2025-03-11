@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import PurePosixPath
 from typing import Any, Optional
 
@@ -20,6 +20,7 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
     BindingConstraintCreationError,
+    BindingConstraintsUpdateError,
     ConstraintMatrixDownloadError,
     ConstraintMatrixUpdateError,
     ConstraintPropertiesUpdateError,
@@ -134,10 +135,11 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         except APIError as e:
             raise ConstraintTermEditionError(constraint_id, term.id, e.message) from e
 
+        # Copies object to bypass the fact that the class is frozen
         if term.weight:
-            existing_term.weight = term.weight
+            existing_term = replace(existing_term, weight=term.weight)
         if term.offset:
-            existing_term.offset = term.offset
+            existing_term = replace(existing_term, offset=term.offset)
         return existing_term
 
     @override
@@ -221,3 +223,29 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             return constraints
         except APIError as e:
             raise ConstraintRetrievalError(self.study_id, e.message) from e
+
+    @override
+    def update_multiple_binding_constraints(
+        self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
+    ) -> dict[str, BindingConstraintProperties]:
+        url = f"{self._base_url}/studies/{self.study_id}/table-mode/binding-constraints"
+        body = {}
+        updated_constraints: dict[str, BindingConstraintProperties] = {}
+
+        for bc_id, props in new_properties.items():
+            api_properties = BindingConstraintPropertiesAPI.from_user_model(props)
+            api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+            body[bc_id] = api_dict
+
+        try:
+            binding_constraints_dict = self._wrapper.put(url, json=body).json()
+
+            for binding_constraint, props in binding_constraints_dict.items():
+                api_response = BindingConstraintPropertiesAPI.model_validate(props)
+                constraints_properties = api_response.to_user_model()
+                updated_constraints[binding_constraint] = constraints_properties
+
+        except APIError as e:
+            raise BindingConstraintsUpdateError(self.study_id, e.message) from e
+
+        return updated_constraints

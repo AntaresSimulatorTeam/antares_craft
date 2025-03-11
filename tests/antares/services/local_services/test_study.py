@@ -13,6 +13,7 @@ import pytest
 
 import logging
 import os
+import re
 import time
 import typing as t
 
@@ -635,8 +636,7 @@ layers = 0
 
     def test_create_area_with_custom_ui(self, tmp_path, local_study):
         # Given
-        study_antares_path = tmp_path / local_study.name
-        # TODO: This should've been local_study._service.path, but ABCService doesn't have path
+        study_antares_path = local_study.service.config.study_path
 
         area = "area1"
         ui_ini_path = study_antares_path / "input" / "areas" / area / "ui.ini"
@@ -1200,8 +1200,8 @@ enabled = True
 type = hourly
 operator = less
 comments = 
-filter-year-by-year = hourly
-filter-synthesis = hourly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
+filter-synthesis = annual, daily, hourly, monthly, weekly
 group = default
 
 """
@@ -1225,7 +1225,7 @@ group = default
             time_step=BindingConstraintFrequency.WEEKLY,
             operator=BindingConstraintOperator.BOTH,
             comments="test comment",
-            filter_year_by_year="yearly",
+            filter_year_by_year="annual",
             filter_synthesis="monthly",
             group="test group",
         )
@@ -1236,8 +1236,8 @@ enabled = True
 type = hourly
 operator = less
 comments = 
-filter-year-by-year = hourly
-filter-synthesis = hourly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
+filter-synthesis = annual, daily, hourly, monthly, weekly
 group = default
 
 [1]
@@ -1247,7 +1247,7 @@ enabled = False
 type = weekly
 operator = both
 comments = test comment
-filter-year-by-year = yearly
+filter-year-by-year = annual
 filter-synthesis = monthly
 group = test group
 
@@ -1281,8 +1281,8 @@ enabled = True
 type = hourly
 operator = less
 comments = 
-filter-year-by-year = hourly
-filter-synthesis = hourly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
+filter-synthesis = annual, daily, hourly, monthly, weekly
 group = default
 at%fr = 1
 
@@ -1306,8 +1306,8 @@ enabled = True
 type = hourly
 operator = less
 comments = 
-filter-year-by-year = hourly
-filter-synthesis = hourly
+filter-year-by-year = annual, daily, hourly, monthly, weekly
+filter-synthesis = annual, daily, hourly, monthly, weekly
 group = default
 at%fr = 1%1
 
@@ -1322,8 +1322,6 @@ at%fr = 1%1
 
     def test_binding_constraints_have_correct_default_time_series(self, test_constraint, local_study_with_constraint):
         # Given
-        expected_time_series_hourly = pd.DataFrame(np.zeros([365 * 24 + 24, 1]))
-        expected_time_series_daily_weekly = pd.DataFrame(np.zeros([365 + 1, 1]))
         local_study_with_constraint.create_binding_constraint(
             name="test greater",
             properties=BindingConstraintProperties(
@@ -1348,24 +1346,19 @@ at%fr = 1%1
         study_path = local_config.study_path
 
         actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test greater_gt.txt")
-        actual_time_series_greater = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
-        assert actual_time_series_greater.equals(expected_time_series_daily_weekly)
+        assert not actual_file_path.read_text()
 
         actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test equal_eq.txt")
-        actual_time_series_equal = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
-        assert actual_time_series_equal.equals(expected_time_series_daily_weekly)
+        assert not actual_file_path.read_text()
 
         actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / f"{test_constraint.id}_lt.txt")
-        actual_time_series_pre_created = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
-        assert actual_time_series_pre_created.equals(expected_time_series_hourly)
+        assert not actual_file_path.read_text()
 
         actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test both_lt.txt")
-        actual_time_series_both_lesser = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
-        assert actual_time_series_both_lesser.equals(expected_time_series_hourly)
+        assert not actual_file_path.read_text()
 
         actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test both_gt.txt")
-        actual_time_series_both_greater = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
-        assert actual_time_series_both_greater.equals(expected_time_series_hourly)
+        assert not actual_file_path.read_text()
 
     def test_submitted_time_series_is_saved(self, local_study):
         # Given
@@ -1389,7 +1382,7 @@ at%fr = 1%1
 
     def test_get_constraint_matrix(self, local_study):
         # Given
-        expected_time_series = pd.DataFrame(np.random.random([365 * 24, 1]))
+        expected_time_series = pd.DataFrame(np.random.randint(0, 100, [365 * 24, 1]))
         bc_name = "test time series"
         local_study.create_binding_constraint(
             name=bc_name,
@@ -1403,4 +1396,16 @@ at%fr = 1%1
         actual_time_series = local_study.get_binding_constraints()[bc_name].get_greater_term_matrix()
 
         # Then
-        assert actual_time_series.round(10).equals(expected_time_series.round(10))
+        assert actual_time_series.equals(expected_time_series)
+
+    def test_study_delete(self, local_study):
+        study_path = Path(local_study.path)
+        assert study_path.exists()
+        local_study.delete()
+        assert not study_path.exists()
+
+    def test_variant_local(self, local_study):
+        with pytest.raises(
+            ValueError, match=re.escape("The variant creation should only be used for API studies not for local ones")
+        ):
+            local_study.create_variant("test")

@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import List
+from typing import Any, List
 
 
 class InvalidChoiceError(ValueError):
@@ -60,6 +60,12 @@ class AreasRetrievalError(Exception):
         super().__init__(self.message)
 
 
+class AreasUpdateError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not update the areas from the study {study_id} : {message}"
+        super().__init__(self.message)
+
+
 class LinkCreationError(Exception):
     def __init__(self, area_from: str, area_to: str, message: str) -> None:
         self.message = f"Could not create the link {area_from} / {area_to}: " + message
@@ -87,6 +93,12 @@ class LinkDeletionError(Exception):
 class LinksRetrievalError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
         self.message = f"Could not retrieve links from study {study_id} : {message}"
+        super().__init__(self.message)
+
+
+class LinksUpdateError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not update links from study {study_id} : {message}"
         super().__init__(self.message)
 
 
@@ -205,9 +217,15 @@ class ConstraintPropertiesUpdateError(Exception):
         super().__init__(self.message)
 
 
+class BindingConstraintsUpdateError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not update binding constraints from the study {study_id}: {message}"
+        super().__init__(self.message)
+
+
 class ConstraintDoesNotExistError(Exception):
-    def __init__(self, constraint_name: str) -> None:
-        self.message = f"The binding constraint {constraint_name} doesn't exist: "
+    def __init__(self, constraint_name: str, study_name: str) -> None:
+        self.message = f"The binding constraint {constraint_name} doesn't exist inside study {study_name}."
         super().__init__(self.message)
 
 
@@ -427,4 +445,10 @@ class FilteringValueError(Exception):
         self.message = (
             f"Invalid value(s) in filters: {', '.join(invalid_options)}. Allowed values are: {', '.join(valid_values)}."
         )
+        super().__init__(self.message)
+
+
+class MatrixFormatError(Exception):
+    def __init__(self, matrix_name: str, expected_shape: tuple[int, Any], actual_shape: tuple[int, int]) -> None:
+        self.message = f"Wrong format for {matrix_name} matrix, expected shape is ({expected_shape[0]}, {expected_shape[1]}) and was : {actual_shape}"
         super().__init__(self.message)

@@ -52,7 +52,7 @@ class STStoragePropertiesUpdate:
     enabled: Optional[bool] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class STStorageProperties:
     group: STStorageGroup = STStorageGroup.OTHER1
     injection_nominal_capacity: float = 0
@@ -94,9 +94,10 @@ class STStorage:
     def properties(self) -> STStorageProperties:
         return self._properties
 
-    def update_properties(self, properties: STStoragePropertiesUpdate) -> None:
+    def update_properties(self, properties: STStoragePropertiesUpdate) -> STStorageProperties:
         new_properties = self._storage_service.update_st_storage_properties(self, properties)
         self._properties = new_properties
+        return self._properties
 
     def get_pmax_injection(self) -> pd.DataFrame:
         return self._storage_service.get_storage_matrix(self, STStorageMatrixName.PMAX_INJECTION)

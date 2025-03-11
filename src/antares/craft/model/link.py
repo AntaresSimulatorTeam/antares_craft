@@ -11,11 +11,11 @@
 # This file is part of the Antares project.
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Set
+from typing import Optional
 
 import pandas as pd
 
-from antares.craft.model.commons import FILTER_VALUES, FilterOption, comma_separated_enum_set
+from antares.craft.model.commons import FILTER_VALUES, FilterOption
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.tools.contents_tool import transform_name_to_id
 
@@ -50,11 +50,11 @@ class LinkPropertiesUpdate:
     asset_type: Optional[AssetType] = None
     display_comments: Optional[bool] = None
     comments: Optional[str] = None
-    filter_synthesis: Optional[Set[FilterOption]] = None
-    filter_year_by_year: Optional[Set[FilterOption]] = None
+    filter_synthesis: Optional[set[FilterOption]] = None
+    filter_year_by_year: Optional[set[FilterOption]] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class LinkProperties:
     hurdles_cost: bool = False
     loop_flow: bool = False
@@ -63,11 +63,11 @@ class LinkProperties:
     asset_type: AssetType = AssetType.AC
     display_comments: bool = True
     comments: str = ""
-    filter_synthesis: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
-    filter_year_by_year: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
+    filter_synthesis: set[FilterOption] = field(default_factory=lambda: FILTER_VALUES)
+    filter_year_by_year: set[FilterOption] = field(default_factory=lambda: FILTER_VALUES)
 
 
-@dataclass
+@dataclass(frozen=True)
 class LinkUi:
     link_style: LinkStyle = LinkStyle.PLAIN
     link_width: float = 1
@@ -129,13 +129,13 @@ class Link:
         self._ui = new_ui
         return new_ui
 
-    def create_parameters(self, series: pd.DataFrame) -> None:
+    def update_parameters(self, series: pd.DataFrame) -> None:
         self._link_service.create_parameters(series, self.area_from_id, self.area_to_id)
 
-    def create_capacity_direct(self, series: pd.DataFrame) -> None:
+    def update_capacity_direct(self, series: pd.DataFrame) -> None:
         self._link_service.create_capacity_direct(series, self.area_from_id, self.area_to_id)
 
-    def create_capacity_indirect(self, series: pd.DataFrame) -> None:
+    def update_capacity_indirect(self, series: pd.DataFrame) -> None:
         self._link_service.create_capacity_indirect(series, self.area_from_id, self.area_to_id)
 
     def get_capacity_direct(self) -> pd.DataFrame:

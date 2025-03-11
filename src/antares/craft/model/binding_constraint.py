@@ -9,12 +9,13 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional, Union
 
 import pandas as pd
 
+from antares.craft.model.commons import FILTER_VALUES, FilterOption
 from antares.craft.service.base_services import BaseBindingConstraintService
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 
@@ -38,7 +39,7 @@ class ConstraintMatrixName(Enum):
     GREATER_TERM = "gt"
 
 
-@dataclass
+@dataclass(frozen=True)
 class LinkData:
     """
     DTO for a constraint term on a link between two areas.
@@ -48,7 +49,7 @@ class LinkData:
     area2: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class ClusterData:
     """
     DTO for a constraint term on a cluster in an area.
@@ -58,7 +59,7 @@ class ClusterData:
     cluster: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class ConstraintTermData:
     data: Union[LinkData, ClusterData]
 
@@ -76,14 +77,24 @@ class ConstraintTermData:
             return ClusterData(area=input["area"], cluster=input["cluster"])
         raise ValueError(f"Dict {input} couldn't be serialized as a ConstraintTermData object")
 
+    @staticmethod
+    def from_ini(input: str) -> Union[LinkData, ClusterData]:
+        if "%" in input:
+            area_1, area_2 = input.split("%")
+            return LinkData(area1=area_1, area2=area_2)
+        elif "." in input:
+            area, cluster = input.split(".")
+            return ClusterData(area=area, cluster=cluster)
+        raise ValueError(f"Input {input} couldn't be serialized as a ConstraintTermData object")
 
-@dataclass
+
+@dataclass(frozen=True)
 class ConstraintTermUpdate(ConstraintTermData):
     weight: Optional[float] = None
     offset: Optional[int] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class ConstraintTerm(ConstraintTermData):
     weight: float = 1
     offset: int = 0
@@ -98,19 +109,19 @@ class BindingConstraintPropertiesUpdate:
     time_step: Optional[BindingConstraintFrequency] = None
     operator: Optional[BindingConstraintOperator] = None
     comments: Optional[str] = None
-    filter_year_by_year: Optional[str] = None
-    filter_synthesis: Optional[str] = None
+    filter_year_by_year: Optional[set[FilterOption]] = None
+    filter_synthesis: Optional[set[FilterOption]] = None
     group: Optional[str] = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class BindingConstraintProperties:
     enabled: bool = True
     time_step: BindingConstraintFrequency = BindingConstraintFrequency.HOURLY
     operator: BindingConstraintOperator = BindingConstraintOperator.LESS
     comments: str = ""
-    filter_year_by_year: str = "hourly"
-    filter_synthesis: str = "hourly"
+    filter_year_by_year: set[FilterOption] = field(default_factory=lambda: FILTER_VALUES)
+    filter_synthesis: set[FilterOption] = field(default_factory=lambda: FILTER_VALUES)
     group: str = "default"
 
 
@@ -157,9 +168,10 @@ class BindingConstraint:
         new_term = self._binding_constraint_service.update_binding_constraint_term(self.id, term, existing_term)
         self._terms[term.id] = new_term
 
-    def update_properties(self, properties: BindingConstraintPropertiesUpdate) -> None:
+    def update_properties(self, properties: BindingConstraintPropertiesUpdate) -> BindingConstraintProperties:
         new_properties = self._binding_constraint_service.update_binding_constraint_properties(self, properties)
         self._properties = new_properties
+        return new_properties
 
     def get_less_term_matrix(self) -> pd.DataFrame:
         return self._binding_constraint_service.get_constraint_matrix(self, ConstraintMatrixName.LESS_TERM)

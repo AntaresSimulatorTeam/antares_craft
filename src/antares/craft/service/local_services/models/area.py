@@ -13,7 +13,7 @@ from dataclasses import field
 from typing import Any, Union
 
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
-from antares.craft.model.commons import FILTER_VALUES, comma_separated_enum_set
+from antares.craft.model.commons import FILTER_VALUES, filtering_option
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
 from pydantic import Field
@@ -31,8 +31,8 @@ class OptimizationPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
 
 
 class FilteringPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
-    filter_synthesis: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
-    filter_year_by_year: comma_separated_enum_set = field(default_factory=lambda: FILTER_VALUES)
+    filter_synthesis: filtering_option = field(default_factory=lambda: FILTER_VALUES)
+    filter_year_by_year: filtering_option = field(default_factory=lambda: FILTER_VALUES)
 
 
 class AdequacyPatchPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
@@ -108,10 +108,12 @@ class AreaUiLocal(LocalBaseModel, alias_generator=to_camel):
 
     @staticmethod
     def from_user_model(user_class: AreaUiType) -> "AreaUiLocal":
+        x = user_class.x or 0
+        y = user_class.y or 0
         args: dict[str, Any] = {
-            "ui": {"x": user_class.x, "y": user_class.y},
-            "layerX": {0: user_class.x},
-            "layerY": {0: user_class.y},
+            "ui": {"x": x, "y": y},
+            "layerX": {0: x},
+            "layerY": {0: y},
         }
         if user_class.color_rgb:
             args["ui"].update(

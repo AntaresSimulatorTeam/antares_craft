@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 import time
 
+from pathlib import Path
 from typing import Any, Optional, cast
 
 from antares.craft.api_conf.api_conf import APIconf
@@ -38,7 +39,9 @@ class RunApiService(BaseRunService):
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
     @override
-    def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
+    def run_antares_simulation(
+        self, parameters: Optional[AntaresSimulationParameters] = None, solver_path: Optional[Path] = None
+    ) -> Job:
         url = f"{self._base_url}/launcher/run/{self.study_id}"
         try:
             if parameters is not None:

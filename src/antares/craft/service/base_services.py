@@ -13,7 +13,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path, PurePath
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 import pandas as pd
 
@@ -281,6 +281,10 @@ class BaseAreaService(ABC):
         """
         pass
 
+    @abstractmethod
+    def update_multiple_areas(self, dict_areas: Dict[str, "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
+        pass
+
 
 class BaseHydroService(ABC):
     @abstractmethod
@@ -459,6 +463,10 @@ class BaseLinkService(ABC):
     def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         pass
 
+    @abstractmethod
+    def update_multiple_links(self, dict_links: Dict[str, "LinkPropertiesUpdate"]) -> Dict[str, "LinkProperties"]:
+        pass
+
 
 class BaseThermalService(ABC):
     @abstractmethod
@@ -598,6 +606,12 @@ class BaseBindingConstraintService(ABC):
         """
         pass
 
+    @abstractmethod
+    def update_multiple_binding_constraints(
+        self, new_properties: Dict[str, "BindingConstraintPropertiesUpdate"]
+    ) -> Dict[str, "BindingConstraintProperties"]:
+        pass
+
 
 class BaseStudyService(ABC):
     @property
@@ -674,7 +688,7 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
-    def generate_thermal_timeseries(self, number_of_years: int) -> None:
+    def generate_thermal_timeseries(self, number_of_years: int, areas: dict[str, "Area"], seed: int) -> None:
         pass
 
 
@@ -743,7 +757,9 @@ class BaseShortTermStorageService(ABC):
 
 class BaseRunService(ABC):
     @abstractmethod
-    def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
+    def run_antares_simulation(
+        self, parameters: Optional[AntaresSimulationParameters] = None, solver_path: Optional[Path] = None
+    ) -> Job:
         """
         Runs the Antares simulation.
 

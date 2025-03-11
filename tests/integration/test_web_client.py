@@ -47,7 +47,15 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.hydro import HydroPropertiesUpdate
-from antares.craft.model.link import LinkProperties, LinkPropertiesUpdate, LinkStyle, LinkUi, LinkUiUpdate
+from antares.craft.model.link import (
+    AssetType,
+    LinkProperties,
+    LinkPropertiesUpdate,
+    LinkStyle,
+    LinkUi,
+    LinkUiUpdate,
+    TransmissionCapacities,
+)
 from antares.craft.model.renewable import (
     RenewableClusterGroup,
     RenewableClusterProperties,
@@ -83,7 +91,7 @@ def antares_web() -> AntaresWebDesktop:
 
 
 class TestWebClient:
-    def test_creation_lifecycle(self, antares_web: AntaresWebDesktop, tmp_path):
+    def test_lifecycle(self, antares_web: AntaresWebDesktop, tmp_path):
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
         study = create_study_api("antares-craft-test", "880", api_config)
@@ -130,8 +138,11 @@ class TestWebClient:
         assert area_be.ui.color_rgb == area_ui.color_rgb
 
         # tests area creation with properties
-        properties = AreaProperties(energy_cost_spilled=100, adequacy_patch_mode=AdequacyPatchMode.INSIDE)
-        properties.filter_synthesis = [FilterOption.HOURLY, FilterOption.DAILY, FilterOption.HOURLY]
+        properties = AreaProperties(
+            energy_cost_spilled=100,
+            adequacy_patch_mode=AdequacyPatchMode.INSIDE,
+            filter_synthesis={FilterOption.HOURLY, FilterOption.DAILY, FilterOption.HOURLY},
+        )
         area_name = "DE"
         area_de = study.create_area(area_name, properties=properties)
         assert area_de.properties.energy_cost_spilled == 100
@@ -146,8 +157,7 @@ class TestWebClient:
 
         # tests link creation with ui and properties
         link_ui = LinkUi(colorr=44)
-        link_properties = LinkProperties(hurdles_cost=True)
-        link_properties.filter_year_by_year = [FilterOption.HOURLY]
+        link_properties = LinkProperties(hurdles_cost=True, filter_year_by_year={FilterOption.HOURLY})
         link_be_fr = study.create_link(area_from=area_be.id, area_to=area_fr.id, ui=link_ui, properties=link_properties)
         assert link_be_fr.ui.colorr == 44
         assert link_be_fr.properties.hurdles_cost
@@ -179,8 +189,7 @@ class TestWebClient:
 
         # test thermal cluster creation with properties
         thermal_name = "gaz_be"
-        thermal_properties = ThermalClusterProperties(efficiency=55)
-        thermal_properties.group = ThermalClusterGroup.GAS
+        thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS)
         thermal_be = area_be.create_thermal_cluster(thermal_name, thermal_properties)
         properties = thermal_be.properties
         assert properties.efficiency == 55
@@ -195,9 +204,9 @@ class TestWebClient:
         fuel_cost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
 
         # creating parameters and capacities for this link and testing them
-        link_be_fr.create_parameters(series_matrix)
-        link_be_fr.create_capacity_direct(series_matrix)
-        link_be_fr.create_capacity_indirect(series_matrix)
+        link_be_fr.update_parameters(series_matrix)
+        link_be_fr.update_capacity_direct(series_matrix)
+        link_be_fr.update_capacity_indirect(series_matrix)
 
         parameters_matrix = link_be_fr.get_parameters()
         direct_matrix = link_be_fr.get_capacity_direct()
@@ -238,8 +247,7 @@ class TestWebClient:
 
         # test renewable cluster creation with properties
         renewable_name = "wind_onshore"
-        renewable_properties = RenewableClusterProperties(enabled=False)
-        renewable_properties.group = RenewableClusterGroup.WIND_ON_SHORE
+        renewable_properties = RenewableClusterProperties(enabled=False, group=RenewableClusterGroup.WIND_ON_SHORE)
         renewable_onshore = area_fr.create_renewable_cluster(renewable_name, renewable_properties, None)
         properties = renewable_onshore.properties
         assert not properties.enabled
@@ -251,27 +259,21 @@ class TestWebClient:
         assert storage_fr.name == st_storage_name
         assert storage_fr.id == "cluster_test"
 
-        # test each list of clusters has the same length and objects by comparing their id
+        # tests that `read` methods don't create copies of objects but rather updates their internal properties
+        previous_thermals = list(area_fr.get_thermals().values())
+        previous_thermals.sort(key=lambda th: th.id)
         thermal_list = area_fr.read_thermal_clusters()
+        assert thermal_list == previous_thermals
+
+        previous_renewables = list(area_fr.get_renewables().values())
+        previous_renewables.sort(key=lambda renew: renew.id)
         renewable_list = area_fr.read_renewables()
+        assert renewable_list == previous_renewables
+
+        previous_storages = list(area_fr.get_st_storages().values())
+        previous_storages.sort(key=lambda sts: sts.id)
         storage_list = area_fr.read_st_storages()
-
-        assert len(thermal_list) == 2
-        assert len(renewable_list) == 2
-        assert len(storage_list) == 1
-
-        actual_thermal_cluster_1 = thermal_list[0]
-        actual_thermal_cluster_2 = thermal_list[1]
-        assert actual_thermal_cluster_1.id == thermal_fr.id
-        assert actual_thermal_cluster_2.id == thermal_value_be.id
-
-        actual_renewable_1 = renewable_list[0]
-        actual_renewable_2 = renewable_list[1]
-        assert actual_renewable_1.id == renewable_fr.id
-        assert actual_renewable_2.id == renewable_onshore.id
-
-        actual_storage = storage_list[0]
-        assert actual_storage.id == storage_fr.id
+        assert storage_list == previous_storages
 
         # test actual_hydro has the same datas (id, properties and matrices) than area_fr hydro
         actual_hydro = area_fr.hydro
@@ -303,15 +305,17 @@ class TestWebClient:
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
-        storage_properties = STStorageProperties(reservoir_capacity=0.5)
-        storage_properties.group = STStorageGroup.BATTERY
+        storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY)
         battery_fr = area_fr.create_st_storage(st_storage_name, storage_properties)
         properties = battery_fr.properties
         assert properties.reservoir_capacity == 0.5
         assert properties.group == STStorageGroup.BATTERY
 
         # test reading list of areas
+        previous_areas = list(study.get_areas().values())
+        previous_areas.sort(key=lambda area: area.id)
         area_list = study.read_areas()
+        assert area_list == previous_areas  # Checks objects aren't copied
         assert len(area_list) == 3
         # asserts areas are sorted by id
         assert area_list[0].id == area_be.id
@@ -325,6 +329,29 @@ class TestWebClient:
         assert renewable_fr.id == third_area.get_renewables().get("cluster_test").id
         assert storage_fr.id == third_area.get_st_storages().get("cluster_test").id
         assert thermal_be.id == area_list[0].get_thermals().get("gaz_be").id
+
+        # checking multiple areas properties update
+        area_props_update_1 = AreaPropertiesUpdate(
+            adequacy_patch_mode=AdequacyPatchMode.VIRTUAL, other_dispatch_power=False
+        )
+        area_props_update_2 = AreaPropertiesUpdate(
+            non_dispatch_power=False, energy_cost_spilled=0.45, energy_cost_unsupplied=3.0
+        )
+        dict_area_props = {area_fr.id: area_props_update_1, area_be.id: area_props_update_2}
+        study.update_multiple_areas(dict_area_props)
+
+        area_fr_props = area_fr.properties
+        area_be_props = area_be.properties
+
+        assert area_fr_props.adequacy_patch_mode == AdequacyPatchMode.VIRTUAL
+        assert not area_fr_props.other_dispatch_power
+        assert not area_be_props.non_dispatch_power
+        assert area_be_props.energy_cost_spilled == 0.45
+        assert area_be_props.energy_cost_unsupplied == 3.0
+
+        # checking the non updated properties aren't affected
+        assert area_fr_props.non_dispatch_power
+        assert area_be_props.dispatch_hydro_power
 
         # tests upload matrix for short term storage.
         # Case that fails
@@ -352,8 +379,7 @@ class TestWebClient:
         assert area_fr.get_st_storages() == {battery_fr.id: battery_fr, storage_fr.id: storage_fr}
 
         # test binding constraint creation without terms
-        properties = BindingConstraintProperties(enabled=False)
-        properties.group = "group_1"
+        properties = BindingConstraintProperties(enabled=False, group="group_1")
         constraint_1 = study.create_binding_constraint(name="bc_1", properties=properties)
         assert constraint_1.name == "bc_1"
         assert not constraint_1.properties.enabled
@@ -369,6 +395,30 @@ class TestWebClient:
         constraint_2 = study.create_binding_constraint(name="bc_2", terms=terms)
         assert constraint_2.name == "bc_2"
         assert constraint_2.get_terms() == {link_term_2.id: link_term_2, cluster_term.id: cluster_term}
+
+        # test updating constraints
+        update_bc_props_1 = BindingConstraintPropertiesUpdate(
+            time_step=BindingConstraintFrequency.DAILY,
+            enabled=False,
+            filter_synthesis={FilterOption.WEEKLY, FilterOption.ANNUAL},
+        )
+        update_bc_props_2 = BindingConstraintPropertiesUpdate(
+            enabled=True, time_step=BindingConstraintFrequency.HOURLY, comments="Bonjour"
+        )
+        dict_binding_constraints_update = {constraint_1.name: update_bc_props_1, constraint_2.name: update_bc_props_2}
+
+        study.update_multiple_binding_constraints(dict_binding_constraints_update)
+
+        assert constraint_1.properties.time_step == BindingConstraintFrequency.DAILY
+        assert constraint_1.properties.filter_synthesis == {FilterOption.WEEKLY, FilterOption.ANNUAL}
+        assert not constraint_1.properties.enabled
+        assert constraint_2.properties.time_step == BindingConstraintFrequency.HOURLY
+        assert constraint_2.properties.enabled
+        assert constraint_2.properties.comments == "Bonjour"
+
+        # checking an non updated properties of constraint hasn't been changed
+        assert constraint_1.properties.comments == ""
+        assert constraint_1.properties.operator == BindingConstraintOperator.LESS
 
         # test constraint creation with matrices
         # Case that fails
@@ -453,7 +503,10 @@ class TestWebClient:
         assert thermal_fr.properties.group == ThermalClusterGroup.NUCLEAR
 
         # assert study got all links
+        previous_links = list(study.get_links().values())
+        previous_links.sort(key=lambda link: link.id)
         links = study.read_links()
+        assert links == previous_links  # Checks objects aren't copied
         assert len(links) == 2
         test_link_be_fr = links[0]
         test_link_de_fr = links[1]
@@ -478,6 +531,30 @@ class TestWebClient:
         constraint_1.update_properties(new_props)
         assert constraint_1.properties.group == "another_group"
         assert constraint_1.properties.enabled is False  # Checks old value wasn't modified
+
+        # creating link properties update to modify all the actual links
+        link_properties_update_1 = LinkPropertiesUpdate(
+            hurdles_cost=True, use_phase_shifter=True, filter_synthesis={FilterOption.DAILY}
+        )
+        link_properties_update_2 = LinkPropertiesUpdate(
+            transmission_capacities=TransmissionCapacities.ENABLED, asset_type=AssetType.GAZ
+        )
+
+        study.update_multiple_links({link_be_fr.id: link_properties_update_1, link_de_fr.id: link_properties_update_2})
+
+        link_be_fr = study.get_links()["be / fr"]
+
+        # Checking given values are well modified
+        assert link_be_fr.properties.hurdles_cost
+        assert link_be_fr.properties.use_phase_shifter
+        assert link_be_fr.properties.filter_synthesis == {FilterOption.DAILY}
+        assert link_be_fr.properties.display_comments
+        assert not link_be_fr.properties.loop_flow
+
+        link_de_fr = study.get_links()["de / fr"]
+        assert link_de_fr.properties.transmission_capacities == TransmissionCapacities.ENABLED
+        assert link_de_fr.properties.asset_type == AssetType.GAZ
+        assert not link_de_fr.properties.hurdles_cost
 
         # tests constraint deletion
         study.delete_binding_constraint(constraint_1)
@@ -711,7 +788,10 @@ class TestWebClient:
         assert expected_values == matrix_values
 
         # ===== Test read binding constraints =====
+        previous_bcs = list(study.get_binding_constraints().values())
+        previous_bcs.sort(key=lambda bc: bc.id)
         constraints = study.read_binding_constraints()
+        assert constraints == previous_bcs  # Checks objects aren't copied
 
         assert len(constraints) == 2
         constraint = constraints[0]

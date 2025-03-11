@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 
-@dataclass
+@dataclass(frozen=True)
 class ClusterProperties:
     """
     Common properties for thermal and renewable clusters
