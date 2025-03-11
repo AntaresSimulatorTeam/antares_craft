@@ -123,7 +123,7 @@ class TestCreateAPI:
         json_thermal = [
             {
                 "id": "therm_un",
-                "group": "Gas",
+                "group": "gas",
                 "name": "therm_un",
                 "enabled": "true",
                 "unitCount": 1,

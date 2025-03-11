@@ -79,7 +79,7 @@ name = test thermal cluster
 enabled = True
 unitcount = 1
 nominalcapacity = 0.0
-group = Other 1
+group = other 1
 gen-ts = use global
 min-stable-power = 0.0
 min-up-time = 1
@@ -130,7 +130,7 @@ name = test thermal cluster
 enabled = False
 unitcount = 12
 nominalcapacity = 3.9
-group = Nuclear
+group = nuclear
 gen-ts = force no generation
 min-stable-power = 3.1
 min-up-time = 3
@@ -278,7 +278,7 @@ variableomcost = 5.0
                 "enabled": "True",
                 "unitcount": "1",
                 "nominalcapacity": "0.0",
-                "group": "Other 1",
+                "group": "other 1",
                 "gen-ts": "use global",
                 "min-stable-power": "0.0",
                 "min-up-time": "1",
