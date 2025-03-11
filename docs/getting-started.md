@@ -18,6 +18,10 @@ an existing study.
 For those operations, the syntax slightly depends on whether you want to work on studies on you filesystem, or studies
 stored in an antares-web application.
 
+!!! warning
+
+    Only study versions above 8.8 are currently supported.
+
 ### antares-web studies
 
 In order to create a study on your antares-web server, you can use the the `create_study_api` method.
