@@ -2,21 +2,22 @@ site_name: Antares Craft
 repo_url: https://github.com/AntaresSimulatorTeam/antares_craft
 nav:
   - Home: index.md
-  - Quickstart: quickstart.md
+  - Getting started: getting-started.md
+  - User guide: user-guide.md
+  - Reference: api-reference.md
+  - Developers: developer.md
+  - Changelog: CHANGELOG.md
+
 theme:
   name: material
   logo: assets/logo.png
   favicon: assets/Icone.png
   prev_next_buttons_location: none
-#  custom_dir: docs/overrides
   features:
     - navigation.instant
     - navigation.top
     - content.tabs.link
-  # - navigation.expand
-  #  - navigation.sections
-  #   - header.autohide
-  #   - toc.separate
+    - content.code.copy
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: antares
@@ -30,5 +31,26 @@ theme:
         name: Switch to light mode
 
 plugins:
-- search
-- mkdocstrings
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [ src ]
+          options:
+            show_bases: false
+            show_source: false
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
