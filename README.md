@@ -10,7 +10,8 @@
 
 Antares Craft is a python library to read and
 edit [antares-simulator](https://github.com/AntaresSimulatorTeam/Antares_Simulator) studies, stored either on you local
-filesystem or on an [antares-web](https://github.com/AntaresSimulatorTeam/AntaREST) server. It also allow you to trigger
+filesystem or on an [antares-web](https://github.com/AntaresSimulatorTeam/AntaREST) server. It also allows you to
+trigger
 simulations and retrieve the corresponding result.
 
 ## Main features
