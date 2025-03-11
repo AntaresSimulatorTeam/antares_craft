@@ -278,7 +278,7 @@ variableomcost = 5.0
                 "enabled": "True",
                 "unitcount": "1",
                 "nominalcapacity": "0.0",
-                "group": "Other 1",
+                "group": "other 1",
                 "gen-ts": "use global",
                 "min-stable-power": "0.0",
                 "min-up-time": "1",
