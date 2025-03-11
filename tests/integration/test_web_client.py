@@ -678,6 +678,7 @@ class TestWebClient:
 
         default_energy = pd.DataFrame(np.zeros((12, 5), dtype=np.float64))
         assert area_fr.hydro.get_energy().equals(default_energy)
+        """
 
         # tests the update for hydro matrices
         mod_series = pd.DataFrame(data=np.full((365, 1), 100, dtype=np.float64))
@@ -712,7 +713,6 @@ class TestWebClient:
         assert area_fr.hydro.get_mod_series().equals(mod_series)
         assert area_fr.hydro.get_mingen().equals(mingen_series)
         assert area_fr.hydro.get_energy().equals(energy_matrix)
-        """
 
         # tests variant creation
         variant_name = "variant_test"
