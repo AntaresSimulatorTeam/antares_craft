@@ -6,22 +6,18 @@ nav:
   - User guide: user-guide.md
   - Reference: api-reference.md
   - Developers: developer.md
+  - Changelog: CHANGELOG.md
 
 theme:
   name: material
   logo: assets/logo.png
   favicon: assets/Icone.png
   prev_next_buttons_location: none
-  #  custom_dir: docs/overrides
   features:
     - navigation.instant
     - navigation.top
     - content.tabs.link
     - content.code.copy
-  # - navigation.expand
-  #  - navigation.sections
-  #   - header.autohide
-  #   - toc.separate
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: antares
