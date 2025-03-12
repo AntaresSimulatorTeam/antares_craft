@@ -285,7 +285,7 @@ class AreaApiService(BaseAreaService):
         return STStorage(self.storage_service, area_id, name, properties)
 
     @override
-    def create_load(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_load(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/load/series/load_{area_id}"
             rows_number = series.shape[0]
@@ -297,7 +297,7 @@ class AreaApiService(BaseAreaService):
             raise MatrixUploadError(area_id, "load", e.message) from e
 
     @override
-    def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_wind(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/wind/series/wind_{area_id}"
             update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
@@ -305,7 +305,7 @@ class AreaApiService(BaseAreaService):
             raise MatrixUploadError(area_id, "wind", e.message) from e
 
     @override
-    def create_reserves(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_reserves(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/reserves/{area_id}"
             update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
@@ -313,7 +313,7 @@ class AreaApiService(BaseAreaService):
             raise MatrixUploadError(area_id, "reserves", e.message) from e
 
     @override
-    def create_solar(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_solar(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/solar/series/solar_{area_id}"
             update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
@@ -321,7 +321,7 @@ class AreaApiService(BaseAreaService):
             raise MatrixUploadError(area_id, "solar", e.message) from e
 
     @override
-    def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/misc-gen/miscgen-{area_id}"
             update_series(self._base_url, self.study_id, self._wrapper, series, series_path)

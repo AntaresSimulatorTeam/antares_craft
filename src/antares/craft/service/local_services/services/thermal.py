@@ -100,7 +100,7 @@ class ThermalLocalService(BaseThermalService):
         ]
 
     @override
-    def update_thermal_matrix(
+    def set_thermal_matrix(
         self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame, ts_name: ThermalClusterMatrixName
     ) -> None:
         checks_matrix_dimensions(matrix, f"thermal/{thermal_cluster.area_id}/{thermal_cluster.id}", ts_name.value)

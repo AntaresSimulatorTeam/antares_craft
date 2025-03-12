@@ -84,13 +84,13 @@ class TestBindingConstraints:
 
         # Replace matrices
         matrix = pd.DataFrame(data=8784 * [[3]])
-        bc.update_greater_term_matrix(matrix)
+        bc.set_greater_term(matrix)
         assert bc.get_greater_term_matrix().equals(matrix)
 
-        bc.update_less_term_matrix(matrix)
+        bc.set_less_term(matrix)
         assert bc.get_less_term_matrix().equals(matrix)
 
-        bc.update_equal_term_matrix(matrix)
+        bc.set_equal_term(matrix)
         assert bc.get_equal_term_matrix().equals(matrix)
 
         # Try to update with wrongly formatted matrix
@@ -101,7 +101,7 @@ class TestBindingConstraints:
                 "Wrong format for bindingconstraints/bc_1/bc_hourly matrix, expected shape is (8784, Any) and was : (2, 3)"
             ),
         ):
-            bc.update_less_term_matrix(matrix)
+            bc.set_less_term(matrix)
 
     def test_delete(self, local_study_w_constraints: Study) -> None:
         bc = local_study_w_constraints.get_binding_constraints()["bc_1"]

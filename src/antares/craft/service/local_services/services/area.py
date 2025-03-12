@@ -162,7 +162,7 @@ class AreaLocalService(BaseAreaService):
         return RenewableCluster(self.renewable_service, area_id, renewable_name, properties)
 
     @override
-    def create_load(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_load(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.LOAD, area_id)
         PreproFolder.LOAD.save(self.config.study_path, area_id)
 
@@ -200,21 +200,21 @@ class AreaLocalService(BaseAreaService):
         return storage
 
     @override
-    def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_wind(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.WIND, area_id)
         PreproFolder.WIND.save(self.config.study_path, area_id)
 
     @override
-    def create_reserves(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_reserves(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.RESERVES, area_id)
 
     @override
-    def create_solar(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_solar(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.SOLAR, area_id)
         PreproFolder.SOLAR.save(self.config.study_path, area_id)
 
     @override
-    def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.MISC_GEN, area_id)
 
     @override
@@ -308,11 +308,11 @@ class AreaLocalService(BaseAreaService):
                 ui_ini.write(ui_ini_file)
 
             empty_df = pd.DataFrame()
-            self.create_reserves(area_name, empty_df)
-            self.create_misc_gen(area_name, empty_df)
-            self.create_load(area_name, empty_df)
-            self.create_solar(area_name, empty_df)
-            self.create_wind(area_name, empty_df)
+            self.set_reserves(area_name, empty_df)
+            self.set_misc_gen(area_name, empty_df)
+            self.set_load(area_name, empty_df)
+            self.set_solar(area_name, empty_df)
+            self.set_wind(area_name, empty_df)
             IniFile.create_link_ini_for_area(study_path, area_name)
             IniFile.create_list_ini_for_area(study_path, area_name)
 

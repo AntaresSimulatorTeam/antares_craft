@@ -88,7 +88,7 @@ class TestLocalClient:
         time_series = pd.DataFrame(np.around(np.random.rand(time_series_rows, time_series_columns)))
 
         # Load
-        fr.create_load(time_series)
+        fr.set_load(time_series)
 
         assert test_study.service.config.study_path.joinpath(
             "input", "load", "series", "load_{area_id}.txt".format(area_id=fr.id)
@@ -99,7 +99,7 @@ class TestLocalClient:
         assert fr_load.equals(time_series)
 
         # Solar
-        fr.create_solar(time_series)
+        fr.set_solar(time_series)
 
         assert test_study.service.config.study_path.joinpath(
             "input", "solar", "series", "solar_{area_id}.txt".format(area_id=fr.id)
@@ -110,7 +110,7 @@ class TestLocalClient:
         assert fr_solar.equals(time_series)
 
         # Wind
-        fr.create_wind(time_series)
+        fr.set_wind(time_series)
 
         assert test_study.service.config.study_path.joinpath(
             "input", "wind", "series", "wind_{area_id}.txt".format(area_id=fr.id)

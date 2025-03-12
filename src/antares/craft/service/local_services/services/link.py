@@ -173,7 +173,7 @@ class LinkLocalService(BaseLinkService):
         return dict(sorted(ini_dict.items(), key=lambda item: dict_order.index(item[0])))
 
     @override
-    def create_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+    def set_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         checks_matrix_dimensions(series, f"links/{area_from}/{area_to}", "links_parameters")
         write_timeseries(
             self.config.study_path,
@@ -184,7 +184,7 @@ class LinkLocalService(BaseLinkService):
         )
 
     @override
-    def create_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+    def set_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         checks_matrix_dimensions(series, f"links/{area_from}/{area_to}", "series")
         write_timeseries(
             self.config.study_path,
@@ -195,7 +195,7 @@ class LinkLocalService(BaseLinkService):
         )
 
     @override
-    def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+    def set_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         checks_matrix_dimensions(series, f"links/{area_from}/{area_to}", "series")
         write_timeseries(
             self.config.study_path,

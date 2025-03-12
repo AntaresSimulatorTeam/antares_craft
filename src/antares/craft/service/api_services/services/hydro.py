@@ -132,7 +132,7 @@ class HydroApiService(BaseHydroService):
             raise MatrixDownloadError(area_id, "energy", e.message) from e
 
     @override
-    def update_maxpower(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_maxpower(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             update_series(
                 self._base_url, self.study_id, self._wrapper, series, f"input/hydro/common/capacity/maxpower_{area_id}"
@@ -141,7 +141,7 @@ class HydroApiService(BaseHydroService):
             raise MatrixUploadError(area_id, "max_power", e.message) from e
 
     @override
-    def update_reservoir(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_reservoir(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             update_series(
                 self._base_url, self.study_id, self._wrapper, series, f"input/hydro/common/capacity/reservoir_{area_id}"
@@ -150,7 +150,7 @@ class HydroApiService(BaseHydroService):
             raise MatrixUploadError(area_id, "reservoir", e.message) from e
 
     @override
-    def update_inflow_pattern(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_inflow_pattern(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             update_series(
                 self._base_url,
@@ -163,7 +163,7 @@ class HydroApiService(BaseHydroService):
             raise MatrixUploadError(area_id, "inflow_pattern", e.message) from e
 
     @override
-    def update_credits_modulation(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_credits_modulation(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             update_series(
                 self._base_url,
@@ -176,7 +176,7 @@ class HydroApiService(BaseHydroService):
             raise MatrixUploadError(area_id, "credit_modulations", e.message) from e
 
     @override
-    def update_water_values(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_water_values(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             update_series(
                 self._base_url,
@@ -189,14 +189,14 @@ class HydroApiService(BaseHydroService):
             raise MatrixUploadError(area_id, "water_values", e.message) from e
 
     @override
-    def update_ror_series(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_ror_series(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             update_series(self._base_url, self.study_id, self._wrapper, series, f"input/hydro/series/{area_id}/ror")
         except APIError as e:
             raise MatrixUploadError(area_id, "ror", e.message) from e
 
     @override
-    def update_mod_series(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_mod_series(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             update_series(
                 self._base_url,
@@ -209,7 +209,7 @@ class HydroApiService(BaseHydroService):
             raise MatrixUploadError(area_id, "mod", e.message) from e
 
     @override
-    def update_mingen(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_mingen(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             update_series(
                 self._base_url,
@@ -222,7 +222,7 @@ class HydroApiService(BaseHydroService):
             raise MatrixUploadError(area_id, "mingen", e.message) from e
 
     @override
-    def update_energy(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_energy(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             update_series(
                 self._base_url,

@@ -166,7 +166,7 @@ class TestCreateAPI:
                 f"{self.area.id}/{self.thermal.name}/data"
             )
             mocker.post(url, status_code=200)
-            self.thermal.update_prepro_data_matrix(self.matrix)
+            self.thermal.set_prepro_data(self.matrix)
 
     def test_update_prepro_data_fail(self):
         with requests_mock.Mocker() as mocker:
@@ -180,7 +180,7 @@ class TestCreateAPI:
                 match=f"Could not upload data for cluster {self.thermal.name} inside area {self.area.id}: "
                 + self.antares_web_description_msg,
             ):
-                self.thermal.update_prepro_data_matrix(self.matrix)
+                self.thermal.set_prepro_data(self.matrix)
 
     def test_get_prepro_data_success(self):
         with requests_mock.Mocker() as mocker:
@@ -215,7 +215,7 @@ class TestCreateAPI:
                 f"{self.area.id}/{self.thermal.name}/modulation"
             )
             mocker.post(url, status_code=200)
-            self.thermal.update_prepro_modulation_matrix(self.matrix)
+            self.thermal.set_prepro_modulation(self.matrix)
 
     def test_update_prepro_modulation_fail(self):
         with requests_mock.Mocker() as mocker:
@@ -229,7 +229,7 @@ class TestCreateAPI:
                 match=f"Could not upload modulation for cluster {self.thermal.name} inside area {self.area.id}: "
                 + self.antares_web_description_msg,
             ):
-                self.thermal.update_prepro_modulation_matrix(self.matrix)
+                self.thermal.set_prepro_modulation(self.matrix)
 
     def test_get_prepro_modulation_success(self):
         with requests_mock.Mocker() as mocker:
@@ -264,7 +264,7 @@ class TestCreateAPI:
                 f"{self.area.id}/{self.thermal.name}/series"
             )
             mocker.post(url, status_code=200)
-            self.thermal.update_series_matrix(self.matrix)
+            self.thermal.set_series(self.matrix)
 
     def test_update_series_fail(self):
         with requests_mock.Mocker() as mocker:
@@ -278,7 +278,7 @@ class TestCreateAPI:
                 match=f"Could not upload series for cluster {self.thermal.name} inside area {self.area.id}: "
                 + self.antares_web_description_msg,
             ):
-                self.thermal.update_series_matrix(self.matrix)
+                self.thermal.set_series(self.matrix)
 
     def test_get_series_success(self):
         with requests_mock.Mocker() as mocker:
@@ -313,7 +313,7 @@ class TestCreateAPI:
                 f"{self.area.id}/{self.thermal.name}/CO2Cost"
             )
             mocker.post(url, status_code=200)
-            self.thermal.update_co2_cost_matrix(self.matrix)
+            self.thermal.set_co2_cost(self.matrix)
 
     def test_update_co2_cost_fail(self):
         with requests_mock.Mocker() as mocker:
@@ -327,7 +327,7 @@ class TestCreateAPI:
                 match=f"Could not upload CO2Cost for cluster {self.thermal.name} inside area {self.area.id}: "
                 + self.antares_web_description_msg,
             ):
-                self.thermal.update_co2_cost_matrix(self.matrix)
+                self.thermal.set_co2_cost(self.matrix)
 
     def test_get_co2_cost_success(self):
         with requests_mock.Mocker() as mocker:
@@ -362,7 +362,7 @@ class TestCreateAPI:
                 f"{self.area.id}/{self.thermal.name}/fuelCost"
             )
             mocker.post(url, status_code=200)
-            self.thermal.update_fuel_cost_matrix(self.matrix)
+            self.thermal.set_fuel_cost(self.matrix)
 
     def test_update_fuel_cost_fail(self):
         with requests_mock.Mocker() as mocker:
@@ -376,4 +376,4 @@ class TestCreateAPI:
                 match=f"Could not upload fuelCost for cluster {self.thermal.name} inside area {self.area.id}: "
                 + self.antares_web_description_msg,
             ):
-                self.thermal.update_fuel_cost_matrix(self.matrix)
+                self.thermal.set_fuel_cost(self.matrix)

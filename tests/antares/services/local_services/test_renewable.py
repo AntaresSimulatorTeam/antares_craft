@@ -41,7 +41,7 @@ class TestRenewable:
 
         # Replace matrix
         matrix = pd.DataFrame(data=8760 * [[3]])
-        renewable.update_renewable_matrix(matrix)
+        renewable.set_series(matrix)
         assert renewable.get_timeseries().equals(matrix)
 
         # Try to update with wrongly formatted matrix
@@ -52,7 +52,7 @@ class TestRenewable:
                 "Wrong format for renewable/fr/renewable cluster/series matrix, expected shape is (8760, Any) and was : (2, 3)"
             ),
         ):
-            renewable.update_renewable_matrix(matrix)
+            renewable.set_series(matrix)
 
     def test_deletion(self, local_study_with_renewable):
         area_fr = local_study_with_renewable.get_areas()["fr"]
