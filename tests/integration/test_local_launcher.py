@@ -70,7 +70,7 @@ class TestLocalLauncher:
         output_id = outputs[0].name
         assert job.output_id == output_id
         assert not output_id.endswith(".zip")
-        # Ensures the get_outputs return the generated output
+        # Ensures the `get_outputs` method returns the generated output
         study_outputs = study.get_outputs()
         assert len(study_outputs) == 1
         assert list(study_outputs.keys())[0] == output_id

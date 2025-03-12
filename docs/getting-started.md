@@ -75,10 +75,10 @@ study = read_study_local(study_path="/path/to/my/study")
 Once you have your `Study` object, all read and edit operations are the same, be it for antares-web studies or
 filesystem studies, allowing you to re-use code on both kind of studies.
 
-You can for example read the existing areas:
+You can for example retrieve the existing areas:
 
 ```python
-area_list = study._read_areas()
+area_list = study.get_areas()
 ```
 
 And create new areas.
