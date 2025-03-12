@@ -262,17 +262,17 @@ class TestWebClient:
         # tests that `read` methods don't create copies of objects but rather updates their internal properties
         previous_thermals = list(area_fr.get_thermals().values())
         previous_thermals.sort(key=lambda th: th.id)
-        thermal_list = area_fr.read_thermal_clusters()
+        thermal_list = area_fr._read_thermal_clusters()
         assert thermal_list == previous_thermals
 
         previous_renewables = list(area_fr.get_renewables().values())
         previous_renewables.sort(key=lambda renew: renew.id)
-        renewable_list = area_fr.read_renewables()
+        renewable_list = area_fr._read_renewables()
         assert renewable_list == previous_renewables
 
         previous_storages = list(area_fr.get_st_storages().values())
         previous_storages.sort(key=lambda sts: sts.id)
-        storage_list = area_fr.read_st_storages()
+        storage_list = area_fr._read_st_storages()
         assert storage_list == previous_storages
 
         # test actual_hydro has the same datas (id, properties and matrices) than area_fr hydro
@@ -314,7 +314,7 @@ class TestWebClient:
         # test reading list of areas
         previous_areas = list(study.get_areas().values())
         previous_areas.sort(key=lambda area: area.id)
-        area_list = study.read_areas()
+        area_list = study._read_areas()
         assert area_list == previous_areas  # Checks objects aren't copied
         assert len(area_list) == 3
         # asserts areas are sorted by id
@@ -505,7 +505,7 @@ class TestWebClient:
         # assert study got all links
         previous_links = list(study.get_links().values())
         previous_links.sort(key=lambda link: link.id)
-        links = study.read_links()
+        links = study._read_links()
         assert links == previous_links  # Checks objects aren't copied
         assert len(links) == 2
         test_link_be_fr = links[0]
@@ -739,7 +739,7 @@ class TestWebClient:
 
         # ===== Test outputs (Part 1 - before simulation) =====
 
-        assert len(study.read_outputs()) == 0
+        assert study.get_outputs() == {}
 
         # ===== Test run study simulation and wait job completion ======
 
@@ -758,9 +758,9 @@ class TestWebClient:
 
         # ===== Test outputs (Part 2 - after simulation) =====
 
-        output = study.read_outputs()[0]
         outputs = study.get_outputs()
         assert len(outputs) == 1
+        output = list(outputs.values())[0]
         assert not outputs.get(output.name).archived
         study_with_outputs = read_study_api(api_config, study._study_service.study_id)
         outputs_from_api = study_with_outputs.get_outputs()
@@ -793,7 +793,7 @@ class TestWebClient:
         # ===== Test read binding constraints =====
         previous_bcs = list(study.get_binding_constraints().values())
         previous_bcs.sort(key=lambda bc: bc.id)
-        constraints = study.read_binding_constraints()
+        constraints = study._read_binding_constraints()
         assert constraints == previous_bcs  # Checks objects aren't copied
 
         assert len(constraints) == 2
@@ -822,17 +822,17 @@ class TestWebClient:
         study.wait_job_completion(
             study.run_antares_simulation(AntaresSimulationParameters(output_suffix="3")), time_out=60
         )
-        assert len(study.read_outputs()) == 3
+        assert len(study.get_outputs()) == 3
 
         # delete_output
         study.delete_output(output.name)
         assert output.name not in study.get_outputs()
-        assert len(study.read_outputs()) == 2
+        assert len(study._read_outputs()) == 2
 
         # delete_outputs
         study.delete_outputs()
         assert len(study.get_outputs()) == 0
-        assert len(study.read_outputs()) == 0
+        assert len(study._read_outputs()) == 0
 
         # ===== Test study moving =====
 

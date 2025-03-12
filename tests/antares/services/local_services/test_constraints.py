@@ -31,7 +31,7 @@ from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 class TestBindingConstraints:
     def test_read_constraints(self, local_study_w_constraints: Study) -> None:
-        constraints = local_study_w_constraints.read_binding_constraints()
+        constraints = local_study_w_constraints._read_binding_constraints()
         assert len(constraints) == 2
         bc_1 = constraints[0]
         assert bc_1.name == "bc_1"

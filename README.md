@@ -65,7 +65,6 @@ cluster.set_series(pd.DataFrame(data=150 * np.ones((8760, 1))))
 # launch a simulation on the server and wait for the result
 job = study.run_antares_simulation()
 study.wait_job_completion(job)
-study.read_outputs()
 output = study.get_output(job.output_id)
 
 # read some output data as a pandas dataframe:

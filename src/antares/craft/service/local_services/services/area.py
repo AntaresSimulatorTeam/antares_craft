@@ -513,7 +513,7 @@ class AreaLocalService(BaseAreaService):
                     properties=area_properties,
                     ui=ui_properties,
                 )
-                area.hydro.read_properties()
+                area.hydro._read_properties()
                 areas.append(area)
 
         areas.sort(key=lambda area_obj: area_obj.id)

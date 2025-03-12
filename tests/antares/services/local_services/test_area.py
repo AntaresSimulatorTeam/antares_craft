@@ -673,7 +673,7 @@ class TestReadArea:
 
         local_study_object = read_study_local(study_path)
 
-        actual_areas = local_study_object.read_areas()
+        actual_areas = local_study_object._read_areas()
         expected_areas = ["at", "it", "fr"]
         for area in actual_areas:
             assert area.ui.color_rgb == [230, 108, 44]
@@ -698,7 +698,7 @@ it = 10000.000000
         with open(optimization_path, "w", encoding="utf-8") as antares_file:
             antares_file.write(antares_content)
 
-        local_study_object.read_areas()
+        local_study_object._read_areas()
         area_fr = local_study_object.get_areas()["fr"]
         assert area_fr.properties.energy_cost_unsupplied == 10000
         assert area_fr.properties.energy_cost_spilled == 10
@@ -713,7 +713,7 @@ class TestReadLoad:
     def test_read_load_local(self, local_study_w_areas):
         study_path = local_study_w_areas.service.config.study_path
         local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        areas = local_study_object._read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -735,7 +735,7 @@ class TestReadRenewable:
     def test_read_renewable_local(self, local_study_with_renewable):
         study_path = local_study_with_renewable.service.config.study_path
         local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        areas = local_study_object._read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -745,7 +745,7 @@ class TestReadRenewable:
                 ],
                 dtype="object",
             )
-            renewable_list = area.read_renewables()
+            renewable_list = area._read_renewables()
 
             if renewable_list:
                 assert area.id == "fr"
@@ -775,7 +775,7 @@ class TestReadSolar:
     def test_read_solar_local(self, local_study_w_areas):
         study_path = local_study_w_areas.service.config.study_path
         local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        areas = local_study_object._read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -797,7 +797,7 @@ class TestReadReserves:
     def test_read_reserve_local(self, local_study_w_areas):
         study_path = local_study_w_areas.service.config.study_path
         local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        areas = local_study_object._read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -818,7 +818,7 @@ class TestReadReserves:
 class TestReadWind:
     def test_read_wind_local(self, local_study_w_areas):
         study_path = t.cast(LocalConfiguration, local_study_w_areas.service.config).study_path
-        areas = local_study_w_areas.read_areas()
+        areas = local_study_w_areas._read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -839,7 +839,7 @@ class TestReadWind:
 class TestReadmisc_gen:
     def test_read_misc_gen_local(self, local_study_w_areas):
         study_path = t.cast(LocalConfiguration, local_study_w_areas.service.config).study_path
-        areas = local_study_w_areas.read_areas()
+        areas = local_study_w_areas._read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -859,10 +859,10 @@ class TestReadmisc_gen:
 
 class TestReadThermal:
     def test_read_thermals_local(self, local_study_w_thermal):
-        areas = local_study_w_thermal.read_areas()
+        areas = local_study_w_thermal._read_areas()
 
         for area in areas:
-            thermals_list = area.read_thermal_clusters()
+            thermals_list = area._read_thermal_clusters()
 
             for thermal in thermals_list:
                 # Check properties
@@ -884,7 +884,7 @@ class TestReadThermal:
 
 class TestReadLinks:
     def test_read_links_local(self, local_study_w_links):
-        links = local_study_w_links.read_links()
+        links = local_study_w_links._read_links()
         for link in links:
             assert link.ui.link_style.value == "plain"
             assert link.ui.link_width == 1
@@ -902,10 +902,10 @@ class TestReadLinks:
 
 class TestReadSTStorage:
     def test_read_st_storage_local(self, local_study_w_storage):
-        areas = local_study_w_storage.read_areas()
+        areas = local_study_w_storage._read_areas()
 
         for area in areas:
-            storages = area.read_st_storages()
+            storages = area._read_st_storages()
             if area.name == "fr":
                 assert len(storages) == 1
                 storage = storages[0]

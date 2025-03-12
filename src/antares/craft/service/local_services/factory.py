@@ -210,10 +210,10 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
         path=study_directory,
         solver_path=solver_path,
     )
-    study.read_settings()
-    study.read_areas()
-    study.read_links()
-    study.read_binding_constraints()
-    study.read_outputs()
+    study._read_settings()
+    study._read_areas()
+    study._read_links()
+    study._read_binding_constraints()
+    study._read_outputs()
 
     return study

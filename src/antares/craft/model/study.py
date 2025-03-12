@@ -71,7 +71,7 @@ class Study:
     def service(self) -> BaseStudyService:
         return self._study_service
 
-    def read_areas(self) -> list[Area]:
+    def _read_areas(self) -> list[Area]:
         """
         Synchronize the internal study object with the actual object written in an antares study
         Returns: the synchronized area list
@@ -104,7 +104,7 @@ class Study:
         for area_prop in new_areas_props:
             self._areas[area_prop]._properties = new_areas_props[area_prop]
 
-    def read_links(self) -> list[Link]:
+    def _read_links(self) -> list[Link]:
         link_list = self._link_service.read_links()
 
         # Updates in memory objects rather than replacing them
@@ -137,7 +137,7 @@ class Study:
         self._settings.thematic_trimming_parameters = new_settings.thematic_trimming_parameters
         self._settings.playlist_parameters = new_settings.playlist_parameters
 
-    def read_settings(self) -> StudySettings:
+    def _read_settings(self) -> StudySettings:
         study_settings = self._settings_service.read_study_settings()
         self._replace_settings(study_settings)
         return self._settings
@@ -231,7 +231,7 @@ class Study:
         self._binding_constraints[binding_constraint.id] = binding_constraint
         return binding_constraint
 
-    def read_binding_constraints(self) -> list[BindingConstraint]:
+    def _read_binding_constraints(self) -> list[BindingConstraint]:
         constraints = self._binding_constraints_service.read_binding_constraints()
 
         # Updates in memory objects rather than replacing them
@@ -298,8 +298,9 @@ class Study:
         Raises: SimulationTimeOutError if exceeded timeout
         """
         self._run_service.wait_job_completion(job, time_out)
+        self._read_outputs()
 
-    def read_outputs(self) -> list[Output]:
+    def _read_outputs(self) -> list[Output]:
         """
         Load outputs into current study
 

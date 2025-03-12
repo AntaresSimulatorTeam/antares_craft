@@ -491,6 +491,9 @@ class TestCreateAPI:
             task_url = f"{tasks_url}/{task_id}"
             mocker.get(task_url, json={"result": {"success": True}}, status_code=200)
 
+            output_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs"
+            mocker.get(output_url, json=[], status_code=200)
+
             job = self.study.run_antares_simulation(parameters)
             assert isinstance(job, Job)
             assert job.job_id == job_id
@@ -549,7 +552,7 @@ class TestCreateAPI:
             ]
             mocker.get(run_url, json=json_output, status_code=200)
 
-            self.study.read_outputs()
+            self.study._read_outputs()
 
             assert len(self.study.get_outputs()) == 2
             output1 = self.study.get_output(json_output[0].get("name"))
@@ -561,7 +564,7 @@ class TestCreateAPI:
             error_message = f"Couldn't get outputs for study {self.study_id}"
             mocker.get(run_url, json={"description": error_message}, status_code=404)
             with pytest.raises(OutputsRetrievalError, match=error_message):
-                self.study.read_outputs()
+                self.study._read_outputs()
 
     def test_read_constraints(self):
         with requests_mock.Mocker() as mocker:
@@ -589,7 +592,7 @@ class TestCreateAPI:
             ]
             mocker.get(constraints_url, json=json_constraints, status_code=200)
 
-            constraints = self.study.read_binding_constraints()
+            constraints = self.study._read_binding_constraints()
 
             assert len(constraints) == 1
             constraint = constraints[0]
@@ -612,7 +615,7 @@ class TestCreateAPI:
             error_message = "Error while reading constraints"
             mocker.get(constraints_url, json={"description": error_message}, status_code=404)
             with pytest.raises(ConstraintRetrievalError, match="Error while reading constraints"):
-                self.study.read_binding_constraints()
+                self.study._read_binding_constraints()
 
     def test_output_get_matrix(self):
         with requests_mock.Mocker() as mocker:
@@ -679,7 +682,7 @@ class TestCreateAPI:
             mocker.get(outputs_url, json=[{"name": output_name, "archived": False}], status_code=200)
             mocker.delete(delete_url, status_code=200)
 
-            self.study.read_outputs()
+            self.study._read_outputs()
             assert output_name in self.study.get_outputs()
             self.study.delete_output(output_name)
             assert output_name not in self.study.get_outputs()
@@ -710,7 +713,7 @@ class TestCreateAPI:
                 json=[{"name": "output1", "archived": False}, {"name": "output2", "archived": True}],
                 status_code=200,
             )
-            assert len(self.study.read_outputs()) == 2
+            assert len(self.study._read_outputs()) == 2
 
             self.study.delete_outputs()
             assert len(self.study.get_outputs()) == 0

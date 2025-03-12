@@ -88,7 +88,7 @@ def create_study_api(
         study_id = response.json()
         # Settings part
         study = Study(study_name, version, create_api_services(api_config, study_id))
-        study.read_settings()
+        study._read_settings()
         # Move part
         if parent_path:
             study.move(parent_path)
@@ -138,11 +138,11 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
 
     study = Study(study_name, study_version, create_api_services(api_config, study_id), pure_path)
 
-    study.read_settings()
-    study.read_areas()
-    study.read_links()
-    study.read_outputs()
-    study.read_binding_constraints()
+    study._read_settings()
+    study._read_areas()
+    study._read_links()
+    study._read_outputs()
+    study._read_binding_constraints()
 
     return study
 
