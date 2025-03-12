@@ -434,7 +434,7 @@ class TestWebClient:
             ConstraintMatrixUpdateError,
             match=f"Could not update matrix eq for binding constraint {constraint_2.id}",
         ):
-            constraint_2.set_equal_term_matrix(wrong_matrix)
+            constraint_2.set_equal_term(wrong_matrix)
 
         # Case that succeeds
         properties = BindingConstraintProperties(operator=BindingConstraintOperator.LESS)
@@ -447,7 +447,7 @@ class TestWebClient:
         new_matrix.iloc[0, 0] = 72
         update_properties = BindingConstraintPropertiesUpdate(operator=BindingConstraintOperator.EQUAL)
         constraint_3.update_properties(update_properties)
-        constraint_3.set_equal_term_matrix(new_matrix)
+        constraint_3.set_equal_term(new_matrix)
         assert constraint_3.get_equal_term_matrix().equals(new_matrix)
 
         # test adding terms to a constraint

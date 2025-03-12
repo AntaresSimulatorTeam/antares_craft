@@ -182,11 +182,11 @@ class BindingConstraint:
     def get_greater_term_matrix(self) -> pd.DataFrame:
         return self._binding_constraint_service.get_constraint_matrix(self, ConstraintMatrixName.GREATER_TERM)
 
-    def set_less_term_matrix(self, matrix: pd.DataFrame) -> None:
+    def set_less_term(self, matrix: pd.DataFrame) -> None:
         self._binding_constraint_service.set_constraint_matrix(self, ConstraintMatrixName.LESS_TERM, matrix)
 
-    def set_equal_term_matrix(self, matrix: pd.DataFrame) -> None:
+    def set_equal_term(self, matrix: pd.DataFrame) -> None:
         self._binding_constraint_service.set_constraint_matrix(self, ConstraintMatrixName.EQUAL_TERM, matrix)
 
-    def set_greater_term_matrix(self, matrix: pd.DataFrame) -> None:
+    def set_greater_term(self, matrix: pd.DataFrame) -> None:
         self._binding_constraint_service.set_constraint_matrix(self, ConstraintMatrixName.GREATER_TERM, matrix)
