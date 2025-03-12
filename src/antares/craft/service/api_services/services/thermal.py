@@ -131,9 +131,9 @@ class ThermalApiService(BaseThermalService):
     @override
     def update_multiple_thermal_clusters(
         self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
-    ) -> dict[ThermalCluster, ThermalClusterPropertiesUpdate]:
+    ) -> dict[ThermalCluster, ThermalClusterProperties]:
         body = {}
-        updated_thermal_clusters: dict[ThermalCluster, ThermalClusterPropertiesUpdate] = {}
+        updated_thermal_clusters: dict[ThermalCluster, ThermalClusterProperties] = {}
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/thermals"
 
         cluster_dict = {}

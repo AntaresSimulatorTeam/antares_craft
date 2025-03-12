@@ -57,7 +57,7 @@ if TYPE_CHECKING:
 class BaseAreaService(ABC):
     @property
     def thermal_service(self) -> "BaseThermalService":
-        return self._thermal_service
+        return self.thermal_service
 
     @abstractmethod
     def create_area(
@@ -507,7 +507,7 @@ class BaseThermalService(ABC):
     @abstractmethod
     def update_multiple_thermal_clusters(
         self, new_properties: dict["ThermalCluster", "ThermalClusterPropertiesUpdate"]
-    ) -> dict["ThermalCluster", "ThermalClusterPropertiesUpdate"]:
+    ) -> dict["ThermalCluster", "ThermalClusterProperties"]:
         pass
 
 

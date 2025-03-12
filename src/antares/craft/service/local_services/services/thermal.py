@@ -105,5 +105,5 @@ class ThermalLocalService(BaseThermalService):
     @override
     def update_multiple_thermal_clusters(
         self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
-    ) -> dict[ThermalCluster, ThermalClusterPropertiesUpdate]:
+    ) -> dict[ThermalCluster, ThermalClusterProperties]:
         raise NotImplementedError
