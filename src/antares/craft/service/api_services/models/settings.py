@@ -40,7 +40,6 @@ from antares.craft.model.settings.general import (
     Mode,
     Month,
     OutputChoices,
-    OutputFormat,
     WeekDay,
 )
 from antares.craft.model.settings.optimization import (
@@ -54,6 +53,7 @@ from antares.craft.model.settings.optimization import (
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters, ThematicTrimmingParametersUpdate
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
+from antares.craft.tools.contents_tool import EnumIgnoreCase
 from pydantic import Field, field_validator
 
 AdequacyPatchParametersType = Union[AdequacyPatchParameters, AdequacyPatchParametersUpdate]
@@ -170,6 +170,11 @@ class AdvancedAndSeedParametersAPI(APIBaseModel):
 
 
 GeneralParametersType = Union[GeneralParameters, GeneralParametersUpdate]
+
+
+class OutputFormat(EnumIgnoreCase):
+    TXT = "txt-files"
+    ZIP = "zip-files"
 
 
 @all_optional_model
