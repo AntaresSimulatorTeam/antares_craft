@@ -50,16 +50,16 @@ class TestSTStorage:
         storage.update_pmax_injection(matrix)
         assert storage.get_pmax_injection().equals(matrix)
 
-        storage.update_pmax_withdrawal(matrix)
+        storage.set_pmax_withdrawal(matrix)
         assert storage.get_pmax_withdrawal().equals(matrix)
 
-        storage.update_lower_rule_curve(matrix)
+        storage.set_lower_rule_curve(matrix)
         assert storage.get_lower_rule_curve().equals(matrix)
 
-        storage.update_upper_rule_curve(matrix)
+        storage.set_upper_rule_curve(matrix)
         assert storage.get_upper_rule_curve().equals(matrix)
 
-        storage.update_storage_inflows(matrix)
+        storage.set_storage_inflows(matrix)
         assert storage.get_storage_inflows().equals(matrix)
 
         # Try to update with wrongly formatted matrix

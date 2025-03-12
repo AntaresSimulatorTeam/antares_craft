@@ -188,7 +188,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         return pd.DataFrame(np.zeros(default_matrix_shape))
 
     @override
-    def update_constraint_matrix(
+    def set_constraint_matrix(
         self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName, matrix: pd.DataFrame
     ) -> None:
         checks_matrix_dimensions(

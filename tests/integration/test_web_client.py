@@ -109,11 +109,11 @@ class TestWebClient:
             MatrixUploadError,
             match=f"Error uploading load matrix for area {area_fr.id}: Expected 8760 rows and received 1",
         ):
-            area_fr.create_load(wrong_load_matrix)
+            area_fr.set_load(wrong_load_matrix)
 
         # Case that succeeds
         load_matrix = pd.DataFrame(data=np.zeros((8760, 1)))
-        area_fr.create_load(load_matrix)
+        area_fr.set_load(load_matrix)
 
         # tests get load matrix
         assert area_fr.get_load_matrix().equals(load_matrix)
@@ -121,10 +121,10 @@ class TestWebClient:
         # asserts solar and wind matrices can be created and read.
         ts_matrix = pd.DataFrame(data=np.ones((8760, 4)))
 
-        area_fr.create_solar(ts_matrix)
+        area_fr.set_solar(ts_matrix)
         assert area_fr.get_solar_matrix().equals(ts_matrix)
 
-        area_fr.create_wind(ts_matrix)
+        area_fr.set_wind(ts_matrix)
         assert area_fr.get_wind_matrix().equals(ts_matrix)
 
         # tests area creation with ui values
@@ -204,9 +204,9 @@ class TestWebClient:
         fuel_cost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
 
         # creating parameters and capacities for this link and testing them
-        link_be_fr.update_parameters(series_matrix)
-        link_be_fr.update_capacity_direct(series_matrix)
-        link_be_fr.update_capacity_indirect(series_matrix)
+        link_be_fr.set_parameters(series_matrix)
+        link_be_fr.set_capacity_direct(series_matrix)
+        link_be_fr.set_capacity_indirect(series_matrix)
 
         parameters_matrix = link_be_fr.get_parameters()
         direct_matrix = link_be_fr.get_capacity_direct()
@@ -361,7 +361,7 @@ class TestWebClient:
             match=f"Could not upload {STStorageMatrixName.INFLOWS.value} matrix for storage {battery_fr.id}"
             f" inside area {area_fr.id}",
         ):
-            battery_fr.update_storage_inflows(wrong_matrix)
+            battery_fr.set_storage_inflows(wrong_matrix)
 
         # Case that succeeds
         injection_matrix = pd.DataFrame(data=np.zeros((8760, 1)))
@@ -434,7 +434,7 @@ class TestWebClient:
             ConstraintMatrixUpdateError,
             match=f"Could not update matrix eq for binding constraint {constraint_2.id}",
         ):
-            constraint_2.update_equal_term_matrix(wrong_matrix)
+            constraint_2.set_equal_term_matrix(wrong_matrix)
 
         # Case that succeeds
         properties = BindingConstraintProperties(operator=BindingConstraintOperator.LESS)
@@ -447,7 +447,7 @@ class TestWebClient:
         new_matrix.iloc[0, 0] = 72
         update_properties = BindingConstraintPropertiesUpdate(operator=BindingConstraintOperator.EQUAL)
         constraint_3.update_properties(update_properties)
-        constraint_3.update_equal_term_matrix(new_matrix)
+        constraint_3.set_equal_term_matrix(new_matrix)
         assert constraint_3.get_equal_term_matrix().equals(new_matrix)
 
         # test adding terms to a constraint
@@ -572,12 +572,12 @@ class TestWebClient:
         series_matrix = pd.DataFrame(data=np.zeros((8760, 3)))
         prepro_data_matrix = pd.DataFrame(data=np.ones((365, 6)))
         prepro_modulation_matrix = pd.DataFrame(data=np.ones((8760, 4)))
-        thermal_fr.update_prepro_data_matrix(prepro_data_matrix)
-        thermal_fr.update_prepro_modulation_matrix(prepro_modulation_matrix)
-        thermal_fr.update_fuel_cost_matrix(series_matrix)
-        thermal_fr.update_co2_cost_matrix(series_matrix)
-        thermal_fr.update_series_matrix(series_matrix)
-        renewable_fr.update_renewable_matrix(series_matrix)
+        thermal_fr.set_prepro_data(prepro_data_matrix)
+        thermal_fr.set_prepro_modulation(prepro_modulation_matrix)
+        thermal_fr.set_fuel_cost(series_matrix)
+        thermal_fr.set_co2_cost(series_matrix)
+        thermal_fr.set_series(series_matrix)
+        renewable_fr.set_series(series_matrix)
 
         assert thermal_fr.get_series_matrix().equals(series_matrix)
         assert thermal_fr.get_prepro_data_matrix().equals(prepro_data_matrix)
@@ -694,15 +694,15 @@ class TestWebClient:
         credits_matrix = pd.DataFrame(data=np.zeros((2, 101)))
         water_values_matrix = pd.DataFrame(data=np.ones((365, 101)))
 
-        area_fr.hydro.update_maxpower(maxpower_matrix)
-        area_fr.hydro.update_reservoir(reservoir_matrix)
-        area_fr.hydro.update_inflow_pattern(inflow_pattern_matrix)
-        area_fr.hydro.update_water_values(water_values_matrix)
-        area_fr.hydro.update_credits_modulation(credits_matrix)
-        area_fr.hydro.update_ror_series(ror_series)
-        area_fr.hydro.update_mod_series(mod_series)
-        area_fr.hydro.update_mingen(mingen_series)
-        area_fr.hydro.update_energy(energy_matrix)
+        area_fr.hydro.set_maxpower(maxpower_matrix)
+        area_fr.hydro.set_reservoir(reservoir_matrix)
+        area_fr.hydro.set_inflow_pattern(inflow_pattern_matrix)
+        area_fr.hydro.set_water_values(water_values_matrix)
+        area_fr.hydro.set_credits_modulation(credits_matrix)
+        area_fr.hydro.set_ror_series(ror_series)
+        area_fr.hydro.set_mod_series(mod_series)
+        area_fr.hydro.set_mingen(mingen_series)
+        area_fr.hydro.set_energy(energy_matrix)
 
         assert area_fr.hydro.get_maxpower().equals(maxpower_matrix)
         assert area_fr.hydro.get_reservoir().equals(reservoir_matrix)

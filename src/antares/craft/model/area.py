@@ -267,20 +267,20 @@ class Area:
         self._ui = new_ui
         return new_ui
 
-    def create_load(self, series: pd.DataFrame) -> None:
-        self._area_service.create_load(self.id, series)
+    def set_load(self, series: pd.DataFrame) -> None:
+        self._area_service.set_load(self.id, series)
 
-    def create_wind(self, series: pd.DataFrame) -> None:
-        self._area_service.create_wind(self.id, series)
+    def set_wind(self, series: pd.DataFrame) -> None:
+        self._area_service.set_wind(self.id, series)
 
-    def create_reserves(self, series: pd.DataFrame) -> None:
-        self._area_service.create_reserves(self.id, series)
+    def set_reserves(self, series: pd.DataFrame) -> None:
+        self._area_service.set_reserves(self.id, series)
 
-    def create_solar(self, series: pd.DataFrame) -> None:
-        self._area_service.create_solar(self.id, series)
+    def set_solar(self, series: pd.DataFrame) -> None:
+        self._area_service.set_solar(self.id, series)
 
-    def create_misc_gen(self, series: pd.DataFrame) -> None:
-        self._area_service.create_misc_gen(self.id, series)
+    def set_misc_gen(self, series: pd.DataFrame) -> None:
+        self._area_service.set_misc_gen(self.id, series)
 
     def read_st_storages(self) -> list[STStorage]:
         st_storages = self._storage_service.read_st_storages(self.id)

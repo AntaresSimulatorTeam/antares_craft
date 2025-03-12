@@ -62,7 +62,7 @@ class RenewableApiService(BaseRenewableService):
         return new_properties
 
     @override
-    def update_renewable_matrix(self, renewable_cluster: RenewableCluster, matrix: pd.DataFrame) -> None:
+    def set_series(self, renewable_cluster: RenewableCluster, matrix: pd.DataFrame) -> None:
         try:
             path = (
                 PurePosixPath("input")

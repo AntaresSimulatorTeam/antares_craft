@@ -235,7 +235,7 @@ class TestCreateReserves:
         expected_reserves_file_path = area_fr._area_service.config.study_path / "input/reserves/fr.txt"
 
         # When
-        area_fr.create_reserves(pd.DataFrame())
+        area_fr.set_reserves(pd.DataFrame())
 
         # Then
         assert reserves_file_path == expected_reserves_file_path
@@ -253,7 +253,7 @@ class TestCreateReserves:
         expected_time_series = pd.read_csv(StringIO(expected_time_series_string), sep="\t", header=None)
 
         # When
-        area_fr.create_reserves(pd.DataFrame(np.ones([2, 3])))
+        area_fr.set_reserves(pd.DataFrame(np.ones([2, 3])))
         actual_time_series = pd.read_csv(reserves_file_path, sep="\t", header=None)
         with reserves_file_path.open("r") as reserves_ts_file:
             actual_time_series_string = reserves_ts_file.read()
@@ -272,7 +272,7 @@ class TestCreateMiscGen:
         expected_misc_gen_file_path = area_fr._area_service.config.study_path / "input/misc-gen/miscgen-fr.txt"
 
         # When
-        area_fr.create_misc_gen(pd.DataFrame())
+        area_fr.set_misc_gen(pd.DataFrame())
 
         # Then
         assert misc_gen_file_path == expected_misc_gen_file_path
@@ -290,7 +290,7 @@ class TestCreateMiscGen:
         expected_time_series = pd.read_csv(StringIO(expected_time_series_string), sep="\t", header=None)
 
         # When
-        area_fr.create_misc_gen(pd.DataFrame(np.ones([2, 3])))
+        area_fr.set_misc_gen(pd.DataFrame(np.ones([2, 3])))
         actual_time_series = pd.read_csv(misc_gen_file_path, sep="\t", header=None)
         with misc_gen_file_path.open("r") as misc_gen_ts_file:
             actual_time_series_string = misc_gen_ts_file.read()
@@ -309,7 +309,7 @@ class TestCreateWind:
         expected_wind_file_path = area_fr._area_service.config.study_path / "input/wind/series/wind_fr.txt"
 
         # When
-        area_fr.create_wind(pd.DataFrame())
+        area_fr.set_wind(pd.DataFrame())
 
         # Then
         assert wind_file_path == expected_wind_file_path
@@ -327,7 +327,7 @@ class TestCreateWind:
         expected_time_series = pd.read_csv(StringIO(expected_time_series_string), sep="\t", header=None)
 
         # When
-        area_fr.create_wind(pd.DataFrame(np.ones([2, 3])))
+        area_fr.set_wind(pd.DataFrame(np.ones([2, 3])))
         actual_time_series = pd.read_csv(wind_file_path, sep="\t", header=None)
         with wind_file_path.open("r") as wind_ts_file:
             actual_time_series_string = wind_ts_file.read()
@@ -431,7 +431,7 @@ class TestCreateSolar:
         expected_solar_file_path = area_fr._area_service.config.study_path / "input/solar/series/solar_fr.txt"
 
         # When
-        area_fr.create_solar(pd.DataFrame())
+        area_fr.set_solar(pd.DataFrame())
 
         # Then
         assert solar_file_path == expected_solar_file_path
@@ -449,7 +449,7 @@ class TestCreateSolar:
         expected_time_series = pd.read_csv(StringIO(expected_time_series_string), sep="\t", header=None)
 
         # When
-        area_fr.create_solar(pd.DataFrame(np.ones([2, 3])))
+        area_fr.set_solar(pd.DataFrame(np.ones([2, 3])))
         actual_time_series = pd.read_csv(solar_file_path, sep="\t", header=None)
         with solar_file_path.open("r") as solar_ts_file:
             actual_time_series_string = solar_ts_file.read()
@@ -554,7 +554,7 @@ class TestCreateLoad:
         expected_load_file_path = area_fr._area_service.config.study_path / "input/load/series/load_fr.txt"
 
         # When
-        area_fr.create_load(pd.DataFrame())
+        area_fr.set_load(pd.DataFrame())
 
         # Then
         assert load_file_path == expected_load_file_path
@@ -572,7 +572,7 @@ class TestCreateLoad:
         expected_time_series = pd.read_csv(StringIO(expected_time_series_string), sep="\t", header=None)
 
         # When
-        area_fr.create_load(pd.DataFrame(np.ones([2, 3])))
+        area_fr.set_load(pd.DataFrame(np.ones([2, 3])))
         actual_time_series = pd.read_csv(load_file_path, sep="\t", header=None)
         with load_file_path.open("r") as load_ts_file:
             actual_time_series_string = load_ts_file.read()

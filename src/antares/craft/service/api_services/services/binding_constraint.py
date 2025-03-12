@@ -178,7 +178,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise ConstraintMatrixDownloadError(constraint.id, matrix_name.value, e.message) from e
 
     @override
-    def update_constraint_matrix(
+    def set_constraint_matrix(
         self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName, matrix: pd.DataFrame
     ) -> None:
         mapping = {

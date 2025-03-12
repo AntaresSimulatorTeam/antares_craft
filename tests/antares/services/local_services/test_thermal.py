@@ -324,21 +324,21 @@ variableomcost = 5.0
 
         # Replace matrices
         data_matrix = pd.DataFrame(data=np.ones((365, 6)))
-        thermal.update_prepro_data_matrix(data_matrix)
+        thermal.set_prepro_data(data_matrix)
         assert thermal.get_prepro_data_matrix().equals(data_matrix)
 
         modulation_matrix = pd.DataFrame(data=np.ones((8760, 4)))
-        thermal.update_prepro_modulation_matrix(modulation_matrix)
+        thermal.set_prepro_modulation(modulation_matrix)
         assert thermal.get_prepro_modulation_matrix().equals(modulation_matrix)
 
         series_matrix = pd.DataFrame(data=8760 * [[3]])
-        thermal.update_series_matrix(series_matrix)
+        thermal.set_series(series_matrix)
         assert thermal.get_series_matrix().equals(series_matrix)
 
-        thermal.update_fuel_cost_matrix(series_matrix)
+        thermal.set_fuel_cost(series_matrix)
         assert thermal.get_fuel_cost_matrix().equals(series_matrix)
 
-        thermal.update_co2_cost_matrix(series_matrix)
+        thermal.set_co2_cost(series_matrix)
         assert thermal.get_co2_cost_matrix().equals(series_matrix)
 
         # Try to update with wrongly formatted matrix
@@ -349,7 +349,7 @@ variableomcost = 5.0
                 "Wrong format for thermal/fr/test thermal cluster/series matrix, expected shape is (8760, Any) and was : (2, 3)"
             ),
         ):
-            thermal.update_series_matrix(matrix)
+            thermal.set_series(matrix)
 
     def test_deletion(self, local_study_w_thermal):
         # Creates 3 cluster to test all cases

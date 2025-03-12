@@ -93,7 +93,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         ]
 
     @override
-    def update_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:
+    def set_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:
         checks_matrix_dimensions(matrix, f"storage/{storage.area_id}/{storage.name}", ts_name.value)
         write_timeseries(self.config.study_path, matrix, MAPPING[ts_name], storage.area_id, storage.id)
 

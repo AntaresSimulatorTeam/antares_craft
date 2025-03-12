@@ -111,7 +111,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_load(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_load(self, area_id: str, series: pd.DataFrame) -> None:
         """
         Args:
             area_id: area to create load series matrices
@@ -137,7 +137,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_wind(self, area_id: str, series: pd.DataFrame) -> None:
         """
         Args:
             area_id: area to create wind series matrices
@@ -147,7 +147,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_reserves(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_reserves(self, area_id: str, series: pd.DataFrame) -> None:
         """
         Args:
             area_id: str to create reserves series matrices
@@ -159,7 +159,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_solar(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_solar(self, area_id: str, series: pd.DataFrame) -> None:
         """
         Args:
             area_id: area to create reserves series matrices
@@ -169,7 +169,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
         """
         Args:
             area_id: area to create reserves series matrices
@@ -343,39 +343,39 @@ class BaseHydroService(ABC):
         pass
 
     @abstractmethod
-    def update_maxpower(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_maxpower(self, area_id: str, series: pd.DataFrame) -> None:
         pass
 
     @abstractmethod
-    def update_reservoir(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_reservoir(self, area_id: str, series: pd.DataFrame) -> None:
         pass
 
     @abstractmethod
-    def update_inflow_pattern(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_inflow_pattern(self, area_id: str, series: pd.DataFrame) -> None:
         pass
 
     @abstractmethod
-    def update_credits_modulation(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_credits_modulation(self, area_id: str, series: pd.DataFrame) -> None:
         pass
 
     @abstractmethod
-    def update_water_values(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_water_values(self, area_id: str, series: pd.DataFrame) -> None:
         pass
 
     @abstractmethod
-    def update_ror_series(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_ror_series(self, area_id: str, series: pd.DataFrame) -> None:
         pass
 
     @abstractmethod
-    def update_mod_series(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_mod_series(self, area_id: str, series: pd.DataFrame) -> None:
         pass
 
     @abstractmethod
-    def update_mingen(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_mingen(self, area_id: str, series: pd.DataFrame) -> None:
         pass
 
     @abstractmethod
-    def update_energy(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_energy(self, area_id: str, series: pd.DataFrame) -> None:
         pass
 
 
@@ -434,7 +434,7 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def create_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+    def set_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         pass
 
     @abstractmethod
@@ -449,7 +449,7 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def create_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+    def set_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         pass
 
     @abstractmethod
@@ -460,7 +460,7 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+    def set_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         pass
 
     @abstractmethod
@@ -481,7 +481,7 @@ class BaseThermalService(ABC):
         pass
 
     @abstractmethod
-    def update_thermal_matrix(
+    def set_thermal_matrix(
         self, thermal_cluster: "ThermalCluster", matrix: pd.DataFrame, ts_name: "ThermalClusterMatrixName"
     ) -> None:
         pass
@@ -586,7 +586,7 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def update_constraint_matrix(
+    def set_constraint_matrix(
         self, constraint: "BindingConstraint", matrix_name: "ConstraintMatrixName", matrix: pd.DataFrame
     ) -> None:
         """
@@ -716,7 +716,7 @@ class BaseRenewableService(ABC):
         pass
 
     @abstractmethod
-    def update_renewable_matrix(self, renewable_cluster: "RenewableCluster", matrix: pd.DataFrame) -> None:
+    def set_series(self, renewable_cluster: "RenewableCluster", matrix: pd.DataFrame) -> None:
         """
         Args:
             renewable_cluster: the renewable_cluster
@@ -751,7 +751,7 @@ class BaseShortTermStorageService(ABC):
         pass
 
     @abstractmethod
-    def update_storage_matrix(self, storage: "STStorage", ts_name: "STStorageMatrixName", matrix: pd.DataFrame) -> None:
+    def set_storage_matrix(self, storage: "STStorage", ts_name: "STStorageMatrixName", matrix: pd.DataFrame) -> None:
         pass
 
 

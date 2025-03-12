@@ -122,14 +122,14 @@ class TestLink:
 
         # Replace matrices
         matrix = pd.DataFrame(data=8760 * [[3]])
-        link.update_capacity_direct(matrix)
+        link.set_capacity_direct(matrix)
         assert link.get_capacity_direct().equals(matrix)
 
-        link.update_capacity_indirect(matrix)
+        link.set_capacity_indirect(matrix)
         assert link.get_capacity_indirect().equals(matrix)
 
         parameters_matrix = pd.DataFrame(data=np.ones((8760, 6)))
-        link.update_parameters(parameters_matrix)
+        link.set_parameters(parameters_matrix)
         assert link.get_parameters().equals(parameters_matrix)
 
         # Try to update with wrongly formatted matrix
@@ -140,7 +140,7 @@ class TestLink:
                 "Wrong format for links/at/fr/links_parameters matrix, expected shape is (8760, 6) and was : (2, 3)"
             ),
         ):
-            link.update_parameters(matrix)
+            link.set_parameters(matrix)
 
     def test_deletion(self, local_study_w_links: Study) -> None:
         link = local_study_w_links.get_links()["at / fr"]

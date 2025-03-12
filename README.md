@@ -51,7 +51,7 @@ study = create_study_api(study_name="my-study", version="8.8", api_config=conf)
 
 # create an area with 100 MW of load for every hour of the year, and 3000 euros/h for unsupplied energy cost
 area = study.create_area(area_name="my-country", properties=AreaProperties(energy_cost_unsupplied=3000))
-area.create_load(pd.DataFrame(data=100 * np.ones((8760, 1))))
+area.set_load(pd.DataFrame(data=100 * np.ones((8760, 1))))
 
 # create a cluster with 5 nuclear units of 30 MW each, and a generation cost of 30 MW/h
 cluster = area.create_thermal_cluster("nuclear",
@@ -60,7 +60,7 @@ cluster = area.create_thermal_cluster("nuclear",
                                                                marginal_cost=10,
                                                                market_bid_cost=10,
                                                                group=ThermalClusterGroup.NUCLEAR))
-cluster.update_series_matrix(pd.DataFrame(data=150 * np.ones((8760, 1))))
+cluster.set_series(pd.DataFrame(data=150 * np.ones((8760, 1))))
 
 # launch a simulation on the server and wait for the result
 job = study.run_antares_simulation()
