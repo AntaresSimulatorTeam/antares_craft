@@ -34,6 +34,12 @@ from antares.craft.model.link import (
     LinkUiUpdate,
     TransmissionCapacities,
 )
+from antares.craft.model.renewable import (
+    RenewableClusterGroup,
+    RenewableClusterProperties,
+    RenewableClusterPropertiesUpdate,
+    TimeSeriesInterpretation,
+)
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParametersUpdate, PriceTakingOrder
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParametersUpdate,
@@ -65,6 +71,8 @@ from antares.craft.model.settings.optimization import (
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParametersUpdate
+from antares.craft.model.simulation import AntaresSimulationParameters, Solver
+from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
 from antares.craft.model.study import (
     Study,
     create_study_api,
@@ -73,6 +81,14 @@ from antares.craft.model.study import (
     import_study_api,
     read_study_api,
     read_study_local,
+)
+from antares.craft.model.thermal import (
+    LawOption,
+    LocalTSGenerationBehavior,
+    ThermalClusterGroup,
+    ThermalClusterProperties,
+    ThermalClusterPropertiesUpdate,
+    ThermalCostGeneration,
 )
 
 __all__ = [
@@ -111,6 +127,13 @@ __all__ = [
     "TransmissionCapacities",
     "AssetType",
     "LinkStyle",
+    "RenewableClusterGroup",
+    "TimeSeriesInterpretation",
+    "STStorageGroup",
+    "LawOption",
+    "ThermalClusterGroup",
+    "LocalTSGenerationBehavior",
+    "ThermalCostGeneration",
     # Model classes
     "AdequacyPatchParametersUpdate",
     "AdvancedParametersUpdate",
@@ -137,4 +160,12 @@ __all__ = [
     "LinkPropertiesUpdate",
     "LinkUi",
     "LinkUiUpdate",
+    "RenewableClusterProperties",
+    "RenewableClusterPropertiesUpdate",
+    "Solver",
+    "AntaresSimulationParameters",
+    "STStorageProperties",
+    "STStoragePropertiesUpdate",
+    "ThermalClusterProperties",
+    "ThermalClusterPropertiesUpdate",
 ]
