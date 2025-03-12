@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Optional
+from typing import Dict, Optional
 
 import pandas as pd
 
@@ -22,6 +22,7 @@ from antares.craft.exceptions.exceptions import (
     AreaDeletionError,
     AreaPropertiesUpdateError,
     AreasRetrievalError,
+    AreasUpdateError,
     AreaUiUpdateError,
     MatrixDownloadError,
     MatrixUploadError,
@@ -37,7 +38,7 @@ from antares.craft.model.hydro import Hydro
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
-from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaUiAPI
+from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaPropertiesAPITableMode, AreaUiAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
@@ -289,7 +290,7 @@ class AreaApiService(BaseAreaService):
         return STStorage(self.storage_service, area_id, name, properties)
 
     @override
-    def create_load(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_load(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/load/series/load_{area_id}"
             rows_number = series.shape[0]
@@ -301,7 +302,7 @@ class AreaApiService(BaseAreaService):
             raise MatrixUploadError(area_id, "load", e.message) from e
 
     @override
-    def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_wind(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/wind/series/wind_{area_id}"
             update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
@@ -309,7 +310,7 @@ class AreaApiService(BaseAreaService):
             raise MatrixUploadError(area_id, "wind", e.message) from e
 
     @override
-    def create_reserves(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_reserves(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/reserves/{area_id}"
             update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
@@ -317,7 +318,7 @@ class AreaApiService(BaseAreaService):
             raise MatrixUploadError(area_id, "reserves", e.message) from e
 
     @override
-    def create_solar(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_solar(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/solar/series/solar_{area_id}"
             update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
@@ -325,7 +326,7 @@ class AreaApiService(BaseAreaService):
             raise MatrixUploadError(area_id, "solar", e.message) from e
 
     @override
-    def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
         try:
             series_path = f"input/misc-gen/miscgen-{area_id}"
             update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
@@ -487,7 +488,7 @@ class AreaApiService(BaseAreaService):
                     properties=json_properties,
                     ui=ui_properties,
                 )
-                area_obj.hydro.read_properties()
+                area_obj.hydro._read_properties()
 
                 area_list.append(area_obj)
 
@@ -498,3 +499,27 @@ class AreaApiService(BaseAreaService):
             raise AreasRetrievalError(self.study_id, e.message) from e
 
         return area_list
+
+    @override
+    def update_multiple_areas(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
+        body = {}
+        updated_areas: Dict[str, AreaProperties] = {}
+        url = f"{self._base_url}/studies/{self.study_id}/table-mode/areas"
+
+        for area_id, props in dict_areas.items():
+            api_properties = AreaPropertiesAPITableMode.from_user_model(props)
+            api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+            body[area_id] = api_dict
+
+        try:
+            areas = self._wrapper.put(url, json=body).json()
+
+            for area in areas:
+                api_response = AreaPropertiesAPITableMode.model_validate(areas[area])
+                area_properties = api_response.to_user_model()
+                updated_areas.update({area: area_properties})
+
+        except APIError as e:
+            raise AreasUpdateError(self.study_id, e.message) from e
+
+        return updated_areas

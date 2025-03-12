@@ -90,9 +90,9 @@ class Hydro:
 
     def update_properties(self, properties: HydroPropertiesUpdate) -> None:
         self._service.update_properties(self.area_id, properties)
-        self._properties = self.read_properties()
+        self._properties = self._read_properties()
 
-    def read_properties(self) -> HydroProperties:
+    def _read_properties(self) -> HydroProperties:
         properties = self._service.read_properties(self.area_id)
         self._properties = properties
         return properties
@@ -124,29 +124,29 @@ class Hydro:
     def get_energy(self) -> pd.DataFrame:
         return self._service.get_energy(self.area_id)
 
-    def update_maxpower(self, series: pd.DataFrame) -> None:
-        return self._service.update_maxpower(self.area_id, series)
+    def set_maxpower(self, series: pd.DataFrame) -> None:
+        return self._service.set_maxpower(self.area_id, series)
 
-    def update_reservoir(self, series: pd.DataFrame) -> None:
-        return self._service.update_reservoir(self.area_id, series)
+    def set_reservoir(self, series: pd.DataFrame) -> None:
+        return self._service.set_reservoir(self.area_id, series)
 
-    def update_inflow_pattern(self, series: pd.DataFrame) -> None:
-        return self._service.update_inflow_pattern(self.area_id, series)
+    def set_inflow_pattern(self, series: pd.DataFrame) -> None:
+        return self._service.set_inflow_pattern(self.area_id, series)
 
-    def update_credits_modulation(self, series: pd.DataFrame) -> None:
-        return self._service.update_credits_modulation(self.area_id, series)
+    def set_credits_modulation(self, series: pd.DataFrame) -> None:
+        return self._service.set_credits_modulation(self.area_id, series)
 
-    def update_water_values(self, series: pd.DataFrame) -> None:
-        return self._service.update_water_values(self.area_id, series)
+    def set_water_values(self, series: pd.DataFrame) -> None:
+        return self._service.set_water_values(self.area_id, series)
 
-    def update_mod_series(self, series: pd.DataFrame) -> None:
-        return self._service.update_mod_series(self.area_id, series)
+    def set_mod_series(self, series: pd.DataFrame) -> None:
+        return self._service.set_mod_series(self.area_id, series)
 
-    def update_ror_series(self, series: pd.DataFrame) -> None:
-        return self._service.update_ror_series(self.area_id, series)
+    def set_ror_series(self, series: pd.DataFrame) -> None:
+        return self._service.set_ror_series(self.area_id, series)
 
-    def update_mingen(self, series: pd.DataFrame) -> None:
-        return self._service.update_mingen(self.area_id, series)
+    def set_mingen(self, series: pd.DataFrame) -> None:
+        return self._service.set_mingen(self.area_id, series)
 
-    def update_energy(self, series: pd.DataFrame) -> None:
-        return self._service.update_energy(self.area_id, series)
+    def set_energy(self, series: pd.DataFrame) -> None:
+        return self._service.set_energy(self.area_id, series)

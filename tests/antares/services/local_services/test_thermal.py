@@ -19,7 +19,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.craft.exceptions.exceptions import MatrixFormatError, ThermalCreationError
+from antares.craft.exceptions.exceptions import MatrixFormatError, ThermalCreationError, ThermalDeletionError
 from antares.craft.model.thermal import (
     LawOption,
     LocalTSGenerationBehavior,
@@ -79,7 +79,7 @@ name = test thermal cluster
 enabled = True
 unitcount = 1
 nominalcapacity = 0.0
-group = Other 1
+group = other 1
 gen-ts = use global
 min-stable-power = 0.0
 min-up-time = 1
@@ -130,7 +130,7 @@ name = test thermal cluster
 enabled = False
 unitcount = 12
 nominalcapacity = 3.9
-group = Nuclear
+group = nuclear
 gen-ts = force no generation
 min-stable-power = 3.1
 min-up-time = 3
@@ -270,6 +270,48 @@ variableomcost = 5.0
         )
         assert new_properties == expected_properties
         assert thermal.properties == expected_properties
+        # Asserts the ini file is properly modified
+        ini_file = IniFile(Path(local_study_w_thermal.path), InitializationFilesTypes.THERMAL_LIST_INI, area_id="fr")
+        assert ini_file.ini_dict == {
+            "test thermal cluster": {
+                "name": "test thermal cluster",
+                "enabled": "True",
+                "unitcount": "1",
+                "nominalcapacity": "0.0",
+                "group": "other 1",
+                "gen-ts": "use global",
+                "min-stable-power": "0.0",
+                "min-up-time": "1",
+                "min-down-time": "1",
+                "must-run": "False",
+                "spinning": "0.1",
+                "volatility.forced": "0.0",
+                "volatility.planned": "0.0",
+                "law.forced": "geometric",
+                "law.planned": "uniform",
+                "marginal-cost": "0.0",
+                "spread-cost": "0.0",
+                "fixed-cost": "0.0",
+                "startup-cost": "1.2",
+                "market-bid-cost": "0.0",
+                "co2": "0.0",
+                "nh3": "0.0",
+                "so2": "0.0",
+                "nox": "0.0",
+                "pm2_5": "0.0",
+                "pm5": "0.0",
+                "pm10": "0.0",
+                "nmvoc": "0.0",
+                "op1": "0.0",
+                "op2": "0.0",
+                "op3": "0.0",
+                "op4": "0.0",
+                "op5": "0.0",
+                "costgeneration": "SetManually",
+                "efficiency": "100.0",
+                "variableomcost": "0.0",
+            }
+        }
 
     def test_update_matrices(self, local_study_w_thermal):
         # Checks all matrices exist
@@ -282,21 +324,21 @@ variableomcost = 5.0
 
         # Replace matrices
         data_matrix = pd.DataFrame(data=np.ones((365, 6)))
-        thermal.update_prepro_data_matrix(data_matrix)
+        thermal.set_prepro_data(data_matrix)
         assert thermal.get_prepro_data_matrix().equals(data_matrix)
 
         modulation_matrix = pd.DataFrame(data=np.ones((8760, 4)))
-        thermal.update_prepro_modulation_matrix(modulation_matrix)
+        thermal.set_prepro_modulation(modulation_matrix)
         assert thermal.get_prepro_modulation_matrix().equals(modulation_matrix)
 
         series_matrix = pd.DataFrame(data=8760 * [[3]])
-        thermal.update_series_matrix(series_matrix)
+        thermal.set_series(series_matrix)
         assert thermal.get_series_matrix().equals(series_matrix)
 
-        thermal.update_fuel_cost_matrix(series_matrix)
+        thermal.set_fuel_cost(series_matrix)
         assert thermal.get_fuel_cost_matrix().equals(series_matrix)
 
-        thermal.update_co2_cost_matrix(series_matrix)
+        thermal.set_co2_cost(series_matrix)
         assert thermal.get_co2_cost_matrix().equals(series_matrix)
 
         # Try to update with wrongly formatted matrix
@@ -307,4 +349,34 @@ variableomcost = 5.0
                 "Wrong format for thermal/fr/test thermal cluster/series matrix, expected shape is (8760, Any) and was : (2, 3)"
             ),
         ):
-            thermal.update_series_matrix(matrix)
+            thermal.set_series(matrix)
+
+    def test_deletion(self, local_study_w_thermal):
+        # Creates 3 cluster to test all cases
+        area_fr = local_study_w_thermal.get_areas()["fr"]
+        thermal_1 = area_fr.get_thermals()["test thermal cluster"]
+        thermal_2 = area_fr.create_thermal_cluster("th_2")
+        thermal_3 = area_fr.create_thermal_cluster("th_3")
+
+        # Deletes one cluster
+        area_fr.delete_thermal_cluster(thermal_1)
+        assert list(area_fr.get_thermals().keys()) == ["th_2", "th_3"]
+        # Checks ini content
+        ini_file = IniFile(Path(local_study_w_thermal.path), InitializationFilesTypes.THERMAL_LIST_INI, area_id="fr")
+        assert list(ini_file.ini_dict.keys()) == ["th_2", "th_3"]
+
+        # Deletes the remaining clusters
+        area_fr.delete_thermal_clusters([thermal_2, thermal_3])
+        # Asserts the area dict is empty
+        assert area_fr.get_thermals() == {}
+        # Asserts the file is empty
+        ini_path = Path(local_study_w_thermal.path / "input" / "thermal" / "clusters" / "fr" / "list.ini")
+        assert not ini_path.read_text()
+
+        with pytest.raises(
+            ThermalDeletionError,
+            match=re.escape(
+                "Could not delete the following thermal clusters: test thermal cluster inside area fr: it doesn't exist"
+            ),
+        ):
+            area_fr.delete_thermal_cluster(thermal_1)

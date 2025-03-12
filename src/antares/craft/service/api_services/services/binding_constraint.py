@@ -128,7 +128,11 @@ class BindingConstraintApiService(BaseBindingConstraintService):
     ) -> ConstraintTerm:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint_id}/term"
         try:
-            body: dict[str, Any] = {"data": asdict(term.data), "weight": term.weight or existing_term.weight}
+            body: dict[str, Any] = {
+                "id": existing_term.id,
+                "data": asdict(term.data),
+                "weight": term.weight or existing_term.weight,
+            }
             if term.offset:
                 body["offset"] = term.offset
             self._wrapper.put(url, json=body)
@@ -174,7 +178,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise ConstraintMatrixDownloadError(constraint.id, matrix_name.value, e.message) from e
 
     @override
-    def update_constraint_matrix(
+    def set_constraint_matrix(
         self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName, matrix: pd.DataFrame
     ) -> None:
         mapping = {

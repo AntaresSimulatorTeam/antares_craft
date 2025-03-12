@@ -13,10 +13,12 @@ import pytest
 
 import re
 
+from pathlib import Path
+
 import pandas as pd
 
 from antares.craft import Study
-from antares.craft.exceptions.exceptions import MatrixFormatError
+from antares.craft.exceptions.exceptions import ConstraintDoesNotExistError, MatrixFormatError
 from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
@@ -24,11 +26,12 @@ from antares.craft.model.binding_constraint import (
     ConstraintTerm,
     LinkData,
 )
+from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
 class TestBindingConstraints:
     def test_read_constraints(self, local_study_w_constraints: Study) -> None:
-        constraints = local_study_w_constraints.read_binding_constraints()
+        constraints = local_study_w_constraints._read_binding_constraints()
         assert len(constraints) == 2
         bc_1 = constraints[0]
         assert bc_1.name == "bc_1"
@@ -81,13 +84,13 @@ class TestBindingConstraints:
 
         # Replace matrices
         matrix = pd.DataFrame(data=8784 * [[3]])
-        bc.update_greater_term_matrix(matrix)
+        bc.set_greater_term(matrix)
         assert bc.get_greater_term_matrix().equals(matrix)
 
-        bc.update_less_term_matrix(matrix)
+        bc.set_less_term(matrix)
         assert bc.get_less_term_matrix().equals(matrix)
 
-        bc.update_equal_term_matrix(matrix)
+        bc.set_equal_term(matrix)
         assert bc.get_equal_term_matrix().equals(matrix)
 
         # Try to update with wrongly formatted matrix
@@ -98,4 +101,32 @@ class TestBindingConstraints:
                 "Wrong format for bindingconstraints/bc_1/bc_hourly matrix, expected shape is (8784, Any) and was : (2, 3)"
             ),
         ):
-            bc.update_less_term_matrix(matrix)
+            bc.set_less_term(matrix)
+
+    def test_delete(self, local_study_w_constraints: Study) -> None:
+        bc = local_study_w_constraints.get_binding_constraints()["bc_1"]
+        local_study_w_constraints.delete_binding_constraint(bc)
+        assert bc.id not in local_study_w_constraints.get_binding_constraints()
+        # Checks ini file
+        study_path = Path(local_study_w_constraints.path)
+        ini_file = IniFile(study_path, InitializationFilesTypes.BINDING_CONSTRAINTS_INI)
+        assert ini_file.ini_dict == {
+            "0": {
+                "at%fr": "2",
+                "comments": "",
+                "enabled": "True",
+                "filter-synthesis": "annual, daily, hourly, monthly, weekly",
+                "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
+                "group": "default",
+                "id": "bc_2",
+                "name": "bc_2",
+                "operator": "less",
+                "type": "hourly",
+            }
+        }
+
+        with pytest.raises(
+            ConstraintDoesNotExistError,
+            match=re.escape("The binding constraint bc_1 doesn't exist inside study studyTest."),
+        ):
+            local_study_w_constraints.delete_binding_constraint(bc)

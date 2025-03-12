@@ -41,7 +41,7 @@ class TestRenewable:
 
         # Replace matrix
         matrix = pd.DataFrame(data=8760 * [[3]])
-        renewable.update_renewable_matrix(matrix)
+        renewable.set_series(matrix)
         assert renewable.get_timeseries().equals(matrix)
 
         # Try to update with wrongly formatted matrix
@@ -52,4 +52,14 @@ class TestRenewable:
                 "Wrong format for renewable/fr/renewable cluster/series matrix, expected shape is (8760, Any) and was : (2, 3)"
             ),
         ):
-            renewable.update_renewable_matrix(matrix)
+            renewable.set_series(matrix)
+
+    def test_deletion(self, local_study_with_renewable):
+        area_fr = local_study_with_renewable.get_areas()["fr"]
+        renewable = area_fr.get_renewables()["renewable cluster"]
+        area_fr.delete_renewable_clusters([renewable])
+        # Asserts the area dict is empty
+        assert area_fr.get_renewables() == {}
+        # Asserts the file is empty
+        ini_path = Path(local_study_with_renewable.path / "input" / "renewables" / "clusters" / "fr" / "list.ini")
+        assert not ini_path.read_text()

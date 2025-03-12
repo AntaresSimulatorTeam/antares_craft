@@ -68,7 +68,7 @@ class ThermalApiService(BaseThermalService):
         return new_properties
 
     @override
-    def update_thermal_matrix(
+    def set_thermal_matrix(
         self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame, ts_name: ThermalClusterMatrixName
     ) -> None:
         keyword = "series" if "SERIES" in ts_name.name else "prepro"

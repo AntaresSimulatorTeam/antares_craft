@@ -251,17 +251,17 @@ def area_fr(local_study_with_hydro) -> Area:
 
 @pytest.fixture
 def fr_solar(area_fr) -> None:
-    return area_fr.create_solar(pd.DataFrame())
+    return area_fr.set_solar(pd.DataFrame())
 
 
 @pytest.fixture
 def fr_wind(area_fr) -> None:
-    return area_fr.create_wind(pd.DataFrame())
+    return area_fr.set_wind(pd.DataFrame())
 
 
 @pytest.fixture
 def fr_load(area_fr) -> None:
-    return area_fr.create_load(pd.DataFrame())
+    return area_fr.set_load(pd.DataFrame())
 
 
 @pytest.fixture

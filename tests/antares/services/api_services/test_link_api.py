@@ -129,7 +129,7 @@ class TestCreateAPI:
 
             mocker.post(raw_url, status_code=200)
 
-            self.link.update_parameters(self.matrix)
+            self.link.set_parameters(self.matrix)
 
     def test_create_parameters_fail(self):
         with requests_mock.Mocker() as mocker:
@@ -145,7 +145,7 @@ class TestCreateAPI:
                 LinkUploadError,
                 match=f"Error uploading parameters matrix for link {self.link.area_from_id}/{self.link.area_to_id}",
             ):
-                self.link.update_parameters(self.matrix)
+                self.link.set_parameters(self.matrix)
 
     def test_create_direct_capacity_success(self):
         with requests_mock.Mocker() as mocker:
@@ -156,7 +156,7 @@ class TestCreateAPI:
 
             mocker.post(raw_url, status_code=200)
 
-            self.link.update_capacity_direct(self.matrix)
+            self.link.set_capacity_direct(self.matrix)
 
     def test_create_direct_capacity_fail(self):
         with requests_mock.Mocker() as mocker:
@@ -172,7 +172,7 @@ class TestCreateAPI:
                 LinkUploadError,
                 match=f"Error uploading directcapacity matrix for link {self.link.area_from_id}/{self.link.area_to_id}",
             ):
-                self.link.update_capacity_direct(self.matrix)
+                self.link.set_capacity_direct(self.matrix)
 
     def test_create_indirect_capacity_success(self):
         with requests_mock.Mocker() as mocker:
@@ -183,7 +183,7 @@ class TestCreateAPI:
 
             mocker.post(raw_url, status_code=200)
 
-            self.link.update_capacity_indirect(self.matrix)
+            self.link.set_capacity_indirect(self.matrix)
 
     def test_create_indirect_capacity_fail(self):
         with requests_mock.Mocker() as mocker:
@@ -198,7 +198,7 @@ class TestCreateAPI:
                 LinkUploadError,
                 match=f"Error uploading indirectcapacity matrix for link {self.link.area_from_id}/{self.link.area_to_id}",
             ):
-                self.link.update_capacity_indirect(self.matrix)
+                self.link.set_capacity_indirect(self.matrix)
 
     def test_get_parameters_success(self):
         with requests_mock.Mocker() as mocker:
@@ -304,7 +304,7 @@ class TestCreateAPI:
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url_read_links, json=json_links)
-            actual_link_list = self.study.read_links()
+            actual_link_list = self.study._read_links()
             assert len(actual_link_list) == 1
             actual_link = actual_link_list[0]
             assert expected_link.id == actual_link.id
@@ -320,4 +320,4 @@ class TestCreateAPI:
                 LinksRetrievalError,
                 match=f"Could not retrieve links from study {self.study_id} : {self.antares_web_description_msg}",
             ):
-                self.study.read_links()
+                self.study._read_links()

@@ -104,7 +104,7 @@ class TestCreateAPI:
                 f"{self.area.id}/{self.renewable.name}/series"
             )
             mocker.post(url, status_code=200)
-            self.renewable.update_renewable_matrix(self.matrix)
+            self.renewable.set_series(self.matrix)
 
     def test_update_renewable_matrices_fail(self):
         with requests_mock.Mocker() as mocker:
@@ -118,13 +118,13 @@ class TestCreateAPI:
                 match=f"Could not upload matrix for cluster {self.renewable.name} inside area {self.area.name}: "
                 + self.antares_web_description_msg,
             ):
-                self.renewable.update_renewable_matrix(self.matrix)
+                self.renewable.set_series(self.matrix)
 
     def test_read_renewables(self):
         json_renewable = [
             {
                 "id": "test_renouvelable",
-                "group": "Solar Thermal",
+                "group": "solar thermal",
                 "name": "test_renouvelable",
                 "enabled": "true",
                 "unitCount": 1,

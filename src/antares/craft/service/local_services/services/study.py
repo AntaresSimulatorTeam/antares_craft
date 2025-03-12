@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import copy
 import logging
 import shutil
 import tempfile
@@ -20,6 +21,7 @@ import numpy as np
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.exceptions.exceptions import ConstraintDoesNotExistError
 from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -27,6 +29,7 @@ from antares.craft.model.binding_constraint import (
 from antares.craft.model.output import Output
 from antares.craft.model.thermal import LocalTSGenerationBehavior
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
+from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.tsgen.duration_generator import ProbabilityLaw
 from antares.tsgen.random_generator import MersenneTwisterRNG
 from antares.tsgen.ts_generator import OutageGenerationParameters, ThermalCluster, TimeseriesGenerator
@@ -117,6 +120,7 @@ class StudyLocalService(BaseStudyService):
         self._config = config
         self._study_name = study_name
         self._output_service: BaseOutputService = output_service
+        self._output_path = self.config.study_path / "output"
 
     @property
     @override
@@ -134,27 +138,53 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
-        raise NotImplementedError
+        study_path = self.config.study_path
+        ini_file = IniFile(study_path, InitializationFilesTypes.BINDING_CONSTRAINTS_INI)
+        current_content = ini_file.ini_dict
+        copied_content = copy.deepcopy(current_content)
+        for index, bc in current_content.items():
+            if bc["id"] == constraint.id:
+                copied_content.pop(index)
+                new_dict = {str(i): v for i, (k, v) in enumerate(copied_content.items())}
+                ini_file.ini_dict = new_dict
+                ini_file.write_ini_file()
+                return
+        raise ConstraintDoesNotExistError(constraint.name, self._study_name)
 
     @override
     def delete(self, children: bool) -> None:
-        raise NotImplementedError
+        shutil.rmtree(self.config.study_path, ignore_errors=True)
 
     @override
     def create_variant(self, variant_name: str) -> "Study":
-        raise NotImplementedError
+        raise ValueError("The variant creation should only be used for API studies not for local ones")
 
     @override
     def read_outputs(self) -> list[Output]:
-        raise NotImplementedError
+        outputs = []
+        for folder in self._output_path.iterdir():
+            output_name = folder.name
+            archived = True if output_name.endswith(".zip") else False
+            output = Output(name=output_name, archived=archived, output_service=self.output_service)
+            outputs.append(output)
+        outputs.sort(key=lambda o: o.name)
+        return outputs
 
     @override
     def delete_outputs(self) -> None:
-        raise NotImplementedError
+        for resource in self._output_path.iterdir():
+            if resource.is_file():
+                resource.unlink()
+            else:
+                shutil.rmtree(resource, ignore_errors=True)
 
     @override
     def delete_output(self, output_name: str) -> None:
-        raise NotImplementedError
+        output_path = self._output_path / output_name
+        if output_path.is_file():
+            output_path.unlink()
+        else:
+            shutil.rmtree(output_path, ignore_errors=True)
 
     @override
     def move_study(self, new_parent_path: Path) -> PurePath:

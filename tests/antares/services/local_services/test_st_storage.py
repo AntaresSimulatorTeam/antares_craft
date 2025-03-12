@@ -50,16 +50,16 @@ class TestSTStorage:
         storage.update_pmax_injection(matrix)
         assert storage.get_pmax_injection().equals(matrix)
 
-        storage.update_pmax_withdrawal(matrix)
+        storage.set_pmax_withdrawal(matrix)
         assert storage.get_pmax_withdrawal().equals(matrix)
 
-        storage.update_lower_rule_curve(matrix)
+        storage.set_lower_rule_curve(matrix)
         assert storage.get_lower_rule_curve().equals(matrix)
 
-        storage.update_upper_rule_curve(matrix)
+        storage.set_upper_rule_curve(matrix)
         assert storage.get_upper_rule_curve().equals(matrix)
 
-        storage.update_storage_inflows(matrix)
+        storage.set_storage_inflows(matrix)
         assert storage.get_storage_inflows().equals(matrix)
 
         # Try to update with wrongly formatted matrix
@@ -71,3 +71,13 @@ class TestSTStorage:
             ),
         ):
             storage.update_pmax_injection(matrix)
+
+    def test_deletion(self, local_study_w_storage):
+        area_fr = local_study_w_storage.get_areas()["fr"]
+        storage = area_fr.get_st_storages()["sts_1"]
+        area_fr.delete_st_storages([storage])
+        # Asserts the area dict is empty
+        assert area_fr.get_st_storages() == {}
+        # Asserts the file is empty
+        ini_path = Path(local_study_w_storage.path / "input" / "st-storage" / "clusters" / "fr" / "list.ini")
+        assert not ini_path.read_text()

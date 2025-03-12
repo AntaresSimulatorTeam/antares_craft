@@ -9,12 +9,12 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+import copy
 import logging
 import os
 
 from configparser import ConfigParser, DuplicateSectionError
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -167,7 +167,7 @@ class AreaLocalService(BaseAreaService):
         return RenewableCluster(self.renewable_service, area_id, renewable_name, properties)
 
     @override
-    def create_load(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_load(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.LOAD, area_id)
         PreproFolder.LOAD.save(self.config.study_path, area_id)
 
@@ -205,21 +205,21 @@ class AreaLocalService(BaseAreaService):
         return storage
 
     @override
-    def create_wind(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_wind(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.WIND, area_id)
         PreproFolder.WIND.save(self.config.study_path, area_id)
 
     @override
-    def create_reserves(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_reserves(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.RESERVES, area_id)
 
     @override
-    def create_solar(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_solar(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.SOLAR, area_id)
         PreproFolder.SOLAR.save(self.config.study_path, area_id)
 
     @override
-    def create_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_misc_gen(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.MISC_GEN, area_id)
 
     @override
@@ -313,11 +313,11 @@ class AreaLocalService(BaseAreaService):
                 ui_ini.write(ui_ini_file)
 
             empty_df = pd.DataFrame()
-            self.create_reserves(area_name, empty_df)
-            self.create_misc_gen(area_name, empty_df)
-            self.create_load(area_name, empty_df)
-            self.create_solar(area_name, empty_df)
-            self.create_wind(area_name, empty_df)
+            self.set_reserves(area_name, empty_df)
+            self.set_misc_gen(area_name, empty_df)
+            self.set_load(area_name, empty_df)
+            self.set_solar(area_name, empty_df)
+            self.set_wind(area_name, empty_df)
             IniFile.create_link_ini_for_area(study_path, area_name)
             IniFile.create_list_ini_for_area(study_path, area_name)
 
@@ -365,23 +365,95 @@ class AreaLocalService(BaseAreaService):
 
     @override
     def update_area_properties(self, area_id: str, properties: AreaPropertiesUpdate) -> AreaProperties:
-        raise NotImplementedError
+        study_path = self.config.study_path
+        local_properties = AreaPropertiesLocal.from_user_model(properties)
+
+        # Adequacy patch
+        adequacy_patch_ini = IniFile(study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_id)
+        updated_properties_dict: dict[str, Any] = adequacy_patch_ini.ini_dict
+        if properties.adequacy_patch_mode:
+            updated_properties_dict = local_properties.to_adequacy_ini()
+            adequacy_patch_ini.ini_dict = updated_properties_dict
+            adequacy_patch_ini.write_ini_file()
+
+        # Thermal properties
+        thermal_ini = IniFile(study_path, InitializationFilesTypes.THERMAL_AREAS_INI)
+        current_content = thermal_ini.ini_dict
+        updated_properties_dict["energy_cost_unsupplied"] = current_content["unserverdenergycost"][area_id]
+        updated_properties_dict["energy_cost_spilled"] = current_content["spilledenergycost"][area_id]
+        if properties.energy_cost_spilled or properties.energy_cost_unsupplied:
+            if properties.energy_cost_spilled:
+                current_content["spilledenergycost"][area_id] = properties.energy_cost_spilled
+                updated_properties_dict["energy_cost_spilled"] = properties.energy_cost_spilled
+            if properties.energy_cost_unsupplied:
+                current_content["unserverdenergycost"][area_id] = properties.energy_cost_unsupplied
+                updated_properties_dict["energy_cost_unsupplied"] = properties.energy_cost_unsupplied
+            thermal_ini.ini_dict = current_content
+            thermal_ini.write_ini_file()
+
+        # Optimization properties
+        optimization_ini = IniFile(study_path, InitializationFilesTypes.AREA_OPTIMIZATION_INI, area_id=area_id)
+        current_content = optimization_ini.ini_dict
+        updated_properties_dict.update(current_content)
+        if (
+            properties.filter_synthesis
+            or properties.filter_by_year
+            or properties.non_dispatch_power
+            or properties.dispatch_hydro_power
+            or properties.other_dispatch_power
+            or properties.spread_spilled_energy_cost
+            or properties.spread_unsupplied_energy_cost
+        ):
+            new_content = local_properties.to_optimization_ini()
+            current_content.update(new_content)
+            updated_properties_dict.update(new_content)
+            optimization_ini.ini_dict = current_content
+            optimization_ini.write_ini_file()
+
+        new_properties = AreaPropertiesLocal.model_validate(updated_properties_dict)
+        return new_properties.to_user_model()
 
     @override
     def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
-        raise NotImplementedError
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.AREA_UI_INI, area_id=area_id)
+        current_content = ini_file.ini_dict
+        # Update ui
+        local_ui = AreaUiLocal.from_user_model(ui).model_dump(mode="json", exclude_unset=True, by_alias=True)
+        current_content.update(local_ui)
+        # Update ini file
+        ini_file.ini_dict = current_content
+        ini_file.write_ini_file()
+        # Prepare object to return
+        updated_ui = AreaUiLocal.model_validate(current_content)
+        return updated_ui.to_user_model()
+
+    @staticmethod
+    def _delete_clusters(ini_file: IniFile, names_to_delete: set[str]) -> None:
+        clusters_dict = ini_file.ini_dict
+        clusters_dict_after_deletion = copy.deepcopy(clusters_dict)
+        for cluster_id, cluster in clusters_dict.items():
+            if cluster["name"] in names_to_delete:
+                del clusters_dict_after_deletion[cluster_id]
+        ini_file.ini_dict = clusters_dict_after_deletion
+        ini_file.write_ini_file()
 
     @override
     def delete_thermal_clusters(self, area_id: str, thermal_clusters: List[ThermalCluster]) -> None:
-        raise NotImplementedError
+        thermal_names_to_delete = {th.name for th in thermal_clusters}
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id)
+        self._delete_clusters(ini_file, thermal_names_to_delete)
 
     @override
     def delete_renewable_clusters(self, area_id: str, renewable_clusters: List[RenewableCluster]) -> None:
-        raise NotImplementedError
+        renewable_names_to_delete = {renewable.name for renewable in renewable_clusters}
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id)
+        self._delete_clusters(ini_file, renewable_names_to_delete)
 
     @override
     def delete_st_storages(self, area_id: str, storages: List[STStorage]) -> None:
-        raise NotImplementedError
+        storage_names_to_delete = {st.name for st in storages}
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area_id)
+        self._delete_clusters(ini_file, storage_names_to_delete)
 
     @override
     def get_load_matrix(self, area_id: str) -> pd.DataFrame:
@@ -407,6 +479,8 @@ class AreaLocalService(BaseAreaService):
     def read_areas(self) -> List[Area]:
         local_path = self.config.local_path
         areas_path = local_path / self.study_name / "input" / "areas"
+        if not areas_path.exists():
+            return []
         areas = []
         for element in areas_path.iterdir():
             if element.is_dir():
@@ -444,8 +518,16 @@ class AreaLocalService(BaseAreaService):
                     properties=area_properties,
                     ui=ui_properties,
                 )
-                area.hydro.read_properties()
+                area.hydro._read_properties()
                 areas.append(area)
 
         areas.sort(key=lambda area_obj: area_obj.id)
         return areas
+
+    @override
+    def update_multiple_areas(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
+        new_properties_dict = {}
+        for area_id, update_properties in dict_areas.items():
+            new_properties = self.update_area_properties(area_id, update_properties)
+            new_properties_dict[area_id] = new_properties
+        return new_properties_dict

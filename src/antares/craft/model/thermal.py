@@ -31,16 +31,16 @@ class LawOption(Enum):
 
 
 class ThermalClusterGroup(Enum):
-    NUCLEAR = "Nuclear"
-    LIGNITE = "Lignite"
-    HARD_COAL = "Hard Coal"
-    GAS = "Gas"
-    OIL = "Oil"
-    MIXED_FUEL = "Mixed Fuel"
-    OTHER1 = "Other 1"
-    OTHER2 = "Other 2"
-    OTHER3 = "Other 3"
-    OTHER4 = "Other 4"
+    NUCLEAR = "nuclear"
+    LIGNITE = "lignite"
+    HARD_COAL = "hard coal"
+    GAS = "gas"
+    OIL = "oil"
+    MIXED_FUEL = "mixed fuel"
+    OTHER1 = "other 1"
+    OTHER2 = "other 2"
+    OTHER3 = "other 3"
+    OTHER4 = "other 4"
 
 
 class LocalTSGenerationBehavior(Enum):
@@ -194,17 +194,17 @@ class ThermalCluster:
     def get_fuel_cost_matrix(self) -> pd.DataFrame:
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_FUEL_COST)
 
-    def update_prepro_data_matrix(self, matrix: pd.DataFrame) -> None:
-        self._thermal_service.update_thermal_matrix(self, matrix, ThermalClusterMatrixName.PREPRO_DATA)
+    def set_prepro_data(self, matrix: pd.DataFrame) -> None:
+        self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.PREPRO_DATA)
 
-    def update_prepro_modulation_matrix(self, matrix: pd.DataFrame) -> None:
-        self._thermal_service.update_thermal_matrix(self, matrix, ThermalClusterMatrixName.PREPRO_MODULATION)
+    def set_prepro_modulation(self, matrix: pd.DataFrame) -> None:
+        self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.PREPRO_MODULATION)
 
-    def update_series_matrix(self, matrix: pd.DataFrame) -> None:
-        self._thermal_service.update_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES)
+    def set_series(self, matrix: pd.DataFrame) -> None:
+        self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES)
 
-    def update_co2_cost_matrix(self, matrix: pd.DataFrame) -> None:
-        self._thermal_service.update_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES_CO2_COST)
+    def set_co2_cost(self, matrix: pd.DataFrame) -> None:
+        self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES_CO2_COST)
 
-    def update_fuel_cost_matrix(self, matrix: pd.DataFrame) -> None:
-        self._thermal_service.update_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES_FUEL_COST)
+    def set_fuel_cost(self, matrix: pd.DataFrame) -> None:
+        self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES_FUEL_COST)

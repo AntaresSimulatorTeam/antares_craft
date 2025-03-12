@@ -13,15 +13,50 @@ import pytest
 
 import re
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
 from antares.craft import Study
-from antares.craft.exceptions.exceptions import MatrixFormatError
-from antares.craft.model.link import AssetType, LinkProperties, LinkPropertiesUpdate
+from antares.craft.exceptions.exceptions import LinkDeletionError, MatrixFormatError
+from antares.craft.model.link import AssetType, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
+from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
 class TestLink:
+    def test_update_ui(self, local_study_w_links: Study) -> None:
+        # Checks values before update
+        link = local_study_w_links.get_links()["at / fr"]
+        current_ui = LinkUi()
+        assert link.ui == current_ui
+        # Updates ui
+        update_ui = LinkUiUpdate(link_width=4.2, colorg=255)
+        new_ui = link.update_ui(update_ui)
+        expected_ui = LinkUi(link_width=4.2, colorg=255)
+        assert new_ui == expected_ui
+        assert link.ui == expected_ui
+        # Asserts the ini file is properly modified
+        ini_file = IniFile(
+            Path(local_study_w_links.path), InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id
+        )
+        assert ini_file.ini_dict["fr"] == {
+            "asset-type": "ac",
+            "colorb": "112",
+            "colorg": "255",
+            "colorr": "112",
+            "comments": "",
+            "display-comments": "True",
+            "filter-synthesis": "annual, daily, hourly, monthly, weekly",
+            "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
+            "hurdles-cost": "False",
+            "link-style": "plain",
+            "link-width": "4.2",
+            "loop-flow": "False",
+            "transmission-capacities": "enabled",
+            "use-phase-shifter": "False",
+        }
+
     def test_update_properties(self, local_study_w_links: Study) -> None:
         # Checks values before update
         link = local_study_w_links.get_links()["at / fr"]
@@ -33,6 +68,26 @@ class TestLink:
         expected_properties = LinkProperties(hurdles_cost=True, asset_type=AssetType.AC, comments="new comment")
         assert new_properties == expected_properties
         assert link.properties == expected_properties
+        # Asserts the ini file is properly modified
+        ini_file = IniFile(
+            Path(local_study_w_links.path), InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id
+        )
+        assert ini_file.ini_dict["fr"] == {
+            "hurdles-cost": "True",
+            "loop-flow": "False",
+            "use-phase-shifter": "False",
+            "transmission-capacities": "enabled",
+            "asset-type": "ac",
+            "link-style": "plain",
+            "link-width": "1.0",
+            "colorr": "112",
+            "colorg": "112",
+            "colorb": "112",
+            "display-comments": "True",
+            "filter-synthesis": "annual, daily, hourly, monthly, weekly",
+            "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
+            "comments": "new comment",
+        }
 
     def test_update_multiple_update_properties(self, local_study_w_links: Study) -> None:
         # Checks values before update
@@ -67,14 +122,14 @@ class TestLink:
 
         # Replace matrices
         matrix = pd.DataFrame(data=8760 * [[3]])
-        link.update_capacity_direct(matrix)
+        link.set_capacity_direct(matrix)
         assert link.get_capacity_direct().equals(matrix)
 
-        link.update_capacity_indirect(matrix)
+        link.set_capacity_indirect(matrix)
         assert link.get_capacity_indirect().equals(matrix)
 
         parameters_matrix = pd.DataFrame(data=np.ones((8760, 6)))
-        link.update_parameters(parameters_matrix)
+        link.set_parameters(parameters_matrix)
         assert link.get_parameters().equals(parameters_matrix)
 
         # Try to update with wrongly formatted matrix
@@ -85,4 +140,15 @@ class TestLink:
                 "Wrong format for links/at/fr/links_parameters matrix, expected shape is (8760, 6) and was : (2, 3)"
             ),
         ):
-            link.update_parameters(matrix)
+            link.set_parameters(matrix)
+
+    def test_deletion(self, local_study_w_links: Study) -> None:
+        link = local_study_w_links.get_links()["at / fr"]
+        local_study_w_links.delete_link(link)
+        ini_file = IniFile(
+            Path(local_study_w_links.path), InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id
+        )
+        assert "fr" not in ini_file.ini_dict
+
+        with pytest.raises(LinkDeletionError, match=re.escape("Could not delete the link at / fr: it doesn't exist")):
+            local_study_w_links.delete_link(link)

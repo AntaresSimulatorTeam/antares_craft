@@ -13,6 +13,7 @@ import pytest
 
 import logging
 import os
+import re
 import time
 import typing as t
 
@@ -1396,3 +1397,15 @@ at%fr = 1%1
 
         # Then
         assert actual_time_series.equals(expected_time_series)
+
+    def test_study_delete(self, local_study):
+        study_path = Path(local_study.path)
+        assert study_path.exists()
+        local_study.delete()
+        assert not study_path.exists()
+
+    def test_variant_local(self, local_study):
+        with pytest.raises(
+            ValueError, match=re.escape("The variant creation should only be used for API studies not for local ones")
+        ):
+            local_study.create_variant("test")

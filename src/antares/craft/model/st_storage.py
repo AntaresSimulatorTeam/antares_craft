@@ -21,15 +21,15 @@ from antares.craft.tools.contents_tool import transform_name_to_id
 
 class STStorageGroup(Enum):
     # todo: this class should disappear with Simulator version 9.1
-    PSP_OPEN = "PSP_open"
-    PSP_CLOSED = "PSP_closed"
-    PONDAGE = "Pondage"
-    BATTERY = "Battery"
-    OTHER1 = "Other1"
-    OTHER2 = "Other2"
-    OTHER3 = "Other3"
-    OTHER4 = "Other4"
-    OTHER5 = "Other5"
+    PSP_OPEN = "psp_open"
+    PSP_CLOSED = "psp_closed"
+    PONDAGE = "pondage"
+    BATTERY = "battery"
+    OTHER1 = "other1"
+    OTHER2 = "other2"
+    OTHER3 = "other3"
+    OTHER4 = "other4"
+    OTHER5 = "other5"
 
 
 class STStorageMatrixName(Enum):
@@ -115,16 +115,16 @@ class STStorage:
         return self._storage_service.get_storage_matrix(self, STStorageMatrixName.INFLOWS)
 
     def update_pmax_injection(self, p_max_injection_matrix: pd.DataFrame) -> None:
-        self._storage_service.update_storage_matrix(self, STStorageMatrixName.PMAX_INJECTION, p_max_injection_matrix)
+        self._storage_service.set_storage_matrix(self, STStorageMatrixName.PMAX_INJECTION, p_max_injection_matrix)
 
-    def update_pmax_withdrawal(self, p_max_withdrawal_matrix: pd.DataFrame) -> None:
-        self._storage_service.update_storage_matrix(self, STStorageMatrixName.PMAX_WITHDRAWAL, p_max_withdrawal_matrix)
+    def set_pmax_withdrawal(self, p_max_withdrawal_matrix: pd.DataFrame) -> None:
+        self._storage_service.set_storage_matrix(self, STStorageMatrixName.PMAX_WITHDRAWAL, p_max_withdrawal_matrix)
 
-    def update_lower_rule_curve(self, lower_rule_curve_matrix: pd.DataFrame) -> None:
-        self._storage_service.update_storage_matrix(self, STStorageMatrixName.LOWER_CURVE_RULE, lower_rule_curve_matrix)
+    def set_lower_rule_curve(self, lower_rule_curve_matrix: pd.DataFrame) -> None:
+        self._storage_service.set_storage_matrix(self, STStorageMatrixName.LOWER_CURVE_RULE, lower_rule_curve_matrix)
 
-    def update_upper_rule_curve(self, upper_rule_curve_matrix: pd.DataFrame) -> None:
-        self._storage_service.update_storage_matrix(self, STStorageMatrixName.UPPER_RULE_CURVE, upper_rule_curve_matrix)
+    def set_upper_rule_curve(self, upper_rule_curve_matrix: pd.DataFrame) -> None:
+        self._storage_service.set_storage_matrix(self, STStorageMatrixName.UPPER_RULE_CURVE, upper_rule_curve_matrix)
 
-    def update_storage_inflows(self, inflows_matrix: pd.DataFrame) -> None:
-        self._storage_service.update_storage_matrix(self, STStorageMatrixName.INFLOWS, inflows_matrix)
+    def set_storage_inflows(self, inflows_matrix: pd.DataFrame) -> None:
+        self._storage_service.set_storage_matrix(self, STStorageMatrixName.INFLOWS, inflows_matrix)

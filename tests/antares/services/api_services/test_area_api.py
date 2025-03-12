@@ -195,7 +195,7 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             url = f"{base_url}/studies/{self.study_id}/areas/{self.area.id}/clusters/thermal"
             cluster_name = "cluster_test"
-            creation_response = {"name": cluster_name, "id": cluster_name, "group": "Nuclear"}
+            creation_response = {"name": cluster_name, "id": cluster_name, "group": "nuclear"}
             mocker.post(url, json=creation_response, status_code=200)
 
             raw_url = f"{base_url}/studies/{self.study_id}/raw"
@@ -244,7 +244,7 @@ class TestCreateAPI:
         json_thermal = [
             {
                 "id": "therm_un",
-                "group": "Gas",
+                "group": "gas",
                 "name": "therm_un",
                 "enabled": "true",
                 "unitCount": 1,
@@ -254,7 +254,7 @@ class TestCreateAPI:
         json_renewable = [
             {
                 "id": "test_renouvelable",
-                "group": "Solar Thermal",
+                "group": "solar thermal",
                 "name": "test_renouvelable",
                 "enabled": "true",
                 "unitCount": 1,
@@ -265,7 +265,7 @@ class TestCreateAPI:
         json_st_storage = [
             {
                 "id": "test_storage",
-                "group": "Pondage",
+                "group": "pondage",
                 "name": "test_storage",
                 "injectionNominalCapacity": 0,
                 "withdrawalNominalCapacity": 0,
@@ -297,7 +297,7 @@ class TestCreateAPI:
             mocker.get(url_properties_form, json=json_properties)
             mocker.get(hydro_url, json={"reservoir_capacity": 4.5})
 
-            actual_area_list = self.study.read_areas()
+            actual_area_list = self.study._read_areas()
 
             thermal_ = json_thermal[0]
             thermal_id = thermal_.pop("id")
@@ -361,7 +361,7 @@ class TestCreateAPI:
                 match=f"Could not retrieve the areas from the study {self.study_id} : "
                 + self.antares_web_description_msg,
             ):
-                self.study.read_areas()
+                self.study._read_areas()
 
     def test_read_hydro(self):
         json_hydro = {
@@ -388,7 +388,7 @@ class TestCreateAPI:
             hydro_props = HydroPropertiesAPI(**json_hydro).to_user_model()
 
             actual_hydro = Hydro(self.api, self.area.id, hydro_props)
-            assert actual_hydro.properties == self.area.hydro.read_properties()
+            assert actual_hydro.properties == self.area.hydro._read_properties()
 
     def test_read_renewables_empty(self):
         area = self.area
@@ -401,6 +401,6 @@ class TestCreateAPI:
                 json={"description": "'renewables' not a child of Input", "exception": "ChildNotFoundError"},
             )
 
-            actual_renewables = area.read_renewables()
+            actual_renewables = area._read_renewables()
 
             assert actual_renewables == []

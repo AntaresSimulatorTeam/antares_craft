@@ -23,6 +23,8 @@ import pandas as pd
 
 from antares.craft import read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
+from antares.craft.model.commons import FilterOption
 from antares.craft.model.renewable import (
     RenewableCluster,
     RenewableClusterGroup,
@@ -68,7 +70,7 @@ name = renewable cluster
 enabled = True
 unitcount = 1
 nominalcapacity = 0.0
-group = Other RES 1
+group = other res 1
 ts-interpretation = power-generation
 
 """
@@ -94,7 +96,7 @@ name = renewable cluster
 enabled = True
 unitcount = 1
 nominalcapacity = 0.0
-group = Wind Offshore
+group = wind offshore
 ts-interpretation = production-factor
 
 """
@@ -171,7 +173,7 @@ class TestCreateSTStorage:
         # Given
         expected_st_storage_list_ini_content = """[short term storage]
 name = short term storage
-group = Other1
+group = other1
 injectionnominalcapacity = 0.0
 withdrawalnominalcapacity = 0.0
 reservoircapacity = 0.0
@@ -203,7 +205,7 @@ enabled = True
         # Then
         expected_st_storage_list_ini_content = """[short term storage]
 name = short term storage
-group = Battery
+group = battery
 injectionnominalcapacity = 0.0
 withdrawalnominalcapacity = 0.0
 reservoircapacity = 12.345
@@ -233,7 +235,7 @@ class TestCreateReserves:
         expected_reserves_file_path = area_fr._area_service.config.study_path / "input/reserves/fr.txt"
 
         # When
-        area_fr.create_reserves(pd.DataFrame())
+        area_fr.set_reserves(pd.DataFrame())
 
         # Then
         assert reserves_file_path == expected_reserves_file_path
@@ -251,7 +253,7 @@ class TestCreateReserves:
         expected_time_series = pd.read_csv(StringIO(expected_time_series_string), sep="\t", header=None)
 
         # When
-        area_fr.create_reserves(pd.DataFrame(np.ones([2, 3])))
+        area_fr.set_reserves(pd.DataFrame(np.ones([2, 3])))
         actual_time_series = pd.read_csv(reserves_file_path, sep="\t", header=None)
         with reserves_file_path.open("r") as reserves_ts_file:
             actual_time_series_string = reserves_ts_file.read()
@@ -270,7 +272,7 @@ class TestCreateMiscGen:
         expected_misc_gen_file_path = area_fr._area_service.config.study_path / "input/misc-gen/miscgen-fr.txt"
 
         # When
-        area_fr.create_misc_gen(pd.DataFrame())
+        area_fr.set_misc_gen(pd.DataFrame())
 
         # Then
         assert misc_gen_file_path == expected_misc_gen_file_path
@@ -288,7 +290,7 @@ class TestCreateMiscGen:
         expected_time_series = pd.read_csv(StringIO(expected_time_series_string), sep="\t", header=None)
 
         # When
-        area_fr.create_misc_gen(pd.DataFrame(np.ones([2, 3])))
+        area_fr.set_misc_gen(pd.DataFrame(np.ones([2, 3])))
         actual_time_series = pd.read_csv(misc_gen_file_path, sep="\t", header=None)
         with misc_gen_file_path.open("r") as misc_gen_ts_file:
             actual_time_series_string = misc_gen_ts_file.read()
@@ -307,7 +309,7 @@ class TestCreateWind:
         expected_wind_file_path = area_fr._area_service.config.study_path / "input/wind/series/wind_fr.txt"
 
         # When
-        area_fr.create_wind(pd.DataFrame())
+        area_fr.set_wind(pd.DataFrame())
 
         # Then
         assert wind_file_path == expected_wind_file_path
@@ -325,7 +327,7 @@ class TestCreateWind:
         expected_time_series = pd.read_csv(StringIO(expected_time_series_string), sep="\t", header=None)
 
         # When
-        area_fr.create_wind(pd.DataFrame(np.ones([2, 3])))
+        area_fr.set_wind(pd.DataFrame(np.ones([2, 3])))
         actual_time_series = pd.read_csv(wind_file_path, sep="\t", header=None)
         with wind_file_path.open("r") as wind_ts_file:
             actual_time_series_string = wind_ts_file.read()
@@ -429,7 +431,7 @@ class TestCreateSolar:
         expected_solar_file_path = area_fr._area_service.config.study_path / "input/solar/series/solar_fr.txt"
 
         # When
-        area_fr.create_solar(pd.DataFrame())
+        area_fr.set_solar(pd.DataFrame())
 
         # Then
         assert solar_file_path == expected_solar_file_path
@@ -447,7 +449,7 @@ class TestCreateSolar:
         expected_time_series = pd.read_csv(StringIO(expected_time_series_string), sep="\t", header=None)
 
         # When
-        area_fr.create_solar(pd.DataFrame(np.ones([2, 3])))
+        area_fr.set_solar(pd.DataFrame(np.ones([2, 3])))
         actual_time_series = pd.read_csv(solar_file_path, sep="\t", header=None)
         with solar_file_path.open("r") as solar_ts_file:
             actual_time_series_string = solar_ts_file.read()
@@ -552,7 +554,7 @@ class TestCreateLoad:
         expected_load_file_path = area_fr._area_service.config.study_path / "input/load/series/load_fr.txt"
 
         # When
-        area_fr.create_load(pd.DataFrame())
+        area_fr.set_load(pd.DataFrame())
 
         # Then
         assert load_file_path == expected_load_file_path
@@ -570,7 +572,7 @@ class TestCreateLoad:
         expected_time_series = pd.read_csv(StringIO(expected_time_series_string), sep="\t", header=None)
 
         # When
-        area_fr.create_load(pd.DataFrame(np.ones([2, 3])))
+        area_fr.set_load(pd.DataFrame(np.ones([2, 3])))
         actual_time_series = pd.read_csv(load_file_path, sep="\t", header=None)
         with load_file_path.open("r") as load_ts_file:
             actual_time_series_string = load_ts_file.read()
@@ -671,7 +673,7 @@ class TestReadArea:
 
         local_study_object = read_study_local(study_path)
 
-        actual_areas = local_study_object.read_areas()
+        actual_areas = local_study_object._read_areas()
         expected_areas = ["at", "it", "fr"]
         for area in actual_areas:
             assert area.ui.color_rgb == [230, 108, 44]
@@ -696,7 +698,7 @@ it = 10000.000000
         with open(optimization_path, "w", encoding="utf-8") as antares_file:
             antares_file.write(antares_content)
 
-        local_study_object.read_areas()
+        local_study_object._read_areas()
         area_fr = local_study_object.get_areas()["fr"]
         assert area_fr.properties.energy_cost_unsupplied == 10000
         assert area_fr.properties.energy_cost_spilled == 10
@@ -711,7 +713,7 @@ class TestReadLoad:
     def test_read_load_local(self, local_study_w_areas):
         study_path = local_study_w_areas.service.config.study_path
         local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        areas = local_study_object._read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -733,7 +735,7 @@ class TestReadRenewable:
     def test_read_renewable_local(self, local_study_with_renewable):
         study_path = local_study_with_renewable.service.config.study_path
         local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        areas = local_study_object._read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -743,7 +745,7 @@ class TestReadRenewable:
                 ],
                 dtype="object",
             )
-            renewable_list = area.read_renewables()
+            renewable_list = area._read_renewables()
 
             if renewable_list:
                 assert area.id == "fr"
@@ -756,7 +758,7 @@ class TestReadRenewable:
                 assert renewable.properties.ts_interpretation.value == "power-generation"
                 assert renewable.properties.nominal_capacity == 0.000000
                 assert renewable.properties.enabled
-                assert renewable.properties.group.value == "Other RES 1"
+                assert renewable.properties.group.value == "other res 1"
 
                 # Create folder and file for timeserie.
                 cluster_path = study_path / "input" / "renewables" / "series" / Path(area.id) / Path(renewable.id)
@@ -773,7 +775,7 @@ class TestReadSolar:
     def test_read_solar_local(self, local_study_w_areas):
         study_path = local_study_w_areas.service.config.study_path
         local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        areas = local_study_object._read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -795,7 +797,7 @@ class TestReadReserves:
     def test_read_reserve_local(self, local_study_w_areas):
         study_path = local_study_w_areas.service.config.study_path
         local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        areas = local_study_object._read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -815,9 +817,8 @@ class TestReadReserves:
 
 class TestReadWind:
     def test_read_wind_local(self, local_study_w_areas):
-        study_path = local_study_w_areas.service.config.study_path
-        local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        study_path = t.cast(LocalConfiguration, local_study_w_areas.service.config).study_path
+        areas = local_study_w_areas._read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -837,9 +838,8 @@ class TestReadWind:
 
 class TestReadmisc_gen:
     def test_read_misc_gen_local(self, local_study_w_areas):
-        study_path = local_study_w_areas.service.config.study_path
-        local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        study_path = t.cast(LocalConfiguration, local_study_w_areas.service.config).study_path
+        areas = local_study_w_areas._read_areas()
 
         for area in areas:
             expected_time_serie = pd.DataFrame(
@@ -859,15 +859,15 @@ class TestReadmisc_gen:
 
 class TestReadThermal:
     def test_read_thermals_local(self, local_study_w_thermal):
-        areas = local_study_w_thermal.read_areas()
+        areas = local_study_w_thermal._read_areas()
 
         for area in areas:
-            thermals_list = area.read_thermal_clusters()
+            thermals_list = area._read_thermal_clusters()
 
             for thermal in thermals_list:
                 # Check properties
                 assert thermal.name == "test thermal cluster"
-                assert thermal.properties.group.value == "Other 1"
+                assert thermal.properties.group.value == "other 1"
                 assert thermal.properties.unit_count == 1
                 assert thermal.properties.efficiency == 100.000000
                 assert thermal.properties.nominal_capacity == 0.000000
@@ -884,7 +884,7 @@ class TestReadThermal:
 
 class TestReadLinks:
     def test_read_links_local(self, local_study_w_links):
-        links = local_study_w_links.read_links()
+        links = local_study_w_links._read_links()
         for link in links:
             assert link.ui.link_style.value == "plain"
             assert link.ui.link_width == 1
@@ -902,12 +902,10 @@ class TestReadLinks:
 
 class TestReadSTStorage:
     def test_read_st_storage_local(self, local_study_w_storage):
-        study_path = t.cast(LocalConfiguration, local_study_w_storage.service.config).study_path
-        local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
+        areas = local_study_w_storage._read_areas()
 
         for area in areas:
-            storages = area.read_st_storages()
+            storages = area._read_st_storages()
             if area.name == "fr":
                 assert len(storages) == 1
                 storage = storages[0]
@@ -916,3 +914,67 @@ class TestReadSTStorage:
                 assert storage.properties.initial_level_optim is True
             else:
                 assert storages == []
+
+
+class TestUpateArea:
+    def test_update_properties(self, local_study_w_areas):
+        # Checks values before update
+        area = local_study_w_areas.get_areas()["fr"]
+        current_properties = AreaProperties(energy_cost_spilled=1, energy_cost_unsupplied=0.5)
+        assert area.properties == current_properties
+        # Updates properties
+        update_properties = AreaPropertiesUpdate(
+            adequacy_patch_mode=AdequacyPatchMode.VIRTUAL,
+            filter_synthesis={FilterOption.DAILY},
+            energy_cost_spilled=0.4,
+        )
+        new_properties = area.update_properties(update_properties)
+        expected_properties = AreaProperties(
+            adequacy_patch_mode=AdequacyPatchMode.VIRTUAL,
+            filter_synthesis={FilterOption.DAILY},
+            energy_cost_spilled=0.4,
+            energy_cost_unsupplied=0.5,
+        )
+        assert new_properties == expected_properties
+        assert area.properties == expected_properties
+        # Asserts the ini files are properly modified
+        study_path = Path(local_study_w_areas.path)
+        optimization_ini_file = IniFile(study_path, InitializationFilesTypes.AREA_OPTIMIZATION_INI, area.id)
+        assert optimization_ini_file.ini_dict == {
+            "nodal optimization": {
+                "non-dispatchable-power": "True",
+                "dispatchable-hydro-power": "True",
+                "other-dispatchable-power": "True",
+                "spread-unsupplied-energy-cost": "0.0",
+                "spread-spilled-energy-cost": "0.0",
+            },
+            "filtering": {"filter-synthesis": "daily", "filter-year-by-year": "annual, daily, hourly, monthly, weekly"},
+        }
+        adequacy_ini = IniFile(study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area.id)
+        assert adequacy_ini.ini_dict == {"adequacy-patch": {"adequacy-patch-mode": "virtual"}}
+        thermal_ini = IniFile(study_path, InitializationFilesTypes.THERMAL_AREAS_INI)
+        assert thermal_ini.ini_dict == {
+            "unserverdenergycost": {"fr": "0.5", "it": "0.5"},
+            "spilledenergycost": {"fr": "0.4", "it": "1.0"},
+        }
+
+    def test_update_ui(self, local_study_w_areas):
+        # Checks values before update
+        area = local_study_w_areas.get_areas()["fr"]
+        current_ui = AreaUi()
+        assert area.ui == current_ui
+        # Updates properties
+        update_ui = AreaUiUpdate(x=12, color_rgb=[5, 6, 7])
+        new_ui = area.update_ui(update_ui)
+        expected_ui = AreaUi(x=12, color_rgb=[5, 6, 7], y=0)
+        assert new_ui == expected_ui
+        assert area.ui == expected_ui
+        # Asserts the ini file is properly modified
+        study_path = Path(local_study_w_areas.path)
+        ui_ini_file = IniFile(study_path, InitializationFilesTypes.AREA_UI_INI, area.id)
+        assert ui_ini_file.ini_dict == {
+            "ui": {"x": "12", "y": "0", "color_r": "5", "color_g": "6", "color_b": "7"},
+            "layerX": {"0": "12"},
+            "layerY": {"0": "0"},
+            "layerColor": {"0": "5,6,7"},
+        }

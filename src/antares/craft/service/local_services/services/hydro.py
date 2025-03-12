@@ -81,39 +81,39 @@ class HydroLocalService(BaseHydroService):
         return read_timeseries(TimeSeriesFileType.HYDRO_ENERGY, self.config.study_path, area_id=area_id)
 
     @override
-    def update_maxpower(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_maxpower(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_MAX_POWER, area_id)
 
     @override
-    def update_reservoir(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_reservoir(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_RESERVOIR, area_id)
 
     @override
-    def update_inflow_pattern(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_inflow_pattern(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_INFLOW_PATTERN, area_id)
 
     @override
-    def update_credits_modulation(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_credits_modulation(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_CREDITS_MODULATION, area_id)
 
     @override
-    def update_water_values(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_water_values(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_WATER_VALUES, area_id)
 
     @override
-    def update_ror_series(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_ror_series(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_ROR, area_id)
 
     @override
-    def update_mod_series(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_mod_series(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_MOD, area_id)
 
     @override
-    def update_mingen(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_mingen(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_MINGEN, area_id)
 
     @override
-    def update_energy(self, area_id: str, series: pd.DataFrame) -> None:
+    def set_energy(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_ENERGY, area_id)
 
 

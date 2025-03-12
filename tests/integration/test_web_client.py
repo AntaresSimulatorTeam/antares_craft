@@ -96,7 +96,7 @@ def antares_web() -> AntaresWebDesktop:
 
 
 class TestWebClient:
-    def test_creation_lifecycle(self, antares_web: AntaresWebDesktop, tmp_path):
+    def test_lifecycle(self, antares_web: AntaresWebDesktop, tmp_path):
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
         study = create_study_api("antares-craft-test", "880", api_config)
@@ -114,11 +114,11 @@ class TestWebClient:
             MatrixUploadError,
             match=f"Error uploading load matrix for area {area_fr.id}: Expected 8760 rows and received 1",
         ):
-            area_fr.create_load(wrong_load_matrix)
+            area_fr.set_load(wrong_load_matrix)
 
         # Case that succeeds
         load_matrix = pd.DataFrame(data=np.zeros((8760, 1)))
-        area_fr.create_load(load_matrix)
+        area_fr.set_load(load_matrix)
 
         # tests get load matrix
         assert area_fr.get_load_matrix().equals(load_matrix)
@@ -126,10 +126,10 @@ class TestWebClient:
         # asserts solar and wind matrices can be created and read.
         ts_matrix = pd.DataFrame(data=np.ones((8760, 4)))
 
-        area_fr.create_solar(ts_matrix)
+        area_fr.set_solar(ts_matrix)
         assert area_fr.get_solar_matrix().equals(ts_matrix)
 
-        area_fr.create_wind(ts_matrix)
+        area_fr.set_wind(ts_matrix)
         assert area_fr.get_wind_matrix().equals(ts_matrix)
 
         # tests area creation with ui values
@@ -209,9 +209,9 @@ class TestWebClient:
         fuel_cost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
 
         # creating parameters and capacities for this link and testing them
-        link_be_fr.update_parameters(series_matrix)
-        link_be_fr.update_capacity_direct(series_matrix)
-        link_be_fr.update_capacity_indirect(series_matrix)
+        link_be_fr.set_parameters(series_matrix)
+        link_be_fr.set_capacity_direct(series_matrix)
+        link_be_fr.set_capacity_indirect(series_matrix)
 
         parameters_matrix = link_be_fr.get_parameters()
         direct_matrix = link_be_fr.get_capacity_direct()
@@ -293,17 +293,17 @@ class TestWebClient:
         # tests that `read` methods don't create copies of objects but rather updates their internal properties
         previous_thermals = list(area_fr.get_thermals().values())
         previous_thermals.sort(key=lambda th: th.id)
-        thermal_list = area_fr.read_thermal_clusters()
+        thermal_list = area_fr._read_thermal_clusters()
         assert thermal_list == previous_thermals
 
         previous_renewables = list(area_fr.get_renewables().values())
         previous_renewables.sort(key=lambda renew: renew.id)
-        renewable_list = area_fr.read_renewables()
+        renewable_list = area_fr._read_renewables()
         assert renewable_list == previous_renewables
 
         previous_storages = list(area_fr.get_st_storages().values())
         previous_storages.sort(key=lambda sts: sts.id)
-        storage_list = area_fr.read_st_storages()
+        storage_list = area_fr._read_st_storages()
         assert storage_list == previous_storages
 
         # test actual_hydro has the same datas (id, properties and matrices) than area_fr hydro
@@ -345,7 +345,7 @@ class TestWebClient:
         # test reading list of areas
         previous_areas = list(study.get_areas().values())
         previous_areas.sort(key=lambda area: area.id)
-        area_list = study.read_areas()
+        area_list = study._read_areas()
         assert area_list == previous_areas  # Checks objects aren't copied
         assert len(area_list) == 3
         # asserts areas are sorted by id
@@ -361,6 +361,29 @@ class TestWebClient:
         assert storage_fr.id == third_area.get_st_storages().get("cluster_test").id
         assert thermal_be.id == area_list[0].get_thermals().get("gaz_be").id
 
+        # checking multiple areas properties update
+        area_props_update_1 = AreaPropertiesUpdate(
+            adequacy_patch_mode=AdequacyPatchMode.VIRTUAL, other_dispatch_power=False
+        )
+        area_props_update_2 = AreaPropertiesUpdate(
+            non_dispatch_power=False, energy_cost_spilled=0.45, energy_cost_unsupplied=3.0
+        )
+        dict_area_props = {area_fr.id: area_props_update_1, area_be.id: area_props_update_2}
+        study.update_multiple_areas(dict_area_props)
+
+        area_fr_props = area_fr.properties
+        area_be_props = area_be.properties
+
+        assert area_fr_props.adequacy_patch_mode == AdequacyPatchMode.VIRTUAL
+        assert not area_fr_props.other_dispatch_power
+        assert not area_be_props.non_dispatch_power
+        assert area_be_props.energy_cost_spilled == 0.45
+        assert area_be_props.energy_cost_unsupplied == 3.0
+
+        # checking the non updated properties aren't affected
+        assert area_fr_props.non_dispatch_power
+        assert area_be_props.dispatch_hydro_power
+
         # tests upload matrix for short term storage.
         # Case that fails
         wrong_matrix = pd.DataFrame(data=[[0]])
@@ -369,7 +392,7 @@ class TestWebClient:
             match=f"Could not upload {STStorageMatrixName.INFLOWS.value} matrix for storage {battery_fr.id}"
             f" inside area {area_fr.id}",
         ):
-            battery_fr.update_storage_inflows(wrong_matrix)
+            battery_fr.set_storage_inflows(wrong_matrix)
 
         # Case that succeeds
         injection_matrix = pd.DataFrame(data=np.zeros((8760, 1)))
@@ -442,7 +465,7 @@ class TestWebClient:
             ConstraintMatrixUpdateError,
             match=f"Could not update matrix eq for binding constraint {constraint_2.id}",
         ):
-            constraint_2.update_equal_term_matrix(wrong_matrix)
+            constraint_2.set_equal_term(wrong_matrix)
 
         # Case that succeeds
         properties = BindingConstraintProperties(operator=BindingConstraintOperator.LESS)
@@ -455,7 +478,7 @@ class TestWebClient:
         new_matrix.iloc[0, 0] = 72
         update_properties = BindingConstraintPropertiesUpdate(operator=BindingConstraintOperator.EQUAL)
         constraint_3.update_properties(update_properties)
-        constraint_3.update_equal_term_matrix(new_matrix)
+        constraint_3.set_equal_term(new_matrix)
         assert constraint_3.get_equal_term_matrix().equals(new_matrix)
 
         # test adding terms to a constraint
@@ -513,7 +536,7 @@ class TestWebClient:
         # assert study got all links
         previous_links = list(study.get_links().values())
         previous_links.sort(key=lambda link: link.id)
-        links = study.read_links()
+        links = study._read_links()
         assert links == previous_links  # Checks objects aren't copied
         assert len(links) == 2
         test_link_be_fr = links[0]
@@ -580,12 +603,12 @@ class TestWebClient:
         series_matrix = pd.DataFrame(data=np.zeros((8760, 3)))
         prepro_data_matrix = pd.DataFrame(data=np.ones((365, 6)))
         prepro_modulation_matrix = pd.DataFrame(data=np.ones((8760, 4)))
-        thermal_fr.update_prepro_data_matrix(prepro_data_matrix)
-        thermal_fr.update_prepro_modulation_matrix(prepro_modulation_matrix)
-        thermal_fr.update_fuel_cost_matrix(series_matrix)
-        thermal_fr.update_co2_cost_matrix(series_matrix)
-        thermal_fr.update_series_matrix(series_matrix)
-        renewable_fr.update_renewable_matrix(series_matrix)
+        thermal_fr.set_prepro_data(prepro_data_matrix)
+        thermal_fr.set_prepro_modulation(prepro_modulation_matrix)
+        thermal_fr.set_fuel_cost(series_matrix)
+        thermal_fr.set_co2_cost(series_matrix)
+        thermal_fr.set_series(series_matrix)
+        renewable_fr.set_series(series_matrix)
 
         assert thermal_fr.get_series_matrix().equals(series_matrix)
         assert thermal_fr.get_prepro_data_matrix().equals(prepro_data_matrix)
@@ -702,15 +725,15 @@ class TestWebClient:
         credits_matrix = pd.DataFrame(data=np.zeros((2, 101)))
         water_values_matrix = pd.DataFrame(data=np.ones((365, 101)))
 
-        area_fr.hydro.update_maxpower(maxpower_matrix)
-        area_fr.hydro.update_reservoir(reservoir_matrix)
-        area_fr.hydro.update_inflow_pattern(inflow_pattern_matrix)
-        area_fr.hydro.update_water_values(water_values_matrix)
-        area_fr.hydro.update_credits_modulation(credits_matrix)
-        area_fr.hydro.update_ror_series(ror_series)
-        area_fr.hydro.update_mod_series(mod_series)
-        area_fr.hydro.update_mingen(mingen_series)
-        area_fr.hydro.update_energy(energy_matrix)
+        area_fr.hydro.set_maxpower(maxpower_matrix)
+        area_fr.hydro.set_reservoir(reservoir_matrix)
+        area_fr.hydro.set_inflow_pattern(inflow_pattern_matrix)
+        area_fr.hydro.set_water_values(water_values_matrix)
+        area_fr.hydro.set_credits_modulation(credits_matrix)
+        area_fr.hydro.set_ror_series(ror_series)
+        area_fr.hydro.set_mod_series(mod_series)
+        area_fr.hydro.set_mingen(mingen_series)
+        area_fr.hydro.set_energy(energy_matrix)
 
         assert area_fr.hydro.get_maxpower().equals(maxpower_matrix)
         assert area_fr.hydro.get_reservoir().equals(reservoir_matrix)
@@ -747,7 +770,7 @@ class TestWebClient:
 
         # ===== Test outputs (Part 1 - before simulation) =====
 
-        assert len(study.read_outputs()) == 0
+        assert study.get_outputs() == {}
 
         # ===== Test run study simulation and wait job completion ======
 
@@ -766,9 +789,9 @@ class TestWebClient:
 
         # ===== Test outputs (Part 2 - after simulation) =====
 
-        output = study.read_outputs()[0]
         outputs = study.get_outputs()
         assert len(outputs) == 1
+        output = list(outputs.values())[0]
         assert not outputs.get(output.name).archived
         study_with_outputs = read_study_api(api_config, study._study_service.study_id)
         outputs_from_api = study_with_outputs.get_outputs()
@@ -801,7 +824,7 @@ class TestWebClient:
         # ===== Test read binding constraints =====
         previous_bcs = list(study.get_binding_constraints().values())
         previous_bcs.sort(key=lambda bc: bc.id)
-        constraints = study.read_binding_constraints()
+        constraints = study._read_binding_constraints()
         assert constraints == previous_bcs  # Checks objects aren't copied
 
         assert len(constraints) == 2
@@ -830,17 +853,17 @@ class TestWebClient:
         study.wait_job_completion(
             study.run_antares_simulation(AntaresSimulationParameters(output_suffix="3")), time_out=60
         )
-        assert len(study.read_outputs()) == 3
+        assert len(study.get_outputs()) == 3
 
         # delete_output
         study.delete_output(output.name)
         assert output.name not in study.get_outputs()
-        assert len(study.read_outputs()) == 2
+        assert len(study._read_outputs()) == 2
 
         # delete_outputs
         study.delete_outputs()
         assert len(study.get_outputs()) == 0
-        assert len(study.read_outputs()) == 0
+        assert len(study._read_outputs()) == 0
 
         # ===== Test study moving =====
 

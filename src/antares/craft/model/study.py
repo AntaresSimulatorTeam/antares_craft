@@ -20,7 +20,7 @@ from antares.craft import APIconf
 from antares.craft.exceptions.exceptions import (
     LinkCreationError,
 )
-from antares.craft.model.area import Area, AreaProperties, AreaUi
+from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintProperties,
@@ -50,6 +50,7 @@ class Study:
         version: str,
         services: StudyServices,
         path: PurePath = PurePath("."),
+        solver_path: Optional[Path] = None,
     ):
         self.name = name
         self.version = version
@@ -65,12 +66,13 @@ class Study:
         self._links: dict[str, Link] = dict()
         self._binding_constraints: dict[str, BindingConstraint] = dict()
         self._outputs: dict[str, Output] = dict()
+        self._solver_path: Optional[Path] = solver_path
 
     @property
     def service(self) -> BaseStudyService:
         return self._study_service
 
-    def read_areas(self) -> list[Area]:
+    def _read_areas(self) -> list[Area]:
         """
         Synchronize the internal study object with the actual object written in an antares study
         Returns: the synchronized area list
@@ -98,7 +100,12 @@ class Study:
         areas.sort(key=lambda area: area.id)
         return areas
 
-    def read_links(self) -> list[Link]:
+    def update_multiple_areas(self, new_properties: Dict[str, AreaPropertiesUpdate]) -> None:
+        new_areas_props = self._area_service.update_multiple_areas(new_properties)
+        for area_prop in new_areas_props:
+            self._areas[area_prop]._properties = new_areas_props[area_prop]
+
+    def _read_links(self) -> list[Link]:
         link_list = self._link_service.read_links()
 
         # Updates in memory objects rather than replacing them
@@ -131,7 +138,7 @@ class Study:
         self._settings.thematic_trimming_parameters = new_settings.thematic_trimming_parameters
         self._settings.playlist_parameters = new_settings.playlist_parameters
 
-    def read_settings(self) -> StudySettings:
+    def _read_settings(self) -> StudySettings:
         study_settings = self._settings_service.read_study_settings()
         self._replace_settings(study_settings)
         return self._settings
@@ -225,7 +232,7 @@ class Study:
         self._binding_constraints[binding_constraint.id] = binding_constraint
         return binding_constraint
 
-    def read_binding_constraints(self) -> list[BindingConstraint]:
+    def _read_binding_constraints(self) -> list[BindingConstraint]:
         constraints = self._binding_constraints_service.read_binding_constraints()
 
         # Updates in memory objects rather than replacing them
@@ -279,7 +286,7 @@ class Study:
 
         Returns: A job representing the simulation task
         """
-        return self._run_service.run_antares_simulation(parameters)
+        return self._run_service.run_antares_simulation(parameters, self._solver_path)
 
     def wait_job_completion(self, job: Job, time_out: int = 172800) -> None:
         """
@@ -292,8 +299,9 @@ class Study:
         Raises: SimulationTimeOutError if exceeded timeout
         """
         self._run_service.wait_job_completion(job, time_out)
+        self._read_outputs()
 
-    def read_outputs(self) -> list[Output]:
+    def _read_outputs(self) -> list[Output]:
         """
         Load outputs into current study
 
@@ -368,16 +376,18 @@ class Study:
 # import mechanics, we need to use local imports to avoid circular dependencies.
 
 
-def create_study_local(study_name: str, version: str, parent_directory: "Path") -> "Study":
+def create_study_local(
+    study_name: str, version: str, parent_directory: "Path", solver_path: Optional[Path] = None
+) -> "Study":
     from antares.craft.service.local_services.factory import create_study_local
 
-    return create_study_local(study_name, version, parent_directory)
+    return create_study_local(study_name, version, parent_directory, solver_path)
 
 
-def read_study_local(study_path: "Path") -> "Study":
+def read_study_local(study_path: "Path", solver_path: Optional[Path] = None) -> "Study":
     from antares.craft.service.local_services.factory import read_study_local
 
-    return read_study_local(study_path)
+    return read_study_local(study_path, solver_path)
 
 
 def create_study_api(

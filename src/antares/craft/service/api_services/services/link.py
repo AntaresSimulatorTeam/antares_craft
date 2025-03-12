@@ -146,7 +146,7 @@ class LinkApiService(BaseLinkService):
         return matrix
 
     @override
-    def create_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+    def set_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         try:
             series_path = f"input/links/{area_from}/{area_to}_parameters"
             update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
@@ -163,7 +163,7 @@ class LinkApiService(BaseLinkService):
         return matrix
 
     @override
-    def create_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+    def set_capacity_direct(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         try:
             series_path = f"input/links/{area_from}/capacities/{area_to}_direct"
             update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
@@ -180,7 +180,7 @@ class LinkApiService(BaseLinkService):
         return matrix
 
     @override
-    def create_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
+    def set_capacity_indirect(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
         try:
             series_path = f"input/links/{area_from}/capacities/{area_to}_indirect"
             update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
