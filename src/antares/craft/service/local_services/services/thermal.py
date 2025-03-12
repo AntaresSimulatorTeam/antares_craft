@@ -110,4 +110,8 @@ class ThermalLocalService(BaseThermalService):
     def update_multiple_thermal_clusters(
         self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
     ) -> dict[ThermalCluster, ThermalClusterProperties]:
-        raise NotImplementedError
+        new_properties_dict = {}
+        for cluster, update_properties in new_properties.items():
+            updated_properties = self.update_thermal_properties(cluster, update_properties)
+            new_properties_dict[cluster] = updated_properties
+        return new_properties_dict

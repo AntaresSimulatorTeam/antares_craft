@@ -61,14 +61,6 @@ class TestCreateAPI:
         services.renewable_service,
         services.hydro_service,
     )
-    area_1 = Area(
-        "area-test-1",
-        services.area_service,
-        services.short_term_storage_service,
-        services.thermal_service,
-        services.renewable_service,
-        services.hydro_service,
-    )
     area_2 = Area(
         "area-test-2",
         services.area_service,
@@ -78,7 +70,6 @@ class TestCreateAPI:
         services.hydro_service,
     )
     thermal = ThermalCluster(services.thermal_service, area.id, "thermal-test")
-    thermal_1 = ThermalCluster(services.thermal_service, area_1.id, "thermal-1")
     thermal_2 = ThermalCluster(services.thermal_service, area_2.id, "thermal-2")
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
@@ -398,166 +389,46 @@ class TestCreateAPI:
                 self.thermal.set_fuel_cost(self.matrix)
 
     def test_update_multiple_thermal_clusters_success(self):
-        dict_thermals = {"thermal-1": self.thermal_1, "thermal-2": self.thermal_2}
+        dict_thermals = {"thermal-test": self.thermal, "thermal-2": self.thermal_2}
         json_thermals = {
-            "area-test-1 / thermal-1": {
+            "area-test / thermal-test": {
                 "enabled": True,
                 "unitCount": 1,
                 "nominalCapacity": 0,
-                "group": "Lignite",
-                "genTs": "use global",
-                "minStablePower": 0,
-                "minUpTime": 1,
-                "minDownTime": 1,
-                "mustRun": False,
-                "spinning": 0,
-                "volatilityForced": 0,
-                "volatilityPlanned": 0,
-                "lawForced": "uniform",
-                "lawPlanned": "uniform",
+                "group": "lignite",
                 "marginalCost": 0,
-                "spreadCost": 0,
-                "fixedCost": 0,
-                "startupCost": 0,
-                "marketBidCost": 0,
-                "co2": 0,
-                "nh3": 0,
-                "so2": 0,
-                "nox": 0,
-                "pm25": 0,
-                "pm5": 0,
-                "pm10": 0,
-                "nmvoc": 0,
-                "op1": 0,
-                "op2": 0,
-                "op3": 0,
-                "op4": 0,
-                "op5": 0,
-                "costGeneration": "SetManually",
-                "efficiency": 100,
-                "variableOMCost": 0,
             },
             "area-test-2 / thermal-2": {
                 "enabled": True,
                 "unitCount": 1,
                 "nominalCapacity": 1500,
-                "group": "Nuclear",
-                "genTs": "use global",
-                "minStablePower": 0,
-                "minUpTime": 1,
-                "minDownTime": 1,
-                "mustRun": False,
-                "spinning": 0,
-                "volatilityForced": 0,
-                "volatilityPlanned": 0,
-                "lawForced": "uniform",
-                "lawPlanned": "uniform",
+                "group": "nuclear",
                 "marginalCost": 10,
-                "spreadCost": 0,
-                "fixedCost": 0,
-                "startupCost": 0,
-                "marketBidCost": 10,
-                "co2": 0,
-                "nh3": 0,
-                "so2": 0,
-                "nox": 0,
-                "pm25": 0,
-                "pm5": 0,
-                "pm10": 0,
-                "nmvoc": 0,
-                "op1": 0,
-                "op2": 0,
-                "op3": 0,
-                "op4": 0,
-                "op5": 0,
-                "costGeneration": "SetManually",
-                "efficiency": 100,
-                "variableOMCost": 0,
             },
         }
 
         json_thermals_1 = {
-            "thermal-1": {
+            "thermal-test": {
                 "enabled": True,
                 "unit_count": 1,
                 "nominal_capacity": 0,
-                "group": "Lignite",
-                "gen_ts": "use global",
-                "min_stable_power": 0,
-                "min_up_time": 1,
-                "min_down_time": 1,
-                "must_run": False,
-                "spinning": 0,
-                "volatility_forced": 0,
-                "volatility_planned": 0,
-                "law_forced": "uniform",
-                "law_planned": "uniform",
+                "group": "lignite",
                 "marginal_cost": 0,
-                "spread_cost": 0,
-                "fixed_cost": 0,
-                "startup_cost": 0,
-                "market_bid_cost": 0,
-                "co2": 0,
-                "nh3": 0,
-                "so2": 0,
-                "nox": 0,
-                "pm2_5": 0,
-                "pm5": 0,
-                "pm10": 0,
-                "nmvoc": 0,
-                "op1": 0,
-                "op2": 0,
-                "op3": 0,
-                "op4": 0,
-                "op5": 0,
-                "cost_generation": "SetManually",
-                "efficiency": 100,
-                "variable_o_m_cost": 0,
             },
             "thermal-2": {
                 "enabled": True,
                 "unit_count": 1,
                 "nominal_capacity": 1500,
-                "group": "Nuclear",
-                "gen_ts": "use global",
-                "min_stable_power": 0,
-                "min_up_time": 1,
-                "min_down_time": 1,
-                "must_run": False,
-                "spinning": 0,
-                "volatility_forced": 0,
-                "volatility_planned": 0,
-                "law_forced": "uniform",
-                "law_planned": "uniform",
+                "group": "nuclear",
                 "marginal_cost": 10,
-                "spread_cost": 0,
-                "fixed_cost": 0,
-                "startup_cost": 0,
-                "market_bid_cost": 10,
-                "co2": 0,
-                "nh3": 0,
-                "so2": 0,
-                "nox": 0,
-                "pm2_5": 0,
-                "pm5": 0,
-                "pm10": 0,
-                "nmvoc": 0,
-                "op1": 0,
-                "op2": 0,
-                "op3": 0,
-                "op4": 0,
-                "op5": 0,
-                "cost_generation": "SetManually",
-                "efficiency": 100,
-                "variable_o_m_cost": 0,
             },
         }
 
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/thermals"
 
-        self.study._areas["area-test-1"] = self.area_1
+        self.study._areas["area-test"] = self.area
         self.study._areas["area-test-2"] = self.area_2
-        self.study._areas["area-test-1"]._thermals["thermal-1"] = self.thermal_1
+        self.study._areas["area-test"]._thermals["thermal-test"] = self.thermal
         self.study._areas["area-test-2"]._thermals["thermal-2"] = self.thermal_2
 
         with requests_mock.Mocker() as mocker:
@@ -571,12 +442,12 @@ class TestCreateAPI:
             mocker.put(url, json=json_thermals)
             self.study.update_multiple_thermal_clusters(updated_thermal)
 
-            thermal = self.study._areas["area-test-1"]._thermals["thermal-1"]
+            thermal = self.study._areas["area-test"]._thermals["thermal-test"]
             thermal_1 = self.study._areas["area-test-2"]._thermals["thermal-2"]
 
-            assert thermal.properties.unit_count == json_thermals["area-test-1 / thermal-1"]["unitCount"]
-            assert thermal.properties.enabled == json_thermals["area-test-1 / thermal-1"]["enabled"]
-            assert thermal.properties.marginal_cost == json_thermals["area-test-1 / thermal-1"]["marginalCost"]
+            assert thermal.properties.unit_count == json_thermals["area-test / thermal-test"]["unitCount"]
+            assert thermal.properties.enabled == json_thermals["area-test / thermal-test"]["enabled"]
+            assert thermal.properties.marginal_cost == json_thermals["area-test / thermal-test"]["marginalCost"]
 
             assert thermal_1.properties.unit_count == json_thermals["area-test-2 / thermal-2"]["unitCount"]
             assert thermal_1.properties.enabled == json_thermals["area-test-2 / thermal-2"]["enabled"]
@@ -590,6 +461,6 @@ class TestCreateAPI:
 
             with pytest.raises(
                 ThermalsUpdateError,
-                match=f"Could not update the clusters from the  study {self.study_id} : {self.antares_web_description_msg}",
+                match=f"Could not update the clusters from the study {self.study_id} : {self.antares_web_description_msg}",
             ):
                 self.study.update_multiple_thermal_clusters({})

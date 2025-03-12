@@ -231,39 +231,37 @@ class TestWebClient:
             fuel_cost=fuel_cost_matrix,
         )
 
-        # Testing the cluster properties update and checking the old values hasn't been modified
-        thermal_update_1 = ThermalClusterPropertiesUpdate(marginal_cost=10.70, enabled=False, nominal_capacity=9.8)
+        # Updating multiple thermal clusters properties at once
+        thermal_update_1 = ThermalClusterPropertiesUpdate(marginal_cost=10.7, enabled=False, nominal_capacity=9.8)
         thermal_update_2 = ThermalClusterPropertiesUpdate(op1=10.2, spread_cost=60.5, group=ThermalClusterGroup.NUCLEAR)
-
         update_for_thermals = {thermal_fr: thermal_update_1, thermal_value_be: thermal_update_2}
 
         study.update_multiple_thermal_clusters(update_for_thermals)
 
         fr_properties = thermal_fr.properties
-        assert fr_properties.marginal_cost == 10.70
+        assert fr_properties.marginal_cost == 10.7
         assert not fr_properties.enabled
         assert fr_properties.nominal_capacity == 9.8
+        # Ensures properties that weren't updated are still the same as before
+        assert fr_properties.law_forced == LawOption.UNIFORM
+        assert fr_properties.spread_cost == 0.0
+        assert fr_properties.unit_count == 1
 
         be_value_properties = thermal_value_be.properties
         assert be_value_properties.op1 == 10.2
         assert be_value_properties.spread_cost == 60.5
         assert be_value_properties.group == ThermalClusterGroup.NUCLEAR
-
-        assert fr_properties.law_forced == LawOption.UNIFORM
-        assert fr_properties.spread_cost == 0.0
-        assert fr_properties.unit_count == 1
-
         assert be_value_properties.op2 == 0.0
         assert be_value_properties.marginal_cost == 0.0
         assert be_value_properties.min_up_time == 1
 
+        # Tests get thermal matrices
         prepro = thermal_value_be.get_prepro_data_matrix()
         modulation = thermal_value_be.get_prepro_modulation_matrix()
         series = thermal_value_be.get_series_matrix()
         co2 = thermal_value_be.get_co2_cost_matrix()
         fuel = thermal_value_be.get_fuel_cost_matrix()
 
-        # tests get thermal matrix
         assert prepro.equals(prepro_modulation_matrix)
         assert modulation.equals(modulation_matrix)
         assert series.equals(series_matrix)
