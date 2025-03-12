@@ -31,6 +31,7 @@ from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate,
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
+from antares.craft.model.thermal import ThermalCluster, ThermalClusterPropertiesUpdate
 from antares.craft.service.base_services import BaseLinkService, BaseStudyService, StudyServices
 
 """
@@ -339,6 +340,13 @@ class Study:
         self._study_service.generate_thermal_timeseries(nb_years, self._areas, seed)
         # Copies objects to bypass the fact that the class is frozen
         self._settings.general_parameters = replace(self._settings.general_parameters, nb_timeseries_thermal=nb_years)
+
+    def update_multiple_thermal_clusters(
+        self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
+    ) -> None:
+        new_thermal_clusters_props = self._area_service.thermal_service.update_multiple_thermal_clusters(new_properties)
+        for thermal in new_thermal_clusters_props:
+            self._areas[thermal.area_id].get_thermals()[thermal.id]._properties = new_thermal_clusters_props[thermal]
 
     def update_multiple_links(self, new_properties: Dict[str, LinkPropertiesUpdate]) -> None:
         """

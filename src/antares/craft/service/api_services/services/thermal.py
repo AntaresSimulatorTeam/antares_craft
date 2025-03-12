@@ -22,6 +22,7 @@ from antares.craft.exceptions.exceptions import (
     ThermalMatrixDownloadError,
     ThermalMatrixUpdateError,
     ThermalPropertiesUpdateError,
+    ThermalsUpdateError,
 )
 from antares.craft.model.thermal import (
     ThermalCluster,
@@ -126,3 +127,35 @@ class ThermalApiService(BaseThermalService):
         thermals.sort(key=lambda thermal: thermal.id)
 
         return thermals
+
+    @override
+    def update_multiple_thermal_clusters(
+        self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
+    ) -> dict[ThermalCluster, ThermalClusterPropertiesUpdate]:
+        body = {}
+        updated_thermal_clusters: dict[ThermalCluster, ThermalClusterPropertiesUpdate] = {}
+        url = f"{self._base_url}/studies/{self.study_id}/table-mode/thermals"
+
+        cluster_dict = {}
+
+        for cluster, props in new_properties.items():
+            api_properties = ThermalClusterPropertiesAPI.from_user_model(props)
+            api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+            cluster_id = f"{cluster.area_id} / {cluster.id}"
+            body[cluster_id] = api_dict
+
+            cluster_dict[cluster_id] = cluster
+
+        try:
+            # PUT endpoint of table-mode is returning every existant cluster instead of those modified
+            thermals = self._wrapper.put(url, json=body).json()
+
+            for thermal in thermals:
+                if thermal in body:
+                    api_response = ThermalClusterPropertiesAPI.model_validate(thermals[thermal])
+                    thermal_properties = api_response.to_user_model()
+                    updated_thermal_clusters.update({cluster_dict[thermal]: thermal_properties})
+        except APIError as e:
+            raise ThermalsUpdateError(self.study_id, e.message) from e
+
+        return updated_thermal_clusters

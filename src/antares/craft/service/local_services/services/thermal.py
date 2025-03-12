@@ -101,3 +101,9 @@ class ThermalLocalService(BaseThermalService):
     ) -> None:
         checks_matrix_dimensions(matrix, f"thermal/{thermal_cluster.area_id}/{thermal_cluster.id}", ts_name.value)
         write_timeseries(self.config.study_path, matrix, MAPPING[ts_name], thermal_cluster.area_id, thermal_cluster.id)
+
+    @override
+    def update_multiple_thermal_clusters(
+        self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
+    ) -> dict[ThermalCluster, ThermalClusterPropertiesUpdate]:
+        raise NotImplementedError

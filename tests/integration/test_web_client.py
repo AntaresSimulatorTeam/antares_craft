@@ -77,7 +77,12 @@ from antares.craft.model.st_storage import (
     STStorageProperties,
     STStoragePropertiesUpdate,
 )
-from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties, ThermalClusterPropertiesUpdate
+from antares.craft.model.thermal import (
+    LawOption,
+    ThermalClusterGroup,
+    ThermalClusterProperties,
+    ThermalClusterPropertiesUpdate,
+)
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
@@ -225,6 +230,32 @@ class TestWebClient:
             co2_cost=co2_cost_matrix,
             fuel_cost=fuel_cost_matrix,
         )
+
+        # Testing the cluster properties update and checking the old values hasn't been modified
+        thermal_update_1 = ThermalClusterPropertiesUpdate(marginal_cost=10.70, enabled=False, nominal_capacity=9.8)
+        thermal_update_2 = ThermalClusterPropertiesUpdate(op1=10.2, spread_cost=60.5, group=ThermalClusterGroup.NUCLEAR)
+
+        update_for_thermals = {thermal_fr: thermal_update_1, thermal_value_be: thermal_update_2}
+
+        study.update_multiple_thermal_clusters(update_for_thermals)
+
+        fr_properties = thermal_fr.properties
+        assert fr_properties.marginal_cost == 10.70
+        assert not fr_properties.enabled
+        assert fr_properties.nominal_capacity == 9.8
+
+        be_value_properties = thermal_value_be.properties
+        assert be_value_properties.op1 == 10.2
+        assert be_value_properties.spread_cost == 60.5
+        assert be_value_properties.group == ThermalClusterGroup.NUCLEAR
+
+        assert fr_properties.law_forced == LawOption.UNIFORM
+        assert fr_properties.spread_cost == 0.0
+        assert fr_properties.unit_count == 1
+
+        assert be_value_properties.op2 == 0.0
+        assert be_value_properties.marginal_cost == 0.0
+        assert be_value_properties.min_up_time == 1
 
         prepro = thermal_value_be.get_prepro_data_matrix()
         modulation = thermal_value_be.get_prepro_modulation_matrix()

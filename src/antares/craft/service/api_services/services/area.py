@@ -68,7 +68,7 @@ class AreaApiService(BaseAreaService):
         self._wrapper = RequestWrapper(self.api_config.set_up_api_conf())
         self._base_url = f"{self.api_config.get_host()}/api/v1"
         self.storage_service: BaseShortTermStorageService = storage_service
-        self.thermal_service: BaseThermalService = thermal_service
+        self._thermal_service: BaseThermalService = thermal_service
         self.renewable_service: BaseRenewableService = renewable_service
         self.hydro_service: BaseHydroService = hydro_service
 
