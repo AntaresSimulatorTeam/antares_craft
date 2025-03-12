@@ -78,7 +78,7 @@ filesystem studies, allowing you to re-use code on both kind of studies.
 You can for example read the existing areas:
 
 ```python
-area_list = study.read_areas()
+area_list = study._read_areas()
 ```
 
 And create new areas.

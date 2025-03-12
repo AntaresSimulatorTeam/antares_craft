@@ -282,7 +282,7 @@ class Area:
     def set_misc_gen(self, series: pd.DataFrame) -> None:
         self._area_service.set_misc_gen(self.id, series)
 
-    def read_st_storages(self) -> list[STStorage]:
+    def _read_st_storages(self) -> list[STStorage]:
         st_storages = self._storage_service.read_st_storages(self.id)
 
         # Updates in memory objects rather than replacing them
@@ -304,7 +304,7 @@ class Area:
         storages.sort(key=lambda sts: sts.id)
         return storages
 
-    def read_renewables(self) -> list[RenewableCluster]:
+    def _read_renewables(self) -> list[RenewableCluster]:
         renewables = self._renewable_service.read_renewables(self.id)
 
         # Updates in memory objects rather than replacing them
@@ -327,7 +327,7 @@ class Area:
         renewables.sort(key=lambda renewable: renewable.id)
         return renewables
 
-    def read_thermal_clusters(self) -> list[ThermalCluster]:
+    def _read_thermal_clusters(self) -> list[ThermalCluster]:
         thermals = self._thermal_service.read_thermal_clusters(self.id)
 
         # Updates in memory objects rather than replacing them

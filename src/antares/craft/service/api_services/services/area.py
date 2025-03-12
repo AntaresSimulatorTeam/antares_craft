@@ -483,7 +483,7 @@ class AreaApiService(BaseAreaService):
                     properties=json_properties,
                     ui=ui_properties,
                 )
-                area_obj.hydro.read_properties()
+                area_obj.hydro._read_properties()
 
                 area_list.append(area_obj)
 

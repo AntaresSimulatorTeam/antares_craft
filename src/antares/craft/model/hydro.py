@@ -90,9 +90,9 @@ class Hydro:
 
     def update_properties(self, properties: HydroPropertiesUpdate) -> None:
         self._service.update_properties(self.area_id, properties)
-        self._properties = self.read_properties()
+        self._properties = self._read_properties()
 
-    def read_properties(self) -> HydroProperties:
+    def _read_properties(self) -> HydroProperties:
         properties = self._service.read_properties(self.area_id)
         self._properties = properties
         return properties
