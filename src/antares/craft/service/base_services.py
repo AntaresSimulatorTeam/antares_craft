@@ -56,8 +56,9 @@ if TYPE_CHECKING:
 
 class BaseAreaService(ABC):
     @property
+    @abstractmethod
     def thermal_service(self) -> "BaseThermalService":
-        return self.thermal_service
+        pass
 
     @abstractmethod
     def create_area(

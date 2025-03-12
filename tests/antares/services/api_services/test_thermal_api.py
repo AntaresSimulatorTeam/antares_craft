@@ -69,8 +69,17 @@ class TestCreateAPI:
         services.renewable_service,
         services.hydro_service,
     )
+    area_2 = Area(
+        "area-test-2",
+        services.area_service,
+        services.short_term_storage_service,
+        services.thermal_service,
+        services.renewable_service,
+        services.hydro_service,
+    )
     thermal = ThermalCluster(services.thermal_service, area.id, "thermal-test")
-    thermal_1 = ThermalCluster(services.thermal_service, area_1.id, "thermal-test-1")
+    thermal_1 = ThermalCluster(services.thermal_service, area_1.id, "thermal-1")
+    thermal_2 = ThermalCluster(services.thermal_service, area_2.id, "thermal-2")
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
 
@@ -389,9 +398,9 @@ class TestCreateAPI:
                 self.thermal.update_fuel_cost_matrix(self.matrix)
 
     def test_update_multiple_thermal_clusters_success(self):
-        dict_thermals = {"thermal-test": self.thermal, "thermal-test-1": self.thermal_1}
+        dict_thermals = {"thermal-1": self.thermal_1, "thermal-2": self.thermal_2}
         json_thermals = {
-            "thermal-test": {
+            "area-test-1 / thermal-1": {
                 "enabled": True,
                 "unitCount": 1,
                 "nominalCapacity": 0,
@@ -428,7 +437,7 @@ class TestCreateAPI:
                 "efficiency": 100,
                 "variableOMCost": 0,
             },
-            "thermal-test-1": {
+            "area-test-2 / thermal-2": {
                 "enabled": True,
                 "unitCount": 1,
                 "nominalCapacity": 1500,
@@ -468,7 +477,7 @@ class TestCreateAPI:
         }
 
         json_thermals_1 = {
-            "thermal-test": {
+            "thermal-1": {
                 "enabled": True,
                 "unit_count": 1,
                 "nominal_capacity": 0,
@@ -505,7 +514,7 @@ class TestCreateAPI:
                 "efficiency": 100,
                 "variable_o_m_cost": 0,
             },
-            "thermal-test-1": {
+            "thermal-2": {
                 "enabled": True,
                 "unit_count": 1,
                 "nominal_capacity": 1500,
@@ -546,13 +555,10 @@ class TestCreateAPI:
 
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/thermals"
 
-        self.study._areas["area-test"] = self.area
         self.study._areas["area-test-1"] = self.area_1
-        self.study._areas["area-test"]._thermals["thermal-test"] = self.thermal
-        self.study._areas["area-test-1"]._thermals["thermal-test-1"] = self.thermal_1
-
-        thermal = self.study._areas["area-test"]._thermals["thermal-test"]
-        thermal_1 = self.study._areas["area-test-1"]._thermals["thermal-test-1"]
+        self.study._areas["area-test-2"] = self.area_2
+        self.study._areas["area-test-1"]._thermals["thermal-1"] = self.thermal_1
+        self.study._areas["area-test-2"]._thermals["thermal-2"] = self.thermal_2
 
         with requests_mock.Mocker() as mocker:
             updated_thermal = {}
@@ -565,13 +571,16 @@ class TestCreateAPI:
             mocker.put(url, json=json_thermals)
             self.study.update_multiple_thermal_clusters(updated_thermal)
 
-            assert thermal.properties.unit_count == json_thermals["thermal-test"]["unitCount"]
-            assert thermal.properties.enabled == json_thermals["thermal-test"]["enabled"]
-            assert thermal.properties.marginal_cost == json_thermals["thermal-test"]["marginalCost"]
+            thermal = self.study._areas["area-test-1"]._thermals["thermal-1"]
+            thermal_1 = self.study._areas["area-test-2"]._thermals["thermal-2"]
 
-            assert thermal_1.properties.unit_count == json_thermals["thermal-test-1"]["unitCount"]
-            assert thermal_1.properties.enabled == json_thermals["thermal-test-1"]["enabled"]
-            assert thermal_1.properties.marginal_cost == json_thermals["thermal-test-1"]["marginalCost"]
+            assert thermal.properties.unit_count == json_thermals["area-test-1 / thermal-1"]["unitCount"]
+            assert thermal.properties.enabled == json_thermals["area-test-1 / thermal-1"]["enabled"]
+            assert thermal.properties.marginal_cost == json_thermals["area-test-1 / thermal-1"]["marginalCost"]
+
+            assert thermal_1.properties.unit_count == json_thermals["area-test-2 / thermal-2"]["unitCount"]
+            assert thermal_1.properties.enabled == json_thermals["area-test-2 / thermal-2"]["enabled"]
+            assert thermal_1.properties.marginal_cost == json_thermals["area-test-2 / thermal-2"]["marginalCost"]
 
     def test_update_multiple_thermal_clusters_fail(self):
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/thermals"

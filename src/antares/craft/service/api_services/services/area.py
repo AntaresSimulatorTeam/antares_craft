@@ -73,6 +73,11 @@ class AreaApiService(BaseAreaService):
         self.hydro_service: BaseHydroService = hydro_service
 
     @override
+    @property
+    def thermal_service(self) -> "BaseThermalService":
+        return self._thermal_service
+
+    @override
     def create_area(
         self, area_name: str, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
     ) -> Area:

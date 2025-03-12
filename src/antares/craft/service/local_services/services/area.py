@@ -138,6 +138,11 @@ class AreaLocalService(BaseAreaService):
         return ThermalCluster(self.thermal_service, area_id, thermal_name, properties)
 
     @override
+    @property
+    def thermal_service(self) -> "BaseThermalService":
+        return self._thermal_service
+
+    @override
     def create_renewable_cluster(
         self,
         area_id: str,
