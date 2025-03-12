@@ -22,6 +22,7 @@ from antares.craft.exceptions.exceptions import (
     ThermalMatrixDownloadError,
     ThermalMatrixUpdateError,
     ThermalPropertiesUpdateError,
+    ThermalsUpdateError,
 )
 from antares.craft.model.thermal import (
     ThermalCluster,
@@ -126,3 +127,34 @@ class ThermalApiService(BaseThermalService):
         thermals.sort(key=lambda thermal: thermal.id)
 
         return thermals
+
+    @override
+    def update_multiple_thermal_clusters(
+        self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
+    ) -> dict[ThermalCluster, ThermalClusterProperties]:
+        url = f"{self._base_url}/studies/{self.study_id}/table-mode/thermals"
+
+        cluster_dict = {}  # Used to fill the method's response
+
+        body = {}
+        for cluster, props in new_properties.items():
+            api_properties = ThermalClusterPropertiesAPI.from_user_model(props)
+            api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+            cluster_id = f"{cluster.area_id} / {cluster.id}"
+            body[cluster_id] = api_dict
+
+            cluster_dict[cluster_id] = cluster
+
+        updated_thermal_clusters = {}
+        try:
+            json_response = self._wrapper.put(url, json=body).json()
+
+            for key, json_properties in json_response.items():
+                if key in cluster_dict:  # Currently AntaresWeb returns all clusters not only the modified ones
+                    api_properties = ThermalClusterPropertiesAPI.model_validate(json_properties)
+                    thermal_properties = api_properties.to_user_model()
+                    updated_thermal_clusters.update({cluster_dict[key]: thermal_properties})
+        except APIError as e:
+            raise ThermalsUpdateError(self.study_id, e.message) from e
+
+        return updated_thermal_clusters

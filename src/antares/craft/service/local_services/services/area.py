@@ -83,7 +83,7 @@ class AreaLocalService(BaseAreaService):
         self.config = config
         self.study_name = study_name
         self.storage_service: BaseShortTermStorageService = storage_service
-        self.thermal_service: BaseThermalService = thermal_service
+        self._thermal_service: BaseThermalService = thermal_service
         self.renewable_service: BaseRenewableService = renewable_service
         self.hydro_service: BaseHydroService = hydro_service
 
@@ -136,6 +136,11 @@ class AreaLocalService(BaseAreaService):
         write_timeseries(self.config.study_path, fuel_cost, TimeSeriesFileType.THERMAL_FUEL, area_id, cluster_id)
 
         return ThermalCluster(self.thermal_service, area_id, thermal_name, properties)
+
+    @override
+    @property
+    def thermal_service(self) -> "BaseThermalService":
+        return self._thermal_service
 
     @override
     def create_renewable_cluster(
