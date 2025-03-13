@@ -33,9 +33,6 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install build
           python -m pip install tox
-      
-      - name: Build README
-        run: tox -e build-readme
 
       - name: Build Python 🐍 packages
         run: python -m build
