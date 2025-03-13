@@ -12,6 +12,67 @@
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
+from antares.craft.model.binding_constraint import (
+    BindingConstraintFrequency,
+    BindingConstraintOperator,
+    BindingConstraintProperties,
+    BindingConstraintPropertiesUpdate,
+    ClusterData,
+    ConstraintTerm,
+    ConstraintTermUpdate,
+    LinkData,
+)
+from antares.craft.model.commons import FilterOption
+from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
+from antares.craft.model.link import (
+    AssetType,
+    LinkProperties,
+    LinkPropertiesUpdate,
+    LinkStyle,
+    LinkUi,
+    LinkUiUpdate,
+    TransmissionCapacities,
+)
+from antares.craft.model.renewable import (
+    RenewableClusterGroup,
+    RenewableClusterProperties,
+    RenewableClusterPropertiesUpdate,
+    TimeSeriesInterpretation,
+)
+from antares.craft.model.settings.adequacy_patch import AdequacyPatchParametersUpdate, PriceTakingOrder
+from antares.craft.model.settings.advanced_parameters import (
+    AdvancedParametersUpdate,
+    HydroHeuristicPolicy,
+    HydroPricingMode,
+    InitialReservoirLevel,
+    PowerFluctuation,
+    RenewableGenerationModeling,
+    SeedParametersUpdate,
+    SheddingPolicy,
+    SimulationCore,
+    UnitCommitmentMode,
+)
+from antares.craft.model.settings.general import (
+    BuildingMode,
+    GeneralParametersUpdate,
+    Mode,
+    Month,
+    OutputChoices,
+    WeekDay,
+)
+from antares.craft.model.settings.optimization import (
+    ExportMPS,
+    OptimizationParametersUpdate,
+    OptimizationTransmissionCapacities,
+    SimplexOptimizationRange,
+    UnfeasibleProblemBehavior,
+)
+from antares.craft.model.settings.playlist_parameters import PlaylistParameters
+from antares.craft.model.settings.study_settings import StudySettingsUpdate
+from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParametersUpdate
+from antares.craft.model.simulation import AntaresSimulationParameters, Solver
+from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
 from antares.craft.model.study import (
     Study,
     create_study_api,
@@ -21,8 +82,17 @@ from antares.craft.model.study import (
     read_study_api,
     read_study_local,
 )
+from antares.craft.model.thermal import (
+    LawOption,
+    LocalTSGenerationBehavior,
+    ThermalClusterGroup,
+    ThermalClusterProperties,
+    ThermalClusterPropertiesUpdate,
+    ThermalCostGeneration,
+)
 
 __all__ = [
+    # Instantiation classes and methods
     "Study",
     "APIconf",
     "LocalConfiguration",
@@ -32,4 +102,70 @@ __all__ = [
     "create_variant_api",
     "read_study_local",
     "create_study_local",
+    # Enums
+    "PriceTakingOrder",
+    "InitialReservoirLevel",
+    "HydroHeuristicPolicy",
+    "HydroPricingMode",
+    "PowerFluctuation",
+    "SheddingPolicy",
+    "UnitCommitmentMode",
+    "SimulationCore",
+    "RenewableGenerationModeling",
+    "Mode",
+    "Month",
+    "WeekDay",
+    "BuildingMode",
+    "OutputChoices",
+    "OptimizationTransmissionCapacities",
+    "UnfeasibleProblemBehavior",
+    "SimplexOptimizationRange",
+    "ExportMPS",
+    "AdequacyPatchMode",
+    "BindingConstraintFrequency",
+    "BindingConstraintOperator",
+    "TransmissionCapacities",
+    "AssetType",
+    "LinkStyle",
+    "RenewableClusterGroup",
+    "TimeSeriesInterpretation",
+    "STStorageGroup",
+    "LawOption",
+    "ThermalClusterGroup",
+    "LocalTSGenerationBehavior",
+    "ThermalCostGeneration",
+    # Model classes
+    "AdequacyPatchParametersUpdate",
+    "AdvancedParametersUpdate",
+    "SeedParametersUpdate",
+    "GeneralParametersUpdate",
+    "OptimizationParametersUpdate",
+    "PlaylistParameters",
+    "StudySettingsUpdate",
+    "ThematicTrimmingParametersUpdate",
+    "AreaProperties",
+    "AreaPropertiesUpdate",
+    "AreaUi",
+    "AreaUiUpdate",
+    "LinkData",
+    "ClusterData",
+    "ConstraintTerm",
+    "ConstraintTermUpdate",
+    "BindingConstraintProperties",
+    "BindingConstraintPropertiesUpdate",
+    "FilterOption",
+    "HydroProperties",
+    "HydroPropertiesUpdate",
+    "LinkProperties",
+    "LinkPropertiesUpdate",
+    "LinkUi",
+    "LinkUiUpdate",
+    "RenewableClusterProperties",
+    "RenewableClusterPropertiesUpdate",
+    "Solver",
+    "AntaresSimulationParameters",
+    "STStorageProperties",
+    "STStoragePropertiesUpdate",
+    "ThermalClusterProperties",
+    "ThermalClusterPropertiesUpdate",
 ]

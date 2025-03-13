@@ -18,8 +18,56 @@ from pathlib import Path, PurePath
 import numpy as np
 import pandas as pd
 
-from antares.craft import create_study_api, create_variant_api, import_study_api, read_study_api
-from antares.craft.api_conf.api_conf import APIconf
+from antares.craft import (
+    AdequacyPatchMode,
+    AdvancedParametersUpdate,
+    AntaresSimulationParameters,
+    APIconf,
+    AreaProperties,
+    AreaPropertiesUpdate,
+    AreaUi,
+    AreaUiUpdate,
+    AssetType,
+    BindingConstraintFrequency,
+    BindingConstraintOperator,
+    BindingConstraintProperties,
+    BindingConstraintPropertiesUpdate,
+    ClusterData,
+    ConstraintTerm,
+    ConstraintTermUpdate,
+    ExportMPS,
+    FilterOption,
+    GeneralParametersUpdate,
+    HydroPropertiesUpdate,
+    LawOption,
+    LinkData,
+    LinkProperties,
+    LinkPropertiesUpdate,
+    LinkStyle,
+    LinkUi,
+    LinkUiUpdate,
+    Mode,
+    OptimizationParametersUpdate,
+    PlaylistParameters,
+    RenewableClusterGroup,
+    RenewableClusterProperties,
+    RenewableClusterPropertiesUpdate,
+    RenewableGenerationModeling,
+    STStorageGroup,
+    STStorageProperties,
+    STStoragePropertiesUpdate,
+    StudySettingsUpdate,
+    ThermalClusterGroup,
+    ThermalClusterProperties,
+    ThermalClusterPropertiesUpdate,
+    TimeSeriesInterpretation,
+    TransmissionCapacities,
+    UnitCommitmentMode,
+    create_study_api,
+    create_variant_api,
+    import_study_api,
+    read_study_api,
+)
 from antares.craft.exceptions.exceptions import (
     AreaDeletionError,
     BindingConstraintCreationError,
@@ -28,61 +76,8 @@ from antares.craft.exceptions.exceptions import (
     STStorageMatrixUploadError,
     StudySettingsUpdateError,
 )
-from antares.craft.model.area import (
-    AdequacyPatchMode,
-    AreaProperties,
-    AreaPropertiesUpdate,
-    AreaUi,
-    AreaUiUpdate,
-    FilterOption,
-)
-from antares.craft.model.binding_constraint import (
-    BindingConstraintFrequency,
-    BindingConstraintOperator,
-    BindingConstraintProperties,
-    BindingConstraintPropertiesUpdate,
-    ClusterData,
-    ConstraintTerm,
-    ConstraintTermUpdate,
-    LinkData,
-)
-from antares.craft.model.hydro import HydroPropertiesUpdate
-from antares.craft.model.link import (
-    AssetType,
-    LinkProperties,
-    LinkPropertiesUpdate,
-    LinkStyle,
-    LinkUi,
-    LinkUiUpdate,
-    TransmissionCapacities,
-)
-from antares.craft.model.renewable import (
-    RenewableClusterGroup,
-    RenewableClusterProperties,
-    RenewableClusterPropertiesUpdate,
-    TimeSeriesInterpretation,
-)
-from antares.craft.model.settings.advanced_parameters import (
-    AdvancedParametersUpdate,
-    RenewableGenerationModeling,
-    UnitCommitmentMode,
-)
-from antares.craft.model.settings.general import GeneralParametersUpdate, Mode
-from antares.craft.model.settings.optimization import ExportMPS, OptimizationParametersUpdate
-from antares.craft.model.settings.study_settings import PlaylistParameters, StudySettings, StudySettingsUpdate
-from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
-from antares.craft.model.st_storage import (
-    STStorageGroup,
-    STStorageMatrixName,
-    STStorageProperties,
-    STStoragePropertiesUpdate,
-)
-from antares.craft.model.thermal import (
-    LawOption,
-    ThermalClusterGroup,
-    ThermalClusterProperties,
-    ThermalClusterPropertiesUpdate,
-)
+from antares.craft.model.settings.study_settings import StudySettings
+from antares.craft.model.simulation import Job, JobStatus
 
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
@@ -387,8 +382,7 @@ class TestWebClient:
         wrong_matrix = pd.DataFrame(data=[[0]])
         with pytest.raises(
             STStorageMatrixUploadError,
-            match=f"Could not upload {STStorageMatrixName.INFLOWS.value} matrix for storage {battery_fr.id}"
-            f" inside area {area_fr.id}",
+            match=f"Could not upload inflows matrix for storage {battery_fr.id}" f" inside area {area_fr.id}",
         ):
             battery_fr.set_storage_inflows(wrong_matrix)
 

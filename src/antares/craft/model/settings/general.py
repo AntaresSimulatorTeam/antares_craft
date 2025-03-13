@@ -62,11 +62,6 @@ class OutputChoices(EnumIgnoreCase):
     MAX_POWER = "max-power"
 
 
-class OutputFormat(EnumIgnoreCase):
-    TXT = "txt-files"
-    ZIP = "zip-files"
-
-
 @dataclass(frozen=True)
 class GeneralParameters:
     mode: Mode = Mode.ECONOMY
