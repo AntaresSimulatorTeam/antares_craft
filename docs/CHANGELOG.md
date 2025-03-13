@@ -1,3 +1,55 @@
+v0.2.1 (2025-03-13)
+-------------------
+
+### Compatiblity
+This version is only compatible with AntaresWeb v2.19.1 and higher.
+Consequently, the v0.2.0 is only compatible with AntaresWeb v2.19.0 
+
+It also requires a solver in v8.8.14 or higher
+
+### Breaking changes
+* **areas**: new user class for AreaUI. It does no longer support multiple layers [96](https://github.com/AntaresSimulatorTeam/antares_craft/pull/96)
+* **matrices**: rename matrices update methods. The prefixes `create` or `update` changed to `set` for clarity’s sake [125](https://github.com/AntaresSimulatorTeam/antares_craft/pull/125)
+* **user** make `read` methods inside Study or Area private. You shall no longer need to use them [126](https://github.com/AntaresSimulatorTeam/antares_craft/pull/126)
+
+### Features
+* **user**: make user classes frozen to avoid careless modifications [99](https://github.com/AntaresSimulatorTeam/antares_craft/pull/99)
+* **links**: create `modify_multiple_links` method by [98](https://github.com/AntaresSimulatorTeam/antares_craft/pull/98)
+* **local**: handle st storage methods [101](https://github.com/AntaresSimulatorTeam/antares_craft/pull/101)
+* **local**: handle thermal methods [102](https://github.com/AntaresSimulatorTeam/antares_craft/pull/102)
+* **local**: handle renewable methods [103](https://github.com/AntaresSimulatorTeam/antares_craft/pull/103)
+* **links**: use `read_links` inside `read_study_api`[105](https://github.com/AntaresSimulatorTeam/antares_craft/pull/105)
+* **constraints**: introduce `update_multiple_constraints` method [108](https://github.com/AntaresSimulatorTeam/antares_craft/pull/108)
+* **local**: implement `read_constraints` method [110](https://github.com/AntaresSimulatorTeam/antares_craft/pull/110)
+* **local**: implement some `binding_constraints` [111](https://github.com/AntaresSimulatorTeam/antares_craft/pull/111)
+* **local**: implement `thermal_ts_generation` [112](https://github.com/AntaresSimulatorTeam/antares_craft/pull/112)
+* **local**: return default simulator matrices when they are empty [113](https://github.com/AntaresSimulatorTeam/antares_craft/pull/113)
+* **areas**: introduce `update_multiple_areas_properties` method [104](https://github.com/AntaresSimulatorTeam/antares_craft/pull/104)
+* **local**: handle local launcher [116](https://github.com/AntaresSimulatorTeam/antares_craft/pull/116)
+* **local**: handle delete and read output methods [117](https://github.com/AntaresSimulatorTeam/antares_craft/pull/117)
+* **local**: handle clusters deletion methods [118](https://github.com/AntaresSimulatorTeam/antares_craft/pull/118)
+* **local**: handle link update ui and deletion [120](https://github.com/AntaresSimulatorTeam/antares_craft/pull/120)
+* **local**: implement delete constraint method [123](https://github.com/AntaresSimulatorTeam/antares_craft/pull/123)
+* **api**: handle AntaresWeb version 2.19.1 [92](https://github.com/AntaresSimulatorTeam/antares_craft/pull/92)
+* **thermals**: introduce `update_multiple_thermal_clusters` method [124](https://github.com/AntaresSimulatorTeam/antares_craft/pull/124)
+
+
+### Fixes
+* **user**: `read_xxx` methods modify objects instead of copying them [100](https://github.com/AntaresSimulatorTeam/antares_craft/pull/100)
+* **local**: `write_timeseries` method improvement [97](https://github.com/AntaresSimulatorTeam/antares_craft/pull/97)
+* **local**: actually modify ini files inside update methods [119](https://github.com/AntaresSimulatorTeam/antares_craft/pull/119)
+
+
+### Miscellaneous
+* **doc**: initialize doc deployment to readthedoc [121](https://github.com/AntaresSimulatorTeam/antares_craft/pull/121)
+* **chore**: cleaning duplicated code [106](https://github.com/AntaresSimulatorTeam/antares_craft/pull/106)
+* **chore**: better handling of filtering values [114](https://github.com/AntaresSimulatorTeam/antares_craft/pull/114)
+* **chore**: remove pydantic related field from user classes [115](https://github.com/AntaresSimulatorTeam/antares_craft/pull/115)
+* **chore**: put user related classes inside `__init__.py` [127](https://github.com/AntaresSimulatorTeam/antares_craft/pull/127)
+
+
+**Full Changelog**: https://github.com/AntaresSimulatorTeam/antares_craft/compare/v0.2.0...v0.2.1
+
 v0.2.0 (2025-02-20)
 -------------------
 
