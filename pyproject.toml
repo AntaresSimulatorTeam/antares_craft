@@ -16,12 +16,16 @@ authors = [
 ]
 requires-python = ">=3.9"
 dependencies = [
+    "antares-timeseries-generation==0.1.7",
+    "antares-study-version==1.0.9",
     "configparser~=5.0.2",
     "numpy~=1.26.4",
     "pandas~=2.2.2",
     "pydantic~=2.7.1",
-    "requests~=2.32.0"
+    "requests~=2.32.0",
+    "psutil~=7.0.0"
 ]
+
 classifiers = [
     #    Classifiers here: https://pypi.org/classifiers/
     "Development Status :: 2 - Pre-Alpha",
