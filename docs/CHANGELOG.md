@@ -36,6 +36,7 @@ It also requires a solver in v8.8.14 or higher
 
 ### Fixes
 * **user**: `read_xxx` methods modify objects instead of copying them [100](https://github.com/AntaresSimulatorTeam/antares_craft/pull/100)
+* **user**: put new dependencies inside the `pyproject.toml` file [129](https://github.com/AntaresSimulatorTeam/antares_craft/pull/129)
 * **local**: `write_timeseries` method improvement [97](https://github.com/AntaresSimulatorTeam/antares_craft/pull/97)
 * **local**: actually modify ini files inside update methods [119](https://github.com/AntaresSimulatorTeam/antares_craft/pull/119)
 
