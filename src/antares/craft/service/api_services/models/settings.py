@@ -199,6 +199,11 @@ class GeneralParametersAPI(APIBaseModel):
     mc_scenario: bool
     result_format: OutputFormat
 
+    @field_validator("horizon", mode="before")
+    def transform_horizon_to_str(cls, val: Union[str, int, None]) -> Optional[str]:
+        # horizon can be returned as an int by AntaresWeb
+        return str(val) if val is not None else val
+
     @staticmethod
     def from_user_model(user_class: GeneralParametersType) -> "GeneralParametersAPI":
         user_dict = asdict(user_class)

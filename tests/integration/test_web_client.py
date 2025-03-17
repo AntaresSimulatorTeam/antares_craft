@@ -871,7 +871,8 @@ class TestWebClient:
         new_settings_aggregated = StudySettingsUpdate(
             advanced_parameters=AdvancedParametersUpdate(
                 renewable_generation_modelling=RenewableGenerationModeling.AGGREGATED
-            )
+            ),
+            general_parameters=GeneralParametersUpdate(horizon="2018"),
         )
         study_aggregated = create_study_api("test_aggregated", "880", api_config)
         study_aggregated.update_settings(new_settings_aggregated)
