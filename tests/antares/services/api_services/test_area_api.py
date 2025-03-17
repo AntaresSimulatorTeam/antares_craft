@@ -225,11 +225,12 @@ class TestCreateAPI:
 
     def test_read_areas_success(self):
         area_id = "zone"
-        url = f"https://antares.com/api/v1/studies/{self.study_id}/areas"
+        study_url = f"https://antares.com/api/v1/studies/{self.study_id}"
+        url = study_url + "/areas"
         ui_url = url + "?ui=true"
-        url_thermal = url + f"/{area_id}/clusters/thermal"
-        url_renewable = url + f"/{area_id}/clusters/renewable"
-        url_st_storage = url + f"/{area_id}/storages"
+        url_thermal = f"{study_url}/table-mode/thermals"
+        url_renewable = f"{study_url}/table-mode/renewables"
+        url_st_storage = f"{study_url}/table-mode/st-storages"
         url_properties_form = url + f"/{area_id}/properties/form"
         hydro_url = url + f"/{area_id}/hydro/form"
 
@@ -241,32 +242,28 @@ class TestCreateAPI:
                 "layerColor": {"0": "230, 108, 44"},
             }
         }
-        json_thermal = [
-            {
-                "id": "therm_un",
+        json_thermal = {
+            f"{area_id} / therm_un": {
                 "group": "gas",
-                "name": "therm_un",
                 "enabled": "true",
                 "unitCount": 1,
                 "nominalCapacity": 0,
             }
-        ]
-        json_renewable = [
-            {
-                "id": "test_renouvelable",
+        }
+
+        json_renewable = {
+            f"{area_id} / test_renouvelable": {
                 "group": "solar thermal",
-                "name": "test_renouvelable",
                 "enabled": "true",
                 "unitCount": 1,
                 "nominalCapacity": 0,
                 "tsInterpretation": "power-generation",
             }
-        ]
-        json_st_storage = [
-            {
-                "id": "test_storage",
+        }
+
+        json_st_storage = {
+            f"{area_id} / test_storage": {
                 "group": "pondage",
-                "name": "test_storage",
                 "injectionNominalCapacity": 0,
                 "withdrawalNominalCapacity": 0,
                 "reservoirCapacity": 0,
@@ -275,7 +272,7 @@ class TestCreateAPI:
                 "initialLevelOptim": "false",
                 "enabled": "true",
             }
-        ]
+        }
         json_properties = {
             "energyCostUnsupplied": 0,
             "energyCostSpilled": 0,
@@ -299,26 +296,23 @@ class TestCreateAPI:
 
             actual_area_list = self.study._read_areas()
 
-            thermal_ = json_thermal[0]
-            thermal_id = thermal_.pop("id")
-            thermal_name = thermal_.pop("name")
+            thermal_ = list(json_thermal.values())[0]
+            thermal_id = list(json_thermal.keys())[0].split(" / ")[1]
 
-            renewable_ = json_renewable[0]
-            renewable_id = renewable_.pop("id")
-            renewable_name = renewable_.pop("name")
+            renewable_ = list(json_renewable.values())[0]
+            renewable_id = list(json_renewable.keys())[0].split(" / ")[1]
 
-            storage_ = json_st_storage[0]
-            storage_id = storage_.pop("id")
-            storage_name = storage_.pop("name")
+            storage_ = list(json_st_storage.values())[0]
+            storage_id = list(json_st_storage.keys())[0].split(" / ")[1]
 
             thermal_props = ThermalClusterPropertiesAPI(**thermal_).to_user_model()
-            thermal_cluster = ThermalCluster(self.area_api.thermal_service, thermal_id, thermal_name, thermal_props)
+            thermal_cluster = ThermalCluster(self.area_api.thermal_service, area_id, thermal_id, thermal_props)
             renewable_props = RenewableClusterPropertiesAPI(**renewable_).to_user_model()
             renewable_cluster = RenewableCluster(
-                self.area_api.renewable_service, renewable_id, renewable_name, renewable_props
+                self.area_api.renewable_service, area_id, renewable_id, renewable_props
             )
             storage_props = STStoragePropertiesAPI(**storage_).to_user_model()
-            st_storage = STStorage(self.area_api.storage_service, storage_id, storage_name, storage_props)
+            st_storage = STStorage(self.area_api.storage_service, area_id, storage_id, storage_props)
 
             hydro = Hydro(self.area_api.hydro_service, area_id, hydro_properties)
 
@@ -354,7 +348,7 @@ class TestCreateAPI:
 
     def test_read_areas_fail(self):
         with requests_mock.Mocker() as mocker:
-            url_areas = f"https://antares.com/api/v1/studies/{self.study_id}/areas"
+            url_areas = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/thermals"
             mocker.get(url_areas, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 AreasRetrievalError,
@@ -389,18 +383,3 @@ class TestCreateAPI:
 
             actual_hydro = Hydro(self.api, self.area.id, hydro_props)
             assert actual_hydro.properties == self.area.hydro._read_properties()
-
-    def test_read_renewables_empty(self):
-        area = self.area
-        url_renewable = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{area.id}/clusters/renewable"
-
-        with requests_mock.Mocker() as mocker:
-            mocker.get(
-                url_renewable,
-                status_code=404,
-                json={"description": "'renewables' not a child of Input", "exception": "ChildNotFoundError"},
-            )
-
-            actual_renewables = area._read_renewables()
-
-            assert actual_renewables == []

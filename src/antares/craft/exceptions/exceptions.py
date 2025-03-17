@@ -13,12 +13,6 @@
 from typing import Any, List
 
 
-class InvalidChoiceError(ValueError):
-    def __init__(self, message: str = "Invalid choice") -> None:
-        self.message = message
-        super().__init__(self.message)
-
-
 class APIError(Exception):
     def __init__(self, message: str) -> None:
         self.message = message
@@ -128,12 +122,6 @@ class ThermalDeletionError(Exception):
 class ThermalsUpdateError(Exception):
     def __init__(self, study_id: str, message: str):
         self.message = f"Could not update the clusters from the study {study_id} : {message}"
-        super().__init__(self.message)
-
-
-class HydroCreationError(Exception):
-    def __init__(self, area_id: str, message: str) -> None:
-        self.message = f"Could not create hydro inside area {area_id}: " + message
         super().__init__(self.message)
 
 
@@ -363,18 +351,6 @@ class LinkUploadError(Exception):
 class LinkDownloadError(Exception):
     def __init__(self, area_from_id: str, area_to_id: str, matrix_type: str, message: str):
         self.message = f"Could not download {matrix_type} matrix for link {area_from_id}/{area_to_id}: {message}"
-        super().__init__(self.message)
-
-
-class CustomError(Exception):
-    def __init__(self, message: str = "Error") -> None:
-        self.message = message
-        super().__init__(self.message)
-
-
-class ConfigurationError(Exception):
-    def __init__(self, message: str = "Error") -> None:
-        self.message = "Unsupported configuration type" + f" {message}" if message != "Error" else ""
         super().__init__(self.message)
 
 
