@@ -144,15 +144,15 @@ class TestCreateAPI:
                 self.api, study_id_test, storage_service, thermal_service, renewable_api, hydro_service
             )
 
-            actual_renewable_list = renewable_api.read_renewables()
+            actual_renewables = renewable_api.read_renewables()
 
             area_id, renewable_id = list(json_renewable.keys())[0].split(" / ")
 
             renewable_props = RenewableClusterPropertiesAPI(**list(json_renewable.values())[0]).to_user_model()
             expected_renewable = RenewableCluster(area_api.renewable_service, area_id, renewable_id, renewable_props)
 
-            assert len(actual_renewable_list) == 1
-            actual_renewable = actual_renewable_list[0]
+            assert len(actual_renewables) == 1
+            actual_renewable = actual_renewables[area_id]["test_renouvelable"]
 
             assert expected_renewable.id == actual_renewable.id
             assert expected_renewable.name == actual_renewable.name

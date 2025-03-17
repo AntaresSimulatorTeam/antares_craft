@@ -150,15 +150,15 @@ class TestCreateAPI:
                 self.api, study_id_test, storage_api, thermal_service, renewable_service, hydro_service
             )
 
-            actual_storage_list = storage_api.read_st_storages()
+            actual_storages = storage_api.read_st_storages()
 
             area_id, storage_id = list(json_storage.keys())[0].split(" / ")
 
             storage_props = STStoragePropertiesAPI(**list(json_storage.values())[0]).to_user_model()
             expected_st_storage = STStorage(area_api.storage_service, area_id, storage_id, storage_props)
 
-            assert len(actual_storage_list) == 1
-            actual_st_storage = actual_storage_list[0]
+            assert len(actual_storages) == 1
+            actual_st_storage = actual_storages[area_id]["test_storage"]
 
             assert expected_st_storage.id == actual_st_storage.id
             assert expected_st_storage.name == actual_st_storage.name

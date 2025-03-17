@@ -152,15 +152,15 @@ class TestCreateAPI:
                 self.api, study_id_test, storage_service, thermal_api, renewable_service, hydro_service
             )
 
-            actual_thermal_list = thermal_api.read_thermal_clusters()
+            actual_thermals = thermal_api.read_thermal_clusters()
 
             area_id, thermal_id = list(json_thermal.keys())[0].split(" / ")
 
             thermal_props = ThermalClusterPropertiesAPI(**list(json_thermal.values())[0]).to_user_model()
             expected_thermal = ThermalCluster(area_api.thermal_service, area_id, thermal_id, thermal_props)
 
-            assert len(actual_thermal_list) == 1
-            actual_thermal = actual_thermal_list[0]
+            assert len(actual_thermals) == 1
+            actual_thermal = actual_thermals[area_id]["therm_un"]
 
             assert expected_thermal.id == actual_thermal.id
             assert expected_thermal.name == actual_thermal.name
