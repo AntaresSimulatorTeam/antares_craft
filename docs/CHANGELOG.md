@@ -1,3 +1,12 @@
+v0.2.2 (2025-03-17)
+-------------------
+
+### Bug fixes
+- **api**: parse horizon inside study settings even when it's an integer
+
+### Perfs
+- **api**: use AntaresWeb table-mode endpoints to reduce amount of API calls inside reading methods
+
 v0.2.1 (2025-03-13)
 -------------------
 
