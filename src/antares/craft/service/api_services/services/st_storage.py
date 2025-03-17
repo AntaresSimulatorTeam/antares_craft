@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from typing import List
 
 import pandas as pd
 
@@ -88,20 +87,18 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
         return dataframe
 
     @override
-    def read_st_storages(self, area_id: str) -> List[STStorage]:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages"
+    def read_st_storages(self) -> dict[str, dict[str, STStorage]]:
+        url = f"{self._base_url}/studies/{self.study_id}/table-mode/st-storages"
         json_storage = self._wrapper.get(url).json()
-        storages = []
 
-        for storage in json_storage:
-            storage_id = storage.pop("id")
-            storage_name = storage.pop("name")
+        storages: dict[str, dict[str, STStorage]] = {}
 
+        for key, storage in json_storage.items():
+            area_id, storage_id = key.split(" / ")
             api_props = STStoragePropertiesAPI.model_validate(storage)
-            storage_properties = api_props.to_user_model()
-            st_storage = STStorage(self, storage_id, storage_name, storage_properties)
-            storages.append(st_storage)
+            storage_props = api_props.to_user_model()
+            st_storage = STStorage(self, area_id, storage_id, storage_props)
 
-        storages.sort(key=lambda storage: storage.id)
+            storages.setdefault(area_id, {})[st_storage.id] = st_storage
 
         return storages

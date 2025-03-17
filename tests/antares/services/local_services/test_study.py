@@ -28,7 +28,6 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
-    CustomError,
     LinkCreationError,
 )
 from antares.craft.model.area import AreaProperties, AreaUi
@@ -621,7 +620,7 @@ layers = 0
         error_message = "Thine area hath raised en error, thou shalt not pass!"
 
         def mock_error_in_sets_ini():
-            raise CustomError(error_message)
+            raise Exception(error_message)
 
         area_id = "test"
 

@@ -130,22 +130,19 @@ class TestCreateAPI:
                     getattr(self.thermal, matrix_method)()
 
     def test_read_thermals(self):
-        json_thermal = [
-            {
-                "id": "therm_un",
+        json_thermal = {
+            "zone / therm_un": {
                 "group": "gas",
-                "name": "therm_un",
                 "enabled": "true",
                 "unitCount": 1,
                 "nominalCapacity": 0,
             }
-        ]
+        }
         study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
-        area_id = "zone"
-        url = f"https://antares.com/api/v1/studies/{study_id_test}/areas/{area_id}/"
+        url = f"https://antares.com/api/v1/studies/{study_id_test}/table-mode/thermals"
 
         with requests_mock.Mocker() as mocker:
-            mocker.get(url + "clusters/thermal", json=json_thermal)
+            mocker.get(url, json=json_thermal)
 
             thermal_api = ThermalApiService(self.api, study_id_test)
             renewable_service = Mock()
@@ -155,16 +152,15 @@ class TestCreateAPI:
                 self.api, study_id_test, storage_service, thermal_api, renewable_service, hydro_service
             )
 
-            actual_thermal_list = thermal_api.read_thermal_clusters(area_id)
+            actual_thermals = thermal_api.read_thermal_clusters()
 
-            thermal_id = json_thermal[0].pop("id")
-            thermal_name = json_thermal[0].pop("name")
+            area_id, thermal_id = list(json_thermal.keys())[0].split(" / ")
 
-            thermal_props = ThermalClusterPropertiesAPI(**json_thermal[0]).to_user_model()
-            expected_thermal = ThermalCluster(area_api.thermal_service, thermal_id, thermal_name, thermal_props)
+            thermal_props = ThermalClusterPropertiesAPI(**list(json_thermal.values())[0]).to_user_model()
+            expected_thermal = ThermalCluster(area_api.thermal_service, area_id, thermal_id, thermal_props)
 
-            assert len(actual_thermal_list) == 1
-            actual_thermal = actual_thermal_list[0]
+            assert len(actual_thermals) == 1
+            actual_thermal = actual_thermals[area_id]["therm_un"]
 
             assert expected_thermal.id == actual_thermal.id
             assert expected_thermal.name == actual_thermal.name

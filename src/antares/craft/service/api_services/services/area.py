@@ -68,15 +68,25 @@ class AreaApiService(BaseAreaService):
         self.study_id = study_id
         self._wrapper = RequestWrapper(self.api_config.set_up_api_conf())
         self._base_url = f"{self.api_config.get_host()}/api/v1"
-        self.storage_service: BaseShortTermStorageService = storage_service
+        self._storage_service: BaseShortTermStorageService = storage_service
         self._thermal_service: BaseThermalService = thermal_service
-        self.renewable_service: BaseRenewableService = renewable_service
+        self._renewable_service: BaseRenewableService = renewable_service
         self.hydro_service: BaseHydroService = hydro_service
 
     @override
     @property
     def thermal_service(self) -> "BaseThermalService":
         return self._thermal_service
+
+    @override
+    @property
+    def renewable_service(self) -> "BaseRenewableService":
+        return self._renewable_service
+
+    @override
+    @property
+    def storage_service(self) -> "BaseShortTermStorageService":
+        return self._storage_service
 
     @override
     def create_area(
@@ -449,32 +459,27 @@ class AreaApiService(BaseAreaService):
     def read_areas(self) -> list[Area]:
         area_list = []
 
-        base_api_url = f"{self._base_url}/studies/{self.study_id}/areas"
-        ui_url = "ui=true"
-        url_properties_form = "properties/form"
         try:
-            json_resp = self._wrapper.get(base_api_url + "?" + ui_url).json()
+            # Read all thermals
+            thermals = self.thermal_service.read_thermal_clusters()
+
+            # Read all renewables
+            renewables = self.renewable_service.read_renewables()
+
+            # Read all st_storages
+            st_storages = self.storage_service.read_st_storages()
+
+            # Read all area_properties
+            area_properties = self._read_area_properties()
+
+            # Read all area_ui
+            ui_url = f"{self._base_url}/studies/{self.study_id}/areas?ui=true"
+            json_resp = self._wrapper.get(ui_url).json()
             for area in json_resp:
-                area_url = base_api_url + "/" + f"{area}/"
-
-                json_properties = self._wrapper.get(area_url + url_properties_form).json()
-
                 ui_api = AreaUiAPI.model_validate(json_resp[area])
                 ui_properties = ui_api.to_user_model()
 
-                assert self.renewable_service is not None
-                assert self.thermal_service is not None
-                assert self.storage_service is not None
-
-                renewables = self.renewable_service.read_renewables(area)
-                thermals = self.thermal_service.read_thermal_clusters(area)
-                st_storages = self.storage_service.read_st_storages(area)
-
-                dict_renewables = {renewable.id: renewable for renewable in renewables}
-
-                dict_thermals = {thermal.id: thermal for thermal in thermals}
-                dict_st_storage = {storage.id: storage for storage in st_storages}
-
+                # Loop on Ui to create a basic area
                 area_obj = Area(
                     area,
                     self,
@@ -482,12 +487,16 @@ class AreaApiService(BaseAreaService):
                     self.thermal_service,
                     self.renewable_service,
                     self.hydro_service,
-                    renewables=dict_renewables,
-                    thermals=dict_thermals,
-                    st_storages=dict_st_storage,
-                    properties=json_properties,
                     ui=ui_properties,
                 )
+                # Fill the created object with the right values
+                area_obj._properties = area_properties[area_obj.id]
+                area_obj._thermals = thermals.get(area_obj.id, {})
+                area_obj._renewables = renewables.get(area_obj.id, {})
+                area_obj._st_storages = st_storages.get(area_obj.id, {})
+
+                # For each area, reads the hydro properties
+                # todo: this is really unefficient but we have to do this until AntaresWeb introduces a specific endpoint
                 area_obj.hydro._read_properties()
 
                 area_list.append(area_obj)
@@ -499,6 +508,16 @@ class AreaApiService(BaseAreaService):
             raise AreasRetrievalError(self.study_id, e.message) from e
 
         return area_list
+
+    def _read_area_properties(self) -> dict[str, AreaProperties]:
+        url = f"{self._base_url}/studies/{self.study_id}/table-mode/areas"
+        properties_json = self._wrapper.get(url).json()
+        properties: dict[str, AreaProperties] = {}
+        for area_id, props in properties_json.items():
+            api_response = AreaPropertiesAPITableMode.model_validate(props)
+            area_properties = api_response.to_user_model()
+            properties[area_id] = area_properties
+        return properties
 
     @override
     def update_multiple_areas(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:

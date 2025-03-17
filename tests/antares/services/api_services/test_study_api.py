@@ -271,10 +271,10 @@ class TestCreateAPI:
         base_url = "https://antares.com/api/v1"
         url = f"{base_url}/studies/{self.study_id}"
         area_url = f"{url}/areas"
-        area_props_url = f"{area_url}/zone/properties/form"
-        thermal_url = f"{area_url}/zone/clusters/thermal"
-        renewable_url = f"{area_url}/zone/clusters/renewable"
-        storage_url = f"{area_url}/zone/storages"
+        area_props_url = f"{url}/table-mode/areas"
+        thermal_url = f"{url}/table-mode/thermals"
+        renewable_url = f"{url}/table-mode/renewables"
+        storage_url = f"{url}/table-mode/st-storages"
         output_url = f"{url}/outputs"
         constraints_url = f"{base_url}/studies/{self.study_id}/bindingconstraints"
         hydro_url = f"{area_url}/zone/hydro/form"
@@ -285,10 +285,10 @@ class TestCreateAPI:
             mocker.get(config_urls, json={})
             mocker.get(ts_settings_url, json={"thermal": {"number": 1}}, status_code=200)
             mocker.get(area_url, json=json_ui)
-            mocker.get(area_props_url, json={})
-            mocker.get(renewable_url, json=[])
-            mocker.get(thermal_url, json=[])
-            mocker.get(storage_url, json=[])
+            mocker.get(area_props_url, json={"zone": {}})
+            mocker.get(renewable_url, json={})
+            mocker.get(thermal_url, json={})
+            mocker.get(storage_url, json={})
             mocker.get(
                 output_url,
                 json=[],
@@ -334,6 +334,15 @@ class TestCreateAPI:
 
             areas_url = f"{base_url}/studies/{variant_id}/areas?ui=true"
             mocker.get(areas_url, json={}, status_code=200)
+
+            thermal_url = f"{base_url}/studies/{variant_id}/table-mode/thermals"
+            renewable_url = f"{base_url}/studies/{variant_id}/table-mode/renewables"
+            storage_url = f"{base_url}/studies/{variant_id}/table-mode/st-storages"
+            properties_url = f"{base_url}/studies/{variant_id}/table-mode/areas"
+            mocker.get(renewable_url, json={})
+            mocker.get(thermal_url, json={})
+            mocker.get(storage_url, json={})
+            mocker.get(properties_url, json={})
 
             output_url = f"{base_url}/studies/{variant_id}/outputs"
             mocker.get(
@@ -783,9 +792,10 @@ class TestCreateAPI:
         url = f"{base_url}/studies/{self.study_id}"
         area_url = f"{url}/areas"
         area_props_url = f"{area_url}/zone/properties/form"
-        thermal_url = f"{area_url}/zone/clusters/thermal"
-        renewable_url = f"{area_url}/zone/clusters/renewable"
-        storage_url = f"{area_url}/zone/storages"
+        thermal_url = f"{url}/table-mode/thermals"
+        renewable_url = f"{url}/table-mode/renewables"
+        storage_url = f"{url}/table-mode/st-storages"
+        properties_url = f"{url}/table-mode/areas"
         output_url = f"{url}/outputs"
         constraints_url = f"{base_url}/studies/{self.study_id}/bindingconstraints"
         links_url = f"{base_url}/studies/{self.study_id}/links"
@@ -804,9 +814,10 @@ class TestCreateAPI:
             mocker.get(ts_settings_url, json={"thermal": {"number": 1}}, status_code=200)
             mocker.get(area_url, json={})
             mocker.get(area_props_url, json={})
-            mocker.get(renewable_url, json=[])
-            mocker.get(thermal_url, json=[])
-            mocker.get(storage_url, json=[])
+            mocker.get(renewable_url, json={})
+            mocker.get(thermal_url, json={})
+            mocker.get(storage_url, json={})
+            mocker.get(properties_url, json={})
             mocker.get(output_url, json=[])
             mocker.get(constraints_url, json=[])
             mocker.get(links_url, json=[])

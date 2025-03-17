@@ -82,9 +82,9 @@ class AreaLocalService(BaseAreaService):
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
-        self.storage_service: BaseShortTermStorageService = storage_service
+        self._storage_service: BaseShortTermStorageService = storage_service
         self._thermal_service: BaseThermalService = thermal_service
-        self.renewable_service: BaseRenewableService = renewable_service
+        self._renewable_service: BaseRenewableService = renewable_service
         self.hydro_service: BaseHydroService = hydro_service
 
     @override
@@ -141,6 +141,16 @@ class AreaLocalService(BaseAreaService):
     @property
     def thermal_service(self) -> "BaseThermalService":
         return self._thermal_service
+
+    @override
+    @property
+    def renewable_service(self) -> "BaseRenewableService":
+        return self._renewable_service
+
+    @override
+    @property
+    def storage_service(self) -> "BaseShortTermStorageService":
+        return self._storage_service
 
     @override
     def create_renewable_cluster(
