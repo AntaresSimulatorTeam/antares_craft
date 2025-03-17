@@ -745,7 +745,7 @@ class TestReadRenewable:
                 ],
                 dtype="object",
             )
-            renewable_list = area._read_renewables()
+            renewable_list = list(area.get_renewables().values())
 
             if renewable_list:
                 assert area.id == "fr"
@@ -862,7 +862,7 @@ class TestReadThermal:
         areas = local_study_w_thermal._read_areas()
 
         for area in areas:
-            thermals_list = area._read_thermal_clusters()
+            thermals_list = list(area.get_thermals().values())
 
             for thermal in thermals_list:
                 # Check properties
@@ -905,15 +905,15 @@ class TestReadSTStorage:
         areas = local_study_w_storage._read_areas()
 
         for area in areas:
-            storages = area._read_st_storages()
+            storages = area.get_st_storages()
             if area.name == "fr":
                 assert len(storages) == 1
-                storage = storages[0]
+                storage = storages["sts_1"]
                 assert storage.name == "sts_1"
                 assert storage.properties.efficiency == 0.4
                 assert storage.properties.initial_level_optim is True
             else:
-                assert storages == []
+                assert storages == {}
 
 
 class TestUpateArea:
