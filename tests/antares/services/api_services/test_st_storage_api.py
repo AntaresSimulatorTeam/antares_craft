@@ -124,11 +124,9 @@ class TestCreateAPI:
                 self.storage.set_storage_inflows(self.matrix)
 
     def test_read_st_storages(self):
-        json_storage = [
-            {
-                "id": "test_storage",
+        json_storage = {
+            "zone / test_storage": {
                 "group": "pondage",
-                "name": "test_storage",
                 "injectionNominalCapacity": 0,
                 "withdrawalNominalCapacity": 0,
                 "reservoirCapacity": 0,
@@ -137,13 +135,12 @@ class TestCreateAPI:
                 "initialLevelOptim": "false",
                 "enabled": "true",
             }
-        ]
+        }
         study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
-        area_id = "zone"
-        url = f"https://antares.com/api/v1/studies/{study_id_test}/areas/{area_id}/"
+        url = f"https://antares.com/api/v1/studies/{study_id_test}/table-mode/st-storages"
 
         with requests_mock.Mocker() as mocker:
-            mocker.get(url + "storages", json=json_storage)
+            mocker.get(url, json=json_storage)
 
             storage_api = ShortTermStorageApiService(self.api, study_id_test)
             renewable_service = Mock()
@@ -153,13 +150,12 @@ class TestCreateAPI:
                 self.api, study_id_test, storage_api, thermal_service, renewable_service, hydro_service
             )
 
-            actual_storage_list = storage_api.read_st_storages(area_id)
+            actual_storage_list = storage_api.read_st_storages()
 
-            storage_id = json_storage[0].pop("id")
-            storage_name = json_storage[0].pop("name")
+            area_id, storage_id = list(json_storage.keys())[0].split(" / ")
 
-            storage_props = STStoragePropertiesAPI(**json_storage[0]).to_user_model()
-            expected_st_storage = STStorage(area_api.storage_service, storage_id, storage_name, storage_props)
+            storage_props = STStoragePropertiesAPI(**list(json_storage.values())[0]).to_user_model()
+            expected_st_storage = STStorage(area_api.storage_service, area_id, storage_id, storage_props)
 
             assert len(actual_storage_list) == 1
             actual_st_storage = actual_storage_list[0]

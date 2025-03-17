@@ -121,24 +121,21 @@ class TestCreateAPI:
                 self.renewable.set_series(self.matrix)
 
     def test_read_renewables(self):
-        json_renewable = [
-            {
-                "id": "test_renouvelable",
+        json_renewable = {
+            "zone / test_renouvelable": {
                 "group": "solar thermal",
-                "name": "test_renouvelable",
                 "enabled": "true",
                 "unitCount": 1,
                 "nominalCapacity": 0,
                 "tsInterpretation": "power-generation",
             }
-        ]
+        }
 
         study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
-        area_id = "zone"
-        url = f"https://antares.com/api/v1/studies/{study_id_test}/areas/{area_id}/"
+        url = f"https://antares.com/api/v1/studies/{study_id_test}/table-mode/renewables"
 
         with requests_mock.Mocker() as mocker:
-            mocker.get(url + "clusters/renewable", json=json_renewable)
+            mocker.get(url, json=json_renewable)
             renewable_api = RenewableApiService(self.api, study_id_test)
             storage_service = Mock()
             thermal_service = Mock()
@@ -147,15 +144,12 @@ class TestCreateAPI:
                 self.api, study_id_test, storage_service, thermal_service, renewable_api, hydro_service
             )
 
-            actual_renewable_list = renewable_api.read_renewables(area_id)
+            actual_renewable_list = renewable_api.read_renewables()
 
-            renewable_id = json_renewable[0].pop("id")
-            renewable_name = json_renewable[0].pop("name")
+            area_id, renewable_id = list(json_renewable.keys())[0].split(" / ")
 
-            renewable_props = RenewableClusterPropertiesAPI(**json_renewable[0]).to_user_model()
-            expected_renewable = RenewableCluster(
-                area_api.renewable_service, renewable_id, renewable_name, renewable_props
-            )
+            renewable_props = RenewableClusterPropertiesAPI(**list(json_renewable.values())[0]).to_user_model()
+            expected_renewable = RenewableCluster(area_api.renewable_service, area_id, renewable_id, renewable_props)
 
             assert len(actual_renewable_list) == 1
             actual_renewable = actual_renewable_list[0]
