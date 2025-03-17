@@ -75,11 +75,11 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         raise STStoragePropertiesUpdateError(st_storage.name, area_id, "The storage does not exist")
 
     @override
-    def read_st_storages(self) -> list[STStorage]:
-        st_storages: list[STStorage] = []
+    def read_st_storages(self) -> dict[str, dict[str, STStorage]]:
+        st_storages: dict[str, dict[str, STStorage]] = {}
         cluster_path = self.config.study_path / "input" / "st-storage" / "clusters"
         if not cluster_path.exists():
-            return []
+            return {}
         for folder in cluster_path.iterdir():
             if folder.is_dir():
                 area_id = folder.name
@@ -88,17 +88,14 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
                     self.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area_id
                 ).ini_dict
 
-                st_storages.extend(
-                    STStorage(
+                for storage_data in storage_dict.values():
+                    st_storage = STStorage(
                         storage_service=self,
                         area_id=area_id,
                         name=storage_data["name"],
                         properties=STStoragePropertiesLocal.model_validate(storage_data).to_user_model(),
                     )
-                    for storage_data in storage_dict.values()
-                )
-
-        st_storages.sort(key=lambda storage: storage.id)
+                    st_storages.setdefault(area_id, {})[st_storage.id] = st_storage
 
         return st_storages
 

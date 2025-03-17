@@ -491,9 +491,9 @@ class AreaApiService(BaseAreaService):
                 )
                 # Fill the created object with the right values
                 area_obj._properties = area_properties[area_obj.id]
-                area_obj._thermals = {thermal.id: thermal for thermal in thermals if thermal.area_id == area_obj.id}
-                area_obj._renewables = {renew.id: renew for renew in renewables if renew.area_id == area_obj.id}
-                area_obj._st_storages = {sts.id: sts for sts in st_storages if sts.area_id == area_obj.id}
+                area_obj._thermals = thermals.get(area_obj.id, {})
+                area_obj._renewables = renewables.get(area_obj.id, {})
+                area_obj._st_storages = st_storages.get(area_obj.id, {})
 
                 # For each area, reads the hydro properties
                 # todo: this is really unefficient but we have to do this until AntaresWeb introduces a specific endpoint

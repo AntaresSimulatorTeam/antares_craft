@@ -522,7 +522,7 @@ class BaseThermalService(ABC):
         pass
 
     @abstractmethod
-    def read_thermal_clusters(self) -> list["ThermalCluster"]:
+    def read_thermal_clusters(self) -> dict[str, dict[str, "ThermalCluster"]]:
         pass
 
 
@@ -747,7 +747,7 @@ class BaseRenewableService(ABC):
         pass
 
     @abstractmethod
-    def read_renewables(self) -> list["RenewableCluster"]:
+    def read_renewables(self) -> dict[str, dict[str, "RenewableCluster"]]:
         pass
 
 
@@ -772,7 +772,7 @@ class BaseShortTermStorageService(ABC):
         pass
 
     @abstractmethod
-    def read_st_storages(self) -> list["STStorage"]:
+    def read_st_storages(self) -> dict[str, dict[str, "STStorage"]]:
         pass
 
 

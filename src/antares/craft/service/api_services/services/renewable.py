@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 
 from pathlib import PurePosixPath
-from typing import List
 
 import pandas as pd
 
@@ -86,19 +85,18 @@ class RenewableApiService(BaseRenewableService):
             raise RenewableMatrixDownloadError(area_id, cluster_id, e.message) from e
 
     @override
-    def read_renewables(self) -> List[RenewableCluster]:
+    def read_renewables(self) -> dict[str, dict[str, RenewableCluster]]:
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/renewables"
         json_renewable = self._wrapper.get(url).json()
 
-        renewables = []
+        renewables: dict[str, dict[str, RenewableCluster]] = {}
 
         for key, renewable in json_renewable.items():
             area_id, renewable_id = key.split(" / ")
             api_props = RenewableClusterPropertiesAPI.model_validate(renewable)
             renewable_props = api_props.to_user_model()
             renewable_cluster = RenewableCluster(self, area_id, renewable_id, renewable_props)
-            renewables.append(renewable_cluster)
 
-        renewables.sort(key=lambda renewable: renewable.id)
+            renewables.setdefault(area_id, {})[renewable_cluster.id] = renewable_cluster
 
         return renewables

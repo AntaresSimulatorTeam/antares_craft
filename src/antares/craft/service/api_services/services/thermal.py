@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 
 from pathlib import PurePosixPath
-from typing import List
 
 import pandas as pd
 
@@ -106,20 +105,19 @@ class ThermalApiService(BaseThermalService):
             ) from e
 
     @override
-    def read_thermal_clusters(self) -> List[ThermalCluster]:
+    def read_thermal_clusters(self) -> dict[str, dict[str, ThermalCluster]]:
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/thermals"
         json_thermal = self._wrapper.get(url).json()
 
-        thermals = []
+        thermals: dict[str, dict[str, ThermalCluster]] = {}
 
         for key, thermal in json_thermal.items():
             area_id, thermal_id = key.split(" / ")
             api_props = ThermalClusterPropertiesAPI.model_validate(thermal)
             thermal_props = api_props.to_user_model()
             thermal_cluster = ThermalCluster(self, area_id, thermal_id, thermal_props)
-            thermals.append(thermal_cluster)
 
-        thermals.sort(key=lambda thermal: thermal.id)
+            thermals.setdefault(area_id, {})[thermal_cluster.id] = thermal_cluster
 
         return thermals
 

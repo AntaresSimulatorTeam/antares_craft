@@ -70,11 +70,11 @@ class RenewableLocalService(BaseRenewableService):
         )
 
     @override
-    def read_renewables(self) -> list[RenewableCluster]:
-        renewables: list[RenewableCluster] = []
+    def read_renewables(self) -> dict[str, dict[str, RenewableCluster]]:
+        renewables: dict[str, dict[str, RenewableCluster]] = {}
         cluster_path = self.config.study_path / "input" / "renewables" / "clusters"
         if not cluster_path.exists():
-            return []
+            return {}
         for folder in cluster_path.iterdir():
             if folder.is_dir():
                 area_id = folder.name
@@ -82,17 +82,16 @@ class RenewableLocalService(BaseRenewableService):
                 renewable_dict = IniFile(
                     self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id
                 ).ini_dict
-                renewables.extend(
-                    RenewableCluster(
+
+                for renewable_data in renewable_dict.values():
+                    renewable_cluster = RenewableCluster(
                         renewable_service=self,
                         area_id=area_id,
                         name=renewable_data["name"],
                         properties=RenewableClusterPropertiesLocal.model_validate(renewable_data).to_user_model(),
                     )
-                    for renewable_data in renewable_dict.values()
-                )
 
-        renewables.sort(key=lambda renewable: renewable.id)
+                    renewables.setdefault(area_id, {})[renewable_cluster.id] = renewable_cluster
 
         return renewables
 

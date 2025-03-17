@@ -370,55 +370,52 @@ class Study:
         thermals = self._area_service.thermal_service.read_thermal_clusters()
 
         # Updates in memory objects rather than replacing them
-        existing_ids = set()
-        for thermal in thermals:
-            existing_ids.add(thermal.id)
-            if thermal.id not in self._areas[thermal.area_id].get_thermals():
-                self._areas[thermal.area_id]._thermals[thermal.id] = thermal
-            else:
-                self._areas[thermal.area_id]._thermals[thermal.id]._properties = thermal._properties
+        for area_id, thermal_dict in thermals.items():
+            for thermal_id, cluster in thermal_dict.items():
+                self._areas[area_id]._thermals.setdefault(thermal_id, cluster)._properties = cluster._properties
 
         # Deletes objects stored in memory but do not exist anymore
         for area in self._areas:
-            for thermal_id in list(self._areas[area].get_thermals().keys()):
-                if thermal_id not in existing_ids:
-                    del self._areas[area]._thermals[thermal_id]
+            if area not in thermals:
+                self._areas[area]._thermals = {}
+            else:
+                for thermal_id in list(self._areas[area]._thermals.keys()):
+                    if thermal_id not in thermals[area]:
+                        del self._areas[area]._thermals[thermal_id]
 
     def _read_renewables(self) -> None:
         renewables = self._area_service.renewable_service.read_renewables()
 
         # Updates in memory objects rather than replacing them
-        existing_ids = set()
-        for renewable in renewables:
-            existing_ids.add(renewable.id)
-            if renewable.id not in self._areas[renewable.area_id].get_renewables():
-                self._areas[renewable.area_id]._renewables[renewable.id] = renewable
-            else:
-                self._areas[renewable.area_id]._renewables[renewable.id]._properties = renewable._properties
+        for area_id, renewable_dict in renewables.items():
+            for renewable_id, cluster in renewable_dict.items():
+                self._areas[area_id]._renewables.setdefault(renewable_id, cluster)._properties = cluster._properties
 
         # Deletes objects stored in memory but do not exist anymore
         for area in self._areas:
-            for renewable_id in list(self._areas[area].get_renewables().keys()):
-                if renewable_id not in existing_ids:
-                    del self._areas[area]._renewables[renewable_id]
+            if area not in renewables:
+                self._areas[area]._renewables = {}
+            else:
+                for renewable_id in list(self._areas[area]._renewables.keys()):
+                    if renewable_id not in renewables[area]:
+                        del self._areas[area]._renewables[renewable_id]
 
     def _read_st_storages(self) -> None:
         st_storages = self._area_service.storage_service.read_st_storages()
 
         # Updates in memory objects rather than replacing them
-        existing_ids = set()
-        for storage in st_storages:
-            existing_ids.add(storage.id)
-            if storage.id not in self._areas[storage.area_id].get_st_storages():
-                self._areas[storage.area_id]._st_storages[storage.id] = storage
-            else:
-                self._areas[storage.area_id]._st_storages[storage.id]._properties = storage._properties
+        for area_id, st_storage_dict in st_storages.items():
+            for storage_id, storage in st_storage_dict.items():
+                self._areas[area_id]._st_storages.setdefault(storage_id, storage)._properties = storage._properties
 
         # Deletes objects stored in memory but do not exist anymore
         for area in self._areas:
-            for storage_id in list(self._areas[area].get_st_storages().keys()):
-                if storage_id not in existing_ids:
-                    del self._areas[area]._st_storages[storage_id]
+            if area not in st_storages:
+                self._areas[area]._st_storages = {}
+            else:
+                for storage_id in list(self._areas[area]._st_storages.keys()):
+                    if storage_id not in st_storages[area]:
+                        del self._areas[area]._st_storages[storage_id]
 
 
 # Design note:
