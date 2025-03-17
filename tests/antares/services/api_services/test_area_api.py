@@ -32,7 +32,7 @@ from antares.craft.model.st_storage import STStorage
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.factory import create_api_services
-from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaUiAPI
+from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaPropertiesAPITableMode, AreaUiAPI
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
@@ -231,7 +231,7 @@ class TestCreateAPI:
         url_thermal = f"{study_url}/table-mode/thermals"
         url_renewable = f"{study_url}/table-mode/renewables"
         url_st_storage = f"{study_url}/table-mode/st-storages"
-        url_properties_form = url + f"/{area_id}/properties/form"
+        url_properties_form = f"{study_url}/table-mode/areas"
         hydro_url = url + f"/{area_id}/hydro/form"
 
         json_ui = {
@@ -274,14 +274,16 @@ class TestCreateAPI:
             }
         }
         json_properties = {
-            "energyCostUnsupplied": 0,
-            "energyCostSpilled": 0,
-            "nonDispatchPower": "true",
-            "dispatchHydroPower": "true",
-            "otherDispatchPower": "true",
-            "filterSynthesis": ["daily", "monthly", "weekly", "hourly", "annual"],
-            "filterByYear": ["daily", "monthly", "weekly", "hourly", "annual"],
-            "adequacyPatchMode": "outside",
+            area_id: {
+                "averageUnsuppliedEnergyCost": 0,
+                "averageSpilledEnergyCost": 0,
+                "nonDispatchablePower": "true",
+                "dispatchableHydroPower": "true",
+                "otherDispatchablePower": "true",
+                "filterSynthesis": ["daily", "monthly", "weekly", "hourly", "annual"],
+                "filterYearByYear": ["daily", "monthly", "weekly", "hourly", "annual"],
+                "adequacyPatchMode": "outside",
+            }
         }
 
         hydro_properties = HydroProperties(reservoir_capacity=4.5)
@@ -327,7 +329,7 @@ class TestCreateAPI:
                 renewables={renewable_id: renewable_cluster},
                 st_storages={storage_id: st_storage},
                 hydro=hydro,
-                properties=AreaPropertiesAPI.model_validate(json_properties).to_user_model(),
+                properties=AreaPropertiesAPITableMode.model_validate(json_properties[area_id]).to_user_model(),
                 ui=None,
             )
 
