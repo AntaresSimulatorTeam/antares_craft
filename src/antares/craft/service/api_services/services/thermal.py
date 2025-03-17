@@ -106,22 +106,17 @@ class ThermalApiService(BaseThermalService):
             ) from e
 
     @override
-    def read_thermal_clusters(
-        self,
-        area_id: str,
-    ) -> List[ThermalCluster]:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/thermal"
+    def read_thermal_clusters(self) -> List[ThermalCluster]:
+        url = f"{self._base_url}/studies/{self.study_id}/table-mode/thermals"
         json_thermal = self._wrapper.get(url).json()
 
         thermals = []
 
-        for thermal in json_thermal:
-            thermal_id = thermal.pop("id")
-            thermal_name = thermal.pop("name")
-
+        for key, thermal in json_thermal.items():
+            area_id, thermal_id = key.split(" / ")
             api_props = ThermalClusterPropertiesAPI.model_validate(thermal)
             thermal_props = api_props.to_user_model()
-            thermal_cluster = ThermalCluster(self, thermal_id, thermal_name, thermal_props)
+            thermal_cluster = ThermalCluster(self, area_id, thermal_id, thermal_props)
             thermals.append(thermal_cluster)
 
         thermals.sort(key=lambda thermal: thermal.id)

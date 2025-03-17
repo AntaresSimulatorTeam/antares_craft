@@ -82,22 +82,33 @@ class ThermalLocalService(BaseThermalService):
         )
 
     @override
-    def read_thermal_clusters(self, area_id: str) -> list[ThermalCluster]:
-        thermal_dict = IniFile(
-            self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id
-        ).ini_dict
-        if not thermal_dict:
+    def read_thermal_clusters(self) -> list[ThermalCluster]:
+        thermals: list[ThermalCluster] = []
+        cluster_path = self.config.study_path / "input" / "thermal" / "clusters"
+        if not cluster_path.exists():
             return []
+        for folder in cluster_path.iterdir():
+            if folder.is_dir():
+                area_id = folder.name
+                thermal_dict = IniFile(
+                    self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id
+                ).ini_dict
+                if not thermal_dict:
+                    return []
 
-        return [
-            ThermalCluster(
-                thermal_service=self,
-                area_id=area_id,
-                name=thermal_data["name"],
-                properties=ThermalClusterPropertiesLocal.model_validate(thermal_data).to_user_model(),
-            )
-            for thermal_data in thermal_dict.values()
-        ]
+                thermals.extend(
+                    ThermalCluster(
+                        thermal_service=self,
+                        area_id=area_id,
+                        name=thermal_data["name"],
+                        properties=ThermalClusterPropertiesLocal.model_validate(thermal_data).to_user_model(),
+                    )
+                    for thermal_data in thermal_dict.values()
+                )
+
+        thermals.sort(key=lambda thermal: thermal.id)
+
+        return thermals
 
     @override
     def set_thermal_matrix(

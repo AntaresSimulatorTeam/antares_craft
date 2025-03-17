@@ -60,6 +60,16 @@ class BaseAreaService(ABC):
     def thermal_service(self) -> "BaseThermalService":
         pass
 
+    @property
+    @abstractmethod
+    def renewable_service(self) -> "BaseRenewableService":
+        pass
+
+    @property
+    @abstractmethod
+    def storage_service(self) -> "BaseShortTermStorageService":
+        pass
+
     @abstractmethod
     def create_area(
         self, area_name: str, properties: Optional["AreaProperties"] = None, ui: Optional["AreaUi"] = None
@@ -506,13 +516,13 @@ class BaseThermalService(ABC):
         pass
 
     @abstractmethod
-    def read_thermal_clusters(self, area_id: str) -> list["ThermalCluster"]:
-        pass
-
-    @abstractmethod
     def update_multiple_thermal_clusters(
         self, new_properties: dict["ThermalCluster", "ThermalClusterPropertiesUpdate"]
     ) -> dict["ThermalCluster", "ThermalClusterProperties"]:
+        pass
+
+    @abstractmethod
+    def read_thermal_clusters(self) -> list["ThermalCluster"]:
         pass
 
 
@@ -737,7 +747,7 @@ class BaseRenewableService(ABC):
         pass
 
     @abstractmethod
-    def read_renewables(self, area_id: str) -> list["RenewableCluster"]:
+    def read_renewables(self) -> list["RenewableCluster"]:
         pass
 
 
@@ -754,15 +764,15 @@ class BaseShortTermStorageService(ABC):
         pass
 
     @abstractmethod
-    def read_st_storages(self, area_id: str) -> list["STStorage"]:
-        pass
-
-    @abstractmethod
     def get_storage_matrix(self, storage: "STStorage", ts_name: "STStorageMatrixName") -> pd.DataFrame:
         pass
 
     @abstractmethod
     def set_storage_matrix(self, storage: "STStorage", ts_name: "STStorageMatrixName", matrix: pd.DataFrame) -> None:
+        pass
+
+    @abstractmethod
+    def read_st_storages(self) -> list["STStorage"]:
         pass
 
 

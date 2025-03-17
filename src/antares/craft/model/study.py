@@ -366,6 +366,60 @@ class Study:
         for link_props in new_links_props:
             self._links[link_props]._properties = new_links_props[link_props]
 
+    def _read_thermal_clusters(self) -> None:
+        thermals = self._area_service.thermal_service.read_thermal_clusters()
+
+        # Updates in memory objects rather than replacing them
+        existing_ids = set()
+        for thermal in thermals:
+            existing_ids.add(thermal.id)
+            if thermal.id not in self._areas[thermal.area_id].get_thermals():
+                self._areas[thermal.area_id]._thermals[thermal.id] = thermal
+            else:
+                self._areas[thermal.area_id]._thermals[thermal.id]._properties = thermal._properties
+
+        # Deletes objects stored in memory but do not exist anymore
+        for area in self._areas:
+            for thermal_id in list(self._areas[area].get_thermals().keys()):
+                if thermal_id not in existing_ids:
+                    del self._areas[area]._thermals[thermal_id]
+
+    def _read_renewables(self) -> None:
+        renewables = self._area_service.renewable_service.read_renewables()
+
+        # Updates in memory objects rather than replacing them
+        existing_ids = set()
+        for renewable in renewables:
+            existing_ids.add(renewable.id)
+            if renewable.id not in self._areas[renewable.area_id].get_renewables():
+                self._areas[renewable.area_id]._renewables[renewable.id] = renewable
+            else:
+                self._areas[renewable.area_id]._renewables[renewable.id]._properties = renewable._properties
+
+        # Deletes objects stored in memory but do not exist anymore
+        for area in self._areas:
+            for renewable_id in list(self._areas[area].get_renewables().keys()):
+                if renewable_id not in existing_ids:
+                    del self._areas[area]._renewables[renewable_id]
+
+    def _read_st_storages(self) -> None:
+        st_storages = self._area_service.storage_service.read_st_storages()
+
+        # Updates in memory objects rather than replacing them
+        existing_ids = set()
+        for storage in st_storages:
+            existing_ids.add(storage.id)
+            if storage.id not in self._areas[storage.area_id].get_st_storages():
+                self._areas[storage.area_id]._st_storages[storage.id] = storage
+            else:
+                self._areas[storage.area_id]._st_storages[storage.id]._properties = storage._properties
+
+        # Deletes objects stored in memory but do not exist anymore
+        for area in self._areas:
+            for storage_id in list(self._areas[area].get_st_storages().keys()):
+                if storage_id not in existing_ids:
+                    del self._areas[area]._st_storages[storage_id]
+
 
 # Design note:
 # all following methods are entry points for study creation.
