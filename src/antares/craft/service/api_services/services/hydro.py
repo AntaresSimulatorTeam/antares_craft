@@ -24,7 +24,7 @@ from antares.craft.exceptions.exceptions import (
     MatrixUploadError,
 )
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
-from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
+from antares.craft.service.api_services.models.hydro import HydroInflowStructureAPI, HydroPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseHydroService
 from typing_extensions import override
@@ -94,8 +94,7 @@ class HydroApiService(BaseHydroService):
         try:
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/inflow-structure"
             json_response = self._wrapper.get(url).json()
-
-            inflow_structure = InflowStructure(intermonthly_correlation=json_response["interMonthlyCorrelation"])
+            inflow_structure = HydroInflowStructureAPI.model_validate(json_response).to_user_model()
 
         except APIError as e:
             raise HydroInflowStructureReadingError(self.study_id, e.message, area_id) from e
@@ -116,7 +115,7 @@ class HydroApiService(BaseHydroService):
     def update_inflow_structure(self, area_id: str, inflow_structure: InflowStructureUpdate) -> None:
         try:
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/inflow-structure"
-            body = {"interMonthlyCorrelation": inflow_structure.intermonthly_correlation}
+            body = HydroInflowStructureAPI.from_user_model(inflow_structure).model_dump(by_alias=True)
             self._wrapper.put(url, json=body)
         except APIError as e:
             raise HydroInflowStructureUpdateError(area_id, e.message) from e
