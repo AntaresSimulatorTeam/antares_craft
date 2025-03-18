@@ -11,7 +11,10 @@
 # This file is part of the Antares project.
 
 
+import pytest
+
 import os
+import re
 import typing as t
 
 from configparser import ConfigParser
@@ -23,6 +26,7 @@ import pandas as pd
 
 from antares.craft import read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.exceptions.exceptions import ReadingMethodUsedOufOfScopeError
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.renewable import (
@@ -697,6 +701,14 @@ it = 10000.000000
     """
         with open(optimization_path, "w", encoding="utf-8") as antares_file:
             antares_file.write(antares_content)
+
+        with pytest.raises(
+            ReadingMethodUsedOufOfScopeError,
+            match=re.escape(
+                "The method read_areas was used on study studyTest which already contains some areas. This is prohibited."
+            ),
+        ):
+            local_study_object._read_areas()
 
         local_study_object._areas = {}
         local_study_object._read_areas()
