@@ -13,7 +13,7 @@
 import ast
 
 from dataclasses import asdict
-from typing import Any, Sequence, Set, Union, cast
+from typing import Any, Sequence, Set, cast
 
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
@@ -55,7 +55,7 @@ from antares.craft.service.local_services.models.base_model import LocalBaseMode
 from antares.craft.tools.alias_generators import to_kebab
 from pydantic import Field, field_validator
 
-AdequacyPatchParametersType = Union[AdequacyPatchParameters, AdequacyPatchParametersUpdate]
+AdequacyPatchParametersType = AdequacyPatchParameters | AdequacyPatchParametersUpdate
 
 
 class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
@@ -89,8 +89,8 @@ class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
         )
 
 
-AdvancedParametersType = Union[AdvancedParameters, AdvancedParametersUpdate]
-SeedParametersType = Union[SeedParameters, SeedParametersUpdate]
+AdvancedParametersType = AdvancedParameters | AdvancedParametersUpdate
+SeedParametersType = SeedParameters | SeedParametersUpdate
 
 
 class OtherPreferencesLocal(LocalBaseModel, alias_generator=to_kebab):
@@ -111,7 +111,7 @@ class AdvancedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     adequacy_block_size: int = 100
 
     @field_validator("accuracy_on_correlation", mode="before")
-    def validate_accuracy_on_correlation(cls, v: Any) -> Union[Sequence[str], set[str]]:
+    def validate_accuracy_on_correlation(cls, v: Any) -> Sequence[str] | set[str]:
         if v is None:
             return []
         if isinstance(v, set):
@@ -178,7 +178,7 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
         )
 
 
-GeneralParametersType = Union[GeneralParameters, GeneralParametersUpdate]
+GeneralParametersType = GeneralParameters | GeneralParametersUpdate
 
 
 class GeneralSectionLocal(LocalBaseModel):
@@ -280,7 +280,7 @@ class GeneralParametersLocal(LocalBaseModel):
         )
 
 
-OptimizationParametersType = Union[OptimizationParameters, OptimizationParametersUpdate]
+OptimizationParametersType = OptimizationParameters | OptimizationParametersUpdate
 
 
 class OptimizationParametersLocal(LocalBaseModel, alias_generator=to_kebab):

@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Union
 
 from antares.craft.model.renewable import (
     RenewableClusterGroup,
@@ -21,7 +20,7 @@ from antares.craft.model.renewable import (
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from pydantic import Field
 
-RenewablePropertiesType = Union[RenewableClusterProperties, RenewableClusterPropertiesUpdate]
+RenewablePropertiesType = RenewableClusterProperties | RenewableClusterPropertiesUpdate
 
 
 class RenewableClusterPropertiesLocal(LocalBaseModel):
