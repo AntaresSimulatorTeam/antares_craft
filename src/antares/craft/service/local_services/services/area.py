@@ -541,6 +541,12 @@ class AreaLocalService(BaseAreaService):
                 local_ui = AreaUiLocal.model_validate(ui_dict)
                 ui_properties = local_ui.to_user_model()
 
+                # Hydro
+                prepro_dict = IniFile(
+                    self.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI, area_id=element.name
+                ).ini_dict
+                inflow_structure = InflowStructure(intermonthly_correlation=prepro_dict["intermonthly-correlation"])
+
                 area = Area(
                     name=element.name,
                     area_service=self,
@@ -552,6 +558,7 @@ class AreaLocalService(BaseAreaService):
                     ui=ui_properties,
                 )
                 area.hydro._properties = all_hydro_properties[area.id]
+                area.hydro._inflow_structure = inflow_structure
                 all_areas[area.id] = area
 
         return all_areas
