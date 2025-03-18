@@ -58,6 +58,18 @@ class HydroApiService(BaseHydroService):
 
         return hydro_properties
 
+    def read_properties_for_one_area(self, area_id: str) -> HydroProperties:
+        try:
+            url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
+            json_hydro = self._wrapper.get(url).json()
+
+            hydro_props = HydroPropertiesAPI(**json_hydro).to_user_model()
+
+        except APIError as e:
+            raise HydroPropertiesReadingError(self.study_id, e.message, area_id) from e
+
+        return hydro_props
+
     @override
     def read_inflow_structure(self) -> dict[str, InflowStructure]:
         # todo: this is really unefficient but we have to do this until AntaresWeb introduces a specific endpoint
@@ -77,18 +89,6 @@ class HydroApiService(BaseHydroService):
             raise HydroPropertiesReadingError(self.study_id, e.message) from e
 
         return all_inflow_structure
-
-    def read_properties_for_one_area(self, area_id: str) -> HydroProperties:
-        try:
-            url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
-            json_hydro = self._wrapper.get(url).json()
-
-            hydro_props = HydroPropertiesAPI(**json_hydro).to_user_model()
-
-        except APIError as e:
-            raise HydroPropertiesReadingError(self.study_id, e.message, area_id) from e
-
-        return hydro_props
 
     def read_inflow_structure_for_one_area(self, area_id: str) -> InflowStructure:
         try:
