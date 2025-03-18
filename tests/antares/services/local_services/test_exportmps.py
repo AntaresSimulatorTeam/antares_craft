@@ -20,3 +20,8 @@ def test_exportmps_conversion_bool():
 def test_exportmps_conversion_string():
     assert ExportMPS.OPTIM1 == ExportMPS("optim1")
     assert ExportMPS.OPTIM2 == ExportMPS("optim2")
+# These are no longer supported
+    with pytest.raises(ValueError):
+        ExportMPS("True")
+    with pytest.raises(ValueError):
+        ExportMPS("False")
