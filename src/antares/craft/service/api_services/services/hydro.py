@@ -92,7 +92,7 @@ class HydroApiService(BaseHydroService):
 
     def read_inflow_structure_for_one_area(self, area_id: str) -> InflowStructure:
         try:
-            url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/inflow-structure"
+            url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/inflow-structure"
             json_response = self._wrapper.get(url).json()
 
             inflow_structure = InflowStructure(intermonthly_correlation=json_response["interMonthlyCorrelation"])
