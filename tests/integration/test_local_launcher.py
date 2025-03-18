@@ -96,20 +96,21 @@ class TestLocalLauncher:
         expected_outputs = sorted([output.name for output in outputs])
 
         # Asserts read_outputs return the expected result
-        assert [o.name for o in study._read_outputs()] == expected_outputs
+        study._read_outputs()
+        assert sorted(list(study.get_outputs().keys())) == expected_outputs
 
         # Asserts read_study_local reads the outputs
         second_study = read_study_local(tmp_path / "test study", solver_path)
-        assert list((second_study.get_outputs()).keys()) == expected_outputs
+        assert sorted(list((second_study.get_outputs()).keys())) == expected_outputs
 
         # Deletes the first output
         study.delete_output(output_id)
         outputs = list(output_path.iterdir())
         assert len(outputs) == 2
-        assert len(study._read_outputs()) == 2
+        assert len(study.get_outputs()) == 2
 
         # Deletes all outputs
         study.delete_outputs()
         outputs = list(output_path.iterdir())
         assert len(outputs) == 0
-        assert study._read_outputs() == []
+        assert study.get_outputs() == {}
