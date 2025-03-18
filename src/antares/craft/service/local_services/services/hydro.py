@@ -15,9 +15,13 @@ from typing import Any
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
+from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
 from antares.craft.service.base_services import BaseHydroService
-from antares.craft.service.local_services.models.hydro import HydroPropertiesLocal, HydroPropertiesLocalUpdate
+from antares.craft.service.local_services.models.hydro import (
+    HydroInflowStructureLocal,
+    HydroPropertiesLocal,
+    HydroPropertiesLocalUpdate,
+)
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
@@ -32,6 +36,12 @@ class HydroLocalService(BaseHydroService):
     @override
     def update_properties(self, area_id: str, properties: HydroPropertiesUpdate) -> None:
         edit_hydro_properties(self.config.study_path, area_id, properties, creation=False)
+
+    @override
+    def update_inflow_structure(self, area_id: str, inflow_structure: InflowStructureUpdate) -> None:
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI, area_id=area_id)
+        ini_file.ini_dict = HydroInflowStructureLocal.from_user_model(inflow_structure).model_dump(by_alias=True)
+        ini_file.write_ini_file()
 
     @override
     def read_properties(self) -> dict[str, HydroProperties]:
@@ -49,6 +59,23 @@ class HydroLocalService(BaseHydroService):
             hydro_properties[area_id] = user_properties
 
         return hydro_properties
+
+    @override
+    def read_inflow_structure(self) -> dict[str, InflowStructure]:
+        all_inflow_structure: dict[str, InflowStructure] = {}
+
+        prepro_path = self.config.study_path / "input" / "hydro" / "prepro"
+        if not prepro_path.exists():
+            return {}
+        for element in prepro_path.iterdir():
+            if element.is_dir():
+                ini_file = IniFile(
+                    self.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI, area_id=element.name
+                )
+                inflow_structure = HydroInflowStructureLocal.model_validate(ini_file.ini_dict).to_user_model()
+                all_inflow_structure[element.name] = inflow_structure
+
+        return all_inflow_structure
 
     @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:

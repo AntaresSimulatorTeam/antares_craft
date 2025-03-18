@@ -131,12 +131,29 @@ class HydroPropertiesUpdateError(Exception):
         super().__init__(self.message)
 
 
+class HydroInflowStructureUpdateError(Exception):
+    def __init__(self, area_id: str, message: str) -> None:
+        self.message = f"Could not update hydro inflow-structure for area {area_id}: " + message
+        super().__init__(self.message)
+
+
 class HydroPropertiesReadingError(Exception):
     def __init__(self, study_id: str, message: str, area_id: Optional[str] = None) -> None:
         if area_id:
             self.message = f"Could not read the hydro properties for area {area_id} inside study {study_id}: " + message
         else:
             self.message = f"Could not read the hydro properties for study {study_id}: " + message
+        super().__init__(self.message)
+
+
+class HydroInflowStructureReadingError(Exception):
+    def __init__(self, study_id: str, message: str, area_id: Optional[str] = None) -> None:
+        if area_id:
+            self.message = (
+                f"Could not read the hydro inflow-structure for area {area_id} inside study {study_id}: " + message
+            )
+        else:
+            self.message = f"Could not read the hydro inflow-structure for study {study_id}: " + message
         super().__init__(self.message)
 
 

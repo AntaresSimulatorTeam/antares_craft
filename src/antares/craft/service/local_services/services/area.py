@@ -27,7 +27,7 @@ from antares.craft.model.area import (
     AreaUi,
     AreaUiUpdate,
 )
-from antares.craft.model.hydro import Hydro, HydroProperties
+from antares.craft.model.hydro import Hydro, HydroProperties, InflowStructure
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
@@ -39,6 +39,7 @@ from antares.craft.service.base_services import (
     BaseThermalService,
 )
 from antares.craft.service.local_services.models.area import AreaPropertiesLocal, AreaUiLocal
+from antares.craft.service.local_services.models.hydro import HydroInflowStructureLocal
 from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
 from antares.craft.service.local_services.models.st_storage import STStoragePropertiesLocal
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
@@ -341,8 +342,20 @@ class AreaLocalService(BaseAreaService):
             default_hydro_properties = HydroProperties()
             update_properties = default_hydro_properties.to_update_properties()
             edit_hydro_properties(study_path, area_id, update_properties, creation=True)
-            hydro = Hydro(self.hydro_service, area_id, default_hydro_properties)
+            hydro = Hydro(self.hydro_service, area_id, default_hydro_properties, InflowStructure())
             # Create files
+            IniFile(
+                study_path=study_path,
+                ini_file_type=InitializationFilesTypes.HYDRO_PREPRO_INI,
+                area_id=area_id,
+                ini_contents=HydroInflowStructureLocal.from_user_model(InflowStructure()).model_dump(by_alias=True),
+            )
+            IniFile(
+                study_path=study_path,
+                ini_file_type=InitializationFilesTypes.HYDRO_ALLOCATION_INI,
+                area_id=area_id,
+                ini_contents={"[allocation]": {area_id: "1"}},
+            )
             IniFile.create_hydro_initialization_files_for_area(study_path, area_id)
             for ts in [
                 TimeSeriesFileType.HYDRO_MAX_POWER,
@@ -529,6 +542,12 @@ class AreaLocalService(BaseAreaService):
                 local_ui = AreaUiLocal.model_validate(ui_dict)
                 ui_properties = local_ui.to_user_model()
 
+                # Hydro
+                prepro_dict = IniFile(
+                    self.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI, area_id=element.name
+                ).ini_dict
+                inflow_structure = HydroInflowStructureLocal.model_validate(prepro_dict).to_user_model()
+
                 area = Area(
                     name=element.name,
                     area_service=self,
@@ -540,6 +559,7 @@ class AreaLocalService(BaseAreaService):
                     ui=ui_properties,
                 )
                 area.hydro._properties = all_hydro_properties[area.id]
+                area.hydro._inflow_structure = inflow_structure
                 all_areas[area.id] = area
 
         return all_areas

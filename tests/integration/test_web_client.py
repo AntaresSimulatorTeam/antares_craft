@@ -76,6 +76,7 @@ from antares.craft.exceptions.exceptions import (
     STStorageMatrixUploadError,
     StudySettingsUpdateError,
 )
+from antares.craft.model.hydro import InflowStructureUpdate
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import Job, JobStatus
 
@@ -295,6 +296,11 @@ class TestWebClient:
         area_fr.hydro.update_properties(hydro_properties)
         assert area_fr.hydro.properties.reservoir is True
         assert area_fr.hydro.properties.reservoir_capacity == 4.5
+
+        assert area_fr.hydro.inflow_structure.intermonthly_correlation == 0.5
+        # update hydro inflow structure
+        area_fr.hydro.update_inflow_structure(InflowStructureUpdate(intermonthly_correlation=0.1))
+        assert area_fr.hydro.inflow_structure.intermonthly_correlation == 0.1
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"

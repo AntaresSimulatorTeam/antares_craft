@@ -139,8 +139,10 @@ class AreaApiService(BaseAreaService):
             api_properties = AreaPropertiesAPI.model_validate(response.json())
             area_properties = api_properties.to_user_model()
 
-            hydro_properties = cast(HydroApiService, self.hydro_service).read_properties_for_one_area(area_id)
-            hydro = Hydro(self.hydro_service, area_id, hydro_properties)
+            api_hydro_service = cast(HydroApiService, self.hydro_service)
+            hydro_properties = api_hydro_service.read_properties_for_one_area(area_id)
+            inflow_structure = api_hydro_service.read_inflow_structure_for_one_area(area_id)
+            hydro = Hydro(self.hydro_service, area_id, hydro_properties, inflow_structure)
 
         except APIError as e:
             raise AreaCreationError(area_name, e.message) from e
@@ -478,8 +480,9 @@ class AreaApiService(BaseAreaService):
             # Read all area_properties
             area_properties = self._read_area_properties()
 
-            # Read all hydro properties
+            # Read all hydro properties and inflow structure
             hydro_properties = self.hydro_service.read_properties()
+            hydro_inflow_structure = self.hydro_service.read_inflow_structure()
 
             # Read all area_ui
             ui_url = f"{self._base_url}/studies/{self.study_id}/areas?ui=true"
@@ -504,6 +507,7 @@ class AreaApiService(BaseAreaService):
                 area_obj._renewables = renewables.get(area_obj.id, {})
                 area_obj._st_storages = st_storages.get(area_obj.id, {})
                 area_obj.hydro._properties = hydro_properties[area_obj.id]
+                area_obj.hydro._inflow_structure = hydro_inflow_structure[area_obj.id]
 
                 all_areas[area_obj.id] = area_obj
 

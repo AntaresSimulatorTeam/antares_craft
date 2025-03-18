@@ -16,13 +16,15 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
+    HydroInflowStructureReadingError,
+    HydroInflowStructureUpdateError,
     HydroPropertiesReadingError,
     HydroPropertiesUpdateError,
     MatrixDownloadError,
     MatrixUploadError,
 )
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
-from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
+from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
+from antares.craft.service.api_services.models.hydro import HydroInflowStructureAPI, HydroPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseHydroService
 from typing_extensions import override
@@ -69,6 +71,37 @@ class HydroApiService(BaseHydroService):
         return hydro_props
 
     @override
+    def read_inflow_structure(self) -> dict[str, InflowStructure]:
+        # todo: this is really unefficient but we have to do this until AntaresWeb introduces a specific endpoint
+        all_inflow_structure: dict[str, InflowStructure] = {}
+
+        try:
+            # retrieve all areas
+            areas_url = f"{self._base_url}/studies/{self.study_id}/areas?ui=true"
+            json_response = self._wrapper.get(areas_url).json()
+            all_areas_ids = list(json_response.keys())
+
+            # for each area, retrieves its properties
+            for area_id in all_areas_ids:
+                all_inflow_structure[area_id] = self.read_inflow_structure_for_one_area(area_id)
+
+        except APIError as e:
+            raise HydroInflowStructureReadingError(self.study_id, e.message) from e
+
+        return all_inflow_structure
+
+    def read_inflow_structure_for_one_area(self, area_id: str) -> InflowStructure:
+        try:
+            url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/inflow-structure"
+            json_response = self._wrapper.get(url).json()
+            inflow_structure = HydroInflowStructureAPI.model_validate(json_response).to_user_model()
+
+        except APIError as e:
+            raise HydroInflowStructureReadingError(self.study_id, e.message, area_id) from e
+
+        return inflow_structure
+
+    @override
     def update_properties(self, area_id: str, properties: HydroPropertiesUpdate) -> None:
         try:
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
@@ -77,6 +110,15 @@ class HydroApiService(BaseHydroService):
             self._wrapper.put(url, json=body)
         except APIError as e:
             raise HydroPropertiesUpdateError(area_id, e.message) from e
+
+    @override
+    def update_inflow_structure(self, area_id: str, inflow_structure: InflowStructureUpdate) -> None:
+        try:
+            url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/inflow-structure"
+            body = HydroInflowStructureAPI.from_user_model(inflow_structure).model_dump(by_alias=True)
+            self._wrapper.put(url, json=body)
+        except APIError as e:
+            raise HydroInflowStructureUpdateError(area_id, e.message) from e
 
     @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:

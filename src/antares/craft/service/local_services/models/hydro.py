@@ -11,13 +11,15 @@
 # This file is part of the Antares project.
 from dataclasses import asdict
 
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
+from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
+from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
 from pydantic import Field
 from typing_extensions import override
 
 HydroPropertiesType = HydroProperties | HydroPropertiesUpdate
+HydroInflowStructureType = InflowStructure | InflowStructureUpdate
 
 
 class HydroPropertiesLocal(LocalBaseModel):
@@ -68,3 +70,20 @@ class HydroPropertiesLocalUpdate(HydroPropertiesLocal):
     def from_user_model(user_class: HydroPropertiesType) -> "HydroPropertiesLocalUpdate":
         user_dict = asdict(user_class)
         return HydroPropertiesLocalUpdate.model_validate(user_dict)
+
+
+class InterMonthlyCorrelation(LocalBaseModel, alias_generator=to_kebab):
+    intermonthly_correlation: float = 0.5
+
+
+class HydroInflowStructureLocal(LocalBaseModel):
+    prepro: InterMonthlyCorrelation
+
+    @staticmethod
+    def from_user_model(user_class: HydroInflowStructureType) -> "HydroInflowStructureLocal":
+        return HydroInflowStructureLocal.model_validate(
+            {"prepro": {"intermonthly_correlation": user_class.intermonthly_correlation}}
+        )
+
+    def to_user_model(self) -> InflowStructure:
+        return InflowStructure(intermonthly_correlation=self.prepro.intermonthly_correlation)
