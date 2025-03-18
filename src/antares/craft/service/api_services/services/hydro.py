@@ -86,7 +86,7 @@ class HydroApiService(BaseHydroService):
                 all_inflow_structure[area_id] = self.read_inflow_structure_for_one_area(area_id)
 
         except APIError as e:
-            raise HydroPropertiesReadingError(self.study_id, e.message) from e
+            raise HydroInflowStructureReadingError(self.study_id, e.message) from e
 
         return all_inflow_structure
 
