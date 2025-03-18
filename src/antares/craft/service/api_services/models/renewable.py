@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Union
 
 from antares.craft.model.renewable import (
     RenewableClusterGroup,
@@ -21,7 +20,7 @@ from antares.craft.model.renewable import (
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 
-RenewablePropertiesType = Union[RenewableClusterProperties, RenewableClusterPropertiesUpdate]
+RenewablePropertiesType = RenewableClusterProperties | RenewableClusterPropertiesUpdate
 
 
 @all_optional_model

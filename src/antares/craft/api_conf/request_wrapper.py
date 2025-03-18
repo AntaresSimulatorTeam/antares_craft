@@ -12,7 +12,7 @@
 
 import json
 
-from typing import Any, Iterable, Mapping, Optional, Union
+from typing import Any, Iterable, Mapping, Optional
 
 import requests
 import urllib3
@@ -20,14 +20,7 @@ import urllib3
 from antares.craft.exceptions.exceptions import APIError
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-DATA_TYPE = Union[
-    Iterable[bytes],
-    str,
-    bytes,
-    list[tuple[Any, Any]],
-    tuple[tuple[Any, Any], ...],
-    Mapping[Any, Any],
-]
+DATA_TYPE = Iterable[bytes] | str | bytes | list[tuple[Any, Any]] | tuple[tuple[Any, Any], ...] | Mapping[Any, Any]
 
 
 def _handle_exceptions(response: requests.Response) -> requests.Response:

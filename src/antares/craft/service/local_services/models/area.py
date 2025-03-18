@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import field
-from typing import Any, Union
+from typing import Any
 
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FILTER_VALUES, filtering_option
@@ -19,7 +19,7 @@ from antares.craft.tools.alias_generators import to_kebab
 from pydantic import Field
 from pydantic.alias_generators import to_camel
 
-AreaPropertiesType = Union[AreaProperties, AreaPropertiesUpdate]
+AreaPropertiesType = AreaProperties | AreaPropertiesUpdate
 
 
 class OptimizationPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
@@ -88,7 +88,7 @@ class AreaPropertiesLocal(LocalBaseModel):
         return self.model_dump(mode="json", include={"nodal_optimization", "filtering"}, by_alias=True)
 
 
-AreaUiType = Union[AreaUi, AreaUiUpdate]
+AreaUiType = AreaUi | AreaUiUpdate
 
 
 class Ui(LocalBaseModel):
