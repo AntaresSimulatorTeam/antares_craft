@@ -575,7 +575,7 @@ class TestCreateAPI:
             with pytest.raises(OutputsRetrievalError, match=error_message):
                 self.study._read_outputs()
 
-    def test_read_constraints(self):
+    def test_read_constraints_success(self):
         with requests_mock.Mocker() as mocker:
             constraints_url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
             json_constraints = [
@@ -601,10 +601,12 @@ class TestCreateAPI:
             ]
             mocker.get(constraints_url, json=json_constraints, status_code=200)
 
-            constraints = self.study._read_binding_constraints()
+            self.study._binding_constraints = {}
+            self.study._read_binding_constraints()
+            constraints = self.study.get_binding_constraints()
 
             assert len(constraints) == 1
-            constraint = constraints[0]
+            constraint = constraints["bc_1"]
             assert constraint.id == "bc_1"
             assert constraint.name == "bc_1"
             assert constraint.properties.enabled is True
@@ -619,6 +621,7 @@ class TestCreateAPI:
             assert term.offset == 0
 
     def test_read_constraints_fails(self):
+        self.study._binding_constraints = {}
         with requests_mock.Mocker() as mocker:
             constraints_url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
             error_message = "Error while reading constraints"
@@ -722,7 +725,8 @@ class TestCreateAPI:
                 json=[{"name": "output1", "archived": False}, {"name": "output2", "archived": True}],
                 status_code=200,
             )
-            assert len(self.study._read_outputs()) == 2
+            self.study._read_outputs()
+            assert len(self.study.get_outputs()) == 2
 
             self.study.delete_outputs()
             assert len(self.study.get_outputs()) == 0
