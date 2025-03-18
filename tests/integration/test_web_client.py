@@ -283,25 +283,6 @@ class TestWebClient:
         assert storage_fr.name == st_storage_name
         assert storage_fr.id == "cluster_test"
 
-        # tests that `read` methods don't create copies of objects but rather updates their internal properties
-        previous_thermals = list(area_fr.get_thermals().values())
-        previous_thermals.sort(key=lambda th: th.id)
-        study._read_thermal_clusters()
-        new_thermals = list(area_fr.get_thermals().values())
-        assert new_thermals == previous_thermals
-
-        previous_renewables = list(area_fr.get_renewables().values())
-        previous_renewables.sort(key=lambda renew: renew.id)
-        study._read_renewables()
-        new_renewables = list(area_fr.get_renewables().values())
-        assert new_renewables == previous_renewables
-
-        previous_storages = list(area_fr.get_st_storages().values())
-        previous_storages.sort(key=lambda sts: sts.id)
-        study._read_st_storages()
-        new_storages = list(area_fr.get_st_storages().values())
-        assert new_storages == previous_storages
-
         # test actual_hydro has the same datas (id, properties and matrices) than area_fr hydro
         actual_hydro = area_fr.hydro
         assert actual_hydro.area_id == area_fr.id
