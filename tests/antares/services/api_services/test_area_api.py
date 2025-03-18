@@ -21,12 +21,20 @@ from antares.craft.exceptions.exceptions import (
     AreaPropertiesUpdateError,
     AreasRetrievalError,
     AreaUiUpdateError,
+    HydroInflowStructureUpdateError,
+    HydroPropertiesUpdateError,
     RenewableCreationError,
     STStorageCreationError,
     ThermalCreationError,
 )
 from antares.craft.model.area import Area, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
-from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate, InflowStructure
+from antares.craft.model.hydro import (
+    Hydro,
+    HydroProperties,
+    HydroPropertiesUpdate,
+    InflowStructure,
+    InflowStructureUpdate,
+)
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage
 from antares.craft.model.study import Study
@@ -392,3 +400,40 @@ class TestCreateAPI:
             hydro_props = HydroPropertiesAPI(**json_hydro).to_user_model()
 
             assert {self.area.id: hydro_props} == self.area._hydro_service.read_properties()
+
+    def test_update_hydro_properties_success(self):
+        hydro_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/hydro/form"
+        new_properties = HydroPropertiesUpdate(hard_bounds=True)
+        with requests_mock.Mocker() as mocker:
+            mocker.put(hydro_url, json={})
+            self.area._hydro_service.update_properties(self.area.id, new_properties)
+
+    def test_update_hydro_properties_fail(self):
+        hydro_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/hydro/form"
+        new_properties = HydroPropertiesUpdate(hard_bounds=True)
+        with requests_mock.Mocker() as mocker:
+            mocker.put(hydro_url, json={"description": self.antares_web_description_msg}, status_code=404)
+
+            with pytest.raises(
+                HydroPropertiesUpdateError,
+                match="Could not update hydro properties for area area_test: " + self.antares_web_description_msg,
+            ):
+                self.area._hydro_service.update_properties(self.area.id, new_properties)
+
+    def test_update_inflow_structure_success(self):
+        hydro_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/hydro/inflow-structure"
+        inflow_structure = InflowStructureUpdate(intermonthly_correlation=0.4)
+        with requests_mock.Mocker() as mocker:
+            mocker.put(hydro_url, json={})
+            self.area._hydro_service.update_inflow_structure(self.area.id, inflow_structure)
+
+    def test_update_inflow_structure_fail(self):
+        hydro_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/hydro/inflow-structure"
+        inflow_structure = InflowStructureUpdate(intermonthly_correlation=0.4)
+        with requests_mock.Mocker() as mocker:
+            mocker.put(hydro_url, json={"description": self.antares_web_description_msg}, status_code=404)
+            with pytest.raises(
+                HydroInflowStructureUpdateError,
+                match="Could not update hydro inflow-structure for area area_test: " + self.antares_web_description_msg,
+            ):
+                self.area._hydro_service.update_inflow_structure(self.area.id, inflow_structure)
