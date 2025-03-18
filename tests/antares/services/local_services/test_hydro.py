@@ -29,13 +29,9 @@ class TestCreateHydro:
     def test_hydro_has_correct_default_properties(self, local_study_w_areas, default_hydro_properties):
         assert local_study_w_areas.get_areas()["fr"].hydro.properties == default_hydro_properties
 
-    def test_hydro_ini_exists(self, local_study_w_areas):
-        hydro_ini = local_study_w_areas.service.config.study_path / InitializationFilesTypes.HYDRO_INI.value
-        assert hydro_ini.is_file()
-
-    def test_create_capacity_files_for_hydro(self, local_study_w_areas):
+    def test_files_exist(self, local_study_w_areas):
         """
-        Test that calling create_hydro on all areas triggers the creation of capacity files.
+        Test that calling create_hydro on all areas triggers the creation of all files needed.
         """
         study_path = Path(local_study_w_areas.path)
         areas = local_study_w_areas.get_areas()
@@ -50,6 +46,9 @@ class TestCreateHydro:
                 study_path / f"input/hydro/series/{area_id}/mod.txt",
                 study_path / f"input/hydro/series/{area_id}/mingen.txt",
                 study_path / f"input/hydro/common/capacity/maxpower_{area_id}.txt",
+                study_path / f"input/hydro/prepro/{area_id}/prepro.ini",
+                study_path / f"input/hydro/allocation/{area_id}.ini",
+                study_path / "input/hydro/hydro.ini",
             ]
 
             for expected_path in expected_paths:
