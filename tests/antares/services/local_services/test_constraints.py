@@ -31,14 +31,16 @@ from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 class TestBindingConstraints:
     def test_read_constraints(self, local_study_w_constraints: Study) -> None:
-        constraints = local_study_w_constraints._read_binding_constraints()
+        local_study_w_constraints._binding_constraints = {}
+        local_study_w_constraints._read_binding_constraints()
+        constraints = local_study_w_constraints.get_binding_constraints()
         assert len(constraints) == 2
-        bc_1 = constraints[0]
+        bc_1 = constraints["bc_1"]
         assert bc_1.name == "bc_1"
         assert bc_1.properties == BindingConstraintProperties(operator=BindingConstraintOperator.GREATER, enabled=False)
         assert bc_1.get_terms() == {}
 
-        bc_2 = constraints[1]
+        bc_2 = constraints["bc_2"]
         assert bc_2.name == "bc_2"
         assert bc_2.properties == BindingConstraintProperties()
         assert bc_2.get_terms() == {"at%fr": ConstraintTerm(data=LinkData(area1="at", area2="fr"), weight=2)}
