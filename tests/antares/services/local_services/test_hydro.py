@@ -13,7 +13,7 @@
 from configparser import ConfigParser
 from pathlib import Path
 
-from antares.craft.model.hydro import Hydro, HydroProperties, InflowStructureUpdate
+from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate, InflowStructureUpdate
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
@@ -239,11 +239,26 @@ it = 1.0
         assert actual_hydro_ini.parsed_ini == expected_hydro_ini
 
     def test_update_hydro_properties(self, local_study_with_hydro):
-        pass
+        area_fr = local_study_with_hydro.get_areas()["fr"]
+        assert area_fr.hydro.properties == HydroProperties(reservoir_capacity=4.3)
+        new_properties = HydroPropertiesUpdate(reservoir_capacity=2.4, hard_bounds=True)
+        area_fr.hydro.update_properties(new_properties)
+        # Checks object value
+        assert area_fr.hydro.properties == HydroProperties(reservoir_capacity=2.4, hard_bounds=True)
+        # Checks ini content
+        ini_file = IniFile(local_study_with_hydro.service.config.study_path, InitializationFilesTypes.HYDRO_INI)
+        assert ini_file.ini_dict["reservoir capacity"]["fr"] == "2.4"
+        assert ini_file.ini_dict["hard bounds"]["fr"] == "True"
 
     def test_update_hydro_inflow_structure(self, local_study_with_hydro):
         area_fr = local_study_with_hydro.get_areas()["fr"]
         assert area_fr.hydro.inflow_structure.intermonthly_correlation == 0.5
         inflow_structure = InflowStructureUpdate(intermonthly_correlation=0.4)
         area_fr.hydro.update_inflow_structure(inflow_structure)
+        # Checks object value
         assert area_fr.hydro.inflow_structure.intermonthly_correlation == 0.4
+        # Checks ini content
+        ini_file = IniFile(
+            local_study_with_hydro.service.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI, area_id="fr"
+        )
+        assert ini_file.ini_dict == {"prepro": {"intermonthly-correlation": "0.4"}}
