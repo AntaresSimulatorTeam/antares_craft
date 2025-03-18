@@ -39,6 +39,7 @@ from antares.craft.service.base_services import (
     BaseThermalService,
 )
 from antares.craft.service.local_services.models.area import AreaPropertiesLocal, AreaUiLocal
+from antares.craft.service.local_services.models.hydro import HydroInflowStructureLocal
 from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
 from antares.craft.service.local_services.models.st_storage import STStoragePropertiesLocal
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
@@ -347,7 +348,7 @@ class AreaLocalService(BaseAreaService):
                 study_path=study_path,
                 ini_file_type=InitializationFilesTypes.HYDRO_PREPRO_INI,
                 area_id=area_id,
-                ini_contents={"prepro": {"intermonthly-correlation": "0.5"}},
+                ini_contents=HydroInflowStructureLocal.from_user_model(InflowStructure()).model_dump(by_alias=True),
             )
             IniFile(
                 study_path=study_path,
@@ -545,9 +546,7 @@ class AreaLocalService(BaseAreaService):
                 prepro_dict = IniFile(
                     self.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI, area_id=element.name
                 ).ini_dict
-                inflow_structure = InflowStructure(
-                    intermonthly_correlation=prepro_dict["prepro"]["intermonthly-correlation"]
-                )
+                inflow_structure = HydroInflowStructureLocal.model_validate(prepro_dict).to_user_model()
 
                 area = Area(
                     name=element.name,
