@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from dataclasses import asdict
-from typing import Optional, Union
+from typing import Optional
 
 from antares.craft.model.commons import filtering_option
 from antares.craft.model.link import (
@@ -26,8 +26,8 @@ from antares.craft.model.link import (
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 
-LinkPropertiesType = Union[LinkProperties, LinkPropertiesUpdate]
-LinkUiType = Union[LinkUi, LinkUiUpdate]
+LinkPropertiesType = LinkProperties | LinkPropertiesUpdate
+LinkUiType = LinkUi | LinkUiUpdate
 
 
 @all_optional_model

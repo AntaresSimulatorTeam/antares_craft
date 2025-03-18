@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Any, Union
+from typing import Any
 
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FilterOption, filtering_option
@@ -18,7 +18,7 @@ from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 from pydantic import BaseModel, ConfigDict
 
-AreaPropertiesType = Union[AreaProperties, AreaPropertiesUpdate]
+AreaPropertiesType = AreaProperties | AreaPropertiesUpdate
 
 
 @all_optional_model
@@ -101,7 +101,7 @@ class AreaPropertiesAPITableMode(APIBaseModel):
         )
 
 
-AreaUiType = Union[AreaUi, AreaUiUpdate]
+AreaUiType = AreaUi | AreaUiUpdate
 
 
 @all_optional_model

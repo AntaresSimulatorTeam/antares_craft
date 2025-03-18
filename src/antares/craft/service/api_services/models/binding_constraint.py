@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 
 from dataclasses import asdict
-from typing import Union
 
 from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
@@ -23,7 +22,7 @@ from antares.craft.model.commons import filtering_option
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 
-BindingConstraintPropertiesType = Union[BindingConstraintProperties, BindingConstraintPropertiesUpdate]
+BindingConstraintPropertiesType = BindingConstraintProperties | BindingConstraintPropertiesUpdate
 
 
 @all_optional_model

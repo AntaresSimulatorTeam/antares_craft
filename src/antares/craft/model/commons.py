@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Annotated, Optional, Union
+from typing import Annotated, Optional
 
 from antares.craft.exceptions.exceptions import FilteringValueError
 from pydantic import BeforeValidator, PlainSerializer
@@ -25,7 +25,7 @@ class FilterOption(Enum):
     ANNUAL = "annual"
 
 
-def validate_filters(filter_value: Union[list[FilterOption], str, None]) -> list[FilterOption]:
+def validate_filters(filter_value: list[FilterOption] | str | None) -> list[FilterOption]:
     if not filter_value:
         return []
     if isinstance(filter_value, str):
