@@ -35,8 +35,8 @@ class HydroLocalService(BaseHydroService):
 
     @override
     def update_inflow_structure(self, area_id: str, inflow_structure: InflowStructureUpdate) -> None:
-        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI)
-        ini_file.ini_dict = {"intermonthly-correlation": inflow_structure.intermonthly_correlation}
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI, area_id=area_id)
+        ini_file.ini_dict = {"prepro": {"intermonthly-correlation": inflow_structure.intermonthly_correlation}}
         ini_file.write_ini_file()
 
     @override

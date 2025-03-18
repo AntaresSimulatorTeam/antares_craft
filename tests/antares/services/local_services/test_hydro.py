@@ -13,7 +13,7 @@
 from configparser import ConfigParser
 from pathlib import Path
 
-from antares.craft.model.hydro import Hydro, HydroProperties
+from antares.craft.model.hydro import Hydro, HydroProperties, InflowStructureUpdate
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
@@ -237,3 +237,13 @@ it = 1.0
         assert actual_hydro_ini_content == expected_hydro_ini_content
         assert actual_hydro_ini.parsed_ini.sections() == expected_hydro_ini.sections()
         assert actual_hydro_ini.parsed_ini == expected_hydro_ini
+
+    def test_update_hydro_properties(self, local_study_with_hydro):
+        pass
+
+    def test_update_hydro_inflow_structure(self, local_study_with_hydro):
+        area_fr = local_study_with_hydro.get_areas()["fr"]
+        assert area_fr.hydro.inflow_structure.intermonthly_correlation == 0.5
+        inflow_structure = InflowStructureUpdate(intermonthly_correlation=0.4)
+        area_fr.hydro.update_inflow_structure(inflow_structure)
+        assert area_fr.hydro.inflow_structure.intermonthly_correlation == 0.4
