@@ -18,7 +18,11 @@ from pathlib import Path
 import pandas as pd
 
 from antares.craft import Study
-from antares.craft.exceptions.exceptions import ConstraintDoesNotExistError, MatrixFormatError
+from antares.craft.exceptions.exceptions import (
+    ConstraintDoesNotExistError,
+    MatrixFormatError,
+    ReadingMethodUsedOufOfScopeError,
+)
 from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
@@ -31,6 +35,13 @@ from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 class TestBindingConstraints:
     def test_read_constraints(self, local_study_w_constraints: Study) -> None:
+        with pytest.raises(
+            ReadingMethodUsedOufOfScopeError,
+            match=re.escape(
+                "The method read_binding_constraints was used on study studyTest which already contains some constraints. This is prohibited."
+            ),
+        ):
+            local_study_w_constraints._read_binding_constraints()
         local_study_w_constraints._binding_constraints = {}
         local_study_w_constraints._read_binding_constraints()
         constraints = local_study_w_constraints.get_binding_constraints()
