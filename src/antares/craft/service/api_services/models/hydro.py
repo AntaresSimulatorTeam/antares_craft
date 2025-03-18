@@ -10,13 +10,12 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Union
 
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 
-HydroPropertiesType = Union[HydroProperties, HydroPropertiesUpdate]
+HydroPropertiesType = HydroProperties | HydroPropertiesUpdate
 
 
 @all_optional_model

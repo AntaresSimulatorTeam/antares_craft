@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Union
+from typing import Optional
 
 import pandas as pd
 
@@ -61,7 +61,7 @@ class ClusterData:
 
 @dataclass(frozen=True)
 class ConstraintTermData:
-    data: Union[LinkData, ClusterData]
+    data: LinkData | ClusterData
 
     @property
     def id(self) -> str:
@@ -70,7 +70,7 @@ class ConstraintTermData:
         return ".".join((self.data.area.lower(), self.data.cluster.lower()))
 
     @staticmethod
-    def from_dict(input: dict[str, str]) -> Union[LinkData, ClusterData]:
+    def from_dict(input: dict[str, str]) -> LinkData | ClusterData:
         if "area1" in input:
             return LinkData(area1=input["area1"], area2=input["area2"])
         elif "cluster" in input:
@@ -78,7 +78,7 @@ class ConstraintTermData:
         raise ValueError(f"Dict {input} couldn't be serialized as a ConstraintTermData object")
 
     @staticmethod
-    def from_ini(input: str) -> Union[LinkData, ClusterData]:
+    def from_ini(input: str) -> LinkData | ClusterData:
         if "%" in input:
             area_1, area_2 = input.split("%")
             return LinkData(area1=area_1, area2=area_2)

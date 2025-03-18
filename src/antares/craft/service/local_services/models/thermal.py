@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Union
 
 from antares.craft.model.thermal import (
     LawOption,
@@ -23,7 +22,7 @@ from antares.craft.model.thermal import (
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from pydantic import Field
 
-ThermalPropertiesType = Union[ThermalClusterProperties, ThermalClusterPropertiesUpdate]
+ThermalPropertiesType = ThermalClusterProperties | ThermalClusterPropertiesUpdate
 
 
 class ThermalClusterPropertiesLocal(LocalBaseModel):

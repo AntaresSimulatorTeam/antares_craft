@@ -10,13 +10,12 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Union
 
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 
-STStoragePropertiesType = Union[STStorageProperties, STStoragePropertiesUpdate]
+STStoragePropertiesType = STStorageProperties | STStoragePropertiesUpdate
 
 
 @all_optional_model

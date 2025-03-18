@@ -12,7 +12,7 @@
 import ast
 
 from dataclasses import asdict
-from typing import Any, Optional, Sequence, Union, cast
+from typing import Any, Optional, Sequence, cast
 
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
@@ -56,7 +56,7 @@ from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase
 from pydantic import Field, field_validator
 
-AdequacyPatchParametersType = Union[AdequacyPatchParameters, AdequacyPatchParametersUpdate]
+AdequacyPatchParametersType = AdequacyPatchParameters | AdequacyPatchParametersUpdate
 
 
 @all_optional_model
@@ -98,8 +98,8 @@ class AdequacyPatchParametersAPI(APIBaseModel):
         )
 
 
-AdvancedParametersType = Union[AdvancedParameters, AdvancedParametersUpdate]
-SeedParametersType = Union[SeedParameters, SeedParametersUpdate]
+AdvancedParametersType = AdvancedParameters | AdvancedParametersUpdate
+SeedParametersType = SeedParameters | SeedParametersUpdate
 
 
 @all_optional_model
@@ -127,7 +127,7 @@ class AdvancedAndSeedParametersAPI(APIBaseModel):
     seed_initial_reservoir_levels: int
 
     @field_validator("accuracy_on_correlation", mode="before")
-    def validate_accuracy_on_correlation(cls, v: Any) -> Union[Sequence[str], set[str]]:
+    def validate_accuracy_on_correlation(cls, v: Any) -> Sequence[str] | set[str]:
         if not v:
             return set()
         if isinstance(v, set):
@@ -169,7 +169,7 @@ class AdvancedAndSeedParametersAPI(APIBaseModel):
         )
 
 
-GeneralParametersType = Union[GeneralParameters, GeneralParametersUpdate]
+GeneralParametersType = GeneralParameters | GeneralParametersUpdate
 
 
 class OutputFormat(EnumIgnoreCase):
@@ -200,7 +200,7 @@ class GeneralParametersAPI(APIBaseModel):
     result_format: OutputFormat
 
     @field_validator("horizon", mode="before")
-    def transform_horizon_to_str(cls, val: Union[str, int, None]) -> Optional[str]:
+    def transform_horizon_to_str(cls, val: str | int | None) -> Optional[str]:
         # horizon can be returned as an int by AntaresWeb
         return str(val) if val is not None else val
 
@@ -238,7 +238,7 @@ class GeneralParametersAPI(APIBaseModel):
         )
 
 
-OptimizationParametersType = Union[OptimizationParameters, OptimizationParametersUpdate]
+OptimizationParametersType = OptimizationParameters | OptimizationParametersUpdate
 
 
 @all_optional_model
@@ -292,7 +292,7 @@ class OptimizationParametersAPI(APIBaseModel):
         )
 
 
-ThematicTrimmingParametersType = Union[ThematicTrimmingParameters, ThematicTrimmingParametersUpdate]
+ThematicTrimmingParametersType = ThematicTrimmingParameters | ThematicTrimmingParametersUpdate
 
 
 @all_optional_model

@@ -12,7 +12,7 @@
 from configparser import DuplicateSectionError
 from enum import Enum
 from pathlib import Path
-from typing import Any, Iterable, Optional, Union
+from typing import Any, Iterable, Optional
 
 from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
 from antares.craft.tools.model_tools import filter_out_empty_model_fields
@@ -77,7 +77,7 @@ class IniFile:
         ini_file_type: InitializationFilesTypes,
         area_id: Optional[str] = None,
         cluster_id: Optional[str] = None,
-        ini_contents: Union[CustomRawConfigParser, dict[str, dict[str, str]], None] = None,
+        ini_contents: CustomRawConfigParser | dict[str, dict[str, str]] | None = None,
     ) -> None:
         if "{area_id}" in ini_file_type.value and not area_id:
             raise ValueError(f"Area name not provided, ini type {ini_file_type.name} requires 'area_id'")
