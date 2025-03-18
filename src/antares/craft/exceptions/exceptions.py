@@ -437,3 +437,9 @@ class MatrixFormatError(Exception):
     def __init__(self, matrix_name: str, expected_shape: tuple[int, Any], actual_shape: tuple[int, int]) -> None:
         self.message = f"Wrong format for {matrix_name} matrix, expected shape is ({expected_shape[0]}, {expected_shape[1]}) and was : {actual_shape}"
         super().__init__(self.message)
+
+
+class ReadingMethodUsedOufOfScopeError(Exception):
+    def __init__(self, study_id: str, method_name: str, objects: str) -> None:
+        self.message = f"The method {method_name} was used on study {study_id} which already contains some {objects}. This is prohibited."
+        super().__init__(self.message)

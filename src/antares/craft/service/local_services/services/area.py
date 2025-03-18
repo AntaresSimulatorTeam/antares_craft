@@ -491,11 +491,11 @@ class AreaLocalService(BaseAreaService):
         return read_timeseries(TimeSeriesFileType.MISC_GEN, self.config.study_path, area_id=area_id)
 
     @override
-    def read_areas(self) -> List[Area]:
+    def read_areas(self) -> dict[str, Area]:
         local_path = self.config.local_path
         areas_path = local_path / self.study_name / "input" / "areas"
         if not areas_path.exists():
-            return []
+            return {}
 
         # Perf: Read only once the hydro_ini file as it's common to every area
         all_hydro_properties = self.hydro_service.read_properties()
@@ -503,7 +503,7 @@ class AreaLocalService(BaseAreaService):
         # Perf: Read only once the thermal_areas_ini file as it's common to every area
         thermal_area_dict = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_AREAS_INI).ini_dict
 
-        areas = []
+        all_areas: dict[str, Area] = {}
         for element in areas_path.iterdir():
             if element.is_dir():
                 optimization_dict = IniFile(
@@ -540,10 +540,9 @@ class AreaLocalService(BaseAreaService):
                     ui=ui_properties,
                 )
                 area.hydro._properties = all_hydro_properties[area.id]
-                areas.append(area)
+                all_areas[area.id] = area
 
-        areas.sort(key=lambda area_obj: area_obj.id)
-        return areas
+        return all_areas
 
     @override
     def update_multiple_areas(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:

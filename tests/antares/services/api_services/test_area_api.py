@@ -296,7 +296,7 @@ class TestCreateAPI:
             mocker.get(url_properties_form, json=json_properties)
             mocker.get(hydro_url, json={"reservoir_capacity": 4.5})
 
-            actual_area_list = self.study._read_areas()
+            self.study._read_areas()
 
             thermal_ = list(json_thermal.values())[0]
             thermal_id = list(json_thermal.keys())[0].split(" / ")[1]
@@ -333,8 +333,9 @@ class TestCreateAPI:
                 ui=None,
             )
 
+            actual_area_list = self.study.get_areas()
             assert len(actual_area_list) == 1
-            actual_area = actual_area_list[0]
+            actual_area = actual_area_list[expected_area.id]
             assert actual_area.id == expected_area.id
             assert actual_area.name == expected_area.name
             actual_thermals = actual_area.get_thermals()
@@ -349,6 +350,7 @@ class TestCreateAPI:
             assert actual_area.hydro.properties == hydro_properties
 
     def test_read_areas_fail(self):
+        self.study._areas = {}
         with requests_mock.Mocker() as mocker:
             url_areas = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/thermals"
             mocker.get(url_areas, json={"description": self.antares_web_description_msg}, status_code=404)

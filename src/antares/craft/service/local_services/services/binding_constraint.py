@@ -202,8 +202,8 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         )
 
     @override
-    def read_binding_constraints(self) -> list[BindingConstraint]:
-        constraints = []
+    def read_binding_constraints(self) -> dict[str, BindingConstraint]:
+        constraints: dict[str, BindingConstraint] = {}
         current_ini_content = self.ini_file.ini_dict
         for constraint in current_ini_content.values():
             name = constraint.pop("name")
@@ -236,9 +236,8 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
                 terms.append(term)
 
             bc = BindingConstraint(name=name, binding_constraint_service=self, properties=properties, terms=terms)
-            constraints.append(bc)
+            constraints[bc.id] = bc
 
-        constraints.sort(key=lambda bc: bc.id)
         return constraints
 
     @override

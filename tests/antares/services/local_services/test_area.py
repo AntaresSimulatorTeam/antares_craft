@@ -11,7 +11,10 @@
 # This file is part of the Antares project.
 
 
+import pytest
+
 import os
+import re
 import typing as t
 
 from configparser import ConfigParser
@@ -23,6 +26,7 @@ import pandas as pd
 
 from antares.craft import read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.exceptions.exceptions import ReadingMethodUsedOufOfScopeError
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.renewable import (
@@ -673,9 +677,9 @@ class TestReadArea:
 
         local_study_object = read_study_local(study_path)
 
-        actual_areas = local_study_object._read_areas()
+        actual_areas = local_study_object.get_areas()
         expected_areas = ["at", "it", "fr"]
-        for area in actual_areas:
+        for area in actual_areas.values():
             assert area.ui.color_rgb == [230, 108, 44]
             assert area.properties.energy_cost_spilled == 1.0
             assert area.properties.energy_cost_unsupplied == 0.5
@@ -698,6 +702,15 @@ it = 10000.000000
         with open(optimization_path, "w", encoding="utf-8") as antares_file:
             antares_file.write(antares_content)
 
+        with pytest.raises(
+            ReadingMethodUsedOufOfScopeError,
+            match=re.escape(
+                "The method read_areas was used on study studyTest which already contains some areas. This is prohibited."
+            ),
+        ):
+            local_study_object._read_areas()
+
+        local_study_object._areas = {}
         local_study_object._read_areas()
         area_fr = local_study_object.get_areas()["fr"]
         assert area_fr.properties.energy_cost_unsupplied == 10000
@@ -713,9 +726,9 @@ class TestReadLoad:
     def test_read_load_local(self, local_study_w_areas):
         study_path = local_study_w_areas.service.config.study_path
         local_study_object = read_study_local(study_path)
-        areas = local_study_object._read_areas()
+        areas = local_study_object.get_areas()
 
-        for area in areas:
+        for area in areas.values():
             expected_time_serie = pd.DataFrame(
                 [
                     [-9999999980506447872, 0, 9999999980506447872],
@@ -735,9 +748,9 @@ class TestReadRenewable:
     def test_read_renewable_local(self, local_study_with_renewable):
         study_path = local_study_with_renewable.service.config.study_path
         local_study_object = read_study_local(study_path)
-        areas = local_study_object._read_areas()
+        areas = local_study_object.get_areas()
 
-        for area in areas:
+        for area in areas.values():
             expected_time_serie = pd.DataFrame(
                 [
                     [-9999999980506447872, 0, 9999999980506447872],
@@ -775,9 +788,9 @@ class TestReadSolar:
     def test_read_solar_local(self, local_study_w_areas):
         study_path = local_study_w_areas.service.config.study_path
         local_study_object = read_study_local(study_path)
-        areas = local_study_object._read_areas()
+        areas = local_study_object.get_areas()
 
-        for area in areas:
+        for area in areas.values():
             expected_time_serie = pd.DataFrame(
                 [
                     [-9999999980506447872, 0, 9999999980506447872],
@@ -797,9 +810,9 @@ class TestReadReserves:
     def test_read_reserve_local(self, local_study_w_areas):
         study_path = local_study_w_areas.service.config.study_path
         local_study_object = read_study_local(study_path)
-        areas = local_study_object._read_areas()
+        areas = local_study_object.get_areas()
 
-        for area in areas:
+        for area in areas.values():
             expected_time_serie = pd.DataFrame(
                 [
                     [-9999999980506447872, 0, 9999999980506447872],
@@ -818,9 +831,9 @@ class TestReadReserves:
 class TestReadWind:
     def test_read_wind_local(self, local_study_w_areas):
         study_path = t.cast(LocalConfiguration, local_study_w_areas.service.config).study_path
-        areas = local_study_w_areas._read_areas()
+        areas = local_study_w_areas.get_areas()
 
-        for area in areas:
+        for area in areas.values():
             expected_time_serie = pd.DataFrame(
                 [
                     [-9999999980506447872, 0, 9999999980506447872],
@@ -839,9 +852,9 @@ class TestReadWind:
 class TestReadmisc_gen:
     def test_read_misc_gen_local(self, local_study_w_areas):
         study_path = t.cast(LocalConfiguration, local_study_w_areas.service.config).study_path
-        areas = local_study_w_areas._read_areas()
+        areas = local_study_w_areas.get_areas()
 
-        for area in areas:
+        for area in areas.values():
             expected_time_serie = pd.DataFrame(
                 [
                     [-9999999980506447872, 0, 9999999980506447872],
@@ -859,9 +872,9 @@ class TestReadmisc_gen:
 
 class TestReadThermal:
     def test_read_thermals_local(self, local_study_w_thermal):
-        areas = local_study_w_thermal._read_areas()
+        areas = local_study_w_thermal.get_areas()
 
-        for area in areas:
+        for area in areas.values():
             thermals_list = list(area.get_thermals().values())
 
             for thermal in thermals_list:
@@ -884,8 +897,8 @@ class TestReadThermal:
 
 class TestReadLinks:
     def test_read_links_local(self, local_study_w_links):
-        links = local_study_w_links._read_links()
-        for link in links:
+        links = local_study_w_links.get_links()
+        for link in links.values():
             assert link.ui.link_style.value == "plain"
             assert link.ui.link_width == 1
             assert link.ui.colorb == 112
@@ -902,9 +915,9 @@ class TestReadLinks:
 
 class TestReadSTStorage:
     def test_read_st_storage_local(self, local_study_w_storage):
-        areas = local_study_w_storage._read_areas()
+        areas = local_study_w_storage.get_areas()
 
-        for area in areas:
+        for area in areas.values():
             storages = area.get_st_storages()
             if area.name == "fr":
                 assert len(storages) == 1

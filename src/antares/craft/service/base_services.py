@@ -295,9 +295,9 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def read_areas(self) -> list["Area"]:
+    def read_areas(self) -> dict[str, "Area"]:
         """
-        Returns: Returns a list of areas
+        Returns: Map from area id to Area object
         """
         pass
 
@@ -456,7 +456,7 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def read_links(self) -> list["Link"]:
+    def read_links(self) -> dict[str, "Link"]:
         pass
 
     @abstractmethod
@@ -622,11 +622,11 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def read_binding_constraints(self) -> list["BindingConstraint"]:
+    def read_binding_constraints(self) -> dict[str, "BindingConstraint"]:
         """
         Loads binding constraints into study
 
-        Returns: the list of binding constraints that have been fetched
+        Returns: A map from the binding constraint id to the binding constraint object
         """
         pass
 
@@ -686,11 +686,11 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
-    def read_outputs(self) -> list["Output"]:
+    def read_outputs(self) -> dict[str, "Output"]:
         """
         Gets the output list of a study
 
-        Returns: "Output" list
+        Returns: Map from output name to the Output object
         """
         pass
 

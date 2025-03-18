@@ -278,7 +278,7 @@ class TestCreateAPI:
             ):
                 self.link.get_capacity_direct()
 
-    def test_read_links(self, expected_link):
+    def test_read_links_success(self, expected_link):
         url_read_links = f"https://antares.com/api/v1/studies/{self.study_id}/links"
 
         json_links = [
@@ -304,14 +304,16 @@ class TestCreateAPI:
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url_read_links, json=json_links)
-            actual_link_list = self.study._read_links()
+            self.study._read_links()
+            actual_link_list = self.study.get_links()
             assert len(actual_link_list) == 1
-            actual_link = actual_link_list[0]
+            actual_link = list(actual_link_list.values())[0]
             assert expected_link.id == actual_link.id
             assert expected_link.properties == actual_link.properties
             assert expected_link.ui == actual_link.ui
 
     def test_read_links_fail(self):
+        self.study._links = {}
         with requests_mock.Mocker() as mocker:
             raw_url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
             mocker.get(raw_url, json={"description": self.antares_web_description_msg}, status_code=404)

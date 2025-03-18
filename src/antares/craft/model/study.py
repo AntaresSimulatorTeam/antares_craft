@@ -19,6 +19,7 @@ import pandas as pd
 from antares.craft import APIconf
 from antares.craft.exceptions.exceptions import (
     LinkCreationError,
+    ReadingMethodUsedOufOfScopeError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -72,64 +73,30 @@ class Study:
     def service(self) -> BaseStudyService:
         return self._study_service
 
-    def _read_areas(self) -> list[Area]:
+    def _read_areas(self) -> None:
         """
         Synchronize the internal study object with the actual object written in an antares study
-        Returns: the synchronized area list
         """
-        area_list = self._area_service.read_areas()
-
-        # Updates in memory objects rather than replacing them
-        existing_ids = set()
-        for area in area_list:
-            existing_ids.add(area.id)
-            if area.id not in self._areas:
-                self._areas[area.id] = area
-            else:
-                current_area = self._areas[area.id]
-                current_area._properties = area._properties
-                current_area._ui = area._ui
-
-        # Deletes objects stored in memory but do not exist anymore
-        for area_id in list(self._areas.keys()):
-            if area_id not in existing_ids:
-                del self._areas[area_id]
-
-        # Returns a sorted list
-        areas = list(self._areas.values())
-        areas.sort(key=lambda area: area.id)
-        return areas
+        if len(self._areas) > 0:
+            raise ReadingMethodUsedOufOfScopeError(self._study_service.study_id, "read_areas", "areas")
+        self._areas = self._area_service.read_areas()
 
     def update_multiple_areas(self, new_properties: Dict[str, AreaPropertiesUpdate]) -> None:
         new_areas_props = self._area_service.update_multiple_areas(new_properties)
         for area_prop in new_areas_props:
             self._areas[area_prop]._properties = new_areas_props[area_prop]
 
-    def _read_links(self) -> list[Link]:
-        link_list = self._link_service.read_links()
+    def _read_links(self) -> None:
+        if len(self._links) > 0:
+            raise ReadingMethodUsedOufOfScopeError(self._study_service.study_id, "read_links", "links")
+        self._links = self._link_service.read_links()
 
-        # Updates in memory objects rather than replacing them
-        existing_ids = set()
-        for link in link_list:
-            existing_ids.add(link.id)
-            if link.id not in self._links:
-                self._links[link.id] = link
-            else:
-                current_link = self._links[link.id]
-                current_link._properties = link._properties
-                current_link._ui = link._ui
+    def _read_settings(self) -> None:
+        self._settings = self._settings_service.read_study_settings()
 
-        # Deletes objects stored in memory but do not exist anymore
-        for link_id in list(self._links.keys()):
-            if link_id not in existing_ids:
-                del self._links[link_id]
-
-        # Returns a sorted list
-        links = list(self._links.values())
-        links.sort(key=lambda link: link.id)
-        return links
-
-    def _replace_settings(self, new_settings: StudySettings) -> None:
+    def update_settings(self, settings: StudySettingsUpdate) -> None:
+        self._settings_service.edit_study_settings(settings)
+        new_settings = self._settings_service.read_study_settings()
         self._settings.general_parameters = new_settings.general_parameters
         self._settings.optimization_parameters = new_settings.optimization_parameters
         self._settings.advanced_parameters = new_settings.advanced_parameters
@@ -137,16 +104,6 @@ class Study:
         self._settings.adequacy_patch_parameters = new_settings.adequacy_patch_parameters
         self._settings.thematic_trimming_parameters = new_settings.thematic_trimming_parameters
         self._settings.playlist_parameters = new_settings.playlist_parameters
-
-    def _read_settings(self) -> StudySettings:
-        study_settings = self._settings_service.read_study_settings()
-        self._replace_settings(study_settings)
-        return self._settings
-
-    def update_settings(self, settings: StudySettingsUpdate) -> None:
-        self._settings_service.edit_study_settings(settings)
-        new_settings = self._settings_service.read_study_settings()
-        self._replace_settings(new_settings)
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
@@ -232,29 +189,12 @@ class Study:
         self._binding_constraints[binding_constraint.id] = binding_constraint
         return binding_constraint
 
-    def _read_binding_constraints(self) -> list[BindingConstraint]:
-        constraints = self._binding_constraints_service.read_binding_constraints()
-
-        # Updates in memory objects rather than replacing them
-        existing_ids = set()
-        for constraint in constraints:
-            existing_ids.add(constraint.id)
-            if constraint.id not in self._binding_constraints:
-                self._binding_constraints[constraint.id] = constraint
-            else:
-                current_constraint = self._binding_constraints[constraint.id]
-                current_constraint._properties = constraint._properties
-                current_constraint._terms = constraint._terms
-
-        # Deletes objects stored in memory but do not exist anymore
-        for bc_id in list(self._binding_constraints.keys()):
-            if bc_id not in existing_ids:
-                del self._binding_constraints[bc_id]
-
-        # Returns a sorted list
-        constraints = list(self._binding_constraints.values())
-        constraints.sort(key=lambda bc: bc.id)
-        return constraints
+    def _read_binding_constraints(self) -> None:
+        if len(self._binding_constraints) > 0:
+            raise ReadingMethodUsedOufOfScopeError(
+                self._study_service.study_id, "read_binding_constraints", "constraints"
+            )
+        self._binding_constraints = self._binding_constraints_service.read_binding_constraints()
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         self._study_service.delete_binding_constraint(constraint)
@@ -301,15 +241,28 @@ class Study:
         self._run_service.wait_job_completion(job, time_out)
         self._read_outputs()
 
-    def _read_outputs(self) -> list[Output]:
+    def _read_outputs(self) -> None:
         """
-        Load outputs into current study
-
-        Returns: Output list
+        Load outputs into current study.
+        We're not just replacing existing outputs by new ones as this method is also used outside the factory.
+        Instead, we're updating the current ones with new values to avoid any user issue.
         """
         outputs = self._study_service.read_outputs()
-        self._outputs = {output.name: output for output in outputs}
-        return outputs
+
+        # Updates in memory objects rather than replacing them
+        existing_ids = set()
+        for output_name, output in outputs.items():
+            existing_ids.add(output_name)
+            if output_name not in self._outputs:
+                self._outputs[output_name] = output
+            else:
+                current_output = self._outputs[output_name]
+                current_output._archived = output.archived
+
+        # Deletes objects stored in memory but do not exist anymore
+        for output_name in list(self._outputs.keys()):
+            if output_name not in existing_ids:
+                del self._outputs[output_name]
 
     def get_outputs(self) -> MappingProxyType[str, Output]:
         """
