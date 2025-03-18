@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 
@@ -33,16 +34,21 @@ class HydroLocalService(BaseHydroService):
         edit_hydro_properties(self.config.study_path, area_id, properties, creation=False)
 
     @override
-    def read_properties(self, area_id: str) -> HydroProperties:
+    def read_properties(self) -> dict[str, HydroProperties]:
+        hydro_properties: dict[str, HydroProperties] = {}
+
         list_ini = IniFile(self.config.study_path, InitializationFilesTypes.HYDRO_INI)
         current_content = list_ini.ini_dict
 
-        body = {}
-        for key, data in current_content.items():
-            if area_id in data:
-                body[key] = data[area_id]
+        body_by_area: dict[str, dict[str, Any]] = {}
+        for key, value in current_content.items():
+            for area_id, data in value.items():
+                body_by_area.setdefault(area_id, {})[key] = data
+        for area_id, local_properties in body_by_area.items():
+            user_properties = HydroPropertiesLocal.model_validate(local_properties).to_user_model()
+            hydro_properties[area_id] = user_properties
 
-        return HydroPropertiesLocal.model_validate(body).to_user_model()
+        return hydro_properties
 
     @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:

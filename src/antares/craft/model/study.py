@@ -417,6 +417,11 @@ class Study:
                     if storage_id not in st_storages[area]:
                         del self._areas[area]._st_storages[storage_id]
 
+    def _read_hydro(self) -> None:
+        hydro_properties = self._area_service.hydro_service.read_properties()
+        for area, properties in hydro_properties.items():
+            self._areas[area].hydro._properties = properties
+
 
 # Design note:
 # all following methods are entry points for study creation.

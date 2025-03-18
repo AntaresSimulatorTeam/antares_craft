@@ -360,6 +360,7 @@ class TestCreateAPI:
                 self.study._read_areas()
 
     def test_read_hydro(self):
+        areas = {self.area.id: ""}
         json_hydro = {
             "interDailyBreakdown": 1,
             "intraDailyModulation": 24,
@@ -377,11 +378,12 @@ class TestCreateAPI:
             "leewayUp": 1,
             "pumpingEfficiency": 1,
         }
-        url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/hydro/form"
+        areas_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas?ui=True"
+        hydro_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area.id}/hydro/form"
 
         with requests_mock.Mocker() as mocker:
-            mocker.get(url, json=json_hydro)
+            mocker.get(areas_url, json=areas)
+            mocker.get(hydro_url, json=json_hydro)
             hydro_props = HydroPropertiesAPI(**json_hydro).to_user_model()
 
-            actual_hydro = Hydro(self.api, self.area.id, hydro_props)
-            assert actual_hydro.properties == self.area.hydro._read_properties()
+            assert {self.area.id: hydro_props} == self.area._hydro_service.read_properties()
