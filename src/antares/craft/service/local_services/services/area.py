@@ -545,7 +545,9 @@ class AreaLocalService(BaseAreaService):
                 prepro_dict = IniFile(
                     self.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI, area_id=element.name
                 ).ini_dict
-                inflow_structure = InflowStructure(intermonthly_correlation=prepro_dict["intermonthly-correlation"])
+                inflow_structure = InflowStructure(
+                    intermonthly_correlation=prepro_dict["prepro"]["intermonthly-correlation"]
+                )
 
                 area = Area(
                     name=element.name,

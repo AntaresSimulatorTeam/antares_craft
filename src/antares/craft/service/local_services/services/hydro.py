@@ -69,7 +69,9 @@ class HydroLocalService(BaseHydroService):
                     self.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI, area_id=element.name
                 )
                 current_content = ini_file.ini_dict
-                inflow_structure = InflowStructure(intermonthly_correlation=current_content["intermonthly-correlation"])
+                inflow_structure = InflowStructure(
+                    intermonthly_correlation=current_content["prepro"]["intermonthly-correlation"]
+                )
                 all_inflow_structure[element.name] = inflow_structure
 
         return all_inflow_structure
