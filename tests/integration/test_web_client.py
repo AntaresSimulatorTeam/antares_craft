@@ -296,21 +296,6 @@ class TestWebClient:
         assert area_fr.hydro.properties.reservoir is True
         assert area_fr.hydro.properties.reservoir_capacity == 4.5
 
-        # tests study reading method and comparing ids, name, areas and settings
-        actual_study = read_study_api(api_config, study.service.study_id)
-
-        assert study.service.study_id == actual_study.service.study_id
-        assert study.name == actual_study.name
-        assert study.version == actual_study.version
-        assert list(study.get_areas().keys()) == list(actual_study.get_areas().keys())
-
-        expected_area_fr = study.get_areas()["fr"]
-        actual_area_fr = actual_study.get_areas()["fr"]
-        assert list(expected_area_fr.get_thermals()) == list(actual_area_fr.get_thermals())
-        assert list(expected_area_fr.get_renewables()) == list(actual_area_fr.get_renewables())
-        assert list(expected_area_fr.get_st_storages()) == list(actual_area_fr.get_st_storages())
-        assert study.get_settings() == actual_study.get_settings()
-
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
         storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY)
@@ -318,25 +303,6 @@ class TestWebClient:
         properties = battery_fr.properties
         assert properties.reservoir_capacity == 0.5
         assert properties.group == STStorageGroup.BATTERY
-
-        # test reading list of areas
-        previous_areas = list(study.get_areas().values())
-        previous_areas.sort(key=lambda area: area.id)
-        area_list = study._read_areas()
-        assert area_list == previous_areas  # Checks objects aren't copied
-        assert len(area_list) == 3
-        # asserts areas are sorted by id
-        assert area_list[0].id == area_be.id
-        assert area_list[1].id == area_de.id
-        assert area_list[2].id == area_fr.id
-        third_area = area_list[2]
-        # checks various variables the list corresponds to the area we created initially
-        assert area_fr.ui.x == third_area.ui.x
-        assert area_fr.ui.color_rgb == third_area.ui.color_rgb
-        assert thermal_fr.id == third_area.get_thermals().get("cluster_test").id
-        assert renewable_fr.id == third_area.get_renewables().get("cluster_test").id
-        assert storage_fr.id == third_area.get_st_storages().get("cluster_test").id
-        assert thermal_be.id == area_list[0].get_thermals().get("gaz_be").id
 
         # checking multiple areas properties update
         area_props_update_1 = AreaPropertiesUpdate(
@@ -509,17 +475,42 @@ class TestWebClient:
         thermal_fr.update_properties(new_props)
         assert thermal_fr.properties.group == ThermalClusterGroup.NUCLEAR
 
-        # assert study got all links
-        previous_links = list(study.get_links().values())
-        previous_links.sort(key=lambda link: link.id)
-        links = study._read_links()
-        assert links == previous_links  # Checks objects aren't copied
-        assert len(links) == 2
-        test_link_be_fr = links[0]
-        test_link_de_fr = links[1]
-        assert test_link_be_fr.id == link_be_fr.id
-        assert test_link_be_fr.properties == link_be_fr.properties
-        assert test_link_de_fr.id == link_de_fr.id
+        # tests study reading method returns the same object that the one we created
+        actual_study = read_study_api(api_config, study.service.study_id)
+
+        assert study.service.study_id == actual_study.service.study_id
+        assert study.name == actual_study.name
+        assert study.version == actual_study.version
+        assert sorted(list(study.get_areas().keys())) == sorted(list(actual_study.get_areas().keys()))
+
+        expected_area_fr = study.get_areas()["fr"]
+        actual_area_fr = actual_study.get_areas()["fr"]
+        assert sorted(list(expected_area_fr.get_thermals())) == sorted(list(actual_area_fr.get_thermals()))
+        assert sorted(list(expected_area_fr.get_renewables())) == sorted(list(actual_area_fr.get_renewables()))
+        assert sorted(list(expected_area_fr.get_st_storages())) == sorted(list(actual_area_fr.get_st_storages()))
+        assert study.get_settings() == actual_study.get_settings()
+
+        assert sorted(list(study.get_links().keys())) == sorted(list(actual_study.get_links().keys()))
+        expected_link_de_fr = study.get_links()["de / fr"]
+        actual_link_de_fr = actual_study.get_links()["de / fr"]
+        assert expected_link_de_fr.id == actual_link_de_fr.id
+        assert expected_link_de_fr.ui == actual_link_de_fr.ui
+        assert expected_link_de_fr.properties == actual_link_de_fr.properties
+
+        assert sorted(list(study.get_binding_constraints().keys())) == sorted(
+            list(actual_study.get_binding_constraints().keys())
+        )
+        actual_constraint = actual_study.get_binding_constraints()["bc_2"]
+        assert actual_constraint.properties.enabled is True
+        assert actual_constraint.properties.time_step == BindingConstraintFrequency.HOURLY
+        assert actual_constraint.properties.operator == BindingConstraintOperator.EQUAL
+        assert actual_constraint.properties.group == "default"
+        assert len(actual_constraint.get_terms()) == 2
+        cluster_term = actual_constraint.get_terms()["fr.cluster_test"]
+        assert cluster_term.data.area == "fr"
+        assert cluster_term.data.cluster == "cluster_test"
+        assert cluster_term.weight == 4.5
+        assert cluster_term.offset == 3
 
         # tests renewable properties update
         new_props = RenewableClusterPropertiesUpdate()
@@ -797,29 +788,6 @@ class TestWebClient:
         matrix_values = aggregated_matrix.loc[0:99, "timeId"].tolist()
         assert expected_values == matrix_values
 
-        # ===== Test read binding constraints =====
-        previous_bcs = list(study.get_binding_constraints().values())
-        previous_bcs.sort(key=lambda bc: bc.id)
-        constraints = study._read_binding_constraints()
-        assert constraints == previous_bcs  # Checks objects aren't copied
-
-        assert len(constraints) == 2
-        constraint = constraints[0]
-        assert constraint.id == "bc_2"
-        assert constraint.name == "bc_2"
-        assert constraint.properties.enabled is True
-        assert constraint.properties.time_step == BindingConstraintFrequency.HOURLY
-        assert constraint.properties.operator == BindingConstraintOperator.EQUAL
-        assert constraint.properties.group == "default"
-        assert len(constraint.get_terms()) == 1
-
-        # ===== terms ======
-        cluster_term = constraint.get_terms()["fr.cluster_test"]
-        assert cluster_term.data.area == "fr"
-        assert cluster_term.data.cluster == "cluster_test"
-        assert cluster_term.weight == 4.5
-        assert cluster_term.offset == 3
-
         # ===== Output deletion =====
 
         # run two new simulations for creating more outputs
@@ -834,12 +802,16 @@ class TestWebClient:
         # delete_output
         study.delete_output(output.name)
         assert output.name not in study.get_outputs()
-        assert len(study._read_outputs()) == 2
+        study._read_outputs()
+        outputs = study.get_outputs()
+        assert output.name not in outputs
+        assert len(outputs) == 2
 
         # delete_outputs
         study.delete_outputs()
-        assert len(study.get_outputs()) == 0
-        assert len(study._read_outputs()) == 0
+        assert study.get_outputs() == {}
+        study._read_outputs()
+        assert study.get_outputs() == {}
 
         # ===== Test study moving =====
 

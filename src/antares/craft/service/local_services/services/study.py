@@ -160,14 +160,13 @@ class StudyLocalService(BaseStudyService):
         raise ValueError("The variant creation should only be used for API studies not for local ones")
 
     @override
-    def read_outputs(self) -> list[Output]:
-        outputs = []
+    def read_outputs(self) -> dict[str, Output]:
+        outputs: dict[str, Output] = {}
         for folder in self._output_path.iterdir():
             output_name = folder.name
             archived = True if output_name.endswith(".zip") else False
             output = Output(name=output_name, archived=archived, output_service=self.output_service)
-            outputs.append(output)
-        outputs.sort(key=lambda o: o.name)
+            outputs[output.name] = output
         return outputs
 
     @override

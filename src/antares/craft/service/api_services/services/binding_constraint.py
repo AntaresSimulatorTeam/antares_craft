@@ -204,12 +204,12 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise ConstraintTermAdditionError(constraint.id, [term.id for term in terms], e.message) from e
 
     @override
-    def read_binding_constraints(self) -> list[BindingConstraint]:
+    def read_binding_constraints(self) -> dict[str, BindingConstraint]:
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints"
         try:
             response = self._wrapper.get(url)
             constraints_json = response.json()
-            constraints = []
+            constraints: dict[str, BindingConstraint] = {}
 
             for constraint in constraints_json:
                 constraint_name = constraint.pop("name")
@@ -221,9 +221,9 @@ class BindingConstraintApiService(BaseBindingConstraintService):
                 for api_term in api_terms:
                     term_data = ConstraintTermData.from_dict(api_term["data"])
                     terms.append(ConstraintTerm(weight=api_term["weight"], offset=api_term["offset"], data=term_data))
-                constraints.append(BindingConstraint(constraint_name, self, bc_properties, terms))
+                bc = BindingConstraint(constraint_name, self, bc_properties, terms)
+                constraints[bc.id] = bc
 
-            constraints.sort(key=lambda constraint: constraint.id)
             return constraints
         except APIError as e:
             raise ConstraintRetrievalError(self.study_id, e.message) from e

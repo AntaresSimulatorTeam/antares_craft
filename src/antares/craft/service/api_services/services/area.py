@@ -462,8 +462,8 @@ class AreaApiService(BaseAreaService):
             raise MatrixDownloadError(area_id, "misc-gen", e.message)
 
     @override
-    def read_areas(self) -> list[Area]:
-        area_list = []
+    def read_areas(self) -> dict[str, Area]:
+        all_areas: dict[str, Area] = {}
 
         try:
             # Read all thermals
@@ -505,15 +505,12 @@ class AreaApiService(BaseAreaService):
                 area_obj._st_storages = st_storages.get(area_obj.id, {})
                 area_obj.hydro._properties = hydro_properties[area_obj.id]
 
-                area_list.append(area_obj)
-
-            # sort area list to ensure reproducibility
-            area_list.sort(key=lambda area: area.id)
+                all_areas[area_obj.id] = area_obj
 
         except APIError as e:
             raise AreasRetrievalError(self.study_id, e.message) from e
 
-        return area_list
+        return all_areas
 
     def _read_area_properties(self) -> dict[str, AreaProperties]:
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/areas"

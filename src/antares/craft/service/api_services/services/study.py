@@ -91,15 +91,16 @@ class StudyApiService(BaseStudyService):
             raise StudyVariantCreationError(self.study_id, e.message) from e
 
     @override
-    def read_outputs(self) -> list[Output]:
+    def read_outputs(self) -> dict[str, Output]:
+        all_outputs: dict[str, Output] = {}
         url = f"{self._base_url}/studies/{self.study_id}/outputs"
         try:
             response = self._wrapper.get(url)
             outputs_json_list = response.json()
-            return [
-                Output(output_service=self.output_service, name=output["name"], archived=output["archived"])
-                for output in outputs_json_list
-            ]
+            for otp in outputs_json_list:
+                output = Output(output_service=self.output_service, name=otp["name"], archived=otp["archived"])
+                all_outputs[output.name] = output
+            return all_outputs
         except APIError as e:
             raise OutputsRetrievalError(self.study_id, e.message)
 

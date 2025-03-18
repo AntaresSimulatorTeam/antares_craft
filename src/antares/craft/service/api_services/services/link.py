@@ -188,20 +188,20 @@ class LinkApiService(BaseLinkService):
             raise LinkUploadError(area_from, area_to, "indirectcapacity", e.message) from e
 
     @override
-    def read_links(self) -> list[Link]:
+    def read_links(self) -> dict[str, Link]:
         try:
             url = f"{self._base_url}/studies/{self.study_id}/links"
             json_links = self._wrapper.get(url).json()
-            links = []
+            links = {}
             for link in json_links:
                 area_from = link.pop("area1")
                 area_to = link.pop("area2")
                 api_response = LinkPropertiesAndUiAPI.model_validate(link)
                 link_properties = api_response.to_properties_user_model()
                 link_ui = api_response.to_ui_user_model()
-                links.append(Link(area_from, area_to, self, link_properties, link_ui))
+                link = Link(area_from, area_to, self, link_properties, link_ui)
+                links[link.id] = link
 
-            links.sort(key=lambda link_obj: link_obj.area_from_id)
         except APIError as e:
             raise LinksRetrievalError(self.study_id, e.message) from e
         return links
