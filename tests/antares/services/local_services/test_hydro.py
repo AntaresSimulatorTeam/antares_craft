@@ -54,6 +54,26 @@ class TestCreateHydro:
             for expected_path in expected_paths:
                 assert expected_path.is_file(), f"File not created: {expected_path}"
 
+    def test_hydro_allocation_has_correct_default_values(self, local_study_w_areas):
+        areas = local_study_w_areas.get_areas()
+        for area in areas.values():
+            ini_file = IniFile(
+                local_study_w_areas.service.config.study_path,
+                InitializationFilesTypes.HYDRO_ALLOCATION_INI,
+                area_id=area.id,
+            )
+            assert ini_file.ini_dict == {"[allocation]": {area.id: "1"}}
+
+    def test_hydro_prepro_has_correct_default_values(self, local_study_w_areas):
+        areas = local_study_w_areas.get_areas()
+        for area in areas.values():
+            ini_file = IniFile(
+                local_study_w_areas.service.config.study_path,
+                InitializationFilesTypes.HYDRO_PREPRO_INI,
+                area_id=area.id,
+            )
+            assert ini_file.ini_dict == {"prepro": {"intermonthly-correlation": "0.5"}}
+
     def test_hydro_ini_has_correct_default_values(self, local_study_w_areas):
         # Given
         expected_hydro_ini_content = """[inter-daily-breakdown]
