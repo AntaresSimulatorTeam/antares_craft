@@ -43,7 +43,7 @@ class HydroApiService(BaseHydroService):
 
         try:
             # retrieve all areas
-            areas_url = f"{self._base_url}/studies/{self.study_id}/areas"
+            areas_url = f"{self._base_url}/studies/{self.study_id}/areas?ui=true"
             json_response = self._wrapper.get(areas_url).json()
             all_areas_ids = list(json_response.keys())
 

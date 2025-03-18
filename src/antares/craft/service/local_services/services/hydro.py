@@ -42,7 +42,7 @@ class HydroLocalService(BaseHydroService):
 
         body_by_area: dict[str, dict[str, Any]] = {}
         for key, value in current_content.items():
-            for area_id, data in value:
+            for area_id, data in value.items():
                 body_by_area.setdefault(area_id, {})[key] = data
         for area_id, local_properties in body_by_area.items():
             user_properties = HydroPropertiesLocal.model_validate(local_properties).to_user_model()
