@@ -180,9 +180,11 @@ class TestCreateAPI:
             mocker.get(url1, json={area_name: area_ui}, status_code=201)
             url2 = f"{base_url}/studies/{self.study_id}/areas/{area_name}/properties/form"
             url3 = f"{base_url}/studies/{self.study_id}/areas/{area_name}/hydro/form"
+            url4 = f"{base_url}/studies/{self.study_id}/areas/{area_name}/hydro/inflow-structure"
             mocker.put(url2, status_code=201)
             mocker.get(url2, json=AreaPropertiesAPI().model_dump(), status_code=200)
             mocker.get(url3, json=HydroPropertiesAPI().model_dump())
+            mocker.get(url4, json={"interMonthlyCorrelation": 0.5})
             area = self.study.create_area(area_name)
         assert isinstance(area, Area)
 
@@ -277,7 +279,8 @@ class TestCreateAPI:
         storage_url = f"{url}/table-mode/st-storages"
         output_url = f"{url}/outputs"
         constraints_url = f"{base_url}/studies/{self.study_id}/bindingconstraints"
-        hydro_url = f"{area_url}/zone/hydro/form"
+        hydro_properties_url = f"{area_url}/zone/hydro/form"
+        hydro_inflow_structure_url = f"{area_url}/zone/hydro/inflow-structure"
         links_url = f"{url}/links"
 
         with requests_mock.Mocker() as mocker:
@@ -295,7 +298,8 @@ class TestCreateAPI:
             )
             mocker.get(constraints_url, json=[])
             mocker.get(links_url, json=[])
-            mocker.get(hydro_url, json={})
+            mocker.get(hydro_properties_url, json={})
+            mocker.get(hydro_inflow_structure_url, json={"interMonthlyCorrelation": 0.5})
             actual_study = read_study_api(self.api, self.study_id)
 
             expected_study_name = json_study.pop("name")

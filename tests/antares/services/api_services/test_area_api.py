@@ -26,7 +26,7 @@ from antares.craft.exceptions.exceptions import (
     ThermalCreationError,
 )
 from antares.craft.model.area import Area, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
-from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate
+from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate, InflowStructure
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage
 from antares.craft.model.study import Study
@@ -232,7 +232,8 @@ class TestCreateAPI:
         url_renewable = f"{study_url}/table-mode/renewables"
         url_st_storage = f"{study_url}/table-mode/st-storages"
         url_properties_form = f"{study_url}/table-mode/areas"
-        hydro_url = url + f"/{area_id}/hydro/form"
+        hydro_properties_url = url + f"/{area_id}/hydro/form"
+        hydro_inflow_structure_url = url + f"/{area_id}/hydro/inflow-structure"
 
         json_ui = {
             area_id: {
@@ -287,6 +288,7 @@ class TestCreateAPI:
         }
 
         hydro_properties = HydroProperties(reservoir_capacity=4.5)
+        inflow_structure = InflowStructure(intermonthly_correlation=0.9)
 
         with requests_mock.Mocker() as mocker:
             mocker.get(ui_url, json=json_ui)
@@ -294,7 +296,8 @@ class TestCreateAPI:
             mocker.get(url_renewable, json=json_renewable)
             mocker.get(url_st_storage, json=json_st_storage)
             mocker.get(url_properties_form, json=json_properties)
-            mocker.get(hydro_url, json={"reservoir_capacity": 4.5})
+            mocker.get(hydro_properties_url, json={"reservoir_capacity": 4.5})
+            mocker.get(hydro_inflow_structure_url, json={"interMonthlyCorrelation": 0.9})
 
             self.study._read_areas()
 
@@ -316,7 +319,7 @@ class TestCreateAPI:
             storage_props = STStoragePropertiesAPI(**storage_).to_user_model()
             st_storage = STStorage(self.area_api.storage_service, area_id, storage_id, storage_props)
 
-            hydro = Hydro(self.area_api.hydro_service, area_id, hydro_properties)
+            hydro = Hydro(self.area_api.hydro_service, area_id, hydro_properties, inflow_structure)
 
             expected_area = Area(
                 area_id,
