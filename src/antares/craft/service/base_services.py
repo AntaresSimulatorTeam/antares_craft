@@ -70,6 +70,11 @@ class BaseAreaService(ABC):
     def storage_service(self) -> "BaseShortTermStorageService":
         pass
 
+    @property
+    @abstractmethod
+    def hydro_service(self) -> "BaseHydroService":
+        pass
+
     @abstractmethod
     def create_area(
         self, area_name: str, properties: Optional["AreaProperties"] = None, ui: Optional["AreaUi"] = None
@@ -312,12 +317,10 @@ class BaseHydroService(ABC):
         pass
 
     @abstractmethod
-    def read_properties(self, area_id: str) -> "HydroProperties":
+    def read_properties(self) -> dict[str, "HydroProperties"]:
         """
-        Args:
-            area_id: area in which hydro will be created
         Returns:
-            The hydro properties
+            The hydro properties for each area of the study
         """
         pass
 

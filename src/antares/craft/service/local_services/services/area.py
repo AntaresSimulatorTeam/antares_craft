@@ -85,7 +85,7 @@ class AreaLocalService(BaseAreaService):
         self._storage_service: BaseShortTermStorageService = storage_service
         self._thermal_service: BaseThermalService = thermal_service
         self._renewable_service: BaseRenewableService = renewable_service
-        self.hydro_service: BaseHydroService = hydro_service
+        self._hydro_service: BaseHydroService = hydro_service
 
     @override
     def create_thermal_cluster(
@@ -151,6 +151,11 @@ class AreaLocalService(BaseAreaService):
     @property
     def storage_service(self) -> "BaseShortTermStorageService":
         return self._storage_service
+
+    @override
+    @property
+    def hydro_service(self) -> "BaseHydroService":
+        return self._hydro_service
 
     @override
     def create_renewable_cluster(
@@ -491,6 +496,13 @@ class AreaLocalService(BaseAreaService):
         areas_path = local_path / self.study_name / "input" / "areas"
         if not areas_path.exists():
             return []
+
+        # Perf: Read only once the hydro_ini file as it's common to every area
+        all_hydro_properties = self.hydro_service.read_properties()
+
+        # Perf: Read only once the thermal_areas_ini file as it's common to every area
+        thermal_area_dict = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_AREAS_INI).ini_dict
+
         areas = []
         for element in areas_path.iterdir():
             if element.is_dir():
@@ -500,7 +512,6 @@ class AreaLocalService(BaseAreaService):
                 area_adequacy_dict = IniFile(
                     self.config.study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_id=element.name
                 ).ini_dict
-                thermal_area_dict = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_AREAS_INI).ini_dict
                 unserverd_energy_cost = thermal_area_dict.get("unserverdenergycost", {}).get(element.name, 0)
                 spilled_energy_cost = thermal_area_dict.get("spilledenergycost", {}).get(element.name, 0)
                 local_properties_dict = {
@@ -528,7 +539,7 @@ class AreaLocalService(BaseAreaService):
                     properties=area_properties,
                     ui=ui_properties,
                 )
-                area.hydro._read_properties()
+                area.hydro._properties = all_hydro_properties[area.id]
                 areas.append(area)
 
         areas.sort(key=lambda area_obj: area_obj.id)

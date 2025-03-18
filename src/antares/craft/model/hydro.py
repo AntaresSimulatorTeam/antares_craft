@@ -54,6 +54,25 @@ class HydroProperties:
     leeway_up: float = 1
     pumping_efficiency: float = 1
 
+    def from_update_properties(self, update_properties: HydroPropertiesUpdate) -> "HydroProperties":
+        return HydroProperties(
+            inter_daily_breakdown=update_properties.inter_daily_breakdown or self.inter_daily_breakdown,
+            intra_daily_modulation=update_properties.intra_daily_modulation or self.intra_daily_modulation,
+            inter_monthly_breakdown=update_properties.inter_monthly_breakdown or self.inter_monthly_breakdown,
+            reservoir=update_properties.reservoir or self.reservoir,
+            reservoir_capacity=update_properties.reservoir_capacity or self.reservoir_capacity,
+            follow_load=update_properties.follow_load or self.follow_load,
+            use_water=update_properties.use_water or self.use_water,
+            hard_bounds=update_properties.hard_bounds or self.hard_bounds,
+            initialize_reservoir_date=update_properties.initialize_reservoir_date or self.initialize_reservoir_date,
+            use_heuristic=update_properties.use_heuristic or self.use_heuristic,
+            power_to_level=update_properties.power_to_level or self.power_to_level,
+            use_leeway=update_properties.use_leeway or self.use_leeway,
+            leeway_low=update_properties.leeway_low or self.leeway_low,
+            leeway_up=update_properties.leeway_up or self.leeway_up,
+            pumping_efficiency=update_properties.pumping_efficiency or self.pumping_efficiency,
+        )
+
     def to_update_properties(self) -> HydroPropertiesUpdate:
         return HydroPropertiesUpdate(
             inter_daily_breakdown=self.inter_daily_breakdown,
@@ -90,12 +109,7 @@ class Hydro:
 
     def update_properties(self, properties: HydroPropertiesUpdate) -> None:
         self._service.update_properties(self.area_id, properties)
-        self._properties = self._read_properties()
-
-    def _read_properties(self) -> HydroProperties:
-        properties = self._service.read_properties(self.area_id)
-        self._properties = properties
-        return properties
+        self._properties = self._properties.from_update_properties(properties)
 
     def get_maxpower(self) -> pd.DataFrame:
         return self._service.get_maxpower(self.area_id)

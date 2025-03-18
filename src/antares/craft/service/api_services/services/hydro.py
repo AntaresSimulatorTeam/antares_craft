@@ -37,14 +37,34 @@ class HydroApiService(BaseHydroService):
         self._base_url = f"{self.api_config.get_host()}/api/v1"
 
     @override
-    def read_properties(self, area_id: str) -> HydroProperties:
+    def read_properties(self) -> dict[str, HydroProperties]:
+        # todo: this is really unefficient but we have to do this until AntaresWeb introduces a specific endpoint
+        hydro_properties: dict[str, HydroProperties] = {}
+
+        try:
+            # retrieve all areas
+            areas_url = f"{self._base_url}/studies/{self.study_id}/areas"
+            json_response = self._wrapper.get(areas_url).json()
+            all_areas_ids = list(json_response.keys())
+
+            # for each area, retrieves its properties
+            for area_id in all_areas_ids:
+                hydro_properties[area_id] = self.read_properties_for_one_area(area_id)
+
+        except APIError as e:
+            raise HydroPropertiesReadingError(self.study_id, e.message) from e
+
+        return hydro_properties
+
+    def read_properties_for_one_area(self, area_id: str) -> HydroProperties:
         try:
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"
             json_hydro = self._wrapper.get(url).json()
 
             hydro_props = HydroPropertiesAPI(**json_hydro).to_user_model()
+
         except APIError as e:
-            raise HydroPropertiesReadingError(area_id, e.message) from e
+            raise HydroPropertiesReadingError(self.study_id, e.message, area_id) from e
 
         return hydro_props
 

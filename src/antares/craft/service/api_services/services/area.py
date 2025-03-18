@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Dict, Optional
+from typing import Dict, Optional, cast
 
 import pandas as pd
 
@@ -42,6 +42,7 @@ from antares.craft.service.api_services.models.area import AreaPropertiesAPI, Ar
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
+from antares.craft.service.api_services.services.hydro import HydroApiService
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import (
     BaseAreaService,
@@ -71,7 +72,7 @@ class AreaApiService(BaseAreaService):
         self._storage_service: BaseShortTermStorageService = storage_service
         self._thermal_service: BaseThermalService = thermal_service
         self._renewable_service: BaseRenewableService = renewable_service
-        self.hydro_service: BaseHydroService = hydro_service
+        self._hydro_service: BaseHydroService = hydro_service
 
     @override
     @property
@@ -87,6 +88,11 @@ class AreaApiService(BaseAreaService):
     @property
     def storage_service(self) -> "BaseShortTermStorageService":
         return self._storage_service
+
+    @override
+    @property
+    def hydro_service(self) -> "BaseHydroService":
+        return self._hydro_service
 
     @override
     def create_area(
@@ -133,7 +139,7 @@ class AreaApiService(BaseAreaService):
             api_properties = AreaPropertiesAPI.model_validate(response.json())
             area_properties = api_properties.to_user_model()
 
-            hydro_properties = self.hydro_service.read_properties(area_id)
+            hydro_properties = cast(HydroApiService, self.hydro_service).read_properties_for_one_area(area_id)
             hydro = Hydro(self.hydro_service, area_id, hydro_properties)
 
         except APIError as e:
@@ -472,6 +478,9 @@ class AreaApiService(BaseAreaService):
             # Read all area_properties
             area_properties = self._read_area_properties()
 
+            # Read all hydro properties
+            hydro_properties = self.hydro_service.read_properties()
+
             # Read all area_ui
             ui_url = f"{self._base_url}/studies/{self.study_id}/areas?ui=true"
             json_resp = self._wrapper.get(ui_url).json()
@@ -494,10 +503,7 @@ class AreaApiService(BaseAreaService):
                 area_obj._thermals = thermals.get(area_obj.id, {})
                 area_obj._renewables = renewables.get(area_obj.id, {})
                 area_obj._st_storages = st_storages.get(area_obj.id, {})
-
-                # For each area, reads the hydro properties
-                # todo: this is really unefficient but we have to do this until AntaresWeb introduces a specific endpoint
-                area_obj.hydro._read_properties()
+                area_obj.hydro._properties = hydro_properties[area_obj.id]
 
                 area_list.append(area_obj)
 
