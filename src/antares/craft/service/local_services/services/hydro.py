@@ -15,7 +15,7 @@ from typing import Any
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructureUpdate
+from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
 from antares.craft.service.base_services import BaseHydroService
 from antares.craft.service.local_services.models.hydro import HydroPropertiesLocal, HydroPropertiesLocalUpdate
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
@@ -55,6 +55,24 @@ class HydroLocalService(BaseHydroService):
             hydro_properties[area_id] = user_properties
 
         return hydro_properties
+
+    @override
+    def read_inflow_structure(self) -> dict[str, InflowStructure]:
+        all_inflow_structure: dict[str, InflowStructure] = {}
+
+        prepro_path = self.config.study_path / "input" / "hydro" / "prepro"
+        if not prepro_path.exists():
+            return {}
+        for element in prepro_path.iterdir():
+            if element.is_dir():
+                ini_file = IniFile(
+                    self.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI, area_id=element.name
+                )
+                current_content = ini_file.ini_dict
+                inflow_structure = InflowStructure(intermonthly_correlation=current_content["intermonthly-correlation"])
+                all_inflow_structure[element.name] = inflow_structure
+
+        return all_inflow_structure
 
     @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:
