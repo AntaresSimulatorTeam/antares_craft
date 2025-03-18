@@ -16,12 +16,13 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
+    HydroInflowStructureUpdateError,
     HydroPropertiesReadingError,
     HydroPropertiesUpdateError,
     MatrixDownloadError,
     MatrixUploadError,
 )
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
+from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructureUpdate
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseHydroService
@@ -77,6 +78,15 @@ class HydroApiService(BaseHydroService):
             self._wrapper.put(url, json=body)
         except APIError as e:
             raise HydroPropertiesUpdateError(area_id, e.message) from e
+
+    @override
+    def update_inflow_structure(self, area_id: str, inflow_structure: InflowStructureUpdate) -> None:
+        try:
+            url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/inflow-structure"
+            body = {"interMonthlyCorrelation": inflow_structure.intermonthly_correlation}
+            self._wrapper.put(url, json=body)
+        except APIError as e:
+            raise HydroInflowStructureUpdateError(area_id, e.message) from e
 
     @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:

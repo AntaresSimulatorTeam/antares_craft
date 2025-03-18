@@ -15,7 +15,7 @@ from typing import Any
 import pandas as pd
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
+from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructureUpdate
 from antares.craft.service.base_services import BaseHydroService
 from antares.craft.service.local_services.models.hydro import HydroPropertiesLocal, HydroPropertiesLocalUpdate
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
@@ -32,6 +32,12 @@ class HydroLocalService(BaseHydroService):
     @override
     def update_properties(self, area_id: str, properties: HydroPropertiesUpdate) -> None:
         edit_hydro_properties(self.config.study_path, area_id, properties, creation=False)
+
+    @override
+    def update_inflow_structure(self, area_id: str, inflow_structure: InflowStructureUpdate) -> None:
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI)
+        ini_file.ini_dict = {"intermonthly-correlation": inflow_structure.intermonthly_correlation}
+        ini_file.write_ini_file()
 
     @override
     def read_properties(self) -> dict[str, HydroProperties]:

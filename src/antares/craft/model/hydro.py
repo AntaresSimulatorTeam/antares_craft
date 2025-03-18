@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Optional
 
 import pandas as pd
@@ -93,11 +93,24 @@ class HydroProperties:
         )
 
 
+@dataclass(frozen=True)
+class InflowStructure:
+    intermonthly_correlation: float = 0.5
+
+
+@dataclass
+class InflowStructureUpdate:
+    intermonthly_correlation: float
+
+
 class Hydro:
-    def __init__(self, service: BaseHydroService, area_id: str, properties: HydroProperties):
+    def __init__(
+        self, service: BaseHydroService, area_id: str, properties: HydroProperties, inflow_structure: InflowStructure
+    ):
         self._area_id = area_id
         self._service = service
         self._properties = properties
+        self._inflow_structure = inflow_structure
 
     @property
     def area_id(self) -> str:
@@ -107,9 +120,19 @@ class Hydro:
     def properties(self) -> HydroProperties:
         return self._properties
 
+    @property
+    def inflow_structure(self) -> InflowStructure:
+        return self._inflow_structure
+
     def update_properties(self, properties: HydroPropertiesUpdate) -> None:
         self._service.update_properties(self.area_id, properties)
         self._properties = self._properties.from_update_properties(properties)
+
+    def update_inflow_structure(self, inflow_structure: InflowStructureUpdate) -> None:
+        self._service.update_inflow_structure(self.area_id, inflow_structure)
+        self._inflow_structure = replace(
+            self._inflow_structure, intermonthly_correlation=inflow_structure.intermonthly_correlation
+        )
 
     def get_maxpower(self) -> pd.DataFrame:
         return self._service.get_maxpower(self.area_id)

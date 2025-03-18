@@ -31,7 +31,7 @@ if TYPE_CHECKING:
         ConstraintTerm,
         ConstraintTermUpdate,
     )
-    from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
+    from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructureUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
     from antares.craft.model.output import AggregationEntry, Output
     from antares.craft.model.renewable import (
@@ -314,6 +314,10 @@ class BaseHydroService(ABC):
             area_id: area in which hydro will be created
             properties: hydro properties
         """
+        pass
+
+    @abstractmethod
+    def update_inflow_structure(self, area_id: str, inflow_structure: "InflowStructureUpdate") -> None:
         pass
 
     @abstractmethod
