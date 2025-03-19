@@ -245,9 +245,9 @@ class TestStudyProperties:
                 "price_taking_order": PriceTakingOrder.DENS,
                 "include_hurdle_cost_csr": False,
                 "check_csr_cost_function": False,
-                "threshold_initiate_curtailment_sharing_rule": 0,
+                "threshold_initiate_curtailment_sharing_rule": 1,
                 "threshold_display_local_matching_rule_violations": 0,
-                "threshold_csr_variable_bounds_relaxation": 3,
+                "threshold_csr_variable_bounds_relaxation": 7,
             }
         )
 
@@ -381,9 +381,9 @@ set-to-null-ntc-between-physical-out-for-first-step = True
 price-taking-order = DENS
 include-hurdle-cost-csr = False
 check-csr-cost-function = False
-threshold-initiate-curtailment-sharing-rule = 0
+threshold-initiate-curtailment-sharing-rule = 1
 threshold-display-local-matching-rule-violations = 0
-threshold-csr-variable-bounds-relaxation = 3
+threshold-csr-variable-bounds-relaxation = 7
 enable-first-step = False
 
 [other preferences]
