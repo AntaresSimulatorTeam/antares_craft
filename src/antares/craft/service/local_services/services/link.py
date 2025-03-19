@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from configparser import DuplicateSectionError
 from typing import Any, Dict, Optional
 
 import pandas as pd
@@ -25,8 +24,6 @@ from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate,
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
 from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
-from antares.craft.tools.contents_tool import sort_ini_sections
-from antares.craft.tools.custom_raw_config_parser import CustomRawConfigParser
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
@@ -65,27 +62,20 @@ class LinkLocalService(BaseLinkService):
         link_dir.mkdir(parents=True, exist_ok=True)
         local_model = LinkPropertiesAndUiLocal.from_user_model(ui or LinkUi(), properties or LinkProperties())
 
-        properties_ini_file = link_dir / "properties.ini"
-        properties_ini = CustomRawConfigParser()
+        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, area_from)
+        current_content = ini_file.ini_dict
 
-        if properties_ini_file.is_file():
-            with open(properties_ini_file, "r") as ini_file:
-                properties_ini.read_file(ini_file)
-        try:
-            properties_ini.add_section(area_to)
-        except DuplicateSectionError:
+        if area_to in current_content:
             raise LinkCreationError(
                 area_from=area_from,
                 area_to=area_to,
                 message=f"Link exists already between '{area_from}' and '{area_to}'.",
             )
-        ini_dict = local_model.model_dump(mode="json", by_alias=True)
-        properties_ini[area_to] = self.sort_link_properties_dict(ini_dict)
 
-        properties_ini = sort_ini_sections(properties_ini)
-
-        with open(properties_ini_file, "w") as ini_file:
-            properties_ini.write(ini_file)
+        new_properties = local_model.model_dump(mode="json", by_alias=True)
+        current_content[area_to] = new_properties
+        ini_file.ini_dict = current_content
+        ini_file.write_ini_file(sort_sections=True)
 
         # Creates empty matrices
         series = pd.DataFrame()
@@ -150,27 +140,6 @@ class LinkLocalService(BaseLinkService):
         if not local_properties:
             raise LinkUiUpdateError(link.id, "The link does not exist")
         return local_properties.to_ui_user_model()
-
-    # TODO maybe put sorting functions together
-    @staticmethod
-    def sort_link_properties_dict(ini_dict: Dict[str, str]) -> Dict[str, str]:
-        dict_order = [
-            "hurdles-cost",
-            "loop-flow",
-            "use-phase-shifter",
-            "transmission-capacities",
-            "asset-type",
-            "link-style",
-            "link-width",
-            "colorr",
-            "colorg",
-            "colorb",
-            "display-comments",
-            "filter-synthesis",
-            "filter-year-by-year",
-            "comments",
-        ]
-        return dict(sorted(ini_dict.items(), key=lambda item: dict_order.index(item[0])))
 
     @override
     def set_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
