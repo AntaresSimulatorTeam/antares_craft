@@ -50,27 +50,8 @@ class ThermalLocalService(BaseThermalService):
     def update_thermal_properties(
         self, thermal_cluster: ThermalCluster, properties: ThermalClusterPropertiesUpdate
     ) -> ThermalClusterProperties:
-        area_id = thermal_cluster.area_id
-        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id)
-        thermal_dict = ini_file.ini_dict
-        for thermal in thermal_dict.values():
-            if thermal["name"] == thermal_cluster.name:
-                # Update properties
-                upd_properties = ThermalClusterPropertiesLocal.from_user_model(properties)
-                upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
-                thermal.update(upd_props_as_dict)
-
-                # Update ini file
-                ini_file.ini_dict = thermal_dict
-                ini_file.write_ini_file()
-
-                # Prepare the object to return
-                local_dict = copy.deepcopy(thermal)
-                del local_dict["name"]
-                local_properties = ThermalClusterPropertiesLocal.model_validate(local_dict)
-
-                return local_properties.to_user_model()
-        raise ThermalPropertiesUpdateError(thermal_cluster.name, area_id, "The cluster does not exist")
+        new_properties = self.update_multiple_thermal_clusters({thermal_cluster: properties})
+        return new_properties[thermal_cluster]
 
     @override
     def get_thermal_matrix(self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName) -> pd.DataFrame:
@@ -117,8 +98,39 @@ class ThermalLocalService(BaseThermalService):
     def update_multiple_thermal_clusters(
         self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
     ) -> dict[ThermalCluster, ThermalClusterProperties]:
-        new_properties_dict = {}
-        for cluster, update_properties in new_properties.items():
-            updated_properties = self.update_thermal_properties(cluster, update_properties)
-            new_properties_dict[cluster] = updated_properties
+        new_properties_dict: dict[ThermalCluster, ThermalClusterProperties] = {}
+        cluster_name_to_object: dict[str, ThermalCluster] = {}
+
+        properties_by_areas: dict[str, dict[str, ThermalClusterPropertiesUpdate]] = {}
+        for thermal_cluster, properties in new_properties.items():
+            properties_by_areas.setdefault(thermal_cluster.area_id, {})[thermal_cluster.name] = properties
+            cluster_name_to_object[thermal_cluster.name] = thermal_cluster
+
+        for area_id, value in properties_by_areas.items():
+            all_thermal_names = set(value.keys())  # used to raise an Exception if a cluster doesn't exist
+            ini_file = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id)
+            thermal_dict = ini_file.ini_dict
+            for thermal in thermal_dict.values():
+                thermal_name = thermal["name"]
+                if thermal_name in value:
+                    all_thermal_names.remove(thermal_name)
+
+                    # Update properties
+                    upd_properties = ThermalClusterPropertiesLocal.from_user_model(value[thermal_name])
+                    upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                    thermal.update(upd_props_as_dict)
+
+                    # Prepare the object to return
+                    local_dict = copy.deepcopy(thermal)
+                    del local_dict["name"]
+                    local_properties = ThermalClusterPropertiesLocal.model_validate(local_dict)
+                    new_properties_dict[cluster_name_to_object[thermal_name]] = local_properties.to_user_model()
+
+            if len(all_thermal_names) > 0:
+                raise ThermalPropertiesUpdateError(next(iter(all_thermal_names)), area_id, "The cluster does not exist")
+
+            # Update ini file
+            ini_file.ini_dict = thermal_dict
+            ini_file.write_ini_file()
+
         return new_properties_dict
