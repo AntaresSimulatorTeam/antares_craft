@@ -122,7 +122,15 @@ class BaseAreaService(ABC):
 
     @abstractmethod
     def create_st_storage(
-        self, area_id: str, st_storage_name: str, properties: Optional["STStorageProperties"] = None
+        self,
+        area_id: str,
+        st_storage_name: str,
+        properties: Optional["STStorageProperties"] = None,
+        inflow: Optional[pd.DataFrame] = None,
+        injection: Optional[pd.DataFrame] = None,
+        lower_rule_curve: Optional[pd.DataFrame] = None,
+        upper_rule_curve: Optional[pd.DataFrame] = None,
+        withdrawal: Optional[pd.DataFrame] = None,
     ) -> "STStorage":
         """
         Args:

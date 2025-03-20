@@ -127,7 +127,7 @@ class AreaLocalService(BaseAreaService):
         list_ini.write_ini_file(sort_sections=True)
 
         # Upload matrices
-        cluster_id = cluster_id = transform_name_to_id(thermal_name)
+        cluster_id = transform_name_to_id(thermal_name)
 
         write_timeseries(self.config.study_path, prepro, TimeSeriesFileType.THERMAL_DATA, area_id, cluster_id)
         write_timeseries(self.config.study_path, modulation, TimeSeriesFileType.THERMAL_MODULATION, area_id, cluster_id)
@@ -168,8 +168,17 @@ class AreaLocalService(BaseAreaService):
 
     @override
     def create_st_storage(
-        self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
+        self,
+        area_id: str,
+        st_storage_name: str,
+        properties: Optional[STStorageProperties] = None,
+        inflow: Optional[pd.DataFrame] = None,
+        injection: Optional[pd.DataFrame] = None,
+        lower_rule_curve: Optional[pd.DataFrame] = None,
+        upper_rule_curve: Optional[pd.DataFrame] = None,
+        withdrawal: Optional[pd.DataFrame] = None,
     ) -> STStorage:
+        # Creating files
         properties = properties or STStorageProperties()
         local_properties = STStoragePropertiesLocal.from_user_model(properties)
         new_section_content = {"name": st_storage_name, **local_properties.model_dump(mode="json", by_alias=True)}
@@ -177,6 +186,30 @@ class AreaLocalService(BaseAreaService):
         list_ini = IniFile(self.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area_id)
         list_ini.add_section({st_storage_name: new_section_content})
         list_ini.write_ini_file(sort_sections=True)
+
+        # Upload matrices
+        cluster_id = transform_name_to_id(st_storage_name)
+        write_timeseries(self.config.study_path, inflow, TimeSeriesFileType.ST_STORAGE_INFLOW, area_id, cluster_id)
+        write_timeseries(
+            self.config.study_path, injection, TimeSeriesFileType.ST_STORAGE_INJECTION, area_id, cluster_id
+        )
+        write_timeseries(
+            self.config.study_path,
+            lower_rule_curve,
+            TimeSeriesFileType.ST_STORAGE_LOWER_RULE_CURVE_,
+            area_id,
+            cluster_id,
+        )
+        write_timeseries(
+            self.config.study_path,
+            upper_rule_curve,
+            TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE,
+            area_id,
+            cluster_id,
+        )
+        write_timeseries(
+            self.config.study_path, withdrawal, TimeSeriesFileType.ST_STORAGE_WITHDRAWAL, area_id, cluster_id
+        )
 
         return STStorage(
             self.storage_service,

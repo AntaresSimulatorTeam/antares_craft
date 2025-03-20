@@ -182,10 +182,20 @@ class Area:
         self._renewables[renewable.id] = renewable
         return renewable
 
-    def create_st_storage(self, st_storage_name: str, properties: Optional[STStorageProperties] = None) -> STStorage:
-        storage = self._area_service.create_st_storage(self.id, st_storage_name, properties)
+    def create_st_storage(
+        self,
+        st_storage_name: str,
+        properties: Optional[STStorageProperties] = None,
+        inflow: Optional[pd.DataFrame] = None,
+        injection: Optional[pd.DataFrame] = None,
+        lower_rule_curve: Optional[pd.DataFrame] = None,
+        upper_rule_curve: Optional[pd.DataFrame] = None,
+        withdrawal: Optional[pd.DataFrame] = None,
+    ) -> STStorage:
+        storage = self._area_service.create_st_storage(
+            self.id, st_storage_name, properties, inflow, injection, lower_rule_curve, upper_rule_curve, withdrawal
+        )
         self._st_storages[storage.id] = storage
-
         return storage
 
     def get_load_matrix(self) -> pd.DataFrame:

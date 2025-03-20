@@ -35,6 +35,7 @@ from antares.craft.model.thermal import ThermalCluster
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import df_save
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from antares.craft.tools.contents_tool import transform_name_to_id
 
 
 class TestCreateRenewablesCluster:
@@ -895,6 +896,81 @@ class TestReadmisc_gen:
             pd.testing.assert_frame_equal(matrix, expected_time_serie)
 
 
+class TestReadSTstorage:
+    def test_read_st_storage_local(self, local_study_with_st_storage):
+        study_path = local_study_with_st_storage.service.config.study_path
+        local_study_object = read_study_local(study_path)
+        areas = local_study_object.read_areas()
+
+        for area in areas:
+            expected_time_serie = pd.DataFrame(
+                [
+                    [-9999999980506447872, 0, 9999999980506447872],
+                    [0, area.id, 0],
+                ],
+                dtype="object",
+            )
+            storage_list = area.read_st_storages()
+            for storage in storage_list:
+                cluster_id = transform_name_to_id(storage.name)
+                file_path = (
+                    study_path / "input" / "st-storage" / "series" / f"{area.id}" / f"{cluster_id}" / "inflows.txt"
+                )
+                _write_file(file_path, expected_time_serie)
+                file_path = (
+                    study_path
+                    / "input"
+                    / "st-storage"
+                    / "series"
+                    / f"{area.id}"
+                    / f"{cluster_id}"
+                    / "PMAX-injection.txt"
+                )
+                _write_file(file_path, expected_time_serie)
+                file_path = (
+                    study_path
+                    / "input"
+                    / "st-storage"
+                    / "series"
+                    / f"{area.id}"
+                    / f"{cluster_id}"
+                    / "lower-rule-curve.txt"
+                )
+                _write_file(file_path, expected_time_serie)
+                file_path = (
+                    study_path
+                    / "input"
+                    / "st-storage"
+                    / "series"
+                    / f"{area.id}"
+                    / f"{cluster_id}"
+                    / "upper-rule-curve.txt"
+                )
+                _write_file(file_path, expected_time_serie)
+                file_path = (
+                    study_path
+                    / "input"
+                    / "st-storage"
+                    / "series"
+                    / f"{area.id}"
+                    / f"{cluster_id}"
+                    / "PMAX-withdrawal.txt"
+                )
+                _write_file(file_path, expected_time_serie)
+
+                matrix = storage.get_upper_rule_curve()
+                matrix_1 = storage.get_lower_rule_curve()
+                matrix_2 = storage.get_pmax_injection()
+                matrix_3 = storage.get_pmax_withdrawal()
+                matrix_4 = storage.get_storage_inflows()
+
+                pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_1.astype(str), expected_time_serie.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_2.astype(str), expected_time_serie.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_3.astype(str), expected_time_serie.astype(str), check_dtype=False)
+                pd.testing.assert_frame_equal(matrix_4.astype(str), expected_time_serie.astype(str), check_dtype=False)
+
+
 class TestReadThermal:
     def test_read_thermals_local(self, local_study_w_thermal):
         study_path = local_study_w_thermal.service.config.study_path
@@ -1011,15 +1087,3 @@ class TestReadLinks:
             assert link.properties.asset_type.value == "ac"
             assert isinstance(link.properties.filter_year_by_year, set)
             assert isinstance(link.properties.filter_synthesis, set)
-
-
-class TestReadSTstorage:
-    def test_read_storage_local(self, local_study_w_thermal):
-        # TODO not finished at all, just here to validate area.read_st_storage
-        study_path = local_study_w_thermal.service.config.study_path
-        local_study_object = read_study_local(study_path)
-        areas = local_study_object.read_areas()
-
-        for area in areas:
-            with pytest.raises(NotImplementedError):
-                area.read_st_storages()

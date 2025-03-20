@@ -66,6 +66,11 @@ class TimeSeriesFileType(Enum):
     WIND_DATA = "input/wind/prepro/{area_id}/data.txt"
     WIND_K = "input/wind/prepro/{area_id}/k.txt"
     WIND_TRANSLATION = "input/wind/prepro/{area_id}/translation.txt"
+    ST_STORAGE_INFLOW = "input/st-storage/series/{area_id}/{cluster_id}/inflows.txt"
+    ST_STORAGE_INJECTION = "input/st-storage/series/{area_id}/{cluster_id}/PMAX-injection.txt"
+    ST_STORAGE_LOWER_RULE_CURVE_ = "input/st-storage/series/{area_id}/{cluster_id}/lower-rule-curve.txt"
+    ST_STORAGE_UPPER_RULE_CURVE = "input/st-storage/series/{area_id}/{cluster_id}/upper-rule-curve.txt"
+    ST_STORAGE_WITHDRAWAL = "input/st-storage/series/{area_id}/{cluster_id}/PMAX-withdrawal.txt"
 
 
 class TimeSeries:

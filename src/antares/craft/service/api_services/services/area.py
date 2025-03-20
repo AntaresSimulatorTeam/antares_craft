@@ -262,7 +262,15 @@ class AreaApiService(BaseAreaService):
 
     @override
     def create_st_storage(
-        self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
+        self,
+        area_id: str,
+        st_storage_name: str,
+        properties: Optional[STStorageProperties] = None,
+        inflow: Optional[pd.DataFrame] = None,
+        injection: Optional[pd.DataFrame] = None,
+        lower_rule_curve: Optional[pd.DataFrame] = None,
+        upper_rule_curve: Optional[pd.DataFrame] = None,
+        withdrawal: Optional[pd.DataFrame] = None,
     ) -> STStorage:
         """
         Args:
@@ -290,6 +298,23 @@ class AreaApiService(BaseAreaService):
             del json_response["id"]
             api_properties = STStoragePropertiesAPI.model_validate(json_response)
             properties = api_properties.to_user_model()
+
+            # Upload matrices
+            if inflow is not None:
+                matrix_path = f"input/st-storage/series/{area_id}/{name}/inflow"
+                update_series(self._base_url, self.study_id, self._wrapper, inflow, matrix_path)
+            if injection is not None:
+                matrix_path = f"input/st-storage/series/{area_id}/{name}/injection"
+                update_series(self._base_url, self.study_id, self._wrapper, injection, matrix_path)
+            if lower_rule_curve is not None:
+                matrix_path = f"input/st-storage/series/{area_id}/{name}/lower_rule_curve"
+                update_series(self._base_url, self.study_id, self._wrapper, lower_rule_curve, matrix_path)
+            if upper_rule_curve is not None:
+                matrix_path = f"input/st-storage/series/{area_id}/{name}/upper_rule_curve"
+                update_series(self._base_url, self.study_id, self._wrapper, upper_rule_curve, matrix_path)
+            if withdrawal is not None:
+                matrix_path = f"input/st-storage/series/{area_id}/{name}/withdrawal"
+                update_series(self._base_url, self.study_id, self._wrapper, withdrawal, matrix_path)
 
         except APIError as e:
             raise STStorageCreationError(st_storage_name, area_id, e.message) from e
