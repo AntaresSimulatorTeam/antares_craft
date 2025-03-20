@@ -20,6 +20,7 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
     ConstraintDoesNotExistError,
+    ConstraintPropertiesUpdateError,
 )
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -250,6 +251,9 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
                 del local_dict["id"]
                 local_properties = BindingConstraintPropertiesLocal.model_validate(local_dict)
                 new_properties_dict[constraint_id] = local_properties.to_user_model()
+
+        if len(all_constraint_to_update) > 0:
+            raise ConstraintPropertiesUpdateError(next(iter(all_constraint_to_update)), "The bc does not exist")
 
         # Update ini file
         self.ini_file.ini_dict = current_ini_content

@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import pandas as pd
 
@@ -107,15 +107,14 @@ class LinkLocalService(BaseLinkService):
 
         raise LinkDeletionError(link.id, "it doesn't exist")
 
-    def _update_link(
-        self, link: Link, properties: Optional[LinkPropertiesUpdate] = None, ui: Optional[LinkUiUpdate] = None
-    ) -> Optional[LinkPropertiesAndUiLocal]:
+    @override
+    def update_link_ui(self, link: Link, ui: LinkUiUpdate) -> LinkUi:
         ini_file = IniFile(self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id)
         links_dict = ini_file.ini_dict
         for area_to, link_props in links_dict.items():
             if area_to == link.area_to_id:
                 # Update properties
-                upd_properties = LinkPropertiesAndUiLocal.from_user_model(ui, properties)
+                upd_properties = LinkPropertiesAndUiLocal.from_user_model(ui, None)
                 upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                 link_props.update(upd_props_as_dict)
 
@@ -124,21 +123,9 @@ class LinkLocalService(BaseLinkService):
                 ini_file.write_ini_file()
 
                 # Prepare the object to return
-                return LinkPropertiesAndUiLocal.model_validate(link_props)
-        return None
+                return LinkPropertiesAndUiLocal.model_validate(link_props).to_ui_user_model()
 
-    def update_link_properties(self, link: Link, properties: LinkPropertiesUpdate) -> LinkProperties:
-        local_properties = self._update_link(link, properties, None)
-        if not local_properties:
-            raise LinkPropertiesUpdateError(link.id, "The link does not exist")
-        return local_properties.to_properties_user_model()
-
-    @override
-    def update_link_ui(self, link: Link, ui: LinkUiUpdate) -> LinkUi:
-        local_properties = self._update_link(link, None, ui)
-        if not local_properties:
-            raise LinkUiUpdateError(link.id, "The link does not exist")
-        return local_properties.to_ui_user_model()
+        raise LinkUiUpdateError(link.id, "The link does not exist")
 
     @override
     def set_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
@@ -230,11 +217,35 @@ class LinkLocalService(BaseLinkService):
         return all_links
 
     @override
-    def update_links_properties(self, dict_links: Dict[str, LinkPropertiesUpdate]) -> Dict[str, LinkProperties]:
-        new_properties_dict = {}
-        for link_name, update_properties in dict_links.items():
-            area_from, area_to = link_name.split(" / ")
-            link = Link(area_from, area_to, link_service=self)
-            new_properties = self.update_link_properties(link, update_properties)
-            new_properties_dict[link.id] = new_properties
+    def update_links_properties(self, new_properties: dict[str, LinkPropertiesUpdate]) -> dict[str, LinkProperties]:
+        new_properties_dict: dict[str, LinkProperties] = {}
+
+        properties_by_areas: dict[str, dict[str, LinkPropertiesUpdate]] = {}
+        for link_id, properties in new_properties.items():
+            area_from, area_to = link_id.split(" / ")
+            properties_by_areas.setdefault(area_from, {})[area_to] = properties
+
+        for area_from, value in properties_by_areas.items():
+            all_link_names = set(value.keys())  # used to raise an Exception if a link doesn't exist
+            ini_file = IniFile(self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, area_id=area_from)
+            current_dict = ini_file.ini_dict
+            for area_to, link_properties_dict in current_dict.items():
+                if area_to in value:
+                    all_link_names.remove(area_to)
+                    # Update properties
+                    upd_properties = LinkPropertiesAndUiLocal.from_user_model(None, value[area_to])
+                    upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                    link_properties_dict.update(upd_props_as_dict)
+
+                    # Prepare the object to return
+                    link_properties_obj = LinkPropertiesAndUiLocal.model_validate(link_properties_dict)
+                    new_properties_dict[f"{area_from} / {area_to}"] = link_properties_obj.to_properties_user_model()
+
+            if len(all_link_names) > 0:
+                raise LinkPropertiesUpdateError(next(iter(all_link_names)), "The link does not exist")
+
+            # Update ini file
+            ini_file.ini_dict = current_dict
+            ini_file.write_ini_file()
+
         return new_properties_dict

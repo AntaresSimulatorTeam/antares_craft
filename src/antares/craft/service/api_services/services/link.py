@@ -186,9 +186,9 @@ class LinkApiService(BaseLinkService):
         return links
 
     @override
-    def update_links_properties(self, dict_links: Dict[str, LinkPropertiesUpdate]) -> Dict[str, LinkProperties]:
+    def update_links_properties(self, new_properties: Dict[str, LinkPropertiesUpdate]) -> Dict[str, LinkProperties]:
         body = {}
-        for link_id, props in dict_links.items():
+        for link_id, props in new_properties.items():
             api_properties = LinkPropertiesAndUiAPI.from_user_model(None, props)
             api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
             body[link_id] = api_dict
