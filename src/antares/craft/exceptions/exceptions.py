@@ -54,9 +54,9 @@ class AreasRetrievalError(Exception):
         super().__init__(self.message)
 
 
-class AreasUpdateError(Exception):
+class AreasPropertiesUpdateError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not update the areas from study {study_id} : {message}"
+        self.message = f"Could not update areas properties from study {study_id} : {message}"
         super().__init__(self.message)
 
 

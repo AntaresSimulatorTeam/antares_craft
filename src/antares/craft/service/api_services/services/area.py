@@ -20,8 +20,8 @@ from antares.craft.exceptions.exceptions import (
     APIError,
     AreaCreationError,
     AreaDeletionError,
+    AreasPropertiesUpdateError,
     AreasRetrievalError,
-    AreasUpdateError,
     AreaUiUpdateError,
     MatrixDownloadError,
     MatrixUploadError,
@@ -526,6 +526,6 @@ class AreaApiService(BaseAreaService):
                 updated_areas.update({area: area_properties})
 
         except APIError as e:
-            raise AreasUpdateError(self.study_id, e.message) from e
+            raise AreasPropertiesUpdateError(self.study_id, e.message) from e
 
         return updated_areas

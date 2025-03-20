@@ -26,7 +26,7 @@ from antares.craft import create_study_api, create_variant_api, import_study_api
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
-    AreasUpdateError,
+    AreasPropertiesUpdateError,
     BindingConstraintCreationError,
     ConstraintRetrievalError,
     ConstraintsPropertiesUpdateError,
@@ -950,7 +950,7 @@ class TestCreateAPI:
             mocker.put(url, status_code=400, json={"description": self.antares_web_description_msg})
 
             with pytest.raises(
-                AreasUpdateError,
+                AreasPropertiesUpdateError,
                 match=f"Could not update the areas from study {self.study_id} : {self.antares_web_description_msg}",
             ):
                 self.study.update_areas({})
@@ -1072,6 +1072,6 @@ class TestCreateAPI:
 
             with pytest.raises(
                 ConstraintsPropertiesUpdateError,
-                match=f"Could not update binding constraints from study {self.study_id}: {self.antares_web_description_msg}",
+                match=f"Could not update binding constraints properties from study {self.study_id}: {self.antares_web_description_msg}",
             ):
                 self.study.update_binding_constraints({})
