@@ -263,7 +263,7 @@ class AreaLocalService(BaseAreaService):
             )
 
         # Create "areas" directory if it doesn't exist
-        new_area_directory.mkdir()
+        new_area_directory.mkdir(parents=True)
 
         list_path = areas_directory.joinpath("list.txt")
 
