@@ -436,7 +436,7 @@ class TestCreateAPI:
                 updated_thermal[thermal] = thermal_update
 
             mocker.put(url, json=json_thermals)
-            self.study.update_multiple_thermal_clusters(updated_thermal)
+            self.study.update_thermal_clusters(updated_thermal)
 
             thermal = self.study._areas["area-test"]._thermals["thermal-test"]
             thermal_1 = self.study._areas["area-test-2"]._thermals["thermal-2"]
@@ -459,4 +459,4 @@ class TestCreateAPI:
                 ThermalsUpdateError,
                 match=f"Could not update the clusters from the study {self.study_id} : {self.antares_web_description_msg}",
             ):
-                self.study.update_multiple_thermal_clusters({})
+                self.study.update_thermal_clusters({})

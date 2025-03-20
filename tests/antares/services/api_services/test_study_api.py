@@ -1004,7 +1004,7 @@ class TestCreateAPI:
                 json_update_links[link].update({"area2": "area_test_2"})
 
             mocker.put(url=url, status_code=200, json=json_update_links)
-            self.study.update_multiple_links(updated_links)
+            self.study.update_links(updated_links)
             json_update_links["area_test / area_test_1"].pop("area1")
             json_update_links["area_test / area_test_1"].pop("area2")
             json_update_links["area_test / area_test_2"].pop("area1")
@@ -1030,7 +1030,7 @@ class TestCreateAPI:
                 LinksUpdateError,
                 match=f"Could not update links from study {self.study_id} : {self.antares_web_description_msg}",
             ):
-                self.study.update_multiple_links({})
+                self.study.update_links({})
 
     def test_update_multiple_binding_constraints_success(self):
         self.study._binding_constraints["battery_state_evolution"] = self.b_constraint_1
@@ -1050,7 +1050,7 @@ class TestCreateAPI:
 
         with requests_mock.Mocker() as mocker:
             mocker.put(url, json=json_binding_constraints)
-            self.study.update_multiple_binding_constraints(dict_binding_constraints)
+            self.study.update_binding_constraints(dict_binding_constraints)
 
             assert self.b_constraint_1.properties.enabled == dict_binding_constraints["battery_state_evolution"].enabled
             assert (
@@ -1074,4 +1074,4 @@ class TestCreateAPI:
                 BindingConstraintsUpdateError,
                 match=f"Could not update binding constraints from the study {self.study_id}: {self.antares_web_description_msg}",
             ):
-                self.study.update_multiple_binding_constraints({})
+                self.study.update_binding_constraints({})

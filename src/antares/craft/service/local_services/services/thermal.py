@@ -47,13 +47,6 @@ class ThermalLocalService(BaseThermalService):
         self.study_name = study_name
 
     @override
-    def update_thermal_properties(
-        self, thermal_cluster: ThermalCluster, properties: ThermalClusterPropertiesUpdate
-    ) -> ThermalClusterProperties:
-        new_properties = self.update_multiple_thermal_clusters({thermal_cluster: properties})
-        return new_properties[thermal_cluster]
-
-    @override
     def get_thermal_matrix(self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName) -> pd.DataFrame:
         return read_timeseries(
             MAPPING[ts_name],
@@ -95,7 +88,7 @@ class ThermalLocalService(BaseThermalService):
         write_timeseries(self.config.study_path, matrix, MAPPING[ts_name], thermal_cluster.area_id, thermal_cluster.id)
 
     @override
-    def update_multiple_thermal_clusters(
+    def update_thermal_clusters(
         self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
     ) -> dict[ThermalCluster, ThermalClusterProperties]:
         new_properties_dict: dict[ThermalCluster, ThermalClusterProperties] = {}

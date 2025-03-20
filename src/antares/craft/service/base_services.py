@@ -500,17 +500,6 @@ class BaseLinkService(ABC):
 
 class BaseThermalService(ABC):
     @abstractmethod
-    def update_thermal_properties(
-        self, thermal_cluster: "ThermalCluster", properties: "ThermalClusterPropertiesUpdate"
-    ) -> "ThermalClusterProperties":
-        """
-        Args:
-            thermal_cluster: concerned cluster
-            properties: new properties. Only registered fields will be updated.
-        """
-        pass
-
-    @abstractmethod
     def set_thermal_matrix(
         self, thermal_cluster: "ThermalCluster", matrix: pd.DataFrame, ts_name: "ThermalClusterMatrixName"
     ) -> None:
@@ -531,7 +520,7 @@ class BaseThermalService(ABC):
         pass
 
     @abstractmethod
-    def update_multiple_thermal_clusters(
+    def update_thermal_clusters(
         self, new_properties: dict["ThermalCluster", "ThermalClusterPropertiesUpdate"]
     ) -> dict["ThermalCluster", "ThermalClusterProperties"]:
         pass

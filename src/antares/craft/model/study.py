@@ -200,11 +200,6 @@ class Study:
         self._study_service.delete_binding_constraint(constraint)
         self._binding_constraints.pop(constraint.id)
 
-    def update_multiple_binding_constraints(self, new_properties: Dict[str, BindingConstraintPropertiesUpdate]) -> None:
-        new_bc_props = self._binding_constraints_service.update_multiple_binding_constraints(new_properties)
-        for bc_props in new_bc_props:
-            self._binding_constraints[bc_props]._properties = new_bc_props[bc_props]
-
     def delete(self, children: bool = False) -> None:
         self._study_service.delete(children)
 
@@ -302,14 +297,12 @@ class Study:
         # Copies objects to bypass the fact that the class is frozen
         self._settings.general_parameters = replace(self._settings.general_parameters, nb_timeseries_thermal=nb_years)
 
-    def update_multiple_thermal_clusters(
-        self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
-    ) -> None:
-        new_thermal_clusters_props = self._area_service.thermal_service.update_multiple_thermal_clusters(new_properties)
+    def update_thermal_clusters(self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]) -> None:
+        new_thermal_clusters_props = self._area_service.thermal_service.update_thermal_clusters(new_properties)
         for thermal in new_thermal_clusters_props:
             self._areas[thermal.area_id].get_thermals()[thermal.id]._properties = new_thermal_clusters_props[thermal]
 
-    def update_multiple_links(self, new_properties: Dict[str, LinkPropertiesUpdate]) -> None:
+    def update_links(self, new_properties: Dict[str, LinkPropertiesUpdate]) -> None:
         """
         update several links with multiple new properties
         Args:
@@ -318,6 +311,11 @@ class Study:
         new_links_props = self._link_service.update_multiple_links(new_properties)
         for link_props in new_links_props:
             self._links[link_props]._properties = new_links_props[link_props]
+
+    def update_binding_constraints(self, new_properties: Dict[str, BindingConstraintPropertiesUpdate]) -> None:
+        new_bc_props = self._binding_constraints_service.update_multiple_binding_constraints(new_properties)
+        for bc_props in new_bc_props:
+            self._binding_constraints[bc_props]._properties = new_bc_props[bc_props]
 
 
 # Design note:
