@@ -163,7 +163,6 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     ) -> ConstraintTerm:
         raise NotImplementedError
 
-    @override
     def update_binding_constraint_properties(
         self, binding_constraint: BindingConstraint, properties: BindingConstraintPropertiesUpdate
     ) -> BindingConstraintProperties:
@@ -241,7 +240,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         return constraints
 
     @override
-    def update_multiple_binding_constraints(
+    def update_binding_constraints(
         self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
     ) -> dict[str, BindingConstraintProperties]:
         new_properties_dict = {}

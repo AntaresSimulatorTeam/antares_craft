@@ -580,17 +580,6 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def update_binding_constraint_properties(
-        self, binding_constraint: "BindingConstraint", properties: "BindingConstraintPropertiesUpdate"
-    ) -> "BindingConstraintProperties":
-        """
-        Args:
-            binding_constraint: concerned binding_constraint
-            properties: new properties. Only registered fields will be updated.
-        """
-        pass
-
-    @abstractmethod
     def get_constraint_matrix(
         self, constraint: "BindingConstraint", matrix_name: "ConstraintMatrixName"
     ) -> pd.DataFrame:
@@ -623,7 +612,7 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def update_multiple_binding_constraints(
+    def update_binding_constraints(
         self, new_properties: Dict[str, "BindingConstraintPropertiesUpdate"]
     ) -> Dict[str, "BindingConstraintProperties"]:
         pass

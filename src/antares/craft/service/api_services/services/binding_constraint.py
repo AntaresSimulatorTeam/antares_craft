@@ -23,7 +23,6 @@ from antares.craft.exceptions.exceptions import (
     BindingConstraintsUpdateError,
     ConstraintMatrixDownloadError,
     ConstraintMatrixUpdateError,
-    ConstraintPropertiesUpdateError,
     ConstraintRetrievalError,
     ConstraintTermAdditionError,
     ConstraintTermDeletionError,
@@ -147,29 +146,6 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         return existing_term
 
     @override
-    def update_binding_constraint_properties(
-        self, binding_constraint: BindingConstraint, properties: BindingConstraintPropertiesUpdate
-    ) -> BindingConstraintProperties:
-        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{binding_constraint.id}"
-        try:
-            api_model = BindingConstraintPropertiesAPI.from_user_model(properties)
-            body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
-            if not body:
-                return binding_constraint.properties
-
-            response = self._wrapper.put(url, json=body)
-            json_response = response.json()
-            for key in ["terms", "id", "name"]:
-                del json_response[key]
-            new_api_properties = BindingConstraintPropertiesAPI.model_validate(json_response)
-            new_properties = new_api_properties.to_user_model()
-
-        except APIError as e:
-            raise ConstraintPropertiesUpdateError(binding_constraint.id, e.message) from e
-
-        return new_properties
-
-    @override
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
         try:
             path = PurePosixPath("input") / "bindingconstraints" / f"{constraint.id}_{matrix_name.value}"
@@ -229,7 +205,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise ConstraintRetrievalError(self.study_id, e.message) from e
 
     @override
-    def update_multiple_binding_constraints(
+    def update_binding_constraints(
         self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
     ) -> dict[str, BindingConstraintProperties]:
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/binding-constraints"

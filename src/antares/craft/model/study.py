@@ -313,7 +313,7 @@ class Study:
             self._links[link_props]._properties = new_links_props[link_props]
 
     def update_binding_constraints(self, new_properties: Dict[str, BindingConstraintPropertiesUpdate]) -> None:
-        new_bc_props = self._binding_constraints_service.update_multiple_binding_constraints(new_properties)
+        new_bc_props = self._binding_constraints_service.update_binding_constraints(new_properties)
         for bc_props in new_bc_props:
             self._binding_constraints[bc_props]._properties = new_bc_props[bc_props]
 
