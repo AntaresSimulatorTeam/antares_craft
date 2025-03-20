@@ -53,7 +53,8 @@ study = read_study_api(api_config=api_config,
 
 ### Filesystem studies
 
-In order to create a study on your filesystem, you can use the the `create_study_local` method.
+In order to create a study on your filesystem, you can use the the [
+`create_study_local`][antares.craft.create_study_local] method.
 
 ```python
 from pathlib import Path
@@ -64,7 +65,8 @@ study = create_study_local(study_name="my-study",
                            parent_directory=Path("/path/to/my/studies/"))
 ```
 
-If you prefer to refer to an existing study, you may use its sibling method, `read_study_local_`:
+If you prefer to refer to an existing study, you may use its sibling method, [
+`read_study_local`][antares.craft.read_study_local]:
 
 ```python
 from antares.craft import read_study_local
