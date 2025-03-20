@@ -46,7 +46,7 @@ from antares.craft.service.local_services.models.thermal import ThermalClusterPr
 from antares.craft.service.local_services.services.hydro import edit_hydro_properties
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
-from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
+from antares.craft.tools.matrix_tool import default_series, default_series_with_ones, read_timeseries, write_timeseries
 from antares.craft.tools.prepro_folder import PreproFolder
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 from typing_extensions import override
@@ -206,17 +206,18 @@ class AreaLocalService(BaseAreaService):
             properties,
         )
 
-        # Create empty matrices
-        series = pd.DataFrame()
+        # Create matrices
+        # todo: The Simulator expects non-empty matrices. It will change but for now we need to create non-empty matrices.
         cluster_id = storage.id
-        for ts in [
-            TimeSeriesFileType.ST_STORAGE_PMAX_INJECTION,
-            TimeSeriesFileType.ST_STORAGE_PMAX_WITHDRAWAL,
-            TimeSeriesFileType.ST_STORAGE_INFLOWS,
-            TimeSeriesFileType.ST_STORAGE_LOWER_RULE_CURVE,
-            TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE,
-        ]:
-            write_timeseries(self.config.study_path, series, ts, area_id, cluster_id=cluster_id)
+        default_matrix_ones = pd.DataFrame(default_series_with_ones)
+        default_matrix_zeros = pd.DataFrame(default_series)
+        # fmt: off
+        write_timeseries(self.config.study_path, default_matrix_ones, TimeSeriesFileType.ST_STORAGE_PMAX_INJECTION, area_id, cluster_id=cluster_id)
+        write_timeseries(self.config.study_path, default_matrix_ones, TimeSeriesFileType.ST_STORAGE_PMAX_WITHDRAWAL, area_id, cluster_id=cluster_id)
+        write_timeseries(self.config.study_path, default_matrix_zeros, TimeSeriesFileType.ST_STORAGE_INFLOWS, area_id, cluster_id=cluster_id)
+        write_timeseries(self.config.study_path, default_matrix_zeros, TimeSeriesFileType.ST_STORAGE_LOWER_RULE_CURVE, area_id, cluster_id=cluster_id)
+        write_timeseries(self.config.study_path, default_matrix_ones, TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE, area_id, cluster_id=cluster_id)
+        # fmt: on
 
         return storage
 
