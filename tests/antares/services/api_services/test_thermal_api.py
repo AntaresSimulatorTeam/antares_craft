@@ -90,7 +90,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 ThermalsPropertiesUpdateError,
-                match=f"Could not update properties of the clusters from the study {self.study_id} : {antares_web_description_msg}",
+                match=f"Could not update properties of the clusters from study {self.study_id} : {antares_web_description_msg}",
             ):
                 self.thermal.update_properties(properties=properties)
 
@@ -450,6 +450,6 @@ class TestCreateAPI:
 
             with pytest.raises(
                 ThermalsPropertiesUpdateError,
-                match=f"Could not update properties of the clusters from the study {self.study_id} : {self.antares_web_description_msg}",
+                match=f"Could not update properties of the clusters from study {self.study_id} : {self.antares_web_description_msg}",
             ):
                 self.study.update_thermal_clusters({})

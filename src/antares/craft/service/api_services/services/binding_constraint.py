@@ -20,10 +20,10 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
     BindingConstraintCreationError,
-    BindingConstraintsUpdateError,
     ConstraintMatrixDownloadError,
     ConstraintMatrixUpdateError,
     ConstraintRetrievalError,
+    ConstraintsPropertiesUpdateError,
     ConstraintTermAdditionError,
     ConstraintTermDeletionError,
     ConstraintTermEditionError,
@@ -226,6 +226,6 @@ class BindingConstraintApiService(BaseBindingConstraintService):
                 updated_constraints[binding_constraint] = constraints_properties
 
         except APIError as e:
-            raise BindingConstraintsUpdateError(self.study_id, e.message) from e
+            raise ConstraintsPropertiesUpdateError(self.study_id, e.message) from e
 
         return updated_constraints

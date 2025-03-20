@@ -28,8 +28,8 @@ from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     AreasUpdateError,
     BindingConstraintCreationError,
-    BindingConstraintsUpdateError,
     ConstraintRetrievalError,
+    ConstraintsPropertiesUpdateError,
     LinkCreationError,
     LinksPropertiesUpdateError,
     OutputDeletionError,
@@ -951,7 +951,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 AreasUpdateError,
-                match=f"Could not update the areas from the study {self.study_id} : {self.antares_web_description_msg}",
+                match=f"Could not update the areas from study {self.study_id} : {self.antares_web_description_msg}",
             ):
                 self.study.update_areas({})
 
@@ -1028,7 +1028,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinksPropertiesUpdateError,
-                match=f"Could not update links from study {self.study_id} : {self.antares_web_description_msg}",
+                match=f"Could not update links properties from study {self.study_id} : {self.antares_web_description_msg}",
             ):
                 self.study.update_links({})
 
@@ -1071,7 +1071,7 @@ class TestCreateAPI:
             mocker.put(url, status_code=400, json={"description": self.antares_web_description_msg})
 
             with pytest.raises(
-                BindingConstraintsUpdateError,
-                match=f"Could not update binding constraints from the study {self.study_id}: {self.antares_web_description_msg}",
+                ConstraintsPropertiesUpdateError,
+                match=f"Could not update binding constraints from study {self.study_id}: {self.antares_web_description_msg}",
             ):
                 self.study.update_binding_constraints({})

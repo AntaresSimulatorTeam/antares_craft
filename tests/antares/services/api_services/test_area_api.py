@@ -367,8 +367,7 @@ class TestCreateAPI:
             mocker.get(url_areas, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 AreasRetrievalError,
-                match=f"Could not retrieve the areas from the study {self.study_id} : "
-                + self.antares_web_description_msg,
+                match=f"Could not retrieve the areas from study {self.study_id} : " + self.antares_web_description_msg,
             ):
                 self.study._read_areas()
 

@@ -50,13 +50,13 @@ class AreaDeletionError(Exception):
 
 class AreasRetrievalError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not retrieve the areas from the study {study_id} : " + message
+        self.message = f"Could not retrieve the areas from study {study_id} : " + message
         super().__init__(self.message)
 
 
 class AreasUpdateError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not update the areas from the study {study_id} : {message}"
+        self.message = f"Could not update the areas from study {study_id} : {message}"
         super().__init__(self.message)
 
 
@@ -121,7 +121,7 @@ class ThermalDeletionError(Exception):
 
 class ThermalsPropertiesUpdateError(Exception):
     def __init__(self, study_id: str, message: str):
-        self.message = f"Could not update properties of the clusters from the study {study_id} : {message}"
+        self.message = f"Could not update properties of the clusters from study {study_id} : {message}"
         super().__init__(self.message)
 
 
@@ -231,9 +231,9 @@ class ConstraintPropertiesUpdateError(Exception):
         super().__init__(self.message)
 
 
-class BindingConstraintsUpdateError(Exception):
+class ConstraintsPropertiesUpdateError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not update binding constraints from the study {study_id}: {message}"
+        self.message = f"Could not update binding constraints properties from study {study_id}: {message}"
         super().__init__(self.message)
 
 
