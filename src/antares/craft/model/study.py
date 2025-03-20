@@ -65,12 +65,12 @@ class Study:
     """
 
     def __init__(
-            self,
-            name: str,
-            version: str,
-            services: StudyServices,
-            path: PurePath = PurePath("."),
-            solver_path: Optional[Path] = None,
+        self,
+        name: str,
+        version: str,
+        services: StudyServices,
+        path: PurePath = PurePath("."),
+        solver_path: Optional[Path] = None,
     ):
         self.name = name
         self.version = version
@@ -137,7 +137,7 @@ class Study:
         return MappingProxyType(self._binding_constraints)
 
     def create_area(
-            self, area_name: str, *, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
+        self, area_name: str, *, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
     ) -> Area:
         area = self._area_service.create_area(area_name, properties, ui)
         self._areas[area.id] = area
@@ -148,12 +148,12 @@ class Study:
         self._areas.pop(area.id)
 
     def create_link(
-            self,
-            *,
-            area_from: str,
-            area_to: str,
-            properties: Optional[LinkProperties] = None,
-            ui: Optional[LinkUi] = None,
+        self,
+        *,
+        area_from: str,
+        area_to: str,
+        properties: Optional[LinkProperties] = None,
+        ui: Optional[LinkUi] = None,
     ) -> Link:
         temp_link = Link(area_from, area_to, link_service=cast(BaseLinkService, None))
         area_from, area_to = sorted([area_from, area_to])
@@ -179,14 +179,14 @@ class Study:
         self._links.pop(link.id)
 
     def create_binding_constraint(
-            self,
-            *,
-            name: str,
-            properties: Optional[BindingConstraintProperties] = None,
-            terms: Optional[List[ConstraintTerm]] = None,
-            less_term_matrix: Optional[pd.DataFrame] = None,
-            equal_term_matrix: Optional[pd.DataFrame] = None,
-            greater_term_matrix: Optional[pd.DataFrame] = None,
+        self,
+        *,
+        name: str,
+        properties: Optional[BindingConstraintProperties] = None,
+        terms: Optional[List[ConstraintTerm]] = None,
+        less_term_matrix: Optional[pd.DataFrame] = None,
+        equal_term_matrix: Optional[pd.DataFrame] = None,
+        greater_term_matrix: Optional[pd.DataFrame] = None,
     ) -> BindingConstraint:
         """
         Create a new binding constraint and store it.
@@ -326,7 +326,7 @@ class Study:
         self._settings.general_parameters = replace(self._settings.general_parameters, nb_timeseries_thermal=nb_years)
 
     def update_multiple_thermal_clusters(
-            self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
+        self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
     ) -> None:
         new_thermal_clusters_props = self._area_service.thermal_service.update_multiple_thermal_clusters(new_properties)
         for thermal in new_thermal_clusters_props:
@@ -353,7 +353,7 @@ class Study:
 
 
 def create_study_local(
-        study_name: str, version: str, parent_directory: "Path", solver_path: Optional[Path] = None
+    study_name: str, version: str, parent_directory: "Path", solver_path: Optional[Path] = None
 ) -> "Study":
     """
     Creates a new study on your filesystem.
@@ -395,7 +395,7 @@ def read_study_local(study_path: "Path", solver_path: Optional[Path] = None) -> 
 
 
 def create_study_api(
-        study_name: str, version: str, api_config: APIconf, parent_path: "Optional[Path]" = None
+    study_name: str, version: str, api_config: APIconf, parent_path: "Optional[Path]" = None
 ) -> "Study":
     """
     Creates a study on antares-web server.
