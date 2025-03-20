@@ -102,7 +102,7 @@ class TestLink:
         update_properties_at_fr = LinkPropertiesUpdate(hurdles_cost=True, comments="new comment")
         update_properties_fr_it = LinkPropertiesUpdate(use_phase_shifter=True, asset_type=AssetType.DC)
         body = {link_at_fr.id: update_properties_at_fr, link_fr_it.id: update_properties_fr_it}
-        local_study_w_links.update_multiple_links(body)
+        local_study_w_links.update_links(body)
         # Asserts links properties were modified
         assert link_at_fr.properties == LinkProperties(
             hurdles_cost=True, asset_type=AssetType.AC, comments="new comment"

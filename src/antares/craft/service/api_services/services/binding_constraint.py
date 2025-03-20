@@ -20,11 +20,10 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
     BindingConstraintCreationError,
-    BindingConstraintsUpdateError,
     ConstraintMatrixDownloadError,
     ConstraintMatrixUpdateError,
-    ConstraintPropertiesUpdateError,
     ConstraintRetrievalError,
+    ConstraintsPropertiesUpdateError,
     ConstraintTermAdditionError,
     ConstraintTermDeletionError,
     ConstraintTermEditionError,
@@ -147,29 +146,6 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         return existing_term
 
     @override
-    def update_binding_constraint_properties(
-        self, binding_constraint: BindingConstraint, properties: BindingConstraintPropertiesUpdate
-    ) -> BindingConstraintProperties:
-        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{binding_constraint.id}"
-        try:
-            api_model = BindingConstraintPropertiesAPI.from_user_model(properties)
-            body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
-            if not body:
-                return binding_constraint.properties
-
-            response = self._wrapper.put(url, json=body)
-            json_response = response.json()
-            for key in ["terms", "id", "name"]:
-                del json_response[key]
-            new_api_properties = BindingConstraintPropertiesAPI.model_validate(json_response)
-            new_properties = new_api_properties.to_user_model()
-
-        except APIError as e:
-            raise ConstraintPropertiesUpdateError(binding_constraint.id, e.message) from e
-
-        return new_properties
-
-    @override
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
         try:
             path = PurePosixPath("input") / "bindingconstraints" / f"{constraint.id}_{matrix_name.value}"
@@ -229,7 +205,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise ConstraintRetrievalError(self.study_id, e.message) from e
 
     @override
-    def update_multiple_binding_constraints(
+    def update_binding_constraints_properties(
         self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
     ) -> dict[str, BindingConstraintProperties]:
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/binding-constraints"
@@ -250,6 +226,6 @@ class BindingConstraintApiService(BaseBindingConstraintService):
                 updated_constraints[binding_constraint] = constraints_properties
 
         except APIError as e:
-            raise BindingConstraintsUpdateError(self.study_id, e.message) from e
+            raise ConstraintsPropertiesUpdateError(self.study_id, e.message) from e
 
         return updated_constraints

@@ -26,12 +26,12 @@ from antares.craft import create_study_api, create_variant_api, import_study_api
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
-    AreasUpdateError,
+    AreasPropertiesUpdateError,
     BindingConstraintCreationError,
-    BindingConstraintsUpdateError,
     ConstraintRetrievalError,
+    ConstraintsPropertiesUpdateError,
     LinkCreationError,
-    LinksUpdateError,
+    LinksPropertiesUpdateError,
     OutputDeletionError,
     OutputsRetrievalError,
     SimulationFailedError,
@@ -930,7 +930,7 @@ class TestCreateAPI:
                 dict_areas.update({area: area_up_props})
 
             mocker.put(url, json=areas_1)  # CamelCase
-            self.study.update_multiple_areas(dict_areas)
+            self.study.update_areas(dict_areas)
 
             elec_props = self.study._areas["area_test_1"].properties
             gaz_props = self.study._areas["area_test_2"].properties
@@ -950,10 +950,10 @@ class TestCreateAPI:
             mocker.put(url, status_code=400, json={"description": self.antares_web_description_msg})
 
             with pytest.raises(
-                AreasUpdateError,
-                match=f"Could not update the areas from the study {self.study_id} : {self.antares_web_description_msg}",
+                AreasPropertiesUpdateError,
+                match=f"Could not update areas properties from study {self.study_id} : {self.antares_web_description_msg}",
             ):
-                self.study.update_multiple_areas({})
+                self.study.update_areas({})
 
     def test_update_multiple_links_success(self):
         updated_links = {}
@@ -1004,7 +1004,7 @@ class TestCreateAPI:
                 json_update_links[link].update({"area2": "area_test_2"})
 
             mocker.put(url=url, status_code=200, json=json_update_links)
-            self.study.update_multiple_links(updated_links)
+            self.study.update_links(updated_links)
             json_update_links["area_test / area_test_1"].pop("area1")
             json_update_links["area_test / area_test_1"].pop("area2")
             json_update_links["area_test / area_test_2"].pop("area1")
@@ -1027,10 +1027,10 @@ class TestCreateAPI:
             mocker.put(url, status_code=404, json={"description": self.antares_web_description_msg})
 
             with pytest.raises(
-                LinksUpdateError,
-                match=f"Could not update links from study {self.study_id} : {self.antares_web_description_msg}",
+                LinksPropertiesUpdateError,
+                match=f"Could not update links properties from study {self.study_id} : {self.antares_web_description_msg}",
             ):
-                self.study.update_multiple_links({})
+                self.study.update_links({})
 
     def test_update_multiple_binding_constraints_success(self):
         self.study._binding_constraints["battery_state_evolution"] = self.b_constraint_1
@@ -1050,7 +1050,7 @@ class TestCreateAPI:
 
         with requests_mock.Mocker() as mocker:
             mocker.put(url, json=json_binding_constraints)
-            self.study.update_multiple_binding_constraints(dict_binding_constraints)
+            self.study.update_binding_constraints(dict_binding_constraints)
 
             assert self.b_constraint_1.properties.enabled == dict_binding_constraints["battery_state_evolution"].enabled
             assert (
@@ -1071,7 +1071,7 @@ class TestCreateAPI:
             mocker.put(url, status_code=400, json={"description": self.antares_web_description_msg})
 
             with pytest.raises(
-                BindingConstraintsUpdateError,
-                match=f"Could not update binding constraints from the study {self.study_id}: {self.antares_web_description_msg}",
+                ConstraintsPropertiesUpdateError,
+                match=f"Could not update binding constraints properties from study {self.study_id}: {self.antares_web_description_msg}",
             ):
-                self.study.update_multiple_binding_constraints({})
+                self.study.update_binding_constraints({})
