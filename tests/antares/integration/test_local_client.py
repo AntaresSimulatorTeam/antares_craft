@@ -36,7 +36,6 @@ from antares.craft.model.settings.advanced_parameters import (
 from antares.craft.model.settings.general import GeneralParametersUpdate
 from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
-from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
@@ -52,7 +51,7 @@ class TestLocalClient:
 
         # Study
         test_study = create_study_local(study_name, study_version, tmp_path.absolute())
-        assert isinstance(test_study, Study)
+        study_path = Path(test_study.path)
 
         # Areas
         fr = test_study.create_area("fr")
@@ -82,17 +81,17 @@ class TestLocalClient:
 
         # Load
         fr.set_load(time_series)
-        assert (Path(test_study.path) / "input" / "load" / "series" / f"load_{fr.id}.txt").is_file()
+        assert (study_path / "input" / "load" / "series" / f"load_{fr.id}.txt").is_file()
         assert fr.get_load_matrix().equals(time_series)
 
         # Solar
         fr.set_solar(time_series)
-        assert (Path(test_study.path) / "input" / "solar" / "series" / f"solar_{fr.id}.txt").is_file()
+        assert (study_path / "input" / "solar" / "series" / f"solar_{fr.id}.txt").is_file()
         assert fr.get_solar_matrix().equals(time_series)
 
         # Wind
         fr.set_wind(time_series)
-        assert (Path(test_study.path) / "input" / "wind" / "series" / f"wind_{fr.id}.txt").is_file()
+        assert (study_path / "input" / "wind" / "series" / f"wind_{fr.id}.txt").is_file()
         assert fr.get_wind_matrix().equals(time_series)
 
         # tests area creation with ui values
@@ -104,9 +103,7 @@ class TestLocalClient:
         assert area_be.id == "be"
         assert area_be.ui.x == area_ui.x
         assert area_be.ui.color_rgb == area_ui.color_rgb
-        be_ui_file = test_study.service.config.study_path.joinpath(
-            InitializationFilesTypes.AREA_UI_INI.value.format(area_id=area_be.id)
-        )
+        be_ui_file = study_path.joinpath(InitializationFilesTypes.AREA_UI_INI.value.format(area_id=area_be.id))
         assert be_ui_file.is_file()
 
         # tests area creation with properties
@@ -134,13 +131,11 @@ class TestLocalClient:
         assert link_be_fr.ui.colorr == 44
         assert link_be_fr.properties.hurdles_cost
         assert link_be_fr.properties.filter_year_by_year == {FilterOption.HOURLY}
-        be_link_ini_file = test_study.service.config.study_path.joinpath(
+        be_link_ini_file = study_path.joinpath(
             InitializationFilesTypes.LINK_PROPERTIES_INI.value.format(area_id=area_be.id)
         )
         assert be_link_ini_file.is_file()
-        be_links_in_file = IniFile(
-            test_study.service.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, area_be.id
-        )
+        be_links_in_file = IniFile(study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, area_be.id)
         assert be_links_in_file.ini_dict["fr"]["hurdles-cost"] == "True"
         assert be_links_in_file.ini_dict["fr"]["filter-year-by-year"] == "hourly"
 
