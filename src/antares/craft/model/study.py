@@ -45,6 +45,25 @@ _study_path if stored in a disk
 
 
 class Study:
+    """
+    Represents an antares study.
+
+    That interface allows to inspect a study data and to edit it,
+    including study settings, areas, thermal clusters, hydro modeling,
+    short-term storages, and generic binding constraints.
+
+    It also allows to launch antares-simulations.
+
+    A study should not be created through its constructor, please use
+    one of the factory methods instead:
+
+     - [create_study_api][antares.craft.create_study_api]
+     - [read_study_api][antares.craft.read_study_api]
+     - [import_study_api][antares.craft.import_study_api]
+     - [create_study_local][antares.craft.create_study_local]
+     - [read_study_local][antares.craft.read_study_local]
+    """
+
     def __init__(
         self,
         name: str,
@@ -204,7 +223,8 @@ class Study:
 
         Args:
             variant_name: the name of the new variant
-        Returns: The variant in the form of a Study object
+        Returns:
+            The variant in the form of a Study object
         """
         return self._study_service.create_variant(variant_name)
 
@@ -214,7 +234,8 @@ class Study:
 
         This method starts an antares simulation with the given parameters
 
-        Returns: A job representing the simulation task
+        Returns:
+            A job representing the simulation task
         """
         return self._run_service.run_antares_simulation(parameters, self._solver_path)
 
@@ -226,7 +247,8 @@ class Study:
             job: The job to wait for
             time_out: Time limit for waiting (seconds), default: 172800s
 
-        Raises: SimulationTimeOutError if exceeded timeout
+        Raises:
+            SimulationTimeOutError: if exceeded timeout
         """
         self._run_service.wait_job_completion(job, time_out)
         self._read_outputs()
@@ -258,7 +280,8 @@ class Study:
         """
         Get outputs of current study
 
-        Returns: read-only proxy of the (output_id, Output) mapping
+        Returns:
+            read-only proxy of the (output_id, Output) mapping
         """
         return MappingProxyType(self._outputs)
 
@@ -332,12 +355,40 @@ class Study:
 def create_study_local(
     study_name: str, version: str, parent_directory: "Path", solver_path: Optional[Path] = None
 ) -> "Study":
+    """
+    Creates a new study on your filesystem.
+
+    You may define a path to an antares-solver executable, if you want to run
+    simulations on this study.
+
+    Parameters:
+        study_name: the name of the created study
+        version: the study version, for example "8.8"
+        parent_directory: the directory where the new study will be created
+        solver_path: path to antares-solver executable, if you wish to run a simulation
+
+    Returns:
+        a Study object representing the newly created study
+    """
     from antares.craft.service.local_services.factory import create_study_local
 
     return create_study_local(study_name, version, parent_directory, solver_path)
 
 
 def read_study_local(study_path: "Path", solver_path: Optional[Path] = None) -> "Study":
+    """
+    Reads an existing study on your filesystem.
+
+    You may define a path to an antares-solver executable, if you want to run
+    simulations on this study.
+
+    Parameters:
+        study_path: the path to the existing study on your filesystem
+        solver_path: path to antares-solver executable, if you wish to run a simulation
+
+    Returns:
+        a Study object representing the study on disk
+    """
     from antares.craft.service.local_services.factory import read_study_local
 
     return read_study_local(study_path, solver_path)
@@ -346,24 +397,68 @@ def read_study_local(study_path: "Path", solver_path: Optional[Path] = None) -> 
 def create_study_api(
     study_name: str, version: str, api_config: APIconf, parent_path: "Optional[Path]" = None
 ) -> "Study":
+    """
+    Creates a study on antares-web server.
+
+    Parameters:
+        study_name: the name of the created study
+        version: the study version, for example "8.8"
+        api_config: configuration to connect to antares-web server
+        parent_path: an optional directory where the study will be stored in antares-web
+
+    Returns:
+        a Study object representing the newly created study
+    """
     from antares.craft.service.api_services.factory import create_study_api
 
     return create_study_api(study_name, version, api_config, parent_path)
 
 
 def import_study_api(api_config: APIconf, study_path: "Path", destination_path: "Optional[Path]" = None) -> "Study":
+    """
+    Creates a study on antares-web server, by importing an existing study archive from your filesystem.
+
+    Parameters:
+        api_config: configuration to connect to antares-web server
+        study_path: path to your study, either as a .zip or .7z file
+        destination_path: an optional directory where the study will be stored in antares-web
+
+    Returns:
+        a Study object representing the newly created study
+    """
     from antares.craft.service.api_services.factory import import_study_api
 
     return import_study_api(api_config, study_path, destination_path)
 
 
 def read_study_api(api_config: APIconf, study_id: str) -> "Study":
+    """
+    Reads an existing study from antares-web server.
+
+    Parameters:
+        api_config: configuration to connect to antares-web server
+        study_id: the ID of the study on antares-web
+
+    Returns:
+        a Study object representing the study on antares-web
+    """
     from antares.craft.service.api_services.factory import read_study_api
 
     return read_study_api(api_config, study_id)
 
 
 def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) -> "Study":
+    """
+    Creates a new variant of an existing study, on antares-web server.
+
+    Parameters:
+        api_config: configuration to connect to antares-web server
+        study_id: the ID of the base study on antares-web
+        variant_name: the name of the newly created variant on antares-web
+
+    Returns:
+        a Study object representing the newly created variant on antares-web
+    """
     from antares.craft.service.api_services.factory import create_variant_api
 
     return create_variant_api(api_config, study_id, variant_name)
