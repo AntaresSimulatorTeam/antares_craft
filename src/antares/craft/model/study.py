@@ -293,12 +293,14 @@ class Study:
         self._settings.general_parameters = replace(self._settings.general_parameters, nb_timeseries_thermal=nb_years)
 
     def update_areas(self, new_properties: Dict[str, AreaPropertiesUpdate]) -> None:
-        new_areas_props = self._area_service.update_areas(new_properties)
+        new_areas_props = self._area_service.update_areas_properties(new_properties)
         for area_prop in new_areas_props:
             self._areas[area_prop]._properties = new_areas_props[area_prop]
 
     def update_thermal_clusters(self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]) -> None:
-        new_thermal_clusters_props = self._area_service.thermal_service.update_thermal_clusters(new_properties)
+        new_thermal_clusters_props = self._area_service.thermal_service.update_thermal_clusters_properties(
+            new_properties
+        )
         for thermal in new_thermal_clusters_props:
             self._areas[thermal.area_id].get_thermals()[thermal.id]._properties = new_thermal_clusters_props[thermal]
 
@@ -308,12 +310,12 @@ class Study:
         Args:
             new_properties: the properties dictionary we will update our links with
         """
-        new_links_props = self._link_service.update_links(new_properties)
+        new_links_props = self._link_service.update_links_properties(new_properties)
         for link_props in new_links_props:
             self._links[link_props]._properties = new_links_props[link_props]
 
     def update_binding_constraints(self, new_properties: Dict[str, BindingConstraintPropertiesUpdate]) -> None:
-        new_bc_props = self._binding_constraints_service.update_binding_constraints(new_properties)
+        new_bc_props = self._binding_constraints_service.update_binding_constraints_properties(new_properties)
         for bc_props in new_bc_props:
             self._binding_constraints[bc_props]._properties = new_bc_props[bc_props]
 

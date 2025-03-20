@@ -175,7 +175,7 @@ class ThermalCluster:
         return self._properties
 
     def update_properties(self, properties: ThermalClusterPropertiesUpdate) -> ThermalClusterProperties:
-        new_properties = self._thermal_service.update_thermal_clusters({self: properties})
+        new_properties = self._thermal_service.update_thermal_clusters_properties({self: properties})
         self._properties = new_properties[self]
         return self._properties
 

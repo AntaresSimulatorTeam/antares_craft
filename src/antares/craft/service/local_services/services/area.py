@@ -565,7 +565,7 @@ class AreaLocalService(BaseAreaService):
         return all_areas
 
     @override
-    def update_areas(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
+    def update_areas_properties(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
         new_properties_dict = {}
         for area_id, update_properties in dict_areas.items():
             new_properties = self.update_area_properties(area_id, update_properties)

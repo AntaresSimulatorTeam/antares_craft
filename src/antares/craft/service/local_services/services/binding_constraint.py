@@ -240,7 +240,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         return constraints
 
     @override
-    def update_binding_constraints(
+    def update_binding_constraints_properties(
         self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
     ) -> dict[str, BindingConstraintProperties]:
         new_properties_dict = {}

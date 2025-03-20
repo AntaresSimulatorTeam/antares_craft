@@ -169,7 +169,7 @@ class BindingConstraint:
         self._terms[term.id] = new_term
 
     def update_properties(self, properties: BindingConstraintPropertiesUpdate) -> BindingConstraintProperties:
-        new_properties = self._binding_constraint_service.update_binding_constraints({self.id: properties})
+        new_properties = self._binding_constraint_service.update_binding_constraints_properties({self.id: properties})
         self._properties = new_properties[self.id]
         return self._properties
 

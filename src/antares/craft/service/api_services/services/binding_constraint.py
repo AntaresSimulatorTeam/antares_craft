@@ -205,7 +205,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise ConstraintRetrievalError(self.study_id, e.message) from e
 
     @override
-    def update_binding_constraints(
+    def update_binding_constraints_properties(
         self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
     ) -> dict[str, BindingConstraintProperties]:
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/binding-constraints"

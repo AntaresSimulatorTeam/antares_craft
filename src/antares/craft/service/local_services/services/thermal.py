@@ -88,7 +88,7 @@ class ThermalLocalService(BaseThermalService):
         write_timeseries(self.config.study_path, matrix, MAPPING[ts_name], thermal_cluster.area_id, thermal_cluster.id)
 
     @override
-    def update_thermal_clusters(
+    def update_thermal_clusters_properties(
         self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
     ) -> dict[ThermalCluster, ThermalClusterProperties]:
         new_properties_dict: dict[ThermalCluster, ThermalClusterProperties] = {}

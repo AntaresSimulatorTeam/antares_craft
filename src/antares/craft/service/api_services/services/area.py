@@ -527,7 +527,7 @@ class AreaApiService(BaseAreaService):
         return properties
 
     @override
-    def update_areas(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
+    def update_areas_properties(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
         body = {}
         updated_areas: Dict[str, AreaProperties] = {}
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/areas"

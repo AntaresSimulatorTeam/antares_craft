@@ -302,7 +302,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def update_areas(self, dict_areas: Dict[str, "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
+    def update_areas_properties(self, dict_areas: Dict[str, "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
         pass
 
 
@@ -485,7 +485,7 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def update_links(self, dict_links: Dict[str, "LinkPropertiesUpdate"]) -> Dict[str, "LinkProperties"]:
+    def update_links_properties(self, dict_links: Dict[str, "LinkPropertiesUpdate"]) -> Dict[str, "LinkProperties"]:
         pass
 
 
@@ -511,7 +511,7 @@ class BaseThermalService(ABC):
         pass
 
     @abstractmethod
-    def update_thermal_clusters(
+    def update_thermal_clusters_properties(
         self, new_properties: dict["ThermalCluster", "ThermalClusterPropertiesUpdate"]
     ) -> dict["ThermalCluster", "ThermalClusterProperties"]:
         pass
@@ -612,7 +612,7 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def update_binding_constraints(
+    def update_binding_constraints_properties(
         self, new_properties: Dict[str, "BindingConstraintPropertiesUpdate"]
     ) -> Dict[str, "BindingConstraintProperties"]:
         pass

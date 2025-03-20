@@ -98,7 +98,7 @@ class ThermalApiService(BaseThermalService):
         return thermals
 
     @override
-    def update_thermal_clusters(
+    def update_thermal_clusters_properties(
         self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
     ) -> dict[ThermalCluster, ThermalClusterProperties]:
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/thermals"

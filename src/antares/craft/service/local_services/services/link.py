@@ -230,7 +230,7 @@ class LinkLocalService(BaseLinkService):
         return all_links
 
     @override
-    def update_links(self, dict_links: Dict[str, LinkPropertiesUpdate]) -> Dict[str, LinkProperties]:
+    def update_links_properties(self, dict_links: Dict[str, LinkPropertiesUpdate]) -> Dict[str, LinkProperties]:
         new_properties_dict = {}
         for link_name, update_properties in dict_links.items():
             area_from, area_to = link_name.split(" / ")
