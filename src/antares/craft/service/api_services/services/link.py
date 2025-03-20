@@ -21,7 +21,6 @@ from antares.craft.exceptions.exceptions import (
     LinkCreationError,
     LinkDeletionError,
     LinkDownloadError,
-    LinkPropertiesUpdateError,
     LinksRetrievalError,
     LinksUpdateError,
     LinkUiUpdateError,
@@ -94,26 +93,6 @@ class LinkApiService(BaseLinkService):
             self._wrapper.delete(url)
         except APIError as e:
             raise LinkDeletionError(link.id, e.message) from e
-
-    @override
-    def update_link_properties(self, link: Link, properties: LinkPropertiesUpdate) -> LinkProperties:
-        try:
-            url = f"{self._base_url}/studies/{self.study_id}/links/{link.area_from_id}/{link.area_to_id}"
-            api_properties = LinkPropertiesAndUiAPI.from_user_model(None, properties)
-            body = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
-
-            response = self._wrapper.put(url, json=body)
-            json_response = response.json()
-
-            json_response.pop("area1")
-            json_response.pop("area2")
-            api_response = LinkPropertiesAndUiAPI.model_validate(json_response)
-            link_properties = api_response.to_properties_user_model()
-
-        except APIError as e:
-            raise LinkPropertiesUpdateError(link.id, e.message) from e
-
-        return link_properties
 
     @override
     def update_link_ui(self, link: Link, ui: LinkUiUpdate) -> LinkUi:
@@ -207,7 +186,7 @@ class LinkApiService(BaseLinkService):
         return links
 
     @override
-    def update_multiple_links(self, dict_links: Dict[str, LinkPropertiesUpdate]) -> Dict[str, LinkProperties]:
+    def update_links(self, dict_links: Dict[str, LinkPropertiesUpdate]) -> Dict[str, LinkProperties]:
         body = {}
         for link_id, props in dict_links.items():
             api_properties = LinkPropertiesAndUiAPI.from_user_model(None, props)

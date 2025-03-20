@@ -127,7 +127,6 @@ class LinkLocalService(BaseLinkService):
                 return LinkPropertiesAndUiLocal.model_validate(link_props)
         return None
 
-    @override
     def update_link_properties(self, link: Link, properties: LinkPropertiesUpdate) -> LinkProperties:
         local_properties = self._update_link(link, properties, None)
         if not local_properties:
@@ -231,7 +230,7 @@ class LinkLocalService(BaseLinkService):
         return all_links
 
     @override
-    def update_multiple_links(self, dict_links: Dict[str, LinkPropertiesUpdate]) -> Dict[str, LinkProperties]:
+    def update_links(self, dict_links: Dict[str, LinkPropertiesUpdate]) -> Dict[str, LinkProperties]:
         new_properties_dict = {}
         for link_name, update_properties in dict_links.items():
             area_from, area_to = link_name.split(" / ")

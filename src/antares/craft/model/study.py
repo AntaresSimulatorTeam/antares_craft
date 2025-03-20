@@ -308,7 +308,7 @@ class Study:
         Args:
             new_properties: the properties dictionary we will update our links with
         """
-        new_links_props = self._link_service.update_multiple_links(new_properties)
+        new_links_props = self._link_service.update_links(new_properties)
         for link_props in new_links_props:
             self._links[link_props]._properties = new_links_props[link_props]
 

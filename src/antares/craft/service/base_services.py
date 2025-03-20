@@ -439,15 +439,6 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def update_link_properties(self, link: "Link", properties: "LinkPropertiesUpdate") -> "LinkProperties":
-        """
-        Args:
-            link: concerned link
-            properties: new properties. Only registered fields will be updated.
-        """
-        pass
-
-    @abstractmethod
     def update_link_ui(self, link: "Link", ui: "LinkUiUpdate") -> "LinkUi":
         """
         Args:
@@ -494,7 +485,7 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def update_multiple_links(self, dict_links: Dict[str, "LinkPropertiesUpdate"]) -> Dict[str, "LinkProperties"]:
+    def update_links(self, dict_links: Dict[str, "LinkPropertiesUpdate"]) -> Dict[str, "LinkProperties"]:
         pass
 
 
