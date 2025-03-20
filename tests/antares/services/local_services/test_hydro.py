@@ -13,7 +13,7 @@
 from configparser import ConfigParser
 from pathlib import Path
 
-from antares.craft.model.hydro import Hydro, HydroProperties
+from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate, InflowStructureUpdate
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
@@ -29,13 +29,9 @@ class TestCreateHydro:
     def test_hydro_has_correct_default_properties(self, local_study_w_areas, default_hydro_properties):
         assert local_study_w_areas.get_areas()["fr"].hydro.properties == default_hydro_properties
 
-    def test_hydro_ini_exists(self, local_study_w_areas):
-        hydro_ini = local_study_w_areas.service.config.study_path / InitializationFilesTypes.HYDRO_INI.value
-        assert hydro_ini.is_file()
-
-    def test_create_capacity_files_for_hydro(self, local_study_w_areas):
+    def test_files_exist(self, local_study_w_areas):
         """
-        Test that calling create_hydro on all areas triggers the creation of capacity files.
+        Test that calling create_hydro on all areas triggers the creation of all files needed.
         """
         study_path = Path(local_study_w_areas.path)
         areas = local_study_w_areas.get_areas()
@@ -50,10 +46,33 @@ class TestCreateHydro:
                 study_path / f"input/hydro/series/{area_id}/mod.txt",
                 study_path / f"input/hydro/series/{area_id}/mingen.txt",
                 study_path / f"input/hydro/common/capacity/maxpower_{area_id}.txt",
+                study_path / f"input/hydro/prepro/{area_id}/prepro.ini",
+                study_path / f"input/hydro/allocation/{area_id}.ini",
+                study_path / "input/hydro/hydro.ini",
             ]
 
             for expected_path in expected_paths:
                 assert expected_path.is_file(), f"File not created: {expected_path}"
+
+    def test_hydro_allocation_has_correct_default_values(self, local_study_w_areas):
+        areas = local_study_w_areas.get_areas()
+        for area in areas.values():
+            ini_file = IniFile(
+                local_study_w_areas.service.config.study_path,
+                InitializationFilesTypes.HYDRO_ALLOCATION_INI,
+                area_id=area.id,
+            )
+            assert ini_file.ini_dict == {"[allocation]": {area.id: "1"}}
+
+    def test_hydro_prepro_has_correct_default_values(self, local_study_w_areas):
+        areas = local_study_w_areas.get_areas()
+        for area in areas.values():
+            ini_file = IniFile(
+                local_study_w_areas.service.config.study_path,
+                InitializationFilesTypes.HYDRO_PREPRO_INI,
+                area_id=area.id,
+            )
+            assert ini_file.ini_dict == {"prepro": {"intermonthly-correlation": "0.5"}}
 
     def test_hydro_ini_has_correct_default_values(self, local_study_w_areas):
         # Given
@@ -218,3 +237,28 @@ it = 1.0
         assert actual_hydro_ini_content == expected_hydro_ini_content
         assert actual_hydro_ini.parsed_ini.sections() == expected_hydro_ini.sections()
         assert actual_hydro_ini.parsed_ini == expected_hydro_ini
+
+    def test_update_hydro_properties(self, local_study_with_hydro):
+        area_fr = local_study_with_hydro.get_areas()["fr"]
+        assert area_fr.hydro.properties == HydroProperties(reservoir_capacity=4.3)
+        new_properties = HydroPropertiesUpdate(reservoir_capacity=2.4, hard_bounds=True)
+        area_fr.hydro.update_properties(new_properties)
+        # Checks object value
+        assert area_fr.hydro.properties == HydroProperties(reservoir_capacity=2.4, hard_bounds=True)
+        # Checks ini content
+        ini_file = IniFile(local_study_with_hydro.service.config.study_path, InitializationFilesTypes.HYDRO_INI)
+        assert ini_file.ini_dict["reservoir capacity"]["fr"] == "2.4"
+        assert ini_file.ini_dict["hard bounds"]["fr"] == "True"
+
+    def test_update_hydro_inflow_structure(self, local_study_with_hydro):
+        area_fr = local_study_with_hydro.get_areas()["fr"]
+        assert area_fr.hydro.inflow_structure.intermonthly_correlation == 0.5
+        inflow_structure = InflowStructureUpdate(intermonthly_correlation=0.4)
+        area_fr.hydro.update_inflow_structure(inflow_structure)
+        # Checks object value
+        assert area_fr.hydro.inflow_structure.intermonthly_correlation == 0.4
+        # Checks ini content
+        ini_file = IniFile(
+            local_study_with_hydro.service.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI, area_id="fr"
+        )
+        assert ini_file.ini_dict == {"prepro": {"intermonthly-correlation": "0.4"}}

@@ -24,7 +24,7 @@ import pandas as pd
 
 from antares.craft.exceptions.exceptions import RenewableDeletionError, STStorageDeletionError, ThermalDeletionError
 from antares.craft.model.commons import FILTER_VALUES, FilterOption
-from antares.craft.model.hydro import Hydro, HydroProperties
+from antares.craft.model.hydro import Hydro, HydroProperties, InflowStructure
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
@@ -129,7 +129,7 @@ class Area:
         self._renewables = renewables or dict()
         self._thermals = thermals or dict()
         self._st_storages = st_storages or dict()
-        self._hydro = hydro or Hydro(self._hydro_service, self._id, HydroProperties())
+        self._hydro = hydro or Hydro(self._hydro_service, self._id, HydroProperties(), InflowStructure())
         self._properties = properties or AreaProperties()
         self._ui = ui or AreaUi()
 

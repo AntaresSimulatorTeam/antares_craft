@@ -48,6 +48,8 @@ class InitializationFilesTypes(Enum):
     HYDRO_SERIES_MOD_TXT = "input/hydro/series/{area_id}/mod.txt"
     HYDRO_SERIES_MIN_GEN_TXT = "input/hydro/series/{area_id}/mingen.txt"
     HYDRO_COMMON_MAX_POWER = "input/hydro/common/capacity/maxpower_{area_id}.txt"
+    HYDRO_PREPRO_INI = "input/hydro/prepro/{area_id}/prepro.ini"
+    HYDRO_ALLOCATION_INI = "input/hydro/allocation/{area_id}.ini"
 
     LINK_PROPERTIES_INI = "input/links/{area_id}/properties.ini"
     LOAD_CORRELATION_INI = "input/load/prepro/correlation.ini"

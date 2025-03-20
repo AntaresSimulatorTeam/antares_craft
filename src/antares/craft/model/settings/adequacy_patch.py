@@ -27,9 +27,9 @@ class AdequacyPatchParameters:
     price_taking_order: PriceTakingOrder = PriceTakingOrder.DENS
     include_hurdle_cost_csr: bool = False
     check_csr_cost_function: bool = False
-    threshold_initiate_curtailment_sharing_rule: int = 0
+    threshold_initiate_curtailment_sharing_rule: int = 1
     threshold_display_local_matching_rule_violations: int = 0
-    threshold_csr_variable_bounds_relaxation: int = 3
+    threshold_csr_variable_bounds_relaxation: int = 7
 
 
 @dataclass

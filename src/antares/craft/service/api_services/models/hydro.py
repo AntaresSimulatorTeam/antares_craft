@@ -11,11 +11,12 @@
 # This file is part of the Antares project.
 from dataclasses import asdict
 
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
+from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 
 HydroPropertiesType = HydroProperties | HydroPropertiesUpdate
+HydroInflowStructureType = InflowStructure | InflowStructureUpdate
 
 
 @all_optional_model
@@ -58,4 +59,20 @@ class HydroPropertiesAPI(APIBaseModel):
             leeway_low=self.leeway_low or default_properties.leeway_low,
             leeway_up=self.leeway_up or default_properties.leeway_up,
             pumping_efficiency=self.pumping_efficiency or default_properties.pumping_efficiency,
+        )
+
+
+@all_optional_model
+class HydroInflowStructureAPI(APIBaseModel):
+    inter_monthly_correlation: float
+
+    @staticmethod
+    def from_user_model(user_class: HydroInflowStructureType) -> "HydroInflowStructureAPI":
+        return HydroInflowStructureAPI.model_validate(
+            {"inter_monthly_correlation": user_class.intermonthly_correlation}
+        )
+
+    def to_user_model(self) -> InflowStructure:
+        return InflowStructure(
+            intermonthly_correlation=self.inter_monthly_correlation or InflowStructure().intermonthly_correlation
         )

@@ -36,15 +36,15 @@ class LinkPropertiesAndUiLocal(LocalBaseModel, alias_generator=to_kebab):
     use_phase_shifter: bool = False
     transmission_capacities: TransmissionCapacities = TransmissionCapacities.ENABLED
     asset_type: AssetType = AssetType.AC
-    display_comments: bool = True
-    comments: str = ""
-    filter_synthesis: filtering_option = field(default_factory=lambda: FILTER_VALUES)
-    filter_year_by_year: filtering_option = field(default_factory=lambda: FILTER_VALUES)
     link_style: LinkStyle = LinkStyle.PLAIN
     link_width: float = 1
     colorr: int = 112
     colorg: int = 112
     colorb: int = 112
+    display_comments: bool = True
+    filter_synthesis: filtering_option = field(default_factory=lambda: FILTER_VALUES)
+    filter_year_by_year: filtering_option = field(default_factory=lambda: FILTER_VALUES)
+    comments: str = ""
 
     @staticmethod
     def from_user_model(
