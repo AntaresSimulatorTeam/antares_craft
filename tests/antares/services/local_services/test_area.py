@@ -991,3 +991,17 @@ class TestUpateArea:
             "layerY": {"0": "0"},
             "layerColor": {"0": "5,6,7"},
         }
+
+    def test_create_area_creates_default_files(self, local_study_w_areas):
+        study_path = Path(local_study_w_areas.path)
+        for area in local_study_w_areas.get_areas():
+            assert IniFile(study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area).ini_path.exists()
+            assert IniFile(study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area).ini_path.exists()
+
+    def test_create_area_with_weird_name_succeeds(self, local_study_w_areas):
+        local_study_w_areas.create_area("AREA_MAJ???")
+        area_id = "area_maj"
+        study_path = Path(local_study_w_areas.path)
+        assert (study_path / TimeSeriesFileType.SOLAR.value.format(area_id=area_id)).exists()
+        assert (study_path / TimeSeriesFileType.WIND.value.format(area_id=area_id)).exists()
+        assert (study_path / TimeSeriesFileType.LOAD.value.format(area_id=area_id)).exists()
