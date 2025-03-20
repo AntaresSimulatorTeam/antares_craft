@@ -252,20 +252,10 @@ class AreaLocalService(BaseAreaService):
         created
         """
 
-        def _line_exists_in_file(file_content: str, line_to_add: str) -> bool:
-            """
-            Args:
-                file_content: file content to check
-                line_to_add: line to add
-
-            Returns: True if line is already present in file.
-
-            """
-            return line_to_add.strip() in file_content.split("\n")
-
         study_path = self.config.study_path
         areas_directory = study_path / "input" / "areas"
-        new_area_directory = areas_directory.joinpath(transform_name_to_id(area_name))
+        area_id = transform_name_to_id(area_name)
+        new_area_directory = areas_directory / area_id
 
         if new_area_directory.is_dir():
             raise AreaCreationError(
@@ -273,7 +263,7 @@ class AreaLocalService(BaseAreaService):
             )
 
         # Create "areas" directory if it doesn't exist
-        os.makedirs(new_area_directory, exist_ok=True)
+        new_area_directory.mkdir()
 
         list_path = areas_directory.joinpath("list.txt")
 
@@ -282,8 +272,6 @@ class AreaLocalService(BaseAreaService):
             if os.path.isfile(list_path):
                 with open(list_path, "r") as list_file:
                     list_file_content = list_file.read()
-                if _line_exists_in_file(list_file_content, area_to_add):
-                    raise ValueError(f"The Area '{area_name}' already exists in the study {self.study_name}.")
                 updated_list = sorted(list_file_content.splitlines(keepends=True) + [area_to_add])
             else:
                 updated_list = [area_to_add]
@@ -301,7 +289,7 @@ class AreaLocalService(BaseAreaService):
             properties = properties or AreaProperties()
             local_properties = AreaPropertiesLocal.from_user_model(properties)
 
-            adequacy_patch_ini = IniFile(study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_name)
+            adequacy_patch_ini = IniFile(study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_id)
             adequacy_patch_ini.add_section(local_properties.to_adequacy_ini())
             adequacy_patch_ini.write_ini_file()
 
@@ -317,8 +305,8 @@ class AreaLocalService(BaseAreaService):
                 areas_ini.add_section({"spilledenergycost": {}})
                 areas_ini.write_ini_file()
 
-            areas_ini.parsed_ini["unserverdenergycost"][area_name] = str(local_properties.energy_cost_unsupplied)
-            areas_ini.parsed_ini["spilledenergycost"][area_name] = str(local_properties.energy_cost_spilled)
+            areas_ini.parsed_ini["unserverdenergycost"][area_id] = str(local_properties.energy_cost_unsupplied)
+            areas_ini.parsed_ini["spilledenergycost"][area_id] = str(local_properties.energy_cost_spilled)
             areas_ini.write_ini_file()
 
             ui = ui or AreaUi()
@@ -329,16 +317,15 @@ class AreaLocalService(BaseAreaService):
                 ui_ini.write(ui_ini_file)
 
             empty_df = pd.DataFrame()
-            self.set_reserves(area_name, empty_df)
-            self.set_misc_gen(area_name, empty_df)
-            self.set_load(area_name, empty_df)
-            self.set_solar(area_name, empty_df)
-            self.set_wind(area_name, empty_df)
-            IniFile.create_link_ini_for_area(study_path, area_name)
-            IniFile.create_list_ini_for_area(study_path, area_name)
+            self.set_reserves(area_id, empty_df)
+            self.set_misc_gen(area_id, empty_df)
+            self.set_load(area_id, empty_df)
+            self.set_solar(area_id, empty_df)
+            self.set_wind(area_id, empty_df)
+            IniFile.create_link_ini_for_area(study_path, area_id)
+            IniFile.create_list_ini_for_area(study_path, area_id)
 
             # Hydro
-            area_id = transform_name_to_id(area_name)
             default_hydro_properties = HydroProperties()
             update_properties = default_hydro_properties.to_update_properties()
             edit_hydro_properties(study_path, area_id, update_properties, creation=True)

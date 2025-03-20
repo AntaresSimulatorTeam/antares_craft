@@ -15,10 +15,33 @@ import re
 
 from pathlib import Path
 
-from antares.craft import create_study_local, read_study_local
+from antares.craft import (
+    AdequacyPatchMode,
+    AntaresSimulationParameters,
+    AreaProperties,
+    AreaUi,
+    AssetType,
+    BindingConstraintFrequency,
+    BindingConstraintOperator,
+    BindingConstraintProperties,
+    ConstraintTerm,
+    FilterOption,
+    HydroPropertiesUpdate,
+    LinkData,
+    LinkProperties,
+    LinkStyle,
+    LinkUi,
+    RenewableClusterGroup,
+    RenewableClusterProperties,
+    STStorageGroup,
+    STStorageProperties,
+    ThermalClusterGroup,
+    ThermalClusterProperties,
+    create_study_local,
+    read_study_local,
+)
 from antares.craft.exceptions.exceptions import AntaresSimulationRunningError
-from antares.craft.model.hydro import HydroPropertiesUpdate
-from antares.craft.model.simulation import AntaresSimulationParameters, JobStatus
+from antares.craft.model.simulation import JobStatus
 
 
 def find_executable_path() -> Path:
@@ -114,3 +137,54 @@ class TestLocalLauncher:
         outputs = list(output_path.iterdir())
         assert len(outputs) == 0
         assert study.get_outputs() == {}
+
+    def test_simulation_succeeds_with_real_study(self, tmp_path: Path):
+        solver_path = find_executable_path()
+        study = create_study_local("test study", "880", tmp_path, solver_path)
+
+        # Create 2 areas
+        area_fr_properties = AreaProperties(
+            adequacy_patch_mode=AdequacyPatchMode.INSIDE, energy_cost_spilled=42, filter_synthesis={FilterOption.DAILY}
+        )
+        area_fr_ui = AreaUi(x=27, color_rgb=[43, 27, 61])
+        area_fr = study.create_area("FR", properties=area_fr_properties, ui=area_fr_ui)
+        # needed for the simulation to succeed
+        area_fr.hydro.update_properties(HydroPropertiesUpdate(reservoir_capacity=1))
+
+        area_be_properties = AreaProperties(
+            other_dispatch_power=False,
+            energy_cost_unsupplied=1000,
+            filter_by_year={FilterOption.MONTHLY, FilterOption.ANNUAL},
+        )
+        area_be_ui = AreaUi(y=4)
+        area_be = study.create_area("be", properties=area_be_properties, ui=area_be_ui)
+        area_be.hydro.update_properties(HydroPropertiesUpdate(reservoir_capacity=1))
+
+        # Create a link
+        link_properties = LinkProperties(asset_type=AssetType.DC, display_comments=False)
+        link_ui = LinkUi(link_style=LinkStyle.DOT, colorr=3)
+        study.create_link(area_from=area_fr.id, area_to=area_be.id, properties=link_properties, ui=link_ui)
+
+        # Create thermal cluster
+        th_properties = ThermalClusterProperties(group=ThermalClusterGroup.NUCLEAR, unit_count=12, nominal_capacity=43)
+        area_fr.create_thermal_cluster("Nuclear_fr", th_properties)
+
+        # Create renewable cluster
+        renewable_properties = RenewableClusterProperties(group=RenewableClusterGroup.WIND_ON_SHORE, enabled=False)
+        area_fr.create_renewable_cluster("Wind onshore fr", renewable_properties)
+
+        # Create short term storage
+        sts_properties = STStorageProperties(group=STStorageGroup.BATTERY, efficiency=0.4)
+        area_fr.create_st_storage("Battery fr", sts_properties)
+
+        # Create binding constraint
+        term = ConstraintTerm(weight=12, offset=3, data=LinkData(area_be.id, area_fr.id))
+        bc_properties = BindingConstraintProperties(
+            group="my_group", operator=BindingConstraintOperator.LESS, time_step=BindingConstraintFrequency.WEEKLY
+        )
+        study.create_binding_constraint(name="BC_1", properties=bc_properties, terms=[term])
+
+        # Run the simulation
+        job = study.run_antares_simulation()
+        study.wait_job_completion(job)
+        assert job.status == JobStatus.SUCCESS
