@@ -951,7 +951,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 AreasPropertiesUpdateError,
-                match=f"Could not update the areas from study {self.study_id} : {self.antares_web_description_msg}",
+                match=f"Could not update areas properties from study {self.study_id} : {self.antares_web_description_msg}",
             ):
                 self.study.update_areas({})
 
