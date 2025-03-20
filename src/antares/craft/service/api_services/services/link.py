@@ -21,8 +21,8 @@ from antares.craft.exceptions.exceptions import (
     LinkCreationError,
     LinkDeletionError,
     LinkDownloadError,
+    LinksPropertiesUpdateError,
     LinksRetrievalError,
-    LinksUpdateError,
     LinkUiUpdateError,
     LinkUploadError,
 )
@@ -207,6 +207,6 @@ class LinkApiService(BaseLinkService):
                 updated_links[link] = link_properties
 
         except APIError as e:
-            raise LinksUpdateError(self.study_id, e.message) from e
+            raise LinksPropertiesUpdateError(self.study_id, e.message) from e
 
         return updated_links

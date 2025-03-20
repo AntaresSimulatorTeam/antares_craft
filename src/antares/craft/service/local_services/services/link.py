@@ -242,7 +242,7 @@ class LinkLocalService(BaseLinkService):
                     new_properties_dict[f"{area_from} / {area_to}"] = link_properties_obj.to_properties_user_model()
 
             if len(all_link_names) > 0:
-                raise LinkPropertiesUpdateError(next(iter(all_link_names)), "The link does not exist")
+                raise LinkPropertiesUpdateError(next(iter(all_link_names)), self.study_name, "The link does not exist")
 
             # Update ini file
             ini_file.ini_dict = current_dict

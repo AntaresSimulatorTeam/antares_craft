@@ -31,7 +31,7 @@ from antares.craft.exceptions.exceptions import (
     BindingConstraintsUpdateError,
     ConstraintRetrievalError,
     LinkCreationError,
-    LinksUpdateError,
+    LinksPropertiesUpdateError,
     OutputDeletionError,
     OutputsRetrievalError,
     SimulationFailedError,
@@ -1027,7 +1027,7 @@ class TestCreateAPI:
             mocker.put(url, status_code=404, json={"description": self.antares_web_description_msg})
 
             with pytest.raises(
-                LinksUpdateError,
+                LinksPropertiesUpdateError,
                 match=f"Could not update links from study {self.study_id} : {self.antares_web_description_msg}",
             ):
                 self.study.update_links({})

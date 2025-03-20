@@ -66,12 +66,6 @@ class LinkCreationError(Exception):
         super().__init__(self.message)
 
 
-class LinkPropertiesUpdateError(Exception):
-    def __init__(self, link_name: str, message: str) -> None:
-        self.message = f"Could not update properties for link {link_name}: " + message
-        super().__init__(self.message)
-
-
 class LinkUiUpdateError(Exception):
     def __init__(self, link_name: str, message: str) -> None:
         self.message = f"Could not update ui for link {link_name}: " + message
@@ -90,9 +84,15 @@ class LinksRetrievalError(Exception):
         super().__init__(self.message)
 
 
-class LinksUpdateError(Exception):
+class LinkPropertiesUpdateError(Exception):
+    def __init__(self, link_id: str, study_id: str, message: str) -> None:
+        self.message = f"Could not update properties for link {link_id} from study {study_id} : {message}"
+        super().__init__(self.message)
+
+
+class LinksPropertiesUpdateError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not update links from study {study_id} : {message}"
+        self.message = f"Could not update links properties from study {study_id} : {message}"
         super().__init__(self.message)
 
 
