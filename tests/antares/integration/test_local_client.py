@@ -18,7 +18,7 @@ import pandas as pd
 
 from antares.craft import create_study_local
 from antares.craft.exceptions.exceptions import AreaCreationError, LinkCreationError
-from antares.craft.model.area import AdequacyPatchMode, Area, AreaProperties, AreaUi
+from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
@@ -27,7 +27,7 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.commons import FilterOption
-from antares.craft.model.link import Link, LinkProperties, LinkUi
+from antares.craft.model.link import LinkProperties, LinkUi
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParametersUpdate,
@@ -37,7 +37,7 @@ from antares.craft.model.settings.general import GeneralParametersUpdate
 from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
 from antares.craft.model.study import Study
-from antares.craft.model.thermal import ThermalCluster, ThermalClusterGroup, ThermalClusterProperties
+from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
@@ -73,7 +73,7 @@ class TestLocalClient:
             test_study.create_link(area_from=fr.id, area_to="usa")
 
         # Thermal
-        fr_nuclear = fr.create_thermal_cluster("nuclear")
+        fr.create_thermal_cluster("nuclear")
 
         # Setup time series for following tests
         time_series_rows = 10  # 365 * 24
@@ -82,36 +82,18 @@ class TestLocalClient:
 
         # Load
         fr.set_load(time_series)
-
-        assert test_study.service.config.study_path.joinpath(
-            "input", "load", "series", "load_{area_id}.txt".format(area_id=fr.id)
-        ).is_file()
-
-        fr_load = fr.get_load_matrix()
-
-        assert fr_load.equals(time_series)
+        assert (Path(test_study.path) / "input" / "load" / "series" / f"load_{fr.id}.txt").is_file()
+        assert fr.get_load_matrix().equals(time_series)
 
         # Solar
         fr.set_solar(time_series)
-
-        assert test_study.service.config.study_path.joinpath(
-            "input", "solar", "series", "solar_{area_id}.txt".format(area_id=fr.id)
-        ).is_file()
-
-        fr_solar = fr.get_solar_matrix()
-
-        assert fr_solar.equals(time_series)
+        assert (Path(test_study.path) / "input" / "solar" / "series" / f"solar_{fr.id}.txt").is_file()
+        assert fr.get_solar_matrix().equals(time_series)
 
         # Wind
         fr.set_wind(time_series)
-
-        assert test_study.service.config.study_path.joinpath(
-            "input", "wind", "series", "wind_{area_id}.txt".format(area_id=fr.id)
-        ).is_file()
-
-        fr_wind = fr.get_wind_matrix()
-
-        assert fr_wind.equals(time_series)
+        assert (Path(test_study.path) / "input" / "wind" / "series" / f"wind_{fr.id}.txt").is_file()
+        assert fr.get_wind_matrix().equals(time_series)
 
         # tests area creation with ui values
         area_name = "BE"
