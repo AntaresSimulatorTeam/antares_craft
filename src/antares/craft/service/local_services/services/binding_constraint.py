@@ -9,6 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import copy
+
 from typing import Any, Optional
 
 import numpy as np
@@ -163,21 +165,6 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     ) -> ConstraintTerm:
         raise NotImplementedError
 
-    def update_binding_constraint_properties(
-        self, binding_constraint: BindingConstraint, properties: BindingConstraintPropertiesUpdate
-    ) -> BindingConstraintProperties:
-        current_ini_content = self.ini_file.ini_dict
-        existing_constraint = self._get_constraint_inside_ini(current_ini_content, binding_constraint)
-        local_properties = BindingConstraintPropertiesLocal.from_user_model(properties)
-        existing_constraint.update(local_properties.model_dump(mode="json", by_alias=True, exclude_unset=True))
-        self.ini_file.ini_dict = current_ini_content
-        self.ini_file.write_ini_file()
-        # Return a user object based on what's written inside the INI file
-        del existing_constraint["name"]
-        del existing_constraint["id"]
-        modified_local_properties = BindingConstraintPropertiesLocal.model_validate(existing_constraint)
-        return modified_local_properties.to_user_model()
-
     @override
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
         df = read_timeseries(MAPPING[matrix_name], self.config.study_path, constraint_id=constraint.id)
@@ -243,11 +230,31 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     def update_binding_constraints_properties(
         self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
     ) -> dict[str, BindingConstraintProperties]:
-        new_properties_dict = {}
-        for constraint_id, new_props in new_properties.items():
-            bc = BindingConstraint(constraint_id, self)
-            modified_properties = self.update_binding_constraint_properties(bc, new_props)
-            new_properties_dict[constraint_id] = modified_properties
+        new_properties_dict: dict[str, BindingConstraintProperties] = {}
+        all_constraint_to_update = set(new_properties.keys())  # used to raise an Exception if a bc doesn't exist
+
+        ini_file = self.ini_file
+        current_ini_content = ini_file.ini_dict
+        for key, constraint in current_ini_content.items():
+            constraint_id = constraint["id"]
+            if constraint_id in new_properties:
+                all_constraint_to_update.remove(constraint_id)
+
+                # Performs the update
+                local_properties = BindingConstraintPropertiesLocal.from_user_model(new_properties[constraint_id])
+                constraint.update(local_properties.model_dump(mode="json", by_alias=True, exclude_unset=True))
+
+                # Prepare the object to return
+                local_dict = copy.deepcopy(constraint)
+                del local_dict["name"]
+                del local_dict["id"]
+                local_properties = BindingConstraintPropertiesLocal.model_validate(local_dict)
+                new_properties_dict[constraint_id] = local_properties.to_user_model()
+
+        # Update ini file
+        self.ini_file.ini_dict = current_ini_content
+        self.ini_file.write_ini_file()
+
         return new_properties_dict
 
     def _get_constraint_inside_ini(self, ini_content: dict[str, Any], constraint: BindingConstraint) -> dict[str, Any]:
