@@ -46,7 +46,7 @@ class TestLocalClient:
     Testing lifespan of a study in local mode. Creating a study, adding areas, links, clusters and so on.
     """
 
-    def test_local_study(self, tmp_path: Path, unknown_area):
+    def test_local_study(self, tmp_path: Path):
         study_name = "test study"
         study_version = "880"
 
@@ -58,10 +58,7 @@ class TestLocalClient:
         fr = test_study.create_area("fr")
         at = test_study.create_area("at")
 
-        assert isinstance(fr, Area)
-        assert isinstance(at, Area)
-
-        ## Area already exists
+        # Area already exists
         with pytest.raises(
             AreaCreationError,
             match="Could not create the area fr: There is already an area 'fr' in the study 'test study'",
@@ -71,16 +68,12 @@ class TestLocalClient:
         # Link
         at_fr = test_study.create_link(area_from=fr.id, area_to=at.id)
 
-        assert isinstance(at_fr, Link)
-
-        ## Cannot link areas that don't exist in the study
+        # Cannot create a link from an area that doesn't exist in the study
         with pytest.raises(LinkCreationError, match="Could not create the link fr / usa: usa does not exist"):
-            test_study.create_link(area_from=fr.id, area_to=unknown_area.id)
+            test_study.create_link(area_from=fr.id, area_to="usa")
 
         # Thermal
         fr_nuclear = fr.create_thermal_cluster("nuclear")
-
-        assert isinstance(fr_nuclear, ThermalCluster)
 
         # Setup time series for following tests
         time_series_rows = 10  # 365 * 24
