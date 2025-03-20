@@ -930,7 +930,7 @@ class TestCreateAPI:
                 dict_areas.update({area: area_up_props})
 
             mocker.put(url, json=areas_1)  # CamelCase
-            self.study.update_multiple_areas(dict_areas)
+            self.study.update_areas(dict_areas)
 
             elec_props = self.study._areas["area_test_1"].properties
             gaz_props = self.study._areas["area_test_2"].properties
@@ -953,7 +953,7 @@ class TestCreateAPI:
                 AreasUpdateError,
                 match=f"Could not update the areas from the study {self.study_id} : {self.antares_web_description_msg}",
             ):
-                self.study.update_multiple_areas({})
+                self.study.update_areas({})
 
     def test_update_multiple_links_success(self):
         updated_links = {}

@@ -81,11 +81,6 @@ class Study:
             raise ReadingMethodUsedOufOfScopeError(self._study_service.study_id, "read_areas", "areas")
         self._areas = self._area_service.read_areas()
 
-    def update_multiple_areas(self, new_properties: Dict[str, AreaPropertiesUpdate]) -> None:
-        new_areas_props = self._area_service.update_multiple_areas(new_properties)
-        for area_prop in new_areas_props:
-            self._areas[area_prop]._properties = new_areas_props[area_prop]
-
     def _read_links(self) -> None:
         if len(self._links) > 0:
             raise ReadingMethodUsedOufOfScopeError(self._study_service.study_id, "read_links", "links")
@@ -296,6 +291,11 @@ class Study:
         self._study_service.generate_thermal_timeseries(nb_years, self._areas, seed)
         # Copies objects to bypass the fact that the class is frozen
         self._settings.general_parameters = replace(self._settings.general_parameters, nb_timeseries_thermal=nb_years)
+
+    def update_areas(self, new_properties: Dict[str, AreaPropertiesUpdate]) -> None:
+        new_areas_props = self._area_service.update_areas(new_properties)
+        for area_prop in new_areas_props:
+            self._areas[area_prop]._properties = new_areas_props[area_prop]
 
     def update_thermal_clusters(self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]) -> None:
         new_thermal_clusters_props = self._area_service.thermal_service.update_thermal_clusters(new_properties)

@@ -302,7 +302,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def update_multiple_areas(self, dict_areas: Dict[str, "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
+    def update_areas(self, dict_areas: Dict[str, "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
         pass
 
 
