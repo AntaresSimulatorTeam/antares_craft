@@ -199,15 +199,6 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def update_area_properties(self, area_id: str, properties: "AreaPropertiesUpdate") -> "AreaProperties":
-        """
-        Args:
-            area_id: concerned area
-            properties: new properties. Only registered fields will be updated.
-        """
-        pass
-
-    @abstractmethod
     def update_area_ui(self, area_id: str, ui: "AreaUiUpdate") -> "AreaUi":
         """
         Args:
@@ -302,7 +293,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def update_multiple_areas(self, dict_areas: Dict[str, "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
+    def update_areas_properties(self, dict_areas: Dict[str, "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
         pass
 
 
@@ -439,15 +430,6 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def update_link_properties(self, link: "Link", properties: "LinkPropertiesUpdate") -> "LinkProperties":
-        """
-        Args:
-            link: concerned link
-            properties: new properties. Only registered fields will be updated.
-        """
-        pass
-
-    @abstractmethod
     def update_link_ui(self, link: "Link", ui: "LinkUiUpdate") -> "LinkUi":
         """
         Args:
@@ -494,22 +476,11 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def update_multiple_links(self, dict_links: Dict[str, "LinkPropertiesUpdate"]) -> Dict[str, "LinkProperties"]:
+    def update_links_properties(self, new_properties: Dict[str, "LinkPropertiesUpdate"]) -> Dict[str, "LinkProperties"]:
         pass
 
 
 class BaseThermalService(ABC):
-    @abstractmethod
-    def update_thermal_properties(
-        self, thermal_cluster: "ThermalCluster", properties: "ThermalClusterPropertiesUpdate"
-    ) -> "ThermalClusterProperties":
-        """
-        Args:
-            thermal_cluster: concerned cluster
-            properties: new properties. Only registered fields will be updated.
-        """
-        pass
-
     @abstractmethod
     def set_thermal_matrix(
         self, thermal_cluster: "ThermalCluster", matrix: pd.DataFrame, ts_name: "ThermalClusterMatrixName"
@@ -531,7 +502,7 @@ class BaseThermalService(ABC):
         pass
 
     @abstractmethod
-    def update_multiple_thermal_clusters(
+    def update_thermal_clusters_properties(
         self, new_properties: dict["ThermalCluster", "ThermalClusterPropertiesUpdate"]
     ) -> dict["ThermalCluster", "ThermalClusterProperties"]:
         pass
@@ -600,17 +571,6 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def update_binding_constraint_properties(
-        self, binding_constraint: "BindingConstraint", properties: "BindingConstraintPropertiesUpdate"
-    ) -> "BindingConstraintProperties":
-        """
-        Args:
-            binding_constraint: concerned binding_constraint
-            properties: new properties. Only registered fields will be updated.
-        """
-        pass
-
-    @abstractmethod
     def get_constraint_matrix(
         self, constraint: "BindingConstraint", matrix_name: "ConstraintMatrixName"
     ) -> pd.DataFrame:
@@ -643,7 +603,7 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def update_multiple_binding_constraints(
+    def update_binding_constraints_properties(
         self, new_properties: Dict[str, "BindingConstraintPropertiesUpdate"]
     ) -> Dict[str, "BindingConstraintProperties"]:
         pass
