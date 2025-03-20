@@ -20,7 +20,6 @@ from antares.craft.exceptions.exceptions import (
     APIError,
     AreaCreationError,
     AreaDeletionError,
-    AreaPropertiesUpdateError,
     AreasRetrievalError,
     AreasUpdateError,
     AreaUiUpdateError,
@@ -350,25 +349,6 @@ class AreaApiService(BaseAreaService):
             update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise MatrixUploadError(area_id, "misc-gen", e.message) from e
-
-    @override
-    def update_area_properties(self, area_id: str, properties: AreaPropertiesUpdate) -> AreaProperties:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/properties/form"
-        try:
-            api_model = AreaPropertiesAPI.from_user_model(properties)
-            # todo: change this exclude with AntaresWeb 2.20
-            exclude = {"spread_unsupplied_energy_cost", "spread_spilled_energy_cost"}
-            body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True, exclude=exclude)
-
-            self._wrapper.put(url, json=body)
-            response = self._wrapper.get(url)
-            api_properties = AreaPropertiesAPI.model_validate(response.json())
-            area_properties = api_properties.to_user_model()
-
-        except APIError as e:
-            raise AreaPropertiesUpdateError(area_id, e.message) from e
-
-        return area_properties
 
     @override
     def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:

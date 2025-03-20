@@ -391,7 +391,6 @@ class AreaLocalService(BaseAreaService):
     def delete_area(self, area_id: str) -> None:
         raise NotImplementedError
 
-    @override
     def update_area_properties(self, area_id: str, properties: AreaPropertiesUpdate) -> AreaProperties:
         study_path = self.config.study_path
         local_properties = AreaPropertiesLocal.from_user_model(properties)
