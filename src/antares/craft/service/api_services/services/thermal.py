@@ -20,7 +20,7 @@ from antares.craft.exceptions.exceptions import (
     APIError,
     ThermalMatrixDownloadError,
     ThermalMatrixUpdateError,
-    ThermalsUpdateError,
+    ThermalsPropertiesUpdateError,
 )
 from antares.craft.model.thermal import (
     ThermalCluster,
@@ -124,6 +124,6 @@ class ThermalApiService(BaseThermalService):
                     thermal_properties = api_properties.to_user_model()
                     updated_thermal_clusters.update({cluster_dict[key]: thermal_properties})
         except APIError as e:
-            raise ThermalsUpdateError(self.study_id, e.message) from e
+            raise ThermalsPropertiesUpdateError(self.study_id, e.message) from e
 
         return updated_thermal_clusters

@@ -119,9 +119,9 @@ class ThermalDeletionError(Exception):
         super().__init__(self.message)
 
 
-class ThermalsUpdateError(Exception):
+class ThermalsPropertiesUpdateError(Exception):
     def __init__(self, study_id: str, message: str):
-        self.message = f"Could not update the clusters from the study {study_id} : {message}"
+        self.message = f"Could not update properties of the clusters from the study {study_id} : {message}"
         super().__init__(self.message)
 
 
