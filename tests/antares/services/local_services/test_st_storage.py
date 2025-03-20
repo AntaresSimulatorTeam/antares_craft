@@ -67,7 +67,7 @@ class TestSTStorage:
         with pytest.raises(
             MatrixFormatError,
             match=re.escape(
-                "Wrong format for storage/fr/sts_1/PMAX-injection matrix, expected shape is (8760, 1) and was : (2, 3)"
+                "Wrong format for storage/fr/sts_1/pmax_injection matrix, expected shape is (8760, 1) and was : (2, 3)"
             ),
         ):
             storage.update_pmax_injection(matrix)
