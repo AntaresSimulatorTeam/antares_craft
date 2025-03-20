@@ -33,10 +33,10 @@ class STStorageGroup(Enum):
 
 
 class STStorageMatrixName(Enum):
-    PMAX_INJECTION = "PMAX-injection"
-    PMAX_WITHDRAWAL = "PMAX-withdrawal"
-    LOWER_CURVE_RULE = "lower-rule-curve"
-    UPPER_RULE_CURVE = "upper-rule-curve"
+    PMAX_INJECTION = "pmax_injection"
+    PMAX_WITHDRAWAL = "pmax_withdrawal"
+    LOWER_CURVE_RULE = "lower_rule_curve"
+    UPPER_RULE_CURVE = "upper_rule_curve"
     INFLOWS = "inflows"
 
 
