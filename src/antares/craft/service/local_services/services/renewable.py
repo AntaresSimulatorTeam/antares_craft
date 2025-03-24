@@ -105,3 +105,9 @@ class RenewableLocalService(BaseRenewableService):
             renewable_cluster.area_id,
             renewable_cluster.id,
         )
+
+    @override
+    def update_renewable_clusters_properties(
+        self, new_props: dict[RenewableCluster, RenewableClusterPropertiesUpdate]
+    ) -> dict[RenewableCluster, RenewableClusterProperties]:
+        raise NotImplementedError

@@ -30,6 +30,7 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi
 from antares.craft.model.output import Output
+from antares.craft.model.renewable import RenewableCluster, RenewableClusterPropertiesUpdate
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterPropertiesUpdate
@@ -303,6 +304,17 @@ class Study:
         )
         for thermal in new_thermal_clusters_props:
             self._areas[thermal.area_id].get_thermals()[thermal.id]._properties = new_thermal_clusters_props[thermal]
+
+    def update_renewable_clusters(
+        self, new_properties: dict[RenewableCluster, RenewableClusterPropertiesUpdate]
+    ) -> None:
+        new_renewable_clusters_props = self._area_service.renewable_service.update_renewable_clusters_properties(
+            new_properties
+        )
+        for renewable in new_renewable_clusters_props:
+            self._areas[renewable.area_id].get_renewables()[renewable.id]._properties = new_renewable_clusters_props[
+                renewable
+            ]
 
     def update_links(self, new_properties: Dict[str, LinkPropertiesUpdate]) -> None:
         """

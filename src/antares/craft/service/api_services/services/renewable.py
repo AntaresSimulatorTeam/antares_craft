@@ -21,6 +21,7 @@ from antares.craft.exceptions.exceptions import (
     RenewableMatrixDownloadError,
     RenewableMatrixUpdateError,
     RenewablePropertiesUpdateError,
+    RenewablesPropertiesUpdateError,
 )
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesUpdate
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
@@ -100,3 +101,33 @@ class RenewableApiService(BaseRenewableService):
             renewables.setdefault(area_id, {})[renewable_cluster.id] = renewable_cluster
 
         return renewables
+
+    @override
+    def update_renewable_clusters_properties(
+        self, new_props: dict[RenewableCluster, RenewableClusterPropertiesUpdate]
+    ) -> dict[RenewableCluster, RenewableClusterProperties]:
+        url = f"{self._base_url}/studies/{self.study_id}/table-mode/renewables"
+        body = {}
+        cluster_dict = {}  # to fill the method's response
+        updated_renewable_clusters = {}
+
+        for cluster, props in new_props.items():
+            api_properties = RenewableClusterPropertiesAPI.from_user_model(props)
+            api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+            cluster_id = f"{cluster.area_id} / {cluster.id}"
+            body[cluster_id] = api_dict
+
+            cluster_dict[cluster_id] = cluster
+
+        try:
+            json_response = self._wrapper.put(url, json=body).json()
+            for key, json_properties in json_response.items():
+                if key in cluster_dict:  # Currently AntaresWeb returns all clusters not only the modified ones
+                    api_properties = RenewableClusterPropertiesAPI.model_validate(json_properties)
+                    renewable_properties = api_properties.to_user_model()
+                    updated_renewable_clusters.update({cluster_dict[key]: renewable_properties})
+
+        except APIError as e:
+            raise RenewablesPropertiesUpdateError(self.study_id, e.message) from e
+
+        return updated_renewable_clusters

@@ -180,6 +180,12 @@ class RenewableDeletionError(Exception):
         super().__init__(self.message)
 
 
+class RenewablesPropertiesUpdateError(Exception):
+    def __init__(self, study_id: str, message: str):
+        self.message = f"Could not update properties of the clusters from study {study_id} : {message}"
+        super().__init__(self.message)
+
+
 class STStorageCreationError(Exception):
     def __init__(self, st_storage_name: str, area_id: str, message: str) -> None:
         self.message = f"Could not create the short term storage {st_storage_name} inside area {area_id}: " + message

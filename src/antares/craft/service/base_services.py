@@ -725,6 +725,12 @@ class BaseRenewableService(ABC):
     def read_renewables(self) -> dict[str, dict[str, "RenewableCluster"]]:
         pass
 
+    @abstractmethod
+    def update_renewable_clusters_properties(
+        self, new_props: dict["RenewableCluster", "RenewableClusterPropertiesUpdate"]
+    ) -> dict["RenewableCluster", "RenewableClusterProperties"]:
+        pass
+
 
 class BaseShortTermStorageService(ABC):
     @abstractmethod
