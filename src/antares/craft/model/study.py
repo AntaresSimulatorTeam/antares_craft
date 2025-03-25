@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, cast
 
 import pandas as pd
 
-from antares.craft import APIconf
+from antares.craft import APIconf, STStoragePropertiesUpdate
 from antares.craft.exceptions.exceptions import (
     LinkCreationError,
     ReadingMethodUsedOufOfScopeError,
@@ -32,6 +32,7 @@ from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate,
 from antares.craft.model.output import Output
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
+from antares.craft.model.st_storage import STStorage
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterPropertiesUpdate
 from antares.craft.service.base_services import BaseLinkService, BaseStudyService, StudyServices
 
@@ -62,6 +63,7 @@ class Study:
         self._run_service = services.run_service
         self._binding_constraints_service = services.bc_service
         self._settings_service = services.settings_service
+        self._storage_service = services.short_term_storage_service
         self._settings = StudySettings()
         self._areas: dict[str, Area] = dict()
         self._links: dict[str, Link] = dict()
@@ -318,6 +320,12 @@ class Study:
         new_bc_props = self._binding_constraints_service.update_binding_constraints_properties(new_properties)
         for bc_props in new_bc_props:
             self._binding_constraints[bc_props]._properties = new_bc_props[bc_props]
+
+    def update_st_storages(self, new_properties: dict[STStorage, STStoragePropertiesUpdate]) -> None:
+        new_st_props = self._storage_service.update_st_storages_properties(new_properties)
+
+        for storage in new_st_props:
+            self._areas[storage.area_id]._st_storages[storage.id]._properties = new_st_props[storage]
 
 
 # Design note:

@@ -107,3 +107,9 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
     @override
     def get_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName) -> pd.DataFrame:
         return read_timeseries(MAPPING[ts_name], self.config.study_path, area_id=storage.area_id, cluster_id=storage.id)
+
+    @override
+    def update_st_storages_properties(
+        self, new_properties: dict[STStorage, STStoragePropertiesUpdate]
+    ) -> dict[STStorage, STStorageProperties]:
+        raise NotImplementedError

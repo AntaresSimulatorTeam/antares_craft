@@ -219,6 +219,12 @@ class STStorageDeletionError(Exception):
         super().__init__(self.message)
 
 
+class STStoragesPropertiesUpdateError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not update properties of the clusters from study {study_id} : {message}"
+        super().__init__(self.message)
+
+
 class BindingConstraintCreationError(Exception):
     def __init__(self, constraint_name: str, message: str) -> None:
         self.message = f"Could not create the binding constraint {constraint_name}: " + message

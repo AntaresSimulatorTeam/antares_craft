@@ -750,6 +750,12 @@ class BaseShortTermStorageService(ABC):
     def read_st_storages(self) -> dict[str, dict[str, "STStorage"]]:
         pass
 
+    @abstractmethod
+    def update_st_storages_properties(
+        self, new_properties: dict[STStorage, STStoragePropertiesUpdate]
+    ) -> dict[STStorage, STStorageProperties]:
+        pass
+
 
 class BaseRunService(ABC):
     @abstractmethod
