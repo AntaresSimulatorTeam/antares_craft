@@ -66,12 +66,12 @@ class Study:
     """
 
     def __init__(
-        self,
-        name: str,
-        version: str,
-        services: StudyServices,
-        path: PurePath = PurePath("."),
-        solver_path: Optional[Path] = None,
+            self,
+            name: str,
+            version: str,
+            services: StudyServices,
+            path: PurePath = PurePath("."),
+            solver_path: Optional[Path] = None,
     ):
         self.name = name
         self.version = version
@@ -110,6 +110,13 @@ class Study:
         self._settings = self._settings_service.read_study_settings()
 
     def update_settings(self, settings: StudySettingsUpdate) -> None:
+        """
+        Updates the study settings.
+
+        Parameters:
+            settings: StudySettingsUpdate
+                New settings to be applied to the study configuration.
+        """
         self._settings_service.edit_study_settings(settings)
         new_settings = self._settings_service.read_study_settings()
         self._settings.general_parameters = new_settings.general_parameters
@@ -121,36 +128,79 @@ class Study:
         self._settings.playlist_parameters = new_settings.playlist_parameters
 
     def get_areas(self) -> MappingProxyType[str, Area]:
+        """
+        Retrieve a dictionary of the study areas.
+        """
         return MappingProxyType(dict(sorted(self._areas.items())))
 
     def get_links(self) -> MappingProxyType[str, Link]:
+        """
+        Retrieve a dictionary of the study links.
+        """
         return MappingProxyType(self._links)
 
     def get_settings(self) -> StudySettings:
+        """
+        Retrieve the study settings.
+        """
         return self._settings
 
     def get_binding_constraints(self) -> MappingProxyType[str, BindingConstraint]:
+        """
+        Retrieve a dictionary of the binding constraints.
+        """
         return MappingProxyType(self._binding_constraints)
 
     def create_area(
-        self, area_name: str, *, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
+            self, area_name: str, *, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
     ) -> Area:
+        """
+        Adds a new area to the study.
+
+        Parameters:
+            area_name: the name of the new area
+            properties: optional values for the properties of the area. If none are provided,
+                        the default values are used.
+            ui: optional values for the UI properties of the area. If none are provided,
+                the default values are used.
+
+        Returns:
+            the newly created area.
+        """
         area = self._area_service.create_area(area_name, properties, ui)
         self._areas[area.id] = area
         return area
 
     def delete_area(self, area: Area) -> None:
+        """
+        Deletes the specified area.
+        """
         self._area_service.delete_area(area.id)
         self._areas.pop(area.id)
 
     def create_link(
-        self,
-        *,
-        area_from: str,
-        area_to: str,
-        properties: Optional[LinkProperties] = None,
-        ui: Optional[LinkUi] = None,
+            self,
+            *,
+            area_from: str,
+            area_to: str,
+            properties: Optional[LinkProperties] = None,
+            ui: Optional[LinkUi] = None,
     ) -> Link:
+        """
+        Adds a new link to the study.
+
+        Parameters:
+            area_from: the id of the area from which the link starts
+            area_to: the id of the area to which the link connects
+            properties: optional values for the properties of the link. If none are provided,
+                        the default values are used.
+            ui: optional values for the UI properties of the link. If none are provided,
+                the default values are used.
+
+        Returns:
+            the newly created link.
+        """
+
         temp_link = Link(area_from, area_to, link_service=cast(BaseLinkService, None))
         area_from, area_to = sorted([area_from, area_to])
         area_from_id = temp_link.area_from_id
@@ -171,32 +221,35 @@ class Study:
         return link
 
     def delete_link(self, link: Link) -> None:
+        """
+        Deletes the specified link.
+        """
         self._link_service.delete_link(link)
         self._links.pop(link.id)
 
     def create_binding_constraint(
-        self,
-        *,
-        name: str,
-        properties: Optional[BindingConstraintProperties] = None,
-        terms: Optional[List[ConstraintTerm]] = None,
-        less_term_matrix: Optional[pd.DataFrame] = None,
-        equal_term_matrix: Optional[pd.DataFrame] = None,
-        greater_term_matrix: Optional[pd.DataFrame] = None,
+            self,
+            *,
+            name: str,
+            properties: Optional[BindingConstraintProperties] = None,
+            terms: Optional[List[ConstraintTerm]] = None,
+            less_term_matrix: Optional[pd.DataFrame] = None,
+            equal_term_matrix: Optional[pd.DataFrame] = None,
+            greater_term_matrix: Optional[pd.DataFrame] = None,
     ) -> BindingConstraint:
         """
-        Create a new binding constraint and store it.
+        Create a new binding constraint.
 
-        Args:
-            name (str): The name of the binding constraint.
-            properties (Optional[BindingConstraintProperties]): Optional properties for the constraint.
-            terms (Optional[List[ConstraintTerm]]): Optional list of terms for the constraint.
-            less_term_matrix (Optional[pd.DataFrame]): Optional less-than term matrix.
-            equal_term_matrix (Optional[pd.DataFrame]): Optional equality term matrix.
-            greater_term_matrix (Optional[pd.DataFrame]): Optional greater-than term matrix.
+        Parameters:
+            name: The name of the binding constraint.
+            properties: Optional properties for the constraint.
+            terms: Optional list of terms for the constraint.
+            less_term_matrix: Optional less-than term matrix.
+            equal_term_matrix: Optional equality term matrix.
+            greater_term_matrix: Optional greater-than term matrix.
 
         Returns:
-            BindingConstraint: The created binding constraint.
+            The newly created binding constraint.
         """
         binding_constraint = self._binding_constraints_service.create_binding_constraint(
             name, properties, terms, less_term_matrix, equal_term_matrix, greater_term_matrix
@@ -212,10 +265,20 @@ class Study:
         self._binding_constraints = self._binding_constraints_service.read_binding_constraints()
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
+        """
+        Deletes the specified binding constraint.
+        """
         self._study_service.delete_binding_constraint(constraint)
         self._binding_constraints.pop(constraint.id)
 
     def delete(self, children: bool = False) -> None:
+        """
+        Deletes this study.
+
+        Parameters:
+            children: If True, also delete all children studies. That parameter only makes sense for
+                      variant studies on antares-web.
+        """
         self._study_service.delete(children)
 
     def create_variant(self, variant_name: str) -> "Study":
@@ -293,35 +356,67 @@ class Study:
         Args:
             output_id: id of the output to get
 
-        Returns: Output with the output_id
+        Returns:
+            Output with the output_id
 
-        Raises: KeyError if it doesn't exist
+        Raises:
+            KeyError if it doesn't exist
         """
         return self._outputs[output_id]
 
     def delete_outputs(self) -> None:
+        """
+        Deletes all simulation outputs.
+        """
         self._study_service.delete_outputs()
         self._outputs.clear()
 
     def delete_output(self, output_name: str) -> None:
+        """
+        Deletes the specified output.
+
+        Parameters:
+            output_name: the name of the output to delete
+        """
         self._study_service.delete_output(output_name)
         self._outputs.pop(output_name)
 
     def move(self, parent_path: Path) -> None:
+        """
+        Moves the study to another directory.
+        """
         self.path = self._study_service.move_study(parent_path)
 
     def generate_thermal_timeseries(self, nb_years: int) -> None:
+        """
+        Generates timeseries for thermal clusters availability, based on timeseries generation parameters.
+
+        Parameters:
+            nb_years: number of scenarios (years) to generate timeseries for.
+        """
         seed = self._settings.seed_parameters.seed_tsgen_thermal
         self._study_service.generate_thermal_timeseries(nb_years, self._areas, seed)
         # Copies objects to bypass the fact that the class is frozen
         self._settings.general_parameters = replace(self._settings.general_parameters, nb_timeseries_thermal=nb_years)
 
     def update_areas(self, new_properties: Dict[str, AreaPropertiesUpdate]) -> None:
+        """
+        Update existing areas properties.
+
+        Parameters:
+            new_properties: a dictionary of area ID to area update data
+        """
         new_areas_props = self._area_service.update_areas_properties(new_properties)
         for area_prop in new_areas_props:
             self._areas[area_prop]._properties = new_areas_props[area_prop]
 
     def update_thermal_clusters(self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]) -> None:
+        """
+        Update existing thermal cluster properties.
+
+        Parameters:
+            new_properties: a dictionary of cluster to cluster update data
+        """
         new_thermal_clusters_props = self._area_service.thermal_service.update_thermal_clusters_properties(
             new_properties
         )
@@ -329,8 +424,14 @@ class Study:
             self._areas[thermal.area_id]._thermals[thermal.id]._properties = new_thermal_clusters_props[thermal]
 
     def update_renewable_clusters(
-        self, new_properties: dict[RenewableCluster, RenewableClusterPropertiesUpdate]
+            self, new_properties: dict[RenewableCluster, RenewableClusterPropertiesUpdate]
     ) -> None:
+        """
+        Update existing renewable cluster properties.
+
+        Parameters:
+            new_properties: a dictionary of cluster to cluster update data
+        """
         new_renewable_clusters_props = self._area_service.renewable_service.update_renewable_clusters_properties(
             new_properties
         )
@@ -341,15 +442,22 @@ class Study:
 
     def update_links(self, new_properties: Dict[str, LinkPropertiesUpdate]) -> None:
         """
-        update several links with multiple new properties
+        Update existing links.
+
         Args:
-            new_properties: the properties dictionary we will update our links with
+            new_properties: a dictionary of link ID to link update data
         """
         new_links_props = self._link_service.update_links_properties(new_properties)
         for link_props in new_links_props:
             self._links[link_props]._properties = new_links_props[link_props]
 
     def update_binding_constraints(self, new_properties: Dict[str, BindingConstraintPropertiesUpdate]) -> None:
+        """
+        Update existing binding constraints.
+
+        Args:
+            new_properties: a dictionary of binding constraint ID to binding constraint update data
+        """
         new_bc_props = self._binding_constraints_service.update_binding_constraints_properties(new_properties)
         for bc_props in new_bc_props:
             self._binding_constraints[bc_props]._properties = new_bc_props[bc_props]
@@ -365,7 +473,7 @@ class Study:
 
 
 def create_study_local(
-    study_name: str, version: str, parent_directory: "Path", solver_path: Optional[Path] = None
+        study_name: str, version: str, parent_directory: "Path", solver_path: Optional[Path] = None
 ) -> "Study":
     """
     Creates a new study on your filesystem.
@@ -407,7 +515,7 @@ def read_study_local(study_path: "Path", solver_path: Optional[Path] = None) -> 
 
 
 def create_study_api(
-    study_name: str, version: str, api_config: APIconf, parent_path: "Optional[Path]" = None
+        study_name: str, version: str, api_config: APIconf, parent_path: "Optional[Path]" = None
 ) -> "Study":
     """
     Creates a study on antares-web server.
