@@ -18,9 +18,9 @@ import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
+    ClustersPropertiesUpdateError,
     ThermalMatrixDownloadError,
     ThermalMatrixUpdateError,
-    ThermalsPropertiesUpdateError,
 )
 from antares.craft.model.area import Area
 from antares.craft.model.study import Study
@@ -89,8 +89,8 @@ class TestCreateAPI:
             mocker.put(url, json={"description": antares_web_description_msg}, status_code=404)
 
             with pytest.raises(
-                ThermalsPropertiesUpdateError,
-                match=f"Could not update properties of the clusters from study {self.study_id} : {antares_web_description_msg}",
+                ClustersPropertiesUpdateError,
+                match=f"Could not update properties of the thermal clusters from study {self.study_id} : {antares_web_description_msg}",
             ):
                 self.thermal.update_properties(properties=properties)
 
@@ -449,7 +449,7 @@ class TestCreateAPI:
             mocker.put(url, json={"description": self.antares_web_description_msg}, status_code=400)
 
             with pytest.raises(
-                ThermalsPropertiesUpdateError,
-                match=f"Could not update properties of the clusters from study {self.study_id} : {self.antares_web_description_msg}",
+                ClustersPropertiesUpdateError,
+                match=f"Could not update properties of the thermal clusters from study {self.study_id} : {self.antares_web_description_msg}",
             ):
                 self.study.update_thermal_clusters({})

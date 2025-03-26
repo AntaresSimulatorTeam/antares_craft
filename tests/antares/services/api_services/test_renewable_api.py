@@ -19,10 +19,9 @@ import pandas as pd
 from antares.craft import Study
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
+    ClustersPropertiesUpdateError,
     RenewableMatrixDownloadError,
     RenewableMatrixUpdateError,
-    RenewablePropertiesUpdateError,
-    RenewablesPropertiesUpdateError,
 )
 from antares.craft.model.area import Area
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesUpdate
@@ -53,27 +52,20 @@ class TestCreateAPI:
     def test_update_renewable_properties_success(self):
         with requests_mock.Mocker() as mocker:
             properties = RenewableClusterPropertiesUpdate(enabled=False)
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.renewable.area_id}/"
-                f"clusters/renewable/{self.renewable.id}"
-            )
-            mocker.patch(url, json={"id": "id", "name": "name", "enabled": False}, status_code=200)
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/renewables"
+            mocker.put(url, json={f"{self.renewable.area_id} / {self.renewable.id}": {"enabled": False}})
             self.renewable.update_properties(properties=properties)
 
     def test_update_renewable_properties_fails(self):
         with requests_mock.Mocker() as mocker:
             properties = RenewableClusterProperties(enabled=False)
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.renewable.area_id}"
-                f"/clusters/renewable/{self.renewable.id}"
-            )
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/renewables"
             antares_web_description_msg = "Server KO"
-            mocker.patch(url, json={"description": antares_web_description_msg}, status_code=404)
+            mocker.put(url, json={"description": antares_web_description_msg}, status_code=404)
 
             with pytest.raises(
-                RenewablePropertiesUpdateError,
-                match=f"Could not update properties for renewable cluster {self.renewable.id} "
-                f"inside area {self.area.id}: {antares_web_description_msg}",
+                ClustersPropertiesUpdateError,
+                match=f"Could not update properties of the renewable clusters from study {self.study_id} : {antares_web_description_msg}",
             ):
                 self.renewable.update_properties(properties=properties)
 
@@ -231,7 +223,7 @@ class TestCreateAPI:
             mocker.put(url, json={"description": self.antares_web_description_msg}, status_code=400)
 
             with pytest.raises(
-                RenewablesPropertiesUpdateError,
-                match=f"Could not update properties of the clusters from study {self.study_id} : {self.antares_web_description_msg}",
+                ClustersPropertiesUpdateError,
+                match=f"Could not update properties of the renewable clusters from study {self.study_id} : {self.antares_web_description_msg}",
             ):
                 self.study.update_renewable_clusters({})

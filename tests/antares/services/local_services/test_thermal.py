@@ -388,11 +388,9 @@ variableomcost = 5.0
         dict_thermal = {thermal: update_for_thermal}
         local_study_w_thermal.update_thermal_clusters(dict_thermal)
 
-        updated_renewable = local_study_w_thermal.get_areas()["fr"].get_thermals()["test thermal cluster"]
-
         # testing the modified value
-        assert not updated_renewable.properties.enabled
-        assert updated_renewable.properties.unit_count == 13
+        assert not thermal.properties.enabled
+        assert thermal.properties.unit_count == 13
 
         # testing the unmodified value
-        assert updated_renewable.properties.group == ThermalClusterGroup.OTHER1
+        assert thermal.properties.group == ThermalClusterGroup.OTHER1

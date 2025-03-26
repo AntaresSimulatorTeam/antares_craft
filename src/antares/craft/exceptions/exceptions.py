@@ -119,9 +119,9 @@ class ThermalDeletionError(Exception):
         super().__init__(self.message)
 
 
-class ThermalsPropertiesUpdateError(Exception):
-    def __init__(self, study_id: str, message: str):
-        self.message = f"Could not update properties of the clusters from study {study_id} : {message}"
+class ClustersPropertiesUpdateError(Exception):
+    def __init__(self, study_id: str, cluster_type: str, message: str) -> None:
+        self.message = f"Could not update properties of the {cluster_type} clusters from study {study_id} : {message}"
         super().__init__(self.message)
 
 
@@ -177,12 +177,6 @@ class RenewableDeletionError(Exception):
             f"Could not delete the following renewable clusters: {', '.join(renewable_names)} inside area {area_id}: "
             + message
         )
-        super().__init__(self.message)
-
-
-class RenewablesPropertiesUpdateError(Exception):
-    def __init__(self, study_id: str, message: str):
-        self.message = f"Could not update properties of the clusters from study {study_id} : {message}"
         super().__init__(self.message)
 
 

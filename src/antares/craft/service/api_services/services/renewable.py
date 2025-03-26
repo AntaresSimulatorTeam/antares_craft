@@ -18,10 +18,10 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
+    ClustersPropertiesUpdateError,
     RenewableMatrixDownloadError,
     RenewableMatrixUpdateError,
     RenewablePropertiesUpdateError,
-    RenewablesPropertiesUpdateError,
 )
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesUpdate
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
@@ -128,6 +128,6 @@ class RenewableApiService(BaseRenewableService):
                     updated_renewable_clusters.update({cluster_dict[key]: renewable_properties})
 
         except APIError as e:
-            raise RenewablesPropertiesUpdateError(self.study_id, e.message) from e
+            raise ClustersPropertiesUpdateError(self.study_id, "renewable", e.message) from e
 
         return updated_renewable_clusters

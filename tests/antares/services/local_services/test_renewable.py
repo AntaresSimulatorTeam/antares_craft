@@ -73,12 +73,10 @@ class TestRenewable:
         dict_renewable = {renewable: update_for_renewable}
         local_study_with_renewable.update_renewable_clusters(dict_renewable)
 
-        updated_renewable = local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"]
-
         # testing the modified value
-        assert not updated_renewable.properties.enabled
-        assert updated_renewable.properties.unit_count == 13
-        assert updated_renewable.properties.ts_interpretation == TimeSeriesInterpretation.PRODUCTION_FACTOR
+        assert not renewable.properties.enabled
+        assert renewable.properties.unit_count == 13
+        assert renewable.properties.ts_interpretation == TimeSeriesInterpretation.PRODUCTION_FACTOR
 
         # testing the unmodified value
-        assert updated_renewable.properties.group == RenewableClusterGroup.OTHER1
+        assert renewable.properties.group == RenewableClusterGroup.OTHER1
