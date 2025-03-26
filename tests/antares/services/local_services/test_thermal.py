@@ -380,3 +380,19 @@ variableomcost = 5.0
             ),
         ):
             area_fr.delete_thermal_cluster(thermal_1)
+
+    def test_update_thermal_properties(self, local_study_w_thermal):
+        area_fr = local_study_w_thermal.get_areas()["fr"]
+        thermal = area_fr.get_thermals()["test thermal cluster"]
+        update_for_thermal = ThermalClusterPropertiesUpdate(enabled=False, unit_count=13)
+        dict_thermal = {thermal: update_for_thermal}
+        local_study_w_thermal.update_thermal_clusters(dict_thermal)
+
+        updated_renewable = local_study_w_thermal.get_areas()["fr"].get_thermals()["test thermal cluster"]
+
+        # testing the modified value
+        assert not updated_renewable.properties.enabled
+        assert updated_renewable.properties.unit_count == 13
+
+        # testing the unmodified value
+        assert updated_renewable.properties.group == ThermalClusterGroup.OTHER1

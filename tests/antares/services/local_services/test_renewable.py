@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from antares.craft import Study
+from antares.craft import RenewableClusterGroup, Study, TimeSeriesInterpretation
 from antares.craft.exceptions.exceptions import MatrixFormatError
 from antares.craft.model.renewable import RenewableClusterProperties, RenewableClusterPropertiesUpdate
 
@@ -63,3 +63,22 @@ class TestRenewable:
         # Asserts the file is empty
         ini_path = Path(local_study_with_renewable.path / "input" / "renewables" / "clusters" / "fr" / "list.ini")
         assert not ini_path.read_text()
+
+    def test_update_renewable_properties(self, local_study_with_renewable):
+        area_fr = local_study_with_renewable.get_areas()["fr"]
+        renewable = area_fr.get_renewables()["renewable cluster"]
+        update_for_renewable = RenewableClusterPropertiesUpdate(
+            enabled=False, unit_count=13, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
+        )
+        dict_renewable = {renewable: update_for_renewable}
+        local_study_with_renewable.update_renewable_clusters(dict_renewable)
+
+        updated_renewable = local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"]
+
+        # testing the modified value
+        assert not updated_renewable.properties.enabled
+        assert updated_renewable.properties.unit_count == 13
+        assert updated_renewable.properties.ts_interpretation == TimeSeriesInterpretation.PRODUCTION_FACTOR
+
+        # testing the unmodified value
+        assert updated_renewable.properties.group == RenewableClusterGroup.OTHER1

@@ -303,7 +303,7 @@ class Study:
             new_properties
         )
         for thermal in new_thermal_clusters_props:
-            self._areas[thermal.area_id].get_thermals()[thermal.id]._properties = new_thermal_clusters_props[thermal]
+            self._areas[thermal.area_id]._thermals[thermal.id]._properties = new_thermal_clusters_props[thermal]
 
     def update_renewable_clusters(
         self, new_properties: dict[RenewableCluster, RenewableClusterPropertiesUpdate]
@@ -312,7 +312,7 @@ class Study:
             new_properties
         )
         for renewable in new_renewable_clusters_props:
-            self._areas[renewable.area_id].get_renewables()[renewable.id]._properties = new_renewable_clusters_props[
+            self._areas[renewable.area_id]._renewables[renewable.id]._properties = new_renewable_clusters_props[
                 renewable
             ]
 
