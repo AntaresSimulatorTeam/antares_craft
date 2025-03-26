@@ -278,6 +278,30 @@ class TestWebClient:
         assert not properties.enabled
         assert properties.group == RenewableClusterGroup.WIND_ON_SHORE
 
+        # Update multiple renewable clusters properties at once
+        renewable_update_1 = RenewableClusterPropertiesUpdate(group=RenewableClusterGroup.WIND_ON_SHORE, unit_count=10)
+        renewable_update_2 = RenewableClusterPropertiesUpdate(
+            group=RenewableClusterGroup.THERMAL_SOLAR, enabled=False, nominal_capacity=1340
+        )
+        update_for_renewable = {renewable_fr: renewable_update_1, renewable_onshore: renewable_update_2}
+
+        study.update_renewable_clusters(update_for_renewable)
+
+        fr_renew_properties = renewable_fr.properties
+        onshore_properties = renewable_onshore.properties
+
+        assert fr_renew_properties.unit_count == 10
+        assert fr_renew_properties.group == RenewableClusterGroup.WIND_ON_SHORE
+        # checking the old values are not modified
+        assert fr_renew_properties.nominal_capacity == 0
+        assert fr_renew_properties.enabled
+
+        assert onshore_properties.group == RenewableClusterGroup.THERMAL_SOLAR
+        assert not onshore_properties.enabled
+        assert onshore_properties.nominal_capacity == 1340
+
+        assert onshore_properties.unit_count == 1
+
         # test short term storage creation with default values
         st_storage_name = "cluster_test %?"
         storage_fr = area_fr.create_st_storage(st_storage_name)
