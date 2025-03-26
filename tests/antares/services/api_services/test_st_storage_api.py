@@ -162,3 +162,10 @@ class TestCreateAPI:
 
             assert expected_st_storage.id == actual_st_storage.id
             assert expected_st_storage.name == actual_st_storage.name
+
+    def test_update_st_storages_properties_success(self):
+        url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/st-storages"
+        dict_st_storages = {}
+
+        self.study._areas[""] = self.area
+        self.study._areas[""] = self.area

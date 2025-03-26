@@ -81,3 +81,6 @@ class TestSTStorage:
         # Asserts the file is empty
         ini_path = Path(local_study_w_storage.path / "input" / "st-storage" / "clusters" / "fr" / "list.ini")
         assert not ini_path.read_text()
+
+    def test_st_storages_update_properties(self):
+        pass
