@@ -250,7 +250,7 @@ class Area:
         Parameters:
             renewable_name: The name of the new renewable cluster.
             properties: The properties of the new renewable cluster.
-            series: Optional[pd.DataFrame] = None,
+            series: Hourly timeseries of generation value.
 
         Returns:
             The newly created renewable cluster.
@@ -260,6 +260,16 @@ class Area:
         return renewable
 
     def create_st_storage(self, st_storage_name: str, properties: Optional[STStorageProperties] = None) -> STStorage:
+        """
+        Creates a new short term storage in this area.
+
+        Parameters:
+            st_storage_name: The name of the new short term storage.
+            properties: The properties of the new short term storage.
+
+        Returns:
+            The newly created short term storage.
+        """
         storage = self._area_service.create_st_storage(self.id, st_storage_name, properties)
         self._st_storages[storage.id] = storage
 
