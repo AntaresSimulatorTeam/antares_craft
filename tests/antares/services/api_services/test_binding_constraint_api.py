@@ -18,7 +18,7 @@ import pandas as pd
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
     ConstraintMatrixDownloadError,
-    ConstraintPropertiesUpdateError,
+    ConstraintsPropertiesUpdateError,
     ConstraintTermEditionError,
 )
 from antares.craft.model.area import Area
@@ -61,6 +61,7 @@ class TestCreateAPI:
     )
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
+    study_url = f"https://antares.com/api/v1/studies/{study_id}"
 
     def test_update_binding_constraint_properties_success(self):
         with requests_mock.Mocker() as mocker:
@@ -68,10 +69,10 @@ class TestCreateAPI:
             creation_properties = BindingConstraintProperties(enabled=False)
             api_properties = BindingConstraintPropertiesAPI.from_user_model(creation_properties)
             constraint = BindingConstraint("bc_1", self.services.bc_service)
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}"
+            url = f"{self.study_url}/table-mode/binding-constraints"
             mocker.put(
                 url,
-                json={"id": "id", "name": "name", "terms": [], **api_properties.model_dump(mode="json")},
+                json={"bc_1": api_properties.model_dump(mode="json")},
                 status_code=200,
             )
             constraint.update_properties(properties=update_properties)
@@ -81,13 +82,13 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             update_properties = BindingConstraintPropertiesUpdate(enabled=False)
             constraint = BindingConstraint("bc_1", self.services.bc_service)
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}"
+            url = f"{self.study_url}/table-mode/binding-constraints"
             antares_web_description_msg = "Server KO"
             mocker.put(url, json={"description": antares_web_description_msg}, status_code=404)
 
             with pytest.raises(
-                ConstraintPropertiesUpdateError,
-                match=f"Could not update properties for binding constraint {constraint.id}: {antares_web_description_msg}",
+                ConstraintsPropertiesUpdateError,
+                match=f"Could not update binding constraints properties from study {self.study_id}: {antares_web_description_msg}",
             ):
                 constraint.update_properties(properties=update_properties)
 
@@ -96,7 +97,7 @@ class TestCreateAPI:
             existing_term = ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=4, offset=3)
             constraint = BindingConstraint("bc_1", self.services.bc_service, None, [existing_term])
 
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}/term"
+            url = f"{self.study_url}/bindingconstraints/{constraint.id}/term"
             mocker.put(url, status_code=200)
 
             new_term = ConstraintTermUpdate(data=LinkData(area1="fr", area2="be"), weight=2)
@@ -109,7 +110,7 @@ class TestCreateAPI:
             existing_term = ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=4, offset=3)
             constraint = BindingConstraint("bc_1", self.services.bc_service, None, [existing_term])
 
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint.id}/term"
+            url = f"{self.study_url}/bindingconstraints/{constraint.id}/term"
             mocker.put(url, json={"description": self.antares_web_description_msg}, status_code=422)
 
             new_term = ConstraintTermUpdate(data=LinkData(area1="fr", area2="be"), weight=2)
@@ -123,7 +124,7 @@ class TestCreateAPI:
         constraint = BindingConstraint("bc_test", self.services.bc_service)
         for matrix_method, enum_value, path, expected_matrix in constraint_set:
             with requests_mock.Mocker() as mocker:
-                url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path={path}"
+                url = f"{self.study_url}/raw?path={path}"
                 mocker.get(url, json={"data": expected_matrix, "index": [0], "columns": [0]}, status_code=200)
                 constraint_matrix = getattr(constraint, matrix_method)()
             assert constraint_matrix.equals(self.matrix)
@@ -132,7 +133,7 @@ class TestCreateAPI:
         constraint = BindingConstraint("bc_test", self.services.bc_service)
         for matrix_method, enum_value, path, _ in constraint_set:
             with requests_mock.Mocker() as mocker:
-                url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path={path}"
+                url = f"{self.study_url}/raw?path={path}"
                 mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
                 with pytest.raises(
                     ConstraintMatrixDownloadError,

@@ -18,10 +18,9 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
+    ClustersPropertiesUpdateError,
     ThermalMatrixDownloadError,
     ThermalMatrixUpdateError,
-    ThermalPropertiesUpdateError,
-    ThermalsUpdateError,
 )
 from antares.craft.model.thermal import (
     ThermalCluster,
@@ -42,29 +41,6 @@ class ThermalApiService(BaseThermalService):
         self.study_id = study_id
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
-
-    @override
-    def update_thermal_properties(
-        self, thermal_cluster: ThermalCluster, properties: ThermalClusterPropertiesUpdate
-    ) -> ThermalClusterProperties:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{thermal_cluster.area_id}/clusters/thermal/{thermal_cluster.id}"
-        try:
-            api_model = ThermalClusterPropertiesAPI.from_user_model(properties)
-            body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
-            if not body:
-                return thermal_cluster.properties
-
-            response = self._wrapper.patch(url, json=body)
-            json_response = response.json()
-            del json_response["id"]
-            del json_response["name"]
-            new_api_properties = ThermalClusterPropertiesAPI.model_validate(json_response)
-            new_properties = new_api_properties.to_user_model()
-
-        except APIError as e:
-            raise ThermalPropertiesUpdateError(thermal_cluster.id, thermal_cluster.area_id, e.message) from e
-
-        return new_properties
 
     @override
     def set_thermal_matrix(
@@ -122,7 +98,7 @@ class ThermalApiService(BaseThermalService):
         return thermals
 
     @override
-    def update_multiple_thermal_clusters(
+    def update_thermal_clusters_properties(
         self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
     ) -> dict[ThermalCluster, ThermalClusterProperties]:
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/thermals"
@@ -148,6 +124,6 @@ class ThermalApiService(BaseThermalService):
                     thermal_properties = api_properties.to_user_model()
                     updated_thermal_clusters.update({cluster_dict[key]: thermal_properties})
         except APIError as e:
-            raise ThermalsUpdateError(self.study_id, e.message) from e
+            raise ClustersPropertiesUpdateError(self.study_id, "thermal", e.message) from e
 
         return updated_thermal_clusters

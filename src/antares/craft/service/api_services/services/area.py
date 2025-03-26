@@ -20,9 +20,8 @@ from antares.craft.exceptions.exceptions import (
     APIError,
     AreaCreationError,
     AreaDeletionError,
-    AreaPropertiesUpdateError,
+    AreasPropertiesUpdateError,
     AreasRetrievalError,
-    AreasUpdateError,
     AreaUiUpdateError,
     MatrixDownloadError,
     MatrixUploadError,
@@ -352,25 +351,6 @@ class AreaApiService(BaseAreaService):
             raise MatrixUploadError(area_id, "misc-gen", e.message) from e
 
     @override
-    def update_area_properties(self, area_id: str, properties: AreaPropertiesUpdate) -> AreaProperties:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/properties/form"
-        try:
-            api_model = AreaPropertiesAPI.from_user_model(properties)
-            # todo: change this exclude with AntaresWeb 2.20
-            exclude = {"spread_unsupplied_energy_cost", "spread_spilled_energy_cost"}
-            body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True, exclude=exclude)
-
-            self._wrapper.put(url, json=body)
-            response = self._wrapper.get(url)
-            api_properties = AreaPropertiesAPI.model_validate(response.json())
-            area_properties = api_properties.to_user_model()
-
-        except APIError as e:
-            raise AreaPropertiesUpdateError(area_id, e.message) from e
-
-        return area_properties
-
-    @override
     def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
         base_url = f"{self._base_url}/studies/{self.study_id}/areas"
         try:
@@ -527,7 +507,7 @@ class AreaApiService(BaseAreaService):
         return properties
 
     @override
-    def update_multiple_areas(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
+    def update_areas_properties(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
         body = {}
         updated_areas: Dict[str, AreaProperties] = {}
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/areas"
@@ -546,6 +526,6 @@ class AreaApiService(BaseAreaService):
                 updated_areas.update({area: area_properties})
 
         except APIError as e:
-            raise AreasUpdateError(self.study_id, e.message) from e
+            raise AreasPropertiesUpdateError(self.study_id, e.message) from e
 
         return updated_areas

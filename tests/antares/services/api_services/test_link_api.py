@@ -18,7 +18,7 @@ import pandas as pd
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
     LinkDownloadError,
-    LinkPropertiesUpdateError,
+    LinksPropertiesUpdateError,
     LinksRetrievalError,
     LinkUiUpdateError,
     LinkUploadError,
@@ -68,6 +68,7 @@ class TestCreateAPI:
     antares_web_description_msg = "Mocked Server KO"
     link = Link(area_from.id, area_to.id, services.link_service)
     matrix = pd.DataFrame(data=[[0]])
+    study_url = f"https://antares.com/api/v1/studies/{study_id}"
 
     def test_update_links_properties_success(self):
         filter_opt = {FilterOption.DAILY}
@@ -75,8 +76,8 @@ class TestCreateAPI:
             properties = LinkProperties(filter_synthesis=filter_opt, filter_year_by_year=filter_opt)
             update_properties = LinkPropertiesUpdate(filter_synthesis=filter_opt, filter_year_by_year=filter_opt)
             api_model = LinkPropertiesAndUiAPI.from_user_model(None, properties)
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/links/{self.area_from.id}/{self.area_to.id}"
-            response = {"area1": "", "area2": "", **api_model.model_dump(mode="json", by_alias=True)}
+            url = f"{self.study_url}/table-mode/links"
+            response = {self.link.id: {"area1": "", "area2": "", **api_model.model_dump(mode="json", by_alias=True)}}
             mocker.put(url, status_code=200, json=response)
 
             self.link.update_properties(update_properties)
@@ -86,13 +87,13 @@ class TestCreateAPI:
         filter_opt = {FilterOption.DAILY}
         with requests_mock.Mocker() as mocker:
             update_properties = LinkPropertiesUpdate(filter_synthesis=filter_opt, filter_year_by_year=filter_opt)
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/links/{self.area_from.id}/{self.area_to.id}"
+            url = f"{self.study_url}/table-mode/links"
             antares_web_description_msg = "Server KO"
             mocker.put(url, json={"description": antares_web_description_msg}, status_code=404)
 
             with pytest.raises(
-                LinkPropertiesUpdateError,
-                match=f"Could not update properties for link {self.link.id}: {antares_web_description_msg}",
+                LinksPropertiesUpdateError,
+                match=f"Could not update links properties from study {self.study_id} : {antares_web_description_msg}",
             ):
                 self.link.update_properties(update_properties)
 
@@ -101,7 +102,7 @@ class TestCreateAPI:
             ui = LinkUi(link_width=12)
             update_ui = LinkUiUpdate(link_width=12)
             api_model = LinkPropertiesAndUiAPI.from_user_model(ui, None)
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/links/{self.area_from.id}/{self.area_to.id}"
+            url = f"{self.study_url}/links/{self.area_from.id}/{self.area_to.id}"
             response = {"area1": "", "area2": "", **api_model.model_dump(mode="json", by_alias=True)}
             mocker.put(url, status_code=200, json=response)
 
@@ -111,7 +112,7 @@ class TestCreateAPI:
     def test_update_links_ui_fails(self):
         with requests_mock.Mocker() as mocker:
             update_ui = LinkUiUpdate(link_width=12)
-            url = f"https://antares.com/api/v1/studies/{self.study_id}/links/{self.area_from.id}/{self.area_to.id}"
+            url = f"{self.study_url}/links/{self.area_from.id}/{self.area_to.id}"
             antares_web_description_msg = "Server KO"
             mocker.put(url, json={"description": antares_web_description_msg}, status_code=404)
             with pytest.raises(
@@ -122,10 +123,7 @@ class TestCreateAPI:
 
     def test_create_parameters_success(self):
         with requests_mock.Mocker() as mocker:
-            raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
-                f"input/links/{self.area_from.id}/{self.area_to.id}_parameters"
-            )
+            raw_url = f"{self.study_url}/raw?path=" f"input/links/{self.area_from.id}/{self.area_to.id}_parameters"
 
             mocker.post(raw_url, status_code=200)
 
@@ -133,10 +131,7 @@ class TestCreateAPI:
 
     def test_create_parameters_fail(self):
         with requests_mock.Mocker() as mocker:
-            raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
-                f"input/links/{self.area_from.id}/{self.area_to.id}_parameters"
-            )
+            raw_url = f"{self.study_url}/raw?path=" f"input/links/{self.area_from.id}/{self.area_to.id}_parameters"
 
             antares_web_description_msg = "Server KO"
             mocker.post(raw_url, json={"description": antares_web_description_msg}, status_code=404)
@@ -150,8 +145,7 @@ class TestCreateAPI:
     def test_create_direct_capacity_success(self):
         with requests_mock.Mocker() as mocker:
             raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
-                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
+                f"{self.study_url}/raw?path=" f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
             )
 
             mocker.post(raw_url, status_code=200)
@@ -161,8 +155,7 @@ class TestCreateAPI:
     def test_create_direct_capacity_fail(self):
         with requests_mock.Mocker() as mocker:
             raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
-                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
+                f"{self.study_url}/raw?path=" f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
             )
 
             antares_web_description_msg = "Server KO"
@@ -177,8 +170,7 @@ class TestCreateAPI:
     def test_create_indirect_capacity_success(self):
         with requests_mock.Mocker() as mocker:
             raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
-                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
+                f"{self.study_url}/raw?path=" f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
             )
 
             mocker.post(raw_url, status_code=200)
@@ -188,8 +180,7 @@ class TestCreateAPI:
     def test_create_indirect_capacity_fail(self):
         with requests_mock.Mocker() as mocker:
             raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
-                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
+                f"{self.study_url}/raw?path=" f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
             )
 
             mocker.post(raw_url, json={"description": self.antares_web_description_msg}, status_code=404)
@@ -202,10 +193,7 @@ class TestCreateAPI:
 
     def test_get_parameters_success(self):
         with requests_mock.Mocker() as mocker:
-            raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
-                f"input/links/{self.area_from.id}/{self.area_to.id}_parameters"
-            )
+            raw_url = f"{self.study_url}/raw?path=" f"input/links/{self.area_from.id}/{self.area_to.id}_parameters"
             mocker.get(raw_url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
 
             matrix = self.link.get_parameters()
@@ -213,10 +201,7 @@ class TestCreateAPI:
 
     def test_get_parameters_fail(self):
         with requests_mock.Mocker() as mocker:
-            raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
-                f"input/links/{self.area_from.id}/{self.area_to.id}_parameters"
-            )
+            raw_url = f"{self.study_url}/raw?path=" f"input/links/{self.area_from.id}/{self.area_to.id}_parameters"
 
             mocker.get(raw_url, json={"description": self.antares_web_description_msg}, status_code=404)
 
@@ -229,8 +214,7 @@ class TestCreateAPI:
     def test_get_indirect_capacity_success(self):
         with requests_mock.Mocker() as mocker:
             raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
-                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
+                f"{self.study_url}/raw?path=" f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
             )
             mocker.get(raw_url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
 
@@ -240,8 +224,7 @@ class TestCreateAPI:
     def test_get_indirect_capacity_fail(self):
         with requests_mock.Mocker() as mocker:
             raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
-                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
+                f"{self.study_url}/raw?path=" f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
             )
 
             mocker.get(raw_url, json={"description": self.antares_web_description_msg}, status_code=404)
@@ -255,8 +238,7 @@ class TestCreateAPI:
     def test_get_direct_capacity_success(self):
         with requests_mock.Mocker() as mocker:
             raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
-                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
+                f"{self.study_url}/raw?path=" f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
             )
             mocker.get(raw_url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
 
@@ -266,8 +248,7 @@ class TestCreateAPI:
     def test_get_direct_capacity_fail(self):
         with requests_mock.Mocker() as mocker:
             raw_url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/raw?path="
-                f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
+                f"{self.study_url}/raw?path=" f"input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
             )
 
             mocker.get(raw_url, json={"description": self.antares_web_description_msg}, status_code=404)
@@ -279,7 +260,7 @@ class TestCreateAPI:
                 self.link.get_capacity_direct()
 
     def test_read_links_success(self, expected_link):
-        url_read_links = f"https://antares.com/api/v1/studies/{self.study_id}/links"
+        url_read_links = f"{self.study_url}/links"
 
         json_links = [
             {
@@ -315,7 +296,7 @@ class TestCreateAPI:
     def test_read_links_fail(self):
         self.study._links = {}
         with requests_mock.Mocker() as mocker:
-            raw_url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
+            raw_url = f"{self.study_url}/links"
             mocker.get(raw_url, json={"description": self.antares_web_description_msg}, status_code=404)
 
             with pytest.raises(

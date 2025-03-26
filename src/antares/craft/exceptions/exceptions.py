@@ -50,25 +50,19 @@ class AreaDeletionError(Exception):
 
 class AreasRetrievalError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not retrieve the areas from the study {study_id} : " + message
+        self.message = f"Could not retrieve the areas from study {study_id} : " + message
         super().__init__(self.message)
 
 
-class AreasUpdateError(Exception):
+class AreasPropertiesUpdateError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not update the areas from the study {study_id} : {message}"
+        self.message = f"Could not update areas properties from study {study_id} : {message}"
         super().__init__(self.message)
 
 
 class LinkCreationError(Exception):
     def __init__(self, area_from: str, area_to: str, message: str) -> None:
         self.message = f"Could not create the link {area_from} / {area_to}: " + message
-        super().__init__(self.message)
-
-
-class LinkPropertiesUpdateError(Exception):
-    def __init__(self, link_name: str, message: str) -> None:
-        self.message = f"Could not update properties for link {link_name}: " + message
         super().__init__(self.message)
 
 
@@ -90,9 +84,15 @@ class LinksRetrievalError(Exception):
         super().__init__(self.message)
 
 
-class LinksUpdateError(Exception):
+class LinkPropertiesUpdateError(Exception):
+    def __init__(self, link_id: str, study_id: str, message: str) -> None:
+        self.message = f"Could not update properties for link {link_id} from study {study_id} : {message}"
+        super().__init__(self.message)
+
+
+class LinksPropertiesUpdateError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not update links from study {study_id} : {message}"
+        self.message = f"Could not update links properties from study {study_id} : {message}"
         super().__init__(self.message)
 
 
@@ -119,9 +119,9 @@ class ThermalDeletionError(Exception):
         super().__init__(self.message)
 
 
-class ThermalsUpdateError(Exception):
-    def __init__(self, study_id: str, message: str):
-        self.message = f"Could not update the clusters from the study {study_id} : {message}"
+class ClustersPropertiesUpdateError(Exception):
+    def __init__(self, study_id: str, cluster_type: str, message: str) -> None:
+        self.message = f"Could not update properties of the {cluster_type} clusters from study {study_id} : {message}"
         super().__init__(self.message)
 
 
@@ -231,9 +231,9 @@ class ConstraintPropertiesUpdateError(Exception):
         super().__init__(self.message)
 
 
-class BindingConstraintsUpdateError(Exception):
+class ConstraintsPropertiesUpdateError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not update binding constraints from the study {study_id}: {message}"
+        self.message = f"Could not update binding constraints properties from study {study_id}: {message}"
         super().__init__(self.message)
 
 

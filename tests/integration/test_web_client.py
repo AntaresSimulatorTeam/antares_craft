@@ -232,7 +232,7 @@ class TestWebClient:
         thermal_update_2 = ThermalClusterPropertiesUpdate(op1=10.2, spread_cost=60.5, group=ThermalClusterGroup.NUCLEAR)
         update_for_thermals = {thermal_fr: thermal_update_1, thermal_value_be: thermal_update_2}
 
-        study.update_multiple_thermal_clusters(update_for_thermals)
+        study.update_thermal_clusters(update_for_thermals)
 
         fr_properties = thermal_fr.properties
         assert fr_properties.marginal_cost == 10.7
@@ -278,6 +278,30 @@ class TestWebClient:
         assert not properties.enabled
         assert properties.group == RenewableClusterGroup.WIND_ON_SHORE
 
+        # Update multiple renewable clusters properties at once
+        renewable_update_1 = RenewableClusterPropertiesUpdate(group=RenewableClusterGroup.WIND_ON_SHORE, unit_count=10)
+        renewable_update_2 = RenewableClusterPropertiesUpdate(
+            group=RenewableClusterGroup.THERMAL_SOLAR, enabled=False, nominal_capacity=1340
+        )
+        update_for_renewable = {renewable_fr: renewable_update_1, renewable_onshore: renewable_update_2}
+
+        study.update_renewable_clusters(update_for_renewable)
+
+        fr_renew_properties = renewable_fr.properties
+        onshore_properties = renewable_onshore.properties
+
+        assert fr_renew_properties.unit_count == 10
+        assert fr_renew_properties.group == RenewableClusterGroup.WIND_ON_SHORE
+        # checking the old values are not modified
+        assert fr_renew_properties.nominal_capacity == 0
+        assert fr_renew_properties.enabled
+
+        assert onshore_properties.group == RenewableClusterGroup.THERMAL_SOLAR
+        assert not onshore_properties.enabled
+        assert onshore_properties.nominal_capacity == 1340
+
+        assert onshore_properties.unit_count == 1
+
         # test short term storage creation with default values
         st_storage_name = "cluster_test %?"
         storage_fr = area_fr.create_st_storage(st_storage_name)
@@ -318,7 +342,7 @@ class TestWebClient:
             non_dispatch_power=False, energy_cost_spilled=0.45, energy_cost_unsupplied=3.0
         )
         dict_area_props = {area_fr.id: area_props_update_1, area_be.id: area_props_update_2}
-        study.update_multiple_areas(dict_area_props)
+        study.update_areas(dict_area_props)
 
         area_fr_props = area_fr.properties
         area_be_props = area_be.properties
@@ -386,7 +410,7 @@ class TestWebClient:
         )
         dict_binding_constraints_update = {constraint_1.name: update_bc_props_1, constraint_2.name: update_bc_props_2}
 
-        study.update_multiple_binding_constraints(dict_binding_constraints_update)
+        study.update_binding_constraints(dict_binding_constraints_update)
 
         assert constraint_1.properties.time_step == BindingConstraintFrequency.DAILY
         assert constraint_1.properties.filter_synthesis == {FilterOption.WEEKLY, FilterOption.ANNUAL}
@@ -544,7 +568,7 @@ class TestWebClient:
             transmission_capacities=TransmissionCapacities.ENABLED, asset_type=AssetType.GAZ
         )
 
-        study.update_multiple_links({link_be_fr.id: link_properties_update_1, link_de_fr.id: link_properties_update_2})
+        study.update_links({link_be_fr.id: link_properties_update_1, link_de_fr.id: link_properties_update_2})
 
         link_be_fr = study.get_links()["be / fr"]
 

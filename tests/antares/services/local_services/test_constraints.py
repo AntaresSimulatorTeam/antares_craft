@@ -85,7 +85,7 @@ class TestBindingConstraints:
         update_properties_1 = BindingConstraintPropertiesUpdate(group="group_1")
         update_properties_2 = BindingConstraintPropertiesUpdate(enabled=False)
         body = {bc_1.id: update_properties_1, bc_2.id: update_properties_2}
-        local_study_w_constraints.update_multiple_binding_constraints(body)
+        local_study_w_constraints.update_binding_constraints(body)
         # Asserts constraints properties were modified
         assert bc_1.properties == BindingConstraintProperties(
             group="group_1", operator=BindingConstraintOperator.GREATER, enabled=False

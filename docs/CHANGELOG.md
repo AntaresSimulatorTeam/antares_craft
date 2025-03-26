@@ -1,3 +1,28 @@
+v0.2.3 (2025-03-20)
+-------------------
+
+### Breaking changes
+* We dropped the support of Python3.9. The supported versions of Python are the 3.10, 3.11 and 3.12
+* Every `update_multiple_...` method has been renamed in `update_...s` [145](https://github.com/AntaresSimulatorTeam/antares_craft/pull/145)
+
+### Features
+* **hydro**: handle inflow-structure [137](https://github.com/AntaresSimulatorTeam/antares_craft/pull/137)
+* **adequacy-patch**: change default values for 2 fields [141](https://github.com/AntaresSimulatorTeam/antares_craft/pull/141)
+
+### Bug fixes
+* **local**: use right st-storage matrices names [140](https://github.com/AntaresSimulatorTeam/antares_craft/pull/140)
+* **local**: several bugs made antares simulation fail [147](https://github.com/AntaresSimulatorTeam/antares_craft/pull/147)
+
+### Perfs
+* **local**: avoid multiple i/o operations on the same files inside reading methods [134](https://github.com/AntaresSimulatorTeam/antares_craft/pull/134)
+* **local**: speed-up `study.update_thermals` methods [142](https://github.com/AntaresSimulatorTeam/antares_craft/pull/142)
+
+### Miscellaneous
+* **chore** remove useless read methods [135](https://github.com/AntaresSimulatorTeam/antares_craft/pull/135)
+* **chore** simplify read methods [136](https://github.com/AntaresSimulatorTeam/antares_craft/pull/136)
+* **chore**: clean link code [143](https://github.com/AntaresSimulatorTeam/antares_craft/pull/143)
+
+
 v0.2.2 (2025-03-17)
 -------------------
 

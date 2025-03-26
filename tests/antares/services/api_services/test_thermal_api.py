@@ -18,10 +18,9 @@ import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
+    ClustersPropertiesUpdateError,
     ThermalMatrixDownloadError,
     ThermalMatrixUpdateError,
-    ThermalPropertiesUpdateError,
-    ThermalsUpdateError,
 )
 from antares.craft.model.area import Area
 from antares.craft.model.study import Study
@@ -73,31 +72,25 @@ class TestCreateAPI:
     thermal_2 = ThermalCluster(services.thermal_service, area_2.id, "thermal-2")
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
+    study_url = f"https://antares.com/api/v1/studies/{study_id}"
 
     def test_update_thermal_properties_success(self):
         with requests_mock.Mocker() as mocker:
             properties = ThermalClusterPropertiesUpdate(co2=4)
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/"
-                f"areas/{self.thermal.area_id}/clusters/thermal/{self.thermal.id}"
-            )
-            mocker.patch(url, json={"id": "id", "name": "name", "co2": 4}, status_code=200)
+            url = f"{self.study_url}/table-mode/thermals"
+            mocker.put(url, json={f"{self.thermal.area_id} / {self.thermal.id}": {"co2": 4}}, status_code=200)
             self.thermal.update_properties(properties=properties)
 
     def test_update_thermal_properties_fails(self):
         with requests_mock.Mocker() as mocker:
             properties = ThermalClusterPropertiesUpdate(co2=4)
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/"
-                f"areas/{self.thermal.area_id}/clusters/thermal/{self.thermal.id}"
-            )
+            url = f"{self.study_url}/table-mode/thermals"
             antares_web_description_msg = "Server KO"
-            mocker.patch(url, json={"description": antares_web_description_msg}, status_code=404)
+            mocker.put(url, json={"description": antares_web_description_msg}, status_code=404)
 
             with pytest.raises(
-                ThermalPropertiesUpdateError,
-                match=f"Could not update properties for thermal cluster "
-                f"{self.thermal.id} inside area {self.area.id}: {antares_web_description_msg}",
+                ClustersPropertiesUpdateError,
+                match=f"Could not update properties of the thermal clusters from study {self.study_id} : {antares_web_description_msg}",
             ):
                 self.thermal.update_properties(properties=properties)
 
@@ -436,7 +429,7 @@ class TestCreateAPI:
                 updated_thermal[thermal] = thermal_update
 
             mocker.put(url, json=json_thermals)
-            self.study.update_multiple_thermal_clusters(updated_thermal)
+            self.study.update_thermal_clusters(updated_thermal)
 
             thermal = self.study._areas["area-test"]._thermals["thermal-test"]
             thermal_1 = self.study._areas["area-test-2"]._thermals["thermal-2"]
@@ -456,7 +449,7 @@ class TestCreateAPI:
             mocker.put(url, json={"description": self.antares_web_description_msg}, status_code=400)
 
             with pytest.raises(
-                ThermalsUpdateError,
-                match=f"Could not update the clusters from the study {self.study_id} : {self.antares_web_description_msg}",
+                ClustersPropertiesUpdateError,
+                match=f"Could not update properties of the thermal clusters from study {self.study_id} : {self.antares_web_description_msg}",
             ):
-                self.study.update_multiple_thermal_clusters({})
+                self.study.update_thermal_clusters({})

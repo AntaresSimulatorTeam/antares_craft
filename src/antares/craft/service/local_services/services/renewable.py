@@ -105,3 +105,46 @@ class RenewableLocalService(BaseRenewableService):
             renewable_cluster.area_id,
             renewable_cluster.id,
         )
+
+    @override
+    def update_renewable_clusters_properties(
+        self, new_props: dict[RenewableCluster, RenewableClusterPropertiesUpdate]
+    ) -> dict[RenewableCluster, RenewableClusterProperties]:
+        new_properties_dict: dict[RenewableCluster, RenewableClusterProperties] = {}
+        cluster_name_to_object: dict[str, RenewableCluster] = {}
+
+        properties_by_areas: dict[str, dict[str, RenewableClusterPropertiesUpdate]] = {}
+
+        for renewable_cluster, properties in new_props.items():
+            properties_by_areas.setdefault(renewable_cluster.area_id, {})[renewable_cluster.name] = properties
+            cluster_name_to_object[renewable_cluster.name] = renewable_cluster
+
+        for area_id, value in properties_by_areas.items():
+            all_renewable_names = set(value.keys())  # used to raise an Exception if a cluster doesn't exist
+            ini_file = IniFile(self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id)
+            renewable_dict = ini_file.ini_dict
+            for renewable in renewable_dict.values():
+                renewable_name = renewable["name"]
+                if renewable_name in value:
+                    all_renewable_names.remove(renewable_name)
+
+                    # Update properties
+                    upd_properties = RenewableClusterPropertiesLocal.from_user_model(value[renewable_name])
+                    upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                    renewable.update(upd_props_as_dict)
+
+                    # Prepare the object to return
+                    local_dict = copy.deepcopy(renewable)
+                    del local_dict["name"]
+                    local_properties = RenewableClusterPropertiesLocal.model_validate(local_dict)
+                    new_properties_dict[cluster_name_to_object[renewable_name]] = local_properties.to_user_model()
+            if len(all_renewable_names) > 0:
+                raise RenewablePropertiesUpdateError(
+                    next(iter(all_renewable_names)), area_id, "The cluster does not exist"
+                )
+
+            # Update ini file
+            ini_file.ini_dict = renewable_dict
+            ini_file.write_ini_file()
+
+        return new_properties_dict
