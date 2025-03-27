@@ -19,10 +19,10 @@ import pandas as pd
 from antares.craft import Study
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
+    ClustersPropertiesUpdateError,
     STStorageMatrixDownloadError,
     STStorageMatrixUploadError,
     STStoragePropertiesUpdateError,
-    STStoragesPropertiesUpdateError,
 )
 from antares.craft.model.area import Area
 from antares.craft.model.st_storage import STStorage, STStorageProperties, STStoragePropertiesUpdate
@@ -243,7 +243,7 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             mocker.put(url, json={"description": self.antares_web_description_msg}, status_code=400)
             with pytest.raises(
-                STStoragesPropertiesUpdateError,
-                match=f"Could not update properties of the clusters from study {self.study_id} : {self.antares_web_description_msg}",
+                ClustersPropertiesUpdateError,
+                match=f"Could not update properties of the short term storage clusters from study {self.study_id} : {self.antares_web_description_msg}",
             ):
                 self.study.update_st_storages({})

@@ -16,10 +16,10 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
+    ClustersPropertiesUpdateError,
     STStorageMatrixDownloadError,
     STStorageMatrixUploadError,
     STStoragePropertiesUpdateError,
-    STStoragesPropertiesUpdateError,
 )
 from antares.craft.model.st_storage import (
     STStorage,
@@ -130,6 +130,6 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
                     updated_storages.update({cluster_dict[key]: storage_properties})
 
         except APIError as e:
-            raise STStoragesPropertiesUpdateError(self.study_id, e.message) from e
+            raise ClustersPropertiesUpdateError(self.study_id, "short term storage", e.message) from e
 
         return updated_storages

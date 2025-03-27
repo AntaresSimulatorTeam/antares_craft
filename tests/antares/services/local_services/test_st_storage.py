@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from antares.craft import Study
+from antares.craft import STStorageGroup, Study
 from antares.craft.exceptions.exceptions import MatrixFormatError
 from antares.craft.model.st_storage import STStorageProperties, STStoragePropertiesUpdate
 
@@ -82,5 +82,16 @@ class TestSTStorage:
         ini_path = Path(local_study_w_storage.path / "input" / "st-storage" / "clusters" / "fr" / "list.ini")
         assert not ini_path.read_text()
 
-    def test_st_storages_update_properties(self):
-        pass
+    def test_st_storages_update_properties(self, local_study_w_storage):
+        area_fr = local_study_w_storage.get_areas()["fr"]
+        storage = area_fr.get_st_storages()["sts_1"]
+        update_for_storage = STStoragePropertiesUpdate(enabled=False, group=STStorageGroup.PSP_CLOSED)
+        dict_storage = {storage: update_for_storage}
+        local_study_w_storage.update_st_storages(dict_storage)
+
+        # testing the modified value
+        assert not storage.properties.enabled
+        assert storage.properties.group == STStorageGroup.PSP_CLOSED
+
+        # testing the unmodified value
+        assert storage.properties.efficiency == 0.4
