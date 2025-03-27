@@ -752,8 +752,8 @@ class BaseShortTermStorageService(ABC):
 
     @abstractmethod
     def update_st_storages_properties(
-        self, new_properties: dict[STStorage, STStoragePropertiesUpdate]
-    ) -> dict[STStorage, STStorageProperties]:
+        self, new_properties: dict["STStorage", "STStoragePropertiesUpdate"]
+    ) -> dict["STStorage", "STStorageProperties"]:
         pass
 
 
