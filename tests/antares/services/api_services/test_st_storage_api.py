@@ -22,6 +22,7 @@ from antares.craft.exceptions.exceptions import (
     STStorageMatrixDownloadError,
     STStorageMatrixUploadError,
     STStoragePropertiesUpdateError,
+    STStoragesPropertiesUpdateError,
 )
 from antares.craft.model.area import Area
 from antares.craft.model.st_storage import STStorage, STStorageProperties, STStoragePropertiesUpdate
@@ -232,9 +233,9 @@ class TestCreateAPI:
             assert storage.properties.efficiency == json_storages["study_test / battery_fr"]["efficiency"]
             assert storage.properties.group.value == json_storages["study_test / battery_fr"]["group"]
 
-            assert storage_1.properties.initial_level == json_storages["study_test / battery_fr"]["unitCount"]
-            assert storage_1.properties.efficiency == json_storages["study_test / battery_fr"]["efficiency"]
-            assert storage_1.properties.group.value == json_storages["study_test / battery_fr"]["group"]
+            assert storage_1.properties.initial_level == json_storages["study_test / duracell"]["initialLevel"]
+            assert storage_1.properties.efficiency == json_storages["study_test / duracell"]["efficiency"]
+            assert storage_1.properties.group.value == json_storages["study_test / duracell"]["group"]
 
     def test_update_st_storages_properties_fail(self):
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/st-storages"
@@ -242,7 +243,7 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             mocker.put(url, json={"description": self.antares_web_description_msg}, status_code=400)
             with pytest.raises(
-                STStoragePropertiesUpdateError,
+                STStoragesPropertiesUpdateError,
                 match=f"Could not update properties of the clusters from study {self.study_id} : {self.antares_web_description_msg}",
             ):
                 self.study.update_st_storages({})

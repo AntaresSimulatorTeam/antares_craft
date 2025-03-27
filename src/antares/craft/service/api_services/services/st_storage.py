@@ -119,7 +119,7 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
             cluster_id = f"{storage.area_id} / {storage.id}"
             body[cluster_id] = api_dict
 
-            cluster_dict[cluster_id] = api_dict
+            cluster_dict[cluster_id] = storage
 
         try:
             json_response = self._wrapper.put(url, json=body).json()
