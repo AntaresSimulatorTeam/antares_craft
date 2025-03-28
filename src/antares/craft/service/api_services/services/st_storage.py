@@ -16,9 +16,9 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
+    ClustersPropertiesUpdateError,
     STStorageMatrixDownloadError,
     STStorageMatrixUploadError,
-    STStoragePropertiesUpdateError,
 )
 from antares.craft.model.st_storage import (
     STStorage,
@@ -38,29 +38,6 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
         self.study_id = study_id
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
-
-    @override
-    def update_st_storage_properties(
-        self, st_storage: STStorage, properties: STStoragePropertiesUpdate
-    ) -> STStorageProperties:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{st_storage.area_id}/storages/{st_storage.id}"
-        try:
-            api_model = STStoragePropertiesAPI.from_user_model(properties)
-            body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
-            if not body:
-                return st_storage.properties
-
-            response = self._wrapper.patch(url, json=body)
-            json_response = response.json()
-            del json_response["id"]
-            del json_response["name"]
-            new_api_properties = STStoragePropertiesAPI.model_validate(json_response)
-            new_properties = new_api_properties.to_user_model()
-
-        except APIError as e:
-            raise STStoragePropertiesUpdateError(st_storage.id, st_storage.area_id, e.message) from e
-
-        return new_properties
 
     @override
     def set_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:
@@ -102,3 +79,33 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
             storages.setdefault(area_id, {})[st_storage.id] = st_storage
 
         return storages
+
+    @override
+    def update_st_storages_properties(
+        self, new_properties: dict[STStorage, STStoragePropertiesUpdate]
+    ) -> dict[STStorage, STStorageProperties]:
+        url = f"{self._base_url}/studies/{self.study_id}/table-mode/st-storages"
+        updated_storages: dict[STStorage, STStorageProperties] = {}
+        body = {}
+        cluster_dict = {}
+
+        for storage, props in new_properties.items():
+            api_properties = STStoragePropertiesAPI.from_user_model(props)
+            api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+            cluster_id = f"{storage.area_id} / {storage.id}"
+            body[cluster_id] = api_dict
+
+            cluster_dict[cluster_id] = storage
+
+        try:
+            json_response = self._wrapper.put(url, json=body).json()
+            for key, json_properties in json_response.items():
+                if key in cluster_dict:  # Currently AntaresWeb returns all clusters not only the modified ones
+                    api_properties = STStoragePropertiesAPI.model_validate(json_properties)
+                    storage_properties = api_properties.to_user_model()
+                    updated_storages.update({cluster_dict[key]: storage_properties})
+
+        except APIError as e:
+            raise ClustersPropertiesUpdateError(self.study_id, "short term storage", e.message) from e
+
+        return updated_storages

@@ -381,6 +381,31 @@ class TestWebClient:
         assert area_be.get_st_storages() == {}
         assert area_fr.get_st_storages() == {battery_fr.id: battery_fr, storage_fr.id: storage_fr}
 
+        # using update_st_storages to modify existing storages properties and checking they've been modified
+        battery_fr_update = STStoragePropertiesUpdate(
+            group=STStorageGroup.PSP_CLOSED, enabled=False, injection_nominal_capacity=1000
+        )
+        storage_fr_update = STStoragePropertiesUpdate(group=STStorageGroup.PONDAGE, efficiency=0)
+        update_for_storages = {battery_fr: battery_fr_update, storage_fr: storage_fr_update}
+
+        study.update_st_storages(update_for_storages)
+
+        battery_fr_properties = battery_fr.properties
+        storage_fr_properties = storage_fr.properties
+        assert battery_fr_properties.group == STStorageGroup.PSP_CLOSED
+        assert not battery_fr_properties.enabled
+        assert battery_fr_properties.injection_nominal_capacity == 1000
+        # Checking if the other values haven't been modified
+        assert battery_fr_properties.initial_level == 0.5
+        assert battery_fr_properties.efficiency == 1
+
+        assert storage_fr_properties.group == STStorageGroup.PONDAGE
+        assert storage_fr_properties.efficiency == 0
+        # Checking if the other values haven't been modified
+        assert storage_fr_properties.enabled
+        assert storage_fr_properties.injection_nominal_capacity == 0
+        assert storage_fr_properties.reservoir_capacity == 0
+
         # test binding constraint creation without terms
         properties = BindingConstraintProperties(enabled=False, group="group_1")
         constraint_1 = study.create_binding_constraint(name="bc_1", properties=properties)

@@ -734,17 +734,6 @@ class BaseRenewableService(ABC):
 
 class BaseShortTermStorageService(ABC):
     @abstractmethod
-    def update_st_storage_properties(
-        self, st_storage: "STStorage", properties: "STStoragePropertiesUpdate"
-    ) -> "STStorageProperties":
-        """
-        Args:
-            st_storage: concerned storage
-            properties: new properties. Only registered fields will be updated.
-        """
-        pass
-
-    @abstractmethod
     def get_storage_matrix(self, storage: "STStorage", ts_name: "STStorageMatrixName") -> pd.DataFrame:
         pass
 
@@ -754,6 +743,12 @@ class BaseShortTermStorageService(ABC):
 
     @abstractmethod
     def read_st_storages(self) -> dict[str, dict[str, "STStorage"]]:
+        pass
+
+    @abstractmethod
+    def update_st_storages_properties(
+        self, new_properties: dict["STStorage", "STStoragePropertiesUpdate"]
+    ) -> dict["STStorage", "STStorageProperties"]:
         pass
 
 

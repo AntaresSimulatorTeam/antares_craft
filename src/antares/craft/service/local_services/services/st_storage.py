@@ -49,32 +49,6 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         self.study_name = study_name
 
     @override
-    def update_st_storage_properties(
-        self, st_storage: STStorage, properties: STStoragePropertiesUpdate
-    ) -> STStorageProperties:
-        area_id = st_storage.area_id
-        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area_id)
-        storage_dict = ini_file.ini_dict
-        for storage in storage_dict.values():
-            if storage["name"] == st_storage.name:
-                # Update properties
-                upd_properties = STStoragePropertiesLocal.from_user_model(properties)
-                upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
-                storage.update(upd_props_as_dict)
-
-                # Update ini file
-                ini_file.ini_dict = storage_dict
-                ini_file.write_ini_file()
-
-                # Prepare the object to return
-                local_dict = copy.deepcopy(storage)
-                del local_dict["name"]
-                local_properties = STStoragePropertiesLocal.model_validate(local_dict)
-
-                return local_properties.to_user_model()
-        raise STStoragePropertiesUpdateError(st_storage.name, area_id, "The storage does not exist")
-
-    @override
     def read_st_storages(self) -> dict[str, dict[str, STStorage]]:
         st_storages: dict[str, dict[str, STStorage]] = {}
         cluster_path = self.config.study_path / "input" / "st-storage" / "clusters"
@@ -107,3 +81,46 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
     @override
     def get_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName) -> pd.DataFrame:
         return read_timeseries(MAPPING[ts_name], self.config.study_path, area_id=storage.area_id, cluster_id=storage.id)
+
+    @override
+    def update_st_storages_properties(
+        self, new_properties: dict[STStorage, STStoragePropertiesUpdate]
+    ) -> dict[STStorage, STStorageProperties]:
+        new_properties_dict: dict[STStorage, STStorageProperties] = {}
+        cluster_name_to_object: dict[str, STStorage] = {}
+
+        properties_by_areas: dict[str, dict[str, STStoragePropertiesUpdate]] = {}
+
+        for sts, properties in new_properties.items():
+            properties_by_areas.setdefault(sts.area_id, {})[sts.name] = properties
+            cluster_name_to_object[sts.name] = sts
+
+        for area_id, value in properties_by_areas.items():
+            all_storage_name = set(value.keys())  # used to raise an Exception if a storage doesn't exist
+            ini_file = IniFile(self.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area_id)
+            st_storage_dict = ini_file.ini_dict
+            for storage in st_storage_dict.values():
+                storage_name = storage["name"]
+                if storage_name in value:
+                    all_storage_name.remove(storage_name)
+
+                    # Update properties
+                    upd_properties = STStoragePropertiesLocal.from_user_model(value[storage_name])
+                    upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                    storage.update(upd_props_as_dict)
+
+                    # Prepare the object to return
+                    local_dict = copy.deepcopy(storage)
+                    del local_dict["name"]
+                    local_properties = STStoragePropertiesLocal.model_validate(local_dict)
+                    new_properties_dict[cluster_name_to_object[storage_name]] = local_properties.to_user_model()
+            if len(all_storage_name) > 0:
+                raise STStoragePropertiesUpdateError(
+                    next(iter(all_storage_name)), area_id, "The storage does not exist"
+                )
+
+            # Update ini file
+            ini_file.ini_dict = st_storage_dict
+            ini_file.write_ini_file()
+
+        return new_properties_dict
