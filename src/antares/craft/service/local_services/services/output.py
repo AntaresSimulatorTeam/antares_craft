@@ -25,6 +25,7 @@ class OutputLocalService(BaseOutputService):
 
     @override
     def get_matrix(self, output_id: str, file_path: str) -> pd.DataFrame:
+        full_path = f"{output_id}/economy/{file_path}"
         raise NotImplementedError
 
     @override
