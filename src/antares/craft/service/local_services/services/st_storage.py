@@ -49,32 +49,6 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         self.study_name = study_name
 
     @override
-    def update_st_storage_properties(
-        self, st_storage: STStorage, properties: STStoragePropertiesUpdate
-    ) -> STStorageProperties:
-        area_id = st_storage.area_id
-        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area_id)
-        storage_dict = ini_file.ini_dict
-        for storage in storage_dict.values():
-            if storage["name"] == st_storage.name:
-                # Update properties
-                upd_properties = STStoragePropertiesLocal.from_user_model(properties)
-                upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
-                storage.update(upd_props_as_dict)
-
-                # Update ini file
-                ini_file.ini_dict = storage_dict
-                ini_file.write_ini_file()
-
-                # Prepare the object to return
-                local_dict = copy.deepcopy(storage)
-                del local_dict["name"]
-                local_properties = STStoragePropertiesLocal.model_validate(local_dict)
-
-                return local_properties.to_user_model()
-        raise STStoragePropertiesUpdateError(st_storage.name, area_id, "The storage does not exist")
-
-    @override
     def read_st_storages(self) -> dict[str, dict[str, STStorage]]:
         st_storages: dict[str, dict[str, STStorage]] = {}
         cluster_path = self.config.study_path / "input" / "st-storage" / "clusters"
@@ -122,7 +96,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
             cluster_name_to_object[sts.name] = sts
 
         for area_id, value in properties_by_areas.items():
-            all_storage_name = set(value.keys())  # used to raise an Exception if a cluster doesn't exist
+            all_storage_name = set(value.keys())  # used to raise an Exception if a storage doesn't exist
             ini_file = IniFile(self.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area_id)
             st_storage_dict = ini_file.ini_dict
             for storage in st_storage_dict.values():
@@ -142,7 +116,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
                     new_properties_dict[cluster_name_to_object[storage_name]] = local_properties.to_user_model()
             if len(all_storage_name) > 0:
                 raise STStoragePropertiesUpdateError(
-                    next(iter(all_storage_name)), area_id, "The cluster does not exist"
+                    next(iter(all_storage_name)), area_id, "The storage does not exist"
                 )
 
             # Update ini file

@@ -920,7 +920,7 @@ class TestReadSTStorage:
         for area in areas.values():
             storages = area.get_st_storages()
             if area.name == "fr":
-                assert len(storages) == 1
+                assert len(storages) == 2
                 storage = storages["sts_1"]
                 assert storage.name == "sts_1"
                 assert storage.properties.efficiency == 0.4

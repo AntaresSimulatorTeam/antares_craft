@@ -75,7 +75,8 @@ class TestSTStorage:
     def test_deletion(self, local_study_w_storage):
         area_fr = local_study_w_storage.get_areas()["fr"]
         storage = area_fr.get_st_storages()["sts_1"]
-        area_fr.delete_st_storages([storage])
+        storage_1 = area_fr.get_st_storages()["sts_2"]
+        area_fr.delete_st_storages([storage, storage_1])
         # Asserts the area dict is empty
         assert area_fr.get_st_storages() == {}
         # Asserts the file is empty
@@ -85,13 +86,21 @@ class TestSTStorage:
     def test_st_storages_update_properties(self, local_study_w_storage):
         area_fr = local_study_w_storage.get_areas()["fr"]
         storage = area_fr.get_st_storages()["sts_1"]
+        storage_1 = area_fr.get_st_storages()["sts_2"]
         update_for_storage = STStoragePropertiesUpdate(enabled=False, group=STStorageGroup.PSP_CLOSED)
-        dict_storage = {storage: update_for_storage}
+        update_for_storage_1 = STStoragePropertiesUpdate(group=STStorageGroup.PONDAGE, injection_nominal_capacity=1000)
+        dict_storage = {storage: update_for_storage, storage_1: update_for_storage_1}
         local_study_w_storage.update_st_storages(dict_storage)
 
         # testing the modified value
         assert not storage.properties.enabled
         assert storage.properties.group == STStorageGroup.PSP_CLOSED
-
         # testing the unmodified value
         assert storage.properties.efficiency == 0.4
+
+        # testing the modified value
+        assert storage_1.properties.group == STStorageGroup.PONDAGE
+        assert storage_1.properties.injection_nominal_capacity == 1000
+        # testing the unmodified value
+        assert storage_1.properties.enabled
+        assert storage_1.properties.initial_level == 0.5

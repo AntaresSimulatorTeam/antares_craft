@@ -22,10 +22,9 @@ from antares.craft.exceptions.exceptions import (
     ClustersPropertiesUpdateError,
     STStorageMatrixDownloadError,
     STStorageMatrixUploadError,
-    STStoragePropertiesUpdateError,
 )
 from antares.craft.model.area import Area
-from antares.craft.model.st_storage import STStorage, STStorageProperties, STStoragePropertiesUpdate
+from antares.craft.model.st_storage import STStorage, STStoragePropertiesUpdate
 from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.services.area import AreaApiService
@@ -52,33 +51,24 @@ class TestCreateAPI:
 
     def test_update_st_storage_properties_success(self):
         with requests_mock.Mocker() as mocker:
-            properties = STStorageProperties(enabled=False)
-            api_properties = STStoragePropertiesAPI.from_user_model(properties)
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/"
-                f"areas/{self.storage.area_id}/storages/{self.storage.id}"
+            properties = STStoragePropertiesUpdate(enabled=False)
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/st-storages"
+            mocker.put(
+                url, json={f"{self.storage.area_id} / {self.storage.area_id}": {"enabled": False}}, status_code=200
             )
-            mocker.patch(
-                url, json={"id": "id", "name": "name", **api_properties.model_dump(mode="json")}, status_code=200
-            )
-            self.storage.update_properties(properties=properties)
+            self.study.update_st_storages({self.storage: properties})
 
     def test_update_st_storage_properties_fails(self):
         with requests_mock.Mocker() as mocker:
-            properties = STStorageProperties(enabled=False)
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.storage.area_id}/"
-                f"storages/{self.storage.id}"
-            )
-            antares_web_description_msg = "Server KO"
-            mocker.patch(url, json={"description": antares_web_description_msg}, status_code=404)
+            properties = STStoragePropertiesUpdate(enabled=False)
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/st-storages"
+            mocker.put(url, json={"description": self.antares_web_description_msg}, status_code=404)
 
             with pytest.raises(
-                STStoragePropertiesUpdateError,
-                match=f"Could not update properties for short term storage {self.storage.id} "
-                f"inside area {self.area.id}: {antares_web_description_msg}",
+                ClustersPropertiesUpdateError,
+                match=f"Could not update properties of the short term storage clusters from study {self.study_id} : {self.antares_web_description_msg}",
             ):
-                self.storage.update_properties(properties=properties)
+                self.study.update_st_storages({self.storage: properties})
 
     def test_get_storage_matrix_success(self):
         with requests_mock.Mocker() as mocker:

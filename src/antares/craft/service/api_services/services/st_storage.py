@@ -19,7 +19,6 @@ from antares.craft.exceptions.exceptions import (
     ClustersPropertiesUpdateError,
     STStorageMatrixDownloadError,
     STStorageMatrixUploadError,
-    STStoragePropertiesUpdateError,
 )
 from antares.craft.model.st_storage import (
     STStorage,
@@ -39,29 +38,6 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
         self.study_id = study_id
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
-
-    @override
-    def update_st_storage_properties(
-        self, st_storage: STStorage, properties: STStoragePropertiesUpdate
-    ) -> STStorageProperties:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{st_storage.area_id}/storages/{st_storage.id}"
-        try:
-            api_model = STStoragePropertiesAPI.from_user_model(properties)
-            body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
-            if not body:
-                return st_storage.properties
-
-            response = self._wrapper.patch(url, json=body)
-            json_response = response.json()
-            del json_response["id"]
-            del json_response["name"]
-            new_api_properties = STStoragePropertiesAPI.model_validate(json_response)
-            new_properties = new_api_properties.to_user_model()
-
-        except APIError as e:
-            raise STStoragePropertiesUpdateError(st_storage.id, st_storage.area_id, e.message) from e
-
-        return new_properties
 
     @override
     def set_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:

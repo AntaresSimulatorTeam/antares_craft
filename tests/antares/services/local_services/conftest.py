@@ -93,6 +93,7 @@ def local_study_w_thermals(tmp_path, local_study_w_thermal) -> Study:
 def local_study_w_storage(tmp_path, local_study_w_areas) -> Study:
     st_properties = STStorageProperties(efficiency=0.4, initial_level_optim=True)
     local_study_w_areas.get_areas()["fr"].create_st_storage("sts_1", st_properties)
+    local_study_w_areas.get_areas()["fr"].create_st_storage("sts_2", st_properties)
     return local_study_w_areas
 
 
