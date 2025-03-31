@@ -29,13 +29,12 @@ from antares.craft.model.binding_constraint import (
 from antares.craft.model.output import Output
 from antares.craft.model.thermal import LocalTSGenerationBehavior
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.tsgen.duration_generator import ProbabilityLaw
 from antares.tsgen.random_generator import MersenneTwisterRNG
 from antares.tsgen.ts_generator import OutageGenerationParameters, ThermalCluster, TimeseriesGenerator
 from typing_extensions import override
-
-from antares.craft.tools.serde_local.ini_reader import IniReader
-from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 logger = logging.getLogger(__name__)
 

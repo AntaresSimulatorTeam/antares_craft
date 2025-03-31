@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -39,11 +40,28 @@ class HydroLocalService(BaseHydroService):
     def _save_ini(self, content: dict[str, Any]) -> None:
         IniWriter().write(content, self.config.study_path / "input" / "hydro" / "hydro.ini")
 
-    def _get_inflow_ini(self, area_id: str) -> dict[str, Any]:
-        return IniReader().read(self.config.study_path / "input" / "hydro" / "prepro" / area_id / "prepro.ini")
+    def _get_inflow_path(self, area_id: str) -> Path:
+        return self.config.study_path / "input" / "hydro" / "prepro" / area_id / "prepro.ini"
 
-    def _save_inflow_ini(self, content: dict[str, Any], area_id: str) -> None:
-        IniWriter().write(content, self.config.study_path / "input" / "hydro" / "prepro" / area_id / "prepro.ini")
+    def get_inflow_ini(self, area_id: str) -> dict[str, Any]:
+        return IniReader().read(self._get_inflow_path(area_id))
+
+    def save_inflow_ini(self, content: dict[str, Any], area_id: str) -> None:
+        IniWriter().write(content, self._get_inflow_path(area_id))
+
+    def create_inflow_ini(self, content: dict[str, Any], area_id: str) -> None:
+        ini_path = self._get_inflow_path(area_id)
+        if not ini_path.exists():
+            ini_path.parent.mkdir(parents=True)
+            ini_path.touch()
+        IniWriter().write(content, ini_path)
+
+    def create_allocation_ini(self, content: dict[str, Any], area_id: str) -> None:
+        ini_path = self.config.study_path / "input" / "hydro" / "allocation" / f"{area_id}.ini"
+        if not ini_path.exists():
+            ini_path.parent.mkdir(parents=True)
+            ini_path.touch()
+        IniWriter().write(content, ini_path)
 
     @override
     def update_properties(self, area_id: str, properties: HydroPropertiesUpdate) -> None:
@@ -52,7 +70,7 @@ class HydroLocalService(BaseHydroService):
     @override
     def update_inflow_structure(self, area_id: str, inflow_structure: InflowStructureUpdate) -> None:
         new_content = HydroInflowStructureLocal.from_user_model(inflow_structure).model_dump(by_alias=True)
-        self._save_inflow_ini(new_content, area_id)
+        self.save_inflow_ini(new_content, area_id)
 
     @override
     def read_properties(self) -> dict[str, HydroProperties]:
@@ -79,7 +97,7 @@ class HydroLocalService(BaseHydroService):
             return {}
         for element in prepro_path.iterdir():
             if element.is_dir():
-                ini_content = self._get_inflow_ini(area_id=element.name)
+                ini_content = self.get_inflow_ini(area_id=element.name)
                 inflow_structure = HydroInflowStructureLocal.model_validate(ini_content).to_user_model()
                 all_inflow_structure[element.name] = inflow_structure
 
