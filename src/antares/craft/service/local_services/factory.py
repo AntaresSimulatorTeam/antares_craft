@@ -67,7 +67,7 @@ def create_local_services(config: LocalConfiguration, study_name: str = "") -> S
     )
 
 
-def _create_correlation_ini_files(study_directory: Path) -> None:
+def _create_various_ini_files(study_directory: Path) -> None:
     ini_content = {"general": {"mode": "annual"}, "annual": {}}
     for k in range(12):
         ini_content[str(k)] = {}
@@ -75,6 +75,8 @@ def _create_correlation_ini_files(study_directory: Path) -> None:
     for field in ["hydro", "load", "solar", "wind"]:
         file = study_directory / "input" / field / "prepro" / "correlation.ini"
         IniWriter().write(ini_content, file)
+
+    IniWriter().write({}, study_directory / "input" / "bindingconstraints" / "bindingconstraints.ini")
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:
@@ -154,7 +156,7 @@ InfoTip = Antares Study {version}: {study_name}
         desktop_ini_file.write(desktop_ini_content)
 
     # Create various .ini files for the study
-    _create_correlation_ini_files(study_directory)
+    _create_various_ini_files(study_directory)
 
     logging.info(f"Study successfully created: {study_name}")
     study = Study(
