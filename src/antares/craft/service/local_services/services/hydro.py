@@ -49,19 +49,8 @@ class HydroLocalService(BaseHydroService):
     def save_inflow_ini(self, content: dict[str, Any], area_id: str) -> None:
         IniWriter().write(content, self._get_inflow_path(area_id))
 
-    def create_inflow_ini(self, content: dict[str, Any], area_id: str) -> None:
-        ini_path = self._get_inflow_path(area_id)
-        if not ini_path.exists():
-            ini_path.parent.mkdir(parents=True)
-            ini_path.touch()
-        IniWriter().write(content, ini_path)
-
-    def create_allocation_ini(self, content: dict[str, Any], area_id: str) -> None:
-        ini_path = self.config.study_path / "input" / "hydro" / "allocation" / f"{area_id}.ini"
-        if not ini_path.exists():
-            ini_path.parent.mkdir(parents=True)
-            ini_path.touch()
-        IniWriter().write(content, ini_path)
+    def save_allocation_ini(self, content: dict[str, Any], area_id: str) -> None:
+        IniWriter().write(content, self.config.study_path / "input" / "hydro" / "allocation" / f"{area_id}.ini")
 
     @override
     def update_properties(self, area_id: str, properties: HydroPropertiesUpdate) -> None:

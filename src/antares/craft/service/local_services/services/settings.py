@@ -66,9 +66,6 @@ def _read_ini(study_directory: Path) -> dict[str, Any]:
 
 def _save_ini(study_directory: Path, content: dict[str, Any]) -> None:
     ini_path = study_directory / "settings" / "generaldata.ini"
-    if not ini_path.exists():
-        ini_path.parent.mkdir(parents=True, exist_ok=True)
-        ini_path.touch()
     IniWriter(DUPLICATE_KEYS).write(content, ini_path)
 
 

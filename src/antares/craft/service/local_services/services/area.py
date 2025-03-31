@@ -147,7 +147,7 @@ class AreaLocalService(BaseAreaService):
         prepro_folder_path = self.config.study_path / "input" / "thermal" / "prepro" / area_id / thermal_id
         series_folder_path = self.config.study_path / "input" / "thermal" / "prepro" / area_id / thermal_id
         for folder in [prepro_folder_path, series_folder_path]:
-            folder.mkdir(parents=True)
+            folder.mkdir(parents=True, exist_ok=True)
         (prepro_folder_path / "modulation.txt").touch()
         (prepro_folder_path / "data.txt").touch()
         (series_folder_path / "series.txt").touch()
@@ -367,7 +367,7 @@ class AreaLocalService(BaseAreaService):
             # Clusters
             for cluster_type in ["thermal", "renewables", "st-storage"]:
                 ini_path = self.config.study_path / "input" / cluster_type / "clusters" / area_id / "list.ini"
-                ini_path.touch()
+                IniWriter().write({}, ini_path)
 
             # Hydro
             default_hydro_properties = HydroProperties()
@@ -376,10 +376,10 @@ class AreaLocalService(BaseAreaService):
             hydro_local_service.edit_hydro_properties(area_id, update_properties, creation=True)
             hydro = Hydro(self.hydro_service, area_id, default_hydro_properties, InflowStructure())
             # Create files
-            hydro_local_service.create_inflow_ini(
+            hydro_local_service.save_inflow_ini(
                 HydroInflowStructureLocal.from_user_model(InflowStructure()).model_dump(by_alias=True), area_id
             )
-            hydro_local_service.create_allocation_ini({"[allocation]": {area_id: "1"}}, area_id)
+            hydro_local_service.save_allocation_ini({"[allocation]": {area_id: "1"}}, area_id)
 
             for ts in [
                 TimeSeriesFileType.HYDRO_MAX_POWER,
