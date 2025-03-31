@@ -104,10 +104,10 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             study_path, equal_term_matrix, TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL, constraint_id=bc_id
         )
 
-    def _read_ini_file(self) -> dict[str, Any]:
+    def _read_ini(self) -> dict[str, Any]:
         return IniReader().read(self.config.study_path / "input" / "bindingconstraints" / "bindingconstraints.ini")
 
-    def _write_content_inside_ini_file(self, content: dict[str, Any]) -> None:
+    def _save_ini(self, content: dict[str, Any]) -> None:
         IniWriter().write(content, self.config.study_path / "input" / "bindingconstraints" / "bindingconstraints.ini")
 
     def _create_constraint_inside_ini(
@@ -116,7 +116,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         properties: BindingConstraintPropertiesLocal,
         terms: list[ConstraintTerm],
     ) -> None:
-        current_ini_content = self._read_ini_file()
+        current_ini_content = self._read_ini()
         constraint_id = transform_name_to_id(constraint_name)
         # Ensures the constraint doesn't already exist
         for existing_constraint in current_ini_content.values():
@@ -134,7 +134,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         term_content = {term.id: term.weight_offset() for term in terms}
         whole_content = props_content | term_content
         current_ini_content[new_key] = whole_content
-        self._write_content_inside_ini_file(current_ini_content)
+        self._save_ini(current_ini_content)
 
     @override
     def add_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> None:
@@ -156,7 +156,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
                 )
             new_terms[term.id] = term.weight_offset()
 
-        current_ini_content = self._read_ini_file()
+        current_ini_content = self._read_ini()
 
         # Look for the constraint
         existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint.id), None)
@@ -164,7 +164,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             raise ConstraintDoesNotExistError(constraint.name, self.study_name)
 
         current_ini_content[existing_key].update(new_terms)
-        self._write_content_inside_ini_file(current_ini_content)
+        self._save_ini(current_ini_content)
 
     @override
     def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
@@ -201,7 +201,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     @override
     def read_binding_constraints(self) -> dict[str, BindingConstraint]:
         constraints: dict[str, BindingConstraint] = {}
-        current_ini_content = self._read_ini_file()
+        current_ini_content = self._read_ini()
         for constraint in current_ini_content.values():
             name = constraint.pop("name")
             del constraint["id"]
@@ -244,7 +244,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         new_properties_dict: dict[str, BindingConstraintProperties] = {}
         all_constraint_to_update = set(new_properties.keys())  # used to raise an Exception if a bc doesn't exist
 
-        current_ini_content = self._read_ini_file()
+        current_ini_content = self._read_ini()
         for key, constraint in current_ini_content.items():
             constraint_id = constraint["id"]
             if constraint_id in new_properties:
@@ -265,7 +265,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             raise ConstraintPropertiesUpdateError(next(iter(all_constraint_to_update)), "The bc does not exist")
 
         # Update ini file
-        self._write_content_inside_ini_file(current_ini_content)
+        self._save_ini(current_ini_content)
 
         return new_properties_dict
 
