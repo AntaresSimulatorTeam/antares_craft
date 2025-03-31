@@ -26,8 +26,9 @@ from antares.craft.model.thermal import (
 from antares.craft.service.base_services import BaseThermalService
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
 from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 from typing_extensions import override
 
@@ -64,9 +65,7 @@ class ThermalLocalService(BaseThermalService):
         for folder in cluster_path.iterdir():
             if folder.is_dir():
                 area_id = folder.name
-                thermal_dict = IniFile(
-                    self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id
-                ).ini_dict
+                thermal_dict = IniReader().read(cluster_path / area_id / "list.ini")
 
                 for thermal_data in thermal_dict.values():
                     thermal_cluster = ThermalCluster(
@@ -101,8 +100,8 @@ class ThermalLocalService(BaseThermalService):
 
         for area_id, value in properties_by_areas.items():
             all_thermal_names = set(value.keys())  # used to raise an Exception if a cluster doesn't exist
-            ini_file = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id)
-            thermal_dict = ini_file.ini_dict
+            ini_path = self.config.study_path / "input" / "thermal" / "clusters" / area_id / "list.ini"
+            thermal_dict = IniReader().read(ini_path)
             for thermal in thermal_dict.values():
                 thermal_name = thermal["name"]
                 if thermal_name in value:
@@ -123,7 +122,6 @@ class ThermalLocalService(BaseThermalService):
                 raise ThermalPropertiesUpdateError(next(iter(all_thermal_names)), area_id, "The cluster does not exist")
 
             # Update ini file
-            ini_file.ini_dict = thermal_dict
-            ini_file.write_ini_file()
+            IniWriter().write(thermal_dict, ini_path)
 
         return new_properties_dict
