@@ -14,7 +14,7 @@ import logging
 import os
 
 from configparser import ConfigParser, DuplicateSectionError
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 import pandas as pd
 
@@ -43,9 +43,8 @@ from antares.craft.service.local_services.models.hydro import HydroInflowStructu
 from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
 from antares.craft.service.local_services.models.st_storage import STStoragePropertiesLocal
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
-from antares.craft.service.local_services.services.hydro import edit_hydro_properties
+from antares.craft.service.local_services.services.hydro import HydroLocalService
 from antares.craft.tools.contents_tool import transform_name_to_id
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import default_series, default_series_with_ones, read_timeseries, write_timeseries
 from antares.craft.tools.prepro_folder import PreproFolder
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
@@ -329,7 +328,8 @@ class AreaLocalService(BaseAreaService):
             # Hydro
             default_hydro_properties = HydroProperties()
             update_properties = default_hydro_properties.to_update_properties()
-            edit_hydro_properties(study_path, area_id, update_properties, creation=True)
+            assert isinstance(self.hydro_service, HydroLocalService)
+            cast(HydroLocalService, self.hydro_service).edit_hydro_properties(area_id, update_properties, creation=True)
             hydro = Hydro(self.hydro_service, area_id, default_hydro_properties, InflowStructure())
             # Create files
             IniFile(
