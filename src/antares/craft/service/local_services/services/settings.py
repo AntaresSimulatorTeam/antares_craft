@@ -32,9 +32,17 @@ from antares.craft.service.local_services.models.settings import (
     OtherPreferencesLocal,
     SeedParametersLocal,
 )
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 from typing_extensions import override
 
+DUPLICATE_KEYS = [
+    "playlist_year_weight",
+    "playlist_year +",
+    "playlist_year -",
+    "select_var -",
+    "select_var +",
+]
 
 class StudySettingsLocalService(BaseStudySettingsService):
     def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
@@ -50,10 +58,18 @@ class StudySettingsLocalService(BaseStudySettingsService):
     def read_study_settings(self) -> StudySettings:
         return read_study_settings(self.config.study_path)
 
+def _read_ini(study_directory: Path) -> dict[str, Any]:
+    return IniReader(DUPLICATE_KEYS).read(study_directory / "settings" / "generaldata.ini")
+
+def _save_ini(study_directory: Path, content: dict[str, Any]) -> None:
+    ini_path = study_directory / "settings" / "generaldata.ini"
+    if not ini_path.exists():
+        ini_path.parent.mkdir(parents=True, exist_ok=True)
+        ini_path.touch()
+    IniWriter(DUPLICATE_KEYS).write(content, ini_path)
 
 def read_study_settings(study_directory: Path) -> StudySettings:
-    general_data_ini = IniFile(study_directory, InitializationFilesTypes.GENERAL)
-    ini_content = general_data_ini.ini_dict
+    ini_content = _read_ini(study_directory)
 
     # general
     general_params_ini = {"general": ini_content["general"]}
@@ -121,9 +137,10 @@ def read_study_settings(study_directory: Path) -> StudySettings:
 
 
 def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, creation: bool) -> None:
-    general_data_ini = IniFile(study_directory, InitializationFilesTypes.GENERAL)
+    if creation:
+        _save_ini(study_directory, {})
     update = not creation
-    ini_content = {} if creation else general_data_ini.ini_dict
+    ini_content = _read_ini(study_directory)
 
     # general
     if settings.general_parameters:
@@ -166,5 +183,4 @@ def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, cr
     # todo
 
     # writing
-    general_data_ini.ini_dict = ini_content
-    general_data_ini.write_ini_file()
+    _save_ini(study_directory, ini_content)
