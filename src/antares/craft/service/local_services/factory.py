@@ -33,7 +33,8 @@ from antares.craft.service.local_services.services.settings import StudySettings
 from antares.craft.service.local_services.services.st_storage import ShortTermStorageLocalService
 from antares.craft.service.local_services.services.study import StudyLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.study.version.ini_writer import IniWriter
 
 
 def create_local_services(config: LocalConfiguration, study_name: str = "") -> StudyServices:
@@ -67,22 +68,13 @@ def create_local_services(config: LocalConfiguration, study_name: str = "") -> S
 
 
 def _create_correlation_ini_files(study_directory: Path) -> None:
-    correlation_inis_to_create = [
-        getattr(InitializationFilesTypes, field.upper() + "_CORRELATION_INI")
-        for field in ["hydro", "load", "solar", "wind"]
-    ]
-
     ini_content = {"general": {"mode": "annual"}, "annual": {}}
     for k in range(12):
         ini_content[str(k)] = {}
 
-    for file_type in correlation_inis_to_create:
-        ini_file = IniFile(
-            study_directory,
-            file_type,
-            ini_contents=ini_content,
-        )
-        ini_file.write_ini_file()
+    for field in ["hydro", "load", "solar", "wind"]:
+        file = study_directory / "input" / field / "prepro" / "correlation.ini"
+        IniWriter().write(ini_content, file)
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:
@@ -191,15 +183,11 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
         FileNotFoundError: If the provided directory does not exist.
     """
 
-    def _directory_not_exists(local_path: Path) -> None:
-        if not local_path.is_dir():
-            raise FileNotFoundError(f"The path {local_path} doesn't exist or isn't a folder.")
+    if not study_directory.is_dir():
+        raise FileNotFoundError(f"The given path {study_directory} doesn't exist or isn't a folder.")
 
-    _directory_not_exists(study_directory)
-
-    study_antares = IniFile(study_directory, InitializationFilesTypes.ANTARES)
-
-    study_params = study_antares.ini_dict["antares"]
+    study_antares_path = study_directory / "study.antares"
+    study_params = IniReader().read(study_antares_path)["antares"]
 
     local_config = LocalConfiguration(study_directory.parent, study_directory.name)
 

@@ -11,14 +11,14 @@
 # This file is part of the Antares project.
 import dataclasses
 import re
+
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Callable, Dict, Mapping, Optional, Pattern, Sequence, TextIO, TypeAlias, cast
 
-from typing_extensions import override
-
 from antarest.core.model import JSON
 from antarest.core.serde.ini_common import OptionMatcher, PrimitiveType, any_section_option_matcher
+from typing_extensions import override
 
 ValueParser: TypeAlias = Callable[[str], PrimitiveType]
 
