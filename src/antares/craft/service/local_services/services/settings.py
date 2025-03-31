@@ -44,6 +44,7 @@ DUPLICATE_KEYS = [
     "select_var +",
 ]
 
+
 class StudySettingsLocalService(BaseStudySettingsService):
     def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
         super().__init__(**kwargs)
@@ -58,8 +59,10 @@ class StudySettingsLocalService(BaseStudySettingsService):
     def read_study_settings(self) -> StudySettings:
         return read_study_settings(self.config.study_path)
 
+
 def _read_ini(study_directory: Path) -> dict[str, Any]:
     return IniReader(DUPLICATE_KEYS).read(study_directory / "settings" / "generaldata.ini")
+
 
 def _save_ini(study_directory: Path, content: dict[str, Any]) -> None:
     ini_path = study_directory / "settings" / "generaldata.ini"
@@ -67,6 +70,7 @@ def _save_ini(study_directory: Path, content: dict[str, Any]) -> None:
         ini_path.parent.mkdir(parents=True, exist_ok=True)
         ini_path.touch()
     IniWriter(DUPLICATE_KEYS).write(content, ini_path)
+
 
 def read_study_settings(study_directory: Path) -> StudySettings:
     ini_content = _read_ini(study_directory)

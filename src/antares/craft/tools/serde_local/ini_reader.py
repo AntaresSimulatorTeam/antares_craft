@@ -16,8 +16,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Callable, Dict, Mapping, Optional, Pattern, Sequence, TextIO, TypeAlias, cast
 
-from antarest.core.model import JSON
-from antarest.core.serde.ini_common import OptionMatcher, PrimitiveType, any_section_option_matcher
+from antares.craft.tools.serde_local.ini_common import OptionMatcher, PrimitiveType, any_section_option_matcher
 from typing_extensions import override
 
 ValueParser: TypeAlias = Callable[[str], PrimitiveType]
@@ -31,10 +30,10 @@ LOWER_CASE_PARSER: ValueParser = _lower_case
 
 
 def _convert_value(value: str) -> PrimitiveType:
-    """Convert value to the appropriate type for JSON."""
+    """Convert value to the appropriate type for dict[str, Any]."""
 
     try:
-        # Infinity values are not supported by JSON, so we use a string instead.
+        # Infinity values are not supported by dict[str, Any], so we use a string instead.
         mapping = {"true": True, "false": False, "+inf": "+Inf", "-inf": "-Inf", "inf": "+Inf"}
         return cast(PrimitiveType, mapping[value.lower()])
     except KeyError:
@@ -137,16 +136,16 @@ class IReader(ABC):
     """
 
     @abstractmethod
-    def read(self, path: Any, **kwargs: Any) -> JSON:
+    def read(self, path: Any, **kwargs: Any) -> dict[str, Any]:
         """
-        Parse `.ini` file to json object.
+        Parse `.ini` file to dict[str, Any] object.
 
         Args:
             path:    Path to `.ini` file or file-like object.
             options: Additional options used for reading.
 
         Returns:
-            Dictionary of parsed `.ini` file which can be converted to JSON.
+            Dictionary of parsed `.ini` file which can be converted to dict[str, Any].
         """
 
 
@@ -213,7 +212,7 @@ class IniReader(IReader):
         return f"{cls}(special_keys={special_keys!r}, section_name={section_name!r})"
 
     @override
-    def read(self, path: Any, **kwargs: Any) -> JSON:
+    def read(self, path: Any, **kwargs: Any) -> dict[str, Any]:
         if isinstance(path, (Path, str)):
             try:
                 with open(path, mode="r", encoding="utf-8") as f:
@@ -234,11 +233,11 @@ class IniReader(IReader):
         else:  # pragma: no cover
             raise TypeError(repr(type(path)))
 
-        return cast(JSON, sections)
+        return sections
 
-    def _parse_ini_file(self, ini_file: TextIO, **kwargs: Any) -> JSON:
+    def _parse_ini_file(self, ini_file: TextIO, **kwargs: Any) -> dict[str, Any]:
         """
-        Parse `.ini` file to JSON object.
+        Parse `.ini` file to dict[str, Any] object.
 
         The following parsing rules are applied:
 
@@ -273,7 +272,7 @@ class IniReader(IReader):
             - option_regex: The regex for matching option names.
 
         Returns:
-            Dictionary of parsed `.ini` file which can be converted to JSON.
+            Dictionary of parsed `.ini` file which can be converted to dict[str, Any].
         """
         ini_filter = IniFilter.from_kwargs(**kwargs)
 
@@ -361,9 +360,9 @@ class SimpleKeyValueReader(IniReader):
     """
 
     @override
-    def read(self, path: Any, **kwargs: Any) -> JSON:
+    def read(self, path: Any, **kwargs: Any) -> dict[str, Any]:
         """
-        Parse `.ini` file which has no section to JSON object.
+        Parse `.ini` file which has no section to dict[str, Any] object.
 
         This class is required to parse Xpansion `user/expansion/settings.ini` files.
 
@@ -375,11 +374,11 @@ class SimpleKeyValueReader(IniReader):
             Dictionary of parsed key/value pairs.
         """
         sections = super().read(path)
-        obj = cast(Mapping[str, JSON], sections)
+        obj = cast(Mapping[str, dict[str, Any]], sections)
         return obj[self._section_name]
 
 
-def read_ini(source: Path | TextIO) -> JSON:
+def read_ini(source: Path | TextIO) -> dict[str, Any]:
     """
     Parses the provided content as a 2-levels dictionary.
     """

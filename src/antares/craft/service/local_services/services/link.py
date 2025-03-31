@@ -43,7 +43,6 @@ class LinkLocalService(BaseLinkService):
     def _save_ini(self, content: dict[str, Any], area_from: str) -> None:
         IniWriter().write(content, self.config.study_path / "input" / "links" / area_from / "properties.ini")
 
-
     @override
     def create_link(
         self,

@@ -14,10 +14,9 @@ import ast
 import configparser
 
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, TypeAlias
+from typing import Any, Callable, Dict, List, Optional, TypeAlias
 
-from antarest.core.model import JSON
-from antarest.core.serde.ini_common import OptionMatcher, PrimitiveType, any_section_option_matcher
+from antares.craft.tools.serde_local.ini_common import OptionMatcher, PrimitiveType, any_section_option_matcher
 from typing_extensions import override
 
 # Value serializers may be used to customize the way INI options are serialized
@@ -113,12 +112,12 @@ class IniWriter:
         self.special_keys = special_keys
         self._value_serializers = ValueSerializers(value_serializers or {})
 
-    def write(self, data: JSON, path: Path) -> None:
+    def write(self, data: dict[str, Any], path: Path) -> None:
         """
-        Write `.ini` file from JSON content
+        Write `.ini` file from dict[str, Any] content
 
         Args:
-            data: JSON content.
+            data: dict[str, Any] content.
             path: path to `.ini` file.
         """
         config_parser = IniConfigParser(special_keys=self.special_keys, value_serializers=self._value_serializers)
@@ -133,12 +132,12 @@ class SimpleKeyValueWriter(IniWriter):
     """
 
     @override
-    def write(self, data: JSON, path: Path) -> None:
+    def write(self, data: dict[str, Any], path: Path) -> None:
         """
-        Write `.ini` file from JSON content
+        Write `.ini` file from dict[str, Any] content
 
         Args:
-            data: JSON content.
+            data: dict[str, Any] content.
             path: path to `.ini` file.
         """
         with path.open("w") as fp:
@@ -147,7 +146,7 @@ class SimpleKeyValueWriter(IniWriter):
                     fp.write(f"{key}={value}\n")
 
 
-def write_ini_file(file: Path, data: JSON) -> None:
+def write_ini_file(file: Path, data: dict[str, Any]) -> None:
     """
     Writes the provided 2-levels dictionary as an INI file.
     """

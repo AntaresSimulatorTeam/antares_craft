@@ -376,7 +376,9 @@ class AreaLocalService(BaseAreaService):
             hydro_local_service.edit_hydro_properties(area_id, update_properties, creation=True)
             hydro = Hydro(self.hydro_service, area_id, default_hydro_properties, InflowStructure())
             # Create files
-            hydro_local_service.create_inflow_ini(HydroInflowStructureLocal.from_user_model(InflowStructure()).model_dump(by_alias=True), area_id)
+            hydro_local_service.create_inflow_ini(
+                HydroInflowStructureLocal.from_user_model(InflowStructure()).model_dump(by_alias=True), area_id
+            )
             hydro_local_service.create_allocation_ini({"[allocation]": {area_id: "1"}}, area_id)
 
             for ts in [
@@ -414,7 +416,6 @@ class AreaLocalService(BaseAreaService):
         raise NotImplementedError
 
     def update_area_properties(self, area_id: str, properties: AreaPropertiesUpdate) -> AreaProperties:
-        study_path = self.config.study_path
         local_properties = AreaPropertiesLocal.from_user_model(properties)
 
         # Adequacy patch
