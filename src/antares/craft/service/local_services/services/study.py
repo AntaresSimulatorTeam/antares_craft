@@ -29,11 +29,13 @@ from antares.craft.model.binding_constraint import (
 from antares.craft.model.output import Output
 from antares.craft.model.thermal import LocalTSGenerationBehavior
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.tsgen.duration_generator import ProbabilityLaw
 from antares.tsgen.random_generator import MersenneTwisterRNG
 from antares.tsgen.ts_generator import OutageGenerationParameters, ThermalCluster, TimeseriesGenerator
 from typing_extensions import override
+
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 logger = logging.getLogger(__name__)
 
@@ -139,15 +141,14 @@ class StudyLocalService(BaseStudyService):
     @override
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         study_path = self.config.study_path
-        ini_file = IniFile(study_path, InitializationFilesTypes.BINDING_CONSTRAINTS_INI)
-        current_content = ini_file.ini_dict
+        ini_path = study_path / "input" / "bindingconstraints" / "bindingconstraints.ini"
+        current_content = IniReader().read(ini_path)
         copied_content = copy.deepcopy(current_content)
         for index, bc in current_content.items():
             if bc["id"] == constraint.id:
                 copied_content.pop(index)
                 new_dict = {str(i): v for i, (k, v) in enumerate(copied_content.items())}
-                ini_file.ini_dict = new_dict
-                ini_file.write_ini_file()
+                IniWriter().write(new_dict, ini_path)
                 return
         raise ConstraintDoesNotExistError(constraint.name, self._study_name)
 
