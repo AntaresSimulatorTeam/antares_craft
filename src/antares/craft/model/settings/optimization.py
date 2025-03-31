@@ -35,8 +35,8 @@ class SimplexOptimizationRange(Enum):
 
 
 class ExportMPS(Enum):
-    TRUE = "True"
-    FALSE = "False"
+    TRUE = True
+    FALSE = False
     OPTIM1 = "optim1"
     OPTIM2 = "optim2"
 
