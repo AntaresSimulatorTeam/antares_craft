@@ -149,7 +149,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
                     constraint_name=constraint.name, message=f"Duplicate term found: {term.id}"
                 )
 
-        current_ini_content = self.ini_file.ini_dict_binding_constraints or {}
+        current_ini_content = self.ini_file.ini_dict or {}
         existing_constraint = self._get_constraint_inside_ini(current_ini_content, constraint)
         new_terms = {term.id: term.weight_offset() for term in terms}
         existing_constraint.update(new_terms)
