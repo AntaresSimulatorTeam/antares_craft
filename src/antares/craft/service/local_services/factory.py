@@ -34,6 +34,7 @@ from antares.craft.service.local_services.services.st_storage import ShortTermSt
 from antares.craft.service.local_services.services.study import StudyLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService
 from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
 def create_local_services(config: LocalConfiguration, study_name: str = "") -> StudyServices:
@@ -72,13 +73,9 @@ def _create_various_ini_files(study_directory: Path) -> None:
         ini_content[str(k)] = {}
 
     for field in ["hydro", "load", "solar", "wind"]:
-        folder = study_directory / "input" / field / "prepro"
-        folder.mkdir(parents=True)
-        (folder / "correlation.ini").touch()
+        IniWriter().write({}, study_directory / "input" / field / "prepro" / "correlation.ini")
 
-    bc_folder = study_directory / "input" / "bindingconstraints"
-    bc_folder.mkdir(parents=True)
-    (bc_folder / "bindingconstraints.ini").touch()
+    IniWriter().write({}, study_directory / "input" / "bindingconstraints" / "bindingconstraints.ini")
 
 
 def _verify_study_already_exists(study_directory: Path) -> None:

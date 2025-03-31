@@ -120,6 +120,9 @@ class IniWriter:
             data: dict[str, Any] content.
             path: path to `.ini` file.
         """
+        if not path.exists():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.touch()
         config_parser = IniConfigParser(special_keys=self.special_keys, value_serializers=self._value_serializers)
         config_parser.read_dict(data)
         with path.open("w") as fp:
