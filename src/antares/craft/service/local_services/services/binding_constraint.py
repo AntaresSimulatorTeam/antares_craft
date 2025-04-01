@@ -60,6 +60,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
+        self._ini_path = self.config.study_path / "input" / "bindingconstraints" / "bindingconstraints.ini"
 
     @override
     def create_binding_constraint(
@@ -105,10 +106,10 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         )
 
     def _read_ini(self) -> dict[str, Any]:
-        return IniReader().read(self.config.study_path / "input" / "bindingconstraints" / "bindingconstraints.ini")
+        return IniReader().read(self._ini_path)
 
     def _save_ini(self, content: dict[str, Any]) -> None:
-        IniWriter().write(content, self.config.study_path / "input" / "bindingconstraints" / "bindingconstraints.ini")
+        IniWriter().write(content, self._ini_path)
 
     def _create_constraint_inside_ini(
         self,
