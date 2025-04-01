@@ -73,7 +73,7 @@ def _create_various_ini_files(study_directory: Path) -> None:
         ini_content[str(k)] = {}
 
     for field in ["hydro", "load", "solar", "wind"]:
-        IniWriter().write({}, study_directory / "input" / field / "prepro" / "correlation.ini")
+        IniWriter().write(ini_content, study_directory / "input" / field / "prepro" / "correlation.ini")
 
     IniWriter().write({}, study_directory / "input" / "bindingconstraints" / "bindingconstraints.ini")
 
