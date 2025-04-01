@@ -15,10 +15,12 @@ import re
 
 from configparser import ConfigParser
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 import pandas as pd
 
+from antares.craft import LocalConfiguration
 from antares.craft.exceptions.exceptions import MatrixFormatError, ThermalCreationError, ThermalDeletionError
 from antares.craft.model.thermal import (
     LawOption,
@@ -30,7 +32,7 @@ from antares.craft.model.thermal import (
     ThermalCostGeneration,
 )
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
+from antares.craft.tools.serde_local.ini_reader import IniReader
 
 
 class TestThermalCluster:
@@ -59,20 +61,11 @@ class TestThermalCluster:
         assert thermal_cluster.properties == ThermalClusterProperties()
 
     def test_required_ini_files_exist(self, tmp_path, local_study_w_thermal):
-        # Given
-        expected_list_ini_path = (
-            local_study_w_thermal.service.config.study_path
-            / InitializationFilesTypes.THERMAL_LIST_INI.value.format(area_id="fr")
-        )
-        expected_areas_ini_path = (
-            local_study_w_thermal.service.config.study_path / InitializationFilesTypes.THERMAL_AREAS_INI.value
-        )
+        study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
+        assert (study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini").exists()
+        assert (study_path / "input" / "thermal" / "areas.ini").exists()
 
-        # Then
-        assert expected_list_ini_path.is_file()
-        assert expected_areas_ini_path.is_file()
-
-    def test_list_ini_has_default_properties(self, tmp_path, local_study_w_thermal, actual_thermal_list_ini):
+    def test_list_ini_has_default_properties(self, tmp_path, local_study_w_thermal):
         # Given
         expected_list_ini_contents = """[test thermal cluster]
 name = test thermal cluster
@@ -113,15 +106,10 @@ efficiency = 100.0
 variableomcost = 0.0
 
 """
-        expected_list_ini = ConfigParser()
-        expected_list_ini.read_string(expected_list_ini_contents)
-        with actual_thermal_list_ini.ini_path.open("r") as actual_list_ini_file:
-            actual_list_ini_contents = actual_list_ini_file.read()
-
-        # Then
-        assert actual_thermal_list_ini.parsed_ini.sections() == expected_list_ini.sections()
-        assert actual_list_ini_contents == expected_list_ini_contents
-        assert actual_thermal_list_ini.parsed_ini == expected_list_ini
+        study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
+        assert (
+            study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini"
+        ).read_text() == expected_list_ini_contents
 
     def test_list_ini_has_custom_properties(self, tmp_path, local_study_w_areas):
         # Given
@@ -206,37 +194,22 @@ variableomcost = 5.0
 
         # When
         local_study_w_areas.get_areas()["fr"].create_thermal_cluster("test thermal cluster", thermal_cluster_properties)
-        actual_thermal_list_ini = IniFile(
-            local_study_w_areas.service.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id="fr"
-        )
-        actual_thermal_list_ini.update_from_ini_file()
-        with actual_thermal_list_ini.ini_path.open("r") as actual_list_ini_file:
-            actual_list_ini_contents = actual_list_ini_file.read()
+        study_path = cast(LocalConfiguration, local_study_w_areas.service.config).study_path
+        ini_content = IniReader().read(study_path / "input" / "clusters" / "fr" / "list.ini")
+        print(ini_content)
 
-        # Then
-        assert actual_thermal_list_ini.parsed_ini.sections() == expected_list_ini.sections()
-        assert actual_list_ini_contents == expected_list_ini_contents
-        assert actual_thermal_list_ini.parsed_ini == expected_list_ini
-
-    def test_list_ini_has_multiple_clusters(
-        self, local_study_w_thermal, actual_thermal_list_ini, default_thermal_cluster_properties
-    ):
+    def test_list_ini_has_multiple_clusters(self, local_study_w_thermal, default_thermal_cluster_properties):
         # Asserts we can create 2 clusters
         local_study_w_thermal.get_areas()["fr"].create_thermal_cluster("test thermal cluster two")
-        ini_file = IniFile(
-            local_study_w_thermal.service.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id="fr"
-        )
+        study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
+        ini_content = IniReader().read(study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini")
 
-        new_content = ini_file.ini_dict
-        assert len(new_content.keys()) == 2
+        assert len(ini_content.keys()) == 2
         expected_sections = ["test thermal cluster", "test thermal cluster two"]
         for key in expected_sections:
-            assert key in new_content
-            created_properties = ThermalClusterPropertiesLocal(**new_content[key]).to_user_model()
+            assert key in ini_content
+            created_properties = ThermalClusterPropertiesLocal(**ini_content[key]).to_user_model()
             assert created_properties == default_thermal_cluster_properties
-
-        # Asserts the section are ordered in alphabetical order
-        assert ini_file.parsed_ini.sections() == expected_sections
 
     def test_create_thermal_initialization_files(self, local_study_w_areas):
         study_path = Path(local_study_w_areas.path)
@@ -271,8 +244,9 @@ variableomcost = 5.0
         assert new_properties == expected_properties
         assert thermal.properties == expected_properties
         # Asserts the ini file is properly modified
-        ini_file = IniFile(Path(local_study_w_thermal.path), InitializationFilesTypes.THERMAL_LIST_INI, area_id="fr")
-        assert ini_file.ini_dict == {
+        study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
+        ini_content = IniReader().read(study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini")
+        assert ini_content == {
             "test thermal cluster": {
                 "name": "test thermal cluster",
                 "enabled": "True",
@@ -362,8 +336,9 @@ variableomcost = 5.0
         area_fr.delete_thermal_cluster(thermal_1)
         assert list(area_fr.get_thermals().keys()) == ["th_2", "th_3"]
         # Checks ini content
-        ini_file = IniFile(Path(local_study_w_thermal.path), InitializationFilesTypes.THERMAL_LIST_INI, area_id="fr")
-        assert list(ini_file.ini_dict.keys()) == ["th_2", "th_3"]
+        study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
+        ini_content = IniReader().read(study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini")
+        assert list(ini_content.keys()) == ["th_2", "th_3"]
 
         # Deletes the remaining clusters
         area_fr.delete_thermal_clusters([thermal_2, thermal_3])

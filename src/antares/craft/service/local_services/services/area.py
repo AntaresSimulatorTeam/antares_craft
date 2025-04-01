@@ -155,7 +155,10 @@ class AreaLocalService(BaseAreaService):
         # Writing properties
         properties = properties or ThermalClusterProperties()
         local_properties = ThermalClusterPropertiesLocal.from_user_model(properties)
-        thermal_list_content[thermal_name] = local_properties.model_dump(mode="json", by_alias=True)
+        thermal_list_content[thermal_name] = {
+            "name": thermal_name,
+            **local_properties.model_dump(mode="json", by_alias=True),
+        }
         self._save_thermal_list_ini(thermal_list_content, area_id)
 
         # Upload matrices
