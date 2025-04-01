@@ -1203,7 +1203,7 @@ group = default
 
         # When
         study_path = Path(local_study_with_constraint.path)
-        ini_content = (study_path / "bindingconstraints" / "bindingconstraints.ini").read_text()
+        ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
         assert ini_content == expected_ini_contents
 
     def test_constraints_and_ini_have_custom_properties(self, local_study_with_constraint):
@@ -1246,7 +1246,7 @@ group = test group
             name="test constraint two", properties=custom_constraint_properties
         )
         study_path = Path(local_study_with_constraint.path)
-        ini_content = (study_path / "bindingconstraints" / "bindingconstraints.ini").read_text()
+        ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
         assert ini_content == expected_ini_content
 
     def test_constraint_can_add_term(self, test_constraint):
@@ -1272,10 +1272,10 @@ at%fr = 1
         # When
         new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]
         test_constraint.add_terms(new_term)
-        with local_study_with_constraint._binding_constraints_service.ini_file.ini_path.open("r") as file:
-            actual_ini_content = file.read()
+        study_path = Path(local_study_with_constraint.path)
+        ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
 
-        assert actual_ini_content == expected_ini_contents
+        assert ini_content == expected_ini_contents
 
     def test_constraint_term_with_offset_and_ini_have_correct_values(
         self, local_study_with_constraint, test_constraint
@@ -1297,10 +1297,10 @@ at%fr = 1%1
         # When
         new_term = [ConstraintTerm(offset=1, data=LinkData(area1="fr", area2="at"))]
         test_constraint.add_terms(new_term)
-        with local_study_with_constraint._binding_constraints_service.ini_file.ini_path.open("r") as file:
-            actual_ini_content = file.read()
+        study_path = Path(local_study_with_constraint.path)
+        ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
 
-        assert actual_ini_content == expected_ini_contents
+        assert ini_content == expected_ini_contents
 
     def test_binding_constraints_have_correct_default_time_series(self, test_constraint, local_study_with_constraint):
         # Given
