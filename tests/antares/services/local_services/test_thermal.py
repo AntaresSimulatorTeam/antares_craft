@@ -231,7 +231,9 @@ variableomcost = 5.0
     def test_update_properties(self, local_study_w_thermal):
         # Checks values before update
         thermal = local_study_w_thermal.get_areas()["fr"].get_thermals()["test thermal cluster"]
-        current_properties = ThermalClusterProperties(must_run=False, law_forced=LawOption.UNIFORM, startup_cost=0)
+        current_properties = ThermalClusterProperties(
+            must_run=True, group=ThermalClusterGroup.NUCLEAR, law_forced=LawOption.UNIFORM, startup_cost=0
+        )
         assert thermal.properties == current_properties
         # Updates properties
         update_properties = ThermalClusterPropertiesUpdate(
@@ -239,7 +241,11 @@ variableomcost = 5.0
         )
         new_properties = thermal.update_properties(update_properties)
         expected_properties = ThermalClusterProperties(
-            must_run=False, spinning=0.1, startup_cost=1.2, law_forced=LawOption.GEOMETRIC
+            must_run=True,
+            group=ThermalClusterGroup.NUCLEAR,
+            spinning=0.1,
+            startup_cost=1.2,
+            law_forced=LawOption.GEOMETRIC,
         )
         assert new_properties == expected_properties
         assert thermal.properties == expected_properties
@@ -252,12 +258,12 @@ variableomcost = 5.0
                 "enabled": True,
                 "unitcount": 1,
                 "nominalcapacity": 0.0,
-                "group": "other 1",
+                "group": "nuclear",
                 "gen-ts": "use global",
                 "min-stable-power": 0.0,
                 "min-up-time": 1,
                 "min-down-time": 1,
-                "must-run": False,
+                "must-run": True,
                 "spinning": 0.1,
                 "volatility.forced": 0.0,
                 "volatility.planned": 0.0,
