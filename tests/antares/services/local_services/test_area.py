@@ -36,7 +36,6 @@ from antares.craft.model.renewable import (
     TimeSeriesInterpretation,
 )
 from antares.craft.model.st_storage import STStorage, STStorageGroup, STStorageProperties
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
 
