@@ -828,7 +828,7 @@ class TestReadThermal:
             for thermal in thermals_list:
                 # Check properties
                 assert thermal.name == "test thermal cluster"
-                assert thermal.properties.group.value == "other 1"
+                assert thermal.properties.group.value == "nuclear"
                 assert thermal.properties.unit_count == 1
                 assert thermal.properties.efficiency == 100.000000
                 assert thermal.properties.nominal_capacity == 0.000000
