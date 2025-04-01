@@ -325,11 +325,7 @@ class AreaLocalService(BaseAreaService):
             adequacy_patch_ini.update(local_properties.to_adequacy_ini())
             self._save_adequacy_ini(adequacy_patch_ini, area_id)
 
-            optimization_ini = ConfigParser()
-            optimization_ini.read_dict(local_properties.to_optimization_ini())
-
-            with open(new_area_directory / "optimization.ini", "w") as optimization_ini_file:
-                optimization_ini.write(optimization_ini_file)
+            self._save_optimization_ini(local_properties.to_optimization_ini(), area_id)
 
             (study_path / "input" / "thermal" / "areas.ini").touch(exist_ok=True)
             areas_ini = self._get_thermal_areas_ini()
