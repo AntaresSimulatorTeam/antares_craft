@@ -13,6 +13,7 @@ import copy
 import logging
 import os
 
+from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 
 import pandas as pd
@@ -95,11 +96,14 @@ class AreaLocalService(BaseAreaService):
     def _save_ui_ini(self, content: dict[str, Any], area_id: str) -> None:
         IniWriter().write(content, self.config.study_path / "input" / "areas" / area_id / "ui.ini")
 
+    def _get_thermal_areas_ini_path(self) -> Path:
+        return self.config.study_path / "input" / "thermal" / "areas.ini"
+
     def _get_thermal_areas_ini(self) -> dict[str, Any]:
-        return IniReader().read(self.config.study_path / "input" / "thermal" / "areas.ini")
+        return IniReader().read(self._get_thermal_areas_ini_path())
 
     def _save_thermal_areas_ini(self, content: dict[str, Any]) -> None:
-        IniWriter().write(content, self.config.study_path / "input" / "thermal" / "areas.ini")
+        IniWriter().write(content, self._get_thermal_areas_ini_path())
 
     @override
     def create_thermal_cluster(
@@ -326,7 +330,7 @@ class AreaLocalService(BaseAreaService):
 
             self._save_optimization_ini(local_properties.to_optimization_ini(), area_id)
 
-            (study_path / "input" / "thermal" / "areas.ini").touch(exist_ok=True)
+            self._get_thermal_areas_ini_path().touch(exist_ok=True)
             areas_ini = self._get_thermal_areas_ini()
             areas_ini.setdefault("unserverdenergycost", {})[area_id] = str(local_properties.energy_cost_unsupplied)
             areas_ini.setdefault("spilledenergycost", {})[area_id] = str(local_properties.energy_cost_spilled)
