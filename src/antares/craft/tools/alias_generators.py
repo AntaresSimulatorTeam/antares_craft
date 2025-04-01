@@ -21,15 +21,3 @@ def to_kebab(snake: str) -> str:
         The converted kebab-case string.
     """
     return snake.replace("_", "-")
-
-
-def to_space(snake: str) -> str:
-    """Convert a snake_case string to 'space case'
-
-    Args:
-        snake: The string to convert.
-
-    Returns:
-        The converted 'space case' string.
-    """
-    return snake.replace("_", " ")
