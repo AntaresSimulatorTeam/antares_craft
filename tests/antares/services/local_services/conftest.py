@@ -35,7 +35,6 @@ from antares.craft.model.thermal import (
     ThermalClusterProperties,
     ThermalCostGeneration,
 )
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 
 
 @pytest.fixture
@@ -141,25 +140,6 @@ def default_thermal_cluster_properties() -> ThermalClusterProperties:
 
 
 @pytest.fixture
-def actual_thermal_list_ini(local_study_w_thermal) -> IniFile:
-    return IniFile(
-        local_study_w_thermal.service.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id="fr"
-    )
-
-
-@pytest.fixture
-def actual_thermal_areas_ini(local_study_w_thermal) -> IniFile:
-    return IniFile(local_study_w_thermal.service.config.study_path, InitializationFilesTypes.THERMAL_AREAS_INI)
-
-
-@pytest.fixture
-def actual_adequacy_patch_ini(local_study_w_areas) -> IniFile:
-    return IniFile(
-        local_study_w_areas.service.config.study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_id="fr"
-    )
-
-
-@pytest.fixture
 def local_study_with_renewable(local_study_w_thermal) -> Study:
     renewable_cluster_name = "renewable cluster"
     local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(renewable_cluster_name)
@@ -174,13 +154,6 @@ def default_renewable_cluster_properties() -> RenewableClusterProperties:
         nominal_capacity=0,
         group=RenewableClusterGroup.OTHER1,
         ts_interpretation=TimeSeriesInterpretation.POWER_GENERATION,
-    )
-
-
-@pytest.fixture
-def actual_renewable_list_ini(local_study_with_renewable) -> IniFile:
-    return IniFile(
-        local_study_with_renewable.service.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id="fr"
     )
 
 
@@ -202,15 +175,6 @@ def default_st_storage_properties() -> STStorageProperties:
         initial_level=0.5,
         initial_level_optim=False,
         enabled=True,
-    )
-
-
-@pytest.fixture
-def actual_st_storage_list_ini(local_study_with_st_storage) -> IniFile:
-    return IniFile(
-        local_study_with_st_storage.service.config.study_path,
-        InitializationFilesTypes.ST_STORAGE_LIST_INI,
-        area_id="fr",
     )
 
 
@@ -240,11 +204,6 @@ def default_hydro_properties() -> HydroProperties:
         leeway_up=1,
         pumping_efficiency=1,
     )
-
-
-@pytest.fixture
-def actual_hydro_ini(local_study_with_hydro) -> IniFile:
-    return IniFile(local_study_with_hydro.service.config.study_path, InitializationFilesTypes.HYDRO_INI)
 
 
 @pytest.fixture

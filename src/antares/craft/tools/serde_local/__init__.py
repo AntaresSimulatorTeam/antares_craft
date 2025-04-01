@@ -10,14 +10,7 @@
 #
 # This file is part of the Antares project.
 
-
-def to_kebab(snake: str) -> str:
-    """Convert a snake_case string to kebab-case
-
-    Args:
-        snake: The string to convert.
-
-    Returns:
-        The converted kebab-case string.
-    """
-    return snake.replace("_", "-")
+"""
+This modules hosts technical components related to serializing and deserializing,
+for various formats: INI, JSON, ...
+"""

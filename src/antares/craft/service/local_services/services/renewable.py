@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 import copy
 
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -25,8 +26,9 @@ from antares.craft.model.renewable import (
 from antares.craft.service.base_services import BaseRenewableService
 from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
 from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 from typing_extensions import override
 
@@ -37,13 +39,21 @@ class RenewableLocalService(BaseRenewableService):
         self.config = config
         self.study_name = study_name
 
+    def _get_ini_path(self, area_id: str) -> Path:
+        return self.config.study_path / "input" / "renewables" / "clusters" / area_id / "list.ini"
+
+    def read_ini(self, area_id: str) -> dict[str, Any]:
+        return IniReader().read(self._get_ini_path(area_id))
+
+    def save_ini(self, content: dict[str, Any], area_id: str) -> None:
+        IniWriter().write(content, self._get_ini_path(area_id))
+
     @override
     def update_renewable_properties(
         self, renewable_cluster: RenewableCluster, properties: RenewableClusterPropertiesUpdate
     ) -> RenewableClusterProperties:
         area_id = renewable_cluster.area_id
-        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id)
-        renewable_dict = ini_file.ini_dict
+        renewable_dict = self.read_ini(area_id)
         for renewable in renewable_dict.values():
             if renewable["name"] == renewable_cluster.name:
                 # Update properties
@@ -52,8 +62,7 @@ class RenewableLocalService(BaseRenewableService):
                 renewable.update(upd_props_as_dict)
 
                 # Update ini file
-                ini_file.ini_dict = renewable_dict
-                ini_file.write_ini_file()
+                self.save_ini(renewable_dict, area_id)
 
                 # Prepare the object to return
                 local_dict = copy.deepcopy(renewable)
@@ -79,9 +88,7 @@ class RenewableLocalService(BaseRenewableService):
             if folder.is_dir():
                 area_id = folder.name
 
-                renewable_dict = IniFile(
-                    self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id
-                ).ini_dict
+                renewable_dict = self.read_ini(area_id)
 
                 for renewable_data in renewable_dict.values():
                     renewable_cluster = RenewableCluster(
@@ -121,8 +128,7 @@ class RenewableLocalService(BaseRenewableService):
 
         for area_id, value in properties_by_areas.items():
             all_renewable_names = set(value.keys())  # used to raise an Exception if a cluster doesn't exist
-            ini_file = IniFile(self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id)
-            renewable_dict = ini_file.ini_dict
+            renewable_dict = self.read_ini(area_id)
             for renewable in renewable_dict.values():
                 renewable_name = renewable["name"]
                 if renewable_name in value:
@@ -144,7 +150,6 @@ class RenewableLocalService(BaseRenewableService):
                 )
 
             # Update ini file
-            ini_file.ini_dict = renewable_dict
-            ini_file.write_ini_file()
+            self.save_ini(renewable_dict, area_id)
 
         return new_properties_dict

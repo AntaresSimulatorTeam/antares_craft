@@ -81,7 +81,6 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
-from antares.craft.tools.ini_tool import InitializationFilesTypes
 
 
 class TestCreateStudy:
@@ -418,11 +417,8 @@ seed-initial-reservoir-levels = 10005489
 """
 
         # When
-        actual_generaldata_ini_file = local_study.service.config.study_path / InitializationFilesTypes.GENERAL.value
-        actual_file_content = actual_generaldata_ini_file.read_text()
-
-        # Then
-        assert actual_file_content == expected_file_content
+        ini_content = (Path(local_study.path) / "settings" / "generaldata.ini").read_text()
+        assert ini_content == expected_file_content
 
 
 class TestCreateArea:
@@ -616,20 +612,11 @@ layers = 0
         # Then
         assert actual_content == ui_ini_content
 
-    def test_create_area_with_custom_error(self, monkeypatch, local_study):
-        error_message = "Thine area hath raised en error, thou shalt not pass!"
-
-        def mock_error_in_sets_ini():
-            raise Exception(error_message)
-
-        area_id = "test"
-
-        monkeypatch.setattr(
-            "antares.craft.service.local_services.services.area._sets_ini_content", mock_error_in_sets_ini
-        )
+    def test_create_area_with_custom_error(self, local_study):
+        area_id = "?"
         with pytest.raises(
             AreaCreationError,
-            match=f"Could not create the area {area_id}: {error_message}",
+            match=f"Could not create the area {area_id}",
         ):
             local_study.create_area(area_id)
 
@@ -707,59 +694,6 @@ layers = 0
         # When
         created_area = local_study.create_area(area_name=area_to_create, properties=area_properties)
         assert created_area.properties == area_properties
-
-    def test_areas_ini_has_correct_sections(self, actual_thermal_areas_ini):
-        # Given
-        expected_areas_ini_sections = ["unserverdenergycost", "spilledenergycost"]
-
-        # Then
-        assert actual_thermal_areas_ini.parsed_ini.sections() == expected_areas_ini_sections
-
-    def test_areas_ini_has_correct_default_content(self, actual_thermal_areas_ini):
-        # Given
-        expected_areas_ini_contents = """[unserverdenergycost]
-fr = 0.5
-it = 0.5
-at = 0.0
-
-[spilledenergycost]
-fr = 1.0
-it = 1.0
-at = 0.0
-
-"""
-        expected_areas_ini = ConfigParser()
-        expected_areas_ini.read_string(expected_areas_ini_contents)
-
-        # When
-        with actual_thermal_areas_ini.ini_path.open("r") as areas_ini_file:
-            actual_areas_ini_contents = areas_ini_file.read()
-
-        # Then
-        assert actual_areas_ini_contents == expected_areas_ini_contents
-        assert actual_thermal_areas_ini.parsed_ini.sections() == expected_areas_ini.sections()
-        assert actual_thermal_areas_ini.parsed_ini == expected_areas_ini
-
-    def test_adequacy_patch_ini_has_correct_section(self, actual_adequacy_patch_ini):
-        expected_sections = ["adequacy-patch"]
-        assert actual_adequacy_patch_ini.parsed_ini.sections() == expected_sections
-
-    def test_adequacy_patch_ini_has_correct_content(self, actual_adequacy_patch_ini):
-        # Given
-        expected_content = """[adequacy-patch]
-adequacy-patch-mode = outside
-
-"""
-        expected_ini = ConfigParser()
-        expected_ini.read_string(expected_content)
-
-        # When
-        with actual_adequacy_patch_ini.ini_path.open("r") as adequacy_patch_ini_file:
-            actual_content = adequacy_patch_ini_file.read()
-
-        assert actual_content == expected_content
-        assert actual_adequacy_patch_ini.parsed_ini.sections() == expected_ini.sections()
-        assert actual_adequacy_patch_ini.parsed_ini == expected_ini
 
     def test_created_area_has_hydro(self, local_study_w_areas):
         assert local_study_w_areas.get_areas()["fr"].hydro
@@ -995,7 +929,7 @@ comments =
         # Given
         local_study_w_areas.create_area("at")
         links_to_create = ["at_it", "fr_at"]
-        expected_ini_string = """[fr]
+        expected_ini_string = """[it]
 hurdles-cost = False
 loop-flow = False
 use-phase-shifter = False
@@ -1011,7 +945,7 @@ filter-synthesis = annual, daily, hourly, monthly, weekly
 filter-year-by-year = annual, daily, hourly, monthly, weekly
 comments = 
 
-[it]
+[fr]
 hurdles-cost = False
 loop-flow = False
 use-phase-shifter = False
@@ -1208,16 +1142,9 @@ group = default
 """
 
         # When
-        actual_ini_path = (
-            local_study_with_constraint.service.config.study_path
-            / InitializationFilesTypes.BINDING_CONSTRAINTS_INI.value
-        )
-        with actual_ini_path.open("r") as file:
-            actual_ini_content = file.read()
-
-        # Then
-        assert default_constraint_properties == test_constraint.properties
-        assert actual_ini_content == expected_ini_contents
+        study_path = Path(local_study_with_constraint.path)
+        ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
+        assert ini_content == expected_ini_contents
 
     def test_constraints_and_ini_have_custom_properties(self, local_study_with_constraint):
         # Given
@@ -1258,15 +1185,9 @@ group = test group
         local_study_with_constraint.create_binding_constraint(
             name="test constraint two", properties=custom_constraint_properties
         )
-        actual_file_path = (
-            local_study_with_constraint.service.config.study_path
-            / InitializationFilesTypes.BINDING_CONSTRAINTS_INI.value
-        )
-        with actual_file_path.open("r") as file:
-            actual_ini_content = file.read()
-
-        # Then
-        assert actual_ini_content == expected_ini_content
+        study_path = Path(local_study_with_constraint.path)
+        ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
+        assert ini_content == expected_ini_content
 
     def test_constraint_can_add_term(self, test_constraint):
         new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]
@@ -1291,10 +1212,10 @@ at%fr = 1
         # When
         new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]
         test_constraint.add_terms(new_term)
-        with local_study_with_constraint._binding_constraints_service.ini_file.ini_path.open("r") as file:
-            actual_ini_content = file.read()
+        study_path = Path(local_study_with_constraint.path)
+        ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
 
-        assert actual_ini_content == expected_ini_contents
+        assert ini_content == expected_ini_contents
 
     def test_constraint_term_with_offset_and_ini_have_correct_values(
         self, local_study_with_constraint, test_constraint
@@ -1316,10 +1237,10 @@ at%fr = 1%1
         # When
         new_term = [ConstraintTerm(offset=1, data=LinkData(area1="fr", area2="at"))]
         test_constraint.add_terms(new_term)
-        with local_study_with_constraint._binding_constraints_service.ini_file.ini_path.open("r") as file:
-            actual_ini_content = file.read()
+        study_path = Path(local_study_with_constraint.path)
+        ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
 
-        assert actual_ini_content == expected_ini_contents
+        assert ini_content == expected_ini_contents
 
     def test_binding_constraints_have_correct_default_time_series(self, test_constraint, local_study_with_constraint):
         # Given

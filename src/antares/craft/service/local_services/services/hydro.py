@@ -22,8 +22,9 @@ from antares.craft.service.local_services.models.hydro import (
     HydroPropertiesLocal,
     HydroPropertiesLocalUpdate,
 )
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 from typing_extensions import override
 
@@ -33,22 +34,38 @@ class HydroLocalService(BaseHydroService):
         self.config = config
         self.study_name = study_name
 
+    def _read_ini(self) -> dict[str, Any]:
+        return IniReader().read(self.config.study_path / "input" / "hydro" / "hydro.ini")
+
+    def _save_ini(self, content: dict[str, Any]) -> None:
+        IniWriter().write(content, self.config.study_path / "input" / "hydro" / "hydro.ini")
+
+    def _get_inflow_path(self, area_id: str) -> Path:
+        return self.config.study_path / "input" / "hydro" / "prepro" / area_id / "prepro.ini"
+
+    def read_inflow_ini(self, area_id: str) -> dict[str, Any]:
+        return IniReader().read(self._get_inflow_path(area_id))
+
+    def save_inflow_ini(self, content: dict[str, Any], area_id: str) -> None:
+        IniWriter().write(content, self._get_inflow_path(area_id))
+
+    def save_allocation_ini(self, content: dict[str, Any], area_id: str) -> None:
+        IniWriter().write(content, self.config.study_path / "input" / "hydro" / "allocation" / f"{area_id}.ini")
+
     @override
     def update_properties(self, area_id: str, properties: HydroPropertiesUpdate) -> None:
-        edit_hydro_properties(self.config.study_path, area_id, properties, creation=False)
+        self.edit_hydro_properties(area_id, properties, creation=False)
 
     @override
     def update_inflow_structure(self, area_id: str, inflow_structure: InflowStructureUpdate) -> None:
-        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI, area_id=area_id)
-        ini_file.ini_dict = HydroInflowStructureLocal.from_user_model(inflow_structure).model_dump(by_alias=True)
-        ini_file.write_ini_file()
+        new_content = HydroInflowStructureLocal.from_user_model(inflow_structure).model_dump(by_alias=True)
+        self.save_inflow_ini(new_content, area_id)
 
     @override
     def read_properties(self) -> dict[str, HydroProperties]:
         hydro_properties: dict[str, HydroProperties] = {}
 
-        list_ini = IniFile(self.config.study_path, InitializationFilesTypes.HYDRO_INI)
-        current_content = list_ini.ini_dict
+        current_content = self._read_ini()
 
         body_by_area: dict[str, dict[str, Any]] = {}
         for key, value in current_content.items():
@@ -69,10 +86,8 @@ class HydroLocalService(BaseHydroService):
             return {}
         for element in prepro_path.iterdir():
             if element.is_dir():
-                ini_file = IniFile(
-                    self.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI, area_id=element.name
-                )
-                inflow_structure = HydroInflowStructureLocal.model_validate(ini_file.ini_dict).to_user_model()
+                ini_content = self.read_inflow_ini(area_id=element.name)
+                inflow_structure = HydroInflowStructureLocal.model_validate(ini_content).to_user_model()
                 all_inflow_structure[element.name] = inflow_structure
 
         return all_inflow_structure
@@ -149,18 +164,15 @@ class HydroLocalService(BaseHydroService):
     def set_energy(self, area_id: str, series: pd.DataFrame) -> None:
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_ENERGY, area_id)
 
+    def edit_hydro_properties(self, area_id: str, properties: HydroPropertiesUpdate, creation: bool) -> None:
+        current_content = self._read_ini()
 
-def edit_hydro_properties(study_path: Path, area_id: str, properties: HydroPropertiesUpdate, creation: bool) -> None:
-    list_ini = IniFile(study_path, InitializationFilesTypes.HYDRO_INI)
-    current_content = list_ini.ini_dict
+        if creation:
+            local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(mode="json", by_alias=True)
+        else:
+            local_update_properties = HydroPropertiesLocalUpdate.from_user_model(properties)
+            local_dict = local_update_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
 
-    if creation:
-        local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(mode="json", by_alias=True)
-    else:
-        local_update_properties = HydroPropertiesLocalUpdate.from_user_model(properties)
-        local_dict = local_update_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
-
-    for key, value in local_dict.items():
-        current_content.setdefault(key, {})[area_id] = value
-    list_ini.ini_dict = current_content
-    list_ini.write_ini_file(sort_section_content=True)
+        for key, value in local_dict.items():
+            current_content.setdefault(key, {})[area_id] = value
+        self._save_ini(current_content)
