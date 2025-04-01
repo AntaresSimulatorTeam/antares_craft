@@ -49,30 +49,6 @@ class RenewableLocalService(BaseRenewableService):
         IniWriter().write(content, self._get_ini_path(area_id))
 
     @override
-    def update_renewable_properties(
-        self, renewable_cluster: RenewableCluster, properties: RenewableClusterPropertiesUpdate
-    ) -> RenewableClusterProperties:
-        area_id = renewable_cluster.area_id
-        renewable_dict = self.read_ini(area_id)
-        for renewable in renewable_dict.values():
-            if renewable["name"] == renewable_cluster.name:
-                # Update properties
-                upd_properties = RenewableClusterPropertiesLocal.from_user_model(properties)
-                upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
-                renewable.update(upd_props_as_dict)
-
-                # Update ini file
-                self.save_ini(renewable_dict, area_id)
-
-                # Prepare the object to return
-                local_dict = copy.deepcopy(renewable)
-                del local_dict["name"]
-                local_properties = RenewableClusterPropertiesLocal.model_validate(local_dict)
-
-                return local_properties.to_user_model()
-        raise RenewablePropertiesUpdateError(renewable_cluster.name, area_id, "The cluster does not exist")
-
-    @override
     def get_renewable_matrix(self, cluster_id: str, area_id: str) -> pd.DataFrame:
         return read_timeseries(
             TimeSeriesFileType.RENEWABLE_SERIES, self.config.study_path, area_id=area_id, cluster_id=cluster_id

@@ -21,7 +21,6 @@ from antares.craft.exceptions.exceptions import (
     ClustersPropertiesUpdateError,
     RenewableMatrixDownloadError,
     RenewableMatrixUpdateError,
-    RenewablePropertiesUpdateError,
 )
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesUpdate
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
@@ -37,29 +36,6 @@ class RenewableApiService(BaseRenewableService):
         self.study_id = study_id
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
-
-    @override
-    def update_renewable_properties(
-        self, renewable_cluster: RenewableCluster, properties: RenewableClusterPropertiesUpdate
-    ) -> RenewableClusterProperties:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{renewable_cluster.area_id}/clusters/renewable/{renewable_cluster.id}"
-        try:
-            api_model = RenewableClusterPropertiesAPI.from_user_model(properties)
-            body = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
-            if not body:
-                return renewable_cluster.properties
-
-            response = self._wrapper.patch(url, json=body)
-            json_response = response.json()
-            del json_response["id"]
-            del json_response["name"]
-            new_api_properties = RenewableClusterPropertiesAPI.model_validate(json_response)
-            new_properties = new_api_properties.to_user_model()
-
-        except APIError as e:
-            raise RenewablePropertiesUpdateError(renewable_cluster.id, renewable_cluster.area_id, e.message) from e
-
-        return new_properties
 
     @override
     def set_series(self, renewable_cluster: RenewableCluster, matrix: pd.DataFrame) -> None:
