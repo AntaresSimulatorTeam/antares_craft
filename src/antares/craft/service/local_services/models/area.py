@@ -151,6 +151,28 @@ class AreaUiLocal(LocalBaseModel, alias_generator=to_camel):
             args["layerColor"] = {0: ",".join(str(c) for c in user_class.color_rgb)}
         return AreaUiLocal.model_validate(args)
 
+    @staticmethod
+    def build_for_update(update_class: AreaUiUpdate, existing_class: AreaUi) -> "AreaUiLocal":
+        x = update_class.x or existing_class.x
+        y = update_class.y or existing_class.y
+        args: dict[str, Any] = {
+            "ui": {"x": x, "y": y},
+            "layerX": {0: x},
+            "layerY": {0: y},
+        }
+        class_to_consider: AreaUiType = update_class if update_class.color_rgb else existing_class
+        assert class_to_consider.color_rgb is not None  # needed for mypy
+        args["ui"].update(
+            {
+                "color_r": class_to_consider.color_rgb[0],
+                "color_g": class_to_consider.color_rgb[1],
+                "color_b": class_to_consider.color_rgb[2],
+            }
+        )
+        args["layerColor"] = {0: ",".join(str(c) for c in class_to_consider.color_rgb)}
+
+        return AreaUiLocal.model_validate(args)
+
     def to_user_model(self) -> AreaUi:
         return AreaUi(
             x=self.ui.x,
