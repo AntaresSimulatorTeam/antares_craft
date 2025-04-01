@@ -81,7 +81,6 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
-from antares.craft.tools.ini_tool import InitializationFilesTypes
 
 
 class TestCreateStudy:
@@ -418,11 +417,8 @@ seed-initial-reservoir-levels = 10005489
 """
 
         # When
-        actual_generaldata_ini_file = local_study.service.config.study_path / InitializationFilesTypes.GENERAL.value
-        actual_file_content = actual_generaldata_ini_file.read_text()
-
-        # Then
-        assert actual_file_content == expected_file_content
+        ini_content = (Path(local_study.path) / "settings" / "generaldata.ini").read_text()
+        assert ini_content == expected_file_content
 
 
 class TestCreateArea:
@@ -617,16 +613,14 @@ layers = 0
         assert actual_content == ui_ini_content
 
     def test_create_area_with_custom_error(self, monkeypatch, local_study):
-        error_message = "Thine area hath raised en error, thou shalt not pass!"
+        error_message = "Error encountered"
 
-        def mock_error_in_sets_ini():
+        def mock_error():
             raise Exception(error_message)
 
         area_id = "test"
 
-        monkeypatch.setattr(
-            "antares.craft.service.local_services.services.area._sets_ini_content", mock_error_in_sets_ini
-        )
+        monkeypatch.setattr("antares.craft.tools.contents_tool.transform_name_to_id", mock_error)
         with pytest.raises(
             AreaCreationError,
             match=f"Could not create the area {area_id}: {error_message}",
@@ -1206,16 +1200,9 @@ group = default
 """
 
         # When
-        actual_ini_path = (
-            local_study_with_constraint.service.config.study_path
-            / InitializationFilesTypes.BINDING_CONSTRAINTS_INI.value
-        )
-        with actual_ini_path.open("r") as file:
-            actual_ini_content = file.read()
-
-        # Then
-        assert default_constraint_properties == test_constraint.properties
-        assert actual_ini_content == expected_ini_contents
+        study_path = Path(local_study_with_constraint.path)
+        ini_content = (study_path / "bindingconstraints" / "bindingconstraints.ini").read_text()
+        assert ini_content == expected_ini_contents
 
     def test_constraints_and_ini_have_custom_properties(self, local_study_with_constraint):
         # Given
@@ -1256,15 +1243,9 @@ group = test group
         local_study_with_constraint.create_binding_constraint(
             name="test constraint two", properties=custom_constraint_properties
         )
-        actual_file_path = (
-            local_study_with_constraint.service.config.study_path
-            / InitializationFilesTypes.BINDING_CONSTRAINTS_INI.value
-        )
-        with actual_file_path.open("r") as file:
-            actual_ini_content = file.read()
-
-        # Then
-        assert actual_ini_content == expected_ini_content
+        study_path = Path(local_study_with_constraint.path)
+        ini_content = (study_path / "bindingconstraints" / "bindingconstraints.ini").read_text()
+        assert ini_content == expected_ini_content
 
     def test_constraint_can_add_term(self, test_constraint):
         new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]

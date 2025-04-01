@@ -53,23 +53,6 @@ from antares.craft.tools.time_series_tool import TimeSeriesFileType
 from typing_extensions import override
 
 
-def _sets_ini_content() -> ConfigParser:
-    """
-    Returns: sets.ini contents with default values
-    """
-    sets_ini = ConfigParser()
-    sets_ini_dict = {
-        "all areas": {
-            "caption": "All areas",
-            "comments": "Spatial aggregates on all areas",
-            "output": "false",
-            "apply-filter": "add-all",
-        }
-    }
-    sets_ini.read_dict(sets_ini_dict)
-    return sets_ini
-
-
 class AreaLocalService(BaseAreaService):
     def __init__(
         self,
