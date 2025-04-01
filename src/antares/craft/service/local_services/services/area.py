@@ -407,8 +407,9 @@ class AreaLocalService(BaseAreaService):
     def delete_area(self, area_id: str) -> None:
         raise NotImplementedError
 
-    def update_area_properties(self, area_id: str, properties: AreaPropertiesUpdate) -> AreaProperties:
-        local_properties = AreaPropertiesLocal.from_user_model(properties)
+    def update_area_properties(self, area: Area, properties: AreaPropertiesUpdate) -> AreaProperties:
+        area_id = area.id
+        local_properties = AreaPropertiesLocal.build_for_update(properties, area.properties)
 
         # Adequacy patch
         adequacy_patch_ini = self._get_adequacy_ini(area_id)
@@ -563,9 +564,9 @@ class AreaLocalService(BaseAreaService):
         return all_areas
 
     @override
-    def update_areas_properties(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
+    def update_areas_properties(self, dict_areas: Dict[Area, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
         new_properties_dict = {}
-        for area_id, update_properties in dict_areas.items():
-            new_properties = self.update_area_properties(area_id, update_properties)
-            new_properties_dict[area_id] = new_properties
+        for area, update_properties in dict_areas.items():
+            new_properties = self.update_area_properties(area, update_properties)
+            new_properties_dict[area.id] = new_properties
         return new_properties_dict

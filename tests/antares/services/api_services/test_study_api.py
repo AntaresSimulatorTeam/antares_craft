@@ -866,7 +866,7 @@ class TestCreateAPI:
 
         json_areas = [
             {
-                "area_test_1": {
+                self.area_1: {
                     "adequacy_patch_mode": "outside",
                     "non_dispatch_power": True,
                     "dispatch_hydro_power": True,
@@ -878,7 +878,7 @@ class TestCreateAPI:
                     "spread_unsupplied_energy_cost": 3000,
                     "spread_spilled_energy_cost": 0,
                 },
-                "area_test_2": {
+                self.area_2: {
                     "adequacy_patch_mode": "outside",
                     "non_dispatch_power": True,
                     "dispatch_hydro_power": True,
@@ -926,7 +926,7 @@ class TestCreateAPI:
             areas = json_areas[0]
             areas_1 = json_areas_1[0]
             for area, props in areas.items():
-                area_up_props = AreaPropertiesUpdate(**areas[area])  # snake_case
+                area_up_props = AreaPropertiesUpdate(**props)  # snake_case
                 dict_areas.update({area: area_up_props})
 
             mocker.put(url, json=areas_1)  # CamelCase
@@ -935,8 +935,8 @@ class TestCreateAPI:
             elec_props = self.study._areas["area_test_1"].properties
             gaz_props = self.study._areas["area_test_2"].properties
 
-            expected_elec = areas["area_test_1"]
-            expected_gaz = areas["area_test_2"]
+            expected_elec = areas[self.area_1]
+            expected_gaz = areas[self.area_2]
             assert elec_props.energy_cost_unsupplied == expected_elec["energy_cost_unsupplied"]
             assert gaz_props.energy_cost_unsupplied == expected_gaz["energy_cost_unsupplied"]
             assert elec_props.adequacy_patch_mode.value == expected_elec["adequacy_patch_mode"]

@@ -67,6 +67,31 @@ class AreaPropertiesLocal(LocalBaseModel):
 
         return AreaPropertiesLocal.model_validate(args)
 
+    @staticmethod
+    def build_for_update(update_class: AreaPropertiesUpdate, existing_class: AreaProperties) -> "AreaPropertiesLocal":
+        args = {
+            "adequacy_patch": {
+                "adequacy_patch_mode": update_class.adequacy_patch_mode or existing_class.adequacy_patch_mode
+            },
+            "filtering": {
+                "filter_synthesis": update_class.filter_synthesis or existing_class.filter_synthesis,
+                "filter_year_by_year": update_class.filter_by_year or existing_class.filter_by_year,
+            },
+            "nodal_optimization": {
+                "non_dispatchable_power": update_class.non_dispatch_power or existing_class.non_dispatch_power,
+                "dispatchable_hydro_power": update_class.dispatch_hydro_power or existing_class.dispatch_hydro_power,
+                "other_dispatchable_power": update_class.other_dispatch_power or existing_class.other_dispatch_power,
+                "spread_unsupplied_energy_cost": update_class.spread_unsupplied_energy_cost
+                or existing_class.spread_unsupplied_energy_cost,
+                "spread_spilled_energy_cost": update_class.spread_spilled_energy_cost
+                or existing_class.spread_spilled_energy_cost,
+            },
+            "energy_cost_unsupplied": update_class.energy_cost_unsupplied or existing_class.energy_cost_unsupplied,
+            "energy_cost_spilled": update_class.energy_cost_spilled or existing_class.energy_cost_spilled,
+        }
+
+        return AreaPropertiesLocal.model_validate(args)
+
     def to_user_model(self) -> AreaProperties:
         return AreaProperties(
             energy_cost_unsupplied=self.energy_cost_unsupplied,

@@ -684,7 +684,9 @@ layers = 0
 
     def test_areas_have_default_properties(self, tmp_path, local_study_w_areas):
         actual_area_properties = local_study_w_areas.get_areas()["fr"].properties
-        assert actual_area_properties == AreaProperties(energy_cost_spilled=1, energy_cost_unsupplied=0.5)
+        assert actual_area_properties == AreaProperties(
+            energy_cost_spilled=1, energy_cost_unsupplied=0.5, filter_synthesis={FilterOption.WEEKLY}
+        )
 
     def test_areas_with_custom_properties(self, tmp_path, local_study):
         # Given

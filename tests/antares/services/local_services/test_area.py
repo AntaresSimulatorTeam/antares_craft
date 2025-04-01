@@ -909,18 +909,21 @@ class TestUpateArea:
     def test_update_properties(self, local_study_w_areas):
         # Checks values before update
         area = local_study_w_areas.get_areas()["fr"]
-        current_properties = AreaProperties(energy_cost_spilled=1, energy_cost_unsupplied=0.5)
+        current_properties = AreaProperties(
+            energy_cost_spilled=1, energy_cost_unsupplied=0.5, filter_synthesis={FilterOption.WEEKLY}
+        )
         assert area.properties == current_properties
         # Updates properties
         update_properties = AreaPropertiesUpdate(
             adequacy_patch_mode=AdequacyPatchMode.VIRTUAL,
-            filter_synthesis={FilterOption.DAILY},
+            filter_by_year={FilterOption.DAILY},
             energy_cost_spilled=0.4,
         )
         new_properties = area.update_properties(update_properties)
         expected_properties = AreaProperties(
             adequacy_patch_mode=AdequacyPatchMode.VIRTUAL,
-            filter_synthesis={FilterOption.DAILY},
+            filter_by_year={FilterOption.DAILY},
+            filter_synthesis={FilterOption.WEEKLY},
             energy_cost_spilled=0.4,
             energy_cost_unsupplied=0.5,
         )
@@ -937,7 +940,7 @@ class TestUpateArea:
                 "spread-unsupplied-energy-cost": 0,
                 "spread-spilled-energy-cost": 0,
             },
-            "filtering": {"filter-synthesis": "daily", "filter-year-by-year": "annual, daily, hourly, monthly, weekly"},
+            "filtering": {"filter-synthesis": "weekly", "filter-year-by-year": "daily"},
         }
         adequacy_ini = IniReader().read(study_path / "input" / "areas" / area.id / "adequacy_patch.ini")
         assert adequacy_ini == {"adequacy-patch": {"adequacy-patch-mode": "virtual"}}
