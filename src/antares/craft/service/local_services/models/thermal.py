@@ -67,6 +67,18 @@ class ThermalClusterPropertiesLocal(LocalBaseModel):
         user_dict = asdict(user_class)
         return ThermalClusterPropertiesLocal.model_validate(user_dict)
 
+    @staticmethod
+    def build_for_update(
+        update_class: ThermalClusterPropertiesUpdate, existing_class: ThermalClusterProperties
+    ) -> "ThermalClusterPropertiesLocal":
+        params = asdict(existing_class)
+
+        for key, value in asdict(update_class).items():
+            if value is not None:
+                params[key] = value
+
+        return ThermalClusterPropertiesLocal.model_validate(params)
+
     def to_user_model(self) -> ThermalClusterProperties:
         return ThermalClusterProperties(
             enabled=self.enabled,

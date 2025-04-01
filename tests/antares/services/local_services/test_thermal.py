@@ -58,7 +58,7 @@ class TestThermalCluster:
 
     def test_has_correct_default_properties(self, local_study_w_thermal):
         thermal_cluster = local_study_w_thermal.get_areas()["fr"].get_thermals()["test thermal cluster"]
-        assert thermal_cluster.properties == ThermalClusterProperties()
+        assert thermal_cluster.properties == ThermalClusterProperties(group=ThermalClusterGroup.NUCLEAR, must_run=True)
 
     def test_required_ini_files_exist(self, tmp_path, local_study_w_thermal):
         study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
@@ -72,12 +72,12 @@ name = test thermal cluster
 enabled = True
 unitcount = 1
 nominalcapacity = 0.0
-group = other 1
+group = nuclear
 gen-ts = use global
 min-stable-power = 0.0
 min-up-time = 1
 min-down-time = 1
-must-run = False
+must-run = True
 spinning = 0.0
 volatility.forced = 0.0
 volatility.planned = 0.0
@@ -198,7 +198,7 @@ variableomcost = 5.0
         ini_content = IniReader().read(study_path / "input" / "clusters" / "fr" / "list.ini")
         print(ini_content)
 
-    def test_list_ini_has_multiple_clusters(self, local_study_w_thermal, default_thermal_cluster_properties):
+    def test_list_ini_has_multiple_clusters(self, local_study_w_thermal):
         # Asserts we can create 2 clusters
         local_study_w_thermal.get_areas()["fr"].create_thermal_cluster("test thermal cluster two")
         study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
@@ -209,7 +209,10 @@ variableomcost = 5.0
         for key in expected_sections:
             assert key in ini_content
             created_properties = ThermalClusterPropertiesLocal(**ini_content[key]).to_user_model()
-            assert created_properties == default_thermal_cluster_properties
+            if key == "test thermal cluster":
+                assert created_properties == ThermalClusterProperties(group=ThermalClusterGroup.NUCLEAR, must_run=True)
+            else:
+                assert created_properties == ThermalClusterProperties()
 
     def test_create_thermal_initialization_files(self, local_study_w_areas):
         study_path = Path(local_study_w_areas.path)
@@ -231,7 +234,9 @@ variableomcost = 5.0
     def test_update_properties(self, local_study_w_thermal):
         # Checks values before update
         thermal = local_study_w_thermal.get_areas()["fr"].get_thermals()["test thermal cluster"]
-        current_properties = ThermalClusterProperties(must_run=False, law_forced=LawOption.UNIFORM, startup_cost=0)
+        current_properties = ThermalClusterProperties(
+            must_run=True, group=ThermalClusterGroup.NUCLEAR, law_forced=LawOption.UNIFORM, startup_cost=0
+        )
         assert thermal.properties == current_properties
         # Updates properties
         update_properties = ThermalClusterPropertiesUpdate(
@@ -239,7 +244,11 @@ variableomcost = 5.0
         )
         new_properties = thermal.update_properties(update_properties)
         expected_properties = ThermalClusterProperties(
-            must_run=False, spinning=0.1, startup_cost=1.2, law_forced=LawOption.GEOMETRIC
+            must_run=True,
+            group=ThermalClusterGroup.NUCLEAR,
+            spinning=0.1,
+            startup_cost=1.2,
+            law_forced=LawOption.GEOMETRIC,
         )
         assert new_properties == expected_properties
         assert thermal.properties == expected_properties
@@ -252,12 +261,12 @@ variableomcost = 5.0
                 "enabled": True,
                 "unitcount": 1,
                 "nominalcapacity": 0.0,
-                "group": "other 1",
+                "group": "nuclear",
                 "gen-ts": "use global",
                 "min-stable-power": 0.0,
                 "min-up-time": 1,
                 "min-down-time": 1,
-                "must-run": False,
+                "must-run": True,
                 "spinning": 0.1,
                 "volatility.forced": 0.0,
                 "volatility.planned": 0.0,
@@ -368,4 +377,4 @@ variableomcost = 5.0
         assert thermal.properties.unit_count == 13
 
         # testing the unmodified value
-        assert thermal.properties.group == ThermalClusterGroup.OTHER1
+        assert thermal.properties.group == ThermalClusterGroup.NUCLEAR

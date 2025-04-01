@@ -828,7 +828,7 @@ class TestReadThermal:
             for thermal in thermals_list:
                 # Check properties
                 assert thermal.name == "test thermal cluster"
-                assert thermal.properties.group.value == "other 1"
+                assert thermal.properties.group.value == "nuclear"
                 assert thermal.properties.unit_count == 1
                 assert thermal.properties.efficiency == 100.000000
                 assert thermal.properties.nominal_capacity == 0.000000
@@ -889,14 +889,14 @@ class TestUpateArea:
         update_properties = AreaPropertiesUpdate(
             adequacy_patch_mode=AdequacyPatchMode.VIRTUAL,
             filter_by_year={FilterOption.DAILY},
-            energy_cost_spilled=0.4,
+            energy_cost_spilled=0,
         )
         new_properties = area.update_properties(update_properties)
         expected_properties = AreaProperties(
             adequacy_patch_mode=AdequacyPatchMode.VIRTUAL,
             filter_by_year={FilterOption.DAILY},
             filter_synthesis={FilterOption.WEEKLY},
-            energy_cost_spilled=0.4,
+            energy_cost_spilled=0,
             energy_cost_unsupplied=0.5,
         )
         assert new_properties == expected_properties
@@ -919,7 +919,7 @@ class TestUpateArea:
         thermal_ini = IniReader().read(study_path / "input" / "thermal" / "areas.ini")
         assert thermal_ini == {
             "unserverdenergycost": {"fr": 0.5, "it": 0.5},
-            "spilledenergycost": {"fr": 0.4, "it": 1.0},
+            "spilledenergycost": {"fr": 0, "it": 1.0},
         }
 
     def test_update_ui(self, local_study_w_areas):

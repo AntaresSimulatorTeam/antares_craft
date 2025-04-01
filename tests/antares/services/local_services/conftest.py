@@ -29,11 +29,8 @@ from antares.craft.model.renewable import RenewableClusterGroup, RenewableCluste
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import (
-    LawOption,
-    LocalTSGenerationBehavior,
     ThermalClusterGroup,
     ThermalClusterProperties,
-    ThermalCostGeneration,
 )
 
 
@@ -80,7 +77,8 @@ def local_study_w_constraints(tmp_path, local_study_w_links) -> Study:
 @pytest.fixture
 def local_study_w_thermal(tmp_path, local_study_w_links) -> Study:
     thermal_name = "test thermal cluster"
-    local_study_w_links.get_areas()["fr"].create_thermal_cluster(thermal_name)
+    thermal_properties = ThermalClusterProperties(must_run=True, group=ThermalClusterGroup.NUCLEAR)
+    local_study_w_links.get_areas()["fr"].create_thermal_cluster(thermal_name, properties=thermal_properties)
     return local_study_w_links
 
 
@@ -97,47 +95,6 @@ def local_study_w_storage(tmp_path, local_study_w_areas) -> Study:
     local_study_w_areas.get_areas()["fr"].create_st_storage("sts_1", st_properties)
     local_study_w_areas.get_areas()["fr"].create_st_storage("sts_2", st_properties)
     return local_study_w_areas
-
-
-@pytest.fixture
-def default_thermal_cluster_properties() -> ThermalClusterProperties:
-    return ThermalClusterProperties(
-        group=ThermalClusterGroup.OTHER1,
-        enabled=True,
-        unit_count=1,
-        nominal_capacity=0,
-        gen_ts=LocalTSGenerationBehavior.USE_GLOBAL,
-        min_stable_power=0,
-        min_up_time=1,
-        min_down_time=1,
-        must_run=False,
-        spinning=0,
-        volatility_forced=0,
-        volatility_planned=0,
-        law_forced=LawOption.UNIFORM,
-        law_planned=LawOption.UNIFORM,
-        marginal_cost=0,
-        spread_cost=0,
-        fixed_cost=0,
-        startup_cost=0,
-        market_bid_cost=0,
-        co2=0,
-        nh3=0,
-        so2=0,
-        nox=0,
-        pm2_5=0,
-        pm5=0,
-        pm10=0,
-        nmvoc=0,
-        op1=0,
-        op2=0,
-        op3=0,
-        op4=0,
-        op5=0,
-        cost_generation=ThermalCostGeneration.SET_MANUALLY,
-        efficiency=100,
-        variable_o_m_cost=0,
-    )
 
 
 @pytest.fixture

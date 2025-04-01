@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import field
+from dataclasses import asdict, field
 from typing import Any
 
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
@@ -47,50 +47,38 @@ class AreaPropertiesLocal(LocalBaseModel):
     energy_cost_spilled: float = 0.0
 
     @staticmethod
-    def from_user_model(user_class: AreaPropertiesType) -> "AreaPropertiesLocal":
+    def _from_user_model_as_dict(params: dict[str, Any]) -> "AreaPropertiesLocal":
         args = {
-            "adequacy_patch": {"adequacy_patch_mode": user_class.adequacy_patch_mode},
+            "adequacy_patch": {"adequacy_patch_mode": params["adequacy_patch_mode"]},
             "filtering": {
-                "filter_synthesis": user_class.filter_synthesis,
-                "filter_year_by_year": user_class.filter_by_year,
+                "filter_synthesis": params["filter_synthesis"],
+                "filter_year_by_year": params["filter_by_year"],
             },
             "nodal_optimization": {
-                "non_dispatchable_power": user_class.non_dispatch_power,
-                "dispatchable_hydro_power": user_class.dispatch_hydro_power,
-                "other_dispatchable_power": user_class.other_dispatch_power,
-                "spread_unsupplied_energy_cost": user_class.spread_unsupplied_energy_cost,
-                "spread_spilled_energy_cost": user_class.spread_spilled_energy_cost,
+                "non_dispatchable_power": params["non_dispatch_power"],
+                "dispatchable_hydro_power": params["dispatch_hydro_power"],
+                "other_dispatchable_power": params["other_dispatch_power"],
+                "spread_unsupplied_energy_cost": params["spread_unsupplied_energy_cost"],
+                "spread_spilled_energy_cost": params["spread_spilled_energy_cost"],
             },
-            "energy_cost_unsupplied": user_class.energy_cost_unsupplied,
-            "energy_cost_spilled": user_class.energy_cost_spilled,
+            "energy_cost_unsupplied": params["energy_cost_unsupplied"],
+            "energy_cost_spilled": params["energy_cost_spilled"],
         }
-
         return AreaPropertiesLocal.model_validate(args)
 
     @staticmethod
-    def build_for_update(update_class: AreaPropertiesUpdate, existing_class: AreaProperties) -> "AreaPropertiesLocal":
-        args = {
-            "adequacy_patch": {
-                "adequacy_patch_mode": update_class.adequacy_patch_mode or existing_class.adequacy_patch_mode
-            },
-            "filtering": {
-                "filter_synthesis": update_class.filter_synthesis or existing_class.filter_synthesis,
-                "filter_year_by_year": update_class.filter_by_year or existing_class.filter_by_year,
-            },
-            "nodal_optimization": {
-                "non_dispatchable_power": update_class.non_dispatch_power or existing_class.non_dispatch_power,
-                "dispatchable_hydro_power": update_class.dispatch_hydro_power or existing_class.dispatch_hydro_power,
-                "other_dispatchable_power": update_class.other_dispatch_power or existing_class.other_dispatch_power,
-                "spread_unsupplied_energy_cost": update_class.spread_unsupplied_energy_cost
-                or existing_class.spread_unsupplied_energy_cost,
-                "spread_spilled_energy_cost": update_class.spread_spilled_energy_cost
-                or existing_class.spread_spilled_energy_cost,
-            },
-            "energy_cost_unsupplied": update_class.energy_cost_unsupplied or existing_class.energy_cost_unsupplied,
-            "energy_cost_spilled": update_class.energy_cost_spilled or existing_class.energy_cost_spilled,
-        }
+    def from_user_model(user_class: AreaPropertiesType) -> "AreaPropertiesLocal":
+        return AreaPropertiesLocal._from_user_model_as_dict(asdict(user_class))
 
-        return AreaPropertiesLocal.model_validate(args)
+    @staticmethod
+    def build_for_update(update_class: AreaPropertiesUpdate, existing_class: AreaProperties) -> "AreaPropertiesLocal":
+        params = asdict(existing_class)
+
+        for key, value in asdict(update_class).items():
+            if value is not None:
+                params[key] = value
+
+        return AreaPropertiesLocal._from_user_model_as_dict(params)
 
     def to_user_model(self) -> AreaProperties:
         return AreaProperties(
@@ -153,8 +141,8 @@ class AreaUiLocal(LocalBaseModel, alias_generator=to_camel):
 
     @staticmethod
     def build_for_update(update_class: AreaUiUpdate, existing_class: AreaUi) -> "AreaUiLocal":
-        x = update_class.x or existing_class.x
-        y = update_class.y or existing_class.y
+        x = update_class.x if update_class.x is not None else existing_class.x
+        y = update_class.y if update_class.y is not None else existing_class.y
         args: dict[str, Any] = {
             "ui": {"x": x, "y": y},
             "layerX": {0: x},

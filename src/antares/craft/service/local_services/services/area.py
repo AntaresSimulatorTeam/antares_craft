@@ -413,23 +413,23 @@ class AreaLocalService(BaseAreaService):
             self._save_adequacy_ini(adequacy_patch_ini, area_id)
 
         # Thermal properties
-        if properties.energy_cost_spilled or properties.energy_cost_unsupplied:
+        if properties.energy_cost_spilled is not None or properties.energy_cost_unsupplied is not None:
             current_content = self._read_thermal_areas_ini()
-            if properties.energy_cost_spilled:
+            if properties.energy_cost_spilled is not None:
                 current_content["spilledenergycost"][area_id] = properties.energy_cost_spilled
-            if properties.energy_cost_unsupplied:
+            if properties.energy_cost_unsupplied is not None:
                 current_content["unserverdenergycost"][area_id] = properties.energy_cost_unsupplied
             self._save_thermal_areas_ini(current_content)
 
         # Optimization properties
         if (
-            properties.filter_synthesis
-            or properties.filter_by_year
-            or properties.non_dispatch_power
-            or properties.dispatch_hydro_power
-            or properties.other_dispatch_power
-            or properties.spread_spilled_energy_cost
-            or properties.spread_unsupplied_energy_cost
+            properties.filter_synthesis is not None
+            or properties.filter_by_year is not None
+            or properties.non_dispatch_power is not None
+            or properties.dispatch_hydro_power is not None
+            or properties.other_dispatch_power is not None
+            or properties.spread_spilled_energy_cost is not None
+            or properties.spread_unsupplied_energy_cost is not None
         ):
             new_content = new_local_properties.to_optimization_ini()
             self._save_optimization_ini(new_content, area_id)
