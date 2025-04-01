@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 import copy
 
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -47,6 +48,15 @@ class ThermalLocalService(BaseThermalService):
         self.config = config
         self.study_name = study_name
 
+    def _get_ini_path(self, area_id: str) -> Path:
+        return self.config.study_path / "input" / "thermal" / "clusters" / area_id / "list.ini"
+
+    def read_ini(self, area_id: str) -> dict[str, Any]:
+        return IniReader().read(self._get_ini_path(area_id))
+
+    def save_ini(self, content: dict[str, Any], area_id: str) -> None:
+        IniWriter().write(content, self._get_ini_path(area_id))
+
     @override
     def get_thermal_matrix(self, thermal_cluster: ThermalCluster, ts_name: ThermalClusterMatrixName) -> pd.DataFrame:
         return read_timeseries(
@@ -65,7 +75,7 @@ class ThermalLocalService(BaseThermalService):
         for folder in cluster_path.iterdir():
             if folder.is_dir():
                 area_id = folder.name
-                thermal_dict = IniReader().read(cluster_path / area_id / "list.ini")
+                thermal_dict = self.read_ini(area_id)
 
                 for thermal_data in thermal_dict.values():
                     thermal_cluster = ThermalCluster(
@@ -100,8 +110,7 @@ class ThermalLocalService(BaseThermalService):
 
         for area_id, value in properties_by_areas.items():
             all_thermal_names = set(value.keys())  # used to raise an Exception if a cluster doesn't exist
-            ini_path = self.config.study_path / "input" / "thermal" / "clusters" / area_id / "list.ini"
-            thermal_dict = IniReader().read(ini_path)
+            thermal_dict = self.read_ini(area_id)
             for thermal in thermal_dict.values():
                 thermal_name = thermal["name"]
                 if thermal_name in value:
@@ -122,6 +131,6 @@ class ThermalLocalService(BaseThermalService):
                 raise ThermalPropertiesUpdateError(next(iter(all_thermal_names)), area_id, "The cluster does not exist")
 
             # Update ini file
-            IniWriter().write(thermal_dict, ini_path)
+            self.save_ini(thermal_dict, area_id)
 
         return new_properties_dict
