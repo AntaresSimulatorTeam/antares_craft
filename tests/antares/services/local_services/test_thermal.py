@@ -377,4 +377,4 @@ variableomcost = 5.0
         assert thermal.properties.unit_count == 13
 
         # testing the unmodified value
-        assert thermal.properties.group == ThermalClusterGroup.OTHER1
+        assert thermal.properties.group == ThermalClusterGroup.NUCLEAR
