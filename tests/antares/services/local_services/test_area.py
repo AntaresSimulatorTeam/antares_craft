@@ -925,21 +925,21 @@ class TestUpateArea:
     def test_update_ui(self, local_study_w_areas):
         # Checks values before update
         area = local_study_w_areas.get_areas()["fr"]
-        current_ui = AreaUi()
+        current_ui = AreaUi(x=56)
         assert area.ui == current_ui
         # Updates properties
-        update_ui = AreaUiUpdate(x=12, color_rgb=[5, 6, 7])
+        update_ui = AreaUiUpdate(y=12, color_rgb=[5, 6, 7])
         new_ui = area.update_ui(update_ui)
-        expected_ui = AreaUi(x=12, color_rgb=[5, 6, 7], y=0)
+        expected_ui = AreaUi(y=12, color_rgb=[5, 6, 7], x=56)
         assert new_ui == expected_ui
         assert area.ui == expected_ui
         # Asserts the ini file is properly modified
         study_path = Path(local_study_w_areas.path)
         ui_ini = IniReader().read(study_path / "input" / "areas" / area.id / "ui.ini")
         assert ui_ini == {
-            "ui": {"x": 12, "y": 0, "color_r": 5, "color_g": 6, "color_b": 7},
-            "layerX": {"0": 12},
-            "layerY": {"0": 0},
+            "ui": {"x": 56, "y": 12, "color_r": 5, "color_g": 6, "color_b": 7},
+            "layerX": {"0": 56},
+            "layerY": {"0": 12},
             "layerColor": {"0": "5,6,7"},
         }
 
