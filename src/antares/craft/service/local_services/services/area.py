@@ -205,7 +205,10 @@ class AreaLocalService(BaseAreaService):
 
         ini_path = self.config.study_path / "input" / "renewables" / "clusters" / area_id / "list.ini"
         ini_content = IniReader().read(ini_path)
-        ini_content[renewable_name] = local_properties.model_dump(mode="json", by_alias=True)
+        ini_content[renewable_name] = {
+            "name": renewable_name,
+            **local_properties.model_dump(mode="json", by_alias=True),
+        }
         IniWriter().write(ini_content, ini_path)
 
         write_timeseries(
@@ -231,7 +234,10 @@ class AreaLocalService(BaseAreaService):
 
         ini_path = self.config.study_path / "input" / "st-storage" / "clusters" / area_id / "list.ini"
         ini_content = IniReader().read(ini_path)
-        ini_content[st_storage_name] = local_properties.model_dump(mode="json", by_alias=True)
+        ini_content[st_storage_name] = {
+            "name": st_storage_name,
+            **local_properties.model_dump(mode="json", by_alias=True),
+        }
         IniWriter().write(ini_content, ini_path)
 
         storage = STStorage(
