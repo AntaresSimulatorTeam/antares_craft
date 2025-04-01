@@ -199,10 +199,10 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def update_area_ui(self, area_id: str, ui: "AreaUiUpdate") -> "AreaUi":
+    def update_area_ui(self, area: "Area", ui: "AreaUiUpdate") -> "AreaUi":
         """
         Args:
-            area_id: concerned area
+            area: concerned area object
             ui: new ui. Only registered fields will be updated.
         """
         pass

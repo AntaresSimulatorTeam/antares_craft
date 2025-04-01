@@ -437,7 +437,8 @@ class AreaLocalService(BaseAreaService):
         return new_local_properties.to_user_model()
 
     @override
-    def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
+    def update_area_ui(self, area: Area, ui: AreaUiUpdate) -> AreaUi:
+        area_id = area.id
         current_content = self._read_ui_ini(area_id)
         # Update ui
         local_ui = AreaUiLocal.from_user_model(ui).model_dump(mode="json", exclude_unset=True, by_alias=True)
