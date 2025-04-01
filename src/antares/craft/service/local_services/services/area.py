@@ -13,7 +13,6 @@ import copy
 import logging
 import os
 
-from configparser import ConfigParser
 from typing import Any, Dict, List, Optional, cast
 
 import pandas as pd
@@ -335,10 +334,8 @@ class AreaLocalService(BaseAreaService):
 
             ui = ui or AreaUi()
             local_ui = AreaUiLocal.from_user_model(ui)
-            ui_ini = ConfigParser()
-            ui_ini.read_dict(local_ui.model_dump(mode="json", by_alias=True))
-            with open(new_area_directory / "ui.ini", "w") as ui_ini_file:
-                ui_ini.write(ui_ini_file)
+            local_ui_content = local_ui.model_dump(mode="json", by_alias=True)
+            self._save_ui_ini(local_ui_content, area_id)
 
             empty_df = pd.DataFrame()
             self.set_reserves(area_id, empty_df)
