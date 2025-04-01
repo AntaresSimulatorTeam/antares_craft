@@ -37,6 +37,18 @@ class RenewableClusterPropertiesLocal(LocalBaseModel):
         user_dict = asdict(user_class)
         return RenewableClusterPropertiesLocal.model_validate(user_dict)
 
+    @staticmethod
+    def build_for_update(
+        update_class: RenewableClusterPropertiesUpdate, existing_class: RenewableClusterProperties
+    ) -> "RenewableClusterPropertiesLocal":
+        params = asdict(existing_class)
+
+        for key, value in asdict(update_class).items():
+            if value is not None:
+                params[key] = value
+
+        return RenewableClusterPropertiesLocal.model_validate(params)
+
     def to_user_model(self) -> RenewableClusterProperties:
         return RenewableClusterProperties(
             enabled=self.enabled,
