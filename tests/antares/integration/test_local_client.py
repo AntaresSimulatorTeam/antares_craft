@@ -37,7 +37,7 @@ from antares.craft.model.settings.general import GeneralParametersUpdate
 from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
 from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
+from antares.craft.tools.serde_local.ini_reader import IniReader
 
 
 class TestLocalClient:
@@ -103,8 +103,7 @@ class TestLocalClient:
         assert area_be.id == "be"
         assert area_be.ui.x == area_ui.x
         assert area_be.ui.color_rgb == area_ui.color_rgb
-        be_ui_file = study_path.joinpath(InitializationFilesTypes.AREA_UI_INI.value.format(area_id=area_be.id))
-        assert be_ui_file.is_file()
+        assert (study_path / "input" / "areas" / area_be.id / "ui.ini").exists()
 
         # tests area creation with properties
         properties = AreaProperties(
@@ -131,13 +130,9 @@ class TestLocalClient:
         assert link_be_fr.ui.colorr == 44
         assert link_be_fr.properties.hurdles_cost
         assert link_be_fr.properties.filter_year_by_year == {FilterOption.HOURLY}
-        be_link_ini_file = study_path.joinpath(
-            InitializationFilesTypes.LINK_PROPERTIES_INI.value.format(area_id=area_be.id)
-        )
-        assert be_link_ini_file.is_file()
-        be_links_in_file = IniFile(study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, area_be.id)
-        assert be_links_in_file.ini_dict["fr"]["hurdles-cost"] == "True"
-        assert be_links_in_file.ini_dict["fr"]["filter-year-by-year"] == "hourly"
+        ini_content = IniReader().read(study_path / "input" / "links" / area_be.id / "properties.ini")
+        assert ini_content["fr"]["hurdles-cost"] is True
+        assert ini_content["fr"]["filter-year-by-year"] == "hourly"
 
         # asserts study contains all links and areas
         assert test_study.get_areas() == {at.id: at, area_be.id: area_be, fr.id: fr, area_de.id: area_de}
