@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 import copy
 
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -49,6 +50,15 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         self.config = config
         self.study_name = study_name
 
+    def _get_ini_path(self, area_id: str) -> Path:
+        return self.config.study_path / "input" / "st-storage" / "clusters" / area_id / "list.ini"
+
+    def read_ini(self, area_id: str) -> dict[str, Any]:
+        return IniReader().read(self._get_ini_path(area_id))
+
+    def save_ini(self, content: dict[str, Any], area_id: str) -> None:
+        IniWriter().write(content, self._get_ini_path(area_id))
+
     @override
     def read_st_storages(self) -> dict[str, dict[str, STStorage]]:
         st_storages: dict[str, dict[str, STStorage]] = {}
@@ -59,7 +69,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
             if folder.is_dir():
                 area_id = folder.name
 
-                storage_dict = IniReader().read(cluster_path / area_id / "list.ini")
+                storage_dict = self.read_ini(area_id)
 
                 for storage_data in storage_dict.values():
                     st_storage = STStorage(
@@ -96,8 +106,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
 
         for area_id, value in properties_by_areas.items():
             all_storage_name = set(value.keys())  # used to raise an Exception if a storage doesn't exist
-            ini_path = self.config.study_path / "input" / "st-storage" / "clusters" / area_id / "list.ini"
-            st_storage_dict = IniReader().read(ini_path)
+            st_storage_dict = self.read_ini(area_id)
             for storage in st_storage_dict.values():
                 storage_name = storage["name"]
                 if storage_name in value:
@@ -119,6 +128,6 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
                 )
 
             # Update ini file
-            IniWriter().write(st_storage_dict, ini_path)
+            self.save_ini(st_storage_dict, area_id)
 
         return new_properties_dict

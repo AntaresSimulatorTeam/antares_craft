@@ -34,7 +34,7 @@ class HydroLocalService(BaseHydroService):
         self.config = config
         self.study_name = study_name
 
-    def _get_ini(self) -> dict[str, Any]:
+    def _read_ini(self) -> dict[str, Any]:
         return IniReader().read(self.config.study_path / "input" / "hydro" / "hydro.ini")
 
     def _save_ini(self, content: dict[str, Any]) -> None:
@@ -43,7 +43,7 @@ class HydroLocalService(BaseHydroService):
     def _get_inflow_path(self, area_id: str) -> Path:
         return self.config.study_path / "input" / "hydro" / "prepro" / area_id / "prepro.ini"
 
-    def get_inflow_ini(self, area_id: str) -> dict[str, Any]:
+    def read_inflow_ini(self, area_id: str) -> dict[str, Any]:
         return IniReader().read(self._get_inflow_path(area_id))
 
     def save_inflow_ini(self, content: dict[str, Any], area_id: str) -> None:
@@ -65,7 +65,7 @@ class HydroLocalService(BaseHydroService):
     def read_properties(self) -> dict[str, HydroProperties]:
         hydro_properties: dict[str, HydroProperties] = {}
 
-        current_content = self._get_ini()
+        current_content = self._read_ini()
 
         body_by_area: dict[str, dict[str, Any]] = {}
         for key, value in current_content.items():
@@ -86,7 +86,7 @@ class HydroLocalService(BaseHydroService):
             return {}
         for element in prepro_path.iterdir():
             if element.is_dir():
-                ini_content = self.get_inflow_ini(area_id=element.name)
+                ini_content = self.read_inflow_ini(area_id=element.name)
                 inflow_structure = HydroInflowStructureLocal.model_validate(ini_content).to_user_model()
                 all_inflow_structure[element.name] = inflow_structure
 
@@ -165,7 +165,7 @@ class HydroLocalService(BaseHydroService):
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_ENERGY, area_id)
 
     def edit_hydro_properties(self, area_id: str, properties: HydroPropertiesUpdate, creation: bool) -> None:
-        current_content = self._get_ini()
+        current_content = self._read_ini()
 
         if creation:
             local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(mode="json", by_alias=True)

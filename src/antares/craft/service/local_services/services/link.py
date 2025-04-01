@@ -37,7 +37,7 @@ class LinkLocalService(BaseLinkService):
         self.config = config
         self.study_name = study_name
 
-    def _get_ini(self, area_from: str) -> dict[str, Any]:
+    def _read_ini(self, area_from: str) -> dict[str, Any]:
         return IniReader().read(self.config.study_path / "input" / "links" / area_from / "properties.ini")
 
     def _save_ini(self, content: dict[str, Any], area_from: str) -> None:
@@ -69,7 +69,7 @@ class LinkLocalService(BaseLinkService):
         link_dir.mkdir(parents=True, exist_ok=True)
         local_model = LinkPropertiesAndUiLocal.from_user_model(ui or LinkUi(), properties or LinkProperties())
 
-        current_content = self._get_ini(area_from)
+        current_content = self._read_ini(area_from)
 
         if area_to in current_content:
             raise LinkCreationError(
@@ -101,7 +101,7 @@ class LinkLocalService(BaseLinkService):
 
     @override
     def delete_link(self, link: Link) -> None:
-        links_dict = self._get_ini(link.area_from_id)
+        links_dict = self._read_ini(link.area_from_id)
         for area_to, link_props in links_dict.items():
             if area_to == link.area_to_id:
                 links_dict.pop(area_to)
@@ -112,7 +112,7 @@ class LinkLocalService(BaseLinkService):
 
     @override
     def update_link_ui(self, link: Link, ui: LinkUiUpdate) -> LinkUi:
-        links_dict = self._get_ini(link.area_from_id)
+        links_dict = self._read_ini(link.area_from_id)
         for area_to, link_props in links_dict.items():
             if area_to == link.area_to_id:
                 # Update properties
@@ -205,7 +205,7 @@ class LinkLocalService(BaseLinkService):
 
         for element in link_path.iterdir():
             area_from = element.name
-            links_dict = self._get_ini(area_from)
+            links_dict = self._read_ini(area_from)
             for area_to, values in links_dict.items():
                 local_model = LinkPropertiesAndUiLocal.model_validate(values)
                 properties = local_model.to_properties_user_model()
@@ -226,7 +226,7 @@ class LinkLocalService(BaseLinkService):
 
         for area_from, value in properties_by_areas.items():
             all_link_names = set(value.keys())  # used to raise an Exception if a link doesn't exist
-            current_dict = self._get_ini(area_from)
+            current_dict = self._read_ini(area_from)
             for area_to, link_properties_dict in current_dict.items():
                 if area_to in value:
                     all_link_names.remove(area_to)
