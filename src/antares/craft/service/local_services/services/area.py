@@ -423,13 +423,13 @@ class AreaLocalService(BaseAreaService):
 
         # Optimization properties
         if (
-            properties.filter_synthesis
-            or properties.filter_by_year
-            or properties.non_dispatch_power
-            or properties.dispatch_hydro_power
-            or properties.other_dispatch_power
-            or properties.spread_spilled_energy_cost
-            or properties.spread_unsupplied_energy_cost
+            properties.filter_synthesis is not None
+            or properties.filter_by_year is not None
+            or properties.non_dispatch_power is not None
+            or properties.dispatch_hydro_power is not None
+            or properties.other_dispatch_power is not None
+            or properties.spread_spilled_energy_cost is not None
+            or properties.spread_unsupplied_energy_cost is not None
         ):
             new_content = new_local_properties.to_optimization_ini()
             self._save_optimization_ini(new_content, area_id)
