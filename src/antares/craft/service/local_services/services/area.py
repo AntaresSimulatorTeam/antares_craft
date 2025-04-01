@@ -382,7 +382,7 @@ class AreaLocalService(BaseAreaService):
     def update_area_properties(self, area: Area, properties: AreaPropertiesUpdate) -> AreaProperties:
         area_id = area.id
         study_path = self.config.study_path
-        local_properties = AreaPropertiesLocal.from_user_model(properties)
+        local_properties = AreaPropertiesLocal.build_for_update(properties, area.properties)
 
         # Adequacy patch
         adequacy_patch_ini = IniFile(study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_id)

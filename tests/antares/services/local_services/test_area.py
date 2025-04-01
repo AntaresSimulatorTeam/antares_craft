@@ -964,7 +964,7 @@ class TestUpateArea:
                 "spread-unsupplied-energy-cost": "0.0",
                 "spread-spilled-energy-cost": "0.0",
             },
-            "filtering": {"filter-synthesis": "daily", "filter-year-by-year": "annual, daily, hourly, monthly, weekly"},
+            "filtering": {"filter-synthesis": "weekly", "filter-year-by-year": "daily"},
         }
         adequacy_ini = IniFile(study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area.id)
         assert adequacy_ini.ini_dict == {"adequacy-patch": {"adequacy-patch-mode": "virtual"}}
