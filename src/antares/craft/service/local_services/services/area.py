@@ -416,6 +416,7 @@ class AreaLocalService(BaseAreaService):
         updated_properties_dict: dict[str, Any] = adequacy_patch_ini
         if properties.adequacy_patch_mode:
             adequacy_patch_ini = local_properties.to_adequacy_ini()
+            updated_properties_dict = adequacy_patch_ini
             self._save_adequacy_ini(adequacy_patch_ini, area_id)
 
         # Thermal properties
