@@ -294,7 +294,7 @@ class Study:
         # Copies objects to bypass the fact that the class is frozen
         self._settings.general_parameters = replace(self._settings.general_parameters, nb_timeseries_thermal=nb_years)
 
-    def update_areas(self, new_properties: Dict[str, AreaPropertiesUpdate]) -> None:
+    def update_areas(self, new_properties: Dict[Area, AreaPropertiesUpdate]) -> None:
         new_areas_props = self._area_service.update_areas_properties(new_properties)
         for area_prop in new_areas_props:
             self._areas[area_prop]._properties = new_areas_props[area_prop]

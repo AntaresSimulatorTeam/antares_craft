@@ -293,7 +293,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def update_areas_properties(self, dict_areas: Dict[str, "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
+    def update_areas_properties(self, dict_areas: Dict["Area", "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
         pass
 
 
