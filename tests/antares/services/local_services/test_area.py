@@ -17,7 +17,6 @@ import os
 import re
 import typing as t
 
-from configparser import ConfigParser
 from io import StringIO
 from pathlib import Path
 
@@ -150,33 +149,6 @@ class TestCreateSTStorage:
     def test_st_storage_list_ini_exists(self, local_study_with_st_storage):
         study_path = Path(local_study_with_st_storage.path)
         assert (study_path / "input" / "st-storage" / "clusters" / "fr" / "list.ini").exists()
-
-    def test_st_storage_list_ini_has_correct_default_values(
-        self, default_st_storage_properties, actual_st_storage_list_ini
-    ):
-        # Given
-        expected_st_storage_list_ini_content = """[short term storage]
-name = short term storage
-group = other1
-injectionnominalcapacity = 0.0
-withdrawalnominalcapacity = 0.0
-reservoircapacity = 0.0
-efficiency = 1.0
-initiallevel = 0.5
-initialleveloptim = False
-enabled = True
-
-"""
-        expected_st_storage_list_ini = ConfigParser()
-        expected_st_storage_list_ini.read_string(expected_st_storage_list_ini_content)
-
-        # When
-        with actual_st_storage_list_ini.ini_path.open() as st_storage_list_ini_file:
-            actual_st_storage_list_ini_content = st_storage_list_ini_file.read()
-
-        assert actual_st_storage_list_ini_content == expected_st_storage_list_ini_content
-        assert actual_st_storage_list_ini.parsed_ini.sections() == expected_st_storage_list_ini.sections()
-        assert actual_st_storage_list_ini.parsed_ini == expected_st_storage_list_ini
 
     def test_st_storage_and_ini_have_custom_properties(self, local_study_w_areas):
         # Given

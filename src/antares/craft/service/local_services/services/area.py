@@ -446,9 +446,8 @@ class AreaLocalService(BaseAreaService):
             or properties.spread_unsupplied_energy_cost
         ):
             new_content = local_properties.to_optimization_ini()
-            current_content.update(new_content)
             updated_properties_dict.update(new_content)
-            self._save_optimization_ini(current_content, area_id)
+            self._save_optimization_ini(new_content, area_id)
 
         new_properties = AreaPropertiesLocal.model_validate(updated_properties_dict)
         return new_properties.to_user_model()
