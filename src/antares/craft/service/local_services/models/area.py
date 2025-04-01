@@ -141,8 +141,8 @@ class AreaUiLocal(LocalBaseModel, alias_generator=to_camel):
 
     @staticmethod
     def build_for_update(update_class: AreaUiUpdate, existing_class: AreaUi) -> "AreaUiLocal":
-        x = update_class.x or existing_class.x
-        y = update_class.y or existing_class.y
+        x = update_class.x if update_class.x is not None else existing_class.x
+        y = update_class.y if update_class.y is not None else existing_class.y
         args: dict[str, Any] = {
             "ui": {"x": x, "y": y},
             "layerX": {0: x},
