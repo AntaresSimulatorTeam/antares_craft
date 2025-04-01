@@ -405,33 +405,23 @@ class AreaLocalService(BaseAreaService):
 
     def update_area_properties(self, area: Area, properties: AreaPropertiesUpdate) -> AreaProperties:
         area_id = area.id
-        local_properties = AreaPropertiesLocal.build_for_update(properties, area.properties)
+        new_local_properties = AreaPropertiesLocal.build_for_update(properties, area.properties)
 
         # Adequacy patch
-        adequacy_patch_ini = self._read_adequacy_ini(area_id)
-
-        updated_properties_dict: dict[str, Any] = adequacy_patch_ini
         if properties.adequacy_patch_mode:
-            adequacy_patch_ini = local_properties.to_adequacy_ini()
-            updated_properties_dict = adequacy_patch_ini
+            adequacy_patch_ini = new_local_properties.to_adequacy_ini()
             self._save_adequacy_ini(adequacy_patch_ini, area_id)
 
         # Thermal properties
-        current_content = self._read_thermal_areas_ini()
-        updated_properties_dict["energy_cost_unsupplied"] = current_content["unserverdenergycost"][area_id]
-        updated_properties_dict["energy_cost_spilled"] = current_content["spilledenergycost"][area_id]
         if properties.energy_cost_spilled or properties.energy_cost_unsupplied:
+            current_content = self._read_thermal_areas_ini()
             if properties.energy_cost_spilled:
                 current_content["spilledenergycost"][area_id] = properties.energy_cost_spilled
-                updated_properties_dict["energy_cost_spilled"] = properties.energy_cost_spilled
             if properties.energy_cost_unsupplied:
                 current_content["unserverdenergycost"][area_id] = properties.energy_cost_unsupplied
-                updated_properties_dict["energy_cost_unsupplied"] = properties.energy_cost_unsupplied
             self._save_thermal_areas_ini(current_content)
 
         # Optimization properties
-        optimization_ini = self._read_optimization_ini(area_id)
-        updated_properties_dict.update(optimization_ini)
         if (
             properties.filter_synthesis
             or properties.filter_by_year
@@ -441,12 +431,10 @@ class AreaLocalService(BaseAreaService):
             or properties.spread_spilled_energy_cost
             or properties.spread_unsupplied_energy_cost
         ):
-            new_content = local_properties.to_optimization_ini()
-            updated_properties_dict.update(new_content)
+            new_content = new_local_properties.to_optimization_ini()
             self._save_optimization_ini(new_content, area_id)
 
-        new_properties = AreaPropertiesLocal.model_validate(updated_properties_dict)
-        return new_properties.to_user_model()
+        return new_local_properties.to_user_model()
 
     @override
     def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
