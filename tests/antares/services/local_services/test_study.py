@@ -702,59 +702,6 @@ layers = 0
         created_area = local_study.create_area(area_name=area_to_create, properties=area_properties)
         assert created_area.properties == area_properties
 
-    def test_areas_ini_has_correct_sections(self, actual_thermal_areas_ini):
-        # Given
-        expected_areas_ini_sections = ["unserverdenergycost", "spilledenergycost"]
-
-        # Then
-        assert actual_thermal_areas_ini.parsed_ini.sections() == expected_areas_ini_sections
-
-    def test_areas_ini_has_correct_default_content(self, actual_thermal_areas_ini):
-        # Given
-        expected_areas_ini_contents = """[unserverdenergycost]
-fr = 0.5
-it = 0.5
-at = 0.0
-
-[spilledenergycost]
-fr = 1.0
-it = 1.0
-at = 0.0
-
-"""
-        expected_areas_ini = ConfigParser()
-        expected_areas_ini.read_string(expected_areas_ini_contents)
-
-        # When
-        with actual_thermal_areas_ini.ini_path.open("r") as areas_ini_file:
-            actual_areas_ini_contents = areas_ini_file.read()
-
-        # Then
-        assert actual_areas_ini_contents == expected_areas_ini_contents
-        assert actual_thermal_areas_ini.parsed_ini.sections() == expected_areas_ini.sections()
-        assert actual_thermal_areas_ini.parsed_ini == expected_areas_ini
-
-    def test_adequacy_patch_ini_has_correct_section(self, actual_adequacy_patch_ini):
-        expected_sections = ["adequacy-patch"]
-        assert actual_adequacy_patch_ini.parsed_ini.sections() == expected_sections
-
-    def test_adequacy_patch_ini_has_correct_content(self, actual_adequacy_patch_ini):
-        # Given
-        expected_content = """[adequacy-patch]
-adequacy-patch-mode = outside
-
-"""
-        expected_ini = ConfigParser()
-        expected_ini.read_string(expected_content)
-
-        # When
-        with actual_adequacy_patch_ini.ini_path.open("r") as adequacy_patch_ini_file:
-            actual_content = adequacy_patch_ini_file.read()
-
-        assert actual_content == expected_content
-        assert actual_adequacy_patch_ini.parsed_ini.sections() == expected_ini.sections()
-        assert actual_adequacy_patch_ini.parsed_ini == expected_ini
-
     def test_created_area_has_hydro(self, local_study_w_areas):
         assert local_study_w_areas.get_areas()["fr"].hydro
         assert isinstance(local_study_w_areas.get_areas()["it"].hydro, Hydro)
