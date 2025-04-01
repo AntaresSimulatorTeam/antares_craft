@@ -612,18 +612,11 @@ layers = 0
         # Then
         assert actual_content == ui_ini_content
 
-    def test_create_area_with_custom_error(self, monkeypatch, local_study):
-        error_message = "Error encountered"
-
-        def mock_error():
-            raise Exception(error_message)
-
-        area_id = "test"
-
-        monkeypatch.setattr("antares.craft.tools.contents_tool.transform_name_to_id", mock_error)
+    def test_create_area_with_custom_error(self, local_study):
+        area_id = "?"
         with pytest.raises(
             AreaCreationError,
-            match=f"Could not create the area {area_id}: {error_message}",
+            match=f"Could not create the area {area_id}",
         ):
             local_study.create_area(area_id)
 
