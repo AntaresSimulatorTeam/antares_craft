@@ -21,7 +21,7 @@ import pandas as pd
 from antares.craft import Study
 from antares.craft.exceptions.exceptions import LinkDeletionError, MatrixFormatError
 from antares.craft.model.link import AssetType, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
+from antares.craft.tools.serde_local.ini_reader import IniReader
 
 
 class TestLink:
@@ -37,24 +37,23 @@ class TestLink:
         assert new_ui == expected_ui
         assert link.ui == expected_ui
         # Asserts the ini file is properly modified
-        ini_file = IniFile(
-            Path(local_study_w_links.path), InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id
-        )
-        assert ini_file.ini_dict["fr"] == {
+        study_path = Path(local_study_w_links.path)
+        ini_content = IniReader().read(study_path / "input" / "links" / link.area_from_id / "properties.ini")
+        assert ini_content["fr"] == {
             "asset-type": "ac",
-            "colorb": "112",
-            "colorg": "255",
-            "colorr": "112",
+            "colorb": 112,
+            "colorg": 255,
+            "colorr": 112,
             "comments": "",
-            "display-comments": "True",
+            "display-comments": True,
             "filter-synthesis": "annual, daily, hourly, monthly, weekly",
             "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
-            "hurdles-cost": "False",
+            "hurdles-cost": False,
             "link-style": "plain",
-            "link-width": "4.2",
-            "loop-flow": "False",
+            "link-width": 4.2,
+            "loop-flow": False,
             "transmission-capacities": "enabled",
-            "use-phase-shifter": "False",
+            "use-phase-shifter": False,
         }
 
     def test_update_properties(self, local_study_w_links: Study) -> None:
@@ -69,21 +68,20 @@ class TestLink:
         assert new_properties == expected_properties
         assert link.properties == expected_properties
         # Asserts the ini file is properly modified
-        ini_file = IniFile(
-            Path(local_study_w_links.path), InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id
-        )
-        assert ini_file.ini_dict["fr"] == {
-            "hurdles-cost": "True",
-            "loop-flow": "False",
-            "use-phase-shifter": "False",
+        study_path = Path(local_study_w_links.path)
+        ini_content = IniReader().read(study_path / "input" / "links" / link.area_from_id / "properties.ini")
+        assert ini_content["fr"] == {
+            "hurdles-cost": True,
+            "loop-flow": False,
+            "use-phase-shifter": False,
             "transmission-capacities": "enabled",
             "asset-type": "ac",
             "link-style": "plain",
-            "link-width": "1.0",
-            "colorr": "112",
-            "colorg": "112",
-            "colorb": "112",
-            "display-comments": "True",
+            "link-width": 1.0,
+            "colorr": 112,
+            "colorg": 112,
+            "colorb": 112,
+            "display-comments": True,
             "filter-synthesis": "annual, daily, hourly, monthly, weekly",
             "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
             "comments": "new comment",
@@ -145,10 +143,9 @@ class TestLink:
     def test_deletion(self, local_study_w_links: Study) -> None:
         link = local_study_w_links.get_links()["at / fr"]
         local_study_w_links.delete_link(link)
-        ini_file = IniFile(
-            Path(local_study_w_links.path), InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id
-        )
-        assert "fr" not in ini_file.ini_dict
+        study_path = Path(local_study_w_links.path)
+        ini_content = IniReader().read(study_path / "input" / "links" / link.area_from_id / "properties.ini")
+        assert "fr" not in ini_content
 
         with pytest.raises(LinkDeletionError, match=re.escape("Could not delete the link at / fr: it doesn't exist")):
             local_study_w_links.delete_link(link)
