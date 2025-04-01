@@ -224,7 +224,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             terms = []
             for key, value in terms_dict.items():
                 term_data = ConstraintTermData.from_ini(key)
-                if "%" in value:
+                if "%" in str(value):
                     weight, offset = value.split("%")
                 else:
                     weight = value
