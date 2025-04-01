@@ -989,7 +989,7 @@ comments =
         # Given
         local_study_w_areas.create_area("at")
         links_to_create = ["at_it", "fr_at"]
-        expected_ini_string = """[fr]
+        expected_ini_string = """[it]
 hurdles-cost = False
 loop-flow = False
 use-phase-shifter = False
@@ -1005,7 +1005,7 @@ filter-synthesis = annual, daily, hourly, monthly, weekly
 filter-year-by-year = annual, daily, hourly, monthly, weekly
 comments = 
 
-[it]
+[fr]
 hurdles-cost = False
 loop-flow = False
 use-phase-shifter = False
