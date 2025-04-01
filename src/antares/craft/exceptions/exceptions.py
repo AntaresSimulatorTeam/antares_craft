@@ -30,12 +30,6 @@ class AreaCreationError(Exception):
         super().__init__(self.message)
 
 
-class AreaPropertiesUpdateError(Exception):
-    def __init__(self, area_name: str, message: str) -> None:
-        self.message = f"Could not update properties for area {area_name}: " + message
-        super().__init__(self.message)
-
-
 class AreaUiUpdateError(Exception):
     def __init__(self, area_name: str, message: str) -> None:
         self.message = f"Could not update ui for area {area_name}: " + message

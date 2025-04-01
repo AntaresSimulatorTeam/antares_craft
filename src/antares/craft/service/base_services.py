@@ -690,17 +690,6 @@ class BaseStudyService(ABC):
 
 class BaseRenewableService(ABC):
     @abstractmethod
-    def update_renewable_properties(
-        self, renewable_cluster: "RenewableCluster", properties: "RenewableClusterPropertiesUpdate"
-    ) -> "RenewableClusterProperties":
-        """
-        Args:
-            renewable_cluster: concerned cluster
-            properties: new properties. Only registered fields will be updated.
-        """
-        pass
-
-    @abstractmethod
     def get_renewable_matrix(self, cluster_id: str, area_id: str) -> pd.DataFrame:
         """
         Args:
