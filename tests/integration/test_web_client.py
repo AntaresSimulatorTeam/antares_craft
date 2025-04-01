@@ -341,7 +341,7 @@ class TestWebClient:
         area_props_update_2 = AreaPropertiesUpdate(
             non_dispatch_power=False, energy_cost_spilled=0.45, energy_cost_unsupplied=3.0
         )
-        dict_area_props = {area_fr.id: area_props_update_1, area_be.id: area_props_update_2}
+        dict_area_props = {area_fr: area_props_update_1, area_be: area_props_update_2}
         study.update_areas(dict_area_props)
 
         area_fr_props = area_fr.properties

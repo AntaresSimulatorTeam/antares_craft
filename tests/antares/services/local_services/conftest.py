@@ -23,7 +23,7 @@ from antares.craft.model.binding_constraint import (
     ConstraintTerm,
     LinkData,
 )
-from antares.craft.model.commons import FILTER_VALUES
+from antares.craft.model.commons import FILTER_VALUES, FilterOption
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
@@ -49,7 +49,9 @@ def local_study(tmp_path) -> Study:
 def local_study_w_areas(tmp_path, local_study) -> Study:
     areas_to_create = ["fr", "it"]
     for area in areas_to_create:
-        area_properties = AreaProperties(energy_cost_spilled=1, energy_cost_unsupplied=0.5)
+        area_properties = AreaProperties(
+            energy_cost_spilled=1, energy_cost_unsupplied=0.5, filter_synthesis={FilterOption.WEEKLY}
+        )
         local_study.create_area(area, properties=area_properties)
     return local_study
 
