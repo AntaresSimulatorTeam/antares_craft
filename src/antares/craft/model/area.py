@@ -263,7 +263,7 @@ class Area:
         return self._properties
 
     def update_ui(self, ui: AreaUiUpdate) -> AreaUi:
-        new_ui = self._area_service.update_area_ui(self.id, ui)
+        new_ui = self._area_service.update_area_ui(self, ui)
         self._ui = new_ui
         return new_ui
 

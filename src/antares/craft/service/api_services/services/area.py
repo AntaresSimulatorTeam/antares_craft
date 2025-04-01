@@ -351,7 +351,8 @@ class AreaApiService(BaseAreaService):
             raise MatrixUploadError(area_id, "misc-gen", e.message) from e
 
     @override
-    def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
+    def update_area_ui(self, area: Area, ui: AreaUiUpdate) -> AreaUi:
+        area_id = area.id
         base_url = f"{self._base_url}/studies/{self.study_id}/areas"
         try:
             # As AntaresWeb expects x, y and color fields we have to get the current ui before updating it :/

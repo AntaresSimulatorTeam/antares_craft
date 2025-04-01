@@ -437,16 +437,10 @@ class AreaLocalService(BaseAreaService):
         return new_local_properties.to_user_model()
 
     @override
-    def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
-        current_content = self._read_ui_ini(area_id)
-        # Update ui
-        local_ui = AreaUiLocal.from_user_model(ui).model_dump(mode="json", exclude_unset=True, by_alias=True)
-        current_content.update(local_ui)
-        # Update ini file
-        self._save_ui_ini(current_content, area_id)
-        # Prepare object to return
-        updated_ui = AreaUiLocal.model_validate(current_content)
-        return updated_ui.to_user_model()
+    def update_area_ui(self, area: Area, ui: AreaUiUpdate) -> AreaUi:
+        new_local_ui = AreaUiLocal.build_for_update(ui, area.ui)
+        self._save_ui_ini(new_local_ui.model_dump(mode="json", exclude_unset=True, by_alias=True), area.id)
+        return new_local_ui.to_user_model()
 
     def _delete_clusters(self, cluster_type: str, area_id: str, names_to_delete: set[str]) -> None:
         ini_path = self.config.study_path / "input" / cluster_type / "clusters" / area_id / "list.ini"
