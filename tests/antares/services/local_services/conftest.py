@@ -139,7 +139,7 @@ def default_st_storage_properties() -> STStorageProperties:
 
 @pytest.fixture
 def local_study_with_hydro(local_study_with_st_storage) -> Study:
-    hydro_properties = HydroPropertiesUpdate(reservoir_capacity=4.3)
+    hydro_properties = HydroPropertiesUpdate(reservoir_capacity=4.3, use_heuristic=False)
     local_study_with_st_storage.get_areas()["fr"].hydro.update_properties(hydro_properties)
     return local_study_with_st_storage
 

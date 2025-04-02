@@ -20,7 +20,7 @@ class TestCreateHydro:
     def test_can_create_hydro(self, local_study_with_hydro):
         hydro = local_study_with_hydro.get_areas()["fr"].hydro
         assert isinstance(hydro, Hydro)
-        assert hydro.properties == HydroProperties(reservoir_capacity=4.3)
+        assert hydro.properties == HydroProperties(reservoir_capacity=4.3, use_heuristic=False)
 
     def test_hydro_has_properties(self, local_study_w_areas):
         assert local_study_w_areas.get_areas()["fr"].hydro.properties
@@ -136,16 +136,19 @@ it = 1.0
 
     def test_update_hydro_properties(self, local_study_with_hydro):
         area_fr = local_study_with_hydro.get_areas()["fr"]
-        assert area_fr.hydro.properties == HydroProperties(reservoir_capacity=4.3)
+        assert area_fr.hydro.properties == HydroProperties(reservoir_capacity=4.3, use_heuristic=False)
         new_properties = HydroPropertiesUpdate(reservoir_capacity=2.4, hard_bounds=True)
         area_fr.hydro.update_properties(new_properties)
         # Checks object value
-        assert area_fr.hydro.properties == HydroProperties(reservoir_capacity=2.4, hard_bounds=True)
+        assert area_fr.hydro.properties == HydroProperties(
+            reservoir_capacity=2.4, hard_bounds=True, use_heuristic=False
+        )
         # Checks ini content
         study_path = Path(local_study_with_hydro.path)
         ini_content = IniReader().read(study_path / "input" / "hydro" / "hydro.ini")
         assert ini_content["reservoir capacity"]["fr"] == 2.4
         assert ini_content["hard bounds"]["fr"] is True
+        assert ini_content["use heuristic"]["fr"] is False
 
     def test_update_hydro_inflow_structure(self, local_study_with_hydro):
         area_fr = local_study_with_hydro.get_areas()["fr"]
