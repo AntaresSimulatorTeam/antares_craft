@@ -13,7 +13,7 @@ import pytest
 
 import pandas as pd
 
-from antares.craft import create_study_local
+from antares.craft import LinkProperties, LinkUi, create_study_local
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -59,7 +59,9 @@ def local_study_w_links(tmp_path, local_study_w_areas):
     links_to_create = ["fr_at", "at_it", "fr_it"]
     for link in links_to_create:
         area_from, area_to = link.split("_")
-        local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
+        properties = LinkProperties(use_phase_shifter=True, filter_synthesis={FilterOption.WEEKLY})
+        ui = LinkUi(colorr=1, link_width=29)
+        local_study_w_areas.create_link(area_from=area_from, area_to=area_to, properties=properties, ui=ui)
 
     return local_study_w_areas
 

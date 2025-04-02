@@ -439,7 +439,7 @@ class AreaLocalService(BaseAreaService):
     @override
     def update_area_ui(self, area: Area, ui: AreaUiUpdate) -> AreaUi:
         new_local_ui = AreaUiLocal.build_for_update(ui, area.ui)
-        self._save_ui_ini(new_local_ui.model_dump(mode="json", by_alias=True), area.id)
+        self._save_ui_ini(new_local_ui.model_dump(mode="json", by_alias=True, exclude_unset=True), area.id)
         return new_local_ui.to_user_model()
 
     def _delete_clusters(self, cluster_type: str, area_id: str, names_to_delete: set[str]) -> None:

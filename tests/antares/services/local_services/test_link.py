@@ -18,7 +18,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.craft import Study
+from antares.craft import FilterOption, Study
 from antares.craft.exceptions.exceptions import LinkDeletionError, MatrixFormatError
 from antares.craft.model.link import AssetType, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -28,7 +28,7 @@ class TestLink:
     def test_update_ui(self, local_study_w_links: Study) -> None:
         # Checks values before update
         link = local_study_w_links.get_links()["at / fr"]
-        current_ui = LinkUi()
+        current_ui = LinkUi(colorr=1, link_width=29)
         assert link.ui == current_ui
         # Updates ui
         update_ui = LinkUiUpdate(link_width=4.2, colorg=255)
@@ -43,7 +43,7 @@ class TestLink:
             "asset-type": "ac",
             "colorb": 112,
             "colorg": 255,
-            "colorr": 112,
+            "colorr": 1,
             "comments": "",
             "display-comments": True,
             "filter-synthesis": "annual, daily, hourly, monthly, weekly",
@@ -59,12 +59,14 @@ class TestLink:
     def test_update_properties(self, local_study_w_links: Study) -> None:
         # Checks values before update
         link = local_study_w_links.get_links()["at / fr"]
-        current_properties = LinkProperties(hurdles_cost=False, asset_type=AssetType.AC)
+        current_properties = LinkProperties(use_phase_shifter=True, filter_synthesis={FilterOption.WEEKLY})
         assert link.properties == current_properties
         # Updates properties
-        update_properties = LinkPropertiesUpdate(hurdles_cost=True, comments="new comment")
+        update_properties = LinkPropertiesUpdate(use_phase_shifter=False, comments="new comment")
         new_properties = link.update_properties(update_properties)
-        expected_properties = LinkProperties(hurdles_cost=True, asset_type=AssetType.AC, comments="new comment")
+        expected_properties = LinkProperties(
+            use_phase_shifter=False, filter_synthesis={FilterOption.WEEKLY}, comments="new comment"
+        )
         assert new_properties == expected_properties
         assert link.properties == expected_properties
         # Asserts the ini file is properly modified
@@ -82,7 +84,7 @@ class TestLink:
             "colorg": 112,
             "colorb": 112,
             "display-comments": True,
-            "filter-synthesis": "annual, daily, hourly, monthly, weekly",
+            "filter-synthesis": "weekly",
             "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
             "comments": "new comment",
         }
@@ -92,13 +94,13 @@ class TestLink:
         link_at_fr = local_study_w_links.get_links()["at / fr"]
         link_fr_it = local_study_w_links.get_links()["fr / it"]
         link_at_it = local_study_w_links.get_links()["at / it"]
-        current_properties = LinkProperties(hurdles_cost=False, asset_type=AssetType.AC)
+        current_properties = LinkProperties(use_phase_shifter=True, filter_synthesis={FilterOption.WEEKLY})
         assert link_at_fr.properties == current_properties
         assert link_fr_it.properties == current_properties
         assert link_at_it.properties == current_properties
         # Updates properties
         update_properties_at_fr = LinkPropertiesUpdate(hurdles_cost=True, comments="new comment")
-        update_properties_fr_it = LinkPropertiesUpdate(use_phase_shifter=True, asset_type=AssetType.DC)
+        update_properties_fr_it = LinkPropertiesUpdate(use_phase_shifter=False, asset_type=AssetType.DC)
         body = {link_at_fr.id: update_properties_at_fr, link_fr_it.id: update_properties_fr_it}
         local_study_w_links.update_links(body)
         # Asserts links properties were modified
