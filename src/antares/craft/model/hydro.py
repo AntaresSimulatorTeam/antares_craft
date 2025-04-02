@@ -55,9 +55,8 @@ class HydroProperties:
     pumping_efficiency: float = 1
 
     def from_update_properties(self, update_properties: HydroPropertiesUpdate) -> "HydroProperties":
-        upd_without_none = {k: v for k, v in asdict(update_properties).items() if v is not None}
         current_properties = asdict(self)
-        current_properties.update(upd_without_none)
+        current_properties.update({k: v for k, v in asdict(update_properties).items() if v is not None})
         return HydroProperties(**current_properties)
 
     def to_update_properties(self) -> HydroPropertiesUpdate:

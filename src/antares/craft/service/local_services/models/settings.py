@@ -72,9 +72,8 @@ class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
 
     @staticmethod
     def from_user_model(user_class: AdequacyPatchParametersType) -> "AdequacyPatchParametersLocal":
-        user_dict = asdict(user_class)
-        dict_without_none = {k: v for k, v in user_dict.items() if v is not None}
-        return AdequacyPatchParametersLocal.model_validate(dict_without_none)
+        user_dict = {k: v for k, v in asdict(user_class).items() if v is not None}
+        return AdequacyPatchParametersLocal.model_validate(user_dict)
 
     def to_ini_file(self, update: bool, current_content: dict[str, Any]) -> dict[str, Any]:
         content = self.model_dump(mode="json", by_alias=True, exclude_unset=update)
@@ -335,9 +334,8 @@ class OptimizationParametersLocal(LocalBaseModel, alias_generator=to_kebab):
 
     @staticmethod
     def from_user_model(user_class: OptimizationParametersType) -> "OptimizationParametersLocal":
-        user_dict = asdict(user_class)
-        dict_without_none = {k: v for k, v in user_dict.items() if v is not None}
-        return OptimizationParametersLocal.model_validate(dict_without_none)
+        user_dict = {k: v for k, v in asdict(user_class).items() if v is not None}
+        return OptimizationParametersLocal.model_validate(user_dict)
 
     def to_ini_file(self, update: bool, current_content: dict[str, Any]) -> dict[str, Any]:
         content = self.model_dump(mode="json", by_alias=True, exclude_unset=update)

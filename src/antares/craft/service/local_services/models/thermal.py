@@ -64,9 +64,8 @@ class ThermalClusterPropertiesLocal(LocalBaseModel):
 
     @staticmethod
     def from_user_model(user_class: ThermalPropertiesType) -> "ThermalClusterPropertiesLocal":
-        user_dict = asdict(user_class)
-        dict_without_none = {k: v for k, v in user_dict.items() if v is not None}
-        return ThermalClusterPropertiesLocal.model_validate(dict_without_none)
+        user_dict = {k: v for k, v in asdict(user_class).items() if v is not None}
+        return ThermalClusterPropertiesLocal.model_validate(user_dict)
 
     def to_user_model(self) -> ThermalClusterProperties:
         return ThermalClusterProperties(
