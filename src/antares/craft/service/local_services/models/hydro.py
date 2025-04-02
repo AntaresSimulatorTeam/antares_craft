@@ -14,9 +14,7 @@ from dataclasses import asdict
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
-from antares.craft.tools.all_optional_meta import all_optional_model
 from pydantic import Field
-from typing_extensions import override
 
 HydroPropertiesType = HydroProperties | HydroPropertiesUpdate
 HydroInflowStructureType = InflowStructure | InflowStructureUpdate
@@ -42,7 +40,8 @@ class HydroPropertiesLocal(LocalBaseModel):
     @staticmethod
     def from_user_model(user_class: HydroPropertiesType) -> "HydroPropertiesLocal":
         user_dict = asdict(user_class)
-        return HydroPropertiesLocal.model_validate(user_dict)
+        dict_without_none = {k: v for k, v in user_dict.items() if v is not None}
+        return HydroPropertiesLocal.model_validate(dict_without_none)
 
     def to_user_model(self) -> HydroProperties:
         return HydroProperties(
@@ -61,15 +60,6 @@ class HydroPropertiesLocal(LocalBaseModel):
             leeway_up=self.leeway_up,
             pumping_efficiency=self.pumping_efficiency,
         )
-
-
-@all_optional_model
-class HydroPropertiesLocalUpdate(HydroPropertiesLocal):
-    @staticmethod
-    @override
-    def from_user_model(user_class: HydroPropertiesType) -> "HydroPropertiesLocalUpdate":
-        user_dict = asdict(user_class)
-        return HydroPropertiesLocalUpdate.model_validate(user_dict)
 
 
 class InterMonthlyCorrelation(LocalBaseModel, alias_generator=to_kebab):

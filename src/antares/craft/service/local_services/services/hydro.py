@@ -20,7 +20,6 @@ from antares.craft.service.base_services import BaseHydroService
 from antares.craft.service.local_services.models.hydro import (
     HydroInflowStructureLocal,
     HydroPropertiesLocal,
-    HydroPropertiesLocalUpdate,
 )
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -167,11 +166,9 @@ class HydroLocalService(BaseHydroService):
     def edit_hydro_properties(self, area_id: str, properties: HydroPropertiesUpdate, creation: bool) -> None:
         current_content = self._read_ini()
 
-        if creation:
-            local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(mode="json", by_alias=True)
-        else:
-            local_update_properties = HydroPropertiesLocalUpdate.from_user_model(properties)
-            local_dict = local_update_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+        local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(
+            mode="json", by_alias=True, exclude_unset=not creation
+        )
 
         for key, value in local_dict.items():
             current_content.setdefault(key, {})[area_id] = value
