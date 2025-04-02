@@ -22,8 +22,6 @@ from antares.craft.model.thermal import (
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from pydantic import Field
 
-ThermalPropertiesType = ThermalClusterProperties | ThermalClusterPropertiesUpdate
-
 
 class ThermalClusterPropertiesLocal(LocalBaseModel):
     enabled: bool = True
@@ -63,7 +61,7 @@ class ThermalClusterPropertiesLocal(LocalBaseModel):
     variable_o_m_cost: float = Field(default=0, alias="variableomcost")
 
     @staticmethod
-    def from_user_model(user_class: ThermalPropertiesType) -> "ThermalClusterPropertiesLocal":
+    def from_user_model(user_class: ThermalClusterProperties) -> "ThermalClusterPropertiesLocal":
         user_dict = asdict(user_class)
         return ThermalClusterPropertiesLocal.model_validate(user_dict)
 

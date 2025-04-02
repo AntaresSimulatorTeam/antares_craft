@@ -19,8 +19,6 @@ from antares.craft.tools.alias_generators import to_kebab
 from pydantic import Field
 from pydantic.alias_generators import to_camel
 
-AreaPropertiesType = AreaProperties | AreaPropertiesUpdate
-
 
 class OptimizationPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
     non_dispatchable_power: bool = True
@@ -67,7 +65,7 @@ class AreaPropertiesLocal(LocalBaseModel):
         return AreaPropertiesLocal.model_validate(args)
 
     @staticmethod
-    def from_user_model(user_class: AreaPropertiesType) -> "AreaPropertiesLocal":
+    def from_user_model(user_class: AreaProperties) -> "AreaPropertiesLocal":
         return AreaPropertiesLocal._from_user_model_as_dict(asdict(user_class))
 
     @staticmethod
@@ -120,7 +118,7 @@ class AreaUiLocal(LocalBaseModel, alias_generator=to_camel):
     layer_color: dict[int, str] = {0: "0,0,0"}
 
     @staticmethod
-    def from_user_model(user_class: AreaUiType) -> "AreaUiLocal":
+    def from_user_model(user_class: AreaUi) -> "AreaUiLocal":
         x = user_class.x or 0
         y = user_class.y or 0
         args: dict[str, Any] = {
