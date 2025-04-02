@@ -167,6 +167,7 @@ def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, cr
 
     # playlist
     if settings.playlist_parameters:
+        # We are in the case of an update as there's no playlist given when creating a study
         nb_years = -1
         if settings.general_parameters and settings.general_parameters.nb_years:
             nb_years = settings.general_parameters.nb_years
