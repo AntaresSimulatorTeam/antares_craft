@@ -28,15 +28,21 @@ def test_update_settings(tmp_path: Path) -> None:
     settings = StudySettingsUpdate()
     settings.general_parameters = GeneralParametersUpdate(nb_years=4)
     settings.advanced_parameters = AdvancedParametersUpdate(unit_commitment_mode=UnitCommitmentMode.MILP)
-    new_study = create_study_local("second_study", "880", tmp_path)
-    new_study.update_settings(settings)
-    assert new_study.get_settings().general_parameters.nb_years == 4
-    assert new_study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP
+    study = create_study_local("second_study", "880", tmp_path)
+    study.update_settings(settings)
+    assert study.get_settings().general_parameters.nb_years == 4
+    assert study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP
     # 2nd update
     settings = StudySettingsUpdate()
     settings.general_parameters = GeneralParametersUpdate(nb_years=2)
     settings.advanced_parameters = AdvancedParametersUpdate(hydro_pricing_mode=HydroPricingMode.ACCURATE)
-    new_study.update_settings(settings)
-    assert new_study.get_settings().general_parameters.nb_years == 2
-    assert new_study.get_settings().advanced_parameters.hydro_pricing_mode == HydroPricingMode.ACCURATE
-    assert new_study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP
+    study.update_settings(settings)
+    assert study.get_settings().general_parameters.nb_years == 2
+    assert study.get_settings().advanced_parameters.hydro_pricing_mode == HydroPricingMode.ACCURATE
+    assert study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP
+
+
+def test_playlist(tmp_path: Path) -> None:
+    study = create_study_local("second_study", "880", tmp_path)
+    settings = study.get_settings()
+    assert settings.playlist_parameters == {}
