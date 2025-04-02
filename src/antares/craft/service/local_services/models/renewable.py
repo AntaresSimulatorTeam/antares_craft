@@ -20,8 +20,6 @@ from antares.craft.model.renewable import (
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from pydantic import Field
 
-RenewablePropertiesType = RenewableClusterProperties | RenewableClusterPropertiesUpdate
-
 
 class RenewableClusterPropertiesLocal(LocalBaseModel):
     enabled: bool = True
@@ -33,7 +31,7 @@ class RenewableClusterPropertiesLocal(LocalBaseModel):
     )
 
     @staticmethod
-    def from_user_model(user_class: RenewablePropertiesType) -> "RenewableClusterPropertiesLocal":
+    def from_user_model(user_class: RenewableClusterProperties) -> "RenewableClusterPropertiesLocal":
         user_dict = asdict(user_class)
         return RenewableClusterPropertiesLocal.model_validate(user_dict)
 
