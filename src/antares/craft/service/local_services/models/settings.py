@@ -15,6 +15,7 @@ import ast
 from dataclasses import asdict
 from typing import Any, Sequence, Set, cast
 
+from antares.craft import PlaylistParameters
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
     AdequacyPatchParametersUpdate,
@@ -358,3 +359,39 @@ class OptimizationParametersLocal(LocalBaseModel, alias_generator=to_kebab):
             include_exportstructure=self.include_exportstructure,
             include_unfeasible_problem_behavior=self.include_unfeasible_problem_behavior,
         )
+
+
+class PlaylistParametersLocal(LocalBaseModel):
+    playlist_reset: bool
+    playlist_plus: list[int] | None = Field(None, alias="playlist_year +")
+    playlist_minus: list[int] | None = Field(None, alias="playlist_year -")
+    playlist_year_weight: list[str] | None = None
+
+    def to_user_model(self, nb_years: int) -> dict[int, PlaylistParameters]:
+        playlist_dict: dict[int, PlaylistParameters] = {}
+
+        # Builds the `weight` dict
+        weight_dict: dict[int, float] = {}
+        if self.playlist_year_weight:
+            for weight_str in self.playlist_year_weight:
+                year, weight = weight_str.split(",")
+                weight_dict[int(year)] = float(weight)
+
+        # Builds the `status` dict
+        if self.playlist_reset:
+            status_dict = {k: True for k in range(nb_years)}
+            if self.playlist_minus:
+                for disabled_year in self.playlist_minus:
+                    status_dict[disabled_year] = False
+        else:
+            status_dict = {k: False for k in range(nb_years)}
+            if self.playlist_plus:
+                for enabled_year in self.playlist_plus:
+                    status_dict[enabled_year] = True
+
+        # Builds the user object
+        for playlist_year in range(nb_years):
+            playlist_weight = weight_dict.get(playlist_year, 1)
+            playlist_dict[playlist_year] = PlaylistParameters(status=status_dict[playlist_year], weight=playlist_weight)
+
+        return playlist_dict

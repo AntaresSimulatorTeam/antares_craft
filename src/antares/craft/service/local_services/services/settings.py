@@ -30,6 +30,7 @@ from antares.craft.service.local_services.models.settings import (
     GeneralParametersLocal,
     OptimizationParametersLocal,
     OtherPreferencesLocal,
+    PlaylistParametersLocal,
     SeedParametersLocal,
 )
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -117,7 +118,8 @@ def read_study_settings(study_directory: Path) -> StudySettings:
     # playlist
     playlist_parameters: dict[int, PlaylistParameters] = {}
     if "playlist" in ini_content:
-        playlist_parameters = {}
+        local_parameters = PlaylistParametersLocal.model_validate(ini_content["playlist"])
+        playlist_parameters = local_parameters.to_user_model(general_parameters.nb_years)
         # todo
 
     # thematic trimming
@@ -165,7 +167,8 @@ def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, cr
     ini_content = advanced_parameters_local.to_ini_file(update=update, current_content=ini_content)
 
     # playlist
-    # todo
+    if settings.playlist_parameters:
+        [dict[int, PlaylistParameters]]  # status: bool    weight: float
 
     # thematic trimming
     # todo
