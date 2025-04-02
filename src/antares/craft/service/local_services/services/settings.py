@@ -120,7 +120,6 @@ def read_study_settings(study_directory: Path) -> StudySettings:
     if "playlist" in ini_content:
         local_parameters = PlaylistParametersLocal.model_validate(ini_content["playlist"])
         playlist_parameters = local_parameters.to_user_model(general_parameters.nb_years)
-        # todo
 
     # thematic trimming
     thematic_trimming_parameters = ThematicTrimmingParameters()
