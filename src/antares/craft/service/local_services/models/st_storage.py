@@ -13,14 +13,12 @@ from dataclasses import asdict
 
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
 
 
 def _sts_alias_generator(input: str) -> str:
     return input.replace("_", "")
 
 
-@all_optional_model
 class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_generator):
     group: STStorageGroup = STStorageGroup.OTHER1
     injection_nominal_capacity: float = 0
