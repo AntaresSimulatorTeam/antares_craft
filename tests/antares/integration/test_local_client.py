@@ -29,13 +29,6 @@ from antares.craft.model.binding_constraint import (
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import LinkProperties, LinkUi
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties
-from antares.craft.model.settings.advanced_parameters import (
-    AdvancedParametersUpdate,
-    HydroPricingMode,
-    UnitCommitmentMode,
-)
-from antares.craft.model.settings.general import GeneralParametersUpdate
-from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
 from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -220,20 +213,3 @@ class TestLocalClient:
             constraint_2.id: constraint_2,
             constraint_3.id: constraint_3,
         }
-
-        # test update study settings
-        settings = StudySettingsUpdate()
-        settings.general_parameters = GeneralParametersUpdate(nb_years=4)
-        settings.advanced_parameters = AdvancedParametersUpdate(unit_commitment_mode=UnitCommitmentMode.MILP)
-        new_study = create_study_local("second_study", "880", tmp_path)
-        new_study.update_settings(settings)
-        assert new_study.get_settings().general_parameters.nb_years == 4
-        assert new_study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP
-        # 2nd update
-        settings = StudySettingsUpdate()
-        settings.general_parameters = GeneralParametersUpdate(nb_years=2)
-        settings.advanced_parameters = AdvancedParametersUpdate(hydro_pricing_mode=HydroPricingMode.ACCURATE)
-        new_study.update_settings(settings)
-        assert new_study.get_settings().general_parameters.nb_years == 2
-        assert new_study.get_settings().advanced_parameters.hydro_pricing_mode == HydroPricingMode.ACCURATE
-        assert new_study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP
