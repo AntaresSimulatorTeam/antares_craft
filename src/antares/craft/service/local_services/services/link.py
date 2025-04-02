@@ -117,7 +117,7 @@ class LinkLocalService(BaseLinkService):
             if area_to == link.area_to_id:
                 # Update properties
                 upd_properties = LinkPropertiesAndUiLocal.from_user_model(ui, None)
-                upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_unset=True)
                 link_props.update(upd_props_as_dict)
 
                 # Update ini file
@@ -232,7 +232,7 @@ class LinkLocalService(BaseLinkService):
                     all_link_names.remove(area_to)
                     # Update properties
                     upd_properties = LinkPropertiesAndUiLocal.from_user_model(None, value[area_to])
-                    upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                    upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_unset=True)
                     link_properties_dict.update(upd_props_as_dict)
 
                     # Prepare the object to return

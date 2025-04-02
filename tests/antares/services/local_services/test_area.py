@@ -848,17 +848,23 @@ class TestReadLinks:
         links = local_study_w_links.get_links()
         for link in links.values():
             assert link.ui.link_style.value == "plain"
-            assert link.ui.link_width == 1
+            assert link.ui.link_width == 29
             assert link.ui.colorb == 112
             assert link.ui.colorg == 112
-            assert link.ui.colorr == 112
+            assert link.ui.colorr == 1
             assert not link.properties.hurdles_cost
             assert not link.properties.loop_flow
-            assert not link.properties.use_phase_shifter
+            assert link.properties.use_phase_shifter
             assert link.properties.transmission_capacities.value == "enabled"
             assert link.properties.asset_type.value == "ac"
-            assert isinstance(link.properties.filter_year_by_year, set)
-            assert isinstance(link.properties.filter_synthesis, set)
+            assert link.properties.filter_year_by_year == {
+                FilterOption.WEEKLY,
+                FilterOption.DAILY,
+                FilterOption.HOURLY,
+                FilterOption.ANNUAL,
+                FilterOption.MONTHLY,
+            }
+            assert link.properties.filter_synthesis == {FilterOption.WEEKLY}
 
 
 class TestReadSTStorage:

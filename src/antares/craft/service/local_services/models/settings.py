@@ -72,8 +72,13 @@ class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
 
     @staticmethod
     def from_user_model(user_class: AdequacyPatchParametersType) -> "AdequacyPatchParametersLocal":
-        user_dict = asdict(user_class)
+        user_dict = {k: v for k, v in asdict(user_class).items() if v is not None}
         return AdequacyPatchParametersLocal.model_validate(user_dict)
+
+    def to_ini_file(self, update: bool, current_content: dict[str, Any]) -> dict[str, Any]:
+        content = self.model_dump(mode="json", by_alias=True, exclude_unset=update)
+        current_content.setdefault("adequacy patch", {}).update(content)
+        return current_content
 
     def to_user_model(self) -> AdequacyPatchParameters:
         return AdequacyPatchParameters(
@@ -142,16 +147,28 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
     def from_user_model(
         advanced_parameters: AdvancedParametersType, seed_parameters: SeedParametersType
     ) -> "AdvancedAndSeedParametersLocal":
-        other_preferences_local_dict = asdict(advanced_parameters)
-        advanced_local_dict = {
-            "advanced_parameters": {
+        other_preferences_local_dict = {k: v for k, v in asdict(advanced_parameters).items() if v is not None}
+
+        advanced_local_dict: dict[str, dict[str, Any]] = {"advanced_parameters": {}}
+        if advanced_parameters.accuracy_on_correlation is not None:
+            advanced_local_dict["advanced_parameters"] = {
                 "accuracy_on_correlation": other_preferences_local_dict.pop("accuracy_on_correlation")
             }
-        }
-        seed_local_dict = {"seeds": asdict(seed_parameters)}
+
+        seed_local_dict = {"seeds": {k: v for k, v in asdict(seed_parameters).items() if v is not None}}
 
         local_dict = {"other_preferences": other_preferences_local_dict} | advanced_local_dict | seed_local_dict
         return AdvancedAndSeedParametersLocal.model_validate(local_dict)
+
+    def to_ini_file(self, update: bool, current_content: dict[str, Any]) -> dict[str, Any]:
+        content = self.model_dump(mode="json", by_alias=True, exclude_unset=update)
+        if update:
+            for key in ["other preferences", "advanced parameters", "seeds - Mersenne Twister"]:
+                if content[key]:
+                    current_content[key].update(content[key])
+        else:
+            current_content.update(content)
+        return current_content
 
     def to_seed_parameters_model(self) -> SeedParameters:
         return SeedParameters(
@@ -226,18 +243,35 @@ class GeneralParametersLocal(LocalBaseModel):
 
     @staticmethod
     def from_user_model(user_class: GeneralParametersType) -> "GeneralParametersLocal":
-        user_dict = asdict(user_class)
+        user_dict = {k: v for k, v in asdict(user_class).items() if v is not None}
 
-        output_dict = {
-            "output": {
-                "store_new_set": user_dict.pop("store_new_set"),
-                "synthesis": user_dict.pop("simulation_synthesis"),
-            }
-        }
+        output_dict = {}
+        if user_class.store_new_set is not None:
+            output_dict["store_new_set"] = user_dict.pop("store_new_set")
+        if user_class.simulation_synthesis is not None:
+            output_dict["synthesis"] = user_dict.pop("simulation_synthesis")
+
         general_dict = {"general": user_dict}
-        local_dict = general_dict | output_dict
+        local_dict = general_dict | {"output": output_dict}
 
         return GeneralParametersLocal.model_validate(local_dict)
+
+    def to_ini_file(self, update: bool, current_content: dict[str, Any]) -> dict[str, Any]:
+        content = self.model_dump(mode="json", by_alias=True, exclude_unset=update)
+        if "building_mode" in content["general"]:
+            general_values = content["general"]
+            del general_values["building_mode"]
+            building_mode = self.general.building_mode
+            general_values["derated"] = building_mode == BuildingMode.DERATED
+            general_values["custom-scenario"] = building_mode == BuildingMode.CUSTOM
+
+        if update:
+            for key in ["general", "output"]:
+                if content[key]:
+                    current_content[key].update(content[key])
+        else:
+            current_content.update(content)
+        return current_content
 
     @staticmethod
     def get_excluded_fields_for_user_class() -> Set[str]:
@@ -300,8 +334,13 @@ class OptimizationParametersLocal(LocalBaseModel, alias_generator=to_kebab):
 
     @staticmethod
     def from_user_model(user_class: OptimizationParametersType) -> "OptimizationParametersLocal":
-        user_dict = asdict(user_class)
+        user_dict = {k: v for k, v in asdict(user_class).items() if v is not None}
         return OptimizationParametersLocal.model_validate(user_dict)
+
+    def to_ini_file(self, update: bool, current_content: dict[str, Any]) -> dict[str, Any]:
+        content = self.model_dump(mode="json", by_alias=True, exclude_unset=update)
+        current_content.setdefault("optimization", {}).update(content)
+        return current_content
 
     def to_user_model(self) -> OptimizationParameters:
         return OptimizationParameters(
