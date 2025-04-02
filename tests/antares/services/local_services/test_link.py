@@ -105,10 +105,10 @@ class TestLink:
         local_study_w_links.update_links(body)
         # Asserts links properties were modified
         assert link_at_fr.properties == LinkProperties(
-            hurdles_cost=True, asset_type=AssetType.AC, comments="new comment"
+            hurdles_cost=True, use_phase_shifter=True, filter_synthesis={FilterOption.WEEKLY}, comments="new comment"
         )
         assert link_fr_it.properties == LinkProperties(
-            hurdles_cost=False, asset_type=AssetType.DC, use_phase_shifter=True
+            asset_type=AssetType.DC, filter_synthesis={FilterOption.WEEKLY}, use_phase_shifter=False
         )
         # Asserts links properties aren't updated as we didn't ask to
         assert link_at_it.properties == current_properties
