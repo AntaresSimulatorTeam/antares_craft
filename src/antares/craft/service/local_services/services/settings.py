@@ -167,7 +167,11 @@ def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, cr
 
     # playlist
     if settings.playlist_parameters:
-        [dict[int, PlaylistParameters]]  # status: bool    weight: float
+        nb_years = -1
+        if settings.general_parameters and settings.general_parameters.nb_years:
+            nb_years = settings.general_parameters.nb_years
+        playlist_local_parameters = PlaylistParametersLocal.create(settings.playlist_parameters, nb_years)
+        ini_content["playlist"] = playlist_local_parameters.model_dump(mode="json", by_alias=True, exclude_none=True)
 
     # thematic trimming
     # todo

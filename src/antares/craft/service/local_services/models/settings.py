@@ -395,3 +395,36 @@ class PlaylistParametersLocal(LocalBaseModel):
             playlist_dict[playlist_year] = PlaylistParameters(status=status_dict[playlist_year], weight=playlist_weight)
 
         return playlist_dict
+
+    @staticmethod
+    def create(user_class: dict[int, PlaylistParameters], nb_years: int) -> "PlaylistParametersLocal":
+        playlist_year_weight = []
+        playlist_plus = []
+        playlist_minus = []
+        # Fill the parameters
+        for year, parameters in user_class.items():
+            playlist_year_weight.append(f"{year,parameters.weight}")
+            if parameters.status:
+                playlist_plus.append(year)
+            else:
+                playlist_minus.append(year)
+
+        # Choose what to write
+        args: dict[str, Any] = {"playlist_year_weight": playlist_year_weight}
+        nb_years_activated = len(playlist_plus)
+        nb_years_deactivated = len(playlist_minus)
+        if nb_years_activated > nb_years_deactivated:
+            playlist_reset = False
+            args["playlist_minus"] = None
+            if nb_years_activated == nb_years:
+                playlist_plus = []
+            args["playlist_plus"] = playlist_plus
+        else:
+            playlist_reset = True
+            args["playlist_plus"] = None
+            if nb_years_deactivated == nb_years:
+                playlist_minus = []
+            args["playlist_minus"] = playlist_minus
+
+        args["playlist_reset"] = playlist_reset
+        return PlaylistParametersLocal.model_validate(args)
