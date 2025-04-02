@@ -15,8 +15,6 @@ from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, 
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 
-STStoragePropertiesType = STStorageProperties | STStoragePropertiesUpdate
-
 
 def _sts_alias_generator(input: str) -> str:
     return input.replace("_", "")
@@ -34,9 +32,21 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
     enabled: bool = True
 
     @staticmethod
-    def from_user_model(user_class: STStoragePropertiesType) -> "STStoragePropertiesLocal":
+    def from_user_model(user_class: STStorageProperties) -> "STStoragePropertiesLocal":
         user_dict = asdict(user_class)
         return STStoragePropertiesLocal.model_validate(user_dict)
+
+    @staticmethod
+    def build_for_update(
+        update_class: STStoragePropertiesUpdate, existing_class: STStorageProperties
+    ) -> "STStoragePropertiesLocal":
+        params = asdict(existing_class)
+
+        for key, value in asdict(update_class).items():
+            if value is not None:
+                params[key] = value
+
+        return STStoragePropertiesLocal.model_validate(params)
 
     def to_user_model(self) -> STStorageProperties:
         return STStorageProperties(

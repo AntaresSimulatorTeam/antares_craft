@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import copy
 
 from pathlib import Path
 from typing import Any
@@ -113,15 +112,15 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
                     all_storage_name.remove(storage_name)
 
                     # Update properties
-                    upd_properties = STStoragePropertiesLocal.from_user_model(value[storage_name])
-                    upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                    current_properties = cluster_name_to_object[storage_name].properties
+                    new_local_properties = STStoragePropertiesLocal.build_for_update(
+                        value[storage_name], current_properties
+                    )
+                    upd_props_as_dict = new_local_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
                     storage.update(upd_props_as_dict)
 
                     # Prepare the object to return
-                    local_dict = copy.deepcopy(storage)
-                    del local_dict["name"]
-                    local_properties = STStoragePropertiesLocal.model_validate(local_dict)
-                    new_properties_dict[cluster_name_to_object[storage_name]] = local_properties.to_user_model()
+                    new_properties_dict[cluster_name_to_object[storage_name]] = new_local_properties.to_user_model()
             if len(all_storage_name) > 0:
                 raise STStoragePropertiesUpdateError(
                     next(iter(all_storage_name)), area_id, "The storage does not exist"
