@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import copy
 
 from pathlib import Path
 from typing import Any
@@ -110,15 +111,15 @@ class RenewableLocalService(BaseRenewableService):
                     all_renewable_names.remove(renewable_name)
 
                     # Update properties
-                    current_properties = cluster_name_to_object[renewable_name].properties
-                    new_local_properties = RenewableClusterPropertiesLocal.build_for_update(
-                        value[renewable_name], current_properties
-                    )
-                    upd_props_as_dict = new_local_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                    upd_properties = RenewableClusterPropertiesLocal.from_user_model(value[renewable_name])
+                    upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_unset=True)
                     renewable.update(upd_props_as_dict)
 
                     # Prepare the object to return
-                    new_properties_dict[cluster_name_to_object[renewable_name]] = new_local_properties.to_user_model()
+                    local_dict = copy.deepcopy(renewable)
+                    del local_dict["name"]
+                    local_properties = RenewableClusterPropertiesLocal.model_validate(local_dict)
+                    new_properties_dict[cluster_name_to_object[renewable_name]] = local_properties.to_user_model()
 
             if len(all_renewable_names) > 0:
                 raise RenewablePropertiesUpdateError(

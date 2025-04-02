@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import copy
 
 from pathlib import Path
 from typing import Any
@@ -116,15 +117,15 @@ class ThermalLocalService(BaseThermalService):
                     all_thermal_names.remove(thermal_name)
 
                     # Update properties
-                    current_properties = cluster_name_to_object[thermal_name].properties
-                    new_local_properties = ThermalClusterPropertiesLocal.build_for_update(
-                        value[thermal_name], current_properties
-                    )
-                    upd_props_as_dict = new_local_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                    upd_properties = ThermalClusterPropertiesLocal.from_user_model(value[thermal_name])
+                    upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_unset=True)
                     thermal.update(upd_props_as_dict)
 
                     # Prepare the object to return
-                    new_properties_dict[cluster_name_to_object[thermal_name]] = new_local_properties.to_user_model()
+                    local_dict = copy.deepcopy(thermal)
+                    del local_dict["name"]
+                    local_properties = ThermalClusterPropertiesLocal.model_validate(local_dict)
+                    new_properties_dict[cluster_name_to_object[thermal_name]] = local_properties.to_user_model()
 
             if len(all_thermal_names) > 0:
                 raise ThermalPropertiesUpdateError(next(iter(all_thermal_names)), area_id, "The cluster does not exist")
