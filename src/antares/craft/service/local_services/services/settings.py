@@ -146,36 +146,23 @@ def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, cr
     # general
     if settings.general_parameters:
         general_local_parameters = GeneralParametersLocal.from_user_model(settings.general_parameters)
-
-        json_content = general_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)
-        if "general" in json_content and "building_mode" in json_content["general"]:
-            general_values = json_content["general"]
-            del general_values["building_mode"]
-            building_mode = general_local_parameters.general.building_mode
-            general_values["derated"] = building_mode == BuildingMode.DERATED
-            general_values["custom-scenario"] = building_mode == BuildingMode.CUSTOM
-
-        ini_content.update(json_content)
+        ini_content = general_local_parameters.to_ini_file(update=update, current_content=ini_content)
 
     # optimization
     if settings.optimization_parameters:
         optimization_local_parameters = OptimizationParametersLocal.from_user_model(settings.optimization_parameters)
-        ini_content.update(
-            {"optimization": optimization_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)}
-        )
+        ini_content = optimization_local_parameters.to_ini_file(update=update, current_content=ini_content)
 
     # adequacy_patch
     if settings.adequacy_patch_parameters:
         adequacy_local_parameters = AdequacyPatchParametersLocal.from_user_model(settings.adequacy_patch_parameters)
-        ini_content.update(
-            {"adequacy patch": adequacy_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)}
-        )
+        ini_content = adequacy_local_parameters.to_ini_file(update=update, current_content=ini_content)
 
     # seed and advanced
     seed_parameters = settings.seed_parameters or SeedParametersUpdate()
     advanced_parameters = settings.advanced_parameters or AdvancedParametersUpdate()
     advanced_parameters_local = AdvancedAndSeedParametersLocal.from_user_model(advanced_parameters, seed_parameters)
-    ini_content.update(advanced_parameters_local.model_dump(mode="json", by_alias=True, exclude_unset=update))
+    ini_content = advanced_parameters_local.to_ini_file(update=update, current_content=ini_content)
 
     # playlist
     # todo
