@@ -50,9 +50,9 @@ class LinkPropertiesAndUiLocal(LocalBaseModel, alias_generator=to_kebab):
     def from_user_model(
         ui_class: Optional[LinkUiType] = None, properties_class: Optional[LinkPropertiesType] = None
     ) -> "LinkPropertiesAndUiLocal":
-        ui_dict = asdict(ui_class) if ui_class else {}
-        properties_dict = asdict(properties_class) if properties_class else {}
-        return LinkPropertiesAndUiLocal.model_validate({**ui_dict, **properties_dict})
+        ui_dict = {k: v for k, v in asdict(ui_class).items() if v is not None} if ui_class else {}
+        props_dict = {k: v for k, v in asdict(properties_class).items() if v is not None} if properties_class else {}
+        return LinkPropertiesAndUiLocal.model_validate({**ui_dict, **props_dict})
 
     def to_ui_user_model(self) -> LinkUi:
         return LinkUi(

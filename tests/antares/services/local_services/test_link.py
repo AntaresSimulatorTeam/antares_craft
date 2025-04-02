@@ -33,7 +33,7 @@ class TestLink:
         # Updates ui
         update_ui = LinkUiUpdate(link_width=4.2, colorg=255)
         new_ui = link.update_ui(update_ui)
-        expected_ui = LinkUi(link_width=4.2, colorg=255)
+        expected_ui = LinkUi(colorr=1, link_width=4.2, colorg=255)
         assert new_ui == expected_ui
         assert link.ui == expected_ui
         # Asserts the ini file is properly modified
@@ -46,14 +46,14 @@ class TestLink:
             "colorr": 1,
             "comments": "",
             "display-comments": True,
-            "filter-synthesis": "annual, daily, hourly, monthly, weekly",
+            "filter-synthesis": "weekly",
             "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
             "hurdles-cost": False,
             "link-style": "plain",
             "link-width": 4.2,
             "loop-flow": False,
             "transmission-capacities": "enabled",
-            "use-phase-shifter": False,
+            "use-phase-shifter": True,
         }
 
     def test_update_properties(self, local_study_w_links: Study) -> None:
@@ -73,14 +73,14 @@ class TestLink:
         study_path = Path(local_study_w_links.path)
         ini_content = IniReader().read(study_path / "input" / "links" / link.area_from_id / "properties.ini")
         assert ini_content["fr"] == {
-            "hurdles-cost": True,
+            "hurdles-cost": False,
             "loop-flow": False,
             "use-phase-shifter": False,
             "transmission-capacities": "enabled",
             "asset-type": "ac",
             "link-style": "plain",
-            "link-width": 1.0,
-            "colorr": 112,
+            "link-width": 29,
+            "colorr": 1,
             "colorg": 112,
             "colorb": 112,
             "display-comments": True,
