@@ -133,11 +133,3 @@ class ScenarioBuilderAPI(APIBaseModel):
                     cluster_api_data[area_id][cluster_id] = cluster_data
             args[keyword] = cluster_api_data
         return ScenarioBuilderAPI.model_validate(args)
-
-
-web_response = {
-    "l": {"area1": {"0": 1}},
-    "ntc": {"area1 / area2": {"1": 23}},
-    "t": {"area1": {"thermal": {"1": 2}}},
-    "hl": {"area1": {"0": 75}},
-}
