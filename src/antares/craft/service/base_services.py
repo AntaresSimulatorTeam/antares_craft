@@ -688,6 +688,10 @@ class BaseStudyService(ABC):
     def generate_thermal_timeseries(self, number_of_years: int, areas: dict[str, "Area"], seed: int) -> None:
         pass
 
+    @abstractmethod
+    def get_scenario_builder(self) -> None:
+        pass
+
 
 class BaseRenewableService(ABC):
     @abstractmethod
