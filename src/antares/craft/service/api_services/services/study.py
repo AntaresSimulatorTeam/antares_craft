@@ -20,6 +20,7 @@ from antares.craft.exceptions.exceptions import (
     BindingConstraintDeletionError,
     OutputDeletionError,
     OutputsRetrievalError,
+    ScenarioBuilderEditionError,
     ScenarioBuilderReadingError,
     StudyDeletionError,
     StudyMoveError,
@@ -158,11 +159,17 @@ class StudyApiService(BaseStudyService):
         url = f"{self._base_url}/studies/{self.study_id}/config/scenariobuilder"
         try:
             json_response = self._wrapper.get(url).json()
-            api_model = ScenarioBuilderAPI.parse_json(json_response)
+            api_model = ScenarioBuilderAPI.from_api(json_response)
             return api_model.to_user_model()
         except APIError as e:
             raise ScenarioBuilderReadingError(self.study_id, e.message)
 
     @override
     def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
-        pass
+        url = f"{self._base_url}/studies/{self.study_id}/config/scenariobuilder"
+        try:
+            api_model = ScenarioBuilderAPI.from_user_model(scenario_builder)
+            body = api_model.to_api()
+            self._wrapper.put(url, json=body)
+        except APIError as e:
+            raise ScenarioBuilderEditionError(self.study_id, e.message)

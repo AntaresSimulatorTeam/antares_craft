@@ -54,12 +54,19 @@ SYMBOLS_BY_SCENARIO_TYPES = {
 @all_optional_model
 class ScenarioBuilderAPI(APIBaseModel):
     @staticmethod
-    def parse_json(data: dict[str, Any]) -> "ScenarioBuilderAPI":
+    def from_api(data: dict[str, Any]) -> "ScenarioBuilderAPI":
         # We don't want to look for the ruleset, we assume it's the default one
         # scenario_api = data.values()[0]
         pass
 
+    def to_api(self) -> dict[str, Any]:
+        pass
+
     def to_user_model(self) -> ScenarioBuilder:
+        pass
+
+    @staticmethod
+    def from_user_model(user_class: ScenarioBuilder) -> "ScenarioBuilderAPI":
         pass
 
 
