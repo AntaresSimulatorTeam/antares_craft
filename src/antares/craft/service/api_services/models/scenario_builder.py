@@ -134,7 +134,31 @@ class ScenarioBuilderAPI(APIBaseModel):
 
     @staticmethod
     def from_user_model(user_class: ScenarioBuilder) -> "ScenarioBuilderAPI":
-        pass
+        args = {}
+        for keyword in [
+            "load",
+            "solar",
+            "wind",
+            "hydro",
+            "hydro_initial_level",
+            "hydro_generation_power",
+            "link",
+            "binding_constraint",
+        ]:
+            user_data = getattr(user_class, keyword)._data
+            api_data = {str(index): value for index, value in enumerate(user_data)}
+            args[keyword] = api_data
+
+        for keyword in ["renewable", "thermal"]:
+            cluster_user_data = getattr(user_class, keyword)._data
+            cluster_api_data: dict[str, dict[str, dict[str, int]]] = {}
+            for area_id, value in cluster_user_data.items():
+                cluster_api_data[area_id] = {}
+                for cluster_id, scenario_matrix in value.items():
+                    cluster_data = {str(index): value for index, value in enumerate(scenario_matrix._matrix)}
+                    cluster_api_data[area_id][cluster_id] = cluster_data
+            args[keyword] = cluster_api_data
+        return ScenarioBuilderAPI.model_validate(args)
 
 
 web_response = {
