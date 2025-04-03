@@ -12,6 +12,7 @@
 from pathlib import Path, PurePath
 from typing import TYPE_CHECKING
 
+from antares.craft import ScenarioBuilder
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
@@ -149,3 +150,11 @@ class StudyApiService(BaseStudyService):
             wait_task_completion(self._base_url, self._wrapper, task_id)
         except (APIError, TaskFailedError, TaskTimeOutError) as e:
             raise ThermalTimeseriesGenerationError(self.study_id, e.message)
+
+    @override
+    def get_scenario_builder(self) -> ScenarioBuilder:
+        pass
+
+    @override
+    def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
+        pass

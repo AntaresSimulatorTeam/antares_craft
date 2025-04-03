@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 
+from antares.craft import ScenarioBuilder
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import ConstraintDoesNotExistError
 from antares.craft.model.area import Area
@@ -202,3 +203,11 @@ class StudyLocalService(BaseStudyService):
             raise
         else:
             _replace_safely_original_files(study_path, tmp_dir)
+
+    @override
+    def get_scenario_builder(self) -> ScenarioBuilder:
+        pass
+
+    @override
+    def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
+        pass
