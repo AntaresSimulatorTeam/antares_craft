@@ -68,6 +68,10 @@ class StudySettingsLocalService(BaseStudySettingsService):
         ini_content["playlist"] = playlist_local_parameters.model_dump(mode="json", by_alias=True, exclude_none=True)
         _save_ini(self.config.study_path, ini_content)
 
+    @override
+    def set_thematic_trimming(self, new_thematic_trimming: ThematicTrimmingParameters) -> None:
+        pass
+
 
 def _read_ini(study_directory: Path) -> dict[str, Any]:
     return IniReader(DUPLICATE_KEYS).read(study_directory / "settings" / "generaldata.ini")
@@ -172,9 +176,6 @@ def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, cr
     advanced_parameters = settings.advanced_parameters or AdvancedParametersUpdate()
     advanced_parameters_local = AdvancedAndSeedParametersLocal.from_user_model(advanced_parameters, seed_parameters)
     ini_content = advanced_parameters_local.to_ini_file(update=update, current_content=ini_content)
-
-    # thematic trimming
-    # todo
 
     # writing
     _save_ini(study_directory, ini_content)
