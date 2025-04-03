@@ -15,7 +15,7 @@ import ast
 from dataclasses import asdict
 from typing import Any, Sequence, Set, cast
 
-from antares.craft import PlaylistParameters
+from antares.craft import PlaylistParameters, ThematicTrimmingParameters
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
     AdequacyPatchParametersUpdate,
@@ -535,3 +535,10 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
     other5_level: bool | None = Field(default=None, alias="Other5_level")
     # Since v8.8
     sts_cashflow_by_cluster: bool | None = Field(default=None, alias="STS Cashflow By Cluster")
+
+    def to_user_model(self) -> ThematicTrimmingParameters:
+        return ThematicTrimmingParameters(**self.model_dump())
+
+    @staticmethod
+    def from_user_model(user_class: ThematicTrimmingParameters) -> "ThematicTrimmingParametersLocal":
+        return ThematicTrimmingParametersLocal(**asdict(user_class))
