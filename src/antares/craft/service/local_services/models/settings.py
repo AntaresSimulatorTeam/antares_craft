@@ -544,8 +544,23 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
         return ThematicTrimmingParametersLocal(**asdict(user_class))
 
     def to_ini(self) -> dict[str, Any]:
-        # todo
-        pass
+        data = self.model_dump(by_alias=True)
+        content_plus = []
+        content_minus = []
+        for key, value in data.items():
+            if value:
+                content_plus.append(key)
+            else:
+                content_minus.append(key)
+        if len(content_minus) >= len(content_plus):
+            ini_content: dict[str, Any] = {"selected_vars_reset": False}
+            if content_plus:
+                ini_content["select_var +"] = content_plus
+        else:
+            ini_content = {"selected_vars_reset": True}
+            if content_minus:
+                ini_content["select_var -"] = content_minus
+        return ini_content
 
     @staticmethod
     def from_ini(content: dict[str, Any]) -> "ThematicTrimmingParametersLocal":
