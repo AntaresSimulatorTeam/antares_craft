@@ -670,6 +670,7 @@ class TestWebClient:
         default_settings = StudySettings()
         assert actual_settings.general_parameters == default_settings.general_parameters
         assert actual_settings.advanced_parameters == default_settings.advanced_parameters
+        assert actual_settings.thematic_trimming_parameters == default_settings.thematic_trimming_parameters
         # todo: uncomment this check with AntaresWeb 2.20
         # assert actual_settings.adequacy_patch_parameters == default_settings.adequacy_patch_parameters
         assert actual_settings.seed_parameters == default_settings.seed_parameters
@@ -684,8 +685,13 @@ class TestWebClient:
         assert updated_settings.general_parameters.mode == Mode.ADEQUACY
         assert updated_settings.general_parameters.year_by_year
         assert updated_settings.optimization_parameters.include_exportmps == ExportMPS.OPTIM1
+        # update playlist
         new_study.set_playlist({1: PlaylistParameters(status=True, weight=0.6)})
         assert new_study.get_settings().playlist_parameters == {1: PlaylistParameters(status=True, weight=0.6)}
+        # update thematic trimming
+        new_trimming = new_study.get_settings().thematic_trimming_parameters.all_disabled()
+        new_study.set_thematic_trimming(new_trimming)
+        assert new_study.get_settings().thematic_trimming_parameters == new_trimming
 
         new_settings = StudySettingsUpdate()
         new_settings.general_parameters = GeneralParametersUpdate(simulation_synthesis=False)
@@ -698,6 +704,7 @@ class TestWebClient:
         assert new_settings.optimization_parameters.include_exportmps == ExportMPS.FALSE
         assert new_settings.advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP
         assert new_settings.playlist_parameters == {1: PlaylistParameters(status=True, weight=0.6)}
+        assert new_settings.thematic_trimming_parameters == new_trimming
 
         # test each hydro matrices returns the good values
         # todo: uncomment this with AntaresWeb version 2.20
