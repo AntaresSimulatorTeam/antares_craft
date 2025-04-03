@@ -60,6 +60,14 @@ class StudySettingsLocalService(BaseStudySettingsService):
     def read_study_settings(self) -> StudySettings:
         return read_study_settings(self.config.study_path)
 
+    @override
+    def set_playlist(self, new_playlist: dict[int, PlaylistParameters]) -> None:
+        ini_content = _read_ini(self.config.study_path)
+        nb_years = ini_content["general"]["nbyears"]
+        playlist_local_parameters = PlaylistParametersLocal.create(new_playlist, nb_years)
+        ini_content["playlist"] = playlist_local_parameters.model_dump(mode="json", by_alias=True, exclude_none=True)
+        _save_ini(self.config.study_path, ini_content)
+
 
 def _read_ini(study_directory: Path) -> dict[str, Any]:
     return IniReader(DUPLICATE_KEYS).read(study_directory / "settings" / "generaldata.ini")
@@ -164,15 +172,6 @@ def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, cr
     advanced_parameters = settings.advanced_parameters or AdvancedParametersUpdate()
     advanced_parameters_local = AdvancedAndSeedParametersLocal.from_user_model(advanced_parameters, seed_parameters)
     ini_content = advanced_parameters_local.to_ini_file(update=update, current_content=ini_content)
-
-    # playlist
-    if settings.playlist_parameters:
-        # We are in the case of an update as there's no playlist given when creating a study
-        nb_years = -1
-        if settings.general_parameters and settings.general_parameters.nb_years:
-            nb_years = settings.general_parameters.nb_years
-        playlist_local_parameters = PlaylistParametersLocal.create(settings.playlist_parameters, nb_years)
-        ini_content["playlist"] = playlist_local_parameters.model_dump(mode="json", by_alias=True, exclude_none=True)
 
     # thematic trimming
     # todo

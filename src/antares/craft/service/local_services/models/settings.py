@@ -403,11 +403,13 @@ class PlaylistParametersLocal(LocalBaseModel):
         playlist_minus = []
         # Fill the parameters
         for year, parameters in user_class.items():
-            playlist_year_weight.append(f"{year,parameters.weight}")
+            local_year = year - 1
+            # Change starting year from 1 to 0
+            playlist_year_weight.append(f"{local_year,parameters.weight}")
             if parameters.status:
-                playlist_plus.append(year)
+                playlist_plus.append(local_year)
             else:
-                playlist_minus.append(year)
+                playlist_minus.append(local_year)
 
         # Choose what to write
         args: dict[str, Any] = {"playlist_year_weight": playlist_year_weight}
