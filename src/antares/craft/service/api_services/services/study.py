@@ -155,12 +155,12 @@ class StudyApiService(BaseStudyService):
             raise ThermalTimeseriesGenerationError(self.study_id, e.message)
 
     @override
-    def get_scenario_builder(self) -> ScenarioBuilder:
+    def get_scenario_builder(self, nb_years: int) -> ScenarioBuilder:
         url = f"{self._base_url}/studies/{self.study_id}/config/scenariobuilder"
         try:
             json_response = self._wrapper.get(url).json()
             api_model = ScenarioBuilderAPI.from_api(json_response)
-            return api_model.to_user_model()
+            return api_model.to_user_model(nb_years)
         except APIError as e:
             raise ScenarioBuilderReadingError(self.study_id, e.message)
 

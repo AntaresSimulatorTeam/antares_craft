@@ -689,7 +689,7 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
-    def get_scenario_builder(self) -> "ScenarioBuilder":
+    def get_scenario_builder(self, nb_years: int) -> "ScenarioBuilder":
         pass
 
     @abstractmethod

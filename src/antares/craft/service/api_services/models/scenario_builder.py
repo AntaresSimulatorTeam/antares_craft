@@ -13,6 +13,13 @@ from enum import Enum
 from typing import Any
 
 from antares.craft import ScenarioBuilder
+from antares.craft.model.scenario_builder import (
+    ScenarioArea,
+    ScenarioCluster,
+    ScenarioConstraint,
+    ScenarioLink,
+    ScenarioMatrix,
+)
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 
@@ -77,8 +84,55 @@ class ScenarioBuilderAPI(APIBaseModel):
     def to_api(self) -> dict[str, Any]:
         pass
 
-    def to_user_model(self) -> ScenarioBuilder:
-        pass
+    def to_user_model(self, nb_years: int) -> ScenarioBuilder:
+        scenario_builder = ScenarioBuilder(
+            load=ScenarioArea({}),
+            thermal=ScenarioCluster({}),
+            hydro=ScenarioArea({}),
+            wind=ScenarioArea({}),
+            solar=ScenarioArea({}),
+            link=ScenarioLink({}),
+            renewable=ScenarioCluster({}),
+            binding_constraint=ScenarioConstraint({}),
+            hydro_initial_level=ScenarioArea({}),
+            hydro_generation_power=ScenarioArea({}),
+        )
+
+        load: dict[str, dict[str, int]]
+        thermal: dict[str, dict[str, dict[str, int]]]
+        hydro: dict[str, dict[str, int]]
+        wind: dict[str, dict[str, int]]
+        solar: dict[str, dict[str, int]]
+        link: dict[str, dict[str, int]]
+        renewable: dict[str, dict[str, dict[str, int]]]
+        binding_constraint: dict[str, dict[str, int]]
+        hydro_initial_level: dict[str, dict[str, int]]
+        hydro_generation_power: dict[str, dict[str, int]]
+
+        for keyword in ["load", "solar", "wind", "hydro", "hydro_initial_level", "hydro_generation_power", "link", "binding_constraint"]:
+            user_dict: dict[str, ScenarioMatrix] = {}
+            for key, value in getattr(self, keyword).items():
+                user_dict[key] = ScenarioMatrix([None] * nb_years)
+                for mc_year, ts_year in value.items():
+                    user_dict[key]._matrix[int(mc_year)] = ts_year
+            field_value: ScenarioArea | ScenarioLink | ScenarioConstraint = ScenarioArea(user_dict)
+            if keyword == "link":
+                field_value = ScenarioLink(user_dict)
+            elif keyword == "binding_constraint":
+                field_value = ScenarioConstraint(user_dict)
+            setattr(scenario_builder, keyword, field_value)
+
+        for keyword in ["renewable", "thermal"]:
+            cluster_dict: dict[str, dict[str, ScenarioMatrix]] = {}
+            for area_id, value in getattr(self, keyword).items():
+                cluster_dict[area_id] = {}
+                for cluster_id, values in value.items():
+                    cluster_dict[area_id][cluster_id] = ScenarioMatrix([None] * nb_years)
+                    for mc_year, ts_year in value.items():
+                        cluster_dict[area_id][cluster_id]._matrix[int(mc_year)] = ts_year
+            setattr(scenario_builder, keyword, ScenarioCluster(_data=cluster_dict))
+
+        return scenario_builder
 
     @staticmethod
     def from_user_model(user_class: ScenarioBuilder) -> "ScenarioBuilderAPI":

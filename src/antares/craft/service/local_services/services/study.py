@@ -205,7 +205,7 @@ class StudyLocalService(BaseStudyService):
             _replace_safely_original_files(study_path, tmp_dir)
 
     @override
-    def get_scenario_builder(self) -> ScenarioBuilder:
+    def get_scenario_builder(self, nb_years: int) -> ScenarioBuilder:
         pass
 
     @override
