@@ -51,7 +51,7 @@ def test_playlist(tmp_path: Path) -> None:
     # Create 3 years
     new_settings = StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=3))
     study.update_settings(new_settings)
-    # Set new playlist
+    # Checks the `set` method
     new_playlist = {
         1: PlaylistParameters(status=True, weight=4.0),
         2: PlaylistParameters(status=True, weight=1),
@@ -59,7 +59,7 @@ def test_playlist(tmp_path: Path) -> None:
     }
     study.set_playlist(new_playlist)
     assert study.get_settings().playlist_parameters == new_playlist
-    # Checks the value read
+    # Checks the `reading` method
     study_path = Path(study.path)
     study = read_study_local(study_path)
     playlist = study.get_settings().playlist_parameters
