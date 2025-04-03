@@ -98,18 +98,16 @@ class ScenarioBuilderAPI(APIBaseModel):
             hydro_generation_power=ScenarioArea({}),
         )
 
-        load: dict[str, dict[str, int]]
-        thermal: dict[str, dict[str, dict[str, int]]]
-        hydro: dict[str, dict[str, int]]
-        wind: dict[str, dict[str, int]]
-        solar: dict[str, dict[str, int]]
-        link: dict[str, dict[str, int]]
-        renewable: dict[str, dict[str, dict[str, int]]]
-        binding_constraint: dict[str, dict[str, int]]
-        hydro_initial_level: dict[str, dict[str, int]]
-        hydro_generation_power: dict[str, dict[str, int]]
-
-        for keyword in ["load", "solar", "wind", "hydro", "hydro_initial_level", "hydro_generation_power", "link", "binding_constraint"]:
+        for keyword in [
+            "load",
+            "solar",
+            "wind",
+            "hydro",
+            "hydro_initial_level",
+            "hydro_generation_power",
+            "link",
+            "binding_constraint",
+        ]:
             user_dict: dict[str, ScenarioMatrix] = {}
             for key, value in getattr(self, keyword).items():
                 user_dict[key] = ScenarioMatrix([None] * nb_years)
