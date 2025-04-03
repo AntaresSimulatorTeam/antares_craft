@@ -18,7 +18,6 @@ requires-python = ">=3.9"
 dependencies = [
     "antares-timeseries-generation==0.1.7",
     "antares-study-version==1.0.9",
-    "configparser~=5.0.2",
     "numpy~=1.26.4",
     "pandas~=2.2.2",
     "pydantic~=2.7.1",
