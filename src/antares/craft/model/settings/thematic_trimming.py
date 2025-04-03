@@ -208,14 +208,14 @@ class ThematicTrimmingParameters:
     other5_level: bool = True
     sts_cashflow_by_cluster: bool = True
 
-    def all_enabled(self) -> ThematicTrimmingParametersUpdate:
+    def all_enabled(self) -> "ThematicTrimmingParameters":
         all_enabled = {key: True for key in asdict(self)}
-        return ThematicTrimmingParametersUpdate(**all_enabled)
+        return ThematicTrimmingParameters(**all_enabled)
 
-    def all_disabled(self) -> ThematicTrimmingParametersUpdate:
+    def all_disabled(self) -> "ThematicTrimmingParameters":
         all_disabled = {key: True for key in asdict(self)}
-        return ThematicTrimmingParametersUpdate(**all_disabled)
+        return ThematicTrimmingParameters(**all_disabled)
 
-    def all_reversed(self) -> ThematicTrimmingParametersUpdate:
+    def all_reversed(self) -> "ThematicTrimmingParameters":
         all_reversed = {key: not value for key, value in asdict(self).items()}
-        return ThematicTrimmingParametersUpdate(**all_reversed)
+        return ThematicTrimmingParameters(**all_reversed)
