@@ -10,41 +10,6 @@
 #
 # This file is part of the Antares project.
 from dataclasses import dataclass
-from enum import Enum
-
-_AREA_RELATED_SYMBOLS = "l", "h", "w", "s", "bc", "hgp"
-_LINK_RELATED_SYMBOLS = ("ntc",)
-_HYDRO_LEVEL_RELATED_SYMBOLS = "hl", "hfl"
-_CLUSTER_RELATED_SYMBOLS = "t", "r"
-
-
-class ScenarioType(Enum):
-    LOAD = "load"
-    THERMAL = "thermal"
-    HYDRO = "hydro"
-    WIND = "wind"
-    SOLAR = "solar"
-    LINK = "ntc"
-    RENEWABLE = "renewable"
-    BINDING_CONSTRAINTS = "bindingConstraints"
-    HYDRO_INITIAL_LEVEL = "hydroInitialLevels"
-    HYDRO_FINAL_LEVEL = "hydroFinalLevels"
-    HYDRO_GENERATION_POWER = "hydroGenerationPower"
-
-
-SYMBOLS_BY_SCENARIO_TYPES = {
-    ScenarioType.LOAD: "l",
-    ScenarioType.HYDRO: "h",
-    ScenarioType.WIND: "w",
-    ScenarioType.SOLAR: "s",
-    ScenarioType.THERMAL: "t",
-    ScenarioType.RENEWABLE: "r",
-    ScenarioType.LINK: "ntc",
-    ScenarioType.BINDING_CONSTRAINTS: "bc",
-    ScenarioType.HYDRO_INITIAL_LEVEL: "hl",
-    ScenarioType.HYDRO_FINAL_LEVEL: "hfl",
-    ScenarioType.HYDRO_GENERATION_POWER: "hgp",
-}
 
 
 @dataclass

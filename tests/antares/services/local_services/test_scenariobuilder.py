@@ -9,10 +9,3 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
-web_response = {
-    "l": {"area1": {"0": 1}},
-    "ntc": {"area1 / area2": {"1": 23}},
-    "t": {"area1": {"thermal": {"1": 2}}},
-    "hl": {"area1": {"0": 75}},
-}

@@ -20,6 +20,7 @@ from antares.craft.exceptions.exceptions import (
     BindingConstraintDeletionError,
     OutputDeletionError,
     OutputsRetrievalError,
+    ScenarioBuilderReadingError,
     StudyDeletionError,
     StudyMoveError,
     StudyVariantCreationError,
@@ -32,6 +33,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraint,
 )
 from antares.craft.model.output import Output
+from antares.craft.service.api_services.models.scenario_builder import ScenarioBuilderAPI
 from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 from typing_extensions import override
@@ -153,7 +155,13 @@ class StudyApiService(BaseStudyService):
 
     @override
     def get_scenario_builder(self) -> ScenarioBuilder:
-        pass
+        url = f"{self._base_url}/studies/{self.study_id}/config/scenariobuilder"
+        try:
+            json_response = self._wrapper.get(url).json()
+            api_model = ScenarioBuilderAPI.parse_json(json_response)
+            return api_model.to_user_model()
+        except APIError as e:
+            raise ScenarioBuilderReadingError(self.study_id, e.message)
 
     @override
     def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:

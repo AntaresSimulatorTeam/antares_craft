@@ -454,3 +454,9 @@ class ReadingMethodUsedOufOfScopeError(Exception):
     def __init__(self, study_id: str, method_name: str, objects: str) -> None:
         self.message = f"The method {method_name} was used on study {study_id} which already contains some {objects}. This is prohibited."
         super().__init__(self.message)
+
+
+class ScenarioBuilderReadingError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not read the scenario builder for study {study_id}: " + message
+        super().__init__(self.message)
