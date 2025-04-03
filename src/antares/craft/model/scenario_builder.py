@@ -10,6 +10,10 @@
 #
 # This file is part of the Antares project.
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from antares.craft.model.study import Study
 
 
 @dataclass
@@ -29,6 +33,7 @@ class ScenarioMatrix:
 @dataclass
 class ScenarioArea:
     _data: dict[str, ScenarioMatrix]
+    _areas: set[str] | None = None
 
     def get_area(self, area_id: str) -> ScenarioMatrix:
         return self._data[area_id]
@@ -37,6 +42,7 @@ class ScenarioArea:
 @dataclass
 class ScenarioConstraint:
     _data: dict[str, ScenarioMatrix]
+    _groups: set[str] | None = None
 
     def get_group(self, group_id: str) -> ScenarioMatrix:
         return self._data[group_id]
@@ -45,6 +51,7 @@ class ScenarioConstraint:
 @dataclass
 class ScenarioLink:
     _data: dict[str, ScenarioMatrix]
+    _links: set[str] | None = None
 
     def get_link(self, link_id: str) -> ScenarioMatrix:
         return self._data[link_id]
@@ -53,6 +60,7 @@ class ScenarioLink:
 @dataclass
 class ScenarioCluster:
     _data: dict[str, dict[str, ScenarioMatrix]]
+    _clusters: dict[str, set[str]] | None = None
 
     def get_cluster(self, area_id: str, cluster_id: str) -> ScenarioMatrix:
         return self._data[area_id][cluster_id]
@@ -70,3 +78,31 @@ class ScenarioBuilder:
     binding_constraint: ScenarioConstraint
     hydro_initial_level: ScenarioArea
     hydro_generation_power: ScenarioArea
+
+    def _set_study(self, study: "Study") -> None:
+        areas = study.get_areas()
+
+        area_ids = set(areas.keys())
+        self.load._areas = area_ids
+        self.wind._areas = area_ids
+        self.solar._areas = area_ids
+        self.hydro_initial_level._areas = area_ids
+        self.hydro_generation_power._areas = area_ids
+
+        thermal_ids: dict[str, set[str]] = {}
+        renewable_ids: dict[str, set[str]] = {}
+        for area in areas.values():
+            for thermal in area.get_thermals().values():
+                thermal_ids.setdefault(thermal.area_id, set()).add(thermal.id)
+            for renewable in area.get_renewables().values():
+                renewable_ids.setdefault(renewable.area_id, set()).add(renewable.id)
+        self.thermal._clusters = thermal_ids
+        self.renewable._clusters = renewable_ids
+
+        links = set(study.get_links().keys())
+        self.link._links = links
+
+        bc_groups = set()
+        for bc in study.get_binding_constraints().values():
+            bc_groups.add(bc.properties.group)
+        self.binding_constraint._groups = bc_groups

@@ -352,7 +352,9 @@ class Study:
             self._areas[storage.area_id]._st_storages[storage.id]._properties = new_st_props[storage]
 
     def get_scenario_builder(self) -> ScenarioBuilder:
-        return self._study_service.get_scenario_builder()
+        sc_builder = self._study_service.get_scenario_builder()
+        sc_builder._set_study(self)
+        return sc_builder
 
     def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
         self._study_service.set_scenario_builder(scenario_builder)
