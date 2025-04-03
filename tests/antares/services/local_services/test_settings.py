@@ -9,8 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
-
+from dataclasses import asdict
 from pathlib import Path
 
 from antares.craft import (
@@ -19,6 +18,7 @@ from antares.craft import (
     HydroPricingMode,
     PlaylistParameters,
     StudySettingsUpdate,
+    ThematicTrimmingParameters,
     UnitCommitmentMode,
     create_study_local,
     read_study_local,
@@ -96,3 +96,26 @@ playlist_year + = 0
 playlist_year_weight = 0,2.5"""
         in content
     )
+
+
+def test_thematic_trimming(tmp_path: Path):
+    trimming = ThematicTrimmingParameters(spil_enrg=False)
+    for field in asdict(trimming):
+        if field != "spil_enrg":
+            assert getattr(trimming, field) is True
+        else:
+            assert getattr(trimming, field) is False
+    # Reverse it
+    new_trimming = trimming.all_reversed()
+    for field in asdict(new_trimming):
+        if field != "spil_enrg":
+            assert getattr(new_trimming, field) is False
+        else:
+            assert getattr(new_trimming, field) is True
+    # Enable everything
+    all_true_trimming = trimming.all_enabled()
+    assert all_true_trimming == ThematicTrimmingParameters()
+    # Disable everything
+    all_false_trimming = trimming.all_disabled()
+    for field in asdict(all_false_trimming):
+        assert getattr(all_false_trimming, field) is False

@@ -114,7 +114,7 @@ class ThematicTrimmingParameters:
         return ThematicTrimmingParameters(**all_enabled)
 
     def all_disabled(self) -> "ThematicTrimmingParameters":
-        all_disabled = {key: True for key in asdict(self)}
+        all_disabled = {key: False for key in asdict(self)}
         return ThematicTrimmingParameters(**all_disabled)
 
     def all_reversed(self) -> "ThematicTrimmingParameters":
