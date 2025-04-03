@@ -32,6 +32,7 @@ from antares.craft.service.local_services.models.settings import (
     OtherPreferencesLocal,
     PlaylistParametersLocal,
     SeedParametersLocal,
+    ThematicTrimmingParametersLocal,
 )
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
@@ -66,6 +67,13 @@ class StudySettingsLocalService(BaseStudySettingsService):
         nb_years = ini_content["general"]["nbyears"]
         playlist_local_parameters = PlaylistParametersLocal.create(new_playlist, nb_years)
         ini_content["playlist"] = playlist_local_parameters.model_dump(mode="json", by_alias=True, exclude_none=True)
+        _save_ini(self.config.study_path, ini_content)
+
+    @override
+    def set_thematic_trimming(self, new_thematic_trimming: ThematicTrimmingParameters) -> None:
+        ini_content = _read_ini(self.config.study_path)
+        trimming_local_parameters = ThematicTrimmingParametersLocal.from_user_model(new_thematic_trimming)
+        ini_content["variables selection"] = trimming_local_parameters.to_ini()
         _save_ini(self.config.study_path, ini_content)
 
 
@@ -132,8 +140,8 @@ def read_study_settings(study_directory: Path) -> StudySettings:
     # thematic trimming
     thematic_trimming_parameters = ThematicTrimmingParameters()
     if "variables selection" in ini_content:
-        thematic_trimming_parameters = ThematicTrimmingParameters()
-        # todo
+        thematic_trimming_local = ThematicTrimmingParametersLocal.from_ini(ini_content["variables selection"])
+        thematic_trimming_parameters = thematic_trimming_local.to_user_model()
 
     return StudySettings(
         general_parameters=general_parameters,
@@ -172,9 +180,6 @@ def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, cr
     advanced_parameters = settings.advanced_parameters or AdvancedParametersUpdate()
     advanced_parameters_local = AdvancedAndSeedParametersLocal.from_user_model(advanced_parameters, seed_parameters)
     ini_content = advanced_parameters_local.to_ini_file(update=update, current_content=ini_content)
-
-    # thematic trimming
-    # todo
 
     # writing
     _save_ini(study_directory, ini_content)

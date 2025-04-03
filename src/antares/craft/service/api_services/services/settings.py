@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 from dataclasses import asdict
 
+from antares.craft import ThematicTrimmingParameters
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import APIError, StudySettingsReadError, StudySettingsUpdateError
@@ -57,16 +58,16 @@ class StudySettingsAPIService(BaseStudySettingsService):
             body[str(key)] = asdict(value)
         self._wrapper.put(playlist_url, json=body)
 
+    @override
+    def set_thematic_trimming(self, new_thematic_trimming: ThematicTrimmingParameters) -> None:
+        thematic_trimming_url = f"{self._base_url}/studies/{self.study_id}/config/thematictrimming/form"
+        api_model = ThematicTrimmingParametersAPI.from_user_model(new_thematic_trimming)
+        body = api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
+        self._wrapper.put(thematic_trimming_url, json=body)
+
 
 def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, settings: StudySettingsUpdate) -> None:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
-
-    # thematic trimming
-    if settings.thematic_trimming_parameters:
-        thematic_trimming_url = f"{settings_base_url}/thematictrimming/form"
-        api_model = ThematicTrimmingParametersAPI.from_user_model(settings.thematic_trimming_parameters)
-        body = api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
-        wrapper.put(thematic_trimming_url, json=body)
 
     # optimization
     if settings.optimization_parameters:
