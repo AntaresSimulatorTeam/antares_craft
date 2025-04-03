@@ -537,7 +537,7 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
     sts_cashflow_by_cluster: bool | None = Field(default=None, alias="STS Cashflow By Cluster")
 
     def to_user_model(self) -> ThematicTrimmingParameters:
-        return ThematicTrimmingParameters(**self.model_dump())
+        return ThematicTrimmingParameters(**self.model_dump(exclude_none=True))
 
     @staticmethod
     def from_user_model(user_class: ThematicTrimmingParameters) -> "ThematicTrimmingParametersLocal":
@@ -549,5 +549,18 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
 
     @staticmethod
     def from_ini(content: dict[str, Any]) -> "ThematicTrimmingParametersLocal":
-        # todo
-        pass
+        if content.get("selected_vars_reset", True):
+            # Means written fields are deactivated and others are activated
+            unselected_vars = content.get("select_var -", [])
+            args = {var: False for var in unselected_vars}
+            return ThematicTrimmingParametersLocal(**args)
+
+        # Means written fields are activated and others deactivated
+        selected_vars = content.get("select_var +", [])
+        args = {var: True for var in selected_vars}
+        file_data = ThematicTrimmingParametersLocal(**args)
+        # Initialize missing fields
+        for field in ThematicTrimmingParametersLocal.model_fields:
+            if getattr(file_data, field) is None:
+                setattr(file_data, field, False)
+        return file_data
