@@ -23,19 +23,6 @@ from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 from pydantic import Field
 
-MAPPING = {
-    "l": "load",
-    "t": "thermal",
-    "h": "hydro",
-    "w": "wind",
-    "s": "solar",
-    "ntc": "link",
-    "r": "renewable",
-    "bc": "binding_constraint",
-    "hl": "hydro_initial_level",
-    "hgp": "hydro_generation_power",
-}
-
 
 @all_optional_model
 class ScenarioBuilderAPI(APIBaseModel):
