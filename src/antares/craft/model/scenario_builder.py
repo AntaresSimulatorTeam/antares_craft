@@ -20,15 +20,15 @@ if TYPE_CHECKING:
 
 @dataclass
 class ScenarioMatrix:
-    _matrix: dict[int, int | None]
+    _matrix: list[int | None]
 
     def get_year(self, year: int) -> int | None:
         return self._matrix[year]
 
-    def get_scenario(self) -> dict[int, int | None]:
+    def get_scenario(self) -> list[int | None]:
         return self._matrix
 
-    def set_new_scenario(self, new_scenario: dict[int, int | None]) -> None:
+    def set_new_scenario(self, new_scenario: list[int | None]) -> None:
         self._matrix = new_scenario
 
 
