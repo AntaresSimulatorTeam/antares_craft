@@ -9,106 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Optional
-
-
-@dataclass(frozen=True)
-class ThematicTrimmingParameters:
-    ov_cost: bool = False
-    op_cost: bool = False
-    mrg_price: bool = False
-    co2_emis: bool = False
-    dtg_by_plant: bool = False
-    balance: bool = False
-    row_bal: bool = False
-    psp: bool = False
-    misc_ndg: bool = False
-    load: bool = False
-    h_ror: bool = False
-    wind: bool = False
-    solar: bool = False
-    nuclear: bool = False
-    lignite: bool = False
-    coal: bool = False
-    gas: bool = False
-    oil: bool = False
-    mix_fuel: bool = False
-    misc_dtg: bool = False
-    h_stor: bool = False
-    h_pump: bool = False
-    h_lev: bool = False
-    h_infl: bool = False
-    h_ovfl: bool = False
-    h_val: bool = False
-    h_cost: bool = False
-    unsp_enrg: bool = False
-    spil_enrg: bool = False
-    lold: bool = False
-    lolp: bool = False
-    avl_dtg: bool = False
-    dtg_mrg: bool = False
-    max_mrg: bool = False
-    np_cost: bool = False
-    np_cost_by_plant: bool = False
-    nodu: bool = False
-    nodu_by_plant: bool = False
-    flow_lin: bool = False
-    ucap_lin: bool = False
-    loop_flow: bool = False
-    flow_quad: bool = False
-    cong_fee_alg: bool = False
-    cong_fee_abs: bool = False
-    marg_cost: bool = False
-    cong_prob_plus: bool = False
-    cong_prob_minus: bool = False
-    hurdle_cost: bool = False
-    res_generation_by_plant: bool = False
-    misc_dtg_2: bool = False
-    misc_dtg_3: bool = False
-    misc_dtg_4: bool = False
-    wind_offshore: bool = False
-    wind_onshore: bool = False
-    solar_concrt: bool = False
-    solar_pv: bool = False
-    solar_rooft: bool = False
-    renw_1: bool = False
-    renw_2: bool = False
-    renw_3: bool = False
-    renw_4: bool = False
-    dens: bool = False
-    profit_by_plant: bool = False
-    sts_inj_by_plant: bool = False
-    sts_withdrawal_by_plant: bool = False
-    sts_lvl_by_plant: bool = False
-    psp_open_injection: bool = False
-    psp_open_withdrawal: bool = False
-    psp_open_level: bool = False
-    psp_closed_injection: bool = False
-    psp_closed_withdrawal: bool = False
-    psp_closed_level: bool = False
-    pondage_injection: bool = False
-    pondage_withdrawal: bool = False
-    pondage_level: bool = False
-    battery_injection: bool = False
-    battery_withdrawal: bool = False
-    battery_level: bool = False
-    other1_injection: bool = False
-    other1_withdrawal: bool = False
-    other1_level: bool = False
-    other2_injection: bool = False
-    other2_withdrawal: bool = False
-    other2_level: bool = False
-    other3_injection: bool = False
-    other3_withdrawal: bool = False
-    other3_level: bool = False
-    other4_injection: bool = False
-    other4_withdrawal: bool = False
-    other4_level: bool = False
-    other5_injection: bool = False
-    other5_withdrawal: bool = False
-    other5_level: bool = False
-    sts_cashflow_by_cluster: bool = False
 
 
 @dataclass
@@ -207,3 +109,113 @@ class ThematicTrimmingParametersUpdate:
     other5_withdrawal: Optional[bool] = None
     other5_level: Optional[bool] = None
     sts_cashflow_by_cluster: Optional[bool] = None
+
+
+@dataclass(frozen=True)
+class ThematicTrimmingParameters:
+    ov_cost: bool = True
+    op_cost: bool = True
+    mrg_price: bool = True
+    co2_emis: bool = True
+    dtg_by_plant: bool = True
+    balance: bool = True
+    row_bal: bool = True
+    psp: bool = True
+    misc_ndg: bool = True
+    load: bool = True
+    h_ror: bool = True
+    wind: bool = True
+    solar: bool = True
+    nuclear: bool = True
+    lignite: bool = True
+    coal: bool = True
+    gas: bool = True
+    oil: bool = True
+    mix_fuel: bool = True
+    misc_dtg: bool = True
+    h_stor: bool = True
+    h_pump: bool = True
+    h_lev: bool = True
+    h_infl: bool = True
+    h_ovfl: bool = True
+    h_val: bool = True
+    h_cost: bool = True
+    unsp_enrg: bool = True
+    spil_enrg: bool = True
+    lold: bool = True
+    lolp: bool = True
+    avl_dtg: bool = True
+    dtg_mrg: bool = True
+    max_mrg: bool = True
+    np_cost: bool = True
+    np_cost_by_plant: bool = True
+    nodu: bool = True
+    nodu_by_plant: bool = True
+    flow_lin: bool = True
+    ucap_lin: bool = True
+    loop_flow: bool = True
+    flow_quad: bool = True
+    cong_fee_alg: bool = True
+    cong_fee_abs: bool = True
+    marg_cost: bool = True
+    cong_prob_plus: bool = True
+    cong_prob_minus: bool = True
+    hurdle_cost: bool = True
+    res_generation_by_plant: bool = True
+    misc_dtg_2: bool = True
+    misc_dtg_3: bool = True
+    misc_dtg_4: bool = True
+    wind_offshore: bool = True
+    wind_onshore: bool = True
+    solar_concrt: bool = True
+    solar_pv: bool = True
+    solar_rooft: bool = True
+    renw_1: bool = True
+    renw_2: bool = True
+    renw_3: bool = True
+    renw_4: bool = True
+    dens: bool = True
+    profit_by_plant: bool = True
+    sts_inj_by_plant: bool = True
+    sts_withdrawal_by_plant: bool = True
+    sts_lvl_by_plant: bool = True
+    psp_open_injection: bool = True
+    psp_open_withdrawal: bool = True
+    psp_open_level: bool = True
+    psp_closed_injection: bool = True
+    psp_closed_withdrawal: bool = True
+    psp_closed_level: bool = True
+    pondage_injection: bool = True
+    pondage_withdrawal: bool = True
+    pondage_level: bool = True
+    battery_injection: bool = True
+    battery_withdrawal: bool = True
+    battery_level: bool = True
+    other1_injection: bool = True
+    other1_withdrawal: bool = True
+    other1_level: bool = True
+    other2_injection: bool = True
+    other2_withdrawal: bool = True
+    other2_level: bool = True
+    other3_injection: bool = True
+    other3_withdrawal: bool = True
+    other3_level: bool = True
+    other4_injection: bool = True
+    other4_withdrawal: bool = True
+    other4_level: bool = True
+    other5_injection: bool = True
+    other5_withdrawal: bool = True
+    other5_level: bool = True
+    sts_cashflow_by_cluster: bool = True
+
+    def all_enabled(self) -> ThematicTrimmingParametersUpdate:
+        all_enabled = {key: True for key in asdict(self)}
+        return ThematicTrimmingParametersUpdate(**all_enabled)
+
+    def all_disabled(self) -> ThematicTrimmingParametersUpdate:
+        all_disabled = {key: True for key in asdict(self)}
+        return ThematicTrimmingParametersUpdate(**all_disabled)
+
+    def all_reversed(self) -> ThematicTrimmingParametersUpdate:
+        all_reversed = {key: not value for key, value in asdict(self).items()}
+        return ThematicTrimmingParametersUpdate(**all_reversed)
