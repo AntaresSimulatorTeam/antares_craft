@@ -12,6 +12,8 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from antares.craft.exceptions.exceptions import InvalidRequestForScenarioBuilder
+
 if TYPE_CHECKING:
     from antares.craft.model.study import Study
 
@@ -36,6 +38,9 @@ class ScenarioArea:
     _areas: set[str] | None = None
 
     def get_area(self, area_id: str) -> ScenarioMatrix:
+        assert self._areas is not None
+        if area_id not in self._areas:
+            raise InvalidRequestForScenarioBuilder(f"The area {area_id} does not exist")
         return self._data[area_id]
 
 
@@ -45,6 +50,9 @@ class ScenarioConstraint:
     _groups: set[str] | None = None
 
     def get_group(self, group_id: str) -> ScenarioMatrix:
+        assert self._groups is not None
+        if group_id not in self._groups:
+            raise InvalidRequestForScenarioBuilder(f"The constraint group {group_id} does not exist")
         return self._data[group_id]
 
 
@@ -54,6 +62,9 @@ class ScenarioLink:
     _links: set[str] | None = None
 
     def get_link(self, link_id: str) -> ScenarioMatrix:
+        assert self._links is not None
+        if link_id not in self._links:
+            raise InvalidRequestForScenarioBuilder(f"The link {link_id} does not exist")
         return self._data[link_id]
 
 
@@ -63,6 +74,11 @@ class ScenarioCluster:
     _clusters: dict[str, set[str]] | None = None
 
     def get_cluster(self, area_id: str, cluster_id: str) -> ScenarioMatrix:
+        assert self._clusters is not None
+        if area_id not in self._clusters:
+            raise InvalidRequestForScenarioBuilder(f"The area {area_id} does not exist")
+        if cluster_id not in self._clusters[area_id]:
+            raise InvalidRequestForScenarioBuilder(f"The cluster {cluster_id} does not exist")
         return self._data[area_id][cluster_id]
 
 
