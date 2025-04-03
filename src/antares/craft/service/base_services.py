@@ -22,6 +22,7 @@ from antares.craft.model.settings.study_settings import StudySettings, StudySett
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 
 if TYPE_CHECKING:
+    from antares.craft import PlaylistParameters
     from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
     from antares.craft.model.binding_constraint import (
         BindingConstraint,
@@ -816,6 +817,13 @@ class BaseStudySettingsService(ABC):
     def read_study_settings(self) -> StudySettings:
         """
         Reads the settings of a study
+        """
+        pass
+
+    @abstractmethod
+    def set_playlist(self, new_playlist: dict[int, "PlaylistParameters"]) -> None:
+        """
+        Set new playlist for the study
         """
         pass
 

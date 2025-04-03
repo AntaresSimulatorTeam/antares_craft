@@ -33,7 +33,6 @@ class StudySettingsUpdate:
     seed_parameters: Optional[SeedParametersUpdate] = None
     adequacy_patch_parameters: Optional[AdequacyPatchParametersUpdate] = None
     thematic_trimming_parameters: Optional[ThematicTrimmingParametersUpdate] = None
-    playlist_parameters: Optional[dict[int, PlaylistParameters]] = None
 
 
 @dataclass
@@ -84,9 +83,6 @@ class StudySettings:
         thematic_trimming_parameters = ThematicTrimmingParametersUpdate(
             **current_settings["thematic_trimming_parameters"]
         )
-        playlist_parameters: dict[int, PlaylistParameters] = {}
-        for year in current_settings["playlist_parameters"]:
-            playlist_parameters[year] = PlaylistParameters(**current_settings["playlist_parameters"][year])
 
         return StudySettingsUpdate(
             general_parameters,
@@ -95,5 +91,4 @@ class StudySettings:
             seed_parameters,
             adequacy_patch_parameters,
             thematic_trimming_parameters,
-            playlist_parameters,
         )

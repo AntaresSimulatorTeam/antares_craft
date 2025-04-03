@@ -49,6 +49,14 @@ class StudySettingsAPIService(BaseStudySettingsService):
         except APIError as e:
             raise StudySettingsReadError(self.study_id, e.message) from e
 
+    @override
+    def set_playlist(self, new_playlist: dict[int, PlaylistParameters]) -> None:
+        playlist_url = f"{self._base_url}/studies/{self.study_id}/config/playlist/form"
+        body = {}
+        for key, value in new_playlist.items():
+            body[str(key)] = asdict(value)
+        self._wrapper.put(playlist_url, json=body)
+
 
 def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, settings: StudySettingsUpdate) -> None:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
@@ -59,14 +67,6 @@ def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, s
         api_model = ThematicTrimmingParametersAPI.from_user_model(settings.thematic_trimming_parameters)
         body = api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
         wrapper.put(thematic_trimming_url, json=body)
-
-    # playlist
-    if settings.playlist_parameters:
-        playlist_url = f"{settings_base_url}/playlist/form"
-        body = {}
-        for key, value in settings.playlist_parameters.items():
-            body[str(key)] = asdict(value)
-        wrapper.put(playlist_url, json=body)
 
     # optimization
     if settings.optimization_parameters:

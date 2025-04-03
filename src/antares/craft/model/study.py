@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, cast
 
 import pandas as pd
 
-from antares.craft import APIconf, STStoragePropertiesUpdate
+from antares.craft import APIconf, PlaylistParameters, STStoragePropertiesUpdate
 from antares.craft.exceptions.exceptions import (
     LinkCreationError,
     ReadingMethodUsedOufOfScopeError,
@@ -100,7 +100,10 @@ class Study:
         self._settings.seed_parameters = new_settings.seed_parameters
         self._settings.adequacy_patch_parameters = new_settings.adequacy_patch_parameters
         self._settings.thematic_trimming_parameters = new_settings.thematic_trimming_parameters
-        self._settings.playlist_parameters = new_settings.playlist_parameters
+
+    def set_playlist(self, playlist: dict[int, PlaylistParameters]) -> None:
+        self._settings_service.set_playlist(playlist)
+        self._settings.playlist_parameters = playlist
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
