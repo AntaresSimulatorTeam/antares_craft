@@ -150,6 +150,15 @@ author = Unknown
         # Then
         assert actual_content == antares_content
 
+    def test_scenario_builder_creation(self, tmp_path, local_study):
+        # Given
+        expected_scenario_builder_path = tmp_path / local_study.name / "settings" / "scenariobuilder.dat"
+        desktop_ini_content = """[default ruleset]
+
+"""
+        actual_content = expected_scenario_builder_path.read_text()
+        assert actual_content == desktop_ini_content
+
     def test_verify_study_already_exists_error(self, tmp_path):
         # Given
         study_name = "studyTest"
