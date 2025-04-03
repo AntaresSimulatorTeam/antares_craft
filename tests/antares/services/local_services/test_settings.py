@@ -64,3 +64,14 @@ def test_playlist(tmp_path: Path) -> None:
     study = read_study_local(study_path)
     playlist = study.get_settings().playlist_parameters
     assert playlist == new_playlist
+    # Checks the ini content
+    ini_path = study_path / "settings" / "generaldata.ini"
+    content = ini_path.read_text()
+    assert (
+        """[playlist]
+playlist_reset = False
+playlist_year + = 0
+playlist_year + = 1
+playlist_year_weight = 0,4.0"""
+        in content
+    )
