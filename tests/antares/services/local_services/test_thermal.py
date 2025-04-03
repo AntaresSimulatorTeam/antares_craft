@@ -13,7 +13,6 @@ import pytest
 
 import re
 
-from configparser import ConfigParser
 from pathlib import Path
 from typing import cast
 
@@ -152,8 +151,6 @@ efficiency = 123.4
 variableomcost = 5.0
 
 """
-        expected_list_ini = ConfigParser()
-        expected_list_ini.read_string(expected_list_ini_contents)
         thermal_cluster_properties = ThermalClusterProperties(
             group=ThermalClusterGroup.NUCLEAR,
             enabled=False,
@@ -194,9 +191,9 @@ variableomcost = 5.0
 
         # When
         local_study_w_areas.get_areas()["fr"].create_thermal_cluster("test thermal cluster", thermal_cluster_properties)
-        study_path = cast(LocalConfiguration, local_study_w_areas.service.config).study_path
-        ini_content = IniReader().read(study_path / "input" / "clusters" / "fr" / "list.ini")
-        print(ini_content)
+        study_path = Path(local_study_w_areas.path)
+        ini_content = (study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini").read_text()
+        assert ini_content == expected_list_ini_contents
 
     def test_list_ini_has_multiple_clusters(self, local_study_w_thermal):
         # Asserts we can create 2 clusters
