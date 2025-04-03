@@ -21,6 +21,7 @@ from antares.craft.model.scenario_builder import (
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
+from pydantic import Field
 
 MAPPING = {
     "l": "load",
@@ -38,30 +39,24 @@ MAPPING = {
 
 @all_optional_model
 class ScenarioBuilderAPI(APIBaseModel):
-    load: dict[str, dict[str, int]]
-    thermal: dict[str, dict[str, dict[str, int]]]
-    hydro: dict[str, dict[str, int]]
-    wind: dict[str, dict[str, int]]
-    solar: dict[str, dict[str, int]]
-    link: dict[str, dict[str, int]]
-    renewable: dict[str, dict[str, dict[str, int]]]
-    binding_constraint: dict[str, dict[str, int]]
-    hydro_initial_level: dict[str, dict[str, int]]
-    hydro_generation_power: dict[str, dict[str, int]]
+    load: dict[str, dict[str, int]] = Field(alias="l")
+    thermal: dict[str, dict[str, dict[str, int]]] = Field(alias="t")
+    hydro: dict[str, dict[str, int]] = Field(alias="h")
+    wind: dict[str, dict[str, int]] = Field(alias="w")
+    solar: dict[str, dict[str, int]] = Field(alias="s")
+    link: dict[str, dict[str, int]] = Field(alias="ntc")
+    renewable: dict[str, dict[str, dict[str, int]]] = Field(alias="r")
+    binding_constraint: dict[str, dict[str, int]] = Field(alias="bc")
+    hydro_initial_level: dict[str, dict[str, int]] = Field(alias="hl")
+    hydro_generation_power: dict[str, dict[str, int]] = Field(alias="hgp")
 
     @staticmethod
     def from_api(data: dict[str, Any]) -> "ScenarioBuilderAPI":
-        args: dict[str, Any] = {}
-        # We don't want to look for the ruleset, we assume it's the default one
-        scenario_api = data[list(data.keys())[0]]
-        for key, value in scenario_api.items():
-            if key not in MAPPING:
-                raise NotImplementedError(f"Unknown scenario type {key}")
-            args[MAPPING[key]] = value
-        return ScenarioBuilderAPI.model_validate(args)
+        scenario_api = data["Default Ruleset"]
+        return ScenarioBuilderAPI.model_validate(scenario_api)
 
     def to_api(self) -> dict[str, Any]:
-        pass
+        return {"Default Ruleset": self.model_dump(by_alias=True, exclude_none=True)}
 
     def to_user_model(self, nb_years: int) -> ScenarioBuilder:
         scenario_builder = ScenarioBuilder(
