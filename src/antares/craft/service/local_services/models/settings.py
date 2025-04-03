@@ -544,8 +544,10 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
         return ThematicTrimmingParametersLocal(**asdict(user_class))
 
     def to_ini(self) -> dict[str, Any]:
+        # todo
         pass
 
     @staticmethod
     def from_ini(content: dict[str, Any]) -> "ThematicTrimmingParametersLocal":
+        # todo
         pass

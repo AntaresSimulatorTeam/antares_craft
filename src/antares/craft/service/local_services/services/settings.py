@@ -32,6 +32,7 @@ from antares.craft.service.local_services.models.settings import (
     OtherPreferencesLocal,
     PlaylistParametersLocal,
     SeedParametersLocal,
+    ThematicTrimmingParametersLocal,
 )
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
@@ -70,7 +71,10 @@ class StudySettingsLocalService(BaseStudySettingsService):
 
     @override
     def set_thematic_trimming(self, new_thematic_trimming: ThematicTrimmingParameters) -> None:
-        pass
+        ini_content = _read_ini(self.config.study_path)
+        trimming_local_parameters = ThematicTrimmingParametersLocal.from_user_model(new_thematic_trimming)
+        ini_content["variables selection"] = trimming_local_parameters.to_ini()
+        _save_ini(self.config.study_path, ini_content)
 
 
 def _read_ini(study_directory: Path) -> dict[str, Any]:
@@ -136,8 +140,8 @@ def read_study_settings(study_directory: Path) -> StudySettings:
     # thematic trimming
     thematic_trimming_parameters = ThematicTrimmingParameters()
     if "variables selection" in ini_content:
-        thematic_trimming_parameters = ThematicTrimmingParameters()
-        # todo
+        thematic_trimming_local = ThematicTrimmingParametersLocal.from_ini(ini_content["variables selection"])
+        thematic_trimming_parameters = thematic_trimming_local.to_user_model()
 
     return StudySettings(
         general_parameters=general_parameters,
