@@ -89,7 +89,6 @@ playlist_year_weight = 0,4.0"""
     assert playlist == new_playlist
     # Checks the ini content
     content = ini_path.read_text()
-    print(content)
     assert (
         """[playlist]
 playlist_reset = False
