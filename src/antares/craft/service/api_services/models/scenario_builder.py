@@ -36,28 +36,43 @@ class ScenarioType(Enum):
     HYDRO_GENERATION_POWER = "hydroGenerationPower"
 
 
-SYMBOLS_BY_SCENARIO_TYPES = {
-    ScenarioType.LOAD: "l",
-    ScenarioType.HYDRO: "h",
-    ScenarioType.WIND: "w",
-    ScenarioType.SOLAR: "s",
-    ScenarioType.THERMAL: "t",
-    ScenarioType.RENEWABLE: "r",
-    ScenarioType.LINK: "ntc",
-    ScenarioType.BINDING_CONSTRAINTS: "bc",
-    ScenarioType.HYDRO_INITIAL_LEVEL: "hl",
-    ScenarioType.HYDRO_FINAL_LEVEL: "hfl",
-    ScenarioType.HYDRO_GENERATION_POWER: "hgp",
+MAPPING = {
+    "l": "load",
+    "t": "thermal",
+    "h": "hydro",
+    "w": "wind",
+    "s": "solar",
+    "ntc": "link",
+    "r": "renewable",
+    "bc": "binding_constraint",
+    "hl": "hydro_initial_level",
+    "hgp": "hydro_generation_power",
 }
 
 
 @all_optional_model
 class ScenarioBuilderAPI(APIBaseModel):
+    load: dict[str, dict[str, int]]
+    thermal: dict[str, dict[str, dict[str, int]]]
+    hydro: dict[str, dict[str, int]]
+    wind: dict[str, dict[str, int]]
+    solar: dict[str, dict[str, int]]
+    link: dict[str, dict[str, int]]
+    renewable: dict[str, dict[str, dict[str, int]]]
+    binding_constraint: dict[str, dict[str, int]]
+    hydro_initial_level: dict[str, dict[str, int]]
+    hydro_generation_power: dict[str, dict[str, int]]
+
     @staticmethod
     def from_api(data: dict[str, Any]) -> "ScenarioBuilderAPI":
+        args: dict[str, Any] = {}
         # We don't want to look for the ruleset, we assume it's the default one
-        # scenario_api = data.values()[0]
-        pass
+        scenario_api = data[list(data.keys())[0]]
+        for key, value in scenario_api.items():
+            if key not in MAPPING:
+                raise NotImplementedError(f"Unknown scenario type {key}")
+            args[MAPPING[key]] = value
+        return ScenarioBuilderAPI.model_validate(args)
 
     def to_api(self) -> dict[str, Any]:
         pass
