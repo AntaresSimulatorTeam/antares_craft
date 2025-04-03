@@ -392,7 +392,10 @@ class PlaylistParametersLocal(LocalBaseModel):
         # Builds the user object
         for playlist_year in range(nb_years):
             playlist_weight = weight_dict.get(playlist_year, 1)
-            playlist_dict[playlist_year] = PlaylistParameters(status=status_dict[playlist_year], weight=playlist_weight)
+            # Change starting year from 0 to 1
+            playlist_dict[playlist_year + 1] = PlaylistParameters(
+                status=status_dict[playlist_year], weight=playlist_weight
+            )
 
         return playlist_dict
 
@@ -405,7 +408,7 @@ class PlaylistParametersLocal(LocalBaseModel):
         for year, parameters in user_class.items():
             local_year = year - 1
             # Change starting year from 1 to 0
-            playlist_year_weight.append(f"{local_year,parameters.weight}")
+            playlist_year_weight.append(f"{local_year},{parameters.weight}")
             if parameters.status:
                 playlist_plus.append(local_year)
             else:

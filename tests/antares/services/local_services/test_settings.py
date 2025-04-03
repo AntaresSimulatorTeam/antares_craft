@@ -23,16 +23,6 @@ from antares.craft import (
     create_study_local,
     read_study_local,
 )
-from antares.craft.tools.serde_local.ini_reader import IniReader
-from antares.craft.tools.serde_local.ini_writer import IniWriter
-
-DUPLICATE_KEYS = [
-    "playlist_year_weight",
-    "playlist_year +",
-    "playlist_year -",
-    "select_var -",
-    "select_var +",
-]
 
 
 def test_update_settings(tmp_path: Path) -> None:
@@ -61,17 +51,16 @@ def test_playlist(tmp_path: Path) -> None:
     # Create 3 years
     new_settings = StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=3))
     study.update_settings(new_settings)
-    # Write a playlist into the file
-    study_path = Path(study.path)
-    ini_path = study_path / "settings" / "generaldata.ini"
-    ini_content = IniReader(DUPLICATE_KEYS).read(ini_path)
-    ini_content["playlist"] = {"playlist_reset": False, "playlist_year +": [0, 1], "playlist_year_weight": ["0,4.0"]}
-    IniWriter(DUPLICATE_KEYS).write(ini_content, ini_path)
+    # Set new playlist
+    new_playlist = {
+        1: PlaylistParameters(status=True, weight=4.0),
+        2: PlaylistParameters(status=True, weight=1),
+        3: PlaylistParameters(status=False, weight=1),
+    }
+    study.set_playlist(new_playlist)
+    assert study.get_settings().playlist_parameters == new_playlist
     # Checks the value read
+    study_path = Path(study.path)
     study = read_study_local(study_path)
     playlist = study.get_settings().playlist_parameters
-    assert playlist == {
-        0: PlaylistParameters(status=True, weight=4.0),
-        1: PlaylistParameters(status=True, weight=1),
-        2: PlaylistParameters(status=False, weight=1),
-    }
+    assert playlist == new_playlist
