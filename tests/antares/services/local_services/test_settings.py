@@ -69,9 +69,31 @@ def test_playlist(tmp_path: Path) -> None:
     content = ini_path.read_text()
     assert (
         """[playlist]
+playlist_reset = True
+playlist_year - = 2
+playlist_year_weight = 0,4.0"""
+        in content
+    )
+
+    # Updates playlist again
+    new_playlist = {
+        1: PlaylistParameters(status=True, weight=2.5),
+        2: PlaylistParameters(status=False),
+        3: PlaylistParameters(status=False),
+    }
+    study.set_playlist(new_playlist)
+    assert study.get_settings().playlist_parameters == new_playlist
+    # Checks the `reading` method
+    study = read_study_local(study_path)
+    playlist = study.get_settings().playlist_parameters
+    assert playlist == new_playlist
+    # Checks the ini content
+    content = ini_path.read_text()
+    print(content)
+    assert (
+        """[playlist]
 playlist_reset = False
 playlist_year + = 0
-playlist_year + = 1
-playlist_year_weight = 0,4.0"""
+playlist_year_weight = 0,2.5"""
         in content
     )

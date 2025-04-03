@@ -415,22 +415,22 @@ class PlaylistParametersLocal(LocalBaseModel):
             if parameters.weight != 1:
                 playlist_year_weight.append(f"{local_year},{parameters.weight}")
 
-        # Choose what to write
+        # Calculates what's the lighter to write
         args: dict[str, Any] = {"playlist_year_weight": playlist_year_weight}
         nb_years_activated = len(playlist_plus)
         nb_years_deactivated = len(playlist_minus)
         if nb_years_activated > nb_years_deactivated:
-            playlist_reset = False
-            args["playlist_minus"] = None
-            if nb_years_activated == nb_years:
-                playlist_plus = []
-            args["playlist_plus"] = playlist_plus
-        else:
             playlist_reset = True
             args["playlist_plus"] = None
             if nb_years_deactivated == nb_years:
                 playlist_minus = []
             args["playlist_minus"] = playlist_minus
+        else:
+            playlist_reset = False
+            args["playlist_minus"] = None
+            if nb_years_activated == nb_years:
+                playlist_plus = []
+            args["playlist_plus"] = playlist_plus
 
         args["playlist_reset"] = playlist_reset
         return PlaylistParametersLocal.model_validate(args)
