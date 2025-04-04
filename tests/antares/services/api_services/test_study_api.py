@@ -34,6 +34,7 @@ from antares.craft.exceptions.exceptions import (
     LinksPropertiesUpdateError,
     OutputDeletionError,
     OutputsRetrievalError,
+    ScenarioBuilderReadingError,
     SimulationFailedError,
     SimulationTimeOutError,
     StudyCreationError,
@@ -56,7 +57,7 @@ from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate
 from antares.craft.model.output import (
     Output,
 )
-from antares.craft.model.settings.general import GeneralParametersUpdate, Mode
+from antares.craft.model.settings.general import GeneralParameters, GeneralParametersUpdate, Mode
 from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
 from antares.craft.model.study import Study
@@ -1075,3 +1076,33 @@ class TestCreateAPI:
                 match=f"Could not update binding constraints properties from study {self.study_id}: {self.antares_web_description_msg}",
             ):
                 self.study.update_binding_constraints({})
+
+    def test_get_scenario_builder_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/config/scenariobuilder"
+            json_builder = {
+                "Default Ruleset": {
+                    "h": {"west": {"0": 1}},
+                    "hl": {"west": {"0": 0.5}},
+                    "l": {"west": {"0": 1}},
+                    "s": {"west": {"0": 1}},
+                    "t": {"west": {"b": {"0": 1}, "p": {"0": 1}, "sb": {"0": 1}}},
+                    "w": {"west": {"0": 1}},
+                }
+            }
+            mocker.get(url, json=json_builder, status_code=201)
+            self.study._areas = {"west": self.area}
+            self.study._settings.general_parameters = GeneralParameters(nb_years=1)
+            sc_builder = self.study.get_scenario_builder()
+            assert sc_builder.load.get_area("west").get_scenario() == [1]
+            assert sc_builder.hydro_initial_level.get_area("west").get_scenario() == [0.5]
+
+    def test_get_scenario_builder_fails(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/config/scenariobuilder"
+            mocker.get(url, status_code=400, json={"description": self.antares_web_description_msg})
+            with pytest.raises(
+                ScenarioBuilderReadingError,
+                match=f"Could not read the scenario builder for study {self.study_id}: {self.antares_web_description_msg}",
+            ):
+                self.study.get_scenario_builder()

@@ -30,6 +30,7 @@ from antares.craft.model.binding_constraint import (
 from antares.craft.model.output import Output
 from antares.craft.model.thermal import LocalTSGenerationBehavior
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
+from antares.craft.service.local_services.models.scenario_builder import ScenarioBuilderLocal
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.tsgen.duration_generator import ProbabilityLaw
@@ -206,8 +207,13 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def get_scenario_builder(self, nb_years: int) -> ScenarioBuilder:
-        raise NotImplementedError
+        scenario_builder_path = self.config.study_path / "settings" / "scenariobuilder.dat"
+        content = IniReader().read(scenario_builder_path)
+        sc_builder_local = ScenarioBuilderLocal.from_ini(content)
+        return sc_builder_local.to_user_model(nb_years)
 
     @override
     def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
-        raise NotImplementedError
+        scenario_builder_path = self.config.study_path / "settings" / "scenariobuilder.dat"
+        sc_builder_local = ScenarioBuilderLocal.from_user_model(scenario_builder)
+        IniWriter().write(sc_builder_local.to_ini(), scenario_builder_path)
