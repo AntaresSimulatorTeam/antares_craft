@@ -73,7 +73,22 @@ class ScenarioBuilderLocal(LocalBaseModel):
         return ScenarioBuilderLocal.model_validate(args)
 
     def to_ini(self) -> dict[str, Any]:
-        return {"Default Ruleset": self.model_dump(by_alias=True, exclude_none=True)}
+        json_content = self.model_dump(by_alias=True, exclude_none=True)
+        ini_content = {}
+        for scenario_type, value in json_content.items():
+            if scenario_type in ["t", "r"]:
+                for area_id, cluster_value in value.items():
+                    for cluster_id, year_values in cluster_value.items():
+                        for mc_year, ts_year in year_values.items():
+                            key = f"{scenario_type},{area_id},{mc_year},{cluster_id}"
+                            ini_content[key] = ts_year
+            else:
+                for id, values in value.items():
+                    for mc_year, ts_year in values.items():
+                        key = f"{scenario_type},{id},{mc_year}"
+                        ini_content[key] = ts_year
+
+        return {"Default Ruleset": ini_content}
 
     def to_user_model(self, nb_years: int) -> ScenarioBuilder:
         scenario_builder = ScenarioBuilder(

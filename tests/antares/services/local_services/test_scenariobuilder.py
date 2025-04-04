@@ -25,7 +25,7 @@ def test_empty_scenariobuilder(local_study) -> None:
         assert value["_data"] == {}
 
 
-def test_scenario_builder(local_study_with_renewable) -> None:
+def test_scenario_builde_lifecycle(local_study_with_renewable) -> None:
     # Set the nb_years to 4
     local_study_with_renewable.update_settings(
         StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4))
@@ -51,3 +51,10 @@ t,fr,3,test thermal cluster = 2"""
     assert sc_builder.load.get_area("fr").get_scenario() == [1, 2, 3, 4]
     assert sc_builder.thermal.get_cluster("fr", "test thermal cluster").get_scenario() == [1, 4, 3, 2]
     assert sc_builder.hydro_initial_level.get_area("it").get_scenario() == [0.1, 0.2, None, 0.5]
+    # Edits it
+    sc_builder.renewable.get_cluster("fr", "renewable cluster").set_new_scenario([None, None, 2, 4])
+    sc_builder.link.get_link("at / fr").set_new_scenario([4, 3, 2, 1])
+    sc_builder.load.get_area("at").set_new_scenario([None, None, None, 1])
+    local_study_with_renewable.set_scenario_builder(sc_builder)
+    # Read it again to assert everything went well
+    new_sc_builder = local_study_with_renewable.get_scenario_builder()
