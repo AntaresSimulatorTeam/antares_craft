@@ -640,15 +640,37 @@ class TestWebClient:
         assert thermal_fr.get_co2_cost_matrix().equals(series_matrix)
         assert renewable_fr.get_timeseries().equals(series_matrix)
 
-        # tests scenario builder
+        # =======================
+        #  SCENARIO BUILDER
+        # =======================
+        # Sets study nb_years to 4
         study.update_settings(StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4)))
+
         sc_builder = study.get_scenario_builder()
 
+        # Ensures requesting the sc_builder with a wrong name raise a proper issue
         fake_area = "fake_area"
         with pytest.raises(InvalidRequestForScenarioBuilder, match=f"The area {fake_area} does not exist"):
             sc_builder.load.get_area(fake_area)
 
+        # Ensures every value is None as we didn't set anything inside this Study
         assert sc_builder.load.get_area("fr").get_scenario() == [None, None, None, None]
+
+        # Sets a new scenario builder
+        sc_builder.load.get_area("fr").set_new_scenario([1, 2, 3, 4])
+        sc_builder.hydro_initial_level.get_area("be").set_new_scenario([0.1, 0.2, None, 0.5])
+        sc_builder.thermal.get_cluster("fr", "cluster_test").set_new_scenario([1, 4, 3, 2])
+        study.set_scenario_builder(sc_builder)
+
+        # Reads the new scenario builder
+        new_sc_builder = study.get_scenario_builder()
+        assert new_sc_builder.load.get_area("fr").get_scenario() == [1, 2, 3, 4]
+        assert new_sc_builder.hydro_initial_level.get_area("be").get_scenario() == [0.1, 0.2, None, 0.5]
+        assert new_sc_builder.thermal.get_cluster("fr", "cluster_test").get_scenario() == [1, 4, 3, 2]
+
+        # =======================
+        #  OBJECTS DELETION
+        # =======================
 
         # tests thermal cluster deletion
         area_be.delete_thermal_cluster(thermal_be)

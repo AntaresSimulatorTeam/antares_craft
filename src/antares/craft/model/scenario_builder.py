@@ -32,6 +32,20 @@ class ScenarioMatrix:
         self._matrix = new_scenario
 
 
+@dataclass
+class ScenarioMatrixHydro:
+    _matrix: list[float | None]
+
+    def get_year(self, year: int) -> float | None:
+        return self._matrix[year]
+
+    def get_scenario(self) -> list[float | None]:
+        return self._matrix
+
+    def set_new_scenario(self, new_scenario: list[float | None]) -> None:
+        self._matrix = new_scenario
+
+
 def get_default_builder_matrix(nb_years: int) -> ScenarioMatrix:
     return ScenarioMatrix([None] * nb_years)
 
@@ -46,7 +60,26 @@ class ScenarioArea:
         assert self._areas is not None
         if area_id not in self._areas:
             raise InvalidRequestForScenarioBuilder(f"The area {area_id} does not exist")
-        return self._data.get(area_id, get_default_builder_matrix(self._years))
+        # If the data isn't filled, we fill it before returning
+        if area_id not in self._data:
+            self._data[area_id] = get_default_builder_matrix(self._years)
+        return self._data[area_id]
+
+
+@dataclass
+class ScenarioHydroLevel:
+    _data: dict[str, ScenarioMatrixHydro]
+    _years: int
+    _areas: set[str] | None = None
+
+    def get_area(self, area_id: str) -> ScenarioMatrixHydro:
+        assert self._areas is not None
+        if area_id not in self._areas:
+            raise InvalidRequestForScenarioBuilder(f"The area {area_id} does not exist")
+        # If the data isn't filled, we fill it before returning
+        if area_id not in self._data:
+            self._data[area_id] = ScenarioMatrixHydro([None] * self._years)
+        return self._data[area_id]
 
 
 @dataclass
@@ -59,7 +92,10 @@ class ScenarioConstraint:
         assert self._groups is not None
         if group_id not in self._groups:
             raise InvalidRequestForScenarioBuilder(f"The constraint group {group_id} does not exist")
-        return self._data.get(group_id, get_default_builder_matrix(self._years))
+        # If the data isn't filled, we fill it before returning
+        if group_id not in self._data:
+            self._data[group_id] = get_default_builder_matrix(self._years)
+        return self._data[group_id]
 
 
 @dataclass
@@ -72,7 +108,10 @@ class ScenarioLink:
         assert self._links is not None
         if link_id not in self._links:
             raise InvalidRequestForScenarioBuilder(f"The link {link_id} does not exist")
-        return self._data.get(link_id, get_default_builder_matrix(self._years))
+        # If the data isn't filled, we fill it before returning
+        if link_id not in self._data:
+            self._data[link_id] = get_default_builder_matrix(self._years)
+        return self._data[link_id]
 
 
 @dataclass
@@ -87,7 +126,12 @@ class ScenarioCluster:
             raise InvalidRequestForScenarioBuilder(f"The area {area_id} does not exist")
         if cluster_id not in self._clusters[area_id]:
             raise InvalidRequestForScenarioBuilder(f"The cluster {cluster_id} does not exist")
-        return self._data.get(area_id, {}).get(cluster_id, get_default_builder_matrix(self._years))
+        # If the data isn't filled, we fill it before returning
+        if area_id not in self._data:
+            self._data[area_id] = {}
+        if cluster_id not in self._data[area_id]:
+            self._data[area_id][cluster_id] = get_default_builder_matrix(self._years)
+        return self._data[area_id][cluster_id]
 
 
 @dataclass
@@ -100,7 +144,7 @@ class ScenarioBuilder:
     link: ScenarioLink
     renewable: ScenarioCluster
     binding_constraint: ScenarioConstraint
-    hydro_initial_level: ScenarioArea
+    hydro_initial_level: ScenarioHydroLevel
     hydro_generation_power: ScenarioArea
 
     def _set_study(self, study: "Study") -> None:
