@@ -66,6 +66,10 @@ class ScenarioBuilderLocal(LocalBaseModel):
                 args.setdefault(MAPPING[scenario_type], {}).setdefault(splitted_key[1], {}).setdefault(
                     splitted_key[3], {}
                 )[splitted_key[2]] = value
+            elif scenario_type == "ntc":
+                args.setdefault(MAPPING[scenario_type], {}).setdefault(f"{splitted_key[1]} / {splitted_key[2]}", {})[
+                    splitted_key[3]
+                ] = value
             else:
                 if scenario_type == "hl":
                     value *= 100
@@ -82,6 +86,12 @@ class ScenarioBuilderLocal(LocalBaseModel):
                         for mc_year, ts_year in year_values.items():
                             key = f"{scenario_type},{area_id},{mc_year},{cluster_id}"
                             ini_content[key] = ts_year
+            elif scenario_type == "ntc":
+                for id, values in value.items():
+                    area_from, area_to = id.split(" / ")
+                    for mc_year, ts_year in values.items():
+                        key = f"{scenario_type},{area_from},{area_to},{mc_year}"
+                        ini_content[key] = ts_year
             else:
                 for id, values in value.items():
                     for mc_year, ts_year in values.items():
