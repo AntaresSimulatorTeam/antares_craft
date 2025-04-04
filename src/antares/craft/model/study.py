@@ -16,7 +16,13 @@ from typing import Dict, List, Optional, cast
 
 import pandas as pd
 
-from antares.craft import APIconf, PlaylistParameters, STStoragePropertiesUpdate, ThematicTrimmingParameters
+from antares.craft import (
+    APIconf,
+    PlaylistParameters,
+    ScenarioBuilder,
+    STStoragePropertiesUpdate,
+    ThematicTrimmingParameters,
+)
 from antares.craft.exceptions.exceptions import (
     LinkCreationError,
     ReadingMethodUsedOufOfScopeError,
@@ -344,6 +350,14 @@ class Study:
 
         for storage in new_st_props:
             self._areas[storage.area_id]._st_storages[storage.id]._properties = new_st_props[storage]
+
+    def get_scenario_builder(self) -> ScenarioBuilder:
+        sc_builder = self._study_service.get_scenario_builder(self._settings.general_parameters.nb_years)
+        sc_builder._set_study(self)
+        return sc_builder
+
+    def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
+        self._study_service.set_scenario_builder(scenario_builder)
 
 
 # Design note:

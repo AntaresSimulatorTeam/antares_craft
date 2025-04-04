@@ -40,6 +40,7 @@ from antares.craft.model.renewable import (
     RenewableClusterPropertiesUpdate,
     TimeSeriesInterpretation,
 )
+from antares.craft.model.scenario_builder import ScenarioBuilder
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParametersUpdate, PriceTakingOrder
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParametersUpdate,
@@ -143,6 +144,7 @@ __all__ = [
     "PlaylistParameters",
     "ThematicTrimmingParameters",
     "StudySettingsUpdate",
+    "ScenarioBuilder",
     "AreaProperties",
     "AreaPropertiesUpdate",
     "AreaUi",

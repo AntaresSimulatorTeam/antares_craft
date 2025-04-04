@@ -22,7 +22,7 @@ from antares.craft.model.settings.study_settings import StudySettings, StudySett
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 
 if TYPE_CHECKING:
-    from antares.craft import PlaylistParameters, ThematicTrimmingParameters
+    from antares.craft import PlaylistParameters, ScenarioBuilder, ThematicTrimmingParameters
     from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
     from antares.craft.model.binding_constraint import (
         BindingConstraint,
@@ -686,6 +686,14 @@ class BaseStudyService(ABC):
 
     @abstractmethod
     def generate_thermal_timeseries(self, number_of_years: int, areas: dict[str, "Area"], seed: int) -> None:
+        pass
+
+    @abstractmethod
+    def get_scenario_builder(self, nb_years: int) -> "ScenarioBuilder":
+        pass
+
+    @abstractmethod
+    def set_scenario_builder(self, scenario_builder: "ScenarioBuilder") -> None:
         pass
 
 

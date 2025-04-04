@@ -12,6 +12,7 @@
 from pathlib import Path, PurePath
 from typing import TYPE_CHECKING
 
+from antares.craft import ScenarioBuilder
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
@@ -19,6 +20,8 @@ from antares.craft.exceptions.exceptions import (
     BindingConstraintDeletionError,
     OutputDeletionError,
     OutputsRetrievalError,
+    ScenarioBuilderEditionError,
+    ScenarioBuilderReadingError,
     StudyDeletionError,
     StudyMoveError,
     StudyVariantCreationError,
@@ -31,6 +34,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraint,
 )
 from antares.craft.model.output import Output
+from antares.craft.service.api_services.models.scenario_builder import ScenarioBuilderAPI
 from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 from typing_extensions import override
@@ -149,3 +153,23 @@ class StudyApiService(BaseStudyService):
             wait_task_completion(self._base_url, self._wrapper, task_id)
         except (APIError, TaskFailedError, TaskTimeOutError) as e:
             raise ThermalTimeseriesGenerationError(self.study_id, e.message)
+
+    @override
+    def get_scenario_builder(self, nb_years: int) -> ScenarioBuilder:
+        url = f"{self._base_url}/studies/{self.study_id}/config/scenariobuilder"
+        try:
+            json_response = self._wrapper.get(url).json()
+            api_model = ScenarioBuilderAPI.from_api(json_response)
+            return api_model.to_user_model(nb_years)
+        except APIError as e:
+            raise ScenarioBuilderReadingError(self.study_id, e.message)
+
+    @override
+    def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
+        url = f"{self._base_url}/studies/{self.study_id}/config/scenariobuilder"
+        try:
+            api_model = ScenarioBuilderAPI.from_user_model(scenario_builder)
+            body = api_model.to_api()
+            self._wrapper.put(url, json=body)
+        except APIError as e:
+            raise ScenarioBuilderEditionError(self.study_id, e.message)

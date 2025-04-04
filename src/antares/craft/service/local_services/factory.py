@@ -154,6 +154,9 @@ InfoTip = Antares Study {version}: {study_name}
     with open(desktop_ini_path, "w") as desktop_ini_file:
         desktop_ini_file.write(desktop_ini_content)
 
+    # Create scenario builder file
+    IniWriter().write({"default ruleset": {}}, study_directory / "settings" / "scenariobuilder.dat")
+
     # Create various .ini files for the study
     _create_various_ini_files(study_directory)
 
