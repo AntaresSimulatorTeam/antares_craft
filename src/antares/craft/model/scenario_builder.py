@@ -154,6 +154,7 @@ class ScenarioBuilder:
         self.load._areas = area_ids
         self.wind._areas = area_ids
         self.solar._areas = area_ids
+        self.hydro._areas = area_ids
         self.hydro_initial_level._areas = area_ids
         self.hydro_generation_power._areas = area_ids
 
