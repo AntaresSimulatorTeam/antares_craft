@@ -1,3 +1,20 @@
+v0.2.4 (2025-04-04)
+-------------------
+
+### Features
+- **renewable**: add `update_renewable_clusters` method [149](https://github.com/AntaresSimulatorTeam/antares_craft/pull/149)
+- **st-storage**: add `update_st_storages` method [149](https://github.com/AntaresSimulatorTeam/antares_craft/pull/150)
+- **local** support playlist reading and writing [159](https://github.com/AntaresSimulatorTeam/antares_craft/pull/159)
+- **local** support thematic trimming reading and writing [160](https://github.com/AntaresSimulatorTeam/antares_craft/pull/160)
+- **scenariobuilder**: support scenario builder reading and writing [161](https://github.com/AntaresSimulatorTeam/antares_craft/pull/161), [162](https://github.com/AntaresSimulatorTeam/antares_craft/pull/162)
+
+### Bug fixes
+- **local** fix several issues inside properties update [152](https://github.com/AntaresSimulatorTeam/antares_craft/pull/152) [154](https://github.com/AntaresSimulatorTeam/antares_craft/pull/154), [155](https://github.com/AntaresSimulatorTeam/antares_craft/pull/155), [156](https://github.com/AntaresSimulatorTeam/antares_craft/pull/156), [157](https://github.com/AntaresSimulatorTeam/antares_craft/pull/157), [158](https://github.com/AntaresSimulatorTeam/antares_craft/pull/158)
+
+### Miscellaneous
+- **local** use `ini_reader` instead of `ConfigParser` to prepare future work [151](https://github.com/AntaresSimulatorTeam/antares_craft/pull/151)
+- **local** avoid unecessary i/o operations inside area properties update [153](https://github.com/AntaresSimulatorTeam/antares_craft/pull/153)
+
 v0.2.3 (2025-03-20)
 -------------------
 
