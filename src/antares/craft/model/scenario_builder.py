@@ -32,45 +32,53 @@ class ScenarioMatrix:
         self._matrix = new_scenario
 
 
+def get_default_builder_matrix(nb_years: int) -> ScenarioMatrix:
+    return ScenarioMatrix([None] * nb_years)
+
+
 @dataclass
 class ScenarioArea:
     _data: dict[str, ScenarioMatrix]
+    _years: int
     _areas: set[str] | None = None
 
     def get_area(self, area_id: str) -> ScenarioMatrix:
         assert self._areas is not None
         if area_id not in self._areas:
             raise InvalidRequestForScenarioBuilder(f"The area {area_id} does not exist")
-        return self._data[area_id]
+        return self._data.get(area_id, get_default_builder_matrix(self._years))
 
 
 @dataclass
 class ScenarioConstraint:
     _data: dict[str, ScenarioMatrix]
+    _years: int
     _groups: set[str] | None = None
 
     def get_group(self, group_id: str) -> ScenarioMatrix:
         assert self._groups is not None
         if group_id not in self._groups:
             raise InvalidRequestForScenarioBuilder(f"The constraint group {group_id} does not exist")
-        return self._data[group_id]
+        return self._data.get(group_id, get_default_builder_matrix(self._years))
 
 
 @dataclass
 class ScenarioLink:
     _data: dict[str, ScenarioMatrix]
+    _years: int
     _links: set[str] | None = None
 
     def get_link(self, link_id: str) -> ScenarioMatrix:
         assert self._links is not None
         if link_id not in self._links:
             raise InvalidRequestForScenarioBuilder(f"The link {link_id} does not exist")
-        return self._data[link_id]
+        return self._data.get(link_id, get_default_builder_matrix(self._years))
 
 
 @dataclass
 class ScenarioCluster:
     _data: dict[str, dict[str, ScenarioMatrix]]
+    _years: int
     _clusters: dict[str, set[str]] | None = None
 
     def get_cluster(self, area_id: str, cluster_id: str) -> ScenarioMatrix:
@@ -79,7 +87,7 @@ class ScenarioCluster:
             raise InvalidRequestForScenarioBuilder(f"The area {area_id} does not exist")
         if cluster_id not in self._clusters[area_id]:
             raise InvalidRequestForScenarioBuilder(f"The cluster {cluster_id} does not exist")
-        return self._data[area_id][cluster_id]
+        return self._data.get(area_id, {}).get(cluster_id, get_default_builder_matrix(self._years))
 
 
 @dataclass

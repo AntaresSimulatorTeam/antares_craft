@@ -72,6 +72,7 @@ from antares.craft.exceptions.exceptions import (
     AreaDeletionError,
     BindingConstraintCreationError,
     ConstraintMatrixUpdateError,
+    InvalidRequestForScenarioBuilder,
     MatrixUploadError,
     STStorageMatrixUploadError,
     StudySettingsUpdateError,
@@ -638,6 +639,16 @@ class TestWebClient:
         assert thermal_fr.get_fuel_cost_matrix().equals(series_matrix)
         assert thermal_fr.get_co2_cost_matrix().equals(series_matrix)
         assert renewable_fr.get_timeseries().equals(series_matrix)
+
+        # tests scenario builder
+        study.update_settings(StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4)))
+        sc_builder = study.get_scenario_builder()
+
+        fake_area = "fake_area"
+        with pytest.raises(InvalidRequestForScenarioBuilder, match=f"The area {fake_area} does not exist"):
+            sc_builder.load.get_area(fake_area)
+
+        assert sc_builder.load.get_area("fr").get_scenario() == [None, None, None, None]
 
         # tests thermal cluster deletion
         area_be.delete_thermal_cluster(thermal_be)
