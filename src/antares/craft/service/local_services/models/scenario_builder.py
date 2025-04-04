@@ -73,7 +73,7 @@ class ScenarioBuilderLocal(LocalBaseModel):
         return ScenarioBuilderLocal.model_validate(args)
 
     def to_ini(self) -> dict[str, Any]:
-        raise NotImplementedError
+        return {"Default Ruleset": self.model_dump(by_alias=True, exclude_none=True)}
 
     def to_user_model(self, nb_years: int) -> ScenarioBuilder:
         scenario_builder = ScenarioBuilder(
