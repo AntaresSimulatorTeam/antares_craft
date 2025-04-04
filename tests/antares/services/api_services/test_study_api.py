@@ -57,7 +57,7 @@ from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate
 from antares.craft.model.output import (
     Output,
 )
-from antares.craft.model.settings.general import GeneralParametersUpdate, Mode
+from antares.craft.model.settings.general import GeneralParameters, GeneralParametersUpdate, Mode
 from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
 from antares.craft.model.study import Study
@@ -1092,6 +1092,7 @@ class TestCreateAPI:
             }
             mocker.get(url, json=json_builder, status_code=201)
             self.study._areas = {"west": self.area}
+            self.study._settings.general_parameters = GeneralParameters(nb_years=1)
             sc_builder = self.study.get_scenario_builder()
             assert sc_builder.load.get_area("west").get_scenario() == [1]
             assert sc_builder.hydro_initial_level.get_area("west").get_scenario() == [0.5]
