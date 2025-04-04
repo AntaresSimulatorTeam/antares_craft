@@ -63,3 +63,29 @@ t,fr,3,test thermal cluster = 2"""
     assert new_sc_builder.hydro_initial_level.get_area("it").get_scenario() == [0.1, 0.2, None, 0.5]
     assert new_sc_builder.link.get_link("at / fr").get_scenario() == [4, 3, 2, 1]
     assert new_sc_builder.load.get_area("at").get_scenario() == [None, None, None, 1]
+    # Checks the ini content
+    new_content = sc_builder_path.read_text()
+    assert (
+        new_content
+        == """[Default Ruleset]
+l,fr,0 = 1
+l,fr,1 = 2
+l,fr,2 = 3
+l,fr,3 = 4
+l,at,3 = 1
+t,fr,0,test thermal cluster = 1
+t,fr,1,test thermal cluster = 4
+t,fr,2,test thermal cluster = 3
+t,fr,3,test thermal cluster = 2
+ntc,at / fr,0 = 4
+ntc,at / fr,1 = 3
+ntc,at / fr,2 = 2
+ntc,at / fr,3 = 1
+r,fr,2,renewable cluster = 2
+r,fr,3,renewable cluster = 4
+hl,it,0 = 0.001
+hl,it,1 = 0.002
+hl,it,3 = 0.005
+
+"""
+    )
