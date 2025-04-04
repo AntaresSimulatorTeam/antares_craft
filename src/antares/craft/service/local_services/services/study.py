@@ -206,8 +206,8 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def get_scenario_builder(self, nb_years: int) -> ScenarioBuilder:
-        pass
+        raise NotImplementedError
 
     @override
     def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
-        pass
+        raise NotImplementedError
