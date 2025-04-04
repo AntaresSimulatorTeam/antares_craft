@@ -3,7 +3,7 @@ v0.2.4 (2025-04-04)
 
 ### Features
 - **renewable**: add `update_renewable_clusters` method [149](https://github.com/AntaresSimulatorTeam/antares_craft/pull/149)
-- **st-storage**: add `update_st_storages` method [149](https://github.com/AntaresSimulatorTeam/antares_craft/pull/150)
+- **st-storage**: add `update_st_storages` method [150](https://github.com/AntaresSimulatorTeam/antares_craft/pull/150)
 - **local** support playlist reading and writing [159](https://github.com/AntaresSimulatorTeam/antares_craft/pull/159)
 - **local** support thematic trimming reading and writing [160](https://github.com/AntaresSimulatorTeam/antares_craft/pull/160)
 - **scenariobuilder**: support scenario builder reading and writing [161](https://github.com/AntaresSimulatorTeam/antares_craft/pull/161), [162](https://github.com/AntaresSimulatorTeam/antares_craft/pull/162)
