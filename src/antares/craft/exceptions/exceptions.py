@@ -460,3 +460,26 @@ class ReadingMethodUsedOufOfScopeError(Exception):
     def __init__(self, study_id: str, method_name: str, objects: str) -> None:
         self.message = f"The method {method_name} was used on study {study_id} which already contains some {objects}. This is prohibited."
         super().__init__(self.message)
+
+
+class OutputNotFound(Exception):
+    def __init__(self, output_id: str) -> None:
+        self.message = f"Output {output_id} not found"
+        super().__init__(self.message)
+
+
+class OutputSubFolderNotFound(Exception):
+    def __init__(self, output_id: str, mc_root: str):
+        self.message = f"The output {output_id} sub-folder {mc_root} does not exist"
+        super().__init__(self.message)
+
+
+class FileTooLargeError(Exception):
+    def __init__(self, estimated_size: int, maximum_size: int):
+        self.message = f"Cannot aggregate output data. The expectyed size: {estimated_size} Mo exceeds the max supported size: {maximum_size}"
+        super().__init__(self.message)
+
+
+class MCRootNotHandled(Exception):
+    def __init__(self, message: str):
+        super().__init__(message)

@@ -9,6 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from pathlib import Path
+
 import pytest
 
 import pandas as pd
@@ -25,6 +27,7 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.commons import FILTER_VALUES
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
+from antares.craft.model.output import Output
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
 from antares.craft.model.study import Study
@@ -43,6 +46,15 @@ def local_study(tmp_path) -> Study:
     study_name = "studyTest"
     study_version = "880"
     return create_study_local(study_name, study_version, tmp_path.absolute())
+
+@pytest.fixture
+def local_study_w_output(tmp_path, local_study) -> Study:
+    output_name = "20250325-1145eco"
+    output_path = Path(output_name) / "economy"
+    tmp_path.joinpath(output_path)
+
+    return local_study
+
 
 
 @pytest.fixture

@@ -10,22 +10,25 @@
 #
 # This file is part of the Antares project.
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Optional
 
 import pandas as pd
 
 from antares.craft.service.base_services import BaseOutputService
 
+class MCRoot(StrEnum):
+    MC_IND = "mc-ind"
+    MC_ALL = "mc-all"
 
-class MCIndAreas(Enum):
+class MCIndAreas(StrEnum):
     VALUES = "values"
     DETAILS = "details"
     DETAILS_ST_STORAGE = "details-STstorage"
     DETAILS_RES = "details-res"
 
 
-class MCAllAreas(Enum):
+class MCAllAreas(StrEnum):
     VALUES = "values"
     DETAILS = "details"
     DETAILS_ST_STORAGE = "details-STstorage"
@@ -33,11 +36,11 @@ class MCAllAreas(Enum):
     ID = "id"
 
 
-class MCIndLinks(Enum):
+class MCIndLinks(StrEnum):
     VALUES = "values"
 
 
-class MCAllLinks(Enum):
+class MCAllLinks(StrEnum):
     VALUES = "values"
     ID = "id"
 
