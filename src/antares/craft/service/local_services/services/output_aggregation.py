@@ -13,7 +13,7 @@
 import logging
 import typing as t
 
-from enum import Enum, StrEnum
+
 from pathlib import Path
 
 import numpy as np
@@ -63,6 +63,7 @@ ACTUAL_COLUMN_COMPONENT = 1
 DUMMY_COMPONENT = 2
 
 logger = logging.getLogger(__name__)
+
 
 
 def _checks_estimated_size(nb_files: int, df_bytes_size: int, nb_files_checked: int) -> None:
