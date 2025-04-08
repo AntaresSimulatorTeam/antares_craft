@@ -238,7 +238,7 @@ class AggregatorManager:
 
     def columns_filtering(self, df: pd.DataFrame, is_details: bool) -> pd.DataFrame:
         # columns filtering
-        lower_case_columns = [c.lower() for c in self.columns_names]
+        lower_case_columns = [c.lower() for c in self.columns_names or []]
         if lower_case_columns:
             if is_details:
                 filtered_columns = [CLUSTER_ID_COL, TIME_ID_COL] + [
