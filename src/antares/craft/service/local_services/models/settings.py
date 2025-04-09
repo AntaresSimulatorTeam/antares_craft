@@ -278,19 +278,19 @@ class GeneralParametersLocal(LocalBaseModel):
     def get_excluded_fields_for_user_class() -> Set[str]:
         return {
             "generate",
-            "nb_timeseries_load",
-            "nb_timeseries_hydro",
-            "nb_timeseries_wind",
-            "nb_timeseries_solar",
-            "refresh_timeseries",
-            "intra_modal",
-            "inter_modal",
-            "refresh_interval_load",
-            "refresh_interval_hydro",
-            "refresh_interval_wind",
-            "refresh_interval_thermal",
-            "refresh_interval_solar",
-            "read_only",
+            "nbtimeseriesload",
+            "nbtimeserieshydro",
+            "nbtimeserieswind",
+            "nbtimeseriessolar",
+            "refreshtimeseries",
+            "intra-modal",
+            "inter-modal",
+            "refreshintervalload",
+            "refreshintervalhydro",
+            "refreshintervalwind",
+            "refreshintervalthermal",
+            "refreshintervalsolar",
+            "readonly",
         }
 
     def to_user_model(self) -> GeneralParameters:
