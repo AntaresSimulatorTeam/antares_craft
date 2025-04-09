@@ -21,7 +21,7 @@ import typing
 from pathlib import Path
 
 import pandas as pd
-
+from jinja2.lexer import TOKEN_DOT
 
 from antares.craft import LocalConfiguration
 from antares.craft.exceptions.exceptions import MatrixDownloadError
@@ -181,7 +181,10 @@ def test_aggregate_values_with_area_query():
         mock_aggregate.assert_called_once()
         pd.testing.assert_frame_equal(df, expected_df)
 
-
+#TODO Antarest/examples/studies prendre outputs de STA-Mini prendre output et zipper code source
+#TODO reprendre les all.result.tsv dans /AntaREST/tests/integration/raw_studies_blueprint/assets/aggregate_areas_raw_data/test-01.result.tsv tu trouves les
+#TODO le path avec CONTROL N
+#TODO raw_study.synthesis.json pas besoin tu peux l'effacer :)
 def test_area_aggregation_all():
     """
     Test the aggregation of areas data
@@ -193,11 +196,12 @@ def test_area_aggregation_all():
     services = create_local_services(config, study_name)
     output_service = services.output_service
 
-    assets_path = Path("assets/test_synthesis/raw_study.synthesis.json")
-    with open(assets_path, "r") as f:
-        raw_data = json.load(f)
+    # Raw study for test
+    # assets_path = Path("assets/test_synthesis/raw_study.synthesis.json")
+    # with open(assets_path, "r") as f:
+    #     raw_data = json.load(f)
 
-    outputs = raw_data.get("outputs", {})
+    # outputs = raw_data.get("outputs", {})
 
     for params, expected_result_filename in AREAS_REQUESTS__ALL:
         output_id = params.pop("output_id")
@@ -228,6 +232,7 @@ def test_area_aggregation_all():
                     / area
             )
             mc_all_path.mkdir(parents=True, exist_ok=True)
+            #dummy_file_src = Path("assets/values-daily.txt")
             dummy_file_src = Path("assets/values-daily.txt")
             dummy_file_dst = mc_all_path / dummy_file_src.name
             shutil.copy(dummy_file_src, dummy_file_dst)
@@ -239,10 +244,8 @@ def test_area_aggregation_all():
             archived=output_data.get("archived", False)
         )
 
-        # Parse frequency
         frequency = Frequency[params["frequency"].upper()]
 
-        # Create AggregationEntry
         aggregation_entry = AggregationEntry(
             query_file=params.get("query_file"),
             frequency=frequency,
@@ -251,7 +254,7 @@ def test_area_aggregation_all():
             columns_names=params["columns_names"].split(",") if "columns_names" in params else [],
         )
 
-        # Call aggregation method
+
         df = output.aggregate_areas_mc_all(MCAllAreas.VALUES, aggregation_entry.frequency.value)
 
         # Expected result file path
