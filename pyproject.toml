@@ -20,7 +20,7 @@ dependencies = [
     "antares-study-version==1.0.9",
     "numpy~=1.26.4",
     "pandas~=2.2.2",
-    "pydantic~=2.7.1",
+    "pydantic~=2.10.0",
     "requests~=2.32.0",
     "psutil~=7.0.0"
 ]
