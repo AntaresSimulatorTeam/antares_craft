@@ -173,3 +173,21 @@ select_var + = STS Cashflow By Cluster"""
 selected_vars_reset = False"""
         in content
     )
+
+
+def test_missing_fields(tmp_path: Path) -> None:
+    """
+    Asserts we're able to read study settings with wrongly formatted fields that we don't care about
+    """
+    study = create_study_local("second_study", "880", tmp_path)
+    study_path = Path(study.path)
+    ini_path = study_path / "settings" / "generaldata.ini"
+    with open(ini_path, "r") as ini_file:
+        new_lines = ini_file.readlines()
+        for k, line in enumerate(new_lines):
+            if "intra-modal" in line:
+                new_lines[k] = "intra-modal = load, wind, solar"
+    with open(ini_path, "w") as ini_file:
+        ini_file.writelines(new_lines)
+    # Asserts the reading succeeds
+    read_study_local(study_path)

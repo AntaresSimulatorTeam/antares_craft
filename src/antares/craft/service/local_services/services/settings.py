@@ -100,7 +100,7 @@ def read_study_settings(study_directory: Path) -> StudySettings:
 
     excluded_keys = GeneralParametersLocal.get_excluded_fields_for_user_class()
     for key in excluded_keys:
-        general_params_ini.pop(key, None)
+        general_params_ini["general"].pop(key, None)
 
     output_parameters_ini = {"output": ini_content["output"]}
     local_general_ini = general_params_ini | output_parameters_ini
