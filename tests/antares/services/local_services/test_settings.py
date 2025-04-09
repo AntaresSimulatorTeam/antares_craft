@@ -189,5 +189,5 @@ def test_missing_fields(tmp_path: Path) -> None:
                 new_lines[k] = "intra-modal = load, wind, solar"
     with open(ini_path, "w") as ini_file:
         ini_file.writelines(new_lines)
-    # Asserts the reading succeeds
+    # Asserts the reading succeeds even thought the fields has a value we do not expect
     read_study_local(study_path)
