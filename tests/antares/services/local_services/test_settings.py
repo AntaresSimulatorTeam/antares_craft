@@ -175,10 +175,7 @@ selected_vars_reset = False"""
     )
 
 
-def test_missing_fields(tmp_path: Path) -> None:
-    """
-    Asserts we're able to read study settings with wrongly formatted fields that we don't care about
-    """
+def test_wrongly_formatted_fields_that_we_do_not_care_about(tmp_path: Path) -> None:
     study = create_study_local("second_study", "880", tmp_path)
     study_path = Path(study.path)
     ini_path = study_path / "settings" / "generaldata.ini"
