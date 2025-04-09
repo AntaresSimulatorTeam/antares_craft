@@ -20,7 +20,7 @@ dependencies = [
     "antares-study-version==1.0.9",
     "numpy~=1.26.4",
     "pandas~=2.2.2",
-    "pydantic~=2.7.1",
+    "pydantic~=2.10.0",
     "requests~=2.32.0",
     "psutil~=7.0.0"
 ]
@@ -29,10 +29,10 @@ classifiers = [
     #    Classifiers here: https://pypi.org/classifiers/
     "Development Status :: 2 - Pre-Alpha",
     "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 
 [project.urls]
