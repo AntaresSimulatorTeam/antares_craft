@@ -1,3 +1,13 @@
+v0.2.5 (2025-04-09)
+-------------------
+
+### Features
+- **build**: support Python3.13 [164](https://github.com/AntaresSimulatorTeam/antares_craft/pull/164)
+
+### Bug fixes
+- **local**: avoid reading useless fields inside `read_settings` method [165](https://github.com/AntaresSimulatorTeam/antares_craft/pull/165)
+- **local**: use the default value when reading an empty string [166](https://github.com/AntaresSimulatorTeam/antares_craft/pull/166)
+
 v0.2.4 (2025-04-04)
 -------------------
 

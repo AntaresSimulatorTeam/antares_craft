@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "antares_craft"
-version = "0.2.4"
+version = "0.2.5"
 description = """Antares Craft python library under construction. It will allow to create, update and read antares studies."""
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -14,7 +14,7 @@ authors = [
     { name = "Martin Belthle" },
     { name = "Sigurd Borge" }
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "antares-timeseries-generation==0.1.7",
     "antares-study-version==1.0.9",
