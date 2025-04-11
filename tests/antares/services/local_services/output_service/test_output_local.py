@@ -23,7 +23,6 @@ import pandas as pd
 from antares.craft import LocalConfiguration
 from antares.craft.exceptions.exceptions import MatrixDownloadError
 from antares.craft.model.output import (
-    AggregationEntry,
     Frequency,
     MCAllAreas,
     MCAllLinks,
@@ -37,16 +36,16 @@ assets_dir = Path(__file__).parent / "assets"
 ASSETS_DIR = Path(__file__).parent.resolve()
 
 AREAS_REQUESTS__ALL = [
-    # (
-    #     {
-    #         "output_id": "20201014-1427eco",
-    #         "query_file": MCAllAreas.VALUES,
-    #         "frequency": "daily",
-    #         "areas_ids": "",
-    #         "columns_names": "",
-    #     },
-    #     "test-01-all.result.tsv",
-    # ),
+    (
+         {
+             "output_id": "20201014-1427eco",
+             "query_file": MCAllAreas.VALUES,
+             "frequency": "daily",
+             "areas_ids": "",
+             "columns_names": "",
+         },
+         "test-01-all.result.tsv",
+     ),
     (
         {
             "output_id": "20201014-1427eco",
@@ -57,64 +56,64 @@ AREAS_REQUESTS__ALL = [
         },
         "test-02-all.result.tsv",
     ),
-    # (
-    #     {
-    #         "output_id": "20201014-1427eco",
-    #         "query_file": MCAllAreas.VALUES,
-    #         "frequency": "daily",
-    #         "areas_ids": "",
-    #         "columns_names": "OP. CoST,MRG. PrICE",
-    #     },
-    #     "test-03-all.result.tsv",
-    # ),
-    # (
-    #     {
-    #         "output_id": "20201014-1427eco",
-    #         "query_file": MCAllAreas.VALUES,
-    #         "frequency": "daily",
-    #         "areas_ids": "es,fr,de",
-    #         "columns_names": "",
-    #     },
-    #     "test-04-all.result.tsv",
-    # ),
-    # (
-    #     {
-    #         "output_id": "20201014-1427eco",
-    #         "query_file": MCAllAreas.VALUES,
-    #         "frequency": "monthly",
-    #         "areas_ids": "",
-    #         "columns_names": "",
-    #     },
-    #     "test-05-all.result.tsv",
-    # ),
-    # (
-    #     {
-    #         "output_id": "20201014-1427eco",
-    #         "query_file": MCAllAreas.ID,
-    #         "frequency": "daily",
-    #         "areas_ids": "",
-    #         "columns_names": "",
-    #     },
-    #     "test-06-all.result.tsv",
-    # ),
-    # (
-    #     {
-    #         "output_id": "20201014-1427eco",
-    #         "query_file": MCAllAreas.VALUES,
-    #         "frequency": "daily",
-    #         "columns_names": "COsT,NoDU",
-    #     },
-    #     "test-07-all.result.tsv",
-    # ),
-    # (
-    #     {
-    #         "output_id": "20201014-1427eco",
-    #         "query_file": MCAllAreas.DETAILS,
-    #         "frequency": "monthly",
-    #         "columns_names": "COsT,NoDU",
-    #     },
-    #     "test-08-all.result.tsv",
-    # ),
+     (
+         {
+             "output_id": "20201014-1427eco",
+             "query_file": MCAllAreas.VALUES,
+             "frequency": "daily",
+             "areas_ids": "",
+             "columns_names": "OP. CoST,MRG. PrICE",
+         },
+         "test-03-all.result.tsv",
+     ),
+     (
+         {
+             "output_id": "20201014-1427eco",
+             "query_file": MCAllAreas.VALUES,
+             "frequency": "daily",
+             "areas_ids": "es,fr,de",
+             "columns_names": "",
+         },
+         "test-04-all.result.tsv",
+     ),
+     (
+         {
+             "output_id": "20201014-1427eco",
+             "query_file": MCAllAreas.VALUES,
+             "frequency": "monthly",
+             "areas_ids": "",
+             "columns_names": "",
+         },
+         "test-05-all.result.tsv",
+     ),
+     (
+         {
+             "output_id": "20201014-1427eco",
+             "query_file": MCAllAreas.ID,
+             "frequency": "daily",
+             "areas_ids": "",
+             "columns_names": "",
+         },
+         "test-06-all.result.tsv",
+     ),
+     (
+         {
+             "output_id": "20201014-1427eco",
+             "query_file": MCAllAreas.VALUES,
+             "frequency": "daily",
+             "columns_names": "COsT,NoDU",
+         },
+         "test-07-all.result.tsv",
+     ),
+     (
+         {
+             "output_id": "20201014-1427eco",
+             "query_file": MCAllAreas.DETAILS,
+             "frequency": "monthly",
+             "columns_names": "COsT,NoDU",
+         },
+         "test-08-all.result.tsv",
+     ),
 ]
 
 LINKS_REQUESTS__ALL = [
@@ -368,14 +367,15 @@ class TestOutput:
             output_service.get_matrix("output_1", file_name)
 
     def test_aggregation_links(self, tmp_path, local_study_w_output):
-        test_config = typing.cast(LocalConfiguration, local_study_w_output.service.config)
-        services = create_local_services(test_config, "test-study")
-        output_service = services.output_service
+        #test_config = typing.cast(LocalConfiguration, local_study_w_output.service.config)
+        #services = create_local_services(test_config, "test-study")
+        #output_service = services.output_service
 
-        ind_def_path = Path("mc-ind") / "00001" / "links"
-        all_def_path = Path("mc-all") / "links" / "alegro1 - alegro2"
+        #ind_def_path = Path("mc-ind") / "00001" / "links"
 
-        shutil.copytree(test_config.study_path, ind_def_path)
+        #shutil.copytree(test_config.study_path, ind_def_path)
+
+        pass
 
 
 #TODO Antarest/examples/studies prendre outputs de STA-Mini prendre output et zipper code source
@@ -479,9 +479,9 @@ class TestOutput:
             output_id = params["output_id"]
             frequency = Frequency(params["frequency"])
             query_file = params.get("query_file")
-            #mc_years = params.get("mc_years", [])
-            areas_ids = params.get("areas_ids", "").split(",") if "areas_ids" in params else []
-            #columns_names = params["columns_names"].split(",") if "columns_names" in params else []
+            #mc_years = params.get("mc_years")
+            areas_ids = params.get("areas_ids")#, "").split(",") if "areas_ids" in params else []
+            columns_names = params.get("columns_names")#.split(",") if "columns_names" in params else []
 
             zip_path = Path(assets_dir).joinpath("aggregate_areas_raw_data/output.zip")
             extract_path = tmp_path / study_name
@@ -491,7 +491,7 @@ class TestOutput:
 
             output = Output(output_id, False, output_service)
 
-            df = output.aggregate_areas_mc_all(query_file, frequency.value, areas_ids=areas_ids)
+            df = output.aggregate_areas_mc_all(query_file, frequency.value, areas_ids=areas_ids, columns_names=columns_names)
 
             resource_file = Path(ASSETS_DIR).joinpath(f"aggregate_areas_raw_data/{expected_result_filename}")
             resource_file.parent.mkdir(exist_ok=True, parents=True)
@@ -509,8 +509,43 @@ class TestOutput:
             shutil.rmtree(extract_path)
 
 
-    def test_area_aggregate_mc_ind(self):
-        pass
+    def test_area_aggregate_mc_ind(self, tmp_path):
+        study_name = "test-study"
+
+        config = LocalConfiguration(tmp_path, study_name)
+        services = create_local_services(config, study_name)
+        output_service = services.output_service
+
+        for params, expected_result_filename in AREAS_REQUESTS__IND:
+            output_id = params["output_id"]
+            frequency = Frequency(params["frequency"])
+            query_file = params.get("query_file")
+            areas_ids = params.get("areas_ids", "").split(",") if "areas_ids" in params else []
+
+            zip_path = Path(assets_dir).joinpath("aggregate_areas_raw_data/output.zip")
+            extract_path = tmp_path / study_name
+
+            with zipfile.ZipFile(zip_path, "r") as zf:
+                zf.extractall(extract_path)
+
+            output = Output(output_id, False, output_service)
+
+            df = output.aggregate_areas_mc_ind(query_file, frequency.value, areas_ids=areas_ids)
+
+            resource_file = Path(ASSETS_DIR).joinpath(f"aggregate_areas_raw_data/{expected_result_filename}")
+            resource_file.parent.mkdir(exist_ok=True, parents=True)
+
+            if not resource_file.exists() or resource_file.stat().st_size == 0:
+                df.to_csv(resource_file, sep="\t", index=False)
+
+            expected_df = pd.read_csv(resource_file, sep="\t", header=0).replace({np.nan: None})
+
+            for col in expected_df.columns:
+                expected_df[col] = expected_df[col].astype(df[col].dtype)
+
+            pd.testing.assert_frame_equal(df, expected_df)
+
+            shutil.rmtree(extract_path)
 
     def test_link_aggregate_mc_all(self):
         pass
