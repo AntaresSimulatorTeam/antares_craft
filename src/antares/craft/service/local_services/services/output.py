@@ -28,7 +28,7 @@ class OutputLocalService(BaseOutputService):
     @override
     def get_matrix(self, output_id: str, file_path: str) -> pd.DataFrame:
         try:
-            full_path = f"{self.config.study_path}/{output_id}/economy/{file_path}"
+            full_path = f"{self.config.study_path}/output/{output_id}/economy/{file_path}"
             dataframe = pd.read_csv(full_path)
 
         except FileNotFoundError as e:
@@ -40,8 +40,7 @@ class OutputLocalService(BaseOutputService):
         self, output_id: str, aggregation_entry: AggregationEntry, object_type: str, mc_type: str
     ) -> pd.DataFrame:
         aggregator_manager = AggregatorManager(
-            self.config.study_path,
-            output_id,
+            self.config.study_path / "output" / output_id,
             aggregation_entry.query_file,
             aggregation_entry.frequency,
             aggregation_entry.type_ids,

@@ -9,9 +9,9 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from pathlib import Path
-
 import pytest
+
+from pathlib import Path
 
 import pandas as pd
 
@@ -27,7 +27,6 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.commons import FILTER_VALUES
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
-from antares.craft.model.output import Output
 from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
 from antares.craft.model.study import Study

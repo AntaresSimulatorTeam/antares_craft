@@ -13,7 +13,6 @@
 import logging
 import typing as t
 
-
 from pathlib import Path
 
 import numpy as np
@@ -25,10 +24,9 @@ from antares.craft.exceptions.exceptions import (
     OutputNotFound,
     OutputSubFolderNotFound,
 )
-from antares.craft.model.output import Frequency, MCRoot, MCIndAreas, MCAllAreas, MCIndLinks, MCAllLinks
+from antares.craft.model.output import Frequency, MCAllAreas, MCAllLinks, MCIndAreas, MCIndLinks, MCRoot
 from antares.craft.service.local_services.services.date_serializer import FactoryDateSerializer, rename_unnamed
 
-MC_TEMPLATE_PARTS = "output/{sim_id}/economy/{mc_root}"
 # noinspection SpellCheckingInspection
 MCYEAR_COL = "mcYear"
 """Column name for the Monte Carlo year."""
@@ -119,16 +117,15 @@ def _filtered_files_listing(
 class AggregatorManager:
     def __init__(
         self,
-        study_path: Path,
-        output_id: str,
+        output_path: Path,
         query_file: t.Union[MCIndAreas, MCAllAreas, MCIndLinks, MCAllLinks],
         frequency: Frequency,
         ids_to_consider: t.Sequence[str],
         columns_names: t.Sequence[str],
         mc_years: t.Optional[t.Sequence[int]] = None,
     ):
-        self.study_path = study_path
-        self.output_id = output_id
+        self.output_path = output_path
+        self.output_id = output_path.name
         self.query_file = query_file
         self.frequency = frequency
         self.mc_years = mc_years
@@ -139,8 +136,8 @@ class AggregatorManager:
             if (isinstance(query_file, MCIndAreas) or isinstance(query_file, MCAllAreas))
             else "links"
         )
-        self.mc_ind_path = self.study_path / MC_TEMPLATE_PARTS.format(sim_id=self.output_id, mc_root=MCRoot.MC_IND)
-        self.mc_all_path = self.study_path / MC_TEMPLATE_PARTS.format(sim_id=self.output_id, mc_root=MCRoot.MC_ALL)
+        self.mc_ind_path = self.output_path / "economy" / MCRoot.MC_IND.value
+        self.mc_all_path = self.output_path / "economy" / MCRoot.MC_ALL.value
         self.mc_root = (
             MCRoot.MC_IND
             if (isinstance(query_file, MCIndAreas) or isinstance(query_file, MCIndLinks))
@@ -413,7 +410,7 @@ class AggregatorManager:
 
         logger.info(
             f"Parsing {len(all_output_files)} {self.frequency.value} files"
-            f"to build the aggregated output for study `{self.study_path.name}`"
+            f"to build the aggregated output {self.output_id}`"
         )
         # builds final dataframe
         final_df = self._build_dataframe(all_output_files)
