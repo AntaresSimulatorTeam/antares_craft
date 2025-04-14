@@ -118,7 +118,7 @@ class AdvancedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
 
     @field_validator("accuracy_on_correlation", mode="before")
     def validate_accuracy_on_correlation(cls, v: Any) -> Sequence[str] | set[str]:
-        if v is None:
+        if not v:
             return []
         if isinstance(v, set):
             return v
