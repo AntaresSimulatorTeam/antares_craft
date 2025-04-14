@@ -14,6 +14,7 @@ from pathlib import Path
 
 from antares.craft import (
     AdvancedParametersUpdate,
+    ExportMPS,
     GeneralParametersUpdate,
     HydroPricingMode,
     PlaylistParameters,
@@ -183,8 +184,24 @@ def test_wrongly_formatted_fields_that_we_do_not_care_about(tmp_path: Path) -> N
         new_lines = ini_file.readlines()
         for k, line in enumerate(new_lines):
             if "intra-modal" in line:
-                new_lines[k] = "intra-modal = load, wind, solar"
+                new_lines[k] = "intra-modal = load, wind, solar\n"
     with open(ini_path, "w") as ini_file:
         ini_file.writelines(new_lines)
     # Asserts the reading succeeds even thought the fields has a value we do not expect
     read_study_local(study_path)
+
+
+def test_export_mps(tmp_path: Path) -> None:
+    study = create_study_local("second_study", "880", tmp_path)
+    study_path = Path(study.path)
+    ini_path = study_path / "settings" / "generaldata.ini"
+    with open(ini_path, "r") as ini_file:
+        new_lines = ini_file.readlines()
+        for k, line in enumerate(new_lines):
+            if "include-exportmps" in line:
+                new_lines[k] = "include-exportmps = None\n"
+    with open(ini_path, "w") as ini_file:
+        ini_file.writelines(new_lines)
+    # Asserts the reading succeeds with an unusual exportMps value
+    study = read_study_local(study_path)
+    assert study.get_settings().optimization_parameters.include_exportmps == ExportMPS.FALSE
