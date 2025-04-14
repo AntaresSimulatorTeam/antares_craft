@@ -1,3 +1,10 @@
+v0.2.6 (2025-04-14)
+-------------------
+
+### Bug fixes
+- **local**: support `None` value for include-export-mps [169](https://github.com/AntaresSimulatorTeam/antares_craft/pull/169)
+- **local**: allow empty field for `accuracy-on-correlation` inside generaldata.ini [170](https://github.com/AntaresSimulatorTeam/antares_craft/pull/170)
+
 v0.2.5 (2025-04-09)
 -------------------
 
