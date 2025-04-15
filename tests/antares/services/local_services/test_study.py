@@ -1313,7 +1313,7 @@ at%fr = 1%1
 
     def test_get_constraint_matrix(self, local_study):
         # Given
-        expected_time_series = pd.DataFrame(np.random.randint(0, 100, [365 * 24, 1]))
+        expected_time_series = pd.DataFrame(np.random.randint(0, 100, [365 * 24, 1]), dtype=np.int64)
         bc_name = "test time series"
         local_study.create_binding_constraint(
             name=bc_name,
