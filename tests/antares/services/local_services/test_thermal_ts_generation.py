@@ -33,7 +33,7 @@ class TestThermalTsGeneration:
         # Checks TS generated
         for k, cluster in enumerate([cluster_1, cluster_2, cluster_3]):
             series = cluster.get_series_matrix()
-            expected_series = pd.DataFrame(np.full((8760, 4), (k + 1) * 100))
+            expected_series = pd.DataFrame(np.full((8760, 4), (k + 1) * 100), dtype=np.int64)
             assert series.equals(expected_series)
 
     def test_error_case(self, local_study_w_thermals):
