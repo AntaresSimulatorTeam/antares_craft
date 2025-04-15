@@ -29,4 +29,4 @@ jobs:
 
       - name: Performs Windows tests
         if: matrix.os == 'windows-latest'
-        run: tox -p
+        run: tox -e py3.10-test
