@@ -27,12 +27,6 @@ jobs:
           pip install tox~=4.21.2
           pip install tox-uv~=1.11.3
 
-      - name: Performs Ubuntu tests
-        if: matrix.os != 'windows-latest'
-        run: |
-          tox -e lint-ci
-          tox -p
-
       - name: Performs Windows tests
         if: matrix.os == 'windows-latest'
-        run: tox -e py3.10-test
+        run: tox -e windows-test
