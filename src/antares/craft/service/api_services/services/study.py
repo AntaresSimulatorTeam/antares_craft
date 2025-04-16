@@ -12,6 +12,8 @@
 from pathlib import Path, PurePath
 from typing import TYPE_CHECKING
 
+from typing_extensions import override
+
 from antares.craft import ScenarioBuilder
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
@@ -37,7 +39,6 @@ from antares.craft.model.output import Output
 from antares.craft.service.api_services.models.scenario_builder import ScenarioBuilderAPI
 from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
-from typing_extensions import override
 
 if TYPE_CHECKING:
     from antares.craft.model.study import Study

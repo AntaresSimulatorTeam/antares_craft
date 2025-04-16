@@ -10,8 +10,9 @@
 #
 # This file is part of the Antares project.
 
-from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from pydantic import Field
+
+from antares.craft.service.local_services.models.base_model import LocalBaseModel
 
 
 class LocalClass(LocalBaseModel):

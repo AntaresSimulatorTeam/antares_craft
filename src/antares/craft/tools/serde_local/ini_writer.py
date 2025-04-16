@@ -16,8 +16,9 @@ import configparser
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, TypeAlias
 
-from antares.craft.tools.serde_local.ini_common import OptionMatcher, PrimitiveType, any_section_option_matcher
 from typing_extensions import override
+
+from antares.craft.tools.serde_local.ini_common import OptionMatcher, PrimitiveType, any_section_option_matcher
 
 # Value serializers may be used to customize the way INI options are serialized
 ValueSerializer: TypeAlias = Callable[[str], PrimitiveType]
