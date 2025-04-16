@@ -14,6 +14,8 @@ from pathlib import PurePosixPath
 
 import pandas as pd
 
+from typing_extensions import override
+
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
@@ -26,7 +28,6 @@ from antares.craft.model.renewable import RenewableCluster, RenewableClusterProp
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseRenewableService
-from typing_extensions import override
 
 
 class RenewableApiService(BaseRenewableService):

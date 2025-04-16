@@ -80,7 +80,6 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.hydro import InflowStructureUpdate
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import Job, JobStatus
-
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
 
@@ -363,7 +362,7 @@ class TestWebClient:
         wrong_matrix = pd.DataFrame(data=[[0]])
         with pytest.raises(
             STStorageMatrixUploadError,
-            match=f"Could not upload inflows matrix for storage {battery_fr.id}" f" inside area {area_fr.id}",
+            match=f"Could not upload inflows matrix for storage {battery_fr.id} inside area {area_fr.id}",
         ):
             battery_fr.set_storage_inflows(wrong_matrix)
 

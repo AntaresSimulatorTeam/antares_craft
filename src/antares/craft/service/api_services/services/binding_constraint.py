@@ -15,6 +15,8 @@ from typing import Any, Optional
 
 import pandas as pd
 
+from typing_extensions import override
+
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
@@ -40,7 +42,6 @@ from antares.craft.model.binding_constraint import (
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix
 from antares.craft.service.base_services import BaseBindingConstraintService
-from typing_extensions import override
 
 
 class BindingConstraintApiService(BaseBindingConstraintService):
