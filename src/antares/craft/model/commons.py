@@ -49,7 +49,7 @@ def validate_filters(filter_value: list[FilterOption] | str | None) -> list[Filt
 
 def join_with_comma(values: Optional[set[FilterOption]] = None) -> str:
     if values:
-        return ", ".join(sorted(filtering.value for filtering in values))
+        return ", ".join(sorted(enum.value for enum in values))
     return ""
 
 
