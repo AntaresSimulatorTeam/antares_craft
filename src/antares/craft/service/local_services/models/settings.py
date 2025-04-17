@@ -123,7 +123,7 @@ class AdvancedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
         if isinstance(v, set):
             return v
 
-        splitted_value = v.split(",")
+        splitted_value = v.replace(" ", "").split(",")
         correlation = set()
         for choice in splitted_value:
             correlation.add(OutputChoices(choice))
