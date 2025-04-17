@@ -9,6 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import pytest
+
 from dataclasses import asdict
 from pathlib import Path
 
@@ -207,7 +209,9 @@ def test_export_mps(tmp_path: Path) -> None:
     assert study.get_settings().optimization_parameters.include_exportmps == ExportMPS.FALSE
 
 
-def test_accuracy_on_correlation(tmp_path: Path) -> None:
+@pytest.mark.parametrize("value", ["", "wind", "wind, load"])
+def test_accuracy_on_correlation(tmp_path: Path, value: str) -> None:
+    """Asserts the reading succeeds with different accuracy_on_correlation values"""
     study = create_study_local("second_study", "880", tmp_path)
     study_path = Path(study.path)
     ini_path = study_path / "settings" / "generaldata.ini"
@@ -215,8 +219,7 @@ def test_accuracy_on_correlation(tmp_path: Path) -> None:
         new_lines = ini_file.readlines()
         for k, line in enumerate(new_lines):
             if "accuracy-on-correlation" in line:
-                new_lines[k] = "accuracy-on-correlation = \n"
+                new_lines[k] = f"accuracy-on-correlation = {value}\n"
     with open(ini_path, "w") as ini_file:
         ini_file.writelines(new_lines)
-    # Asserts the reading succeeds with an empty value for accuracy_on_correlation
     read_study_local(study_path)

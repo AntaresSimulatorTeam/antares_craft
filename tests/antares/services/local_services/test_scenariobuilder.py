@@ -25,7 +25,7 @@ def test_empty_scenariobuilder(local_study) -> None:
         assert value["_data"] == {}
 
 
-def test_scenario_builde_lifecycle(local_study_with_renewable) -> None:
+def test_scenario_builder_lifecycle(local_study_with_renewable) -> None:
     # Set the nb_years to 4
     local_study_with_renewable.update_settings(
         StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4))
