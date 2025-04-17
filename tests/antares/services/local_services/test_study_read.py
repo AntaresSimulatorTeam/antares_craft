@@ -37,3 +37,11 @@ class TestReadStudy:
 
         with pytest.raises(FileNotFoundError, match=escaped_full_path):
             read_study_local(study_path)
+
+    def test_read_outputs(self, local_study):
+        """
+        Ensures the reading methods doesn't fail when the output folder doesn't exist
+        """
+        study_path = Path(local_study.path)
+        (study_path / "output").rmdir()
+        read_study_local(study_path)
