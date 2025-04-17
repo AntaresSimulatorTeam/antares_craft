@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Annotated, Optional
+from typing import Annotated, Any, Optional
 
 from pydantic import BeforeValidator, PlainSerializer
 
@@ -47,7 +47,7 @@ def validate_filters(filter_value: list[FilterOption] | str | None) -> list[Filt
     return filter_value
 
 
-def join_with_comma(values: Optional[set[FilterOption]] = None) -> str:
+def join_with_comma(values: Optional[set[Any]] = None) -> str:
     if values:
         return ", ".join(sorted(enum.value for enum in values))
     return ""
