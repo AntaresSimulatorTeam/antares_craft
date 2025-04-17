@@ -9,14 +9,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
 
 import re
+import shutil
 
 from pathlib import Path
 
-from antares.craft import read_study_local
+from antares.craft import create_study_local, read_study_local
 
 
 class TestReadStudy:
@@ -45,3 +45,16 @@ class TestReadStudy:
         study_path = Path(local_study.path)
         (study_path / "output").rmdir()
         read_study_local(study_path)
+
+    def test_study_name(self, tmp_path: Path):
+        """
+        Ensures the reading area method isn't based on the name but on the study path
+        """
+        study_name = "name_inside_file"
+        study = create_study_local(study_name, "880", tmp_path)
+        study.create_area("fr")
+        study_path = Path(study.path)
+        new_path = study_path.parent / "other_name"
+        shutil.move(study_path, new_path)
+        study = read_study_local(new_path)
+        assert len(study.get_areas()) == 1
