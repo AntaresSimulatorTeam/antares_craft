@@ -23,6 +23,7 @@ from antares.craft.service.local_services.models.hydro import (
     HydroInflowStructureLocal,
     HydroPropertiesLocal,
 )
+from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
@@ -34,11 +35,20 @@ class HydroLocalService(BaseHydroService):
         self.config = config
         self.study_name = study_name
 
+    @staticmethod
+    def _transform_areas_name_to_id(content: dict[str, Any]) -> dict[str, Any]:
+        for key, values in content.items():
+            for area_name in list(values.keys()):
+                content[key][transform_name_to_id(area_name)] = content[key].pop(area_name)
+        return content
+
     def _read_ini(self) -> dict[str, Any]:
-        return IniReader().read(self.config.study_path / "input" / "hydro" / "hydro.ini")
+        content = IniReader().read(self.config.study_path / "input" / "hydro" / "hydro.ini")
+        return self._transform_areas_name_to_id(content)
 
     def _save_ini(self, content: dict[str, Any]) -> None:
-        IniWriter().write(content, self.config.study_path / "input" / "hydro" / "hydro.ini")
+        transformed_content = self._transform_areas_name_to_id(content)
+        IniWriter().write(transformed_content, self.config.study_path / "input" / "hydro" / "hydro.ini")
 
     def _get_inflow_path(self, area_id: str) -> Path:
         return self.config.study_path / "input" / "hydro" / "prepro" / area_id / "prepro.ini"
