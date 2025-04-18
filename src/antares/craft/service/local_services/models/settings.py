@@ -12,6 +12,7 @@
 from dataclasses import asdict
 from typing import Any, Set
 
+
 from pydantic import Field, field_serializer, field_validator
 
 from antares.craft import PlaylistParameters, ThematicTrimmingParameters
@@ -54,6 +55,7 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
+from pydantic import Field, field_validator
 
 AdequacyPatchParametersType = AdequacyPatchParameters | AdequacyPatchParametersUpdate
 

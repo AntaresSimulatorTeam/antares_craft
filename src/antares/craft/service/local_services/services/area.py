@@ -18,8 +18,6 @@ from typing import Any, Dict, List, Optional, cast
 
 import pandas as pd
 
-from typing_extensions import override
-
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import AreaCreationError, ThermalCreationError
 from antares.craft.model.area import (
@@ -55,6 +53,7 @@ from antares.craft.tools.prepro_folder import PreproFolder
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from typing_extensions import override
 
 
 class AreaLocalService(BaseAreaService):
@@ -62,6 +61,7 @@ class AreaLocalService(BaseAreaService):
         self,
         config: LocalConfiguration,
         study_name: str,
+        study_version: str,
         storage_service: BaseShortTermStorageService,
         thermal_service: BaseThermalService,
         renewable_service: BaseRenewableService,
@@ -71,6 +71,7 @@ class AreaLocalService(BaseAreaService):
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
+        self.study_version = study_version
         self._storage_service: BaseShortTermStorageService = storage_service
         self._thermal_service: BaseThermalService = thermal_service
         self._renewable_service: BaseRenewableService = renewable_service
@@ -215,15 +216,34 @@ class AreaLocalService(BaseAreaService):
     def create_st_storage(
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
+        """
+        Args:
+            area_id: area in which st_storage will be created
+            st_storage_name: name of new st_storage
+            properties: if 'None', default values will be used,
+                        otherwise custom parameters to be validated with the study version
+
+        Returns:
+            New st_storage
+        """
         properties = properties or STStorageProperties()
         local_properties = STStoragePropertiesLocal.from_user_model(properties)
 
         local_storage_service = cast(ShortTermStorageLocalService, self.storage_service)
         ini_content = local_storage_service.read_ini(area_id)
-        ini_content[st_storage_name] = {
-            "name": st_storage_name,
-            **local_properties.model_dump(mode="json", by_alias=True),
-        }
+        if self.study_version == "880":
+            list_forbidden = {"efficiency_withdrawal"}
+            ini_content[st_storage_name] = {
+                "name": st_storage_name,
+                **local_properties.model_dump(mode="json", by_alias=True, exclude=list_forbidden),
+            }
+
+        if self.study_version == "9.2":
+            ini_content[st_storage_name] = {
+                "name": st_storage_name,
+                **local_properties.model_dump(mode="json", by_alias=True),
+            }
+
         local_storage_service.save_ini(ini_content, area_id)
 
         storage = STStorage(

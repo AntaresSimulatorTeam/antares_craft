@@ -11,8 +11,6 @@
 # This file is part of the Antares project.
 from dataclasses import asdict
 
-from pydantic import Field
-
 from antares.craft.model.renewable import (
     RenewableClusterGroup,
     RenewableClusterProperties,
@@ -20,6 +18,7 @@ from antares.craft.model.renewable import (
     TimeSeriesInterpretation,
 )
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
+from pydantic import Field
 
 RenewablePropertiesType = RenewableClusterProperties | RenewableClusterPropertiesUpdate
 

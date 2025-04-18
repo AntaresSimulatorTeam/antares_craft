@@ -14,8 +14,6 @@ import ast
 from dataclasses import asdict
 from typing import Any, Optional, Sequence, cast
 
-from pydantic import Field, field_validator
-
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
     AdequacyPatchParametersUpdate,
@@ -56,6 +54,7 @@ from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParam
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase
+from pydantic import Field, field_validator
 
 AdequacyPatchParametersType = AdequacyPatchParameters | AdequacyPatchParametersUpdate
 

@@ -12,12 +12,11 @@
 from dataclasses import asdict
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
-
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FilterOption, filtering_option
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
+from pydantic import BaseModel, ConfigDict
 
 AreaPropertiesType = AreaProperties | AreaPropertiesUpdate
 

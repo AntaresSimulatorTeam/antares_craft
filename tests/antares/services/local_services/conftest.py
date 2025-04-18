@@ -209,3 +209,21 @@ def default_constraint_properties() -> BindingConstraintProperties:
         filter_synthesis=FILTER_VALUES,
         group="default",
     )
+
+
+@pytest.fixture
+def local_study_92(tmp_path):
+    study_name = "studyTest"
+    study_version = "9.2"
+
+    local_study = create_study_local(study_name, study_version, tmp_path.absolute())
+
+    areas_to_create = ["fr", "it"]
+    for area in areas_to_create:
+        area_properties = AreaProperties(
+            energy_cost_spilled=1, energy_cost_unsupplied=0.5, filter_synthesis={FilterOption.WEEKLY}
+        )
+        area_ui = AreaUi(x=56)
+        local_study.create_area(area, properties=area_properties, ui=area_ui)
+
+    return local_study

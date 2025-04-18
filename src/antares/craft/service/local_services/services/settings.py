@@ -13,8 +13,6 @@
 from pathlib import Path
 from typing import Any
 
-from typing_extensions import override
-
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParametersUpdate,
@@ -38,6 +36,7 @@ from antares.craft.service.local_services.models.settings import (
 )
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
+from typing_extensions import override
 
 DUPLICATE_KEYS = [
     "playlist_year_weight",

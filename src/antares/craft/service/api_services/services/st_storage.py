@@ -12,8 +12,6 @@
 
 import pandas as pd
 
-from typing_extensions import override
-
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
@@ -30,6 +28,7 @@ from antares.craft.model.st_storage import (
 )
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.base_services import BaseShortTermStorageService
+from typing_extensions import override
 
 
 class ShortTermStorageApiService(BaseShortTermStorageService):
