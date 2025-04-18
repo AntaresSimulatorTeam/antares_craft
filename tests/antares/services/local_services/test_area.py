@@ -177,6 +177,36 @@ enabled = True
 
         assert created_storage.properties == properties
 
+    def test_st_storage_and_ini_have_custom_properties_92(self, local_study_92):
+        # Given
+        properties = STStorageProperties(
+            group=STStorageGroup.BATTERY, reservoir_capacity=12.345, efficiency_withdrawal=0.9
+        )
+        st_storage_name = "short term storage"
+
+        # When
+        created_storage = local_study_92.get_areas()["fr"].create_st_storage(st_storage_name, properties)
+
+        # Then
+        expected_st_storage_list_ini_content = """[short term storage]
+name = short term storage
+group = battery
+injectionnominalcapacity = 0.0
+withdrawalnominalcapacity = 0.0
+reservoircapacity = 12.345
+efficiency = 1.0
+initiallevel = 0.5
+initialleveloptim = False
+enabled = True
+efficiencywithdrawal = 0.9
+
+"""
+        study_path = Path(local_study_92.path)
+        ini_content = (study_path / "input" / "st-storage" / "clusters" / "fr" / "list.ini").read_text()
+        assert ini_content == expected_st_storage_list_ini_content
+
+        assert created_storage.properties == properties
+
 
 class TestCreateReserves:
     def test_can_create_reserves_ts_file(self, area_fr):
