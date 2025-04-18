@@ -12,6 +12,7 @@
 
 from pathlib import Path
 
+from antares.craft import read_study_local
 from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate, InflowStructureUpdate
 from antares.craft.tools.serde_local.ini_reader import IniReader
 
@@ -161,3 +162,43 @@ it = 1.0
         study_path = Path(local_study_with_hydro.path)
         ini_content = IniReader().read(study_path / "input" / "hydro" / "prepro" / "fr" / "prepro.ini")
         assert ini_content == {"prepro": {"intermonthly-correlation": 0.4}}
+
+    def test_lifecycle_with_area_name(self, local_study):
+        local_study.create_area("FR")
+        ini_content = """[inter-daily-breakdown]
+FR = 0.63
+
+[intra-daily-modulation]
+FR?? = 22.7
+"""
+        study_path = Path(local_study.path)
+        hydro_ini_path = study_path / "input" / "hydro" / "hydro.ini"
+        hydro_ini_path.write_text(ini_content)
+        # Ensure study reading succeeds
+        study = read_study_local(study_path)
+        assert len(study.get_areas()) == 1
+        area_fr = study.get_areas()["fr"]
+        hydro_properties = area_fr.hydro.properties
+        assert hydro_properties.inter_daily_breakdown == 0.63
+        assert hydro_properties.intra_daily_modulation == 22.7
+        assert hydro_properties.reservoir is False
+        # Asserts properties update succeeds
+        new_properties = HydroPropertiesUpdate(reservoir=True, inter_daily_breakdown=0.9)
+        area_fr.hydro.update_properties(new_properties)
+        hydro_properties = area_fr.hydro.properties
+        assert hydro_properties.inter_daily_breakdown == 0.9
+        assert hydro_properties.intra_daily_modulation == 22.7
+        assert hydro_properties.reservoir is True
+        # Checks ini content
+        actual_ini_content = hydro_ini_path.read_text()
+        expected_ini_content = """[inter-daily-breakdown]
+fr = 0.9
+
+[intra-daily-modulation]
+fr = 22.7
+
+[reservoir]
+fr = True
+
+"""
+        assert actual_ini_content == expected_ini_content

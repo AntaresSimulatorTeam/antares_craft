@@ -9,13 +9,11 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
-import ast
-
 from dataclasses import asdict
-from typing import Any, Sequence, Set, cast
+from typing import Any, Set
 
 from antares.craft import PlaylistParameters, ThematicTrimmingParameters
+from antares.craft.model.commons import join_with_comma
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
     AdequacyPatchParametersUpdate,
@@ -54,7 +52,7 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
-from pydantic import Field, field_validator
+from pydantic import Field, field_serializer, field_validator
 
 AdequacyPatchParametersType = AdequacyPatchParameters | AdequacyPatchParametersUpdate
 
@@ -117,12 +115,22 @@ class AdvancedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     adequacy_block_size: int = 100
 
     @field_validator("accuracy_on_correlation", mode="before")
-    def validate_accuracy_on_correlation(cls, v: Any) -> Sequence[str] | set[str]:
+    def validate_accuracy_on_correlation(cls, v: Any) -> set[Any]:
         if not v:
-            return []
+            return set()
+
         if isinstance(v, set):
             return v
-        return cast(Sequence[str], ast.literal_eval(v))
+
+        splitted_value = v.replace(" ", "").split(",")
+        correlation = set()
+        for choice in splitted_value:
+            correlation.add(OutputChoices(choice))
+        return correlation
+
+    @field_serializer("accuracy_on_correlation")
+    def serialize_accuracy_on_correlation(self, v: set[OutputChoices]) -> str:
+        return join_with_comma(v)
 
 
 class SeedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
