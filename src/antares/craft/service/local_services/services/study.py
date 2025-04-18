@@ -164,11 +164,12 @@ class StudyLocalService(BaseStudyService):
     @override
     def read_outputs(self) -> dict[str, Output]:
         outputs: dict[str, Output] = {}
-        for folder in self._output_path.iterdir():
-            output_name = folder.name
-            archived = True if output_name.endswith(".zip") else False
-            output = Output(name=output_name, archived=archived, output_service=self.output_service)
-            outputs[output.name] = output
+        if self._output_path.exists():
+            for folder in self._output_path.iterdir():
+                output_name = folder.name
+                archived = True if output_name.endswith(".zip") else False
+                output = Output(name=output_name, archived=archived, output_service=self.output_service)
+                outputs[output.name] = output
         return outputs
 
     @override

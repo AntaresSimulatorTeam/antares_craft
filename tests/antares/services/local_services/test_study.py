@@ -407,7 +407,7 @@ renewable-generation-modelling = clusters
 day-ahead-reserve-management = global
 
 [advanced parameters]
-accuracy-on-correlation = []
+accuracy-on-correlation = 
 adequacy-block-size = 100
 
 [seeds - Mersenne Twister]
