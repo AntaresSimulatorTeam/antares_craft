@@ -62,6 +62,8 @@ class STStorageProperties:
     initial_level: float = 0.5
     initial_level_optim: bool = False
     enabled: bool = True
+    # add new parameter 9.2
+    efficiency_withdrawal: Optional[float] = 1
 
 
 class STStorage:

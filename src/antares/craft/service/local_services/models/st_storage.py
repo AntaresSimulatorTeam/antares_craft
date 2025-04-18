@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
+from typing import Optional
 
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
@@ -30,6 +31,8 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
     initial_level: float = 0.5
     initial_level_optim: bool = False
     enabled: bool = True
+    # add new parameter 9.2
+    efficiency_withdrawal: Optional[float] = 1
 
     @staticmethod
     def from_user_model(user_class: STStoragePropertiesType) -> "STStoragePropertiesLocal":
