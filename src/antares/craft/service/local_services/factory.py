@@ -37,13 +37,13 @@ from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
-def create_local_services(config: LocalConfiguration, study_name: str = "") -> StudyServices:
+def create_local_services(config: LocalConfiguration, study_name: str = "", study_version: str = "") -> StudyServices:
     storage_service = ShortTermStorageLocalService(config, study_name)
     thermal_service = ThermalLocalService(config, study_name)
     renewable_service = RenewableLocalService(config, study_name)
     hydro_service = HydroLocalService(config, study_name)
     area_service = AreaLocalService(
-        config, study_name, storage_service, thermal_service, renewable_service, hydro_service
+        config, study_name, study_version, storage_service, thermal_service, renewable_service, hydro_service
     )
     link_service = LinkLocalService(config, study_name)
     output_service = OutputLocalService(config, study_name)
@@ -164,7 +164,7 @@ InfoTip = Antares Study {version}: {study_name}
     study = Study(
         name=study_name,
         version=version,
-        services=create_local_services(config=local_config, study_name=study_name),
+        services=create_local_services(config=local_config, study_name=study_name, study_version=version),
         path=study_directory,
         solver_path=solver_path,
     )
@@ -198,7 +198,9 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
     study = Study(
         name=study_params["caption"],
         version=study_params["version"],
-        services=create_local_services(config=local_config, study_name=study_params["caption"]),
+        services=create_local_services(
+            config=local_config, study_name=study_params["caption"], study_version=study_params["version"]
+        ),
         path=study_directory,
         solver_path=solver_path,
     )
