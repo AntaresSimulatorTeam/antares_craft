@@ -18,13 +18,12 @@ from typing import Any, Optional
 
 import psutil
 
-from typing_extensions import override
-
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import AntaresSimulationRunningError, SimulationTimeOutError
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
 from antares.craft.service.base_services import BaseRunService
 from antares.study.version import SolverVersion
+from typing_extensions import override
 
 
 def _get_solver_version(solver_path: Path) -> SolverVersion:

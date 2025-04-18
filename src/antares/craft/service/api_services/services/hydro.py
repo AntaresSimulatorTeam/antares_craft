@@ -12,8 +12,6 @@
 
 import pandas as pd
 
-from typing_extensions import override
-
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
@@ -29,6 +27,7 @@ from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, In
 from antares.craft.service.api_services.models.hydro import HydroInflowStructureAPI, HydroPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseHydroService
+from typing_extensions import override
 
 
 class HydroApiService(BaseHydroService):

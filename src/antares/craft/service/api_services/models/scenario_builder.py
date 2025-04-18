@@ -11,8 +11,6 @@
 # This file is part of the Antares project.
 from typing import Any
 
-from pydantic import Field
-
 from antares.craft import ScenarioBuilder
 from antares.craft.model.scenario_builder import (
     ScenarioArea,
@@ -26,6 +24,7 @@ from antares.craft.model.scenario_builder import (
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
+from pydantic import Field
 
 
 @all_optional_model

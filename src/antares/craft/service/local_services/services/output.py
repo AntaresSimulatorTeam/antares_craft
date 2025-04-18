@@ -12,11 +12,10 @@
 
 import pandas as pd
 
-from typing_extensions import override
-
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.output import AggregationEntry
 from antares.craft.service.base_services import BaseOutputService
+from typing_extensions import override
 
 
 class OutputLocalService(BaseOutputService):

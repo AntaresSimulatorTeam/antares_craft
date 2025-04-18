@@ -80,6 +80,7 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.hydro import InflowStructureUpdate
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import Job, JobStatus
+
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
 
