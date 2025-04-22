@@ -11,6 +11,8 @@
 # This file is part of the Antares project.
 from dataclasses import asdict
 
+from typing_extensions import override
+
 from antares.craft import ThematicTrimmingParameters
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
@@ -25,7 +27,6 @@ from antares.craft.service.api_services.models.settings import (
     ThematicTrimmingParametersAPI,
 )
 from antares.craft.service.base_services import BaseStudySettingsService
-from typing_extensions import override
 
 
 class StudySettingsAPIService(BaseStudySettingsService):
