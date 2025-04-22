@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import logging
 import os
 import time
 
@@ -160,7 +159,6 @@ InfoTip = Antares Study {version}: {study_name}
     # Create various .ini files for the study
     _create_various_ini_files(study_directory)
 
-    logging.info(f"Study successfully created: {study_name}")
     study = Study(
         name=study_name,
         version=version,

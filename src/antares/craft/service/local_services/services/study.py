@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 import copy
-import logging
 import shutil
 import tempfile
 
@@ -39,8 +38,6 @@ from antares.tsgen.duration_generator import ProbabilityLaw
 from antares.tsgen.random_generator import MersenneTwisterRNG
 from antares.tsgen.ts_generator import OutageGenerationParameters, ThermalCluster, TimeseriesGenerator
 
-logger = logging.getLogger(__name__)
-
 if TYPE_CHECKING:
     from antares.craft.model.study import Study
 
@@ -56,24 +53,20 @@ def _build_timeseries(number_of_years: int, areas_dict: dict[str, Area], seed: i
     # 2 - Build the generator
     rng = MersenneTwisterRNG(seed=seed)
     generator = TimeseriesGenerator(rng=rng, days=365)
-    # 3- Do a first loop to know how many operations will be performed
-    total_generations = sum(len(area.get_thermals()) for area in areas_dict.values())
-    # 4- Loop through areas in alphabetical order
-    generation_performed = 0
+    # 3- Loop through areas in alphabetical order
     areas = list(areas_dict.values())
     areas.sort(key=lambda area: area.id)
     for area in areas:
         area_id = area.id
-        # 5- Loop through thermal clusters in alphabetical order
+        # 4- Loop through thermal clusters in alphabetical order
         thermals = list(area.get_thermals().values())
         thermals.sort(key=lambda thermal: thermal.id)
         for thermal in thermals:
             try:
-                # 6 - Filters out clusters with no generation
+                # 5 - Filters out clusters with no generation
                 if thermal.properties.gen_ts == LocalTSGenerationBehavior.FORCE_NO_GENERATION:
-                    generation_performed += 1
                     continue
-                # 7- Build the cluster
+                # 6- Build the cluster
                 modulation_matrix = thermal.get_prepro_modulation_matrix()
                 modulation_capacity = modulation_matrix[2].to_numpy()
                 data_matrix = thermal.get_prepro_data_matrix()
@@ -101,19 +94,14 @@ def _build_timeseries(number_of_years: int, areas_dict: dict[str, Area], seed: i
                     nominal_power=thermal.properties.nominal_capacity,
                     modulation=modulation_capacity,
                 )
-                # 8- Generate the time-series
+                # 7- Generate the time-series
                 results = generator.generate_time_series_for_clusters(cluster, number_of_years)
                 generated_matrix = results.available_power
-                # 9- Write the matrix inside the input folder.
+                # 8- Write the matrix inside the input folder.
                 df = pd.DataFrame(data=generated_matrix)
                 df = df[list(df.columns)].astype(int)
                 target_path = tmp_path / area_id / thermal.id / "series.txt"
                 df.to_csv(target_path, sep="\t", header=False, index=False, float_format="%.6f")
-                # 10- Notify the progress
-                generation_performed += 1
-                logger.info(
-                    f"Thermal cluster ts-generation advancement {round(generation_performed * 100 / total_generations, 1)} %"
-                )
             except Exception as e:
                 e.args = tuple([f"Area {area_id}, cluster {thermal.id}: {e.args[0]}"])
                 raise
@@ -201,8 +189,7 @@ class StudyLocalService(BaseStudyService):
         try:
             shutil.copytree(study_path / "input" / "thermal" / "series", tmp_dir, dirs_exist_ok=True)
             _build_timeseries(number_of_years, areas, seed, tmp_dir)
-        except Exception as e:
-            logger.error(f"Unhandled exception when trying to generate thermal timeseries: {e}", exc_info=True)
+        except Exception:
             raise
         else:
             _replace_safely_original_files(study_path, tmp_dir)

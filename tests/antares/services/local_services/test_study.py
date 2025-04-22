@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 import pytest
 
-import logging
 import os
 import re
 import time
@@ -84,11 +83,10 @@ from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParam
 
 
 class TestCreateStudy:
-    def test_create_study_success(self, tmp_path, caplog):
+    def test_create_study_success(self, tmp_path):
         # Given
         study_name = "studyTest"
         version = "850"
-        caplog.set_level(logging.INFO)
 
         expected_subdirectories = ["input", "layers", "output", "settings", "user"]
 
@@ -105,9 +103,6 @@ class TestCreateStudy:
             subdirectory_path = expected_study_path / subdirectory
             assert subdirectory_path.exists()
             assert subdirectory_path.is_dir()
-
-        # Then
-        assert caplog.records[0].msg == f"Study successfully created: {study_name}"
 
     def test_desktop_ini_creation(self, tmp_path, local_study):
         # Given
@@ -470,10 +465,9 @@ apply-filter = add-all
         # Then
         assert actual_content == expected_sets_ini_content
 
-    def test_areas_list_txt_content(self, tmp_path, caplog, local_study):
+    def test_areas_list_txt_content(self, tmp_path, local_study):
         # Given
         study_antares_path = tmp_path / local_study.name
-        caplog.set_level(logging.INFO)
 
         expected_list_txt = study_antares_path / "input" / "areas" / "list.txt"
 
@@ -490,8 +484,6 @@ area2
 
         # Then
         assert actual_content == expected_list_txt_content
-        assert caplog.records[0].msg == "Area area1 created successfully!"
-        assert caplog.records[1].msg == "Area area2 created successfully!"
 
     def test_areas_list_sorted_alphabetically(self, tmp_path, local_study):
         # Given
