@@ -1133,9 +1133,7 @@ class TestCreateBindingconstraint:
         assert expected_ini_file_path.exists()
         assert expected_ini_file_path.is_file()
 
-    def test_constraints_ini_have_correct_default_content(
-        self, local_study_with_constraint, test_constraint, default_constraint_properties
-    ):
+    def test_constraints_ini_have_correct_default_content(self, local_study_with_constraint, test_constraint):
         # Given
         expected_ini_contents = """[0]
 id = test constraint

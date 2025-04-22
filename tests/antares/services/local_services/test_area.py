@@ -57,9 +57,7 @@ class TestCreateRenewablesCluster:
         renewable_cluster = local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"]
         assert renewable_cluster.properties == RenewableClusterProperties(enabled=False, unit_count=44)
 
-    def test_renewable_list_ini_has_correct_default_values(
-        self, local_study_with_renewable, default_renewable_cluster_properties
-    ):
+    def test_renewable_list_ini_has_correct_default_values(self, local_study_with_renewable):
         # Given
         expected_renewables_list_ini_content = """[renewable cluster]
 name = renewable cluster
