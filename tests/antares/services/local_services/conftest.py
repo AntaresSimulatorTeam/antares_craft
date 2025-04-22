@@ -17,16 +17,15 @@ from antares.craft import LinkProperties, LinkUi, create_study_local
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
-    BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
     ConstraintTerm,
     LinkData,
 )
-from antares.craft.model.commons import FILTER_VALUES, FilterOption
+from antares.craft.model.commons import FilterOption
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
-from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
-from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
+from antares.craft.model.renewable import RenewableClusterProperties
+from antares.craft.model.st_storage import STStorageProperties
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import (
     ThermalClusterGroup,
@@ -112,6 +111,7 @@ def local_study_with_st_storage(local_study_with_renewable) -> Study:
     storage_name = "short term storage"
     local_study_with_renewable.get_areas()["fr"].create_st_storage(storage_name)
     return local_study_with_renewable
+
 
 @pytest.fixture
 def local_study_with_hydro(local_study_with_st_storage) -> Study:

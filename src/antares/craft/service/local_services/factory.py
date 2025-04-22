@@ -124,7 +124,7 @@ def create_study_local(
     """
     local_config = LocalConfiguration(parent_directory, study_name)
 
-    study_directory = local_config.local_path / study_name
+    study_directory = parent_directory / study_name
 
     _verify_study_already_exists(study_directory)
 
