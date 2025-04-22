@@ -186,12 +186,8 @@ class StudyLocalService(BaseStudyService):
         study_path = self.config.study_path
         with tempfile.TemporaryDirectory(suffix=".thermal_ts_gen.tmp", prefix="~", dir=study_path.parent) as path:
             tmp_dir = Path(path)
-        try:
             shutil.copytree(study_path / "input" / "thermal" / "series", tmp_dir, dirs_exist_ok=True)
             _build_timeseries(number_of_years, areas, seed, tmp_dir)
-        except Exception:
-            raise
-        else:
             _replace_safely_original_files(study_path, tmp_dir)
 
     @override
