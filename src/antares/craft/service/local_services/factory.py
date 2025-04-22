@@ -9,8 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import os
-import time
 
 from pathlib import Path
 from typing import Optional
@@ -33,7 +31,8 @@ from antares.craft.service.local_services.services.st_storage import ShortTermSt
 from antares.craft.service.local_services.services.study import StudyLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService
 from antares.craft.tools.serde_local.ini_reader import IniReader
-from antares.craft.tools.serde_local.ini_writer import IniWriter
+from antares.study.version import StudyVersion
+from antares.study.version.create_app import CreateApp
 
 
 def create_local_services(config: LocalConfiguration, study_name: str = "") -> StudyServices:
@@ -66,46 +65,6 @@ def create_local_services(config: LocalConfiguration, study_name: str = "") -> S
     )
 
 
-def _create_various_ini_files(study_directory: Path) -> None:
-    ini_content = {"general": {"mode": "annual"}, "annual": {}}
-    for k in range(12):
-        ini_content[str(k)] = {}
-
-    for field in ["hydro", "load", "solar", "wind"]:
-        IniWriter().write(ini_content, study_directory / "input" / field / "prepro" / "correlation.ini")
-
-    IniWriter().write({}, study_directory / "input" / "bindingconstraints" / "bindingconstraints.ini")
-
-
-def _verify_study_already_exists(study_directory: Path) -> None:
-    if study_directory.exists():
-        raise FileExistsError(f"Study {study_directory.name} already exists.")
-
-
-def _create_directory_structure(study_path: Path) -> None:
-    subdirectories = [
-        "input/hydro/allocation",
-        "input/hydro/common/capacity",
-        "input/hydro/series",
-        "input/links",
-        "input/load/series",
-        "input/misc-gen",
-        "input/reserves",
-        "input/solar/series",
-        "input/thermal/clusters",
-        "input/thermal/prepro",
-        "input/thermal/series",
-        "input/wind/series",
-        "layers",
-        "output",
-        "settings/resources",
-        "settings/simulations",
-        "user",
-    ]
-    for subdirectory in subdirectories:
-        (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
-
-
 def create_study_local(
     study_name: str, version: str, parent_directory: Path, solver_path: Optional[Path] = None
 ) -> "Study":
@@ -125,39 +84,9 @@ def create_study_local(
 
     study_directory = parent_directory / study_name
 
-    _verify_study_already_exists(study_directory)
-
-    # Create the directory structure
-    _create_directory_structure(study_directory)
-
-    # Create study.antares file with timestamps and study_name
-    antares_file_path = os.path.join(study_directory, "study.antares")
-    current_time = int(time.time())
-    antares_content = f"""[antares]
-version = {version}
-caption = {study_name}
-created = {current_time}
-lastsave = {current_time}
-author = Unknown
-"""
-    with open(antares_file_path, "w") as antares_file:
-        antares_file.write(antares_content)
-
-    # Create Desktop.ini file
-    desktop_ini_path = study_directory / "Desktop.ini"
-    desktop_ini_content = f"""[.ShellClassInfo]
-IconFile = settings/resources/study.ico
-IconIndex = 0
-InfoTip = Antares Study {version}: {study_name}
-"""
-    with open(desktop_ini_path, "w") as desktop_ini_file:
-        desktop_ini_file.write(desktop_ini_content)
-
-    # Create scenario builder file
-    IniWriter().write({"default ruleset": {}}, study_directory / "settings" / "scenariobuilder.dat")
-
-    # Create various .ini files for the study
-    _create_various_ini_files(study_directory)
+    study_version = StudyVersion.parse(version)
+    app = CreateApp(study_dir=study_directory, caption=study_name, version=study_version, author="Unknown")
+    app()
 
     study = Study(
         name=study_name,

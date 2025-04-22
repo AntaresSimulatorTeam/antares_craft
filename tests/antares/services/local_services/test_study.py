@@ -13,11 +13,11 @@ import pytest
 
 import os
 import re
-import time
 import typing as t
 
 from configparser import ConfigParser
 from pathlib import Path
+from unittest.mock import ANY
 
 import numpy as np
 import pandas as pd
@@ -80,6 +80,7 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
+from antares.craft.tools.serde_local.ini_reader import IniReader
 
 
 class TestCreateStudy:
@@ -107,48 +108,34 @@ class TestCreateStudy:
     def test_desktop_ini_creation(self, tmp_path, local_study):
         # Given
         expected_desktop_path = tmp_path / local_study.name / "Desktop.ini"
-        desktop_ini_content = f"""[.ShellClassInfo]
-IconFile = settings/resources/study.ico
-IconIndex = 0
-InfoTip = Antares Study {local_study.version}: {local_study.name}
-"""
-
-        # When
-        with open(expected_desktop_path, "r") as file:
-            actual_content = file.read()
-
-        # Then
-        assert actual_content == desktop_ini_content
         assert expected_desktop_path.exists()
         assert expected_desktop_path.is_file()
 
-    def test_study_antares_content(self, monkeypatch, tmp_path):
+    def test_study_antares_content(self, tmp_path):
         # Given
         study_name = "studyTest"
-        version = "850"
-        expected_study_antares_path = tmp_path / "studyTest/study.antares"
-        antares_content = f"""[antares]
-version = {version}
-caption = {study_name}
-created = {"123"}
-lastsave = {"123"}
-author = Unknown
-"""
-
-        monkeypatch.setattr(time, "time", lambda: "123")
+        version = "880"
+        expected_study_antares_path = tmp_path / study_name / "study.antares"
 
         # When
         create_study_local(study_name, version, tmp_path.absolute())
-        with open(expected_study_antares_path, "r") as file:
-            actual_content = file.read()
 
         # Then
-        assert actual_content == antares_content
+        ini_content = IniReader().read(expected_study_antares_path)
+        assert ini_content == {
+            "antares": {
+                "author": "Unknown",
+                "caption": study_name,
+                "created": ANY,
+                "lastsave": ANY,
+                "version": int(version),
+            }
+        }
 
     def test_scenario_builder_creation(self, tmp_path, local_study):
         # Given
         expected_scenario_builder_path = tmp_path / local_study.name / "settings" / "scenariobuilder.dat"
-        desktop_ini_content = """[default ruleset]
+        desktop_ini_content = """[Default Ruleset]
 
 """
         actual_content = expected_scenario_builder_path.read_text()
@@ -161,38 +148,12 @@ author = Unknown
         (tmp_path / study_name).mkdir(parents=True, exist_ok=True)
 
         # When
-        with pytest.raises(FileExistsError, match=f"Study {study_name} already exists"):
+        with pytest.raises(FileExistsError, match="Study directory already exists"):
             create_study_local(study_name, version, tmp_path.absolute())
 
     def test_all_correlation_ini_files_exists(self, local_study):
         expected_ini_content = """[general]
 mode = annual
-
-[annual]
-
-[0]
-
-[1]
-
-[2]
-
-[3]
-
-[4]
-
-[5]
-
-[6]
-
-[7]
-
-[8]
-
-[9]
-
-[10]
-
-[11]
 
 """
         local_config = t.cast(LocalConfiguration, local_study.service.config)
