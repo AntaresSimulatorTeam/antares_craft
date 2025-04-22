@@ -87,7 +87,7 @@ class TestCreateStudy:
     def test_create_study_success(self, tmp_path):
         # Given
         study_name = "studyTest"
-        version = "850"
+        version = "880"
 
         expected_subdirectories = ["input", "layers", "output", "settings", "user"]
 
