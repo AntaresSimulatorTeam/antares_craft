@@ -22,12 +22,13 @@ from unittest.mock import ANY
 import numpy as np
 import pandas as pd
 
-from antares.craft import create_study_local
+from antares.craft import create_study_local, read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
     LinkCreationError,
+    UnsupportedStudyVersion,
 )
 from antares.craft.model.area import AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -81,13 +82,14 @@ from antares.craft.model.settings.optimization import (
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
 class TestCreateStudy:
     def test_create_study_success(self, tmp_path):
         # Given
         study_name = "studyTest"
-        version = "850"
+        version = "880"
 
         expected_subdirectories = ["input", "layers", "output", "settings", "user"]
 
@@ -104,6 +106,19 @@ class TestCreateStudy:
             subdirectory_path = expected_study_path / subdirectory
             assert subdirectory_path.exists()
             assert subdirectory_path.is_dir()
+
+    def test_creation_with_wrong_version(self, tmp_path):
+        with pytest.raises(UnsupportedStudyVersion, match="Unsupported study version: 830, supported ones are 8.8"):
+            create_study_local("Study_Test", "830", tmp_path)
+
+    def test_reading_with_wrong_version(self, tmp_path):
+        create_study_local("Study_Test", "880", tmp_path)
+        ini_path = tmp_path / "Study_Test" / "study.antares"
+        ini_content = IniReader().read(ini_path)
+        ini_content["antares"]["version"] = 820
+        IniWriter().write(ini_content, ini_path)
+        with pytest.raises(UnsupportedStudyVersion, match="Unsupported study version: 820, supported ones are 8.8"):
+            read_study_local(tmp_path / "Study_Test")
 
     def test_desktop_ini_creation(self, tmp_path, local_study):
         # Given

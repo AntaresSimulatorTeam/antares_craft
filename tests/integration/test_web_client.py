@@ -535,7 +535,7 @@ class TestWebClient:
 
         assert study.service.study_id == actual_study.service.study_id
         assert study.name == actual_study.name
-        assert study.version == actual_study.version
+        assert study._version == actual_study._version
         assert sorted(list(study.get_areas().keys())) == sorted(list(actual_study.get_areas().keys()))
 
         expected_area_fr = study.get_areas()["fr"]

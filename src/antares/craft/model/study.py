@@ -26,6 +26,7 @@ from antares.craft import (
 from antares.craft.exceptions.exceptions import (
     LinkCreationError,
     ReadingMethodUsedOufOfScopeError,
+    UnsupportedStudyVersion,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -42,6 +43,7 @@ from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.model.st_storage import STStorage
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterPropertiesUpdate
 from antares.craft.service.base_services import BaseLinkService, BaseStudyService, StudyServices
+from antares.study.version import StudyVersion
 
 """
 The study module defines the data model for antares study.
@@ -50,6 +52,9 @@ between these areas.
 Optional attribute _api_id defined for studies being stored in web
 _study_path if stored in a disk
 """
+
+STUDY_VERSION_8_8 = StudyVersion.parse("8.8")
+SUPPORTED_STUDY_VERSIONS: set[StudyVersion] = {STUDY_VERSION_8_8}
 
 
 class Study:
@@ -62,7 +67,6 @@ class Study:
         solver_path: Optional[Path] = None,
     ):
         self.name = name
-        self.version = version
         self.path = path
         self._study_service = services.study_service
         self._area_service = services.area_service
@@ -76,6 +80,11 @@ class Study:
         self._binding_constraints: dict[str, BindingConstraint] = dict()
         self._outputs: dict[str, Output] = dict()
         self._solver_path: Optional[Path] = solver_path
+
+        study_version = StudyVersion.parse(version)
+        if study_version not in SUPPORTED_STUDY_VERSIONS:
+            raise UnsupportedStudyVersion(version, SUPPORTED_STUDY_VERSIONS)
+        self._version = study_version
 
     @property
     def service(self) -> BaseStudyService:
