@@ -17,16 +17,15 @@ from antares.craft import LinkProperties, LinkUi, create_study_local
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
-    BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
     ConstraintTerm,
     LinkData,
 )
-from antares.craft.model.commons import FILTER_VALUES, FilterOption
+from antares.craft.model.commons import FilterOption
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
-from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties, TimeSeriesInterpretation
-from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
+from antares.craft.model.renewable import RenewableClusterProperties
+from antares.craft.model.st_storage import STStorageProperties
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import (
     ThermalClusterGroup,
@@ -108,35 +107,10 @@ def local_study_with_renewable(local_study_w_thermal) -> Study:
 
 
 @pytest.fixture
-def default_renewable_cluster_properties() -> RenewableClusterProperties:
-    return RenewableClusterProperties(
-        enabled=True,
-        unit_count=1,
-        nominal_capacity=0,
-        group=RenewableClusterGroup.OTHER1,
-        ts_interpretation=TimeSeriesInterpretation.POWER_GENERATION,
-    )
-
-
-@pytest.fixture
 def local_study_with_st_storage(local_study_with_renewable) -> Study:
     storage_name = "short term storage"
     local_study_with_renewable.get_areas()["fr"].create_st_storage(storage_name)
     return local_study_with_renewable
-
-
-@pytest.fixture
-def default_st_storage_properties() -> STStorageProperties:
-    return STStorageProperties(
-        group=STStorageGroup.OTHER1,
-        injection_nominal_capacity=0,
-        withdrawal_nominal_capacity=0,
-        reservoir_capacity=0,
-        efficiency=1,
-        initial_level=0.5,
-        initial_level_optim=False,
-        enabled=True,
-    )
 
 
 @pytest.fixture
@@ -196,16 +170,3 @@ def local_study_with_constraint(local_study_with_hydro) -> Study:
 @pytest.fixture
 def test_constraint(local_study_with_constraint) -> BindingConstraint:
     return local_study_with_constraint.get_binding_constraints()["test constraint"]
-
-
-@pytest.fixture
-def default_constraint_properties() -> BindingConstraintProperties:
-    return BindingConstraintProperties(
-        enabled=True,
-        time_step=BindingConstraintFrequency.HOURLY,
-        operator=BindingConstraintOperator.LESS,
-        comments="",
-        filter_year_by_year=FILTER_VALUES,
-        filter_synthesis=FILTER_VALUES,
-        group="default",
-    )
