@@ -476,7 +476,7 @@ class OutputSubFolderNotFound(Exception):
 
 class FileTooLargeError(Exception):
     def __init__(self, estimated_size: int, maximum_size: int):
-        self.message = f"Cannot aggregate output data. The expectyed size: {estimated_size} Mo exceeds the max supported size: {maximum_size}"
+        self.message = f"Cannot aggregate output data. The expected size: {estimated_size} Mo exceeds the max supported size: {maximum_size}"
         super().__init__(self.message)
 
 

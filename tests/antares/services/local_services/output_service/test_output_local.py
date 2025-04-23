@@ -539,14 +539,3 @@ class TestOutput:
             pd.testing.assert_frame_equal(df, expected_df)
 
             shutil.rmtree(extract_path)
-
-
-    def test_wrongly_typed_results_all(self, tmp_path):
-
-        for params in WRONGLY_TYPED_REQUESTS__ALL:
-            print(params)
-
-    def test_wrongly_typed_results_ind(self, tmp_path):
-
-        for params in WRONGLY_TYPED_REQUESTS__IND:
-            print(params)
