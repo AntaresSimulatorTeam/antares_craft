@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+import collections
 import logging
 import typing as t
 
@@ -63,12 +63,20 @@ DUMMY_COMPONENT = 2
 logger = logging.getLogger(__name__)
 
 
-
 def _checks_estimated_size(nb_files: int, df_bytes_size: int, nb_files_checked: int) -> None:
     maximum_size = 100  # size in Mo that corresponds to a 15 seconds task.
     estimated_df_size = nb_files * df_bytes_size // (nb_files_checked * 10**6)
     if estimated_df_size > maximum_size:
         raise FileTooLargeError(estimated_df_size, maximum_size)
+
+
+def split_comma_separated_values(value: str, *, default: t.Sequence[str] = ()) -> t.Sequence[str]:
+    """Split a comma-separated list of values into an ordered set of strings."""
+    values = value.split(",") if value else default
+    # drop whitespace around values
+    values = [v.strip() for v in values]
+    # remove duplicates and preserve order (to have a deterministic result for unit tests).
+    return list(collections.OrderedDict.fromkeys(values))
 
 
 def _columns_ordering(df_cols: t.List[str], column_name: str, is_details: bool, mc_root: MCRoot) -> t.Sequence[str]:
@@ -96,7 +104,7 @@ def _infer_column_from_regex(cols: t.Sequence[str], col_regex: str) -> t.Optiona
 
 def _infer_time_id(df: pd.DataFrame, is_details: bool) -> t.List[int]:
     if is_details:
-        return df[TIME_ID_COL].tolist()
+        return df[TIME_ID_COL].values.tolist()
     else:
         return list(range(1, len(df) + 1))
 
@@ -132,9 +140,7 @@ class AggregatorManager:
         self.columns_names = columns_names
         self.ids_to_consider = ids_to_consider
         self.output_type = (
-            "areas"
-            if (isinstance(query_file, MCIndAreas) or isinstance(query_file, MCAllAreas))
-            else "links"
+            "areas" if (isinstance(query_file, MCIndAreas) or isinstance(query_file, MCAllAreas)) else "links"
         )
         self.mc_ind_path = self.output_path / "economy" / MCRoot.MC_IND.value
         self.mc_all_path = self.output_path / "economy" / MCRoot.MC_ALL.value

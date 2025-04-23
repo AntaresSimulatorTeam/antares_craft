@@ -22,6 +22,7 @@ class MCRoot(Enum):
     MC_IND = "mc-ind"
     MC_ALL = "mc-all"
 
+
 class MCIndAreas(StrEnum):
     VALUES = "values"
     DETAILS = "details"

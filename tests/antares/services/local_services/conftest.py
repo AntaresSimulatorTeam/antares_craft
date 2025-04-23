@@ -46,6 +46,7 @@ def local_study(tmp_path) -> Study:
     study_version = "880"
     return create_study_local(study_name, study_version, tmp_path.absolute())
 
+
 @pytest.fixture
 def local_study_w_output(tmp_path, local_study) -> Study:
     output_name = "20250325-1145eco"
@@ -53,7 +54,6 @@ def local_study_w_output(tmp_path, local_study) -> Study:
     tmp_path.joinpath(output_path)
 
     return local_study
-
 
 
 @pytest.fixture

@@ -16,7 +16,10 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import MatrixDownloadError
 from antares.craft.model.output import AggregationEntry
 from antares.craft.service.base_services import BaseOutputService
-from antares.craft.service.local_services.services.output_aggregation import AggregatorManager
+from antares.craft.service.local_services.services.output_aggregation import (
+    AggregatorManager,
+    split_comma_separated_values,
+)
 from typing_extensions import override
 
 
@@ -39,13 +42,17 @@ class OutputLocalService(BaseOutputService):
     def aggregate_values(
         self, output_id: str, aggregation_entry: AggregationEntry, object_type: str, mc_type: str
     ) -> pd.DataFrame:
+        type_ids = split_comma_separated_values(aggregation_entry.type_ids)
+        columns_names = split_comma_separated_values(aggregation_entry.columns_names)
+        mc_years = [int(mc_year) for mc_year in split_comma_separated_values(aggregation_entry.mc_years)]
+
         aggregator_manager = AggregatorManager(
             self.config.study_path / "output" / output_id,
             aggregation_entry.query_file,
             aggregation_entry.frequency,
-            aggregation_entry.type_ids,
-            aggregation_entry.columns_names,
-            aggregation_entry.mc_years,
+            type_ids,
+            columns_names,
+            mc_years,
         )
 
         df = aggregator_manager.aggregate_output_data()
