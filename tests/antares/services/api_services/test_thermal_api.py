@@ -51,7 +51,7 @@ class TestCreateAPI:
     api = APIconf("https://antares.com", "token", verify=False)
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
     services = create_api_services(api, study_id)
-    study = Study("study_test", "870", services)
+    study = Study("study_test", "880", services)
     area = Area(
         "area-test",
         services.area_service,

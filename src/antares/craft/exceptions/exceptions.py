@@ -12,6 +12,8 @@
 
 from typing import Any, List, Optional
 
+from antares.study.version import StudyVersion
+
 
 class APIError(Exception):
     def __init__(self, message: str) -> None:
@@ -471,3 +473,10 @@ class ScenarioBuilderEditionError(Exception):
 class InvalidRequestForScenarioBuilder(Exception):
     def __init__(self, message: str) -> None:
         super().__init__(message)
+
+
+class UnsupportedStudyVersion(Exception):
+    def __init__(self, version: str, supported_versions: set[StudyVersion]) -> None:
+        supported_list = ", ".join(f"{v:2d}" for v in supported_versions)
+        msg = f"Unsupported study version: {version}, supported ones are {supported_list}"
+        super().__init__(msg)

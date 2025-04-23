@@ -120,7 +120,7 @@ class TestCreateAPI:
                 json={
                     "id": f"{self.study_id}",
                     "name": f"{self.study.name}",
-                    "version": f"{self.study.version}",
+                    "version": f"{self.study._version}",
                     "folder": None,
                 },
                 status_code=200,
@@ -314,7 +314,7 @@ class TestCreateAPI:
             )
 
             assert actual_study.name == expected_study.name
-            assert actual_study.version == expected_study.version
+            assert actual_study._version == expected_study._version
             assert actual_study.service.study_id == expected_study.service.study_id
 
     def test_create_variant_success(self):

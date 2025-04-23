@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 import copy
-import logging
 import os
 
 from pathlib import Path
@@ -407,7 +406,6 @@ class AreaLocalService(BaseAreaService):
         except Exception as e:
             raise AreaCreationError(area_name, f"{e}") from e
 
-        logging.info(f"Area {area_name} created successfully!")
         created_area = Area(
             name=area_name,
             area_service=self,
