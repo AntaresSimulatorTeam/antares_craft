@@ -30,7 +30,7 @@ from antares.craft.model.binding_constraint import (
     ConstraintTerm,
     LinkData,
 )
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
+from antares.craft.tools.serde_local.ini_reader import IniReader
 
 
 class TestBindingConstraints:
@@ -122,12 +122,12 @@ class TestBindingConstraints:
         assert bc.id not in local_study_w_constraints.get_binding_constraints()
         # Checks ini file
         study_path = Path(local_study_w_constraints.path)
-        ini_file = IniFile(study_path, InitializationFilesTypes.BINDING_CONSTRAINTS_INI)
-        assert ini_file.ini_dict == {
+        ini_content = IniReader().read(study_path / "input" / "bindingconstraints" / "bindingconstraints.ini")
+        assert ini_content == {
             "0": {
-                "at%fr": "2",
+                "at%fr": 2,
                 "comments": "",
-                "enabled": "True",
+                "enabled": True,
                 "filter-synthesis": "annual, daily, hourly, monthly, weekly",
                 "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
                 "group": "default",

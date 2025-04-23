@@ -9,9 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import logging
-import os
-import time
 
 from pathlib import Path
 from typing import Optional
@@ -33,7 +30,9 @@ from antares.craft.service.local_services.services.settings import StudySettings
 from antares.craft.service.local_services.services.st_storage import ShortTermStorageLocalService
 from antares.craft.service.local_services.services.study import StudyLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.study.version import StudyVersion
+from antares.study.version.create_app import CreateApp
 
 
 def create_local_services(config: LocalConfiguration, study_name: str = "") -> StudyServices:
@@ -66,54 +65,6 @@ def create_local_services(config: LocalConfiguration, study_name: str = "") -> S
     )
 
 
-def _create_correlation_ini_files(study_directory: Path) -> None:
-    correlation_inis_to_create = [
-        getattr(InitializationFilesTypes, field.upper() + "_CORRELATION_INI")
-        for field in ["hydro", "load", "solar", "wind"]
-    ]
-
-    ini_content = {"general": {"mode": "annual"}, "annual": {}}
-    for k in range(12):
-        ini_content[str(k)] = {}
-
-    for file_type in correlation_inis_to_create:
-        ini_file = IniFile(
-            study_directory,
-            file_type,
-            ini_contents=ini_content,
-        )
-        ini_file.write_ini_file()
-
-
-def _verify_study_already_exists(study_directory: Path) -> None:
-    if study_directory.exists():
-        raise FileExistsError(f"Study {study_directory.name} already exists.")
-
-
-def _create_directory_structure(study_path: Path) -> None:
-    subdirectories = [
-        "input/hydro/allocation",
-        "input/hydro/common/capacity",
-        "input/hydro/series",
-        "input/links",
-        "input/load/series",
-        "input/misc-gen",
-        "input/reserves",
-        "input/solar/series",
-        "input/thermal/clusters",
-        "input/thermal/prepro",
-        "input/thermal/series",
-        "input/wind/series",
-        "layers",
-        "output",
-        "settings/resources",
-        "settings/simulations",
-        "user",
-    ]
-    for subdirectory in subdirectories:
-        (study_path / subdirectory).mkdir(parents=True, exist_ok=True)
-
-
 def create_study_local(
     study_name: str, version: str, parent_directory: Path, solver_path: Optional[Path] = None
 ) -> "Study":
@@ -131,40 +82,12 @@ def create_study_local(
     """
     local_config = LocalConfiguration(parent_directory, study_name)
 
-    study_directory = local_config.local_path / study_name
+    study_directory = parent_directory / study_name
 
-    _verify_study_already_exists(study_directory)
+    study_version = StudyVersion.parse(version)
+    app = CreateApp(study_dir=study_directory, caption=study_name, version=study_version, author="Unknown")
+    app()
 
-    # Create the directory structure
-    _create_directory_structure(study_directory)
-
-    # Create study.antares file with timestamps and study_name
-    antares_file_path = os.path.join(study_directory, "study.antares")
-    current_time = int(time.time())
-    antares_content = f"""[antares]
-version = {version}
-caption = {study_name}
-created = {current_time}
-lastsave = {current_time}
-author = Unknown
-"""
-    with open(antares_file_path, "w") as antares_file:
-        antares_file.write(antares_content)
-
-    # Create Desktop.ini file
-    desktop_ini_path = study_directory / "Desktop.ini"
-    desktop_ini_content = f"""[.ShellClassInfo]
-IconFile = settings/resources/study.ico
-IconIndex = 0
-InfoTip = Antares Study {version}: {study_name}
-"""
-    with open(desktop_ini_path, "w") as desktop_ini_file:
-        desktop_ini_file.write(desktop_ini_content)
-
-    # Create various .ini files for the study
-    _create_correlation_ini_files(study_directory)
-
-    logging.info(f"Study successfully created: {study_name}")
     study = Study(
         name=study_name,
         version=version,
@@ -191,15 +114,11 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
         FileNotFoundError: If the provided directory does not exist.
     """
 
-    def _directory_not_exists(local_path: Path) -> None:
-        if not local_path.is_dir():
-            raise FileNotFoundError(f"The path {local_path} doesn't exist or isn't a folder.")
+    if not study_directory.is_dir():
+        raise FileNotFoundError(f"The given path {study_directory} doesn't exist or isn't a folder.")
 
-    _directory_not_exists(study_directory)
-
-    study_antares = IniFile(study_directory, InitializationFilesTypes.ANTARES)
-
-    study_params = study_antares.ini_dict["antares"]
+    study_antares_path = study_directory / "study.antares"
+    study_params = IniReader().read(study_antares_path)["antares"]
 
     local_config = LocalConfiguration(study_directory.parent, study_directory.name)
 

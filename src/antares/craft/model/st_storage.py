@@ -95,8 +95,8 @@ class STStorage:
         return self._properties
 
     def update_properties(self, properties: STStoragePropertiesUpdate) -> STStorageProperties:
-        new_properties = self._storage_service.update_st_storage_properties(self, properties)
-        self._properties = new_properties
+        new_properties = self._storage_service.update_st_storages_properties({self: properties})
+        self._properties = new_properties[self]
         return self._properties
 
     def get_pmax_injection(self) -> pd.DataFrame:

@@ -258,12 +258,12 @@ class Area:
         self.delete_st_storages([storage])
 
     def update_properties(self, properties: AreaPropertiesUpdate) -> AreaProperties:
-        new_properties = self._area_service.update_areas_properties({self.id: properties})
+        new_properties = self._area_service.update_areas_properties({self: properties})
         self._properties = new_properties[self.id]
         return self._properties
 
     def update_ui(self, ui: AreaUiUpdate) -> AreaUi:
-        new_ui = self._area_service.update_area_ui(self.id, ui)
+        new_ui = self._area_service.update_area_ui(self, ui)
         self._ui = new_ui
         return new_ui
 

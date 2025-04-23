@@ -17,13 +17,8 @@ from antares.craft.config.base_configuration import BaseConfiguration
 
 class LocalConfiguration(BaseConfiguration):
     def __init__(self, local_path: Path, study_name: str):
-        self._local_path = local_path
-        self._study_name = study_name
-
-    @property
-    def local_path(self) -> Path:
-        return self._local_path
+        self._study_path = local_path / study_name
 
     @property
     def study_path(self) -> Path:
-        return self._local_path / self._study_name
+        return self._study_path

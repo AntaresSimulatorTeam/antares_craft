@@ -14,6 +14,8 @@ from typing import Dict, Optional, cast
 
 import pandas as pd
 
+from typing_extensions import override
+
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
@@ -50,7 +52,6 @@ from antares.craft.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
-from typing_extensions import override
 
 
 class AreaApiService(BaseAreaService):
@@ -351,7 +352,8 @@ class AreaApiService(BaseAreaService):
             raise MatrixUploadError(area_id, "misc-gen", e.message) from e
 
     @override
-    def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
+    def update_area_ui(self, area: Area, ui: AreaUiUpdate) -> AreaUi:
+        area_id = area.id
         base_url = f"{self._base_url}/studies/{self.study_id}/areas"
         try:
             # As AntaresWeb expects x, y and color fields we have to get the current ui before updating it :/
@@ -507,23 +509,23 @@ class AreaApiService(BaseAreaService):
         return properties
 
     @override
-    def update_areas_properties(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
+    def update_areas_properties(self, dict_areas: Dict[Area, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
         body = {}
         updated_areas: Dict[str, AreaProperties] = {}
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/areas"
 
-        for area_id, props in dict_areas.items():
+        for area, props in dict_areas.items():
             api_properties = AreaPropertiesAPITableMode.from_user_model(props)
             api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
-            body[area_id] = api_dict
+            body[area.id] = api_dict
 
         try:
             areas = self._wrapper.put(url, json=body).json()
 
-            for area in areas:
-                api_response = AreaPropertiesAPITableMode.model_validate(areas[area])
+            for area_id in areas:
+                api_response = AreaPropertiesAPITableMode.model_validate(areas[area_id])
                 area_properties = api_response.to_user_model()
-                updated_areas.update({area: area_properties})
+                updated_areas.update({area_id: area_properties})
 
         except APIError as e:
             raise AreasPropertiesUpdateError(self.study_id, e.message) from e

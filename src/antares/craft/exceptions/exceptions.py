@@ -12,6 +12,8 @@
 
 from typing import Any, List, Optional
 
+from antares.study.version import StudyVersion
+
 
 class APIError(Exception):
     def __init__(self, message: str) -> None:
@@ -27,12 +29,6 @@ class MissingTokenError(Exception):
 class AreaCreationError(Exception):
     def __init__(self, area_name: str, message: str) -> None:
         self.message = f"Could not create the area {area_name}: " + message
-        super().__init__(self.message)
-
-
-class AreaPropertiesUpdateError(Exception):
-    def __init__(self, area_name: str, message: str) -> None:
-        self.message = f"Could not update properties for area {area_name}: " + message
         super().__init__(self.message)
 
 
@@ -483,3 +479,27 @@ class FileTooLargeError(Exception):
 class MCRootNotHandled(Exception):
     def __init__(self, message: str):
         super().__init__(message)
+
+        
+class ScenarioBuilderReadingError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not read the scenario builder for study {study_id}: " + message
+        super().__init__(self.message)
+
+
+class ScenarioBuilderEditionError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not edit the scenario builder for study {study_id}: " + message
+        super().__init__(self.message)
+
+
+class InvalidRequestForScenarioBuilder(Exception):
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+
+
+class UnsupportedStudyVersion(Exception):
+    def __init__(self, version: str, supported_versions: set[StudyVersion]) -> None:
+        supported_list = ", ".join(f"{v:2d}" for v in supported_versions)
+        msg = f"Unsupported study version: {version}, supported ones are {supported_list}"
+        super().__init__(msg)

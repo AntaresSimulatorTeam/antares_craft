@@ -14,5 +14,5 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class PlaylistParameters:
-    status: bool
-    weight: float
+    status: bool = True
+    weight: float = 1

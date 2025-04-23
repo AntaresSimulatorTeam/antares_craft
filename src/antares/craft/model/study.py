@@ -16,10 +16,17 @@ from typing import Dict, List, Optional, cast
 
 import pandas as pd
 
-from antares.craft import APIconf
+from antares.craft import (
+    APIconf,
+    PlaylistParameters,
+    ScenarioBuilder,
+    STStoragePropertiesUpdate,
+    ThematicTrimmingParameters,
+)
 from antares.craft.exceptions.exceptions import (
     LinkCreationError,
     ReadingMethodUsedOufOfScopeError,
+    UnsupportedStudyVersion,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -33,8 +40,10 @@ from antares.craft.model.output import Output
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterPropertiesUpdate
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
+from antares.craft.model.st_storage import STStorage
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterPropertiesUpdate
 from antares.craft.service.base_services import BaseLinkService, BaseStudyService, StudyServices
+from antares.study.version import StudyVersion
 
 """
 The study module defines the data model for antares study.
@@ -43,6 +52,9 @@ between these areas.
 Optional attribute _api_id defined for studies being stored in web
 _study_path if stored in a disk
 """
+
+STUDY_VERSION_8_8 = StudyVersion.parse("8.8")
+SUPPORTED_STUDY_VERSIONS: set[StudyVersion] = {STUDY_VERSION_8_8}
 
 
 class Study:
@@ -55,7 +67,6 @@ class Study:
         solver_path: Optional[Path] = None,
     ):
         self.name = name
-        self.version = version
         self.path = path
         self._study_service = services.study_service
         self._area_service = services.area_service
@@ -69,6 +80,11 @@ class Study:
         self._binding_constraints: dict[str, BindingConstraint] = dict()
         self._outputs: dict[str, Output] = dict()
         self._solver_path: Optional[Path] = solver_path
+
+        study_version = StudyVersion.parse(version)
+        if study_version not in SUPPORTED_STUDY_VERSIONS:
+            raise UnsupportedStudyVersion(version, SUPPORTED_STUDY_VERSIONS)
+        self._version = study_version
 
     @property
     def service(self) -> BaseStudyService:
@@ -99,7 +115,14 @@ class Study:
         self._settings.seed_parameters = new_settings.seed_parameters
         self._settings.adequacy_patch_parameters = new_settings.adequacy_patch_parameters
         self._settings.thematic_trimming_parameters = new_settings.thematic_trimming_parameters
-        self._settings.playlist_parameters = new_settings.playlist_parameters
+
+    def set_playlist(self, playlist: dict[int, PlaylistParameters]) -> None:
+        self._settings_service.set_playlist(playlist)
+        self._settings.playlist_parameters = playlist
+
+    def set_thematic_trimming(self, thematic_trimming: ThematicTrimmingParameters) -> None:
+        self._settings_service.set_thematic_trimming(thematic_trimming)
+        self._settings.thematic_trimming_parameters = thematic_trimming
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
@@ -293,7 +316,7 @@ class Study:
         # Copies objects to bypass the fact that the class is frozen
         self._settings.general_parameters = replace(self._settings.general_parameters, nb_timeseries_thermal=nb_years)
 
-    def update_areas(self, new_properties: Dict[str, AreaPropertiesUpdate]) -> None:
+    def update_areas(self, new_properties: Dict[Area, AreaPropertiesUpdate]) -> None:
         new_areas_props = self._area_service.update_areas_properties(new_properties)
         for area_prop in new_areas_props:
             self._areas[area_prop]._properties = new_areas_props[area_prop]
@@ -330,6 +353,20 @@ class Study:
         new_bc_props = self._binding_constraints_service.update_binding_constraints_properties(new_properties)
         for bc_props in new_bc_props:
             self._binding_constraints[bc_props]._properties = new_bc_props[bc_props]
+
+    def update_st_storages(self, new_properties: dict[STStorage, STStoragePropertiesUpdate]) -> None:
+        new_st_props = self._area_service.storage_service.update_st_storages_properties(new_properties)
+
+        for storage in new_st_props:
+            self._areas[storage.area_id]._st_storages[storage.id]._properties = new_st_props[storage]
+
+    def get_scenario_builder(self) -> ScenarioBuilder:
+        sc_builder = self._study_service.get_scenario_builder(self._settings.general_parameters.nb_years)
+        sc_builder._set_study(self)
+        return sc_builder
+
+    def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
+        self._study_service.set_scenario_builder(scenario_builder)
 
 
 # Design note:

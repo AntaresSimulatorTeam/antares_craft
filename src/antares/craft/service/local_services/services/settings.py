@@ -13,6 +13,8 @@
 from pathlib import Path
 from typing import Any
 
+from typing_extensions import override
+
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParametersUpdate,
@@ -30,10 +32,20 @@ from antares.craft.service.local_services.models.settings import (
     GeneralParametersLocal,
     OptimizationParametersLocal,
     OtherPreferencesLocal,
+    PlaylistParametersLocal,
     SeedParametersLocal,
+    ThematicTrimmingParametersLocal,
 )
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
-from typing_extensions import override
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
+
+DUPLICATE_KEYS = [
+    "playlist_year_weight",
+    "playlist_year +",
+    "playlist_year -",
+    "select_var -",
+    "select_var +",
+]
 
 
 class StudySettingsLocalService(BaseStudySettingsService):
@@ -50,10 +62,33 @@ class StudySettingsLocalService(BaseStudySettingsService):
     def read_study_settings(self) -> StudySettings:
         return read_study_settings(self.config.study_path)
 
+    @override
+    def set_playlist(self, new_playlist: dict[int, PlaylistParameters]) -> None:
+        ini_content = _read_ini(self.config.study_path)
+        nb_years = ini_content["general"]["nbyears"]
+        playlist_local_parameters = PlaylistParametersLocal.create(new_playlist, nb_years)
+        ini_content["playlist"] = playlist_local_parameters.model_dump(mode="json", by_alias=True, exclude_none=True)
+        _save_ini(self.config.study_path, ini_content)
+
+    @override
+    def set_thematic_trimming(self, new_thematic_trimming: ThematicTrimmingParameters) -> None:
+        ini_content = _read_ini(self.config.study_path)
+        trimming_local_parameters = ThematicTrimmingParametersLocal.from_user_model(new_thematic_trimming)
+        ini_content["variables selection"] = trimming_local_parameters.to_ini()
+        _save_ini(self.config.study_path, ini_content)
+
+
+def _read_ini(study_directory: Path) -> dict[str, Any]:
+    return IniReader(DUPLICATE_KEYS).read(study_directory / "settings" / "generaldata.ini")
+
+
+def _save_ini(study_directory: Path, content: dict[str, Any]) -> None:
+    ini_path = study_directory / "settings" / "generaldata.ini"
+    IniWriter(DUPLICATE_KEYS).write(content, ini_path)
+
 
 def read_study_settings(study_directory: Path) -> StudySettings:
-    general_data_ini = IniFile(study_directory, InitializationFilesTypes.GENERAL)
-    ini_content = general_data_ini.ini_dict
+    ini_content = _read_ini(study_directory)
 
     # general
     general_params_ini = {"general": ini_content["general"]}
@@ -66,7 +101,7 @@ def read_study_settings(study_directory: Path) -> StudySettings:
 
     excluded_keys = GeneralParametersLocal.get_excluded_fields_for_user_class()
     for key in excluded_keys:
-        general_params_ini.pop(key, None)
+        general_params_ini["general"].pop(key, None)
 
     output_parameters_ini = {"output": ini_content["output"]}
     local_general_ini = general_params_ini | output_parameters_ini
@@ -100,14 +135,14 @@ def read_study_settings(study_directory: Path) -> StudySettings:
     # playlist
     playlist_parameters: dict[int, PlaylistParameters] = {}
     if "playlist" in ini_content:
-        playlist_parameters = {}
-        # todo
+        local_parameters = PlaylistParametersLocal.model_validate(ini_content["playlist"])
+        playlist_parameters = local_parameters.to_user_model(general_parameters.nb_years)
 
     # thematic trimming
     thematic_trimming_parameters = ThematicTrimmingParameters()
     if "variables selection" in ini_content:
-        thematic_trimming_parameters = ThematicTrimmingParameters()
-        # todo
+        thematic_trimming_local = ThematicTrimmingParametersLocal.from_ini(ini_content["variables selection"])
+        thematic_trimming_parameters = thematic_trimming_local.to_user_model()
 
     return StudySettings(
         general_parameters=general_parameters,
@@ -121,50 +156,31 @@ def read_study_settings(study_directory: Path) -> StudySettings:
 
 
 def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, creation: bool) -> None:
-    general_data_ini = IniFile(study_directory, InitializationFilesTypes.GENERAL)
+    if creation:
+        _save_ini(study_directory, {})
     update = not creation
-    ini_content = {} if creation else general_data_ini.ini_dict
+    ini_content = _read_ini(study_directory)
 
     # general
     if settings.general_parameters:
         general_local_parameters = GeneralParametersLocal.from_user_model(settings.general_parameters)
-
-        json_content = general_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)
-        if "general" in json_content and "building_mode" in json_content["general"]:
-            general_values = json_content["general"]
-            del general_values["building_mode"]
-            building_mode = general_local_parameters.general.building_mode
-            general_values["derated"] = building_mode == BuildingMode.DERATED
-            general_values["custom-scenario"] = building_mode == BuildingMode.CUSTOM
-
-        ini_content.update(json_content)
+        ini_content = general_local_parameters.to_ini_file(update=update, current_content=ini_content)
 
     # optimization
     if settings.optimization_parameters:
         optimization_local_parameters = OptimizationParametersLocal.from_user_model(settings.optimization_parameters)
-        ini_content.update(
-            {"optimization": optimization_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)}
-        )
+        ini_content = optimization_local_parameters.to_ini_file(update=update, current_content=ini_content)
 
     # adequacy_patch
     if settings.adequacy_patch_parameters:
         adequacy_local_parameters = AdequacyPatchParametersLocal.from_user_model(settings.adequacy_patch_parameters)
-        ini_content.update(
-            {"adequacy patch": adequacy_local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)}
-        )
+        ini_content = adequacy_local_parameters.to_ini_file(update=update, current_content=ini_content)
 
     # seed and advanced
     seed_parameters = settings.seed_parameters or SeedParametersUpdate()
     advanced_parameters = settings.advanced_parameters or AdvancedParametersUpdate()
     advanced_parameters_local = AdvancedAndSeedParametersLocal.from_user_model(advanced_parameters, seed_parameters)
-    ini_content.update(advanced_parameters_local.model_dump(mode="json", by_alias=True, exclude_unset=update))
-
-    # playlist
-    # todo
-
-    # thematic trimming
-    # todo
+    ini_content = advanced_parameters_local.to_ini_file(update=update, current_content=ini_content)
 
     # writing
-    general_data_ini.ini_dict = ini_content
-    general_data_ini.write_ini_file()
+    _save_ini(study_directory, ini_content)

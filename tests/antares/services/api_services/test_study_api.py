@@ -34,6 +34,7 @@ from antares.craft.exceptions.exceptions import (
     LinksPropertiesUpdateError,
     OutputDeletionError,
     OutputsRetrievalError,
+    ScenarioBuilderReadingError,
     SimulationFailedError,
     SimulationTimeOutError,
     StudyCreationError,
@@ -56,7 +57,7 @@ from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate
 from antares.craft.model.output import (
     Output,
 )
-from antares.craft.model.settings.general import GeneralParametersUpdate, Mode
+from antares.craft.model.settings.general import GeneralParameters, GeneralParametersUpdate, Mode
 from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus, Solver
 from antares.craft.model.study import Study
@@ -119,7 +120,7 @@ class TestCreateAPI:
                 json={
                     "id": f"{self.study_id}",
                     "name": f"{self.study.name}",
-                    "version": f"{self.study.version}",
+                    "version": f"{self.study._version}",
                     "folder": None,
                 },
                 status_code=200,
@@ -313,7 +314,7 @@ class TestCreateAPI:
             )
 
             assert actual_study.name == expected_study.name
-            assert actual_study.version == expected_study.version
+            assert actual_study._version == expected_study._version
             assert actual_study.service.study_id == expected_study.service.study_id
 
     def test_create_variant_success(self):
@@ -866,7 +867,7 @@ class TestCreateAPI:
 
         json_areas = [
             {
-                "area_test_1": {
+                self.area_1: {
                     "adequacy_patch_mode": "outside",
                     "non_dispatch_power": True,
                     "dispatch_hydro_power": True,
@@ -878,7 +879,7 @@ class TestCreateAPI:
                     "spread_unsupplied_energy_cost": 3000,
                     "spread_spilled_energy_cost": 0,
                 },
-                "area_test_2": {
+                self.area_2: {
                     "adequacy_patch_mode": "outside",
                     "non_dispatch_power": True,
                     "dispatch_hydro_power": True,
@@ -926,7 +927,7 @@ class TestCreateAPI:
             areas = json_areas[0]
             areas_1 = json_areas_1[0]
             for area, props in areas.items():
-                area_up_props = AreaPropertiesUpdate(**areas[area])  # snake_case
+                area_up_props = AreaPropertiesUpdate(**props)  # snake_case
                 dict_areas.update({area: area_up_props})
 
             mocker.put(url, json=areas_1)  # CamelCase
@@ -935,8 +936,8 @@ class TestCreateAPI:
             elec_props = self.study._areas["area_test_1"].properties
             gaz_props = self.study._areas["area_test_2"].properties
 
-            expected_elec = areas["area_test_1"]
-            expected_gaz = areas["area_test_2"]
+            expected_elec = areas[self.area_1]
+            expected_gaz = areas[self.area_2]
             assert elec_props.energy_cost_unsupplied == expected_elec["energy_cost_unsupplied"]
             assert gaz_props.energy_cost_unsupplied == expected_gaz["energy_cost_unsupplied"]
             assert elec_props.adequacy_patch_mode.value == expected_elec["adequacy_patch_mode"]
@@ -1075,3 +1076,33 @@ class TestCreateAPI:
                 match=f"Could not update binding constraints properties from study {self.study_id}: {self.antares_web_description_msg}",
             ):
                 self.study.update_binding_constraints({})
+
+    def test_get_scenario_builder_success(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/config/scenariobuilder"
+            json_builder = {
+                "Default Ruleset": {
+                    "h": {"west": {"0": 1}},
+                    "hl": {"west": {"0": 0.5}},
+                    "l": {"west": {"0": 1}},
+                    "s": {"west": {"0": 1}},
+                    "t": {"west": {"b": {"0": 1}, "p": {"0": 1}, "sb": {"0": 1}}},
+                    "w": {"west": {"0": 1}},
+                }
+            }
+            mocker.get(url, json=json_builder, status_code=201)
+            self.study._areas = {"west": self.area}
+            self.study._settings.general_parameters = GeneralParameters(nb_years=1)
+            sc_builder = self.study.get_scenario_builder()
+            assert sc_builder.load.get_area("west").get_scenario() == [1]
+            assert sc_builder.hydro_initial_level.get_area("west").get_scenario() == [0.5]
+
+    def test_get_scenario_builder_fails(self):
+        with requests_mock.Mocker() as mocker:
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/config/scenariobuilder"
+            mocker.get(url, status_code=400, json={"description": self.antares_web_description_msg})
+            with pytest.raises(
+                ScenarioBuilderReadingError,
+                match=f"Could not read the scenario builder for study {self.study_id}: {self.antares_web_description_msg}",
+            ):
+                self.study.get_scenario_builder()
