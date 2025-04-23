@@ -22,6 +22,7 @@ from antares.craft.model.settings.study_settings import StudySettings, StudySett
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 
 if TYPE_CHECKING:
+    from antares.craft import PlaylistParameters, ScenarioBuilder, ThematicTrimmingParameters
     from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
     from antares.craft.model.binding_constraint import (
         BindingConstraint,
@@ -199,10 +200,10 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def update_area_ui(self, area_id: str, ui: "AreaUiUpdate") -> "AreaUi":
+    def update_area_ui(self, area: "Area", ui: "AreaUiUpdate") -> "AreaUi":
         """
         Args:
-            area_id: concerned area
+            area: concerned area object
             ui: new ui. Only registered fields will be updated.
         """
         pass
@@ -293,7 +294,7 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def update_areas_properties(self, dict_areas: Dict[str, "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
+    def update_areas_properties(self, dict_areas: Dict["Area", "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
         pass
 
 
@@ -687,19 +688,16 @@ class BaseStudyService(ABC):
     def generate_thermal_timeseries(self, number_of_years: int, areas: dict[str, "Area"], seed: int) -> None:
         pass
 
-
-class BaseRenewableService(ABC):
     @abstractmethod
-    def update_renewable_properties(
-        self, renewable_cluster: "RenewableCluster", properties: "RenewableClusterPropertiesUpdate"
-    ) -> "RenewableClusterProperties":
-        """
-        Args:
-            renewable_cluster: concerned cluster
-            properties: new properties. Only registered fields will be updated.
-        """
+    def get_scenario_builder(self, nb_years: int) -> "ScenarioBuilder":
         pass
 
+    @abstractmethod
+    def set_scenario_builder(self, scenario_builder: "ScenarioBuilder") -> None:
+        pass
+
+
+class BaseRenewableService(ABC):
     @abstractmethod
     def get_renewable_matrix(self, cluster_id: str, area_id: str) -> pd.DataFrame:
         """
@@ -734,17 +732,6 @@ class BaseRenewableService(ABC):
 
 class BaseShortTermStorageService(ABC):
     @abstractmethod
-    def update_st_storage_properties(
-        self, st_storage: "STStorage", properties: "STStoragePropertiesUpdate"
-    ) -> "STStorageProperties":
-        """
-        Args:
-            st_storage: concerned storage
-            properties: new properties. Only registered fields will be updated.
-        """
-        pass
-
-    @abstractmethod
     def get_storage_matrix(self, storage: "STStorage", ts_name: "STStorageMatrixName") -> pd.DataFrame:
         pass
 
@@ -754,6 +741,12 @@ class BaseShortTermStorageService(ABC):
 
     @abstractmethod
     def read_st_storages(self) -> dict[str, dict[str, "STStorage"]]:
+        pass
+
+    @abstractmethod
+    def update_st_storages_properties(
+        self, new_properties: dict["STStorage", "STStoragePropertiesUpdate"]
+    ) -> dict["STStorage", "STStorageProperties"]:
         pass
 
 
@@ -832,6 +825,20 @@ class BaseStudySettingsService(ABC):
     def read_study_settings(self) -> StudySettings:
         """
         Reads the settings of a study
+        """
+        pass
+
+    @abstractmethod
+    def set_playlist(self, new_playlist: dict[int, "PlaylistParameters"]) -> None:
+        """
+        Set new playlist for the study
+        """
+        pass
+
+    @abstractmethod
+    def set_thematic_trimming(self, new_thematic_trimming: "ThematicTrimmingParameters") -> None:
+        """
+        Set new playlist for the study
         """
         pass
 

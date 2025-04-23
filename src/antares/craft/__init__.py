@@ -40,6 +40,7 @@ from antares.craft.model.renewable import (
     RenewableClusterPropertiesUpdate,
     TimeSeriesInterpretation,
 )
+from antares.craft.model.scenario_builder import ScenarioBuilder
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParametersUpdate, PriceTakingOrder
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParametersUpdate,
@@ -70,7 +71,7 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettingsUpdate
-from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParametersUpdate
+from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.model.simulation import AntaresSimulationParameters, Solver
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
 from antares.craft.model.study import (
@@ -141,8 +142,9 @@ __all__ = [
     "GeneralParametersUpdate",
     "OptimizationParametersUpdate",
     "PlaylistParameters",
+    "ThematicTrimmingParameters",
     "StudySettingsUpdate",
-    "ThematicTrimmingParametersUpdate",
+    "ScenarioBuilder",
     "AreaProperties",
     "AreaPropertiesUpdate",
     "AreaUi",

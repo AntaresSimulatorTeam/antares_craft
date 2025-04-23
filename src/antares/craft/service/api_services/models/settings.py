@@ -14,6 +14,8 @@ import ast
 from dataclasses import asdict
 from typing import Any, Optional, Sequence, cast
 
+from pydantic import Field, field_validator
+
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
     AdequacyPatchParametersUpdate,
@@ -50,11 +52,10 @@ from antares.craft.model.settings.optimization import (
     SimplexOptimizationRange,
     UnfeasibleProblemBehavior,
 )
-from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters, ThematicTrimmingParametersUpdate
+from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase
-from pydantic import Field, field_validator
 
 AdequacyPatchParametersType = AdequacyPatchParameters | AdequacyPatchParametersUpdate
 
@@ -292,9 +293,6 @@ class OptimizationParametersAPI(APIBaseModel):
         )
 
 
-ThematicTrimmingParametersType = ThematicTrimmingParameters | ThematicTrimmingParametersUpdate
-
-
 @all_optional_model
 class ThematicTrimmingParametersAPI(APIBaseModel):
     ov_cost: bool
@@ -393,7 +391,7 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
     sts_cashflow_by_cluster: bool
 
     @staticmethod
-    def from_user_model(user_class: ThematicTrimmingParametersType) -> "ThematicTrimmingParametersAPI":
+    def from_user_model(user_class: ThematicTrimmingParameters) -> "ThematicTrimmingParametersAPI":
         user_dict = asdict(user_class)
         return ThematicTrimmingParametersAPI.model_validate(user_dict)
 

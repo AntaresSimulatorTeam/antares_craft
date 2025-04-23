@@ -11,24 +11,24 @@
 # This file is part of the Antares project.
 import pytest
 
-import logging
 import os
 import re
-import time
 import typing as t
 
 from configparser import ConfigParser
 from pathlib import Path
+from unittest.mock import ANY
 
 import numpy as np
 import pandas as pd
 
-from antares.craft import create_study_local
+from antares.craft import create_study_local, read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
     LinkCreationError,
+    UnsupportedStudyVersion,
 )
 from antares.craft.model.area import AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -81,15 +81,15 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
-from antares.craft.tools.ini_tool import InitializationFilesTypes
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
 class TestCreateStudy:
-    def test_create_study_success(self, tmp_path, caplog):
+    def test_create_study_success(self, tmp_path):
         # Given
         study_name = "studyTest"
-        version = "850"
-        caplog.set_level(logging.INFO)
+        version = "880"
 
         expected_subdirectories = ["input", "layers", "output", "settings", "user"]
 
@@ -107,49 +107,54 @@ class TestCreateStudy:
             assert subdirectory_path.exists()
             assert subdirectory_path.is_dir()
 
-        # Then
-        assert caplog.records[0].msg == f"Study successfully created: {study_name}"
+    def test_creation_with_wrong_version(self, tmp_path):
+        with pytest.raises(UnsupportedStudyVersion, match="Unsupported study version: 830, supported ones are 8.8"):
+            create_study_local("Study_Test", "830", tmp_path)
+
+    def test_reading_with_wrong_version(self, tmp_path):
+        create_study_local("Study_Test", "880", tmp_path)
+        ini_path = tmp_path / "Study_Test" / "study.antares"
+        ini_content = IniReader().read(ini_path)
+        ini_content["antares"]["version"] = 820
+        IniWriter().write(ini_content, ini_path)
+        with pytest.raises(UnsupportedStudyVersion, match="Unsupported study version: 820, supported ones are 8.8"):
+            read_study_local(tmp_path / "Study_Test")
 
     def test_desktop_ini_creation(self, tmp_path, local_study):
         # Given
         expected_desktop_path = tmp_path / local_study.name / "Desktop.ini"
-        desktop_ini_content = f"""[.ShellClassInfo]
-IconFile = settings/resources/study.ico
-IconIndex = 0
-InfoTip = Antares Study {local_study.version}: {local_study.name}
-"""
-
-        # When
-        with open(expected_desktop_path, "r") as file:
-            actual_content = file.read()
-
-        # Then
-        assert actual_content == desktop_ini_content
         assert expected_desktop_path.exists()
         assert expected_desktop_path.is_file()
 
-    def test_study_antares_content(self, monkeypatch, tmp_path):
+    def test_study_antares_content(self, tmp_path):
         # Given
         study_name = "studyTest"
-        version = "850"
-        expected_study_antares_path = tmp_path / "studyTest/study.antares"
-        antares_content = f"""[antares]
-version = {version}
-caption = {study_name}
-created = {"123"}
-lastsave = {"123"}
-author = Unknown
-"""
-
-        monkeypatch.setattr(time, "time", lambda: "123")
+        version = "880"
+        expected_study_antares_path = tmp_path / study_name / "study.antares"
 
         # When
         create_study_local(study_name, version, tmp_path.absolute())
-        with open(expected_study_antares_path, "r") as file:
-            actual_content = file.read()
 
         # Then
-        assert actual_content == antares_content
+        ini_content = IniReader().read(expected_study_antares_path)
+        assert ini_content == {
+            "antares": {
+                "author": "Unknown",
+                "caption": study_name,
+                "created": ANY,
+                "lastsave": ANY,
+                "version": int(version),
+            }
+        }
+
+    def test_scenario_builder_creation(self, tmp_path, local_study):
+        # Given
+        expected_scenario_builder_path = tmp_path / local_study.name / "settings" / "scenariobuilder.dat"
+        desktop_ini_content = """[Default Ruleset]
+
+"""
+        actual_content = expected_scenario_builder_path.read_text()
+        assert actual_content == desktop_ini_content
 
     def test_verify_study_already_exists_error(self, tmp_path):
         # Given
@@ -158,38 +163,12 @@ author = Unknown
         (tmp_path / study_name).mkdir(parents=True, exist_ok=True)
 
         # When
-        with pytest.raises(FileExistsError, match=f"Study {study_name} already exists"):
+        with pytest.raises(FileExistsError, match="Study directory already exists"):
             create_study_local(study_name, version, tmp_path.absolute())
 
     def test_all_correlation_ini_files_exists(self, local_study):
         expected_ini_content = """[general]
 mode = annual
-
-[annual]
-
-[0]
-
-[1]
-
-[2]
-
-[3]
-
-[4]
-
-[5]
-
-[6]
-
-[7]
-
-[8]
-
-[9]
-
-[10]
-
-[11]
 
 """
         local_config = t.cast(LocalConfiguration, local_study.service.config)
@@ -399,7 +378,7 @@ renewable-generation-modelling = clusters
 day-ahead-reserve-management = global
 
 [advanced parameters]
-accuracy-on-correlation = []
+accuracy-on-correlation = 
 adequacy-block-size = 100
 
 [seeds - Mersenne Twister]
@@ -418,11 +397,8 @@ seed-initial-reservoir-levels = 10005489
 """
 
         # When
-        actual_generaldata_ini_file = local_study.service.config.study_path / InitializationFilesTypes.GENERAL.value
-        actual_file_content = actual_generaldata_ini_file.read_text()
-
-        # Then
-        assert actual_file_content == expected_file_content
+        ini_content = (Path(local_study.path) / "settings" / "generaldata.ini").read_text()
+        assert ini_content == expected_file_content
 
 
 class TestCreateArea:
@@ -465,10 +441,9 @@ apply-filter = add-all
         # Then
         assert actual_content == expected_sets_ini_content
 
-    def test_areas_list_txt_content(self, tmp_path, caplog, local_study):
+    def test_areas_list_txt_content(self, tmp_path, local_study):
         # Given
         study_antares_path = tmp_path / local_study.name
-        caplog.set_level(logging.INFO)
 
         expected_list_txt = study_antares_path / "input" / "areas" / "list.txt"
 
@@ -485,8 +460,6 @@ area2
 
         # Then
         assert actual_content == expected_list_txt_content
-        assert caplog.records[0].msg == "Area area1 created successfully!"
-        assert caplog.records[1].msg == "Area area2 created successfully!"
 
     def test_areas_list_sorted_alphabetically(self, tmp_path, local_study):
         # Given
@@ -616,20 +589,11 @@ layers = 0
         # Then
         assert actual_content == ui_ini_content
 
-    def test_create_area_with_custom_error(self, monkeypatch, local_study):
-        error_message = "Thine area hath raised en error, thou shalt not pass!"
-
-        def mock_error_in_sets_ini():
-            raise Exception(error_message)
-
-        area_id = "test"
-
-        monkeypatch.setattr(
-            "antares.craft.service.local_services.services.area._sets_ini_content", mock_error_in_sets_ini
-        )
+    def test_create_area_with_custom_error(self, local_study):
+        area_id = "?"
         with pytest.raises(
             AreaCreationError,
-            match=f"Could not create the area {area_id}: {error_message}",
+            match=f"Could not create the area {area_id}",
         ):
             local_study.create_area(area_id)
 
@@ -690,7 +654,9 @@ layers = 0
 
     def test_areas_have_default_properties(self, tmp_path, local_study_w_areas):
         actual_area_properties = local_study_w_areas.get_areas()["fr"].properties
-        assert actual_area_properties == AreaProperties(energy_cost_spilled=1, energy_cost_unsupplied=0.5)
+        assert actual_area_properties == AreaProperties(
+            energy_cost_spilled=1, energy_cost_unsupplied=0.5, filter_synthesis={FilterOption.WEEKLY}
+        )
 
     def test_areas_with_custom_properties(self, tmp_path, local_study):
         # Given
@@ -705,59 +671,6 @@ layers = 0
         # When
         created_area = local_study.create_area(area_name=area_to_create, properties=area_properties)
         assert created_area.properties == area_properties
-
-    def test_areas_ini_has_correct_sections(self, actual_thermal_areas_ini):
-        # Given
-        expected_areas_ini_sections = ["unserverdenergycost", "spilledenergycost"]
-
-        # Then
-        assert actual_thermal_areas_ini.parsed_ini.sections() == expected_areas_ini_sections
-
-    def test_areas_ini_has_correct_default_content(self, actual_thermal_areas_ini):
-        # Given
-        expected_areas_ini_contents = """[unserverdenergycost]
-fr = 0.5
-it = 0.5
-at = 0.0
-
-[spilledenergycost]
-fr = 1.0
-it = 1.0
-at = 0.0
-
-"""
-        expected_areas_ini = ConfigParser()
-        expected_areas_ini.read_string(expected_areas_ini_contents)
-
-        # When
-        with actual_thermal_areas_ini.ini_path.open("r") as areas_ini_file:
-            actual_areas_ini_contents = areas_ini_file.read()
-
-        # Then
-        assert actual_areas_ini_contents == expected_areas_ini_contents
-        assert actual_thermal_areas_ini.parsed_ini.sections() == expected_areas_ini.sections()
-        assert actual_thermal_areas_ini.parsed_ini == expected_areas_ini
-
-    def test_adequacy_patch_ini_has_correct_section(self, actual_adequacy_patch_ini):
-        expected_sections = ["adequacy-patch"]
-        assert actual_adequacy_patch_ini.parsed_ini.sections() == expected_sections
-
-    def test_adequacy_patch_ini_has_correct_content(self, actual_adequacy_patch_ini):
-        # Given
-        expected_content = """[adequacy-patch]
-adequacy-patch-mode = outside
-
-"""
-        expected_ini = ConfigParser()
-        expected_ini.read_string(expected_content)
-
-        # When
-        with actual_adequacy_patch_ini.ini_path.open("r") as adequacy_patch_ini_file:
-            actual_content = adequacy_patch_ini_file.read()
-
-        assert actual_content == expected_content
-        assert actual_adequacy_patch_ini.parsed_ini.sections() == expected_ini.sections()
-        assert actual_adequacy_patch_ini.parsed_ini == expected_ini
 
     def test_created_area_has_hydro(self, local_study_w_areas):
         assert local_study_w_areas.get_areas()["fr"].hydro
@@ -993,7 +906,7 @@ comments =
         # Given
         local_study_w_areas.create_area("at")
         links_to_create = ["at_it", "fr_at"]
-        expected_ini_string = """[fr]
+        expected_ini_string = """[it]
 hurdles-cost = False
 loop-flow = False
 use-phase-shifter = False
@@ -1009,7 +922,7 @@ filter-synthesis = annual, daily, hourly, monthly, weekly
 filter-year-by-year = annual, daily, hourly, monthly, weekly
 comments = 
 
-[it]
+[fr]
 hurdles-cost = False
 loop-flow = False
 use-phase-shifter = False
@@ -1188,9 +1101,7 @@ class TestCreateBindingconstraint:
         assert expected_ini_file_path.exists()
         assert expected_ini_file_path.is_file()
 
-    def test_constraints_ini_have_correct_default_content(
-        self, local_study_with_constraint, test_constraint, default_constraint_properties
-    ):
+    def test_constraints_ini_have_correct_default_content(self, local_study_with_constraint, test_constraint):
         # Given
         expected_ini_contents = """[0]
 id = test constraint
@@ -1206,16 +1117,9 @@ group = default
 """
 
         # When
-        actual_ini_path = (
-            local_study_with_constraint.service.config.study_path
-            / InitializationFilesTypes.BINDING_CONSTRAINTS_INI.value
-        )
-        with actual_ini_path.open("r") as file:
-            actual_ini_content = file.read()
-
-        # Then
-        assert default_constraint_properties == test_constraint.properties
-        assert actual_ini_content == expected_ini_contents
+        study_path = Path(local_study_with_constraint.path)
+        ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
+        assert ini_content == expected_ini_contents
 
     def test_constraints_and_ini_have_custom_properties(self, local_study_with_constraint):
         # Given
@@ -1256,15 +1160,9 @@ group = test group
         local_study_with_constraint.create_binding_constraint(
             name="test constraint two", properties=custom_constraint_properties
         )
-        actual_file_path = (
-            local_study_with_constraint.service.config.study_path
-            / InitializationFilesTypes.BINDING_CONSTRAINTS_INI.value
-        )
-        with actual_file_path.open("r") as file:
-            actual_ini_content = file.read()
-
-        # Then
-        assert actual_ini_content == expected_ini_content
+        study_path = Path(local_study_with_constraint.path)
+        ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
+        assert ini_content == expected_ini_content
 
     def test_constraint_can_add_term(self, test_constraint):
         new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]
@@ -1289,10 +1187,10 @@ at%fr = 1
         # When
         new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]
         test_constraint.add_terms(new_term)
-        with local_study_with_constraint._binding_constraints_service.ini_file.ini_path.open("r") as file:
-            actual_ini_content = file.read()
+        study_path = Path(local_study_with_constraint.path)
+        ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
 
-        assert actual_ini_content == expected_ini_contents
+        assert ini_content == expected_ini_contents
 
     def test_constraint_term_with_offset_and_ini_have_correct_values(
         self, local_study_with_constraint, test_constraint
@@ -1314,10 +1212,10 @@ at%fr = 1%1
         # When
         new_term = [ConstraintTerm(offset=1, data=LinkData(area1="fr", area2="at"))]
         test_constraint.add_terms(new_term)
-        with local_study_with_constraint._binding_constraints_service.ini_file.ini_path.open("r") as file:
-            actual_ini_content = file.read()
+        study_path = Path(local_study_with_constraint.path)
+        ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
 
-        assert actual_ini_content == expected_ini_contents
+        assert ini_content == expected_ini_contents
 
     def test_binding_constraints_have_correct_default_time_series(self, test_constraint, local_study_with_constraint):
         # Given
@@ -1381,7 +1279,7 @@ at%fr = 1%1
 
     def test_get_constraint_matrix(self, local_study):
         # Given
-        expected_time_series = pd.DataFrame(np.random.randint(0, 100, [365 * 24, 1]))
+        expected_time_series = pd.DataFrame(np.random.randint(0, 100, [365 * 24, 1]), dtype=np.int64)
         bc_name = "test time series"
         local_study.create_binding_constraint(
             name=bc_name,

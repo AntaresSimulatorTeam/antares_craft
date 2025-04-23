@@ -26,11 +26,13 @@ class TestRenewable:
     def test_update_properties(self, tmp_path: Path, local_study_with_renewable: Study) -> None:
         # Checks values before update
         renewable = local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"]
-        assert renewable.properties == RenewableClusterProperties(nominal_capacity=0)
+        assert renewable.properties == RenewableClusterProperties(enabled=False, unit_count=44)
         # Updates properties
-        update_properties = RenewableClusterPropertiesUpdate(enabled=False, unit_count=3)
+        update_properties = RenewableClusterPropertiesUpdate(group=RenewableClusterGroup.WIND_ON_SHORE, enabled=True)
         new_properties = renewable.update_properties(update_properties)
-        expected_properties = RenewableClusterProperties(enabled=False, unit_count=3, nominal_capacity=0)
+        expected_properties = RenewableClusterProperties(
+            enabled=True, unit_count=44, group=RenewableClusterGroup.WIND_ON_SHORE
+        )
         assert new_properties == expected_properties
         assert renewable.properties == expected_properties
 

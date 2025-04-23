@@ -14,6 +14,8 @@ from pathlib import PurePosixPath
 
 import pandas as pd
 
+from typing_extensions import override
+
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
@@ -31,7 +33,6 @@ from antares.craft.model.thermal import (
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseThermalService
-from typing_extensions import override
 
 
 class ThermalApiService(BaseThermalService):

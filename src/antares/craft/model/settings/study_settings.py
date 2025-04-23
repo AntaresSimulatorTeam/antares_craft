@@ -22,7 +22,7 @@ from antares.craft.model.settings.advanced_parameters import (
 from antares.craft.model.settings.general import GeneralParameters, GeneralParametersUpdate
 from antares.craft.model.settings.optimization import OptimizationParameters, OptimizationParametersUpdate
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
-from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters, ThematicTrimmingParametersUpdate
+from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 
 
 @dataclass
@@ -32,8 +32,6 @@ class StudySettingsUpdate:
     advanced_parameters: Optional[AdvancedParametersUpdate] = None
     seed_parameters: Optional[SeedParametersUpdate] = None
     adequacy_patch_parameters: Optional[AdequacyPatchParametersUpdate] = None
-    thematic_trimming_parameters: Optional[ThematicTrimmingParametersUpdate] = None
-    playlist_parameters: Optional[dict[int, PlaylistParameters]] = None
 
 
 @dataclass
@@ -81,19 +79,7 @@ class StudySettings:
         advanced_parameters = AdvancedParametersUpdate(**current_settings["advanced_parameters"])
         seed_parameters = SeedParametersUpdate(**current_settings["seed_parameters"])
         adequacy_patch_parameters = AdequacyPatchParametersUpdate(**current_settings["adequacy_patch_parameters"])
-        thematic_trimming_parameters = ThematicTrimmingParametersUpdate(
-            **current_settings["thematic_trimming_parameters"]
-        )
-        playlist_parameters: dict[int, PlaylistParameters] = {}
-        for year in current_settings["playlist_parameters"]:
-            playlist_parameters[year] = PlaylistParameters(**current_settings["playlist_parameters"][year])
 
         return StudySettingsUpdate(
-            general_parameters,
-            optimization_parameters,
-            advanced_parameters,
-            seed_parameters,
-            adequacy_patch_parameters,
-            thematic_trimming_parameters,
-            playlist_parameters,
+            general_parameters, optimization_parameters, advanced_parameters, seed_parameters, adequacy_patch_parameters
         )

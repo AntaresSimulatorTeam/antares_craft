@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import dataclass
+from enum import Enum
 from typing import Optional
 
 from antares.craft.tools.contents_tool import EnumIgnoreCase
@@ -51,7 +52,7 @@ class BuildingMode(EnumIgnoreCase):
     DERATED = "derated"
 
 
-class OutputChoices(EnumIgnoreCase):
+class OutputChoices(Enum):
     LOAD = "load"
     WIND = "wind"
     HYDRO = "hydro"

@@ -11,10 +11,12 @@
 # This file is part of the Antares project.
 from dataclasses import asdict
 
+from typing_extensions import override
+
+from antares.craft import ThematicTrimmingParameters
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import APIError, StudySettingsReadError, StudySettingsUpdateError
-from antares.craft.model.settings.optimization import ExportMPS
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.service.api_services.models.settings import (
@@ -25,7 +27,6 @@ from antares.craft.service.api_services.models.settings import (
     ThematicTrimmingParametersAPI,
 )
 from antares.craft.service.base_services import BaseStudySettingsService
-from typing_extensions import override
 
 
 class StudySettingsAPIService(BaseStudySettingsService):
@@ -50,24 +51,24 @@ class StudySettingsAPIService(BaseStudySettingsService):
         except APIError as e:
             raise StudySettingsReadError(self.study_id, e.message) from e
 
+    @override
+    def set_playlist(self, new_playlist: dict[int, PlaylistParameters]) -> None:
+        playlist_url = f"{self._base_url}/studies/{self.study_id}/config/playlist/form"
+        body = {}
+        for key, value in new_playlist.items():
+            body[str(key)] = asdict(value)
+        self._wrapper.put(playlist_url, json=body)
+
+    @override
+    def set_thematic_trimming(self, new_thematic_trimming: ThematicTrimmingParameters) -> None:
+        thematic_trimming_url = f"{self._base_url}/studies/{self.study_id}/config/thematictrimming/form"
+        api_model = ThematicTrimmingParametersAPI.from_user_model(new_thematic_trimming)
+        body = api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
+        self._wrapper.put(thematic_trimming_url, json=body)
+
 
 def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, settings: StudySettingsUpdate) -> None:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
-
-    # thematic trimming
-    if settings.thematic_trimming_parameters:
-        thematic_trimming_url = f"{settings_base_url}/thematictrimming/form"
-        api_model = ThematicTrimmingParametersAPI.from_user_model(settings.thematic_trimming_parameters)
-        body = api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
-        wrapper.put(thematic_trimming_url, json=body)
-
-    # playlist
-    if settings.playlist_parameters:
-        playlist_url = f"{settings_base_url}/playlist/form"
-        body = {}
-        for key, value in settings.playlist_parameters.items():
-            body[str(key)] = asdict(value)
-        wrapper.put(playlist_url, json=body)
 
     # optimization
     if settings.optimization_parameters:
@@ -129,11 +130,6 @@ def read_study_settings_api(base_url: str, study_id: str, wrapper: RequestWrappe
     optimization_url = f"{settings_base_url}/optimization/form"
     response = wrapper.get(optimization_url)
     json_response = response.json()
-    export_mps_value = json_response.get("exportMps", None)
-    if export_mps_value is True:
-        json_response["exportMps"] = ExportMPS.TRUE
-    elif export_mps_value is False:
-        json_response["exportMps"] = ExportMPS.FALSE
     optimization_api_model = OptimizationParametersAPI.model_validate(json_response)
     optimization_parameters = optimization_api_model.to_user_model()
 

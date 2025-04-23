@@ -17,7 +17,6 @@ import os
 import re
 import typing as t
 
-from configparser import ConfigParser
 from io import StringIO
 from pathlib import Path
 
@@ -36,7 +35,7 @@ from antares.craft.model.renewable import (
     TimeSeriesInterpretation,
 )
 from antares.craft.model.st_storage import STStorage, STStorageGroup, STStorageProperties
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
+from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
 
@@ -56,38 +55,22 @@ class TestCreateRenewablesCluster:
 
     def test_renewable_cluster_has_correct_default_properties(self, local_study_with_renewable):
         renewable_cluster = local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"]
-        assert renewable_cluster.properties == RenewableClusterProperties()
+        assert renewable_cluster.properties == RenewableClusterProperties(enabled=False, unit_count=44)
 
-    def test_renewables_list_ini_exists(self, local_study_with_renewable):
-        renewables_list_ini = (
-            local_study_with_renewable.service.config.study_path
-            / InitializationFilesTypes.RENEWABLES_LIST_INI.value.format(area_id="fr")
-        )
-        assert renewables_list_ini.is_file()
-
-    def test_renewable_list_ini_has_correct_default_values(
-        self, default_renewable_cluster_properties, actual_renewable_list_ini
-    ):
+    def test_renewable_list_ini_has_correct_default_values(self, local_study_with_renewable):
         # Given
         expected_renewables_list_ini_content = """[renewable cluster]
 name = renewable cluster
-enabled = True
-unitcount = 1
+enabled = False
+unitcount = 44
 nominalcapacity = 0.0
 group = other res 1
 ts-interpretation = power-generation
 
 """
-        expected_renewables_list_ini = ConfigParser()
-        expected_renewables_list_ini.read_string(expected_renewables_list_ini_content)
-
-        # When
-        with actual_renewable_list_ini.ini_path.open() as renewables_list_ini_file:
-            actual_renewable_list_ini_content = renewables_list_ini_file.read()
-
-        assert actual_renewable_list_ini_content == expected_renewables_list_ini_content
-        assert actual_renewable_list_ini.parsed_ini.sections() == expected_renewables_list_ini.sections()
-        assert actual_renewable_list_ini.parsed_ini == expected_renewables_list_ini
+        study_path = Path(local_study_with_renewable.path)
+        ini_content = (study_path / "input" / "renewables" / "clusters" / "fr" / "list.ini").read_text()
+        assert ini_content == expected_renewables_list_ini_content
 
     def test_renewable_cluster_and_ini_have_custom_properties(self, local_study_w_thermal):
         # Given
@@ -104,20 +87,17 @@ group = wind offshore
 ts-interpretation = production-factor
 
 """
-        actual_renewable_list_ini = IniFile(
-            local_study_w_thermal.service.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id="fr"
-        )
 
         # When
         local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(renewable_name, renewable_properties, None)
-        with actual_renewable_list_ini.ini_path.open() as renewables_list_ini_file:
-            actual_renewable_list_ini_content = renewables_list_ini_file.read()
+        study_path = Path(local_study_w_thermal.path)
+        ini_content = (study_path / "input" / "renewables" / "clusters" / "fr" / "list.ini").read_text()
+        assert ini_content == expected_renewables_list_ini_content
 
         assert (
             local_study_w_thermal.get_areas()["fr"].get_renewables()["renewable cluster"].properties
             == renewable_properties
         )
-        assert actual_renewable_list_ini_content == expected_renewables_list_ini_content
 
     def test_renewable_cluster_and_series_is_empty(self, local_study_w_thermal):
         local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
@@ -165,38 +145,8 @@ class TestCreateSTStorage:
         assert st_storage.properties == STStorageProperties()
 
     def test_st_storage_list_ini_exists(self, local_study_with_st_storage):
-        st_storage_list_ini = (
-            local_study_with_st_storage.service.config.study_path
-            / InitializationFilesTypes.ST_STORAGE_LIST_INI.value.format(area_id="fr")
-        )
-        assert st_storage_list_ini.is_file()
-
-    def test_st_storage_list_ini_has_correct_default_values(
-        self, default_st_storage_properties, actual_st_storage_list_ini
-    ):
-        # Given
-        expected_st_storage_list_ini_content = """[short term storage]
-name = short term storage
-group = other1
-injectionnominalcapacity = 0.0
-withdrawalnominalcapacity = 0.0
-reservoircapacity = 0.0
-efficiency = 1.0
-initiallevel = 0.5
-initialleveloptim = False
-enabled = True
-
-"""
-        expected_st_storage_list_ini = ConfigParser()
-        expected_st_storage_list_ini.read_string(expected_st_storage_list_ini_content)
-
-        # When
-        with actual_st_storage_list_ini.ini_path.open() as st_storage_list_ini_file:
-            actual_st_storage_list_ini_content = st_storage_list_ini_file.read()
-
-        assert actual_st_storage_list_ini_content == expected_st_storage_list_ini_content
-        assert actual_st_storage_list_ini.parsed_ini.sections() == expected_st_storage_list_ini.sections()
-        assert actual_st_storage_list_ini.parsed_ini == expected_st_storage_list_ini
+        study_path = Path(local_study_with_st_storage.path)
+        assert (study_path / "input" / "st-storage" / "clusters" / "fr" / "list.ini").exists()
 
     def test_st_storage_and_ini_have_custom_properties(self, local_study_w_areas):
         # Given
@@ -219,15 +169,11 @@ initialleveloptim = False
 enabled = True
 
 """
-        actual_st_storage_list_ini = IniFile(
-            local_study_w_areas.service.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id="fr"
-        )
-
-        with actual_st_storage_list_ini.ini_path.open() as st_storage_list_ini_file:
-            actual_st_storage_list_ini_content = st_storage_list_ini_file.read()
+        study_path = Path(local_study_w_areas.path)
+        ini_content = (study_path / "input" / "st-storage" / "clusters" / "fr" / "list.ini").read_text()
+        assert ini_content == expected_st_storage_list_ini_content
 
         assert created_storage.properties == properties
-        assert actual_st_storage_list_ini_content == expected_st_storage_list_ini_content
 
 
 class TestCreateReserves:
@@ -880,7 +826,7 @@ class TestReadThermal:
             for thermal in thermals_list:
                 # Check properties
                 assert thermal.name == "test thermal cluster"
-                assert thermal.properties.group.value == "other 1"
+                assert thermal.properties.group.value == "nuclear"
                 assert thermal.properties.unit_count == 1
                 assert thermal.properties.efficiency == 100.000000
                 assert thermal.properties.nominal_capacity == 0.000000
@@ -900,17 +846,23 @@ class TestReadLinks:
         links = local_study_w_links.get_links()
         for link in links.values():
             assert link.ui.link_style.value == "plain"
-            assert link.ui.link_width == 1
+            assert link.ui.link_width == 29
             assert link.ui.colorb == 112
             assert link.ui.colorg == 112
-            assert link.ui.colorr == 112
+            assert link.ui.colorr == 1
             assert not link.properties.hurdles_cost
             assert not link.properties.loop_flow
-            assert not link.properties.use_phase_shifter
+            assert link.properties.use_phase_shifter
             assert link.properties.transmission_capacities.value == "enabled"
             assert link.properties.asset_type.value == "ac"
-            assert isinstance(link.properties.filter_year_by_year, set)
-            assert isinstance(link.properties.filter_synthesis, set)
+            assert link.properties.filter_year_by_year == {
+                FilterOption.WEEKLY,
+                FilterOption.DAILY,
+                FilterOption.HOURLY,
+                FilterOption.ANNUAL,
+                FilterOption.MONTHLY,
+            }
+            assert link.properties.filter_synthesis == {FilterOption.WEEKLY}
 
 
 class TestReadSTStorage:
@@ -920,7 +872,7 @@ class TestReadSTStorage:
         for area in areas.values():
             storages = area.get_st_storages()
             if area.name == "fr":
-                assert len(storages) == 1
+                assert len(storages) == 2
                 storage = storages["sts_1"]
                 assert storage.name == "sts_1"
                 assert storage.properties.efficiency == 0.4
@@ -933,70 +885,73 @@ class TestUpateArea:
     def test_update_properties(self, local_study_w_areas):
         # Checks values before update
         area = local_study_w_areas.get_areas()["fr"]
-        current_properties = AreaProperties(energy_cost_spilled=1, energy_cost_unsupplied=0.5)
+        current_properties = AreaProperties(
+            energy_cost_spilled=1, energy_cost_unsupplied=0.5, filter_synthesis={FilterOption.WEEKLY}
+        )
         assert area.properties == current_properties
         # Updates properties
         update_properties = AreaPropertiesUpdate(
             adequacy_patch_mode=AdequacyPatchMode.VIRTUAL,
-            filter_synthesis={FilterOption.DAILY},
-            energy_cost_spilled=0.4,
+            filter_by_year={FilterOption.DAILY},
+            energy_cost_spilled=0,
         )
         new_properties = area.update_properties(update_properties)
         expected_properties = AreaProperties(
             adequacy_patch_mode=AdequacyPatchMode.VIRTUAL,
-            filter_synthesis={FilterOption.DAILY},
-            energy_cost_spilled=0.4,
+            filter_by_year={FilterOption.DAILY},
+            filter_synthesis={FilterOption.WEEKLY},
+            energy_cost_spilled=0,
             energy_cost_unsupplied=0.5,
         )
         assert new_properties == expected_properties
         assert area.properties == expected_properties
         # Asserts the ini files are properly modified
         study_path = Path(local_study_w_areas.path)
-        optimization_ini_file = IniFile(study_path, InitializationFilesTypes.AREA_OPTIMIZATION_INI, area.id)
-        assert optimization_ini_file.ini_dict == {
+        optimization_ini = IniReader().read(study_path / "input" / "areas" / area.id / "optimization.ini")
+        assert optimization_ini == {
             "nodal optimization": {
-                "non-dispatchable-power": "True",
-                "dispatchable-hydro-power": "True",
-                "other-dispatchable-power": "True",
-                "spread-unsupplied-energy-cost": "0.0",
-                "spread-spilled-energy-cost": "0.0",
+                "non-dispatchable-power": True,
+                "dispatchable-hydro-power": True,
+                "other-dispatchable-power": True,
+                "spread-unsupplied-energy-cost": 0,
+                "spread-spilled-energy-cost": 0,
             },
-            "filtering": {"filter-synthesis": "daily", "filter-year-by-year": "annual, daily, hourly, monthly, weekly"},
+            "filtering": {"filter-synthesis": "weekly", "filter-year-by-year": "daily"},
         }
-        adequacy_ini = IniFile(study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area.id)
-        assert adequacy_ini.ini_dict == {"adequacy-patch": {"adequacy-patch-mode": "virtual"}}
-        thermal_ini = IniFile(study_path, InitializationFilesTypes.THERMAL_AREAS_INI)
-        assert thermal_ini.ini_dict == {
-            "unserverdenergycost": {"fr": "0.5", "it": "0.5"},
-            "spilledenergycost": {"fr": "0.4", "it": "1.0"},
+        adequacy_ini = IniReader().read(study_path / "input" / "areas" / area.id / "adequacy_patch.ini")
+        assert adequacy_ini == {"adequacy-patch": {"adequacy-patch-mode": "virtual"}}
+        thermal_ini = IniReader().read(study_path / "input" / "thermal" / "areas.ini")
+        assert thermal_ini == {
+            "unserverdenergycost": {"fr": 0.5, "it": 0.5},
+            "spilledenergycost": {"fr": 0, "it": 1.0},
         }
 
     def test_update_ui(self, local_study_w_areas):
         # Checks values before update
         area = local_study_w_areas.get_areas()["fr"]
-        current_ui = AreaUi()
+        current_ui = AreaUi(x=56)
         assert area.ui == current_ui
         # Updates properties
-        update_ui = AreaUiUpdate(x=12, color_rgb=[5, 6, 7])
+        update_ui = AreaUiUpdate(y=12, color_rgb=[5, 6, 7])
         new_ui = area.update_ui(update_ui)
-        expected_ui = AreaUi(x=12, color_rgb=[5, 6, 7], y=0)
+        expected_ui = AreaUi(y=12, color_rgb=[5, 6, 7], x=56)
         assert new_ui == expected_ui
         assert area.ui == expected_ui
         # Asserts the ini file is properly modified
         study_path = Path(local_study_w_areas.path)
-        ui_ini_file = IniFile(study_path, InitializationFilesTypes.AREA_UI_INI, area.id)
-        assert ui_ini_file.ini_dict == {
-            "ui": {"x": "12", "y": "0", "color_r": "5", "color_g": "6", "color_b": "7"},
-            "layerX": {"0": "12"},
-            "layerY": {"0": "0"},
+        ui_ini = IniReader().read(study_path / "input" / "areas" / area.id / "ui.ini")
+        assert ui_ini == {
+            "ui": {"x": 56, "y": 12, "color_r": 5, "color_g": 6, "color_b": 7},
+            "layerX": {"0": 56},
+            "layerY": {"0": 12},
             "layerColor": {"0": "5,6,7"},
         }
 
     def test_create_area_creates_default_files(self, local_study_w_areas):
         study_path = Path(local_study_w_areas.path)
         for area in local_study_w_areas.get_areas():
-            assert IniFile(study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area).ini_path.exists()
-            assert IniFile(study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area).ini_path.exists()
+            assert (study_path / "input" / "st-storage" / "clusters" / area / "list.ini").exists()
+            assert (study_path / "input" / "renewables" / "clusters" / area / "list.ini").exists()
 
     def test_create_area_with_weird_name_succeeds(self, local_study_w_areas):
         local_study_w_areas.create_area("AREA_MAJ???")

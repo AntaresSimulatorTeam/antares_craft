@@ -1,3 +1,37 @@
+v0.2.6 (2025-04-14)
+-------------------
+
+### Bug fixes
+- **local**: support `None` value for include-export-mps [169](https://github.com/AntaresSimulatorTeam/antares_craft/pull/169)
+- **local**: allow empty field for `accuracy-on-correlation` inside generaldata.ini [170](https://github.com/AntaresSimulatorTeam/antares_craft/pull/170)
+
+v0.2.5 (2025-04-09)
+-------------------
+
+### Features
+- **build**: support Python3.13 [164](https://github.com/AntaresSimulatorTeam/antares_craft/pull/164)
+
+### Bug fixes
+- **local**: avoid reading useless fields inside `read_settings` method [165](https://github.com/AntaresSimulatorTeam/antares_craft/pull/165)
+- **local**: use the default value when reading an empty string [166](https://github.com/AntaresSimulatorTeam/antares_craft/pull/166)
+
+v0.2.4 (2025-04-04)
+-------------------
+
+### Features
+- **renewable**: add `update_renewable_clusters` method [149](https://github.com/AntaresSimulatorTeam/antares_craft/pull/149)
+- **st-storage**: add `update_st_storages` method [150](https://github.com/AntaresSimulatorTeam/antares_craft/pull/150)
+- **local** support playlist reading and writing [159](https://github.com/AntaresSimulatorTeam/antares_craft/pull/159)
+- **local** support thematic trimming reading and writing [160](https://github.com/AntaresSimulatorTeam/antares_craft/pull/160)
+- **scenariobuilder**: support scenario builder reading and writing [161](https://github.com/AntaresSimulatorTeam/antares_craft/pull/161), [162](https://github.com/AntaresSimulatorTeam/antares_craft/pull/162)
+
+### Bug fixes
+- **local** fix several issues inside properties update [152](https://github.com/AntaresSimulatorTeam/antares_craft/pull/152) [154](https://github.com/AntaresSimulatorTeam/antares_craft/pull/154), [155](https://github.com/AntaresSimulatorTeam/antares_craft/pull/155), [156](https://github.com/AntaresSimulatorTeam/antares_craft/pull/156), [157](https://github.com/AntaresSimulatorTeam/antares_craft/pull/157), [158](https://github.com/AntaresSimulatorTeam/antares_craft/pull/158)
+
+### Miscellaneous
+- **local** use `ini_reader` instead of `ConfigParser` to prepare future work [151](https://github.com/AntaresSimulatorTeam/antares_craft/pull/151)
+- **local** avoid unecessary i/o operations inside area properties update [153](https://github.com/AntaresSimulatorTeam/antares_craft/pull/153)
+
 v0.2.3 (2025-03-20)
 -------------------
 

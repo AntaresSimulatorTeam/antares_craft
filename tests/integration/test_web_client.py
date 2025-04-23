@@ -72,6 +72,7 @@ from antares.craft.exceptions.exceptions import (
     AreaDeletionError,
     BindingConstraintCreationError,
     ConstraintMatrixUpdateError,
+    InvalidRequestForScenarioBuilder,
     MatrixUploadError,
     STStorageMatrixUploadError,
     StudySettingsUpdateError,
@@ -79,7 +80,6 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.hydro import InflowStructureUpdate
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import Job, JobStatus
-
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
 
@@ -341,7 +341,7 @@ class TestWebClient:
         area_props_update_2 = AreaPropertiesUpdate(
             non_dispatch_power=False, energy_cost_spilled=0.45, energy_cost_unsupplied=3.0
         )
-        dict_area_props = {area_fr.id: area_props_update_1, area_be.id: area_props_update_2}
+        dict_area_props = {area_fr: area_props_update_1, area_be: area_props_update_2}
         study.update_areas(dict_area_props)
 
         area_fr_props = area_fr.properties
@@ -362,7 +362,7 @@ class TestWebClient:
         wrong_matrix = pd.DataFrame(data=[[0]])
         with pytest.raises(
             STStorageMatrixUploadError,
-            match=f"Could not upload inflows matrix for storage {battery_fr.id}" f" inside area {area_fr.id}",
+            match=f"Could not upload inflows matrix for storage {battery_fr.id} inside area {area_fr.id}",
         ):
             battery_fr.set_storage_inflows(wrong_matrix)
 
@@ -380,6 +380,31 @@ class TestWebClient:
         assert area_fr.get_renewables() == {renewable_onshore.id: renewable_onshore, renewable_fr.id: renewable_fr}
         assert area_be.get_st_storages() == {}
         assert area_fr.get_st_storages() == {battery_fr.id: battery_fr, storage_fr.id: storage_fr}
+
+        # using update_st_storages to modify existing storages properties and checking they've been modified
+        battery_fr_update = STStoragePropertiesUpdate(
+            group=STStorageGroup.PSP_CLOSED, enabled=False, injection_nominal_capacity=1000
+        )
+        storage_fr_update = STStoragePropertiesUpdate(group=STStorageGroup.PONDAGE, efficiency=0)
+        update_for_storages = {battery_fr: battery_fr_update, storage_fr: storage_fr_update}
+
+        study.update_st_storages(update_for_storages)
+
+        battery_fr_properties = battery_fr.properties
+        storage_fr_properties = storage_fr.properties
+        assert battery_fr_properties.group == STStorageGroup.PSP_CLOSED
+        assert not battery_fr_properties.enabled
+        assert battery_fr_properties.injection_nominal_capacity == 1000
+        # Checking if the other values haven't been modified
+        assert battery_fr_properties.initial_level == 0.5
+        assert battery_fr_properties.efficiency == 1
+
+        assert storage_fr_properties.group == STStorageGroup.PONDAGE
+        assert storage_fr_properties.efficiency == 0
+        # Checking if the other values haven't been modified
+        assert storage_fr_properties.enabled
+        assert storage_fr_properties.injection_nominal_capacity == 0
+        assert storage_fr_properties.reservoir_capacity == 0
 
         # test binding constraint creation without terms
         properties = BindingConstraintProperties(enabled=False, group="group_1")
@@ -510,7 +535,7 @@ class TestWebClient:
 
         assert study.service.study_id == actual_study.service.study_id
         assert study.name == actual_study.name
-        assert study.version == actual_study.version
+        assert study._version == actual_study._version
         assert sorted(list(study.get_areas().keys())) == sorted(list(actual_study.get_areas().keys()))
 
         expected_area_fr = study.get_areas()["fr"]
@@ -614,6 +639,47 @@ class TestWebClient:
         assert thermal_fr.get_co2_cost_matrix().equals(series_matrix)
         assert renewable_fr.get_timeseries().equals(series_matrix)
 
+        # =======================
+        #  SCENARIO BUILDER
+        # =======================
+        # Sets study nb_years to 4
+        study.update_settings(StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4)))
+
+        sc_builder = study.get_scenario_builder()
+
+        # Ensures requesting the sc_builder with a wrong name raise a proper issue
+        fake_area = "fake_area"
+        with pytest.raises(InvalidRequestForScenarioBuilder, match=f"The area {fake_area} does not exist"):
+            sc_builder.load.get_area(fake_area)
+
+        # Ensures every value is None as we didn't set anything inside this Study
+        assert sc_builder.load.get_area("fr").get_scenario() == [None, None, None, None]
+
+        # Sets a new scenario builder
+        sc_builder.load.get_area("fr").set_new_scenario([1, 2, 3, 4])
+        sc_builder.hydro_initial_level.get_area("be").set_new_scenario([0.1, 0.2, None, 0.5])
+        sc_builder.thermal.get_cluster("fr", "cluster_test").set_new_scenario([1, 4, 3, 2])
+        study.set_scenario_builder(sc_builder)
+
+        # Reads the new scenario builder
+        new_sc_builder = study.get_scenario_builder()
+        assert new_sc_builder.load.get_area("fr").get_scenario() == [1, 2, 3, 4]
+        assert new_sc_builder.hydro_initial_level.get_area("be").get_scenario() == [0.1, 0.2, None, 0.5]
+        assert new_sc_builder.thermal.get_cluster("fr", "cluster_test").get_scenario() == [1, 4, 3, 2]
+
+        # Ensures updating just one thing doesn't alter others
+        new_sc_builder.load.get_area("be").set_new_scenario([1, 3, 2, 4])
+        study.set_scenario_builder(new_sc_builder)
+        sc_builder = study.get_scenario_builder()
+        assert sc_builder.load.get_area("fr").get_scenario() == [1, 2, 3, 4]
+        assert sc_builder.load.get_area("be").get_scenario() == [1, 3, 2, 4]
+        assert sc_builder.hydro_initial_level.get_area("be").get_scenario() == [0.1, 0.2, None, 0.5]
+        assert sc_builder.thermal.get_cluster("fr", "cluster_test").get_scenario() == [1, 4, 3, 2]
+
+        # =======================
+        #  OBJECTS DELETION
+        # =======================
+
         # tests thermal cluster deletion
         area_be.delete_thermal_cluster(thermal_be)
         assert area_be.get_thermals() == {}
@@ -645,6 +711,7 @@ class TestWebClient:
         default_settings = StudySettings()
         assert actual_settings.general_parameters == default_settings.general_parameters
         assert actual_settings.advanced_parameters == default_settings.advanced_parameters
+        assert actual_settings.thematic_trimming_parameters == default_settings.thematic_trimming_parameters
         # todo: uncomment this check with AntaresWeb 2.20
         # assert actual_settings.adequacy_patch_parameters == default_settings.adequacy_patch_parameters
         assert actual_settings.seed_parameters == default_settings.seed_parameters
@@ -653,24 +720,32 @@ class TestWebClient:
         # tests update settings
         study_settings = StudySettingsUpdate()
         study_settings.general_parameters = GeneralParametersUpdate(mode=Mode.ADEQUACY, year_by_year=True)
-        study_settings.playlist_parameters = {1: PlaylistParameters(status=True, weight=0.6)}
         study_settings.optimization_parameters = OptimizationParametersUpdate(include_exportmps=ExportMPS.OPTIM1)
         new_study.update_settings(study_settings)
         updated_settings = new_study.get_settings()
         assert updated_settings.general_parameters.mode == Mode.ADEQUACY
         assert updated_settings.general_parameters.year_by_year
         assert updated_settings.optimization_parameters.include_exportmps == ExportMPS.OPTIM1
-        assert updated_settings.playlist_parameters == {1: PlaylistParameters(status=True, weight=0.6)}
+        # update playlist
+        new_study.set_playlist({1: PlaylistParameters(status=True, weight=0.6)})
+        assert new_study.get_settings().playlist_parameters == {1: PlaylistParameters(status=True, weight=0.6)}
+        # update thematic trimming
+        new_trimming = new_study.get_settings().thematic_trimming_parameters.all_disabled()
+        new_study.set_thematic_trimming(new_trimming)
+        assert new_study.get_settings().thematic_trimming_parameters == new_trimming
 
         new_settings = StudySettingsUpdate()
         new_settings.general_parameters = GeneralParametersUpdate(simulation_synthesis=False)
         new_settings.advanced_parameters = AdvancedParametersUpdate(unit_commitment_mode=UnitCommitmentMode.MILP)
         new_settings.optimization_parameters = OptimizationParametersUpdate(include_exportmps=ExportMPS.FALSE)
         new_study.update_settings(new_settings)
-        assert new_study.get_settings().general_parameters.mode == Mode.ADEQUACY
-        assert new_study.get_settings().general_parameters.simulation_synthesis is False
-        assert new_study.get_settings().optimization_parameters.include_exportmps == ExportMPS.FALSE
-        assert new_study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP
+        new_settings = new_study.get_settings()
+        assert new_settings.general_parameters.mode == Mode.ADEQUACY
+        assert new_settings.general_parameters.simulation_synthesis is False
+        assert new_settings.optimization_parameters.include_exportmps == ExportMPS.FALSE
+        assert new_settings.advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP
+        assert new_settings.playlist_parameters == {1: PlaylistParameters(status=True, weight=0.6)}
+        assert new_settings.thematic_trimming_parameters == new_trimming
 
         # test each hydro matrices returns the good values
         # todo: uncomment this with AntaresWeb version 2.20

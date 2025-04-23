@@ -13,6 +13,8 @@ from typing import Any, Optional
 
 import pandas as pd
 
+from typing_extensions import override
+
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     LinkCreationError,
@@ -24,10 +26,10 @@ from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate,
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
 from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
-from typing_extensions import override
 
 
 class LinkLocalService(BaseLinkService):
@@ -35,6 +37,12 @@ class LinkLocalService(BaseLinkService):
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
+
+    def _read_ini(self, area_from: str) -> dict[str, Any]:
+        return IniReader().read(self.config.study_path / "input" / "links" / area_from / "properties.ini")
+
+    def _save_ini(self, content: dict[str, Any], area_from: str) -> None:
+        IniWriter().write(content, self.config.study_path / "input" / "links" / area_from / "properties.ini")
 
     @override
     def create_link(
@@ -62,8 +70,7 @@ class LinkLocalService(BaseLinkService):
         link_dir.mkdir(parents=True, exist_ok=True)
         local_model = LinkPropertiesAndUiLocal.from_user_model(ui or LinkUi(), properties or LinkProperties())
 
-        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, area_from)
-        current_content = ini_file.ini_dict
+        current_content = self._read_ini(area_from)
 
         if area_to in current_content:
             raise LinkCreationError(
@@ -74,8 +81,7 @@ class LinkLocalService(BaseLinkService):
 
         new_properties = local_model.model_dump(mode="json", by_alias=True)
         current_content[area_to] = new_properties
-        ini_file.ini_dict = current_content
-        ini_file.write_ini_file(sort_sections=True)
+        self._save_ini(current_content, area_from)
 
         # Creates empty matrices
         series = pd.DataFrame()
@@ -96,31 +102,27 @@ class LinkLocalService(BaseLinkService):
 
     @override
     def delete_link(self, link: Link) -> None:
-        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id)
-        links_dict = ini_file.ini_dict
+        links_dict = self._read_ini(link.area_from_id)
         for area_to, link_props in links_dict.items():
             if area_to == link.area_to_id:
                 links_dict.pop(area_to)
-                ini_file.ini_dict = links_dict
-                ini_file.write_ini_file()
+                self._save_ini(links_dict, link.area_from_id)
                 return
 
         raise LinkDeletionError(link.id, "it doesn't exist")
 
     @override
     def update_link_ui(self, link: Link, ui: LinkUiUpdate) -> LinkUi:
-        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, link.area_from_id)
-        links_dict = ini_file.ini_dict
+        links_dict = self._read_ini(link.area_from_id)
         for area_to, link_props in links_dict.items():
             if area_to == link.area_to_id:
                 # Update properties
                 upd_properties = LinkPropertiesAndUiLocal.from_user_model(ui, None)
-                upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_unset=True)
                 link_props.update(upd_props_as_dict)
 
                 # Update ini file
-                ini_file.ini_dict = links_dict
-                ini_file.write_ini_file()
+                self._save_ini(links_dict, link.area_from_id)
 
                 # Prepare the object to return
                 return LinkPropertiesAndUiLocal.model_validate(link_props).to_ui_user_model()
@@ -204,9 +206,7 @@ class LinkLocalService(BaseLinkService):
 
         for element in link_path.iterdir():
             area_from = element.name
-            links_dict = IniFile(
-                self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, area_id=area_from
-            ).ini_dict
+            links_dict = self._read_ini(area_from)
             for area_to, values in links_dict.items():
                 local_model = LinkPropertiesAndUiLocal.model_validate(values)
                 properties = local_model.to_properties_user_model()
@@ -227,14 +227,13 @@ class LinkLocalService(BaseLinkService):
 
         for area_from, value in properties_by_areas.items():
             all_link_names = set(value.keys())  # used to raise an Exception if a link doesn't exist
-            ini_file = IniFile(self.config.study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, area_id=area_from)
-            current_dict = ini_file.ini_dict
+            current_dict = self._read_ini(area_from)
             for area_to, link_properties_dict in current_dict.items():
                 if area_to in value:
                     all_link_names.remove(area_to)
                     # Update properties
                     upd_properties = LinkPropertiesAndUiLocal.from_user_model(None, value[area_to])
-                    upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+                    upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_unset=True)
                     link_properties_dict.update(upd_props_as_dict)
 
                     # Prepare the object to return
@@ -245,7 +244,6 @@ class LinkLocalService(BaseLinkService):
                 raise LinkPropertiesUpdateError(next(iter(all_link_names)), self.study_name, "The link does not exist")
 
             # Update ini file
-            ini_file.ini_dict = current_dict
-            ini_file.write_ini_file()
+            self._save_ini(current_dict, area_from)
 
         return new_properties_dict
