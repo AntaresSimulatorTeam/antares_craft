@@ -62,7 +62,7 @@ class AreaLocalService(BaseAreaService):
         self,
         config: LocalConfiguration,
         study_name: str,
-        study_version: str,
+        study_version: StudyVersion,
         storage_service: BaseShortTermStorageService,
         thermal_service: BaseThermalService,
         renewable_service: BaseRenewableService,
@@ -228,22 +228,15 @@ class AreaLocalService(BaseAreaService):
             New st_storage
         """
         properties = properties or STStorageProperties()
-        local_properties = STStoragePropertiesLocal.from_user_model(properties)
+        local_properties = STStoragePropertiesLocal.from_user_model(properties, self.study_version)
 
         local_storage_service = cast(ShortTermStorageLocalService, self.storage_service)
         ini_content = local_storage_service.read_ini(area_id)
-        if self.study_version == StudyVersion.parse("8.8"):
-            list_forbidden = {"efficiency_withdrawal"}
-            ini_content[st_storage_name] = {
-                "name": st_storage_name,
-                **local_properties.model_dump(mode="json", by_alias=True, exclude=list_forbidden),
-            }
 
-        if self.study_version == StudyVersion.parse("9.2"):
-            ini_content[st_storage_name] = {
-                "name": st_storage_name,
-                **local_properties.model_dump(mode="json", by_alias=True),
-            }
+        ini_content[st_storage_name] = {
+            "name": st_storage_name,
+            **local_properties.model_dump(mode="json", by_alias=True, exclude_none=True),
+        }
 
         local_storage_service.save_ini(ini_content, area_id)
 

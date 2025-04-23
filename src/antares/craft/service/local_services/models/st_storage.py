@@ -11,6 +11,10 @@
 # This file is part of the Antares project.
 from dataclasses import asdict
 
+from antares.study.version import StudyVersion
+from pydantic import field_validator, Field
+from pydantic_core.core_schema import ValidationInfo
+
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 
@@ -32,12 +36,28 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
     enabled: bool = True
     # add new parameter 9.2
     efficiency_withdrawal: float = 1
-    penalize_variation_injection: bool = False
+    penalize_variation_injection: bool = Field(
+      False, serialization_alias="penalise-variation-injection"
+    )
+    penalize_variation_withdrawal: bool = Field(
+        False, serialization_alias="penalise-variation-withdrawal"
+    )
+
+    @field_validator("efficiency_withdrawal", "penalize_variation_injection", "penalize_variation_withdrawal")
+    def check_version_support(cls, v, info: ValidationInfo):
+        study_version = info.context.get("study_version")
+        if study_version == StudyVersion.parse("8.8"):
+            return None
+        return v
 
     @staticmethod
-    def from_user_model(user_class: STStoragePropertiesType) -> "STStoragePropertiesLocal":
+    def from_user_model(user_class: STStoragePropertiesType, study_version: StudyVersion) -> "STStoragePropertiesLocal":
         user_dict = {k: v for k, v in asdict(user_class).items() if v is not None}
-        return STStoragePropertiesLocal.model_validate(user_dict)
+
+        return STStoragePropertiesLocal.model_validate(
+            user_dict,
+            context={"study_version": study_version}
+        )
 
     def to_user_model(self) -> STStorageProperties:
         return STStorageProperties(

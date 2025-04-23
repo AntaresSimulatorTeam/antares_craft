@@ -144,6 +144,12 @@ class TestCreateSTStorage:
         st_storage = local_study_with_st_storage.get_areas()["fr"].get_st_storages()["short term storage"]
         assert st_storage.properties == STStorageProperties()
 
+    def test_storage_has_correct_default_properties_92(self, local_study_92):
+        local_study_92.get_areas()["fr"].create_st_storage("short term storage")
+        st_storage = local_study_92.get_areas()["fr"].get_st_storages()["short term storage"]
+        assert st_storage.properties == STStorageProperties()
+
+
     def test_st_storage_list_ini_exists(self, local_study_with_st_storage):
         study_path = Path(local_study_with_st_storage.path)
         assert (study_path / "input" / "st-storage" / "clusters" / "fr" / "list.ini").exists()
@@ -175,6 +181,7 @@ enabled = True
 
         assert created_storage.properties == properties
 
+
     def test_st_storage_and_ini_have_custom_properties_92(self, local_study_92):
         # Given
         properties = STStorageProperties(
@@ -197,7 +204,8 @@ initiallevel = 0.5
 initialleveloptim = False
 enabled = True
 efficiencywithdrawal = 0.9
-penalizevariationinjection = False
+penalise-variation-injection = False
+penalise-variation-withdrawal = False
 
 """
         study_path = Path(local_study_92.path)
