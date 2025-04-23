@@ -64,6 +64,7 @@ class STStorageProperties:
     enabled: bool = True
     # add new parameter 9.2
     efficiency_withdrawal: float = 1
+    penalize_variation_injection: bool = False
 
 
 class STStorage:

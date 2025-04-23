@@ -197,6 +197,7 @@ initiallevel = 0.5
 initialleveloptim = False
 enabled = True
 efficiencywithdrawal = 0.9
+penalizevariationinjection = False
 
 """
         study_path = Path(local_study_92.path)

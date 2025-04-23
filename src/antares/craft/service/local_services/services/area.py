@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 
 import pandas as pd
+from antares.study.version import StudyVersion
 
 from typing_extensions import override
 
@@ -231,14 +232,14 @@ class AreaLocalService(BaseAreaService):
 
         local_storage_service = cast(ShortTermStorageLocalService, self.storage_service)
         ini_content = local_storage_service.read_ini(area_id)
-        if self.study_version == "880":
+        if self.study_version == StudyVersion.parse("8.8"):
             list_forbidden = {"efficiency_withdrawal"}
             ini_content[st_storage_name] = {
                 "name": st_storage_name,
                 **local_properties.model_dump(mode="json", by_alias=True, exclude=list_forbidden),
             }
 
-        if self.study_version == "9.2":
+        if self.study_version == StudyVersion.parse("9.2"):
             ini_content[st_storage_name] = {
                 "name": st_storage_name,
                 **local_properties.model_dump(mode="json", by_alias=True),

@@ -32,6 +32,7 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
     enabled: bool = True
     # add new parameter 9.2
     efficiency_withdrawal: float = 1
+    penalize_variation_injection: bool = False
 
     @staticmethod
     def from_user_model(user_class: STStoragePropertiesType) -> "STStoragePropertiesLocal":
