@@ -480,7 +480,7 @@ class MCRootNotHandled(Exception):
     def __init__(self, message: str):
         super().__init__(message)
 
-        
+
 class ScenarioBuilderReadingError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
         self.message = f"Could not read the scenario builder for study {study_id}: " + message

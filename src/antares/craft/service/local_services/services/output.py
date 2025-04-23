@@ -18,12 +18,10 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import MatrixDownloadError
 from antares.craft.model.output import AggregationEntry
 from antares.craft.service.base_services import BaseOutputService
-
 from antares.craft.service.local_services.services.output_aggregation import (
     AggregatorManager,
     split_comma_separated_values,
 )
-from typing_extensions import override
 
 
 class OutputLocalService(BaseOutputService):
