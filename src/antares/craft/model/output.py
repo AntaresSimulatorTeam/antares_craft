@@ -69,9 +69,9 @@ class AggregationEntry:
 
     query_file: MCAllAreas | MCIndAreas | MCAllLinks | MCIndLinks
     frequency: Frequency
-    mc_years: Optional[list[str]] = None
-    type_ids: Optional[list[str]] = None
-    columns_names: Optional[list[str]] = None
+    mc_years: Optional[str] = None
+    type_ids: Optional[str] = None
+    columns_names: Optional[str] = None
 
     def to_api_query(self, object_type: str) -> str:
         mc_years = f"&mc_years={','.join(self.mc_years)}" if self.mc_years else ""
