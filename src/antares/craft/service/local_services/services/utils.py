@@ -13,11 +13,10 @@ from typing import Any
 
 import pandas as pd
 
-from typing_extensions import override
-
 from antares.craft.exceptions.exceptions import MatrixFormatError
 from antares.craft.model.st_storage import STStorageMatrixName
 from antares.craft.model.thermal import ThermalClusterMatrixName
+from typing_extensions import override
 
 
 class AlwaysEqual:

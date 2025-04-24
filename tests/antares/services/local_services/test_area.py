@@ -149,7 +149,6 @@ class TestCreateSTStorage:
         st_storage = local_study_92.get_areas()["fr"].get_st_storages()["short term storage"]
         assert st_storage.properties == STStorageProperties()
 
-
     def test_st_storage_list_ini_exists(self, local_study_with_st_storage):
         study_path = Path(local_study_with_st_storage.path)
         assert (study_path / "input" / "st-storage" / "clusters" / "fr" / "list.ini").exists()
@@ -180,7 +179,6 @@ enabled = True
         assert ini_content == expected_st_storage_list_ini_content
 
         assert created_storage.properties == properties
-
 
     def test_st_storage_and_ini_have_custom_properties_92(self, local_study_92):
         # Given

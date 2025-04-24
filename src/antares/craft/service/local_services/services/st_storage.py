@@ -15,9 +15,6 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-from antares.study.version import StudyVersion
-
-from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
@@ -36,6 +33,8 @@ from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from antares.study.version import StudyVersion
+from typing_extensions import override
 
 MAPPING = {
     STStorageMatrixName.PMAX_INJECTION: TimeSeriesFileType.ST_STORAGE_PMAX_INJECTION,
@@ -47,7 +46,7 @@ MAPPING = {
 
 
 class ShortTermStorageLocalService(BaseShortTermStorageService):
-    def __init__(self, config: LocalConfiguration, study_name: str, study_version: StudyVersion,**kwargs: Any) -> None:
+    def __init__(self, config: LocalConfiguration, study_name: str, study_version: StudyVersion, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
@@ -123,7 +122,9 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
                     # Prepare the object to return
                     local_dict = copy.deepcopy(storage)
                     del local_dict["name"]
-                    local_properties = STStoragePropertiesLocal.model_validate(local_dict,  context={"study_version": self.study_version})
+                    local_properties = STStoragePropertiesLocal.model_validate(
+                        local_dict, context={"study_version": self.study_version}
+                    )
                     new_properties_dict[cluster_name_to_object[storage_name]] = local_properties.to_user_model()
 
             if len(all_storage_name) > 0:

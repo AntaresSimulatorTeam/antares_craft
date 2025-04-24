@@ -16,8 +16,6 @@ from typing import Any, Optional
 import numpy as np
 import pandas as pd
 
-from typing_extensions import override
-
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
@@ -42,6 +40,7 @@ from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from typing_extensions import override
 
 MAPPING = {
     ConstraintMatrixName.LESS_TERM: TimeSeriesFileType.BINDING_CONSTRAINT_LESS,

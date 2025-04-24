@@ -11,11 +11,10 @@
 # This file is part of the Antares project.
 from dataclasses import asdict
 
-from pydantic import Field
-
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
+from pydantic import Field
 
 STStoragePropertiesType = STStorageProperties | STStoragePropertiesUpdate
 
@@ -32,13 +31,8 @@ class STStoragePropertiesAPI(APIBaseModel):
     enabled: bool
     # add new parameter 9.2 but not study_version validation in API
     efficiency_withdrawal: float = 1
-    penalize_variation_injection: bool = Field(
-      False, serialization_alias="penalize-variation-injection"
-    )
-    penalize_variation_withdrawal: bool = Field(
-        False, serialization_alias="penalize-variation-withdrawal"
-    )
-
+    penalize_variation_injection: bool = Field(False, serialization_alias="penalize-variation-injection")
+    penalize_variation_withdrawal: bool = Field(False, serialization_alias="penalize-variation-withdrawal")
 
     @staticmethod
     def from_user_model(user_class: STStoragePropertiesType) -> "STStoragePropertiesAPI":

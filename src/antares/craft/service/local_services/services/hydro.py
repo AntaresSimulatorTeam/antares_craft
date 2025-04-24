@@ -14,8 +14,6 @@ from typing import Any
 
 import pandas as pd
 
-from typing_extensions import override
-
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
 from antares.craft.service.base_services import BaseHydroService
@@ -28,6 +26,7 @@ from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from typing_extensions import override
 
 
 class HydroLocalService(BaseHydroService):

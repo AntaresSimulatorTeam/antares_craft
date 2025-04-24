@@ -10,13 +10,13 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-
-from antares.study.version import StudyVersion
-from pydantic import field_validator, Field
-from pydantic_core.core_schema import ValidationInfo
+from typing import Any
 
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
+from antares.study.version import StudyVersion
+from pydantic import Field, field_validator
+from pydantic_core.core_schema import ValidationInfo
 
 STStoragePropertiesType = STStorageProperties | STStoragePropertiesUpdate
 
@@ -26,7 +26,7 @@ def _sts_alias_generator(input: str) -> str:
 
 
 class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_generator):
-    group: STStorageGroup = STStorageGroup.OTHER1
+    group: STStorageGroup | str = Field(default="")
     injection_nominal_capacity: float = 0
     withdrawal_nominal_capacity: float = 0
     reservoir_capacity: float = 0
@@ -37,15 +37,25 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
     # add new parameter 9.2
     efficiency_withdrawal: float = 1
 
-    penalize_variation_injection: bool = Field(
-      False, alias="penalize-variation-injection"
-    )
-    penalize_variation_withdrawal: bool = Field(
-        False, alias="penalize-variation-withdrawal"
-    )
+    penalize_variation_injection: bool = Field(False, alias="penalize-variation-injection")
+    penalize_variation_withdrawal: bool = Field(False, alias="penalize-variation-withdrawal")
+
+    @field_validator("group")
+    def validate_group(cls, v: str | STStorageGroup | None, info: ValidationInfo) -> str | STStorageGroup:
+        study_version = info.context.get("study_version")
+        if study_version == StudyVersion.parse("8.8"):
+            if v is None or v == "":
+                return STStorageGroup.OTHER1
+            if isinstance(v, str):
+                try:
+                    return STStorageGroup(v)
+                except ValueError:
+                    raise ValueError(f"Group for 8.8 has to be a valid value : {[e.value for e in STStorageGroup]}")
+            return v
+        return v if v is not None else ""
 
     @field_validator("efficiency_withdrawal", "penalize_variation_injection", "penalize_variation_withdrawal")
-    def check_version_support(cls, v, info: ValidationInfo):
+    def check_version_support(cls, v, info: ValidationInfo) -> Any:
         study_version = info.context.get("study_version")
         if study_version == StudyVersion.parse("8.8"):
             return None
@@ -55,15 +65,28 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
     def from_user_model(user_class: STStoragePropertiesType, study_version: StudyVersion) -> "STStoragePropertiesLocal":
         user_dict = {k: v for k, v in asdict(user_class).items() if v is not None}
 
-        return STStoragePropertiesLocal.model_validate(
-            user_dict,
-            context={"study_version": study_version}
-        )
+        if study_version == StudyVersion.parse("8.8"):
+            if "group" not in user_dict:
+                user_dict["group"] = STStorageGroup.OTHER1
+            elif isinstance(user_dict["group"], str):
+                try:
+                    user_dict["group"] = STStorageGroup(user_dict["group"])
+                except ValueError:
+                    raise ValueError(f"Group for 8.8 has to be a valid value : {[e.value for e in STStorageGroup]}")
+        else:
+            user_dict["group"] = user_dict.get("group", "")
+
+        return STStoragePropertiesLocal.model_validate(user_dict, context={"study_version": study_version})
 
     def to_user_model(self) -> STStorageProperties:
+        group_value = self.group
+        if hasattr(self, "_context") and self._context.get("study_version") == StudyVersion.parse("8.8"):
+            if isinstance(self.group, str):
+                group_value = STStorageGroup(self.group)
+
         return STStorageProperties(
             enabled=self.enabled,
-            group=self.group,
+            group=group_value,
             injection_nominal_capacity=self.injection_nominal_capacity,
             withdrawal_nominal_capacity=self.withdrawal_nominal_capacity,
             reservoir_capacity=self.reservoir_capacity,
