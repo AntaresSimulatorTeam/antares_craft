@@ -35,15 +35,19 @@ from antares.study.version import StudyVersion
 from antares.study.version.create_app import CreateApp
 
 
-def create_local_services(
-    config: LocalConfiguration, study_name: str = "", study_version: StudyVersion = StudyVersion.parse("")
-) -> StudyServices:
-    storage_service = ShortTermStorageLocalService(config, study_name, study_version)
+def create_local_services(config: LocalConfiguration, study_name: str = "", study_version: str = "") -> StudyServices:
+    storage_service = ShortTermStorageLocalService(config, study_name, StudyVersion.parse(study_version))
     thermal_service = ThermalLocalService(config, study_name)
     renewable_service = RenewableLocalService(config, study_name)
     hydro_service = HydroLocalService(config, study_name)
     area_service = AreaLocalService(
-        config, study_name, study_version, storage_service, thermal_service, renewable_service, hydro_service
+        config,
+        study_name,
+        StudyVersion.parse(study_version),
+        storage_service,
+        thermal_service,
+        renewable_service,
+        hydro_service,
     )
     link_service = LinkLocalService(config, study_name)
     output_service = OutputLocalService(config, study_name)
@@ -51,7 +55,7 @@ def create_local_services(
     bc_service = BindingConstraintLocalService(config, study_name)
     run_service = RunLocalService(config, study_name)
     settings_service = StudySettingsLocalService(config, study_name)
-    short_term_storage_service = ShortTermStorageLocalService(config, study_name, study_version)
+    short_term_storage_service = ShortTermStorageLocalService(config, study_name, StudyVersion.parse(study_version))
     return StudyServices(
         area_service=area_service,
         bc_service=bc_service,
@@ -93,9 +97,7 @@ def create_study_local(
     study = Study(
         name=study_name,
         version=version,
-        services=create_local_services(
-            config=local_config, study_name=study_name, study_version=StudyVersion.parse(version)
-        ),
+        services=create_local_services(config=local_config, study_name=study_name, study_version=version),
         path=study_directory,
         solver_path=solver_path,
     )
