@@ -12,6 +12,8 @@
 
 from dataclasses import asdict
 
+from pydantic import Field
+
 from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
@@ -20,7 +22,6 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.commons import FilterOption, filtering_option
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
-from pydantic import Field
 
 BindingConstraintPropertiesType = BindingConstraintProperties | BindingConstraintPropertiesUpdate
 

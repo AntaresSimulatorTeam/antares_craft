@@ -19,6 +19,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 
+from typing_extensions import override
+
 from antares.craft import ScenarioBuilder
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import ConstraintDoesNotExistError
@@ -35,7 +37,6 @@ from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.tsgen.duration_generator import ProbabilityLaw
 from antares.tsgen.random_generator import MersenneTwisterRNG
 from antares.tsgen.ts_generator import OutageGenerationParameters, ThermalCluster, TimeseriesGenerator
-from typing_extensions import override
 
 if TYPE_CHECKING:
     from antares.craft.model.study import Study

@@ -11,10 +11,11 @@
 # This file is part of the Antares project.
 from dataclasses import asdict
 
+from pydantic import Field
+
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import Field
 
 STStoragePropertiesType = STStorageProperties | STStoragePropertiesUpdate
 

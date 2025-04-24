@@ -16,8 +16,9 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Callable, Dict, Mapping, Optional, Pattern, Sequence, TextIO, TypeAlias, cast
 
-from antares.craft.tools.serde_local.ini_common import OptionMatcher, PrimitiveType, any_section_option_matcher
 from typing_extensions import override
+
+from antares.craft.tools.serde_local.ini_common import OptionMatcher, PrimitiveType, any_section_option_matcher
 
 ValueParser: TypeAlias = Callable[[str], PrimitiveType]
 

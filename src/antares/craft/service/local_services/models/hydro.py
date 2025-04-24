@@ -11,10 +11,11 @@
 # This file is part of the Antares project.
 from dataclasses import asdict
 
+from pydantic import Field
+
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
-from pydantic import Field
 
 HydroPropertiesType = HydroProperties | HydroPropertiesUpdate
 HydroInflowStructureType = InflowStructure | InflowStructureUpdate

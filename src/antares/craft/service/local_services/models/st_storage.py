@@ -10,13 +10,14 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Any
+from typing import Any, Union
+
+from pydantic import Field, field_validator
+from pydantic_core.core_schema import ValidationInfo
 
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.study.version import StudyVersion
-from pydantic import Field, field_validator
-from pydantic_core.core_schema import ValidationInfo
 
 STStoragePropertiesType = STStorageProperties | STStoragePropertiesUpdate
 
@@ -42,7 +43,7 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
 
     @field_validator("group")
     def validate_group(cls, v: str | STStorageGroup | None, info: ValidationInfo) -> str | STStorageGroup:
-        study_version = info.context.get("study_version")
+        study_version = getattr(info.context, "get", lambda x: None)("study_version")
         if study_version == StudyVersion.parse("8.8"):
             if v is None or v == "":
                 return STStorageGroup.OTHER1
@@ -55,8 +56,8 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
         return v if v is not None else ""
 
     @field_validator("efficiency_withdrawal", "penalize_variation_injection", "penalize_variation_withdrawal")
-    def check_version_support(cls, v, info: ValidationInfo) -> Any:
-        study_version = info.context.get("study_version")
+    def check_version_support(cls, v: Union[str, STStorageGroup], info: ValidationInfo) -> Any:
+        study_version = getattr(info.context, "get", lambda x: None)("study_version")
         if study_version == StudyVersion.parse("8.8"):
             return None
         return v

@@ -12,12 +12,13 @@
 from dataclasses import asdict, field
 from typing import Any
 
+from pydantic import Field
+from pydantic.alias_generators import to_camel
+
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FILTER_VALUES, filtering_option
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
-from pydantic import Field
-from pydantic.alias_generators import to_camel
 
 
 class OptimizationPropertiesLocal(LocalBaseModel, alias_generator=to_kebab):
