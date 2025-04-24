@@ -39,7 +39,7 @@ AREAS_REQUESTS__ALL = [
     (
         {
             "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.VALUES,
+            "query_file": MCAllAreas.VALUES.value,
             "frequency": "daily",
             "areas_ids": "",
             "columns_names": "",
@@ -49,7 +49,7 @@ AREAS_REQUESTS__ALL = [
     (
         {
             "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.DETAILS,
+            "query_file": MCAllAreas.DETAILS.value,
             "frequency": "monthly",
             "areas_ids": "de,fr,it",
             "columns_names": "",
@@ -59,7 +59,7 @@ AREAS_REQUESTS__ALL = [
     (
         {
             "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.VALUES,
+            "query_file": MCAllAreas.VALUES.value,
             "frequency": "daily",
             "areas_ids": "",
             "columns_names": "OP. CoST,MRG. PrICE",
@@ -69,7 +69,7 @@ AREAS_REQUESTS__ALL = [
     (
         {
             "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.VALUES,
+            "query_file": MCAllAreas.VALUES.value,
             "frequency": "daily",
             "areas_ids": "es,fr,de",
             "columns_names": "",
@@ -79,7 +79,7 @@ AREAS_REQUESTS__ALL = [
     (
         {
             "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.VALUES,
+            "query_file": MCAllAreas.VALUES.value,
             "frequency": "monthly",
             "areas_ids": "",
             "columns_names": "",
@@ -89,7 +89,7 @@ AREAS_REQUESTS__ALL = [
     (
         {
             "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.ID,
+            "query_file": MCAllAreas.ID.value,
             "frequency": "daily",
             "areas_ids": "",
             "columns_names": "",
@@ -99,7 +99,7 @@ AREAS_REQUESTS__ALL = [
     (
         {
             "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.VALUES,
+            "query_file": MCAllAreas.VALUES.value,
             "frequency": "daily",
             "columns_names": "COsT,NoDU",
         },
@@ -108,7 +108,7 @@ AREAS_REQUESTS__ALL = [
     (
         {
             "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.DETAILS,
+            "query_file": MCAllAreas.DETAILS.value,
             "frequency": "monthly",
             "columns_names": "COsT,NoDU",
         },
@@ -120,7 +120,7 @@ LINKS_REQUESTS__ALL = [
     (
         {
             "output_id": "20241807-1540eco-extra-outputs",
-            "query_file": MCAllLinks.VALUES,
+            "query_file": MCAllLinks.VALUES.value,
             "frequency": "daily",
             "columns_names": "",
         },
@@ -129,7 +129,7 @@ LINKS_REQUESTS__ALL = [
     (
         {
             "output_id": "20241807-1540eco-extra-outputs",
-            "query_file": MCAllLinks.VALUES,
+            "query_file": MCAllLinks.VALUES.value,
             "frequency": "monthly",
             "columns_names": "",
         },
@@ -138,7 +138,7 @@ LINKS_REQUESTS__ALL = [
     (
         {
             "output_id": "20241807-1540eco-extra-outputs",
-            "query_file": MCAllLinks.VALUES,
+            "query_file": MCAllLinks.VALUES.value,
             "frequency": "daily",
             "columns_names": "",
         },
@@ -147,7 +147,7 @@ LINKS_REQUESTS__ALL = [
     (
         {
             "output_id": "20241807-1540eco-extra-outputs",
-            "query_file": MCAllLinks.VALUES,
+            "query_file": MCAllLinks.VALUES.value,
             "frequency": "monthly",
             "links_ids": "de - fr",
         },
@@ -156,7 +156,7 @@ LINKS_REQUESTS__ALL = [
     (
         {
             "output_id": "20241807-1540eco-extra-outputs",
-            "query_file": MCAllLinks.ID,
+            "query_file": MCAllLinks.ID.value,
             "frequency": "daily",
             "links_ids": "",
         },
@@ -165,7 +165,7 @@ LINKS_REQUESTS__ALL = [
     (
         {
             "output_id": "20241807-1540eco-extra-outputs",
-            "query_file": MCAllLinks.VALUES,
+            "query_file": MCAllLinks.VALUES.value,
             "frequency": "daily",
             "columns_names": "MARG. COsT,CONG. ProB +",
         },
@@ -196,7 +196,7 @@ AREAS_REQUESTS__IND = [
     (
         {
             "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndAreas.VALUES,
+            "query_file": MCIndAreas.VALUES.value,
             "frequency": "hourly",
             "mc_years": "",
             "areas_ids": "",
@@ -207,7 +207,7 @@ AREAS_REQUESTS__IND = [
     (
         {
             "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndAreas.DETAILS,
+            "query_file": MCIndAreas.DETAILS.value,
             "frequency": "hourly",
             "mc_years": "1",
             "areas_ids": "de,fr,it",
@@ -218,7 +218,7 @@ AREAS_REQUESTS__IND = [
     (
         {
             "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndAreas.VALUES,
+            "query_file": MCIndAreas.VALUES.value,
             "frequency": "weekly",
             "mc_years": "1,2",
             "areas_ids": "",
@@ -229,7 +229,7 @@ AREAS_REQUESTS__IND = [
     (
         {
             "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndAreas.VALUES,
+            "query_file": MCIndAreas.VALUES.value,
             "frequency": "hourly",
             "mc_years": "2",
             "areas_ids": "es,fr,de",
@@ -240,7 +240,7 @@ AREAS_REQUESTS__IND = [
     (
         {
             "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndAreas.VALUES,
+            "query_file": MCIndAreas.VALUES.value,
             "frequency": "annual",
             "mc_years": "",
             "areas_ids": "",
@@ -251,7 +251,7 @@ AREAS_REQUESTS__IND = [
     (
         {
             "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndAreas.VALUES,
+            "query_file": MCIndAreas.VALUES.value,
             "frequency": "hourly",
             "columns_names": "COSt,NODu",
         },
@@ -260,7 +260,7 @@ AREAS_REQUESTS__IND = [
     (
         {
             "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndAreas.DETAILS,
+            "query_file": MCIndAreas.DETAILS.value,
             "frequency": "hourly",
             "columns_names": "COSt,NODu",
         },
@@ -272,7 +272,7 @@ LINKS_REQUESTS__IND = [
     (
         {
             "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndLinks.VALUES,
+            "query_file": MCIndLinks.VALUES.value,
             "frequency": "hourly",
             "mc_years": "",
             "columns_names": "",
@@ -282,7 +282,7 @@ LINKS_REQUESTS__IND = [
     (
         {
             "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndLinks.VALUES,
+            "query_file": MCIndLinks.VALUES.value,
             "frequency": "hourly",
             "mc_years": "1",
             "columns_names": "",
@@ -292,7 +292,7 @@ LINKS_REQUESTS__IND = [
     (
         {
             "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndLinks.VALUES,
+            "query_file": MCIndLinks.VALUES.value,
             "frequency": "hourly",
             "mc_years": "1,2",
             "columns_names": "UCAP LIn.,FLOw qUAD.",
@@ -302,7 +302,7 @@ LINKS_REQUESTS__IND = [
     (
         {
             "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndLinks.VALUES,
+            "query_file": MCIndLinks.VALUES.value,
             "frequency": "hourly",
             "mc_years": "1",
             "links_ids": "de - fr",
@@ -312,7 +312,7 @@ LINKS_REQUESTS__IND = [
     (
         {
             "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndLinks.VALUES,
+            "query_file": MCIndLinks.VALUES.value,
             "frequency": "hourly",
             "columns_names": "MArG. COsT,CONG. PRoB +",
         },

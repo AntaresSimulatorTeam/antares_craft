@@ -85,11 +85,11 @@ def _columns_ordering(df_cols: t.List[str], column_name: str, is_details: bool, 
     org_cols = df_cols.copy()
     if is_details:
         org_cols = [col for col in org_cols if col != CLUSTER_ID_COL and col != TIME_ID_COL]
-    if mc_root == MCRoot.MC_IND:
+    if mc_root.value == MCRoot.MC_IND.value:
         new_column_order = (
             [column_name] + ([CLUSTER_ID_COL] if is_details else []) + [MCYEAR_COL, TIME_ID_COL] + org_cols
         )
-    elif mc_root == MCRoot.MC_ALL:
+    elif mc_root.value == MCRoot.MC_ALL.value:
         org_cols = [col for col in org_cols if col not in {column_name, MCYEAR_COL}]
         new_column_order = [column_name] + ([CLUSTER_ID_COL] if is_details else []) + [TIME_ID_COL] + org_cols
     else:
@@ -172,8 +172,8 @@ class AggregatorManager:
         # normalize columns names
         new_cols = []
         for col in body.columns:
-            if self.mc_root == MCRoot.MC_IND:
-                name_to_consider = col[0] if self.query_file.value == MCIndAreas.VALUES else " ".join(col)
+            if self.mc_root.value == MCRoot.MC_IND.value:
+                name_to_consider = col[0] if self.query_file.value == MCIndAreas.VALUES.value else " ".join(col)
             else:
                 name_to_consider = " ".join([col[0], col[2]])
             new_cols.append(name_to_consider.upper().strip())
@@ -196,7 +196,7 @@ class AggregatorManager:
         return links_ids
 
     def _gather_all_files_to_consider(self) -> t.Sequence[Path]:
-        if self.mc_root == MCRoot.MC_IND:
+        if self.mc_root.value == MCRoot.MC_IND.value:
             # Monte Carlo years filtering
             all_mc_years = [d.name for d in self.mc_ind_path.iterdir()]
             if self.mc_years:
@@ -213,7 +213,7 @@ class AggregatorManager:
 
             # Frequency and query file filtering
             folders_to_check = [self.mc_ind_path / first_mc_year / self.output_type / id for id in areas_or_links_ids]
-            filtered_files = _filtered_files_listing(folders_to_check, self.query_file, self.frequency.value)
+            filtered_files = _filtered_files_listing(folders_to_check, self.query_file.value, self.frequency.value)
 
             # Loop on MC years to return the whole list of files
             all_output_files = [
@@ -222,13 +222,13 @@ class AggregatorManager:
                 for area_or_link, files in filtered_files.items()
                 for file in files
             ]
-        elif self.mc_root == MCRoot.MC_ALL:
+        elif self.mc_root.value == MCRoot.MC_ALL.value:
             # Links / Areas ids filtering
             areas_or_links_ids = self._filter_ids(self.mc_all_path / self.output_type)
 
             # Frequency and query file filtering
             folders_to_check = [self.mc_all_path / self.output_type / id for id in areas_or_links_ids]
-            filtered_files = _filtered_files_listing(folders_to_check, self.query_file, self.frequency.value)
+            filtered_files = _filtered_files_listing(folders_to_check, self.query_file.value, self.frequency.value)
 
             # Loop to return the whole list of files
             all_output_files = [
@@ -248,7 +248,7 @@ class AggregatorManager:
                 filtered_columns = [CLUSTER_ID_COL, TIME_ID_COL] + [
                     c for c in df.columns.tolist() if any(regex in c.lower() for regex in lower_case_columns)
                 ]
-            elif self.mc_root == MCRoot.MC_ALL:
+            elif self.mc_root.value == MCRoot.MC_ALL.value:
                 filtered_columns = [
                     c for c in df.columns.tolist() if any(regex in c.lower() for regex in lower_case_columns)
                 ]
@@ -305,8 +305,8 @@ class AggregatorManager:
                 prod_col_name = (
                     PRODUCTION_COLUMN_NAME_ST
                     if (
-                        self.query_file == MCIndAreas.DETAILS_ST_STORAGE
-                        or self.query_file == MCAllAreas.DETAILS_ST_STORAGE
+                        self.query_file.value == MCIndAreas.DETAILS_ST_STORAGE.value
+                        or self.query_file.value == MCAllAreas.DETAILS_ST_STORAGE.value
                     )
                     else PRODUCTION_COLUMN_NAME_GENERAL
                 )
@@ -334,13 +334,13 @@ class AggregatorManager:
     def _build_dataframe(self, files: t.Sequence[Path]) -> pd.DataFrame:
         if self.mc_root not in [MCRoot.MC_IND, MCRoot.MC_ALL]:
             raise MCRootNotHandled(f"Unknown Monte Carlo root: {self.mc_root}")
-        is_details = self.query_file in [
-            MCIndAreas.DETAILS,
-            MCAllAreas.DETAILS,
-            MCIndAreas.DETAILS_ST_STORAGE,
-            MCAllAreas.DETAILS_ST_STORAGE,
-            MCIndAreas.DETAILS_RES,
-            MCAllAreas.DETAILS_RES,
+        is_details = self.query_file.value in [
+            MCIndAreas.DETAILS.value,
+            MCAllAreas.DETAILS.value,
+            MCIndAreas.DETAILS_ST_STORAGE.value,
+            MCAllAreas.DETAILS_ST_STORAGE.value,
+            MCIndAreas.DETAILS_RES.value,
+            MCAllAreas.DETAILS_RES.value,
         ]
         final_df = pd.DataFrame()
         nb_files = len(files)
@@ -365,7 +365,7 @@ class AggregatorManager:
             column_name = AREA_COL if self.output_type == "areas" else LINK_COL
             new_column_order = _columns_ordering(list_of_df_columns, column_name, is_details, MCRoot(self.mc_root))
 
-            if self.mc_root == MCRoot.MC_IND:
+            if self.mc_root.value == MCRoot.MC_IND.value:
                 # add column for links/areas
                 relative_path_parts = file_path.relative_to(self.mc_ind_path).parts
                 df[column_name] = relative_path_parts[AREA_OR_LINK_INDEX__IND]
@@ -389,10 +389,10 @@ class AggregatorManager:
         return final_df
 
     def _check_mc_root_folder_exists(self) -> None:
-        if self.mc_root == MCRoot.MC_IND:
+        if self.mc_root.value == MCRoot.MC_IND.value:
             if not self.mc_ind_path.exists():
                 raise OutputSubFolderNotFound(self.output_id, f"economy/{MCRoot.MC_IND}")
-        elif self.mc_root == MCRoot.MC_ALL:
+        elif self.mc_root.value == MCRoot.MC_ALL.value:
             if not self.mc_all_path.exists():
                 raise OutputSubFolderNotFound(self.output_id, f"economy/{MCRoot.MC_ALL}")
         else:

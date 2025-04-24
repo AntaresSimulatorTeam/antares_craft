@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import dataclass
-from enum import Enum, StrEnum
+from enum import Enum
 from typing import Optional
 
 import pandas as pd
@@ -23,14 +23,14 @@ class MCRoot(Enum):
     MC_ALL = "mc-all"
 
 
-class MCIndAreas(StrEnum):
+class MCIndAreas(Enum):
     VALUES = "values"
     DETAILS = "details"
     DETAILS_ST_STORAGE = "details-STstorage"
     DETAILS_RES = "details-res"
 
 
-class MCAllAreas(StrEnum):
+class MCAllAreas(Enum):
     VALUES = "values"
     DETAILS = "details"
     DETAILS_ST_STORAGE = "details-STstorage"
@@ -38,11 +38,11 @@ class MCAllAreas(StrEnum):
     ID = "id"
 
 
-class MCIndLinks(StrEnum):
+class MCIndLinks(Enum):
     VALUES = "values"
 
 
-class MCAllLinks(StrEnum):
+class MCAllLinks(Enum):
     VALUES = "values"
     ID = "id"
 
