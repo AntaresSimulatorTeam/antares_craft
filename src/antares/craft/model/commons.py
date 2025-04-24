@@ -13,8 +13,9 @@
 from enum import Enum
 from typing import Annotated, Any, Optional
 
-from antares.craft.exceptions.exceptions import FilteringValueError
 from pydantic import BeforeValidator, PlainSerializer
+
+from antares.craft.exceptions.exceptions import FilteringValueError
 
 
 class FilterOption(Enum):

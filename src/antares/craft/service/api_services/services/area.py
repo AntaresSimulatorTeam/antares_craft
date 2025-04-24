@@ -14,6 +14,8 @@ from typing import Dict, Optional, cast
 
 import pandas as pd
 
+from typing_extensions import override
+
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
@@ -50,7 +52,6 @@ from antares.craft.service.base_services import (
     BaseShortTermStorageService,
     BaseThermalService,
 )
-from typing_extensions import override
 
 
 class AreaApiService(BaseAreaService):

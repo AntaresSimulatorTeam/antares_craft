@@ -13,13 +13,14 @@ from io import StringIO
 
 import pandas as pd
 
+from typing_extensions import override
+
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import AggregateCreationError, APIError
 from antares.craft.model.output import AggregationEntry
 from antares.craft.service.api_services.utils import get_matrix
 from antares.craft.service.base_services import BaseOutputService
-from typing_extensions import override
 
 
 class OutputApiService(BaseOutputService):
