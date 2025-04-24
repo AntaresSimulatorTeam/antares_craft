@@ -71,7 +71,7 @@ def _checks_estimated_size(nb_files: int, df_bytes_size: int, nb_files_checked: 
         raise FileTooLargeError(estimated_df_size, maximum_size)
 
 
-def split_comma_separated_values(value: str, *, default: t.Sequence[str] = ()) -> t.Sequence[str]:
+def split_comma_separated_values(value: str | None, *, default: t.Sequence[str] = ()) -> t.Sequence[str]:
     """Split a comma-separated list of values into an ordered set of strings."""
     values = value.split(",") if value else default
     # drop whitespace around values
