@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+from antares.study.version import StudyVersion
 
 from typing_extensions import override
 
@@ -46,10 +47,11 @@ MAPPING = {
 
 
 class ShortTermStorageLocalService(BaseShortTermStorageService):
-    def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
+    def __init__(self, config: LocalConfiguration, study_name: str, study_version: StudyVersion,**kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
+        self.study_version = study_version
 
     def _get_ini_path(self, area_id: str) -> Path:
         return self.config.study_path / "input" / "st-storage" / "clusters" / area_id / "list.ini"
@@ -114,14 +116,14 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
                     all_storage_name.remove(storage_name)
 
                     # Update properties
-                    upd_properties = STStoragePropertiesLocal.from_user_model(value[storage_name])
+                    upd_properties = STStoragePropertiesLocal.from_user_model(value[storage_name], self.study_version)
                     upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_unset=True)
                     storage.update(upd_props_as_dict)
 
                     # Prepare the object to return
                     local_dict = copy.deepcopy(storage)
                     del local_dict["name"]
-                    local_properties = STStoragePropertiesLocal.model_validate(local_dict)
+                    local_properties = STStoragePropertiesLocal.model_validate(local_dict,  context={"study_version": self.study_version})
                     new_properties_dict[cluster_name_to_object[storage_name]] = local_properties.to_user_model()
 
             if len(all_storage_name) > 0:

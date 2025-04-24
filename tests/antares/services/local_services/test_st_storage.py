@@ -35,6 +35,19 @@ class TestSTStorage:
         assert new_properties == expected_properties
         assert storage.properties == expected_properties
 
+    def test_update_properties_92(self, tmp_path: Path, local_study_92: Study) -> None:
+        # Checks values before update
+        local_study_92.get_areas()["fr"].create_st_storage("storage_local")
+        storage = local_study_92.get_areas()["fr"].get_st_storages()["storage_local"]
+        current_properties = STStorageProperties(efficiency_withdrawal=1, penalize_variation_injection=False, penalize_variation_withdrawal=False)
+        assert storage.properties == current_properties
+        # Updates properties
+        update_properties = STStoragePropertiesUpdate(efficiency_withdrawal=0.4, penalize_variation_injection=True, penalize_variation_withdrawal=True)
+        new_properties = storage.update_properties(update_properties)
+        expected_properties = STStorageProperties(efficiency_withdrawal=0.4,  penalize_variation_injection=True, penalize_variation_withdrawal=True)
+        assert new_properties == expected_properties
+        assert storage.properties == expected_properties
+
     def test_matrices(self, tmp_path: Path, local_study_w_storage: Study) -> None:
         # Checks all matrices exist
         storage = local_study_w_storage.get_areas()["fr"].get_st_storages()["sts_1"]

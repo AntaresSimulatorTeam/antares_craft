@@ -50,6 +50,9 @@ class STStoragePropertiesUpdate:
     initial_level: Optional[float] = None
     initial_level_optim: Optional[bool] = None
     enabled: Optional[bool] = None
+    efficiency_withdrawal: Optional[float] = None
+    penalize_variation_injection: Optional[bool] = None
+    penalize_variation_withdrawal: Optional[bool] = None
 
 
 @dataclass(frozen=True)

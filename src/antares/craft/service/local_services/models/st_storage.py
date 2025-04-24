@@ -36,11 +36,12 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
     enabled: bool = True
     # add new parameter 9.2
     efficiency_withdrawal: float = 1
+
     penalize_variation_injection: bool = Field(
-      False, serialization_alias="penalise-variation-injection"
+      False, alias="penalize-variation-injection"
     )
     penalize_variation_withdrawal: bool = Field(
-        False, serialization_alias="penalise-variation-withdrawal"
+        False, alias="penalize-variation-withdrawal"
     )
 
     @field_validator("efficiency_withdrawal", "penalize_variation_injection", "penalize_variation_withdrawal")
@@ -69,4 +70,7 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
             efficiency=self.efficiency,
             initial_level=self.initial_level,
             initial_level_optim=self.initial_level_optim,
+            efficiency_withdrawal=self.efficiency_withdrawal,
+            penalize_variation_injection=self.penalize_variation_injection,
+            penalize_variation_withdrawal=self.penalize_variation_withdrawal,
         )
