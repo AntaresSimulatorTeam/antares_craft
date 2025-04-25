@@ -69,9 +69,9 @@ class AggregationEntry:
 
     query_file: MCAllAreas | MCIndAreas | MCAllLinks | MCIndLinks
     frequency: Frequency
-    mc_years: Optional[str] = None
-    type_ids: Optional[str] = None
-    columns_names: Optional[str] = None
+    mc_years: Optional[list[str]] = None
+    type_ids: Optional[list[str]] = None
+    columns_names: Optional[list[str]] = None
 
     def to_api_query(self, object_type: str) -> str:
         mc_years = f"&mc_years={','.join(self.mc_years)}" if self.mc_years else ""
@@ -110,9 +110,9 @@ class Output:
         self,
         query_file: str,
         frequency: str,
-        mc_years: Optional[str] = None,
-        areas_ids: Optional[str] = None,
-        columns_names: Optional[str] = None,
+        mc_years: Optional[list[str]] = None,
+        areas_ids: Optional[list[str]] = None,
+        columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
         """
         Creates a matrix of aggregated raw data for areas with mc-ind
@@ -137,9 +137,9 @@ class Output:
         self,
         query_file: str,
         frequency: str,
-        mc_years: Optional[str] = None,
-        areas_ids: Optional[str] = None,
-        columns_names: Optional[str] = None,
+        mc_years: Optional[list[str]] = None,
+        areas_ids: Optional[list[str]] = None,
+        columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
         """
         Creates a matrix of aggregated raw data for links with mc-ind
@@ -164,9 +164,9 @@ class Output:
         self,
         query_file: str,
         frequency: str,
-        mc_years: Optional[str] = None,
-        areas_ids: Optional[str] = None,
-        columns_names: Optional[str] = None,
+        mc_years: Optional[list[str]] = None,
+        areas_ids: Optional[list[str]] = None,
+        columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
         """
         Creates a matrix of aggregated raw data for areas with mc-all
@@ -191,9 +191,9 @@ class Output:
         self,
         query_file: str,
         frequency: str,
-        mc_years: Optional[str] = None,
-        areas_ids: Optional[str] = None,
-        columns_names: Optional[str] = None,
+        mc_years: Optional[list[str]] = None,
+        areas_ids: Optional[list[str]] = None,
+        columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
         """
         Creates a matrix of aggregated raw data for links with mc-all
