@@ -18,11 +18,6 @@ import pandas as pd
 from antares.craft.service.base_services import BaseOutputService
 
 
-class MCRoot(Enum):
-    MC_IND = "mc-ind"
-    MC_ALL = "mc-all"
-
-
 class MCIndAreas(Enum):
     VALUES = "values"
     DETAILS = "details"

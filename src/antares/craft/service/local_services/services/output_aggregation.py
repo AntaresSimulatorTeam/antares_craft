@@ -14,6 +14,7 @@ import collections
 import logging
 import typing as t
 
+from enum import Enum
 from pathlib import Path
 
 import numpy as np
@@ -25,8 +26,14 @@ from antares.craft.exceptions.exceptions import (
     OutputNotFound,
     OutputSubFolderNotFound,
 )
-from antares.craft.model.output import Frequency, MCAllAreas, MCAllLinks, MCIndAreas, MCIndLinks, MCRoot
+from antares.craft.model.output import Frequency, MCAllAreas, MCAllLinks, MCIndAreas, MCIndLinks
 from antares.craft.service.local_services.services.date_serializer import FactoryDateSerializer, rename_unnamed
+
+
+class MCRoot(Enum):
+    MC_IND = "mc-ind"
+    MC_ALL = "mc-all"
+
 
 # noinspection SpellCheckingInspection
 MCYEAR_COL = "mcYear"
@@ -71,9 +78,9 @@ def _checks_estimated_size(nb_files: int, df_bytes_size: int, nb_files_checked: 
         raise FileTooLargeError(estimated_df_size, maximum_size)
 
 
-def split_comma_separated_values(value: str | None, *, default: t.Sequence[str] = ()) -> t.Sequence[str]:
+def split_comma_separated_values(values: list[str] | None, *, default: t.Sequence[str] = ()) -> t.Sequence[str]:
     """Split a comma-separated list of values into an ordered set of strings."""
-    values = value.split(",") if value else default
+    #values = value.split(",") if value else default
     # drop whitespace around values
     values = [v.strip() for v in values]
     # remove duplicates and preserve order (to have a deterministic result for unit tests).
