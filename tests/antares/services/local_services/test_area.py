@@ -155,7 +155,7 @@ class TestCreateSTStorage:
 
     def test_st_storage_and_ini_have_custom_properties(self, local_study_w_areas):
         # Given
-        properties = STStorageProperties(group=STStorageGroup.BATTERY, reservoir_capacity=12.345)
+        properties = STStorageProperties(group=STStorageGroup.BATTERY.value, reservoir_capacity=12.345)
         st_storage_name = "short term storage"
 
         # When
@@ -180,10 +180,21 @@ enabled = True
 
         assert created_storage.properties == properties
 
+    def test_st_storage_and_ini_raise_error_with_custom_properties_88(self, local_study_w_areas):
+        properties = STStorageProperties(
+            group=STStorageGroup.BATTERY.value, reservoir_capacity=12.345, penalize_variation_injection=True
+        )
+        st_storage_name = "short term storage"
+
+        with pytest.raises(
+            ValueError, match="In version 8.8, the following values are not allowed: penalize_variation_injection"
+        ):
+            local_study_w_areas.get_areas()["fr"].create_st_storage(st_storage_name, properties)
+
     def test_st_storage_and_ini_have_custom_properties_92(self, local_study_92):
         # Given
         properties = STStorageProperties(
-            group=STStorageGroup.BATTERY, reservoir_capacity=12.345, efficiency_withdrawal=0.9
+            group=STStorageGroup.BATTERY.value, reservoir_capacity=12.345, efficiency_withdrawal=0.9
         )
         st_storage_name = "short term storage"
 

@@ -116,7 +116,9 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
                     all_storage_name.remove(storage_name)
 
                     # Update properties
-                    upd_properties = STStoragePropertiesLocal.from_user_model(value[storage_name], self.study_version)
+                    upd_properties = STStoragePropertiesLocal.from_user_model(
+                        value[storage_name], self.study_version, True
+                    )
                     upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_unset=True)
                     storage.update(upd_props_as_dict)
 

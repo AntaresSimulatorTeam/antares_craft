@@ -35,8 +35,8 @@ from antares.study.version import StudyVersion
 from antares.study.version.create_app import CreateApp
 
 
-def create_local_services(config: LocalConfiguration, study_name: str = "", study_version: str = "") -> StudyServices:
-    storage_service = ShortTermStorageLocalService(config, study_name, StudyVersion.parse(study_version))
+def create_local_services(config: LocalConfiguration, study_name: str, study_version: StudyVersion) -> StudyServices:
+    storage_service = ShortTermStorageLocalService(config, study_name, study_version)
     thermal_service = ThermalLocalService(config, study_name)
     renewable_service = RenewableLocalService(config, study_name)
     hydro_service = HydroLocalService(config, study_name)
@@ -97,7 +97,9 @@ def create_study_local(
     study = Study(
         name=study_name,
         version=version,
-        services=create_local_services(config=local_config, study_name=study_name, study_version=version),
+        services=create_local_services(
+            config=local_config, study_name=study_name, study_version=StudyVersion.parse(version)
+        ),
         path=study_directory,
         solver_path=solver_path,
     )

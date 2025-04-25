@@ -227,8 +227,11 @@ class AreaLocalService(BaseAreaService):
         Returns:
             New st_storage
         """
+        custom_properties = False
+        if properties is not None:
+            custom_properties = True
         properties = properties or STStorageProperties()
-        local_properties = STStoragePropertiesLocal.from_user_model(properties, self.study_version)
+        local_properties = STStoragePropertiesLocal.from_user_model(properties, self.study_version, custom_properties)
 
         local_storage_service = cast(ShortTermStorageLocalService, self.storage_service)
         ini_content = local_storage_service.read_ini(area_id)

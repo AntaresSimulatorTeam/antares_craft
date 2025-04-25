@@ -34,10 +34,24 @@ class TestSTStorage:
         update_properties = STStoragePropertiesUpdate(efficiency=0.1, reservoir_capacity=1.2)
         new_properties = storage.update_properties(update_properties)
         expected_properties = STStorageProperties(
-            group=STStorageGroup.OTHER1, efficiency=0.1, initial_level_optim=True, reservoir_capacity=1.2
+            group=STStorageGroup.OTHER1.value, efficiency=0.1, initial_level_optim=True, reservoir_capacity=1.2
         )
         assert new_properties == expected_properties
         assert storage.properties == expected_properties
+
+    def test_update_properties_88_error(self, tmp_path: Path, local_study_w_storage: Study) -> None:
+        # Checks values before update
+        storage = local_study_w_storage.get_areas()["fr"].get_st_storages()["sts_1"]
+        current_properties = STStorageProperties(efficiency=0.4, initial_level_optim=True)
+        assert storage.properties == current_properties
+        # Updates properties
+        update_properties = STStoragePropertiesUpdate(
+            efficiency=0.1, reservoir_capacity=1.2, penalize_variation_withdrawal=True
+        )
+        with pytest.raises(
+            ValueError, match="In version 8.8, the following values are not allowed: penalize_variation_withdrawal"
+        ):
+            storage.update_properties(update_properties)
 
     def test_update_properties_92(self, tmp_path: Path, local_study_92: Study) -> None:
         # Checks values before update
@@ -116,19 +130,21 @@ class TestSTStorage:
         area_fr = local_study_w_storage.get_areas()["fr"]
         storage = area_fr.get_st_storages()["sts_1"]
         storage_1 = area_fr.get_st_storages()["sts_2"]
-        update_for_storage = STStoragePropertiesUpdate(enabled=False, group=STStorageGroup.PSP_CLOSED)
-        update_for_storage_1 = STStoragePropertiesUpdate(group=STStorageGroup.PONDAGE, injection_nominal_capacity=1000)
+        update_for_storage = STStoragePropertiesUpdate(enabled=False, group=STStorageGroup.PSP_CLOSED.value)
+        update_for_storage_1 = STStoragePropertiesUpdate(
+            group=STStorageGroup.PONDAGE.value, injection_nominal_capacity=1000
+        )
         dict_storage = {storage: update_for_storage, storage_1: update_for_storage_1}
         local_study_w_storage.update_st_storages(dict_storage)
 
         # testing the modified value
         assert not storage.properties.enabled
-        assert storage.properties.group == STStorageGroup.PSP_CLOSED
+        assert storage.properties.group == STStorageGroup.PSP_CLOSED.value
         # testing the unmodified value
         assert storage.properties.efficiency == 0.4
 
         # testing the modified value
-        assert storage_1.properties.group == STStorageGroup.PONDAGE
+        assert storage_1.properties.group == STStorageGroup.PONDAGE.value
         assert storage_1.properties.injection_nominal_capacity == 1000
         # testing the unmodified value
         assert storage_1.properties.enabled
@@ -137,28 +153,28 @@ class TestSTStorage:
     def test_storage_group_version_handling(self):
         properties_88 = STStorageProperties(
             enabled=True,
-            group=STStorageGroup.BATTERY,
+            group=STStorageGroup.BATTERY.value,
             injection_nominal_capacity=100,
             withdrawal_nominal_capacity=200,
             reservoir_capacity=1000,
         )
 
-        local_88 = STStoragePropertiesLocal.from_user_model(properties_88, StudyVersion.parse("8.8"))
+        local_88 = STStoragePropertiesLocal.from_user_model(properties_88, StudyVersion.parse("8.8"), True)
 
-        assert local_88.group == STStorageGroup.BATTERY
-        assert isinstance(local_88.group, STStorageGroup)
+        assert local_88.group == STStorageGroup.BATTERY.value
 
         back_to_user_88 = local_88.to_user_model()
-        assert back_to_user_88.group == STStorageGroup.BATTERY
+        assert back_to_user_88.group == STStorageGroup.BATTERY.value
 
         properties_88_no_group = STStorageProperties(
             enabled=True, injection_nominal_capacity=100, withdrawal_nominal_capacity=200, reservoir_capacity=1000
         )
 
-        local_88_no_group = STStoragePropertiesLocal.from_user_model(properties_88_no_group, StudyVersion.parse("8.8"))
+        local_88_no_group = STStoragePropertiesLocal.from_user_model(
+            properties_88_no_group, StudyVersion.parse("8.8"), True
+        )
 
-        assert local_88_no_group.group == STStorageGroup.OTHER1
-        assert isinstance(local_88_no_group.group, STStorageGroup)
+        assert local_88_no_group.group == STStorageGroup.OTHER1.value
 
         properties_92 = STStorageProperties(
             enabled=True,
@@ -168,10 +184,9 @@ class TestSTStorage:
             reservoir_capacity=1000,
         )
 
-        local_92 = STStoragePropertiesLocal.from_user_model(properties_92, StudyVersion.parse("9.2"))
+        local_92 = STStoragePropertiesLocal.from_user_model(properties_92, StudyVersion.parse("9.2"), True)
 
         assert local_92.group == "custom_group"
-        assert isinstance(local_92.group, str)
 
         back_to_user_92 = local_92.to_user_model()
         assert back_to_user_92.group == "custom_group"
@@ -180,7 +195,8 @@ class TestSTStorage:
             enabled=True, injection_nominal_capacity=100, withdrawal_nominal_capacity=200, reservoir_capacity=1000
         )
 
-        local_92_no_group = STStoragePropertiesLocal.from_user_model(properties_92_no_group, StudyVersion.parse("9.2"))
+        local_92_no_group = STStoragePropertiesLocal.from_user_model(
+            properties_92_no_group, StudyVersion.parse("9.2"), True
+        )
 
-        assert local_92_no_group.group == STStorageGroup.OTHER1
-        assert isinstance(local_92_no_group.group, STStorageGroup)
+        assert local_92_no_group.group == ""

@@ -11,9 +11,7 @@
 # This file is part of the Antares project.
 from dataclasses import asdict
 
-from pydantic import Field
-
-from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
+from antares.craft.model.st_storage import STStorageProperties, STStoragePropertiesUpdate
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 
@@ -22,7 +20,7 @@ STStoragePropertiesType = STStorageProperties | STStoragePropertiesUpdate
 
 @all_optional_model
 class STStoragePropertiesAPI(APIBaseModel):
-    group: STStorageGroup
+    group: str
     injection_nominal_capacity: float
     withdrawal_nominal_capacity: float
     reservoir_capacity: float
@@ -31,13 +29,13 @@ class STStoragePropertiesAPI(APIBaseModel):
     initial_level_optim: bool
     enabled: bool
     # add new parameter 9.2 but not study_version validation in API
-    efficiency_withdrawal: float = 1
-    penalize_variation_injection: bool = Field(False, serialization_alias="penalize-variation-injection")
-    penalize_variation_withdrawal: bool = Field(False, serialization_alias="penalize-variation-withdrawal")
+    efficiency_withdrawal: float
+    penalize_variation_injection: bool
+    penalize_variation_withdrawal: bool
 
     @staticmethod
     def from_user_model(user_class: STStoragePropertiesType) -> "STStoragePropertiesAPI":
-        user_dict = {k: v for k, v in asdict(user_class).items() if v is not None}
+        user_dict = asdict(user_class)
         return STStoragePropertiesAPI.model_validate(user_dict)
 
     def to_user_model(self) -> STStorageProperties:

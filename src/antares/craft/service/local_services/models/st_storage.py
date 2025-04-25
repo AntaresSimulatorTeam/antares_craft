@@ -16,6 +16,7 @@ from pydantic import Field, field_validator
 from pydantic_core.core_schema import ValidationInfo
 
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
+from antares.craft.model.study import STUDY_VERSION_8_8
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.study.version import StudyVersion
 
@@ -27,7 +28,7 @@ def _sts_alias_generator(input: str) -> str:
 
 
 class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_generator):
-    group: STStorageGroup | str = Field(default="")
+    group: str = ""
     injection_nominal_capacity: float = 0
     withdrawal_nominal_capacity: float = 0
     reservoir_capacity: float = 0
@@ -42,49 +43,60 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
     penalize_variation_withdrawal: bool = Field(False, alias="penalize-variation-withdrawal")
 
     @field_validator("group")
-    def validate_group(cls, v: str | STStorageGroup | None, info: ValidationInfo) -> str | STStorageGroup:
-        study_version = getattr(info.context, "get", lambda x: None)("study_version")
-        if study_version == StudyVersion.parse("8.8"):
+    def validate_group(cls, v: str | STStorageGroup | None, info: ValidationInfo) -> str:
+        study_version = info.context.get("study_version") if info.context is not None else None
+        if study_version == STUDY_VERSION_8_8:
             if v is None or v == "":
-                return STStorageGroup.OTHER1
+                return STStorageGroup.OTHER1.value
             if isinstance(v, str):
                 try:
-                    return STStorageGroup(v)
+                    _ = STStorageGroup(v)
+                    return v
                 except ValueError:
                     raise ValueError(f"Group for 8.8 has to be a valid value : {[e.value for e in STStorageGroup]}")
-            return v
-        return v if v is not None else ""
+            if isinstance(v, STStorageGroup):
+                return v.value
+        return str(v) if v is not None else ""
 
     @field_validator("efficiency_withdrawal", "penalize_variation_injection", "penalize_variation_withdrawal")
     def check_version_support(cls, v: Union[str, STStorageGroup], info: ValidationInfo) -> Any:
-        study_version = getattr(info.context, "get", lambda x: None)("study_version")
-        if study_version == StudyVersion.parse("8.8"):
+        study_version = info.context.get("study_version") if info.context is not None else None
+        if study_version == STUDY_VERSION_8_8:
             return None
         return v
 
     @staticmethod
-    def from_user_model(user_class: STStoragePropertiesType, study_version: StudyVersion) -> "STStoragePropertiesLocal":
+    def from_user_model(
+        user_class: STStoragePropertiesType, study_version: StudyVersion, custom_properties: bool
+    ) -> "STStoragePropertiesLocal":
         user_dict = {k: v for k, v in asdict(user_class).items() if v is not None}
 
-        if study_version == StudyVersion.parse("8.8"):
-            if "group" not in user_dict:
-                user_dict["group"] = STStorageGroup.OTHER1
-            elif isinstance(user_dict["group"], str):
-                try:
-                    user_dict["group"] = STStorageGroup(user_dict["group"])
-                except ValueError:
-                    raise ValueError(f"Group for 8.8 has to be a valid value : {[e.value for e in STStorageGroup]}")
-        else:
-            user_dict["group"] = user_dict.get("group", "")
+        if study_version == STUDY_VERSION_8_8:
+            group = user_dict.get("group")
+            if group is None or group == "":
+                user_dict["group"] = STStorageGroup.OTHER1.value
+                group = user_dict["group"]
+            valid_values = [e.value for e in STStorageGroup]
+            if group not in valid_values:
+                raise ValueError("In 8.8, group must be a valid string value from STStorageGroup")
+
+        if study_version == STUDY_VERSION_8_8 and custom_properties is True:
+            fields_to_check = ["penalize_variation_injection", "penalize_variation_withdrawal", "efficiency_withdrawal"]
+
+            violations = []
+            for field in fields_to_check:
+                value = user_dict.get(field)
+                expected_value = STStoragePropertiesLocal.model_fields[field].default
+                if value is not None and value != expected_value:
+                    violations.append(field)
+
+            if violations:
+                raise ValueError(f"In version 8.8, the following values are not allowed: {', '.join(violations)}")
 
         return STStoragePropertiesLocal.model_validate(user_dict, context={"study_version": study_version})
 
     def to_user_model(self) -> STStorageProperties:
         group_value = self.group
-        if hasattr(self, "_context") and self._context.get("study_version") == StudyVersion.parse("8.8"):
-            if isinstance(self.group, str):
-                group_value = STStorageGroup(self.group)
-
         return STStorageProperties(
             enabled=self.enabled,
             group=group_value,

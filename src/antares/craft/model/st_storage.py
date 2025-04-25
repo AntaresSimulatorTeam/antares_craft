@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Union
+from typing import Optional
 
 import pandas as pd
 
@@ -42,7 +42,7 @@ class STStorageMatrixName(Enum):
 
 @dataclass
 class STStoragePropertiesUpdate:
-    group: Optional[Union[STStorageGroup, str]] = None
+    group: Optional[str] = None
     injection_nominal_capacity: Optional[float] = None
     withdrawal_nominal_capacity: Optional[float] = None
     reservoir_capacity: Optional[float] = None
@@ -57,7 +57,7 @@ class STStoragePropertiesUpdate:
 
 @dataclass(frozen=True)
 class STStorageProperties:
-    group: Optional[STStorageGroup | str] = STStorageGroup.OTHER1
+    group: str = ""
     injection_nominal_capacity: float = 0
     withdrawal_nominal_capacity: float = 0
     reservoir_capacity: float = 0
