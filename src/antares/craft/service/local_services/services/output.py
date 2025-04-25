@@ -36,8 +36,8 @@ class OutputLocalService(BaseOutputService):
     def aggregate_values(
         self, output_id: str, aggregation_entry: AggregationEntry, object_type: str, mc_type: str
     ) -> pd.DataFrame:
-        type_ids = aggregation_entry.type_ids if aggregation_entry.type_ids else []
-        columns_names = aggregation_entry.columns_names if aggregation_entry.columns_names else []
+        type_ids = aggregation_entry.type_ids or []
+        columns_names = aggregation_entry.columns_names or []
         mc_years = [int(mc_year) for mc_year in aggregation_entry.mc_years] if aggregation_entry.mc_years else []
 
         aggregator_manager = AggregatorManager(

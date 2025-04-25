@@ -146,7 +146,7 @@ LINKS_REQUESTS__ALL = [
             "output_id": "20241807-1540eco-extra-outputs",
             "query_file": MCAllLinks.VALUES.value,
             "frequency": "monthly",
-            "links_ids": "de - fr",
+            "links_ids": ["de - fr"],
         },
         "test-04-all.result.tsv",
     ),
@@ -168,25 +168,6 @@ LINKS_REQUESTS__ALL = [
         },
         "test-06-all.result.tsv",
     ),
-]
-
-WRONGLY_TYPED_REQUESTS__ALL = [
-    {
-        "output_id": "20201014-1427eco",
-        "query_file": "fake_query_file",
-        "frequency": "monthly",
-    },
-    {
-        "output_id": "20201014-1427eco",
-        "query_file": "values",
-        "frequency": "fake_frequency",
-    },
-    {
-        "output_id": "20201014-1427eco",
-        "query_file": "values",
-        "frequency": "daily",
-        "format": "fake_format",
-    },
 ]
 
 AREAS_REQUESTS__IND = [

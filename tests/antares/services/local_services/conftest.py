@@ -11,8 +11,6 @@
 # This file is part of the Antares project.
 import pytest
 
-from pathlib import Path
-
 import pandas as pd
 
 from antares.craft import LinkProperties, LinkUi, create_study_local
@@ -40,15 +38,6 @@ def local_study(tmp_path) -> Study:
     study_name = "studyTest"
     study_version = "880"
     return create_study_local(study_name, study_version, tmp_path.absolute())
-
-
-@pytest.fixture
-def local_study_w_output(tmp_path, local_study) -> Study:
-    output_name = "20250325-1145eco"
-    output_path = Path(output_name) / "economy"
-    tmp_path.joinpath(output_path)
-
-    return local_study
 
 
 @pytest.fixture
