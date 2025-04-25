@@ -130,7 +130,7 @@ def _filtered_files_listing(
     return filtered_files
 
 
-def get_df(study_path: Path, output_id: str, file_path: str):
+def get_df(study_path: Path, output_id: str, file_path: str) -> pd.DataFrame:
     full_path = f"{study_path}/output/{output_id}/economy/{file_path}"
     df = pd.read_csv(full_path, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy")
 
