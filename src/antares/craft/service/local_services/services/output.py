@@ -36,14 +36,16 @@ class OutputLocalService(BaseOutputService):
     def aggregate_values(
         self, output_id: str, aggregation_entry: AggregationEntry, object_type: str, mc_type: str
     ) -> pd.DataFrame:
+        type_ids = aggregation_entry.type_ids if aggregation_entry.type_ids else []
+        columns_names = aggregation_entry.columns_names if aggregation_entry.columns_names else []
         mc_years = [int(mc_year) for mc_year in aggregation_entry.mc_years] if aggregation_entry.mc_years else []
 
         aggregator_manager = AggregatorManager(
             self.config.study_path / "output" / output_id,
             aggregation_entry.query_file,
             aggregation_entry.frequency,
-            aggregation_entry.type_ids,
-            aggregation_entry.columns_names,
+            type_ids,
+            columns_names,
             mc_years,
         )
 
