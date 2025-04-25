@@ -29,8 +29,7 @@ from antares.craft.model.output import (
 )
 from antares.craft.service.local_services.factory import create_local_services
 
-assets_dir = Path(__file__).parent / "assets"
-ASSETS_DIR = Path(__file__).parent.resolve()
+ASSETS_DIR = Path(__file__).parent / "assets"
 
 AREAS_REQUESTS__ALL = [
     (
@@ -305,7 +304,7 @@ def setup_output(tmp_path, output_id: str) -> Output:
     services = create_local_services(config, study_name)
     output_service = services.output_service
 
-    zip_path = Path(assets_dir).joinpath("output.zip")
+    zip_path = Path(ASSETS_DIR).joinpath("output.zip")
     extract_path = tmp_path / study_name
 
     with zipfile.ZipFile(zip_path, "r") as zf:
@@ -350,8 +349,7 @@ class TestOutput:
                 query_file, frequency.value, areas_ids=areas_ids, columns_names=columns_names, mc_years=mc_years
             )
 
-            resource_file = Path(ASSETS_DIR).joinpath(f"assets/aggregate_areas_raw_data/{expected_result_filename}")
-            resource_file.parent.mkdir(exist_ok=True, parents=True)
+            resource_file = Path(ASSETS_DIR).joinpath(f"aggregate_areas_raw_data/{expected_result_filename}")
 
             if not resource_file.exists() or resource_file.stat().st_size == 0:
                 df.to_csv(resource_file, sep="\t", index=False)
@@ -378,8 +376,7 @@ class TestOutput:
                 query_file, frequency.value, areas_ids=areas_ids, columns_names=columns_names, mc_years=mc_years
             )
 
-            resource_file = Path(ASSETS_DIR).joinpath(f"assets/aggregate_areas_raw_data/{expected_result_filename}")
-            resource_file.parent.mkdir(exist_ok=True, parents=True)
+            resource_file = Path(ASSETS_DIR).joinpath(f"aggregate_areas_raw_data/{expected_result_filename}")
 
             if not resource_file.exists() or resource_file.stat().st_size == 0:
                 df.to_csv(resource_file, sep="\t", index=False)
@@ -407,7 +404,6 @@ class TestOutput:
             )
 
             resource_file = Path(ASSETS_DIR).joinpath(f"aggregate_links_raw_data/{expected_result_filename}")
-            resource_file.parent.mkdir(exist_ok=True, parents=True)
 
             if not resource_file.exists() or resource_file.stat().st_size == 0:
                 df.to_csv(resource_file, sep="\t", index=False)
@@ -435,7 +431,6 @@ class TestOutput:
             )
 
             resource_file = Path(ASSETS_DIR).joinpath(f"aggregate_links_raw_data/{expected_result_filename}")
-            resource_file.parent.mkdir(exist_ok=True, parents=True)
 
             if not resource_file.exists() or resource_file.stat().st_size == 0:
                 df.to_csv(resource_file, sep="\t", index=False)

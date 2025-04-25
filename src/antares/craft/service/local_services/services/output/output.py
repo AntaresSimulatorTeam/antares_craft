@@ -19,7 +19,7 @@ from antares.craft.model.output import AggregationEntry
 from antares.craft.service.base_services import BaseOutputService
 from antares.craft.service.local_services.services.output.output_aggregation import (
     AggregatorManager,
-    get_df,
+    get_output_matrix,
 )
 
 
@@ -30,8 +30,8 @@ class OutputLocalService(BaseOutputService):
 
     @override
     def get_matrix(self, output_id: str, file_path: str) -> pd.DataFrame:
-        full_path = f"{self.config.study_path}/output/{output_id}/economy/{file_path}"
-        return get_df(full_path)
+        full_path = self.config.study_path / "output" / output_id / "economy" / file_path
+        return get_output_matrix(full_path)
 
     @override
     def aggregate_values(
