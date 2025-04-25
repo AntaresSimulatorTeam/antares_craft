@@ -1,8 +1,0 @@
-FR	area	id	annual
-	VARIABLES	BEGIN	END
-	78	1	1
-
-FR	annual	OP. COST	OP. COST	MRG. PRICE	MRG. PRICE	BALANCE	BALANCE	LOAD	LOAD	H. ROR	H. ROR	NUCLEAR	NUCLEAR	LIGNITE	LIGNITE	COAL	COAL	GAS	GAS	OIL	OIL	MIX. FUEL	MIX. FUEL	MISC. DTG	MISC. DTG	MISC. DTG 2	MISC. DTG 2	MISC. DTG 3	MISC. DTG 3	MISC. DTG 4	MISC. DTG 4	WIND OFFSHORE	WIND OFFSHORE	WIND ONSHORE	WIND ONSHORE	SOLAR CONCRT.	SOLAR CONCRT.	SOLAR PV	SOLAR PV	SOLAR ROOFT	SOLAR ROOFT	RENW. 1	RENW. 1	RENW. 2	RENW. 2	RENW. 3	RENW. 3	RENW. 4	RENW. 4	H. STOR	H. STOR	H. PUMP	H. PUMP	H. LEV	H. LEV	H. INFL	H. INFL	H. OVFL	H. OVFL	H. VAL	H. VAL	H. COST	H. COST	UNSP. ENRG	UNSP. ENRG	SPIL. ENRG	SPIL. ENRG	LOLD	LOLD	AVL DTG	AVL DTG	DTG MRG	DTG MRG	MAX MRG	MAX MRG	NP COST	NP COST	NODU	NODU
-		Euro	Euro	Euro	Euro	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	%	%	MWh	MWh	%	%	Euro/MWh	Euro/MWh	Euro	Euro	MWh	MWh	MWh	MWh	Hours	Hours	MWh	MWh	MWh	MWh	MWh	MWh	Euro	Euro	 	 
-		min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max	min	max
-	Annual	88	339	960	918	825	962	88	119	119	67	45	352	1	1	1	1	288	625	447	346	688	625	185	118	1	1	1	1	1	1	182	135	182	135	1	1	55	90	1	1	1	1	1	1	1	1	1	1	119	445	1	1	903	724	119	45	1	1	1	1	1	1	1	270	5	390	1	346	405	352	425	589	425	589	962	785	5	539

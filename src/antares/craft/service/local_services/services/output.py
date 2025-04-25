@@ -15,11 +15,11 @@ import pandas as pd
 from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import MatrixDownloadError
 from antares.craft.model.output import AggregationEntry
 from antares.craft.service.base_services import BaseOutputService
 from antares.craft.service.local_services.services.output_aggregation import (
     AggregatorManager,
+    get_df,
     split_comma_separated_values,
 )
 
@@ -31,13 +31,7 @@ class OutputLocalService(BaseOutputService):
 
     @override
     def get_matrix(self, output_id: str, file_path: str) -> pd.DataFrame:
-        try:
-            full_path = f"{self.config.study_path}/output/{output_id}/economy/{file_path}"
-            dataframe = pd.read_csv(full_path)
-
-        except FileNotFoundError as e:
-            raise MatrixDownloadError(output_id, "output", file_path) from e
-        return dataframe
+        return get_df(self.config.study_path, output_id, file_path)
 
     @override
     def aggregate_values(

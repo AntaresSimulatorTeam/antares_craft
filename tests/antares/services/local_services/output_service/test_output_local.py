@@ -9,9 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import pytest
 
-import shutil
 import typing
 import zipfile
 
@@ -21,7 +19,6 @@ import numpy as np
 import pandas as pd
 
 from antares.craft import LocalConfiguration
-from antares.craft.exceptions.exceptions import MatrixDownloadError
 from antares.craft.model.output import (
     Frequency,
     MCAllAreas,
@@ -340,45 +337,43 @@ WRONGLY_TYPED_REQUESTS__IND = [
 ]
 
 
+def setup_output(tmp_path, output_id: str) -> Output:
+    study_name = "studyTest"
+    config = LocalConfiguration(tmp_path, study_name)
+    services = create_local_services(config, study_name)
+    output_service = services.output_service
+
+    zip_path = Path(assets_dir).joinpath("aggregate_areas_raw_data/output.zip")
+    extract_path = tmp_path / study_name
+
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        zf.extractall(extract_path)
+
+    output = Output(output_id, False, output_service)
+
+    return output
+
+
 class TestOutput:
-    def test_get_matrix_success(self, tmp_path, local_study):
-        file_name = "details-hourly.txt"
+    def test_get_matrix(self, tmp_path, local_study):
+        file_name = "details-monthly.txt"
+        output_name = "20201014-1427eco"
+
         test_config = typing.cast(LocalConfiguration, local_study.service.config)
-        services = create_local_services(test_config, "test-study")
+        services = create_local_services(test_config, "studyTest")
         output_service = services.output_service
-        output_1 = Output("output_1", False, output_service)
-        def_path = tmp_path / "studyTest" / "output" / "output_1" / "economy"
-        shutil.copytree(assets_dir, def_path, dirs_exist_ok=True)
-        expected_dataframe = pd.read_csv(assets_dir / file_name)
-        dataframe = output_service.get_matrix(output_1.name, file_name)
+
+        output_1 = setup_output(tmp_path, output_name)
+        file_path = Path(f"mc-all/areas/es/{file_name}")
+        def_path = tmp_path / "studyTest" / "output" / output_name / "economy" / file_path
+
+        expected_dataframe = pd.read_csv(
+            def_path, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy"
+        )
+        dataframe = output_service.get_matrix(output_1.name, file_path.as_posix())
         assert dataframe.equals(expected_dataframe)
 
-    def test_get_matrix_fail(self, tmp_path, local_study):
-        file_name = "details-hourly.txt"
-        output_name = "output_1"
-        test_config = typing.cast(LocalConfiguration, local_study.service.config)
-        services = create_local_services(test_config, "test-study")
-        output_service = services.output_service
-        def_path = tmp_path / "studyTest" / output_name
-        shutil.copytree(assets_dir, def_path, dirs_exist_ok=True)
-
-        with pytest.raises(
-            MatrixDownloadError, match=f"Error downloading output matrix for area {output_name}: {file_name}"
-        ):
-            output_service.get_matrix("output_1", file_name)
-
-    # TODO Antarest/examples/studies prendre outputs de STA-Mini prendre output et zipper code source
-    # TODO reprendre les all.result.tsv dans /AntaREST/tests/integration/raw_studies_blueprint/assets/aggregate_areas_raw_data/test-01.result.tsv tu trouves les
-    # TODO le path avec CONTROL N
-    # TODO raw_study.synthesis.json pas besoin tu peux l'effacer :)
-
     def test_area_aggregate_mc_all(self, tmp_path):
-        study_name = "test-study"
-
-        config = LocalConfiguration(tmp_path, study_name)
-        services = create_local_services(config, study_name)
-        output_service = services.output_service
-
         for params, expected_result_filename in AREAS_REQUESTS__ALL:
             output_id = params["output_id"]
             frequency = Frequency(params["frequency"])
@@ -387,13 +382,7 @@ class TestOutput:
             areas_ids = params.get("areas_ids")
             columns_names = params.get("columns_names")
 
-            zip_path = Path(assets_dir).joinpath("aggregate_areas_raw_data/output.zip")
-            extract_path = tmp_path / study_name
-
-            with zipfile.ZipFile(zip_path, "r") as zf:
-                zf.extractall(extract_path)
-
-            output = Output(output_id, False, output_service)
+            output = setup_output(tmp_path, output_id)
 
             df = output.aggregate_areas_mc_all(
                 query_file, frequency.value, areas_ids=areas_ids, columns_names=columns_names, mc_years=mc_years
@@ -412,15 +401,7 @@ class TestOutput:
 
             pd.testing.assert_frame_equal(df, expected_df)
 
-            shutil.rmtree(extract_path)
-
     def test_area_aggregate_mc_ind(self, tmp_path):
-        study_name = "test-study"
-
-        config = LocalConfiguration(tmp_path, study_name)
-        services = create_local_services(config, study_name)
-        output_service = services.output_service
-
         for params, expected_result_filename in AREAS_REQUESTS__IND:
             output_id = params["output_id"]
             frequency = Frequency(params["frequency"])
@@ -429,13 +410,7 @@ class TestOutput:
             areas_ids = params.get("areas_ids")
             columns_names = params.get("columns_names")
 
-            zip_path = Path(assets_dir).joinpath("aggregate_areas_raw_data/output.zip")
-            extract_path = tmp_path / study_name
-
-            with zipfile.ZipFile(zip_path, "r") as zf:
-                zf.extractall(extract_path)
-
-            output = Output(output_id, False, output_service)
+            output = setup_output(tmp_path, output_id)
 
             df = output.aggregate_areas_mc_ind(
                 query_file, frequency.value, areas_ids=areas_ids, columns_names=columns_names, mc_years=mc_years
@@ -454,15 +429,7 @@ class TestOutput:
 
             pd.testing.assert_frame_equal(df, expected_df)
 
-            shutil.rmtree(extract_path)
-
     def test_link_aggregate_mc_all(self, tmp_path):
-        study_name = "test-study"
-
-        config = LocalConfiguration(tmp_path, study_name)
-        services = create_local_services(config, study_name)
-        output_service = services.output_service
-
         for params, expected_result_filename in LINKS_REQUESTS__ALL:
             output_id = params["output_id"]
             frequency = Frequency(params["frequency"])
@@ -471,13 +438,7 @@ class TestOutput:
             areas_ids = params.get("areas_ids")
             columns_names = params.get("columns_names")
 
-            zip_path = Path(assets_dir).joinpath("aggregate_areas_raw_data/output.zip")
-            extract_path = tmp_path / study_name
-
-            with zipfile.ZipFile(zip_path, "r") as zf:
-                zf.extractall(extract_path)
-
-            output = Output(output_id, False, output_service)
+            output = setup_output(tmp_path, output_id)
 
             df = output.aggregate_links_mc_all(
                 query_file, frequency.value, areas_ids=areas_ids, columns_names=columns_names, mc_years=mc_years
@@ -496,15 +457,7 @@ class TestOutput:
 
             pd.testing.assert_frame_equal(df, expected_df)
 
-            shutil.rmtree(extract_path)
-
     def test_link_aggregate_mc_ind(self, tmp_path):
-        study_name = "test-study"
-
-        config = LocalConfiguration(tmp_path, study_name)
-        services = create_local_services(config, study_name)
-        output_service = services.output_service
-
         for params, expected_result_filename in LINKS_REQUESTS__IND:
             output_id = params["output_id"]
             frequency = Frequency(params["frequency"])
@@ -513,13 +466,7 @@ class TestOutput:
             links_id = params.get("links_ids")
             columns_names = params.get("columns_names")
 
-            zip_path = Path(assets_dir).joinpath("aggregate_areas_raw_data/output.zip")
-            extract_path = tmp_path / study_name
-
-            with zipfile.ZipFile(zip_path, "r") as zf:
-                zf.extractall(extract_path)
-
-            output = Output(output_id, False, output_service)
+            output = setup_output(tmp_path, output_id)
 
             df = output.aggregate_links_mc_ind(
                 query_file, frequency.value, areas_ids=links_id, columns_names=columns_names, mc_years=mc_years
@@ -537,5 +484,3 @@ class TestOutput:
                 expected_df[col] = expected_df[col].astype(df[col].dtype)
 
             pd.testing.assert_frame_equal(df, expected_df)
-
-            shutil.rmtree(extract_path)
