@@ -182,5 +182,5 @@ class TestSTStorage:
 
         local_92_no_group = STStoragePropertiesLocal.from_user_model(properties_92_no_group, StudyVersion.parse("9.2"))
 
-        assert local_92_no_group.group == ""
-        assert isinstance(local_92_no_group.group, str)
+        assert local_92_no_group.group == STStorageGroup.OTHER1
+        assert isinstance(local_92_no_group.group, STStorageGroup)

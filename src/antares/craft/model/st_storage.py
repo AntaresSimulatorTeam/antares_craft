@@ -57,7 +57,7 @@ class STStoragePropertiesUpdate:
 
 @dataclass(frozen=True)
 class STStorageProperties:
-    group: Optional[STStorageGroup | str] = None
+    group: Optional[STStorageGroup | str] = STStorageGroup.OTHER1
     injection_nominal_capacity: float = 0
     withdrawal_nominal_capacity: float = 0
     reservoir_capacity: float = 0
