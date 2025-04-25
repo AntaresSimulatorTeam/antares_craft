@@ -80,7 +80,7 @@ def _checks_estimated_size(nb_files: int, df_bytes_size: int, nb_files_checked: 
 
 def split_comma_separated_values(values: list[str] | None, *, default: t.Sequence[str] = ()) -> t.Sequence[str]:
     """Split a comma-separated list of values into an ordered set of strings."""
-    #values = value.split(",") if value else default
+    # values = value.split(",") if value else default
     # drop whitespace around values
     values = [v.strip() for v in values]
     # remove duplicates and preserve order (to have a deterministic result for unit tests).
