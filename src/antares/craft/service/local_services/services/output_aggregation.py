@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-import collections
 import logging
 import typing as t
 
@@ -78,13 +77,13 @@ def _checks_estimated_size(nb_files: int, df_bytes_size: int, nb_files_checked: 
         raise FileTooLargeError(estimated_df_size, maximum_size)
 
 
-def split_comma_separated_values(values: list[str] | None, *, default: t.Sequence[str] = ()) -> t.Sequence[str]:
-    """Split a comma-separated list of values into an ordered set of strings."""
-    # values = value.split(",") if value else default
-    # drop whitespace around values
-    values = [v.strip() for v in values]
-    # remove duplicates and preserve order (to have a deterministic result for unit tests).
-    return list(collections.OrderedDict.fromkeys(values))
+# def split_comma_separated_values(values: list[str] | None, *, default: t.Sequence[str] = ()) -> t.Sequence[str]:
+#     """Split a comma-separated list of values into an ordered set of strings."""
+#     # values = value.split(",") if value else default
+#     # drop whitespace around values
+#     values = [v.strip() for v in values]
+#     # remove duplicates and preserve order (to have a deterministic result for unit tests).
+#     return list(collections.OrderedDict.fromkeys(values))
 
 
 def _columns_ordering(df_cols: t.List[str], column_name: str, is_details: bool, mc_root: MCRoot) -> t.Sequence[str]:
