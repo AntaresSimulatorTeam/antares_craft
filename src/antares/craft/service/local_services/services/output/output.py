@@ -17,7 +17,7 @@ from typing_extensions import override
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.output import AggregationEntry
 from antares.craft.service.base_services import BaseOutputService
-from antares.craft.service.local_services.services.output_aggregation import (
+from antares.craft.service.local_services.services.output.output_aggregation import (
     AggregatorManager,
     get_df,
 )
@@ -30,7 +30,8 @@ class OutputLocalService(BaseOutputService):
 
     @override
     def get_matrix(self, output_id: str, file_path: str) -> pd.DataFrame:
-        return get_df(self.config.study_path, output_id, file_path)
+        full_path = f"{self.config.study_path}/output/{output_id}/economy/{file_path}"
+        return get_df(full_path)
 
     @override
     def aggregate_values(

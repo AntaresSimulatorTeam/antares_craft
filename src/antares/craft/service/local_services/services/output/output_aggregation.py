@@ -26,7 +26,7 @@ from antares.craft.exceptions.exceptions import (
     OutputSubFolderNotFound,
 )
 from antares.craft.model.output import Frequency, MCAllAreas, MCAllLinks, MCIndAreas, MCIndLinks
-from antares.craft.service.local_services.services.date_serializer import FactoryDateSerializer, rename_unnamed
+from antares.craft.service.local_services.services.output.date_serializer import FactoryDateSerializer, rename_unnamed
 
 
 class MCRoot(Enum):
@@ -77,15 +77,6 @@ def _checks_estimated_size(nb_files: int, df_bytes_size: int, nb_files_checked: 
         raise FileTooLargeError(estimated_df_size, maximum_size)
 
 
-# def split_comma_separated_values(values: list[str] | None, *, default: t.Sequence[str] = ()) -> t.Sequence[str]:
-#     """Split a comma-separated list of values into an ordered set of strings."""
-#     # values = value.split(",") if value else default
-#     # drop whitespace around values
-#     values = [v.strip() for v in values]
-#     # remove duplicates and preserve order (to have a deterministic result for unit tests).
-#     return list(collections.OrderedDict.fromkeys(values))
-
-
 def _columns_ordering(df_cols: t.List[str], column_name: str, is_details: bool, mc_root: MCRoot) -> t.Sequence[str]:
     # original columns
     org_cols = df_cols.copy()
@@ -129,10 +120,8 @@ def _filtered_files_listing(
     return filtered_files
 
 
-def get_df(study_path: Path, output_id: str, file_path: str) -> pd.DataFrame:
-    full_path = f"{study_path}/output/{output_id}/economy/{file_path}"
-    df = pd.read_csv(full_path, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy")
-
+def get_df(file_path: str) -> pd.DataFrame:
+    df = pd.read_csv(file_path, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy")
     return df
 
 
@@ -165,14 +154,7 @@ class AggregatorManager:
         )
 
     def _parse_output_file(self, file_path: Path, normalize_column_name: bool = True) -> pd.DataFrame:
-        csv_file = pd.read_csv(
-            file_path,
-            sep="\t",
-            skiprows=4,
-            header=[0, 1, 2],
-            na_values="N/A",
-            float_precision="legacy",
-        )
+        csv_file = get_df(file_path.as_posix())
         date_serializer = FactoryDateSerializer.create(self.frequency.value, "")
         date, body = date_serializer.extract_date(csv_file)
         df = rename_unnamed(body).astype(float)
