@@ -9,7 +9,9 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import pytest
 
+import dataclasses
 import typing
 import zipfile
 
@@ -31,271 +33,580 @@ from antares.craft.service.local_services.factory import create_local_services
 
 ASSETS_DIR = Path(__file__).parent / "assets"
 
+
+@dataclasses.dataclass(frozen=True)
+class TestParams:
+    output_id: str
+    query_file: str
+    frequency: Frequency
+    mc_years: list[str]
+    type_ids: list[str]
+    columns_names: list[str]
+
+
 AREAS_REQUESTS__ALL = [
     (
-        {
-            "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.VALUES.value,
-            "frequency": "daily",
-            "areas_ids": [],
-            "columns_names": [],
-        },
+        TestParams(
+            output_id="20201014-1427eco",
+            query_file=MCAllAreas.VALUES.value,
+            frequency=Frequency.DAILY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=[],
+        ),
         "test-01-all.result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.DETAILS.value,
-            "frequency": "monthly",
-            "areas_ids": ["de", "fr", "it"],
-            "columns_names": [],
-        },
+        TestParams(
+            output_id="20201014-1427eco",
+            query_file=MCAllAreas.DETAILS.value,
+            frequency=Frequency.MONTHLY,
+            mc_years=[],
+            type_ids=["de", "fr", "it"],
+            columns_names=[],
+        ),
         "test-02-all.result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.VALUES.value,
-            "frequency": "daily",
-            "areas_ids": [],
-            "columns_names": ["OP. CoST", "MRG. PrICE"],
-        },
+        TestParams(
+            output_id="20201014-1427eco",
+            query_file=MCAllAreas.VALUES.value,
+            frequency=Frequency.DAILY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=["OP. CoST", "MRG. PrICE"],
+        ),
         "test-03-all.result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.VALUES.value,
-            "frequency": "daily",
-            "areas_ids": ["es", "fr", "de"],
-            "columns_names": [],
-        },
+        TestParams(
+            output_id="20201014-1427eco",
+            query_file=MCAllAreas.VALUES.value,
+            frequency=Frequency.DAILY,
+            mc_years=[],
+            type_ids=["es", "fr", "de"],
+            columns_names=[],
+        ),
         "test-04-all.result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.VALUES.value,
-            "frequency": "monthly",
-            "areas_ids": [],
-            "columns_names": [],
-        },
+        TestParams(
+            output_id="20201014-1427eco",
+            query_file=MCAllAreas.VALUES.value,
+            frequency=Frequency.MONTHLY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=[],
+        ),
         "test-05-all.result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.ID.value,
-            "frequency": "daily",
-            "areas_ids": [],
-            "columns_names": [],
-        },
+        TestParams(
+            output_id="20201014-1427eco",
+            query_file=MCAllAreas.ID.value,
+            frequency=Frequency.DAILY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=[],
+        ),
         "test-06-all.result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.VALUES.value,
-            "frequency": "daily",
-            "columns_names": ["COsT", "NoDU"],
-        },
+        TestParams(
+            output_id="20201014-1427eco",
+            query_file=MCAllAreas.VALUES.value,
+            frequency=Frequency.DAILY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=["COsT", "NoDU"],
+        ),
         "test-07-all.result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1427eco",
-            "query_file": MCAllAreas.DETAILS.value,
-            "frequency": "monthly",
-            "columns_names": ["COsT", "NoDU"],
-        },
+        TestParams(
+            output_id="20201014-1427eco",
+            query_file=MCAllAreas.DETAILS.value,
+            frequency=Frequency.MONTHLY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=["COsT", "NoDU"],
+        ),
         "test-08-all.result.tsv",
     ),
 ]
 
 LINKS_REQUESTS__ALL = [
     (
-        {
-            "output_id": "20241807-1540eco-extra-outputs",
-            "query_file": MCAllLinks.VALUES.value,
-            "frequency": "daily",
-            "columns_names": [],
-        },
+        TestParams(
+            output_id="20241807-1540eco-extra-outputs",
+            query_file=MCAllLinks.VALUES.value,
+            frequency=Frequency.DAILY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=[],
+        ),
         "test-01-all.result.tsv",
     ),
     (
-        {
-            "output_id": "20241807-1540eco-extra-outputs",
-            "query_file": MCAllLinks.VALUES.value,
-            "frequency": "monthly",
-            "columns_names": [],
-        },
+        TestParams(
+            output_id="20241807-1540eco-extra-outputs",
+            query_file=MCAllLinks.VALUES.value,
+            frequency=Frequency.MONTHLY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=[],
+        ),
         "test-02-all.result.tsv",
     ),
     (
-        {
-            "output_id": "20241807-1540eco-extra-outputs",
-            "query_file": MCAllLinks.VALUES.value,
-            "frequency": "daily",
-            "columns_names": [],
-        },
+        TestParams(
+            output_id="20241807-1540eco-extra-outputs",
+            query_file=MCAllLinks.VALUES.value,
+            frequency=Frequency.DAILY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=[],
+        ),
         "test-03-all.result.tsv",
     ),
     (
-        {
-            "output_id": "20241807-1540eco-extra-outputs",
-            "query_file": MCAllLinks.VALUES.value,
-            "frequency": "monthly",
-            "links_ids": ["de - fr"],
-        },
+        TestParams(
+            output_id="20241807-1540eco-extra-outputs",
+            query_file=MCAllLinks.VALUES.value,
+            frequency=Frequency.MONTHLY,
+            mc_years=[],
+            type_ids=["de - fr"],
+            columns_names=[],
+        ),
         "test-04-all.result.tsv",
     ),
     (
-        {
-            "output_id": "20241807-1540eco-extra-outputs",
-            "query_file": MCAllLinks.ID.value,
-            "frequency": "daily",
-            "links_ids": [],
-        },
+        TestParams(
+            output_id="20241807-1540eco-extra-outputs",
+            query_file=MCAllLinks.ID.value,
+            frequency=Frequency.DAILY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=[],
+        ),
         "test-05-all.result.tsv",
     ),
     (
-        {
-            "output_id": "20241807-1540eco-extra-outputs",
-            "query_file": MCAllLinks.VALUES.value,
-            "frequency": "daily",
-            "columns_names": ["MARG. COsT", "CONG. ProB +"],
-        },
+        TestParams(
+            output_id="20241807-1540eco-extra-outputs",
+            query_file=MCAllLinks.VALUES.value,
+            frequency=Frequency.DAILY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=["MARG. COsT", "CONG. ProB +"],
+        ),
         "test-06-all.result.tsv",
     ),
 ]
 
 AREAS_REQUESTS__IND = [
     (
-        {
-            "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndAreas.VALUES.value,
-            "frequency": "hourly",
-            "mc_years": [],
-            "areas_ids": [],
-            "columns_names": [],
-        },
-        "test-01.result.tsv",
+        TestParams(
+            output_id="20201014-1425eco-goodbye",
+            query_file=MCIndAreas.VALUES.value,
+            frequency=Frequency.HOURLY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=[],
+        ),
+        "test-01-result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndAreas.DETAILS.value,
-            "frequency": "hourly",
-            "mc_years": ["1"],
-            "areas_ids": ["de", "fr", "it"],
-            "columns_names": [],
-        },
-        "test-02.result.tsv",
+        TestParams(
+            output_id="20201014-1425eco-goodbye",
+            query_file=MCIndAreas.DETAILS.value,
+            frequency=Frequency.HOURLY,
+            mc_years=["1"],
+            type_ids=["de", "fr", "it"],
+            columns_names=[],
+        ),
+        "test-02-result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndAreas.VALUES.value,
-            "frequency": "weekly",
-            "mc_years": ["1", "2"],
-            "areas_ids": [],
-            "columns_names": ["OP. COST", "MRG. PRICE"],
-        },
-        "test-03.result.tsv",
+        TestParams(
+            output_id="20201014-1425eco-goodbye",
+            query_file=MCIndAreas.VALUES.value,
+            frequency=Frequency.WEEKLY,
+            mc_years=["1", "2"],
+            type_ids=[],
+            columns_names=["OP. COST", "MRG. PRICE"],
+        ),
+        "test-03-result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndAreas.VALUES.value,
-            "frequency": "hourly",
-            "mc_years": ["2"],
-            "areas_ids": ["es", "fr", "de"],
-            "columns_names": [],
-        },
-        "test-04.result.tsv",
+        TestParams(
+            output_id="20201014-1425eco-goodbye",
+            query_file=MCIndAreas.VALUES.value,
+            frequency=Frequency.HOURLY,
+            mc_years=["2"],
+            type_ids=["es", "fr", "de"],
+            columns_names=[],
+        ),
+        "test-04-result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndAreas.VALUES.value,
-            "frequency": "annual",
-            "mc_years": [],
-            "areas_ids": [],
-            "columns_names": [],
-        },
-        "test-05.result.tsv",
+        TestParams(
+            output_id="20201014-1425eco-goodbye",
+            query_file=MCIndAreas.VALUES.value,
+            frequency=Frequency.ANNUAL,
+            mc_years=[],
+            type_ids=[],
+            columns_names=[],
+        ),
+        "test-05-result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndAreas.VALUES.value,
-            "frequency": "hourly",
-            "columns_names": ["COSt", "NODu"],
-        },
-        "test-06.result.tsv",
+        TestParams(
+            output_id="20201014-1425eco-goodbye",
+            query_file=MCIndAreas.VALUES.value,
+            frequency=Frequency.HOURLY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=["COSt", "NODu"],
+        ),
+        "test-06-result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndAreas.DETAILS.value,
-            "frequency": "hourly",
-            "columns_names": ["COSt", "NODu"],
-        },
-        "test-07.result.tsv",
+        TestParams(
+            output_id="20201014-1425eco-goodbye",
+            query_file=MCIndAreas.DETAILS.value,
+            frequency=Frequency.HOURLY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=["COSt", "NODu"],
+        ),
+        "test-07-result.tsv",
     ),
 ]
 
 LINKS_REQUESTS__IND = [
     (
-        {
-            "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndLinks.VALUES.value,
-            "frequency": "hourly",
-            "mc_years": [],
-            "columns_names": [],
-        },
+        TestParams(
+            output_id="20201014-1425eco-goodbye",
+            query_file=MCIndLinks.VALUES.value,
+            frequency=Frequency.HOURLY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=[],
+        ),
         "test-01.result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndLinks.VALUES.value,
-            "frequency": "hourly",
-            "mc_years": ["1"],
-            "columns_names": [],
-        },
+        TestParams(
+            output_id="20201014-1425eco-goodbye",
+            query_file=MCIndLinks.VALUES.value,
+            frequency=Frequency.HOURLY,
+            mc_years=["1"],
+            type_ids=[],
+            columns_names=[],
+        ),
         "test-02.result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndLinks.VALUES.value,
-            "frequency": "hourly",
-            "mc_years": ["1", "2"],
-            "columns_names": ["UCAP LIn.", "FLOw qUAD."],
-        },
+        TestParams(
+            output_id="20201014-1425eco-goodbye",
+            query_file=MCIndLinks.VALUES.value,
+            frequency=Frequency.HOURLY,
+            mc_years=["1", "2"],
+            type_ids=[],
+            columns_names=["UCAP LIn.", "FLOw qUAD."],
+        ),
         "test-03.result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndLinks.VALUES.value,
-            "frequency": "hourly",
-            "mc_years": ["1"],
-            "links_ids": ["de - fr"],
-        },
+        TestParams(
+            output_id="20201014-1425eco-goodbye",
+            query_file=MCIndLinks.VALUES.value,
+            frequency=Frequency.HOURLY,
+            mc_years=["1"],
+            type_ids=["de - fr"],
+            columns_names=[],
+        ),
         "test-04.result.tsv",
     ),
     (
-        {
-            "output_id": "20201014-1425eco-goodbye",
-            "query_file": MCIndLinks.VALUES.value,
-            "frequency": "hourly",
-            "columns_names": ["MArG. COsT", "CONG. PRoB +"],
-        },
+        TestParams(
+            output_id="20201014-1425eco-goodbye",
+            query_file=MCIndLinks.VALUES.value,
+            frequency=Frequency.HOURLY,
+            mc_years=[],
+            type_ids=[],
+            columns_names=["MArG. COsT", "CONG. PRoB +"],
+        ),
         "test-05.result.tsv",
     ),
 ]
+
+# AREAS_REQUESTS__ALL = [
+#     (
+#         {
+#             "output_id": "20201014-1427eco",
+#             "query_file": MCAllAreas.VALUES.value,
+#             "frequency": "daily",
+#             "areas_ids": [],
+#             "columns_names": [],
+#         },
+#         "test-01-all.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1427eco",
+#             "query_file": MCAllAreas.DETAILS.value,
+#             "frequency": "monthly",
+#             "areas_ids": ["de", "fr", "it"],
+#             "columns_names": [],
+#         },
+#         "test-02-all.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1427eco",
+#             "query_file": MCAllAreas.VALUES.value,
+#             "frequency": "daily",
+#             "areas_ids": [],
+#             "columns_names": ["OP. CoST", "MRG. PrICE"],
+#         },
+#         "test-03-all.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1427eco",
+#             "query_file": MCAllAreas.VALUES.value,
+#             "frequency": "daily",
+#             "areas_ids": ["es", "fr", "de"],
+#             "columns_names": [],
+#         },
+#         "test-04-all.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1427eco",
+#             "query_file": MCAllAreas.VALUES.value,
+#             "frequency": "monthly",
+#             "areas_ids": [],
+#             "columns_names": [],
+#         },
+#         "test-05-all.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1427eco",
+#             "query_file": MCAllAreas.ID.value,
+#             "frequency": "daily",
+#             "areas_ids": [],
+#             "columns_names": [],
+#         },
+#         "test-06-all.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1427eco",
+#             "query_file": MCAllAreas.VALUES.value,
+#             "frequency": "daily",
+#             "columns_names": ["COsT", "NoDU"],
+#         },
+#         "test-07-all.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1427eco",
+#             "query_file": MCAllAreas.DETAILS.value,
+#             "frequency": "monthly",
+#             "columns_names": ["COsT", "NoDU"],
+#         },
+#         "test-08-all.result.tsv",
+#     ),
+# ]
+#
+# LINKS_REQUESTS__ALL = [
+#     (
+#         {
+#             "output_id": "20241807-1540eco-extra-outputs",
+#             "query_file": MCAllLinks.VALUES.value,
+#             "frequency": "daily",
+#             "columns_names": [],
+#         },
+#         "test-01-all.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20241807-1540eco-extra-outputs",
+#             "query_file": MCAllLinks.VALUES.value,
+#             "frequency": "monthly",
+#             "columns_names": [],
+#         },
+#         "test-02-all.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20241807-1540eco-extra-outputs",
+#             "query_file": MCAllLinks.VALUES.value,
+#             "frequency": "daily",
+#             "columns_names": [],
+#         },
+#         "test-03-all.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20241807-1540eco-extra-outputs",
+#             "query_file": MCAllLinks.VALUES.value,
+#             "frequency": "monthly",
+#             "links_ids": ["de - fr"],
+#         },
+#         "test-04-all.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20241807-1540eco-extra-outputs",
+#             "query_file": MCAllLinks.ID.value,
+#             "frequency": "daily",
+#             "links_ids": [],
+#         },
+#         "test-05-all.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20241807-1540eco-extra-outputs",
+#             "query_file": MCAllLinks.VALUES.value,
+#             "frequency": "daily",
+#             "columns_names": ["MARG. COsT", "CONG. ProB +"],
+#         },
+#         "test-06-all.result.tsv",
+#     ),
+# ]
+#
+# AREAS_REQUESTS__IND = [
+#     (
+#         {
+#             "output_id": "20201014-1425eco-goodbye",
+#             "query_file": MCIndAreas.VALUES.value,
+#             "frequency": "hourly",
+#             "mc_years": [],
+#             "areas_ids": [],
+#             "columns_names": [],
+#         },
+#         "test-01.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1425eco-goodbye",
+#             "query_file": MCIndAreas.DETAILS.value,
+#             "frequency": "hourly",
+#             "mc_years": ["1"],
+#             "areas_ids": ["de", "fr", "it"],
+#             "columns_names": [],
+#         },
+#         "test-02.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1425eco-goodbye",
+#             "query_file": MCIndAreas.VALUES.value,
+#             "frequency": "weekly",
+#             "mc_years": ["1", "2"],
+#             "areas_ids": [],
+#             "columns_names": ["OP. COST", "MRG. PRICE"],
+#         },
+#         "test-03.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1425eco-goodbye",
+#             "query_file": MCIndAreas.VALUES.value,
+#             "frequency": "hourly",
+#             "mc_years": ["2"],
+#             "areas_ids": ["es", "fr", "de"],
+#             "columns_names": [],
+#         },
+#         "test-04.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1425eco-goodbye",
+#             "query_file": MCIndAreas.VALUES.value,
+#             "frequency": "annual",
+#             "mc_years": [],
+#             "areas_ids": [],
+#             "columns_names": [],
+#         },
+#         "test-05.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1425eco-goodbye",
+#             "query_file": MCIndAreas.VALUES.value,
+#             "frequency": "hourly",
+#             "columns_names": ["COSt", "NODu"],
+#         },
+#         "test-06.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1425eco-goodbye",
+#             "query_file": MCIndAreas.DETAILS.value,
+#             "frequency": "hourly",
+#             "columns_names": ["COSt", "NODu"],
+#         },
+#         "test-07.result.tsv",
+#     ),
+# ]
+#
+# LINKS_REQUESTS__IND = [
+#     (
+#         {
+#             "output_id": "20201014-1425eco-goodbye",
+#             "query_file": MCIndLinks.VALUES.value,
+#             "frequency": "hourly",
+#             "mc_years": [],
+#             "columns_names": [],
+#         },
+#         "test-01.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1425eco-goodbye",
+#             "query_file": MCIndLinks.VALUES.value,
+#             "frequency": "hourly",
+#             "mc_years": ["1"],
+#             "columns_names": [],
+#         },
+#         "test-02.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1425eco-goodbye",
+#             "query_file": MCIndLinks.VALUES.value,
+#             "frequency": "hourly",
+#             "mc_years": ["1", "2"],
+#             "columns_names": ["UCAP LIn.", "FLOw qUAD."],
+#         },
+#         "test-03.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1425eco-goodbye",
+#             "query_file": MCIndLinks.VALUES.value,
+#             "frequency": "hourly",
+#             "mc_years": ["1"],
+#             "links_ids": ["de - fr"],
+#         },
+#         "test-04.result.tsv",
+#     ),
+#     (
+#         {
+#             "output_id": "20201014-1425eco-goodbye",
+#             "query_file": MCIndLinks.VALUES.value,
+#             "frequency": "hourly",
+#             "columns_names": ["MArG. COsT", "CONG. PRoB +"],
+#         },
+#         "test-05.result.tsv",
+#     ),
+# ]
 
 
 def setup_output(tmp_path, output_id: str) -> Output:
@@ -313,6 +624,11 @@ def setup_output(tmp_path, output_id: str) -> Output:
     output = Output(output_id, False, output_service)
 
     return output
+
+
+def update_expected_result_if_absent(resource_file, df):
+    if not resource_file.exists() or resource_file.stat().st_size == 0:
+        df.to_csv(resource_file, sep="\t", index=False)
 
 
 class TestOutput:
@@ -334,110 +650,82 @@ class TestOutput:
         dataframe = output_service.get_matrix(output_1.name, file_path.as_posix())
         assert dataframe.equals(expected_dataframe)
 
-    def test_area_aggregate_mc_all(self, tmp_path):
-        for params, expected_result_filename in AREAS_REQUESTS__ALL:
-            output_id = params["output_id"]
-            frequency = Frequency(params["frequency"])
-            query_file = params.get("query_file")
-            mc_years = params.get("mc_years")
-            areas_ids = params.get("areas_ids")
-            columns_names = params.get("columns_names")
+    @pytest.mark.parametrize("params,expected_result_filename", AREAS_REQUESTS__ALL)
+    def test_area_aggregate_mc_all(self, tmp_path, params, expected_result_filename):
+        output = setup_output(tmp_path, params.output_id)
 
-            output = setup_output(tmp_path, output_id)
+        df = output.aggregate_areas_mc_all(
+            params.query_file,
+            params.frequency.value,
+            areas_ids=params.type_ids,
+            columns_names=params.columns_names,
+            mc_years=params.mc_years,
+        )
 
-            df = output.aggregate_areas_mc_all(
-                query_file, frequency.value, areas_ids=areas_ids, columns_names=columns_names, mc_years=mc_years
-            )
+        resource_file = Path(ASSETS_DIR) / "aggregate_areas_raw_data" / expected_result_filename
 
-            resource_file = Path(ASSETS_DIR).joinpath(f"aggregate_areas_raw_data/{expected_result_filename}")
+        update_expected_result_if_absent(resource_file, df)
 
-            if not resource_file.exists() or resource_file.stat().st_size == 0:
-                df.to_csv(resource_file, sep="\t", index=False)
+        expected_df = pd.read_csv(resource_file, sep="\t", header=0)
 
-            expected_df = pd.read_csv(resource_file, sep="\t", header=0).replace({np.nan: None})
+        pd.testing.assert_frame_equal(df, expected_df, check_dtype=False)
 
-            for col in expected_df.columns:
-                expected_df[col] = expected_df[col].astype(df[col].dtype)
+    @pytest.mark.parametrize("params,expected_result_filename", AREAS_REQUESTS__IND)
+    def test_area_aggregate_mc_ind(self, tmp_path, params, expected_result_filename):
+        output = setup_output(tmp_path, params.output_id)
 
-            pd.testing.assert_frame_equal(df, expected_df)
+        df = output.aggregate_areas_mc_ind(
+            params.query_file,
+            params.frequency.value,
+            areas_ids=params.type_ids,
+            columns_names=params.columns_names,
+            mc_years=params.mc_years,
+        )
 
-    def test_area_aggregate_mc_ind(self, tmp_path):
-        for params, expected_result_filename in AREAS_REQUESTS__IND:
-            output_id = params["output_id"]
-            frequency = Frequency(params["frequency"])
-            query_file = params.get("query_file")
-            mc_years = params.get("mc_years")
-            areas_ids = params.get("areas_ids")
-            columns_names = params.get("columns_names")
+        resource_file = Path(ASSETS_DIR) / "aggregate_areas_raw_data" / expected_result_filename
 
-            output = setup_output(tmp_path, output_id)
+        update_expected_result_if_absent(resource_file, df)
 
-            df = output.aggregate_areas_mc_ind(
-                query_file, frequency.value, areas_ids=areas_ids, columns_names=columns_names, mc_years=mc_years
-            )
+        expected_df = pd.read_csv(resource_file, sep="\t", header=0)
 
-            resource_file = Path(ASSETS_DIR).joinpath(f"aggregate_areas_raw_data/{expected_result_filename}")
+        pd.testing.assert_frame_equal(df, expected_df, check_dtype=False)
 
-            if not resource_file.exists() or resource_file.stat().st_size == 0:
-                df.to_csv(resource_file, sep="\t", index=False)
+    @pytest.mark.parametrize("params,expected_result_filename", LINKS_REQUESTS__ALL)
+    def test_link_aggregate_mc_all(self, tmp_path, params, expected_result_filename):
+        output = setup_output(tmp_path, params.output_id)
 
-            expected_df = pd.read_csv(resource_file, sep="\t", header=0).replace({np.nan: None})
+        df = output.aggregate_links_mc_all(
+            params.query_file,
+            params.frequency.value,
+            areas_ids=params.type_ids,
+            columns_names=params.columns_names,
+            mc_years=params.mc_years,
+        )
 
-            for col in expected_df.columns:
-                expected_df[col] = expected_df[col].astype(df[col].dtype)
+        resource_file = Path(ASSETS_DIR) / "aggregate_links_raw_data" / expected_result_filename
 
-            pd.testing.assert_frame_equal(df, expected_df)
+        update_expected_result_if_absent(resource_file, df)
 
-    def test_link_aggregate_mc_all(self, tmp_path):
-        for params, expected_result_filename in LINKS_REQUESTS__ALL:
-            output_id = params["output_id"]
-            frequency = Frequency(params["frequency"])
-            query_file = params.get("query_file")
-            mc_years = params.get("mc_years")
-            areas_ids = params.get("areas_ids")
-            columns_names = params.get("columns_names")
+        expected_df = pd.read_csv(resource_file, sep="\t", header=0)
 
-            output = setup_output(tmp_path, output_id)
+        pd.testing.assert_frame_equal(df, expected_df, check_dtype=False)
 
-            df = output.aggregate_links_mc_all(
-                query_file, frequency.value, areas_ids=areas_ids, columns_names=columns_names, mc_years=mc_years
-            )
+    @pytest.mark.parametrize("params,expected_result_filename", LINKS_REQUESTS__IND)
+    def test_link_aggregate_mc_ind(self, tmp_path, params, expected_result_filename):
+        output = setup_output(tmp_path, params.output_id)
 
-            resource_file = Path(ASSETS_DIR).joinpath(f"aggregate_links_raw_data/{expected_result_filename}")
+        df = output.aggregate_links_mc_ind(
+            params.query_file,
+            params.frequency.value,
+            areas_ids=params.type_ids,
+            columns_names=params.columns_names,
+            mc_years=params.mc_years,
+        )
 
-            if not resource_file.exists() or resource_file.stat().st_size == 0:
-                df.to_csv(resource_file, sep="\t", index=False)
+        resource_file = Path(ASSETS_DIR) / "aggregate_links_raw_data" / expected_result_filename
 
-            expected_df = pd.read_csv(resource_file, sep="\t", header=0).replace({np.nan: None})
+        update_expected_result_if_absent(resource_file, df)
 
-            for col in expected_df.columns:
-                expected_df[col] = expected_df[col].astype(df[col].dtype)
+        expected_df = pd.read_csv(resource_file, sep="\t", header=0)
 
-            pd.testing.assert_frame_equal(df, expected_df)
-
-    def test_link_aggregate_mc_ind(self, tmp_path):
-        for params, expected_result_filename in LINKS_REQUESTS__IND:
-            output_id = params["output_id"]
-            frequency = Frequency(params["frequency"])
-            query_file = params.get("query_file")
-            mc_years = params.get("mc_years")
-            links_id = params.get("links_ids")
-            columns_names = params.get("columns_names")
-
-            output = setup_output(tmp_path, output_id)
-
-            df = output.aggregate_links_mc_ind(
-                query_file, frequency.value, areas_ids=links_id, columns_names=columns_names, mc_years=mc_years
-            )
-
-            resource_file = Path(ASSETS_DIR).joinpath(f"aggregate_links_raw_data/{expected_result_filename}")
-
-            if not resource_file.exists() or resource_file.stat().st_size == 0:
-                df.to_csv(resource_file, sep="\t", index=False)
-
-            expected_df = pd.read_csv(resource_file, sep="\t", header=0).replace({np.nan: None})
-
-            for col in expected_df.columns:
-                expected_df[col] = expected_df[col].astype(df[col].dtype)
-
-            pd.testing.assert_frame_equal(df, expected_df)
+        pd.testing.assert_frame_equal(df, expected_df, check_dtype=False)
