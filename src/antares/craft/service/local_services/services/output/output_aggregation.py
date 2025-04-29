@@ -338,7 +338,6 @@ class AggregatorManager:
             MCAllAreas.DETAILS_RES.value,
         ]
         final_df = pd.DataFrame()
-        nb_files = len(files)
         for k, file_path in enumerate(files):
             df = self._process_df(file_path, is_details)
 
