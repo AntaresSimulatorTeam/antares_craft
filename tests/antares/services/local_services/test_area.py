@@ -224,6 +224,51 @@ penalize-variation-withdrawal = False
         assert created_storage.properties == properties
 
 
+    def test_creation_write_matrices_92_works(self, tmp_path: Path, local_study_92) -> None:
+        # given
+        st_storage_name = "storage_ts"
+        local_study_92.get_areas()["fr"].create_st_storage(st_storage_name)
+        # Checks all matrices exist
+        storage = local_study_92.get_areas()["fr"].get_st_storages()[st_storage_name]
+
+        # why ?
+        storage.get_pmax_injection()
+        storage.get_pmax_withdrawal()
+        storage.get_lower_rule_curve()
+        storage.get_upper_rule_curve()
+        storage.get_storage_inflows()
+
+        storage.get_cost_injection()
+
+        # Replace matrices
+        matrix = pd.DataFrame(data=8760 * [[3]])
+
+        storage.update_pmax_injection(matrix)
+        assert storage.get_pmax_injection().equals(matrix)
+
+        storage.set_pmax_withdrawal(matrix)
+        assert storage.get_pmax_withdrawal().equals(matrix)
+
+        storage.set_lower_rule_curve(matrix)
+        assert storage.get_lower_rule_curve().equals(matrix)
+
+        storage.set_upper_rule_curve(matrix)
+        assert storage.get_upper_rule_curve().equals(matrix)
+
+        storage.set_storage_inflows(matrix)
+        assert storage.get_storage_inflows().equals(matrix)
+
+        # Try to update with wrongly formatted matrix
+        matrix = pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]])
+        with pytest.raises(
+                MatrixFormatError,
+                match=re.escape(
+                    "Wrong format for storage/fr/sts_1/pmax_injection matrix, expected shape is (8760, 1) and was : (2, 3)"
+                ),
+        ):
+            storage.update_pmax_injection(matrix)
+
+
 class TestCreateReserves:
     def test_can_create_reserves_ts_file(self, area_fr):
         # Given
