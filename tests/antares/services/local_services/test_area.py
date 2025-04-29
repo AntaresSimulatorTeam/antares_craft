@@ -35,6 +35,7 @@ from antares.craft.model.renewable import (
     TimeSeriesInterpretation,
 )
 from antares.craft.model.st_storage import STStorage, STStorageGroup, STStorageProperties
+from antares.craft.tools import matrix_tool
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
@@ -223,8 +224,7 @@ penalize-variation-withdrawal = False
 
         assert created_storage.properties == properties
 
-
-    def test_creation_write_matrices_92_works(self, tmp_path: Path, local_study_92) -> None:
+    def test_creation_default_matrices_92(self, tmp_path: Path, local_study_92) -> None:
         # given
         st_storage_name = "storage_ts"
         local_study_92.get_areas()["fr"].create_st_storage(st_storage_name)
@@ -238,35 +238,19 @@ penalize-variation-withdrawal = False
         storage.get_upper_rule_curve()
         storage.get_storage_inflows()
 
+        # v9.2
         storage.get_cost_injection()
+        storage.get_cost_withdrawal()
+        storage.get_cost_level()
+        storage.get_cost_variation_injection()
+        storage.get_cost_variation_withdrawal()
 
-        # Replace matrices
-        matrix = pd.DataFrame(data=8760 * [[3]])
-
-        storage.update_pmax_injection(matrix)
-        assert storage.get_pmax_injection().equals(matrix)
-
-        storage.set_pmax_withdrawal(matrix)
-        assert storage.get_pmax_withdrawal().equals(matrix)
-
-        storage.set_lower_rule_curve(matrix)
-        assert storage.get_lower_rule_curve().equals(matrix)
-
-        storage.set_upper_rule_curve(matrix)
-        assert storage.get_upper_rule_curve().equals(matrix)
-
-        storage.set_storage_inflows(matrix)
-        assert storage.get_storage_inflows().equals(matrix)
-
-        # Try to update with wrongly formatted matrix
-        matrix = pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]])
-        with pytest.raises(
-                MatrixFormatError,
-                match=re.escape(
-                    "Wrong format for storage/fr/sts_1/pmax_injection matrix, expected shape is (8760, 1) and was : (2, 3)"
-                ),
-        ):
-            storage.update_pmax_injection(matrix)
+        # check default values
+        assert all(storage.get_cost_injection().values == matrix_tool.default_series)
+        assert all(storage.get_cost_withdrawal().values == matrix_tool.default_series)
+        assert all(storage.get_cost_level().values == matrix_tool.default_series)
+        assert all(storage.get_cost_variation_injection().values == matrix_tool.default_series)
+        assert all(storage.get_cost_variation_withdrawal().values == matrix_tool.default_series)
 
 
 class TestCreateReserves:
