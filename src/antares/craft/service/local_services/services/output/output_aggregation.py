@@ -70,13 +70,6 @@ DUMMY_COMPONENT = 2
 logger = logging.getLogger(__name__)
 
 
-def _checks_estimated_size(nb_files: int, df_bytes_size: int, nb_files_checked: int) -> None:
-    maximum_size = 100  # size in Mo that corresponds to a 15 seconds task.
-    estimated_df_size = nb_files * df_bytes_size // (nb_files_checked * 10**6)
-    if estimated_df_size > maximum_size:
-        raise FileTooLargeError(estimated_df_size, maximum_size)
-
-
 def _columns_ordering(df_cols: t.List[str], column_name: str, is_details: bool, mc_root: MCRoot) -> t.Sequence[str]:
     # original columns
     org_cols = df_cols.copy()
@@ -84,7 +77,7 @@ def _columns_ordering(df_cols: t.List[str], column_name: str, is_details: bool, 
         org_cols = [col for col in org_cols if col != CLUSTER_ID_COL and col != TIME_ID_COL]
     if mc_root.value == MCRoot.MC_IND.value:
         new_column_order = (
-            [column_name] + ([CLUSTER_ID_COL] if is_details else []) + [MCYEAR_COL, TIME_ID_COL] + org_cols
+                [column_name] + ([CLUSTER_ID_COL] if is_details else []) + [MCYEAR_COL, TIME_ID_COL] + org_cols
         )
     elif mc_root.value == MCRoot.MC_ALL.value:
         org_cols = [col for col in org_cols if col not in {column_name, MCYEAR_COL}]
@@ -108,9 +101,9 @@ def _infer_time_id(df: pd.DataFrame, is_details: bool) -> t.List[int]:
 
 
 def _filtered_files_listing(
-    folders_to_check: t.List[Path],
-    query_file: str,
-    frequency: str,
+        folders_to_check: t.List[Path],
+        query_file: str,
+        frequency: str,
 ) -> t.Dict[str, t.MutableSequence[str]]:
     filtered_files: t.Dict[str, t.MutableSequence[str]] = {}
     for folder_path in folders_to_check:
@@ -127,13 +120,13 @@ def get_output_matrix(file_path: Path) -> pd.DataFrame:
 
 class AggregatorManager:
     def __init__(
-        self,
-        output_path: Path,
-        query_file: t.Union[MCIndAreas, MCAllAreas, MCIndLinks, MCAllLinks],
-        frequency: Frequency,
-        ids_to_consider: t.Sequence[str],
-        columns_names: t.Sequence[str],
-        mc_years: t.Optional[t.Sequence[int]] = None,
+            self,
+            output_path: Path,
+            query_file: t.Union[MCIndAreas, MCAllAreas, MCIndLinks, MCAllLinks],
+            frequency: Frequency,
+            ids_to_consider: t.Sequence[str],
+            columns_names: t.Sequence[str],
+            mc_years: t.Optional[t.Sequence[int]] = None,
     ):
         self.output_path = output_path
         self.output_id = output_path.name
@@ -300,8 +293,8 @@ class AggregatorManager:
                 prod_col_name = (
                     PRODUCTION_COLUMN_NAME_ST
                     if (
-                        self.query_file.value == MCIndAreas.DETAILS_ST_STORAGE.value
-                        or self.query_file.value == MCAllAreas.DETAILS_ST_STORAGE.value
+                            self.query_file.value == MCIndAreas.DETAILS_ST_STORAGE.value
+                            or self.query_file.value == MCAllAreas.DETAILS_ST_STORAGE.value
                     )
                     else PRODUCTION_COLUMN_NAME_GENERAL
                 )
