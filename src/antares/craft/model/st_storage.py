@@ -156,3 +156,18 @@ class STStorage:
 
     def set_storage_inflows(self, inflows_matrix: pd.DataFrame) -> None:
         self._storage_service.set_storage_matrix(self, STStorageMatrixName.INFLOWS, inflows_matrix)
+
+    def set_cost_injection(self, cost_injection_matrix: pd.DataFrame) -> None:
+        self._storage_service.set_storage_matrix(self, STStorageMatrixName.COST_INJECTION, cost_injection_matrix)
+
+    def set_cost_withdrawal(self, cost_withdrawal_matrix: pd.DataFrame) -> None:
+        self._storage_service.set_storage_matrix(self, STStorageMatrixName.COST_WITHDRAWAL, cost_withdrawal_matrix)
+
+    def set_cost_level(self, cost_level_matrix: pd.DataFrame) -> None:
+        self._storage_service.set_storage_matrix(self, STStorageMatrixName.COST_LEVEL, cost_level_matrix)
+
+    def set_cost_variation_injection(self, cost_variation_injection_matrix: pd.DataFrame) -> None:
+        self._storage_service.set_storage_matrix(self, STStorageMatrixName.COST_VARIATION_INJECTION, cost_variation_injection_matrix)
+
+    def set_cost_variation_withdrawal(self, cost_variation_withdrawal_matrix: pd.DataFrame) -> None:
+        self._storage_service.set_storage_matrix(self, STStorageMatrixName.COST_VARIATION_WITHDRAWAL, cost_variation_withdrawal_matrix)
