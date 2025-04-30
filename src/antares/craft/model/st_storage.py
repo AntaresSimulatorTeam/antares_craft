@@ -170,7 +170,11 @@ class STStorage:
         self._storage_service.set_storage_matrix(self, STStorageMatrixName.COST_LEVEL, cost_level_matrix)
 
     def set_cost_variation_injection(self, cost_variation_injection_matrix: pd.DataFrame) -> None:
-        self._storage_service.set_storage_matrix(self, STStorageMatrixName.COST_VARIATION_INJECTION, cost_variation_injection_matrix)
+        self._storage_service.set_storage_matrix(
+            self, STStorageMatrixName.COST_VARIATION_INJECTION, cost_variation_injection_matrix
+        )
 
     def set_cost_variation_withdrawal(self, cost_variation_withdrawal_matrix: pd.DataFrame) -> None:
-        self._storage_service.set_storage_matrix(self, STStorageMatrixName.COST_VARIATION_WITHDRAWAL, cost_variation_withdrawal_matrix)
+        self._storage_service.set_storage_matrix(
+            self, STStorageMatrixName.COST_VARIATION_WITHDRAWAL, cost_variation_withdrawal_matrix
+        )

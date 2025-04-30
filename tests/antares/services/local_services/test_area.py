@@ -25,7 +25,7 @@ import pandas as pd
 
 from antares.craft import read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import ReadingMethodUsedOufOfScopeError, MatrixFormatError
+from antares.craft.exceptions.exceptions import MatrixFormatError, ReadingMethodUsedOufOfScopeError
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.renewable import (
@@ -287,13 +287,12 @@ penalize-variation-withdrawal = False
 
         # then
         with pytest.raises(
-                MatrixFormatError,
-                match=re.escape(
-                    "Wrong format for storage/fr/storage_ts/cost_injection matrix, expected shape is (8760, 1) and was : (2, 3)"
-                ),
+            MatrixFormatError,
+            match=re.escape(
+                "Wrong format for storage/fr/storage_ts/cost_injection matrix, expected shape is (8760, 1) and was : (2, 3)"
+            ),
         ):
             storage.set_cost_injection(matrix)
-
 
 
 class TestCreateReserves:
