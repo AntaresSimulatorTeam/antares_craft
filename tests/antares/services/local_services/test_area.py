@@ -25,7 +25,7 @@ import pandas as pd
 
 from antares.craft import read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import ReadingMethodUsedOufOfScopeError
+from antares.craft.exceptions.exceptions import ReadingMethodUsedOufOfScopeError, MatrixFormatError
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.renewable import (
@@ -228,7 +228,8 @@ penalize-variation-withdrawal = False
         # given
         st_storage_name = "storage_ts"
         local_study_92.get_areas()["fr"].create_st_storage(st_storage_name)
-        # Checks all matrices exist
+
+        # when
         storage = local_study_92.get_areas()["fr"].get_st_storages()[st_storage_name]
 
         # why ?
@@ -245,12 +246,54 @@ penalize-variation-withdrawal = False
         storage.get_cost_variation_injection()
         storage.get_cost_variation_withdrawal()
 
-        # check default values
-        assert all(storage.get_cost_injection().values == matrix_tool.default_series)
-        assert all(storage.get_cost_withdrawal().values == matrix_tool.default_series)
-        assert all(storage.get_cost_level().values == matrix_tool.default_series)
-        assert all(storage.get_cost_variation_injection().values == matrix_tool.default_series)
-        assert all(storage.get_cost_variation_withdrawal().values == matrix_tool.default_series)
+        # then
+        matrix_default = pd.DataFrame(matrix_tool.default_series)
+        assert storage.get_cost_injection().equals(matrix_default)
+        assert storage.get_cost_withdrawal().equals(matrix_default)
+        assert storage.get_cost_level().equals(matrix_default)
+        assert storage.get_cost_variation_injection().equals(matrix_default)
+        assert storage.get_cost_variation_withdrawal().equals(matrix_default)
+
+    def test_update_matrices_92(self, tmp_path: Path, local_study_92) -> None:
+        # given
+        st_storage_name = "storage_ts"
+        local_study_92.get_areas()["fr"].create_st_storage(st_storage_name)
+        # Checks all matrices exist
+        storage = local_study_92.get_areas()["fr"].get_st_storages()[st_storage_name]
+
+        # when
+        matrix = pd.DataFrame(data=8760 * [[3]])
+
+        # then
+        storage.set_cost_injection(matrix)
+        assert storage.get_cost_injection().equals(matrix)
+        storage.set_cost_withdrawal(matrix)
+        assert storage.get_cost_withdrawal().equals(matrix)
+        storage.set_cost_level(matrix)
+        assert storage.get_cost_level().equals(matrix)
+        storage.set_cost_variation_injection(matrix)
+        assert storage.get_cost_variation_injection().equals(matrix)
+        storage.set_cost_variation_withdrawal(matrix)
+        assert storage.get_cost_variation_withdrawal().equals(matrix)
+
+    def test_update_matrices_wrong_format_92(self, tmp_path: Path, local_study_92) -> None:
+        # given
+        st_storage_name = "storage_ts"
+        local_study_92.get_areas()["fr"].create_st_storage(st_storage_name)
+        storage = local_study_92.get_areas()["fr"].get_st_storages()[st_storage_name]
+
+        # when
+        matrix = pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]])
+
+        # then
+        with pytest.raises(
+                MatrixFormatError,
+                match=re.escape(
+                    "Wrong format for storage/fr/storage_ts/cost_injection matrix, expected shape is (8760, 1) and was : (2, 3)"
+                ),
+        ):
+            storage.set_cost_injection(matrix)
+
 
 
 class TestCreateReserves:
