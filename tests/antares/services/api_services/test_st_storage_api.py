@@ -221,11 +221,11 @@ class TestCreateAPI:
 
             assert storage.properties.initial_level == json_storages["study_test / battery_fr"]["initialLevel"]
             assert storage.properties.efficiency == json_storages["study_test / battery_fr"]["efficiency"]
-            assert storage.properties.group.value == json_storages["study_test / battery_fr"]["group"]
+            assert storage.properties.group == json_storages["study_test / battery_fr"]["group"]
 
             assert storage_1.properties.initial_level == json_storages["study_test / duracell"]["initialLevel"]
             assert storage_1.properties.efficiency == json_storages["study_test / duracell"]["efficiency"]
-            assert storage_1.properties.group.value == json_storages["study_test / duracell"]["group"]
+            assert storage_1.properties.group == json_storages["study_test / duracell"]["group"]
 
     def test_update_st_storages_properties_fail(self):
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/st-storages"
