@@ -18,14 +18,14 @@ import pandas as pd
 from antares.craft.service.base_services import BaseOutputService
 
 
-class MCIndAreas(Enum):
+class MCIndAreasDataType(Enum):
     VALUES = "values"
     DETAILS = "details"
     DETAILS_ST_STORAGE = "details-STstorage"
     DETAILS_RES = "details-res"
 
 
-class MCAllAreas(Enum):
+class MCAllAreasDataType(Enum):
     VALUES = "values"
     DETAILS = "details"
     DETAILS_ST_STORAGE = "details-STstorage"
@@ -33,11 +33,11 @@ class MCAllAreas(Enum):
     ID = "id"
 
 
-class MCIndLinks(Enum):
+class MCIndLinksDataType(Enum):
     VALUES = "values"
 
 
-class MCAllLinks(Enum):
+class MCAllLinksDataType(Enum):
     VALUES = "values"
     ID = "id"
 
@@ -62,7 +62,7 @@ class AggregationEntry:
         columns_names: names or regexes (if query_file is of type details) to select columns
     """
 
-    query_file: MCAllAreas | MCIndAreas | MCAllLinks | MCIndLinks
+    query_file: MCAllAreasDataType | MCIndAreasDataType | MCAllLinksDataType | MCIndLinksDataType
     frequency: Frequency
     mc_years: Optional[list[str]] = None
     type_ids: Optional[list[str]] = None
@@ -74,6 +74,16 @@ class AggregationEntry:
         columns_names = f"&columns_names={','.join(self.columns_names)}" if self.columns_names else ""
 
         return f"query_file={self.query_file.value}&frequency={self.frequency.value}{mc_years}{type_ids}{columns_names}&format=csv"
+
+
+def get_mc_year(mc_year):
+    str_year = "0000"
+    levels = [10, 100, 1000]
+    for level in levels:
+        if mc_year >= level:
+            str_year = str_year[:-1]
+    result = str_year + str(mc_year)
+    return result
 
 
 class Output:
@@ -101,11 +111,80 @@ class Output:
         """
         return self._output_service.get_matrix(self.name, path)
 
-    def aggregate_areas_mc_ind(
+    def get_mc_all_area(self, frequency: Frequency, data_type: MCAllAreasDataType, area: str) -> pd.DataFrame:
+        """
+
+        Args:
+            frequency: "hourly", "daily", "weekly", "monthly", "annual"
+            data_type: the data-type of mc-all areas
+            area: the area name
+
+        Returns:
+
+        """
+        file_path = f"mc-all/areas/{area}/{data_type.value}-{frequency.value}"
+        return self._output_service.get_matrix(self.name, file_path)
+
+    def get_mc_all_link(
+        self, frequency: Frequency, data_type: MCAllLinksDataType, area_from: str, area_to: str
+    ) -> pd.DataFrame:
+        """
+
+        Args:
+            frequency: "hourly", "daily", "weekly", "monthly", "annual"
+            data_type: the data-type of mc-all links
+            area_from:
+            area_to:
+
+        Returns:
+
+        """
+        file_path = f"mc-all/links/{area_from}/{area_to}/{data_type.value}-{frequency.value}"
+        return self._output_service.get_matrix(self.name, file_path)
+
+    def get_mc_ind_area(
+        self, mc_year: int, frequency: Frequency, data_type: MCIndAreasDataType, area: str
+    ) -> pd.DataFrame:
+        """
+
+        Args:
+            mc_year:
+            frequency: "hourly", "daily", "weekly", "monthly", "annual"
+            data_type: the data-type of mc-ind areas
+            area: the area name
+
+        Returns:
+
+        """
+        result = get_mc_year(mc_year)
+        file_path = f"mc-ind/{result}/areas/{area}/{data_type.value}-{frequency.value}"
+        return self._output_service.get_matrix(self.name, file_path)
+
+    def get_mc_ind_link(
+        self, mc_year: int, frequency: Frequency, data_type: MCIndLinksDataType, area_from: str, area_to: str
+    ) -> pd.DataFrame:
+        """
+
+        Args:
+            mc_year:
+            frequency: "hourly", "daily", "weekly", "monthly", "annual"
+            data_type: the data-type of mc-ind areas
+            area_from:
+            area_to:
+
+        Returns:
+
+        """
+        result = get_mc_year(mc_year)
+
+        file_path = f"mc-ind/{result}/links/{area_from}/{area_to}/{data_type.value}-{frequency.value}"
+        return self._output_service.get_matrix(self.name, file_path)
+
+    def mc_ind_aggregate_areas(
         self,
-        query_file: str,
-        frequency: str,
-        mc_years: Optional[list[str]] = None,
+        data_type: MCIndAreasDataType,
+        frequency: Frequency,
+        mc_years: Optional[list[int]] = None,
         areas_ids: Optional[list[str]] = None,
         columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
@@ -113,13 +192,13 @@ class Output:
         Creates a matrix of aggregated raw data for areas with mc-ind
 
         Args:
-            query_file: values from McIndAreas
+            data_type: values from McIndAreasDataType
             frequency: values from Frequency
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
         aggregation_entry = AggregationEntry(
-            query_file=MCIndAreas(query_file),
+            query_file=data_type,
             frequency=Frequency(frequency),
             mc_years=mc_years,
             type_ids=areas_ids,
@@ -128,11 +207,11 @@ class Output:
 
         return self._output_service.aggregate_values(self.name, aggregation_entry, "areas", "ind")
 
-    def aggregate_links_mc_ind(
+    def mc_ind_aggregate_links(
         self,
-        query_file: str,
-        frequency: str,
-        mc_years: Optional[list[str]] = None,
+        query_file: MCIndLinksDataType,
+        frequency: Frequency,
+        mc_years: Optional[list[int]] = None,
         areas_ids: Optional[list[str]] = None,
         columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
@@ -146,8 +225,8 @@ class Output:
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
         aggregation_entry = AggregationEntry(
-            query_file=MCIndLinks(query_file),
-            frequency=Frequency(frequency),
+            query_file=query_file,
+            frequency=frequency,
             mc_years=mc_years,
             type_ids=areas_ids,
             columns_names=columns_names,
@@ -155,11 +234,11 @@ class Output:
 
         return self._output_service.aggregate_values(self.name, aggregation_entry, "links", "ind")
 
-    def aggregate_areas_mc_all(
+    def mc_all_aggregate_areas(
         self,
-        query_file: str,
-        frequency: str,
-        mc_years: Optional[list[str]] = None,
+        data_type: MCAllAreasDataType,
+        frequency: Frequency,
+        mc_years: Optional[list[int]] = None,
         areas_ids: Optional[list[str]] = None,
         columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
@@ -167,14 +246,14 @@ class Output:
         Creates a matrix of aggregated raw data for areas with mc-all
 
         Args:
-            query_file: values from McAllAreas
+            data_type: values from McAllAreas
             frequency: values from Frequency
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
         aggregation_entry = AggregationEntry(
-            query_file=MCAllAreas(query_file),
-            frequency=Frequency(frequency),
+            query_file=data_type,
+            frequency=frequency,
             mc_years=mc_years,
             type_ids=areas_ids,
             columns_names=columns_names,
@@ -182,11 +261,11 @@ class Output:
 
         return self._output_service.aggregate_values(self.name, aggregation_entry, "areas", "all")
 
-    def aggregate_links_mc_all(
+    def mc_all_aggregate_links(
         self,
-        query_file: str,
-        frequency: str,
-        mc_years: Optional[list[str]] = None,
+        query_file: MCAllLinksDataType,
+        frequency: Frequency,
+        mc_years: Optional[list[int]] = None,
         areas_ids: Optional[list[str]] = None,
         columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
@@ -200,8 +279,8 @@ class Output:
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
         aggregation_entry = AggregationEntry(
-            query_file=MCAllLinks(query_file),
-            frequency=Frequency(frequency),
+            query_file=query_file,
+            frequency=frequency,
             mc_years=mc_years,
             type_ids=areas_ids,
             columns_names=columns_names,

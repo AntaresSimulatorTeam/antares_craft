@@ -78,6 +78,7 @@ from antares.craft.exceptions.exceptions import (
     StudySettingsUpdateError,
 )
 from antares.craft.model.hydro import InflowStructureUpdate
+from antares.craft.model.output import Frequency, MCAllLinksDataType, MCAllAreasDataType
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import Job, JobStatus
 from tests.integration.antares_web_desktop import AntaresWebDesktop
@@ -883,9 +884,13 @@ class TestWebClient:
         expected_matrix = pd.DataFrame(data)
         assert matrix.equals(expected_matrix)
 
+        # ===== Output get_mc_all_areas =====
+
+        matrix_all_areas = output.get_mc_all_area(Frequency.DAILY, MCAllAreasDataType.VALUES, area_be.id)
+
         # ===== Output aggregate_values =====
 
-        aggregated_matrix = output.aggregate_links_mc_all("values", "daily")
+        aggregated_matrix = output.mc_all_aggregate_links(MCAllLinksDataType.VALUES, Frequency.DAILY)
         assert isinstance(aggregated_matrix, pd.DataFrame)
         assert not aggregated_matrix.empty
         assert aggregated_matrix.shape == (364, 30)
