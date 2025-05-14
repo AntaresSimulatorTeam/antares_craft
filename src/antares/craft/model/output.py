@@ -59,10 +59,10 @@ class AggregationEntry:
         frequency: "hourly", "daily", "weekly", "monthly", "annual"
         mc_years: Monte Carlo years to include in the query. If left empty, all years are included.
         type_ids: which links/areas to be selected (ex: "be - fr"). If empty, all are selected
-        columns_names: names or regexes (if query_file is of type details) to select columns
+        columns_names: names or regexes (if data_type is of type details) to select columns
     """
 
-    query_file: MCAllAreasDataType | MCIndAreasDataType | MCAllLinksDataType | MCIndLinksDataType
+    data_type: MCAllAreasDataType | MCIndAreasDataType | MCAllLinksDataType | MCIndLinksDataType
     frequency: Frequency
     mc_years: Optional[list[str]] = None
     type_ids: Optional[list[str]] = None
@@ -73,7 +73,7 @@ class AggregationEntry:
         type_ids = f"&{object_type}_ids={','.join(self.type_ids)}" if self.type_ids else ""
         columns_names = f"&columns_names={','.join(self.columns_names)}" if self.columns_names else ""
 
-        return f"query_file={self.query_file.value}&frequency={self.frequency.value}{mc_years}{type_ids}{columns_names}&format=csv"
+        return f"query_file={self.data_type.value}&frequency={self.frequency.value}{mc_years}{type_ids}{columns_names}&format=csv"
 
 
 def get_mc_year(mc_year):
@@ -99,17 +99,6 @@ class Output:
     @property
     def archived(self) -> bool:
         return self._archived
-
-    def get_matrix(self, path: str) -> pd.DataFrame:
-        """
-        Gets the matrix of the output
-
-        Args:
-            path: output path, eg: "mc-all/areas/south/values-hourly"
-
-        Returns: Pandas DataFrame
-        """
-        return self._output_service.get_matrix(self.name, path)
 
     def get_mc_all_area(self, frequency: Frequency, data_type: MCAllAreasDataType, area: str) -> pd.DataFrame:
         """
@@ -156,7 +145,7 @@ class Output:
         Returns:
 
         """
-        result = get_mc_year(mc_year)
+        result = f"{mc_year}:05"
         file_path = f"mc-ind/{result}/areas/{area}/{data_type.value}-{frequency.value}"
         return self._output_service.get_matrix(self.name, file_path)
 
@@ -175,7 +164,7 @@ class Output:
         Returns:
 
         """
-        result = get_mc_year(mc_year)
+        result = f"{mc_year}:05"
 
         file_path = f"mc-ind/{result}/links/{area_from}/{area_to}/{data_type.value}-{frequency.value}"
         return self._output_service.get_matrix(self.name, file_path)
@@ -198,7 +187,7 @@ class Output:
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
         aggregation_entry = AggregationEntry(
-            query_file=data_type,
+            data_type=data_type,
             frequency=Frequency(frequency),
             mc_years=mc_years,
             type_ids=areas_ids,
@@ -209,7 +198,7 @@ class Output:
 
     def mc_ind_aggregate_links(
         self,
-        query_file: MCIndLinksDataType,
+        data_type: MCIndLinksDataType,
         frequency: Frequency,
         mc_years: Optional[list[int]] = None,
         areas_ids: Optional[list[str]] = None,
@@ -219,13 +208,13 @@ class Output:
         Creates a matrix of aggregated raw data for links with mc-ind
 
         Args:
-            query_file: values from McIndLinks
+            data_type: values from McIndLinks
             frequency: values from Frequency
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
         aggregation_entry = AggregationEntry(
-            query_file=query_file,
+            data_type=data_type,
             frequency=frequency,
             mc_years=mc_years,
             type_ids=areas_ids,
@@ -252,7 +241,7 @@ class Output:
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
         aggregation_entry = AggregationEntry(
-            query_file=data_type,
+            data_type=data_type,
             frequency=frequency,
             mc_years=mc_years,
             type_ids=areas_ids,
@@ -263,7 +252,7 @@ class Output:
 
     def mc_all_aggregate_links(
         self,
-        query_file: MCAllLinksDataType,
+        data_type: MCAllLinksDataType,
         frequency: Frequency,
         mc_years: Optional[list[int]] = None,
         areas_ids: Optional[list[str]] = None,
@@ -273,13 +262,13 @@ class Output:
         Creates a matrix of aggregated raw data for links with mc-all
 
         Args:
-            query_file: values from McAllLinks
+            data_type: values from McAllLinks
             frequency: values from Frequency
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
         aggregation_entry = AggregationEntry(
-            query_file=query_file,
+            data_type=data_type,
             frequency=frequency,
             mc_years=mc_years,
             type_ids=areas_ids,

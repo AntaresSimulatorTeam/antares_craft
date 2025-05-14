@@ -643,20 +643,6 @@ class TestCreateAPI:
             with pytest.raises(ConstraintRetrievalError, match="Error while reading constraints"):
                 self.study._read_binding_constraints()
 
-    def test_output_get_matrix(self):
-        with requests_mock.Mocker() as mocker:
-            output = Output(
-                name="test-output", output_service=OutputApiService(self.api, self.study_id), archived=False
-            )
-            matrix_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=output/{output.name}/economy/mc-all/grid/links"
-            matrix_output = {"columns": ["upstream", "downstream"], "data": [["be", "fr"]]}
-            mocker.get(matrix_url, json=matrix_output)
-
-            matrix = output.get_matrix("mc-all/grid/links")
-            expected_matrix = pd.DataFrame(data=matrix_output["data"], columns=matrix_output["columns"])
-            assert isinstance(matrix, pd.DataFrame)
-            assert matrix.equals(expected_matrix)
-
     def test_output_get_mc_all(self):
         self.study._areas["area_test"] = self.area
         self.study._areas["area_test_1"] = self.area_1
@@ -665,8 +651,8 @@ class TestCreateAPI:
 
         frequency = Frequency(Frequency.ANNUAL.value)
         with requests_mock.Mocker() as mocker:
-            matrix_link_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=output/{self.output_link.name}/economy/mc-all/links/{self.area.id}/{self.area_1.id}/values-{frequency.value}"
-            matrix_area_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=output/{self.output_area.name}/economy/mc-all/areas/{self.area.id}/values-{frequency.value}"
+            matrix_link_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_link.name}/economy/mc-all/links/{self.area.id}/{self.area_1.id}/values-{frequency.value}"
+            matrix_area_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_area.name}/economy/mc-all/areas/{self.area.id}/values-{frequency.value}"
 
             matrix_output = {"columns": ["upstream", "downstream"], "data": [["be", "fr"]]}
             mocker.get(matrix_link_url, json=matrix_output)
@@ -686,8 +672,8 @@ class TestCreateAPI:
     def test_output_get_mc_ind(self):
         frequency = Frequency(Frequency.ANNUAL.value)
         with requests_mock.Mocker() as mocker:
-            matrix_link_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=output/{self.output_link.name}/economy/mc-ind/00001/links/{self.area.id}/{self.area_1.id}/values-{frequency.value}"
-            matrix_area_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=output/{self.output_area.name}/economy/mc-ind/00001/areas/{self.area.id}/values-{frequency.value}"
+            matrix_link_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_link.name}/economy/mc-ind/00001/links/{self.area.id}/{self.area_1.id}/values-{frequency.value}"
+            matrix_area_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_area.name}/economy/mc-ind/00001/areas/{self.area.id}/values-{frequency.value}"
 
             matrix_output = {"columns": ["upstream", "downstream"], "data": [["be", "fr"]]}
             mocker.get(matrix_link_url, json=matrix_output)

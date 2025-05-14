@@ -78,7 +78,7 @@ from antares.craft.exceptions.exceptions import (
     StudySettingsUpdateError,
 )
 from antares.craft.model.hydro import InflowStructureUpdate
-from antares.craft.model.output import Frequency, MCAllLinksDataType, MCAllAreasDataType
+from antares.craft.model.output import Frequency, MCAllAreasDataType, MCAllLinksDataType
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import Job, JobStatus
 from tests.integration.antares_web_desktop import AntaresWebDesktop
@@ -874,15 +874,6 @@ class TestWebClient:
             and outputs_from_api[output].archived == outputs[output].archived
             for output in outputs_from_api
         )
-
-        # ===== Output get_matrix =====
-
-        matrix = output.get_matrix("mc-all/grid/links")
-
-        assert isinstance(matrix, pd.DataFrame)
-        data = {"upstream": ["be"], "downstream": ["fr"]}
-        expected_matrix = pd.DataFrame(data)
-        assert matrix.equals(expected_matrix)
 
         # ===== Output get_mc_all_areas =====
 

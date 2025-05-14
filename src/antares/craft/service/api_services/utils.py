@@ -11,6 +11,8 @@
 # This file is part of the Antares project.
 import time
 
+from io import StringIO
+
 import pandas as pd
 
 from antares.craft.api_conf.request_wrapper import RequestWrapper
@@ -32,6 +34,22 @@ def get_matrix(base_url: str, study_id: str, wrapper: RequestWrapper, series_pat
         dataframe = pd.DataFrame(data=json_df["data"], index=json_df["index"], columns=json_df["columns"])
     else:
         dataframe = pd.DataFrame(data=json_df["data"], columns=json_df["columns"])
+    return dataframe
+
+
+def get_original_file_matrix(base_url: str, study_id: str, wrapper: RequestWrapper, series_path: str) -> pd.DataFrame:
+    raw_url = f"{base_url}/studies/{study_id}/raw/original-file?path={series_path}"
+    response = wrapper.get(raw_url)
+
+    data = StringIO(response.text)
+
+    data_csv = pd.read_csv(data, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy")
+
+    if "index" in response:
+        dataframe = pd.DataFrame(data=data_csv.values, columns=data_csv.columns, index=data_csv.index)
+    else:
+        dataframe = pd.DataFrame(data=data_csv.values, columns=data_csv.columns)
+
     return dataframe
 
 

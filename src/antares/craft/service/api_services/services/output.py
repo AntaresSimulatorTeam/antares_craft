@@ -19,7 +19,7 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import AggregateCreationError, APIError
 from antares.craft.model.output import AggregationEntry
-from antares.craft.service.api_services.utils import get_matrix
+from antares.craft.service.api_services.utils import get_original_file_matrix
 from antares.craft.service.base_services import BaseOutputService
 
 
@@ -34,7 +34,7 @@ class OutputApiService(BaseOutputService):
     @override
     def get_matrix(self, output_id: str, file_path: str) -> pd.DataFrame:
         full_path = f"output/{output_id}/economy/{file_path}"
-        return get_matrix(self._base_url, self.study_id, self._wrapper, full_path)
+        return get_original_file_matrix(self._base_url, self.study_id, self._wrapper, full_path)
 
     @override
     def aggregate_values(
