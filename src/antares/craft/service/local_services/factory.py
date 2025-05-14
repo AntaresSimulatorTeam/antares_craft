@@ -23,7 +23,7 @@ from antares.craft.service.local_services.services.area import AreaLocalService
 from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
 from antares.craft.service.local_services.services.hydro import HydroLocalService
 from antares.craft.service.local_services.services.link import LinkLocalService
-from antares.craft.service.local_services.services.output import OutputLocalService
+from antares.craft.service.local_services.services.output.output import OutputLocalService
 from antares.craft.service.local_services.services.renewable import RenewableLocalService
 from antares.craft.service.local_services.services.run import RunLocalService
 from antares.craft.service.local_services.services.settings import StudySettingsLocalService, edit_study_settings
