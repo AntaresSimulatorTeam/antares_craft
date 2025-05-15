@@ -76,16 +76,6 @@ class AggregationEntry:
         return f"query_file={self.data_type.value}&frequency={self.frequency.value}{mc_years}{type_ids}{columns_names}&format=csv"
 
 
-def get_mc_year(mc_year):
-    str_year = "0000"
-    levels = [10, 100, 1000]
-    for level in levels:
-        if mc_year >= level:
-            str_year = str_year[:-1]
-    result = str_year + str(mc_year)
-    return result
-
-
 class Output:
     def __init__(self, name: str, archived: bool, output_service: BaseOutputService):
         self._name = name
@@ -145,8 +135,7 @@ class Output:
         Returns:
 
         """
-        result = f"{mc_year}:05"
-        file_path = f"mc-ind/{result}/areas/{area}/{data_type.value}-{frequency.value}"
+        file_path = f"mc-ind/{mc_year:05}/areas/{area}/{data_type.value}-{frequency.value}"
         return self._output_service.get_matrix(self.name, file_path)
 
     def get_mc_ind_link(
@@ -164,9 +153,8 @@ class Output:
         Returns:
 
         """
-        result = f"{mc_year}:05"
 
-        file_path = f"mc-ind/{result}/links/{area_from}/{area_to}/{data_type.value}-{frequency.value}"
+        file_path = f"mc-ind/{mc_year:05}/links/{area_from}/{area_to}/{data_type.value}-{frequency.value}"
         return self._output_service.get_matrix(self.name, file_path)
 
     def mc_ind_aggregate_areas(

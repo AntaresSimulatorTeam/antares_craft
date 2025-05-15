@@ -15,6 +15,7 @@ import dataclasses
 import typing
 import zipfile
 
+from enum import Enum
 from pathlib import Path
 
 import pandas as pd
@@ -22,10 +23,10 @@ import pandas as pd
 from antares.craft import LocalConfiguration
 from antares.craft.model.output import (
     Frequency,
-    MCAllAreas,
-    MCAllLinks,
-    MCIndAreas,
-    MCIndLinks,
+    MCAllAreasDataType,
+    MCAllLinksDataType,
+    MCIndAreasDataType,
+    MCIndLinksDataType,
     Output,
 )
 from antares.craft.service.local_services.factory import create_local_services
@@ -36,9 +37,9 @@ ASSETS_DIR = Path(__file__).parent / "assets"
 @dataclasses.dataclass(frozen=True)
 class TestParams:
     output_id: str
-    query_file: str
+    query_file: Enum
     frequency: Frequency
-    mc_years: list[str]
+    mc_years: list[int]
     type_ids: list[str]
     columns_names: list[str]
 
@@ -47,7 +48,7 @@ AREAS_REQUESTS__ALL = [
     (
         TestParams(
             output_id="20201014-1427eco",
-            query_file=MCAllAreas.VALUES.value,
+            query_file=MCAllAreasDataType.VALUES.value,
             frequency=Frequency.DAILY,
             mc_years=[],
             type_ids=[],
@@ -58,7 +59,7 @@ AREAS_REQUESTS__ALL = [
     (
         TestParams(
             output_id="20201014-1427eco",
-            query_file=MCAllAreas.DETAILS.value,
+            query_file=MCAllAreasDataType.DETAILS,
             frequency=Frequency.MONTHLY,
             mc_years=[],
             type_ids=["de", "fr", "it"],
@@ -69,7 +70,7 @@ AREAS_REQUESTS__ALL = [
     (
         TestParams(
             output_id="20201014-1427eco",
-            query_file=MCAllAreas.VALUES.value,
+            query_file=MCAllAreasDataType.VALUES,
             frequency=Frequency.DAILY,
             mc_years=[],
             type_ids=[],
@@ -80,7 +81,7 @@ AREAS_REQUESTS__ALL = [
     (
         TestParams(
             output_id="20201014-1427eco",
-            query_file=MCAllAreas.VALUES.value,
+            query_file=MCAllAreasDataType.VALUES,
             frequency=Frequency.DAILY,
             mc_years=[],
             type_ids=["es", "fr", "de"],
@@ -91,7 +92,7 @@ AREAS_REQUESTS__ALL = [
     (
         TestParams(
             output_id="20201014-1427eco",
-            query_file=MCAllAreas.VALUES.value,
+            query_file=MCAllAreasDataType.VALUES,
             frequency=Frequency.MONTHLY,
             mc_years=[],
             type_ids=[],
@@ -102,7 +103,7 @@ AREAS_REQUESTS__ALL = [
     (
         TestParams(
             output_id="20201014-1427eco",
-            query_file=MCAllAreas.ID.value,
+            query_file=MCAllAreasDataType.ID,
             frequency=Frequency.DAILY,
             mc_years=[],
             type_ids=[],
@@ -113,7 +114,7 @@ AREAS_REQUESTS__ALL = [
     (
         TestParams(
             output_id="20201014-1427eco",
-            query_file=MCAllAreas.VALUES.value,
+            query_file=MCAllAreasDataType.VALUES,
             frequency=Frequency.DAILY,
             mc_years=[],
             type_ids=[],
@@ -124,7 +125,7 @@ AREAS_REQUESTS__ALL = [
     (
         TestParams(
             output_id="20201014-1427eco",
-            query_file=MCAllAreas.DETAILS.value,
+            query_file=MCAllAreasDataType.DETAILS,
             frequency=Frequency.MONTHLY,
             mc_years=[],
             type_ids=[],
@@ -138,7 +139,7 @@ LINKS_REQUESTS__ALL = [
     (
         TestParams(
             output_id="20241807-1540eco-extra-outputs",
-            query_file=MCAllLinks.VALUES.value,
+            query_file=MCAllLinksDataType.VALUES,
             frequency=Frequency.DAILY,
             mc_years=[],
             type_ids=[],
@@ -149,7 +150,7 @@ LINKS_REQUESTS__ALL = [
     (
         TestParams(
             output_id="20241807-1540eco-extra-outputs",
-            query_file=MCAllLinks.VALUES.value,
+            query_file=MCAllLinksDataType.VALUES,
             frequency=Frequency.MONTHLY,
             mc_years=[],
             type_ids=[],
@@ -160,7 +161,7 @@ LINKS_REQUESTS__ALL = [
     (
         TestParams(
             output_id="20241807-1540eco-extra-outputs",
-            query_file=MCAllLinks.VALUES.value,
+            query_file=MCAllLinksDataType.VALUES,
             frequency=Frequency.DAILY,
             mc_years=[],
             type_ids=[],
@@ -171,7 +172,7 @@ LINKS_REQUESTS__ALL = [
     (
         TestParams(
             output_id="20241807-1540eco-extra-outputs",
-            query_file=MCAllLinks.VALUES.value,
+            query_file=MCAllLinksDataType.VALUES,
             frequency=Frequency.MONTHLY,
             mc_years=[],
             type_ids=["de - fr"],
@@ -182,7 +183,7 @@ LINKS_REQUESTS__ALL = [
     (
         TestParams(
             output_id="20241807-1540eco-extra-outputs",
-            query_file=MCAllLinks.ID.value,
+            query_file=MCAllLinksDataType.ID,
             frequency=Frequency.DAILY,
             mc_years=[],
             type_ids=[],
@@ -193,7 +194,7 @@ LINKS_REQUESTS__ALL = [
     (
         TestParams(
             output_id="20241807-1540eco-extra-outputs",
-            query_file=MCAllLinks.VALUES.value,
+            query_file=MCAllLinksDataType.VALUES,
             frequency=Frequency.DAILY,
             mc_years=[],
             type_ids=[],
@@ -207,7 +208,7 @@ AREAS_REQUESTS__IND = [
     (
         TestParams(
             output_id="20201014-1425eco-goodbye",
-            query_file=MCIndAreas.VALUES.value,
+            query_file=MCIndAreasDataType.VALUES,
             frequency=Frequency.HOURLY,
             mc_years=[],
             type_ids=[],
@@ -218,9 +219,9 @@ AREAS_REQUESTS__IND = [
     (
         TestParams(
             output_id="20201014-1425eco-goodbye",
-            query_file=MCIndAreas.DETAILS.value,
+            query_file=MCIndAreasDataType.DETAILS,
             frequency=Frequency.HOURLY,
-            mc_years=["1"],
+            mc_years=[1],
             type_ids=["de", "fr", "it"],
             columns_names=[],
         ),
@@ -229,9 +230,9 @@ AREAS_REQUESTS__IND = [
     (
         TestParams(
             output_id="20201014-1425eco-goodbye",
-            query_file=MCIndAreas.VALUES.value,
+            query_file=MCIndAreasDataType.VALUES,
             frequency=Frequency.WEEKLY,
-            mc_years=["1", "2"],
+            mc_years=[1, 2],
             type_ids=[],
             columns_names=["OP. COST", "MRG. PRICE"],
         ),
@@ -240,9 +241,9 @@ AREAS_REQUESTS__IND = [
     (
         TestParams(
             output_id="20201014-1425eco-goodbye",
-            query_file=MCIndAreas.VALUES.value,
+            query_file=MCIndAreasDataType.VALUES,
             frequency=Frequency.HOURLY,
-            mc_years=["2"],
+            mc_years=[1],
             type_ids=["es", "fr", "de"],
             columns_names=[],
         ),
@@ -251,7 +252,7 @@ AREAS_REQUESTS__IND = [
     (
         TestParams(
             output_id="20201014-1425eco-goodbye",
-            query_file=MCIndAreas.VALUES.value,
+            query_file=MCIndAreasDataType.VALUES,
             frequency=Frequency.ANNUAL,
             mc_years=[],
             type_ids=[],
@@ -262,7 +263,7 @@ AREAS_REQUESTS__IND = [
     (
         TestParams(
             output_id="20201014-1425eco-goodbye",
-            query_file=MCIndAreas.VALUES.value,
+            query_file=MCIndAreasDataType.VALUES,
             frequency=Frequency.HOURLY,
             mc_years=[],
             type_ids=[],
@@ -273,7 +274,7 @@ AREAS_REQUESTS__IND = [
     (
         TestParams(
             output_id="20201014-1425eco-goodbye",
-            query_file=MCIndAreas.DETAILS.value,
+            query_file=MCIndAreasDataType.DETAILS,
             frequency=Frequency.HOURLY,
             mc_years=[],
             type_ids=[],
@@ -287,7 +288,7 @@ LINKS_REQUESTS__IND = [
     (
         TestParams(
             output_id="20201014-1425eco-goodbye",
-            query_file=MCIndLinks.VALUES.value,
+            query_file=MCIndLinksDataType.VALUES,
             frequency=Frequency.HOURLY,
             mc_years=[],
             type_ids=[],
@@ -298,9 +299,9 @@ LINKS_REQUESTS__IND = [
     (
         TestParams(
             output_id="20201014-1425eco-goodbye",
-            query_file=MCIndLinks.VALUES.value,
+            query_file=MCIndLinksDataType.VALUES,
             frequency=Frequency.HOURLY,
-            mc_years=["1"],
+            mc_years=[1],
             type_ids=[],
             columns_names=[],
         ),
@@ -309,9 +310,9 @@ LINKS_REQUESTS__IND = [
     (
         TestParams(
             output_id="20201014-1425eco-goodbye",
-            query_file=MCIndLinks.VALUES.value,
+            query_file=MCIndLinksDataType.VALUES,
             frequency=Frequency.HOURLY,
-            mc_years=["1", "2"],
+            mc_years=[1, 2],
             type_ids=[],
             columns_names=["UCAP LIn.", "FLOw qUAD."],
         ),
@@ -320,9 +321,9 @@ LINKS_REQUESTS__IND = [
     (
         TestParams(
             output_id="20201014-1425eco-goodbye",
-            query_file=MCIndLinks.VALUES.value,
+            query_file=MCIndLinksDataType.VALUES,
             frequency=Frequency.HOURLY,
-            mc_years=["1"],
+            mc_years=[1],
             type_ids=["de - fr"],
             columns_names=[],
         ),
@@ -331,7 +332,7 @@ LINKS_REQUESTS__IND = [
     (
         TestParams(
             output_id="20201014-1425eco-goodbye",
-            query_file=MCIndLinks.VALUES.value,
+            query_file=MCIndLinksDataType.VALUES,
             frequency=Frequency.HOURLY,
             mc_years=[],
             type_ids=[],
@@ -387,9 +388,9 @@ class TestOutput:
     def test_area_aggregate_mc_all(self, tmp_path, params, expected_result_filename):
         output = setup_output(tmp_path, params.output_id)
 
-        df = output.aggregate_areas_mc_all(
-            params.query_file,
-            params.frequency.value,
+        df = output.mc_all_aggregate_areas(
+            MCAllAreasDataType(params.query_file),
+            params.frequency,
             areas_ids=params.type_ids,
             columns_names=params.columns_names,
             mc_years=params.mc_years,
@@ -407,9 +408,9 @@ class TestOutput:
     def test_area_aggregate_mc_ind(self, tmp_path, params, expected_result_filename):
         output = setup_output(tmp_path, params.output_id)
 
-        df = output.aggregate_areas_mc_ind(
-            params.query_file,
-            params.frequency.value,
+        df = output.mc_ind_aggregate_areas(
+            MCIndAreasDataType(params.query_file),
+            params.frequency,
             areas_ids=params.type_ids,
             columns_names=params.columns_names,
             mc_years=params.mc_years,
@@ -427,9 +428,9 @@ class TestOutput:
     def test_link_aggregate_mc_all(self, tmp_path, params, expected_result_filename):
         output = setup_output(tmp_path, params.output_id)
 
-        df = output.aggregate_links_mc_all(
-            params.query_file,
-            params.frequency.value,
+        df = output.mc_all_aggregate_links(
+            MCAllLinksDataType(params.query_file),
+            params.frequency,
             areas_ids=params.type_ids,
             columns_names=params.columns_names,
             mc_years=params.mc_years,
@@ -447,9 +448,9 @@ class TestOutput:
     def test_link_aggregate_mc_ind(self, tmp_path, params, expected_result_filename):
         output = setup_output(tmp_path, params.output_id)
 
-        df = output.aggregate_links_mc_ind(
-            params.query_file,
-            params.frequency.value,
+        df = output.mc_ind_aggregate_links(
+            MCIndLinksDataType(params.query_file),
+            params.frequency,
             areas_ids=params.type_ids,
             columns_names=params.columns_names,
             mc_years=params.mc_years,
