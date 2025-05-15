@@ -45,7 +45,7 @@ def get_original_file_matrix(base_url: str, study_id: str, wrapper: RequestWrapp
 
     data_csv = pd.read_csv(data, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy")
 
-    if "index" in response:
+    if "index" in response.text:
         dataframe = pd.DataFrame(data=data_csv.values, columns=data_csv.columns, index=data_csv.index)
     else:
         dataframe = pd.DataFrame(data=data_csv.values, columns=data_csv.columns)
