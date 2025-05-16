@@ -68,7 +68,7 @@ study.wait_job_completion(job)
 output = study.get_output(job.output_id)
 
 # read some output data as a pandas dataframe:
-res = output.mc_all_aggregate_areas(data_type="details", frequency="hourly")
+res = output.aggregate_mc_all_areas(data_type="details", frequency="hourly")
 print(res)
 ```
 

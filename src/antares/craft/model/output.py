@@ -157,7 +157,7 @@ class Output:
         file_path = f"mc-ind/{mc_year:05}/links/{area_from}/{area_to}/{data_type.value}-{frequency.value}"
         return self._output_service.get_matrix(self.name, file_path)
 
-    def mc_ind_aggregate_areas(
+    def aggregate_mc_ind_areas(
         self,
         data_type: MCIndAreasDataType,
         frequency: Frequency,
@@ -184,12 +184,12 @@ class Output:
 
         return self._output_service.aggregate_values(self.name, aggregation_entry, "areas", "ind")
 
-    def mc_ind_aggregate_links(
+    def aggregate_mc_ind_links(
         self,
         data_type: MCIndLinksDataType,
         frequency: Frequency,
         mc_years: Optional[list[int]] = None,
-        areas_ids: Optional[list[str]] = None,
+        links_ids: Optional[tuple[str, str]] = None,
         columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
         """
@@ -205,13 +205,13 @@ class Output:
             data_type=data_type,
             frequency=frequency,
             mc_years=mc_years,
-            type_ids=areas_ids,
+            type_ids=links_ids,
             columns_names=columns_names,
         )
 
         return self._output_service.aggregate_values(self.name, aggregation_entry, "links", "ind")
 
-    def mc_all_aggregate_areas(
+    def aggregate_mc_all_areas(
         self,
         data_type: MCAllAreasDataType,
         frequency: Frequency,
@@ -238,12 +238,12 @@ class Output:
 
         return self._output_service.aggregate_values(self.name, aggregation_entry, "areas", "all")
 
-    def mc_all_aggregate_links(
+    def aggregate_mc_all_links(
         self,
         data_type: MCAllLinksDataType,
         frequency: Frequency,
         mc_years: Optional[list[int]] = None,
-        areas_ids: Optional[list[str]] = None,
+        links_ids: Optional[tuple[str, str]] = None,
         columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
         """
@@ -259,7 +259,7 @@ class Output:
             data_type=data_type,
             frequency=frequency,
             mc_years=mc_years,
-            type_ids=areas_ids,
+            type_ids=links_ids,
             columns_names=columns_names,
         )
 

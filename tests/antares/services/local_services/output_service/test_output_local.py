@@ -388,7 +388,7 @@ class TestOutput:
     def test_area_aggregate_mc_all(self, tmp_path, params, expected_result_filename):
         output = setup_output(tmp_path, params.output_id)
 
-        df = output.mc_all_aggregate_areas(
+        df = output.aggregate_mc_all_areas(
             MCAllAreasDataType(params.query_file),
             params.frequency,
             areas_ids=params.type_ids,
@@ -408,7 +408,7 @@ class TestOutput:
     def test_area_aggregate_mc_ind(self, tmp_path, params, expected_result_filename):
         output = setup_output(tmp_path, params.output_id)
 
-        df = output.mc_ind_aggregate_areas(
+        df = output.aggregate_mc_ind_areas(
             MCIndAreasDataType(params.query_file),
             params.frequency,
             areas_ids=params.type_ids,
@@ -428,10 +428,10 @@ class TestOutput:
     def test_link_aggregate_mc_all(self, tmp_path, params, expected_result_filename):
         output = setup_output(tmp_path, params.output_id)
 
-        df = output.mc_all_aggregate_links(
+        df = output.aggregate_mc_all_links(
             MCAllLinksDataType(params.query_file),
             params.frequency,
-            areas_ids=params.type_ids,
+            links_ids=params.type_ids,
             columns_names=params.columns_names,
             mc_years=params.mc_years,
         )
@@ -448,10 +448,10 @@ class TestOutput:
     def test_link_aggregate_mc_ind(self, tmp_path, params, expected_result_filename):
         output = setup_output(tmp_path, params.output_id)
 
-        df = output.mc_ind_aggregate_links(
+        df = output.aggregate_mc_ind_links(
             MCIndLinksDataType(params.query_file),
             params.frequency,
-            areas_ids=params.type_ids,
+            links_ids=params.type_ids,
             columns_names=params.columns_names,
             mc_years=params.mc_years,
         )

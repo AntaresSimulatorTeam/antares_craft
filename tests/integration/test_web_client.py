@@ -918,7 +918,7 @@ class TestWebClient:
 
         # ===== Output aggregate_values =====
 
-        aggregated_matrix = output.mc_all_aggregate_links(MCAllLinksDataType.VALUES, Frequency.DAILY)
+        aggregated_matrix = output.aggregate_mc_all_links(MCAllLinksDataType.VALUES, Frequency.DAILY)
         assert isinstance(aggregated_matrix, pd.DataFrame)
         assert not aggregated_matrix.empty
         assert aggregated_matrix.shape == (364, 30)
