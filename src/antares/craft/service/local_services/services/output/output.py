@@ -43,7 +43,7 @@ class OutputLocalService(BaseOutputService):
 
         aggregator_manager = AggregatorManager(
             self.config.study_path / "output" / output_id,
-            aggregation_entry.query_file,
+            aggregation_entry.data_type,
             aggregation_entry.frequency,
             type_ids,
             columns_names,

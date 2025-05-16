@@ -11,6 +11,8 @@
 # This file is part of the Antares project.
 import time
 
+from io import StringIO
+
 import pandas as pd
 
 from antares.craft.api_conf.request_wrapper import RequestWrapper
@@ -33,6 +35,17 @@ def get_matrix(base_url: str, study_id: str, wrapper: RequestWrapper, series_pat
     else:
         dataframe = pd.DataFrame(data=json_df["data"], columns=json_df["columns"])
     return dataframe
+
+
+def get_original_file_matrix(base_url: str, study_id: str, wrapper: RequestWrapper, series_path: str) -> pd.DataFrame:
+    raw_url = f"{base_url}/studies/{study_id}/raw/original-file?path={series_path}"
+    response = wrapper.get(raw_url)
+
+    data = StringIO(response.text)
+
+    data_csv = pd.read_csv(data, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy")
+
+    return data_csv
 
 
 def wait_task_completion(
