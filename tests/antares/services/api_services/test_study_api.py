@@ -666,7 +666,7 @@ class TestCreateAPI:
 
             mocker.get(matrix_area_url, text=expected_area_content)
             matrix_area = self.output_area.get_mc_all_area(frequency, MCAllAreasDataType.VALUES, self.area.id)
-            expected_matrix = read_output_matrix(StringIO(expected_area_content))
+            expected_matrix = read_output_matrix(StringIO(expected_area_content), frequency)
             assert matrix_area.equals(expected_matrix)
 
             expected_link_content = """BE?	area	va	daily
@@ -681,7 +681,7 @@ class TestCreateAPI:
             matrix_link = self.output_link.get_mc_all_link(
                 frequency, MCAllLinksDataType.VALUES, self.area.id, self.area_1.id
             )
-            expected_matrix = read_output_matrix(StringIO(expected_link_content))
+            expected_matrix = read_output_matrix(StringIO(expected_link_content), frequency)
             assert matrix_link.equals(expected_matrix)
 
     def test_output_get_mc_ind(self, tmp_path):

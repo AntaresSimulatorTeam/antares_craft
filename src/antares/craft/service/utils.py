@@ -22,9 +22,8 @@ def read_output_matrix(data: Path | StringIO, frequency: Frequency) -> pd.DataFr
     df = pd.read_csv(data, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy")
 
     date_serializer = FactoryDateSerializer.create(frequency.value, "")
-    date, body = date_serializer.extract_date(df)
+    _, body = date_serializer.extract_date(df)
 
     final_df = rename_unnamed(body).astype(float)
-    final_df.index = date
 
     return final_df

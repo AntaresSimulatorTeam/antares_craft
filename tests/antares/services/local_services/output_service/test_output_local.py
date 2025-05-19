@@ -379,8 +379,8 @@ class TestOutput:
         file_path = Path(f"mc-all/areas/es/{file_name}")
         matrix_path = tmp_path / "studyTest" / "output" / output_name / "economy" / file_path
 
-        expected_dataframe = read_output_matrix(matrix_path)
-        dataframe = output_service.get_matrix(output_1.name, file_path.as_posix())
+        expected_dataframe = read_output_matrix(matrix_path, Frequency.MONTHLY)
+        dataframe = output_service.get_matrix(output_1.name, file_path.as_posix().removesuffix(".txt"), Frequency.MONTHLY)
         assert dataframe.equals(expected_dataframe)
 
     @pytest.mark.parametrize("params,expected_result_filename", AREAS_REQUESTS__ALL)
