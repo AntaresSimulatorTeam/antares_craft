@@ -74,14 +74,6 @@ from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAP
 from antares.craft.service.api_services.services.output import OutputApiService
 from antares.craft.service.utils import read_output_matrix
 
-ASSETS_DIR = Path(__file__).parent / "assets"
-
-
-@pytest.fixture
-def setup_dataframe(file_name: str) -> pd.DataFrame:
-    file_path = Path(ASSETS_DIR) / f"{file_name}.txt"
-    return read_output_matrix(file_path)
-
 
 class TestCreateAPI:
     api = APIconf("https://antares.com", "token", verify=False)
@@ -652,7 +644,7 @@ class TestCreateAPI:
             with pytest.raises(ConstraintRetrievalError, match="Error while reading constraints"):
                 self.study._read_binding_constraints()
 
-    def test_output_get_mc_all(self, tmp_path, setup_dataframe):
+    def test_output_get_mc_all(self, tmp_path):
         self.study._areas["area_test"] = self.area
         self.study._areas["area_test_1"] = self.area_1
         self.study._outputs["test-output-link"] = self.output_link
@@ -663,7 +655,7 @@ class TestCreateAPI:
             matrix_link_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_link.name}/economy/mc-all/links/{self.area.id}/{self.area_1.id}/values-{frequency.value}"
             matrix_area_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_area.name}/economy/mc-all/areas/{self.area.id}/values-{frequency.value}"
 
-            expected_txt_area = """BE?	area	va	daily
+            expected_area_content = """BE?	area	va	daily
             	VARIABLES	BEGIN	END
             	321	1	364
 
@@ -672,14 +664,12 @@ class TestCreateAPI:
             	index	day	month	EXP	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	values	EXP	EXP	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	values	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max
             	1	01	JAN	0	0	0	0	0	0.9998	0	0.9996	1.0005	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	N/A	N/A	N/A	N/A	0	0	0	0	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0"""
 
-            txt_data = setup_dataframe(expected_txt_area)
-            mocker.get(matrix_area_url, text=expected_txt_area)
+            mocker.get(matrix_area_url, text=expected_area_content)
             matrix_area = self.output_area.get_mc_all_area(frequency, MCAllAreasDataType.VALUES, self.area.id)
-            expected_matrix_area = pd.DataFrame(data=txt_data)
-            assert isinstance(matrix_area, pd.DataFrame)
-            assert matrix_area.equals(expected_matrix_area)
+            expected_matrix = read_output_matrix(StringIO(expected_area_content))
+            assert matrix_area.equals(expected_matrix)
 
-            expected_txt_link = """BE?	area	va	daily
+            expected_link_content = """BE?	area	va	daily
             	VARIABLES	BEGIN	END
             	321	1	364
 
@@ -687,23 +677,20 @@ class TestCreateAPI:
             				Euro	Euro	Euro	Euro	Euro	Euro	Euro	Euro	Euro	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	%	%	%	%	MWh	MWh	MWh	MWh	%	%	%	%	Euro/MWh	Euro/MWh	Euro/MWh	Euro/MWh	Euro	Euro	Euro	Euro	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	Hours	Hours	Hours	Hours	%	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	Euro	Euro	Euro	Euro	 	 	 	 
             	index	day	month	EXP	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	values	EXP	EXP	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	values	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max
             	1	01	JAN	0	0	0	0	0	0.9998	0	0.9996	1.0005	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	N/A	N/A	N/A	N/A	0	0	0	0	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0"""
-            setup_dataframe("matrix_all_area")
-            # txt_data = setup_dataframe(expected_txt_link)
-            mocker.get(matrix_link_url, text=expected_txt_link)
+            mocker.get(matrix_link_url, text=expected_link_content)
             matrix_link = self.output_link.get_mc_all_link(
                 frequency, MCAllLinksDataType.VALUES, self.area.id, self.area_1.id
             )
-            expected_matrix_link = pd.DataFrame(txt_data)
-            assert isinstance(matrix_link, pd.DataFrame)
-            assert matrix_link.equals(expected_matrix_link)
+            expected_matrix = read_output_matrix(StringIO(expected_link_content))
+            assert matrix_link.equals(expected_matrix)
 
     def test_output_get_mc_ind(self, tmp_path):
-        frequency = Frequency.ANNUAL.value
+        frequency = Frequency.ANNUAL
         with requests_mock.Mocker() as mocker:
             matrix_link_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_link.name}/economy/mc-ind/00001/links/{self.area.id}/{self.area_1.id}/values-{frequency.value}"
             matrix_area_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_area.name}/economy/mc-ind/00001/areas/{self.area.id}/values-{frequency.value}"
 
-            expected_txt_area = """BE?	area	va	daily
+            expected_area_content = """BE?	area	va	daily
 	VARIABLES	BEGIN	END
 	321	1	364
 
@@ -712,14 +699,12 @@ BE?	daily			OV. COST	OP. COST	OP. COST	OP. COST	OP. COST	MRG. PRICE	MRG. PRICE	M
 	index	day	month	EXP	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	values	EXP	EXP	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	values	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max
 	1	01	JAN	0	0	0	0	0	0.9998	0	0.9996	1.0005	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	N/A	N/A	N/A	N/A	0	0	0	0	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0"""
 
-            txt_data = setup_dataframe(expected_txt_area)
-            mocker.get(matrix_area_url, text=expected_txt_area)
+            mocker.get(matrix_area_url, text=expected_area_content)
             matrix_area = self.output_area.get_mc_ind_area(1, frequency, MCIndAreasDataType.VALUES, self.area.id)
-            expected_matrix_area = pd.DataFrame(data=txt_data)
-            assert isinstance(matrix_area, pd.DataFrame)
-            assert matrix_area.equals(expected_matrix_area)
+            expected_matrix = read_output_matrix(StringIO(expected_area_content))
+            assert matrix_area.equals(expected_matrix)
 
-            expected_txt_link = """BE?	area	va	daily
+            expected_link_content = """BE?	area	va	daily
 	VARIABLES	BEGIN	END
 	321	1	364
 
@@ -727,13 +712,11 @@ BE?	daily			OV. COST	OP. COST	OP. COST	OP. COST	OP. COST	MRG. PRICE	MRG. PRICE	M
 				Euro	Euro	Euro	Euro	Euro	Euro	Euro	Euro	Euro	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	%	%	%	%	MWh	MWh	MWh	MWh	%	%	%	%	Euro/MWh	Euro/MWh	Euro/MWh	Euro/MWh	Euro	Euro	Euro	Euro	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	Hours	Hours	Hours	Hours	%	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	Euro	Euro	Euro	Euro	 	 	 	 
 	index	day	month	EXP	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	values	EXP	EXP	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	values	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max
 	1	01	JAN	0	0	0	0	0	0.9998	0	0.9996	1.0005	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	N/A	N/A	N/A	N/A	0	0	0	0	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0"""
-            txt_data = setup_dataframe(expected_txt_link)
-            mocker.get(matrix_link_url, text=expected_txt_link)
+            mocker.get(matrix_link_url, text=expected_link_content)
             matrix_link = self.output_link.get_mc_ind_link(
                 1, frequency, MCIndLinksDataType.VALUES, self.area.id, self.area_1.id
             )
-            expected_matrix_link = pd.DataFrame(data=txt_data)
-            assert isinstance(matrix_link, pd.DataFrame)
+            expected_matrix_link = read_output_matrix(StringIO(expected_link_content))
             assert matrix_link.equals(expected_matrix_link)
 
     def test_output_aggregate_values(self):
