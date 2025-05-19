@@ -14,6 +14,17 @@ from pathlib import Path
 
 import pandas as pd
 
+from antares.craft.model.output import Frequency
+from antares.craft.service.local_services.services.output.date_serializer import FactoryDateSerializer, rename_unnamed
 
-def read_output_matrix(data: Path | StringIO) -> pd.DataFrame:
-    return pd.read_csv(data, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy")
+
+def read_output_matrix(data: Path | StringIO, frequency: Frequency) -> pd.DataFrame:
+    df = pd.read_csv(data, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy")
+
+    date_serializer = FactoryDateSerializer.create(frequency.value, "")
+    date, body = date_serializer.extract_date(df)
+
+    final_df = rename_unnamed(body).astype(float)
+    final_df.index = date
+
+    return final_df

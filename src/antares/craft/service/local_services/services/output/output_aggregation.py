@@ -31,7 +31,6 @@ from antares.craft.model.output import (
     MCIndAreasDataType,
     MCIndLinksDataType,
 )
-from antares.craft.service.local_services.services.output.date_serializer import FactoryDateSerializer, rename_unnamed
 from antares.craft.service.utils import read_output_matrix
 
 
@@ -150,19 +149,13 @@ class AggregatorManager:
         )
 
     def _parse_output_file(self, file_path: Path, normalize_column_name: bool = True) -> pd.DataFrame:
-        csv_file = read_output_matrix(file_path)
-        date_serializer = FactoryDateSerializer.create(self.frequency.value, "")
-        date, body = date_serializer.extract_date(csv_file)
-        df = rename_unnamed(body).astype(float)
-
-        df.index = date
-
+        df = read_output_matrix(file_path, self.frequency)
         if not normalize_column_name:
             return df
 
         # normalize columns names
         new_cols = []
-        for col in body.columns:
+        for col in df.columns:
             if self.mc_root.value == MCRoot.MC_IND.value:
                 name_to_consider = col[0] if self.query_file.value == MCIndAreasDataType.VALUES.value else " ".join(col)
             else:

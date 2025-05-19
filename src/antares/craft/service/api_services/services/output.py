@@ -18,9 +18,9 @@ from typing_extensions import override
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import AggregateCreationError, APIError
-from antares.craft.model.output import AggregationEntry
-from antares.craft.service.api_services.utils import get_original_file_matrix
+from antares.craft.model.output import AggregationEntry, Frequency
 from antares.craft.service.base_services import BaseOutputService
+from antares.craft.service.utils import read_output_matrix
 
 
 class OutputApiService(BaseOutputService):
@@ -32,9 +32,14 @@ class OutputApiService(BaseOutputService):
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
     @override
-    def get_matrix(self, output_id: str, file_path: str) -> pd.DataFrame:
+    def get_matrix(self, output_id: str, file_path: str, frequency: Frequency) -> pd.DataFrame:
         full_path = f"output/{output_id}/economy/{file_path}"
-        return get_original_file_matrix(self._base_url, self.study_id, self._wrapper, full_path)
+
+        raw_url = f"{self._base_url}/studies/{self.study_id}/raw/original-file?path={full_path}"
+        response = self._wrapper.get(raw_url)
+        data = StringIO(response.text)
+
+        return read_output_matrix(data, frequency)
 
     @override
     def aggregate_values(

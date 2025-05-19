@@ -11,13 +11,10 @@
 # This file is part of the Antares project.
 import time
 
-from io import StringIO
-
 import pandas as pd
 
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import TaskFailedError, TaskTimeOutError
-from antares.craft.service.utils import read_output_matrix
 
 
 def update_series(base_url: str, study_id: str, wrapper: RequestWrapper, series: pd.DataFrame, path: str) -> None:
@@ -36,14 +33,6 @@ def get_matrix(base_url: str, study_id: str, wrapper: RequestWrapper, series_pat
     else:
         dataframe = pd.DataFrame(data=json_df["data"], columns=json_df["columns"])
     return dataframe
-
-
-def get_original_file_matrix(base_url: str, study_id: str, wrapper: RequestWrapper, series_path: str) -> pd.DataFrame:
-    raw_url = f"{base_url}/studies/{study_id}/raw/original-file?path={series_path}"
-    response = wrapper.get(raw_url)
-
-    data = StringIO(response.text)
-    return read_output_matrix(data)
 
 
 def wait_task_completion(

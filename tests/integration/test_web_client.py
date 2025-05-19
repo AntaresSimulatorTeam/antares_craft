@@ -883,38 +883,21 @@ class TestWebClient:
             for output in outputs_from_api
         )
 
-        expected_output_id = list(outputs_from_api)[0]
         # ===== Output get_mc_all_areas =====
 
         matrix_all_area = output.get_mc_all_area(Frequency.DAILY, MCAllAreasDataType.VALUES, area_be.id)
-        expected_matrix_all_area = outputs_from_api[expected_output_id].get_mc_all_area(
-            Frequency.DAILY, MCAllAreasDataType.VALUES, area_be.id
-        )
-        matrix_all_area.equals(expected_matrix_all_area)
 
         # ===== Output get_mc_all_links =====
 
         matrix_all_links = output.get_mc_all_link(Frequency.DAILY, MCAllLinksDataType.VALUES, area_be.id, area_fr.id)
-        expected_matrix_all_link = outputs_from_api[expected_output_id].get_mc_all_link(
-            Frequency.DAILY, MCAllLinksDataType.VALUES, area_be.id, area_fr.id
-        )
-        matrix_all_links.equals(expected_matrix_all_link)
 
         # ===== Output get_mc_ind_areas =====
 
         matrix_ind_areas = output.get_mc_ind_area(1, Frequency.DAILY, MCIndAreasDataType.VALUES, area_be.id)
-        expected_matrix_ind_area = outputs_from_api[expected_output_id].get_mc_ind_area(
-            1, Frequency.DAILY, MCIndAreasDataType.VALUES, area_be.id
-        )
-        matrix_ind_areas.equals(expected_matrix_ind_area)
 
         # ===== Output get_mc_ind_links =====
 
         matrix_ind_links = output.get_mc_ind_link(1, Frequency.DAILY, MCIndLinksDataType.VALUES, area_be.id, area_fr.id)
-        expected_matrix_ind_link = outputs_from_api[expected_output_id].get_mc_ind_link(
-            1, Frequency.DAILY, MCIndLinksDataType.VALUES, area_be.id, area_fr.id
-        )
-        matrix_ind_links.equals(expected_matrix_ind_link)
 
         # ===== Output aggregate_values =====
 
