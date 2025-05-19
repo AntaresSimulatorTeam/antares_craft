@@ -12,7 +12,6 @@
 import pytest
 
 import dataclasses
-import typing
 import zipfile
 
 from enum import Enum
@@ -371,18 +370,23 @@ class TestOutput:
         file_name = "details-monthly.txt"
         output_name = "20201014-1427eco"
 
-        test_config = typing.cast(LocalConfiguration, local_study.service.config)
-        services = create_local_services(test_config, "studyTest")
-        output_service = services.output_service
-
         output_1 = setup_output(tmp_path, output_name)
+
+        # Area Part
         file_path = Path(f"mc-all/areas/es/{file_name}")
         matrix_path = tmp_path / "studyTest" / "output" / output_name / "economy" / file_path
 
         expected_dataframe = read_output_matrix(matrix_path, Frequency.MONTHLY)
-        dataframe = output_service.get_matrix(
-            output_1.name, file_path.as_posix().removesuffix(".txt"), Frequency.MONTHLY
-        )
+        dataframe = output_1.get_mc_all_area(Frequency.MONTHLY, MCAllAreasDataType.DETAILS, "es")
+        assert dataframe.equals(expected_dataframe)
+
+        # Link Part
+        output_name = "20201014-1422eco-hello"
+        output_2 = setup_output(tmp_path, output_name)
+        file_path = Path("mc-ind/00001/links/de - fr/values-hourly.txt")
+        matrix_path = tmp_path / "studyTest" / "output" / output_name / "economy" / file_path
+        expected_dataframe = read_output_matrix(matrix_path, Frequency.HOURLY)
+        dataframe = output_2.get_mc_ind_link(1, Frequency.HOURLY, MCIndLinksDataType.VALUES, "fr", "de")
         assert dataframe.equals(expected_dataframe)
 
     @pytest.mark.parametrize("params,expected_result_filename", AREAS_REQUESTS__ALL)
