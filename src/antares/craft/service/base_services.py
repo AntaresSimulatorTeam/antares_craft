@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     )
     from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
-    from antares.craft.model.output import AggregationEntry, Output
+    from antares.craft.model.output import AggregationEntry, Frequency, Output
     from antares.craft.model.renewable import (
         RenewableCluster,
         RenewableClusterProperties,
@@ -780,13 +780,14 @@ class BaseRunService(ABC):
 
 class BaseOutputService(ABC):
     @abstractmethod
-    def get_matrix(self, output_id: str, file_path: str) -> pd.DataFrame:
+    def get_matrix(self, output_id: str, file_path: str, frequency: "Frequency") -> pd.DataFrame:
         """
         Gets the matrix of the output
 
         Args:
             output_id: id of the output
             file_path: output path
+            frequency: Matrix frequency (annual, monthly, weekly, daily, hourly)
 
         Returns: Pandas DataFrame
         """
