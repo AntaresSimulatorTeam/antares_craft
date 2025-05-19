@@ -87,7 +87,6 @@ from antares.craft.model.output import (
 )
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import Job, JobStatus
-from antares.craft.service.utils import read_output_matrix
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
 ASSETS_DIR = Path(__file__).parent / "assets"
@@ -886,31 +885,32 @@ class TestWebClient:
         )
 
         frequency = Frequency.DAILY
+
+        def _read_matrix(matrix_path: Path) -> pd.DataFrame:
+            return pd.read_csv(matrix_path, sep="\t", header=[0, 1, 2], index_col=0, na_values="N/A")
+
         # ===== Output get_mc_all_areas =====
 
         matrix_all_area = output.get_mc_all_area(frequency, MCAllAreasDataType.VALUES, area_be.id)
-        expected_all_area = pd.read_csv(ASSETS_DIR / "all_area.tsv", sep="\t", header=[0, 1, 2], index_col=0, na_values="N/A")
+        expected_all_area = _read_matrix(ASSETS_DIR / "all_area.tsv")
         pd.testing.assert_frame_equal(matrix_all_area, expected_all_area, check_dtype=False)
 
         # ===== Output get_mc_all_links =====
 
         matrix_all_links = output.get_mc_all_link(frequency, MCAllLinksDataType.VALUES, area_be.id, area_fr.id)
-        expected_all_links = pd.read_csv(ASSETS_DIR / "all_links.tsv", sep="\t", header=[0, 1, 2], index_col=0,
-                                        na_values="N/A")
+        expected_all_links = _read_matrix(ASSETS_DIR / "all_links.tsv")
         pd.testing.assert_frame_equal(matrix_all_links, expected_all_links, check_dtype=False)
 
         # ===== Output get_mc_ind_areas =====
 
         matrix_ind_areas = output.get_mc_ind_area(1, frequency, MCIndAreasDataType.VALUES, area_be.id)
-        expected_ind_areas = pd.read_csv(ASSETS_DIR / "ind_areas.tsv", sep="\t", header=[0, 1, 2], index_col=0,
-                                         na_values="N/A")
+        expected_ind_areas = _read_matrix(ASSETS_DIR / "ind_area.tsv")
         # pd.testing.assert_frame_equal(matrix_ind_areas, expected_ind_areas, check_dtype=False)
 
         # ===== Output get_mc_ind_links =====
 
         matrix_ind_links = output.get_mc_ind_link(1, frequency, MCIndLinksDataType.VALUES, area_be.id, area_fr.id)
-        expected_ind_links = pd.read_csv(ASSETS_DIR / "ind_links.tsv", sep="\t", header=[0, 1, 2], index_col=0,
-                                         na_values="N/A")
+        expected_ind_links = _read_matrix(ASSETS_DIR / "ind_links.tsv")
         # pd.testing.assert_frame_equal(matrix_ind_links, expected_ind_links, check_dtype=False)
 
         # ===== Output aggregate_values =====
