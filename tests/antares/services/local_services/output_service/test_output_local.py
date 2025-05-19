@@ -30,6 +30,7 @@ from antares.craft.model.output import (
     Output,
 )
 from antares.craft.service.local_services.factory import create_local_services
+from antares.craft.service.utils import read_output_matrix
 
 ASSETS_DIR = Path(__file__).parent / "assets"
 
@@ -376,11 +377,9 @@ class TestOutput:
 
         output_1 = setup_output(tmp_path, output_name)
         file_path = Path(f"mc-all/areas/es/{file_name}")
-        def_path = tmp_path / "studyTest" / "output" / output_name / "economy" / file_path
+        matrix_path = tmp_path / "studyTest" / "output" / output_name / "economy" / file_path
 
-        expected_dataframe = pd.read_csv(
-            def_path, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy"
-        )
+        expected_dataframe = read_output_matrix(matrix_path)
         dataframe = output_service.get_matrix(output_1.name, file_path.as_posix())
         assert dataframe.equals(expected_dataframe)
 
