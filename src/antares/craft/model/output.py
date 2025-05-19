@@ -118,7 +118,8 @@ class Output:
         Returns:
 
         """
-        file_path = f"mc-all/links/{area_from}/{area_to}/{data_type.value}-{frequency.value}"
+        area_from, area_to = sorted([area_from, area_to])
+        file_path = f"mc-all/links/{area_from} - {area_to}/{data_type.value}-{frequency.value}"
         return self._output_service.get_matrix(self.name, file_path, frequency)
 
     def get_mc_ind_area(
@@ -153,8 +154,8 @@ class Output:
         Returns:
 
         """
-
-        file_path = f"mc-ind/{mc_year:05}/links/{area_from}/{area_to}/{data_type.value}-{frequency.value}"
+        area_from, area_to = sorted([area_from, area_to])
+        file_path = f"mc-ind/{mc_year:05}/links/{area_from} - {area_to}/{data_type.value}-{frequency.value}"
         return self._output_service.get_matrix(self.name, file_path, frequency)
 
     def aggregate_mc_ind_areas(
