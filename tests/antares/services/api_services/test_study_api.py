@@ -72,6 +72,7 @@ from antares.craft.service.api_services.models.binding_constraint import Binding
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAPI
 from antares.craft.service.api_services.services.output import OutputApiService
+from antares.craft.service.utils import read_output_matrix
 
 ASSETS_DIR = Path(__file__).parent / "assets"
 
@@ -79,14 +80,7 @@ ASSETS_DIR = Path(__file__).parent / "assets"
 @pytest.fixture
 def setup_dataframe(file_name: str) -> pd.DataFrame:
     file_path = Path(ASSETS_DIR) / f"{file_name}.txt"
-    with open(file_path, "r", encoding="utf-8") as file:
-        data_csv = pd.read_csv(file, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy")
-
-    # data = StringIO(file_name)
-
-    # data_csv = pd.read_csv(data, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy")
-
-    return data_csv
+    return read_output_matrix(file_path)
 
 
 class TestCreateAPI:
@@ -664,7 +658,7 @@ class TestCreateAPI:
         self.study._outputs["test-output-link"] = self.output_link
         self.study._outputs["test-output-area"] = self.output_area
 
-        frequency = Frequency(Frequency.ANNUAL.value)
+        frequency = Frequency.ANNUAL
         with requests_mock.Mocker() as mocker:
             matrix_link_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_link.name}/economy/mc-all/links/{self.area.id}/{self.area_1.id}/values-{frequency.value}"
             matrix_area_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_area.name}/economy/mc-all/areas/{self.area.id}/values-{frequency.value}"
@@ -704,7 +698,7 @@ class TestCreateAPI:
             assert matrix_link.equals(expected_matrix_link)
 
     def test_output_get_mc_ind(self, tmp_path):
-        frequency = Frequency(Frequency.ANNUAL.value)
+        frequency = Frequency.ANNUAL.value
         with requests_mock.Mocker() as mocker:
             matrix_link_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_link.name}/economy/mc-ind/00001/links/{self.area.id}/{self.area_1.id}/values-{frequency.value}"
             matrix_area_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_area.name}/economy/mc-ind/00001/areas/{self.area.id}/values-{frequency.value}"
