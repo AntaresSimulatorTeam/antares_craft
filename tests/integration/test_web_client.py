@@ -904,9 +904,9 @@ class TestWebClient:
 
         # ===== Output get_mc_ind_areas =====
 
-        matrix_ind_areas = output.get_mc_ind_area(1, frequency, MCIndAreasDataType.VALUES, area_be.id)
-        expected_ind_areas = _read_matrix(ASSETS_DIR / "ind_area.tsv")
-        pd.testing.assert_frame_equal(matrix_ind_areas, expected_ind_areas, check_dtype=False)
+        matrix_ind_area = output.get_mc_ind_area(1, frequency, MCIndAreasDataType.VALUES, area_be.id)
+        expected_ind_area = _read_matrix(ASSETS_DIR / "ind_area.tsv")
+        pd.testing.assert_frame_equal(matrix_ind_area, expected_ind_area, check_dtype=False)
 
         # ===== Output get_mc_ind_links =====
 
