@@ -651,7 +651,7 @@ class TestCreateAPI:
         self.study._outputs["test-output-area"] = self.output_area
 
         frequency = Frequency.ANNUAL
-        with (requests_mock.Mocker() as mocker):
+        with requests_mock.Mocker() as mocker:
             matrix_link_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_link.name}/economy/mc-all/links/{self.area.id}/{self.area_1.id}/values-{frequency.value}"
             matrix_area_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_area.name}/economy/mc-all/areas/{self.area.id}/values-{frequency.value}"
 
@@ -687,7 +687,7 @@ area_1	annual	FLOW LIN.	FLOW LIN.	FLOW LIN.	FLOW LIN.	UCAP LIN.	UCAP LIN.	UCAP L
 
     def test_output_get_mc_ind(self, tmp_path):
         frequency = Frequency.ANNUAL
-        with (requests_mock.Mocker() as mocker):
+        with requests_mock.Mocker() as mocker:
             matrix_link_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_link.name}/economy/mc-ind/00001/links/{self.area.id}/{self.area_1.id}/values-{frequency.value}"
             matrix_area_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_area.name}/economy/mc-ind/00001/areas/{self.area.id}/values-{frequency.value}"
 

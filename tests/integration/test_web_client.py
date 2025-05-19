@@ -91,6 +91,7 @@ from tests.integration.antares_web_desktop import AntaresWebDesktop
 
 ASSETS_DIR = Path(__file__).parent / "assets"
 
+
 @pytest.fixture
 def antares_web() -> AntaresWebDesktop:
     app = AntaresWebDesktop()
@@ -905,13 +906,13 @@ class TestWebClient:
 
         matrix_ind_areas = output.get_mc_ind_area(1, frequency, MCIndAreasDataType.VALUES, area_be.id)
         expected_ind_areas = _read_matrix(ASSETS_DIR / "ind_area.tsv")
-        # pd.testing.assert_frame_equal(matrix_ind_areas, expected_ind_areas, check_dtype=False)
+        pd.testing.assert_frame_equal(matrix_ind_areas, expected_ind_areas, check_dtype=False)
 
         # ===== Output get_mc_ind_links =====
 
         matrix_ind_links = output.get_mc_ind_link(1, frequency, MCIndLinksDataType.VALUES, area_be.id, area_fr.id)
         expected_ind_links = _read_matrix(ASSETS_DIR / "ind_links.tsv")
-        # pd.testing.assert_frame_equal(matrix_ind_links, expected_ind_links, check_dtype=False)
+        pd.testing.assert_frame_equal(matrix_ind_links, expected_ind_links, check_dtype=False)
 
         # ===== Output aggregate_values =====
 
