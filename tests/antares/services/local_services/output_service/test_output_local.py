@@ -41,7 +41,7 @@ class TestParams:
     query_file: Enum
     frequency: Frequency
     mc_years: list[int]
-    type_ids: list[str]
+    type_ids: list[str] | list[tuple[str, str]]
     columns_names: list[str]
 
 
@@ -176,7 +176,7 @@ LINKS_REQUESTS__ALL = [
             query_file=MCAllLinksDataType.VALUES,
             frequency=Frequency.MONTHLY,
             mc_years=[],
-            type_ids=["de - fr"],
+            type_ids=[("de", "fr")],
             columns_names=[],
         ),
         "test-04-all.result.tsv",
@@ -325,7 +325,7 @@ LINKS_REQUESTS__IND = [
             query_file=MCIndLinksDataType.VALUES,
             frequency=Frequency.HOURLY,
             mc_years=[1],
-            type_ids=["de - fr"],
+            type_ids=[("de", "fr")],
             columns_names=[],
         ),
         "test-04.result.tsv",
@@ -427,10 +427,16 @@ class TestOutput:
     def test_link_aggregate_mc_all(self, tmp_path, params, expected_result_filename):
         output = setup_output(tmp_path, params.output_id)
 
+        link_ids = (
+            [f"{area_from} / {area_to}" for link_id in params.type_ids for area_from, area_to in [sorted(link_id)]]
+            if params.type_ids
+            else None
+        )
+
         df = output.aggregate_mc_all_links(
             MCAllLinksDataType(params.query_file),
             params.frequency,
-            links_ids=params.type_ids,
+            links_ids=link_ids,
             columns_names=params.columns_names,
             mc_years=params.mc_years,
         )
