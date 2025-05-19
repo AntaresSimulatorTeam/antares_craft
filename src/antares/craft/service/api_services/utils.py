@@ -17,6 +17,7 @@ import pandas as pd
 
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import TaskFailedError, TaskTimeOutError
+from antares.craft.service.utils import read_output_matrix
 
 
 def update_series(base_url: str, study_id: str, wrapper: RequestWrapper, series: pd.DataFrame, path: str) -> None:
@@ -42,10 +43,7 @@ def get_original_file_matrix(base_url: str, study_id: str, wrapper: RequestWrapp
     response = wrapper.get(raw_url)
 
     data = StringIO(response.text)
-
-    data_csv = pd.read_csv(data, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy")
-
-    return data_csv
+    return read_output_matrix(data)
 
 
 def wait_task_completion(

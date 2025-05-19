@@ -32,6 +32,7 @@ from antares.craft.model.output import (
     MCIndLinksDataType,
 )
 from antares.craft.service.local_services.services.output.date_serializer import FactoryDateSerializer, rename_unnamed
+from antares.craft.service.utils import read_output_matrix
 
 
 class MCRoot(Enum):
@@ -118,11 +119,6 @@ def _filtered_files_listing(
     return filtered_files
 
 
-def get_output_matrix(file_path: Path) -> pd.DataFrame:
-    df = pd.read_csv(file_path, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy")
-    return df
-
-
 class AggregatorManager:
     def __init__(
         self,
@@ -154,7 +150,7 @@ class AggregatorManager:
         )
 
     def _parse_output_file(self, file_path: Path, normalize_column_name: bool = True) -> pd.DataFrame:
-        csv_file = get_output_matrix(file_path)
+        csv_file = read_output_matrix(file_path)
         date_serializer = FactoryDateSerializer.create(self.frequency.value, "")
         date, body = date_serializer.extract_date(csv_file)
         df = rename_unnamed(body).astype(float)
