@@ -427,16 +427,10 @@ class TestOutput:
     def test_link_aggregate_mc_all(self, tmp_path, params, expected_result_filename):
         output = setup_output(tmp_path, params.output_id)
 
-        link_ids = (
-            [f"{area_from} / {area_to}" for link_id in params.type_ids for area_from, area_to in [sorted(link_id)]]
-            if params.type_ids
-            else None
-        )
-
         df = output.aggregate_mc_all_links(
             MCAllLinksDataType(params.query_file),
             params.frequency,
-            links_ids=link_ids,
+            links_ids=params.type_ids,
             columns_names=params.columns_names,
             mc_years=params.mc_years,
         )

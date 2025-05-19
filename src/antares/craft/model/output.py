@@ -249,7 +249,7 @@ class Output:
         data_type: MCAllLinksDataType,
         frequency: Frequency,
         mc_years: Optional[list[int]] = None,
-        links_ids: Optional[tuple[str, str]] = None,
+        links_ids: Optional[list[tuple[str, str]]] = None,
         columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
         """
