@@ -112,8 +112,8 @@ class Output:
         Args:
             frequency: "hourly", "daily", "weekly", "monthly", "annual"
             data_type: the data-type of mc-all links
-            area_from:
-            area_to:
+            area_from: area_from id
+            area_to: area_to id
 
         Returns:
 
@@ -146,9 +146,9 @@ class Output:
         Args:
             mc_year:
             frequency: "hourly", "daily", "weekly", "monthly", "annual"
-            data_type: the data-type of mc-ind areas
-            area_from:
-            area_to:
+            data_type: the data-type of mc-ind links
+            area_from: area_from id
+            area_to: area_to id
 
         Returns:
 
@@ -189,7 +189,7 @@ class Output:
         data_type: MCIndLinksDataType,
         frequency: Frequency,
         mc_years: Optional[list[int]] = None,
-        links_ids: Optional[tuple[str, str]] = None,
+        links_ids: Optional[list[tuple[str, str]]] = None,
         columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
         """
@@ -201,11 +201,12 @@ class Output:
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
+        type_ids = None if not links_ids else [f"{link_id[0]} / {link_id[1]}" for link_id in links_ids]
         aggregation_entry = AggregationEntry(
             data_type=data_type,
             frequency=frequency,
             mc_years=mc_years,
-            type_ids=links_ids,
+            type_ids=type_ids,
             columns_names=columns_names,
         )
 
@@ -255,11 +256,12 @@ class Output:
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
+        type_ids = None if not links_ids else [f"{link_id[0]} / {link_id[1]}" for link_id in links_ids]
         aggregation_entry = AggregationEntry(
             data_type=data_type,
             frequency=frequency,
             mc_years=mc_years,
-            type_ids=links_ids,
+            type_ids=type_ids,
             columns_names=columns_names,
         )
 
