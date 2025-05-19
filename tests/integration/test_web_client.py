@@ -887,8 +887,18 @@ class TestWebClient:
 
         frequency = Frequency.DAILY
 
-        def _read_matrix(matrix_path: Path) -> pd.DataFrame:
-            return pd.read_csv(matrix_path, sep="\t", header=[0, 1, 2], index_col=0, na_values="N/A")
+        def _read_matrix(matrix_path: Path, mc_ind: bool = False) -> pd.DataFrame:
+            if not mc_ind:
+                return pd.read_csv(matrix_path, sep="\t", header=[0, 1, 2], index_col=0, na_values="N/A")
+
+            df = pd.read_csv(matrix_path, sep="\t", header=[0, 1], index_col=0, na_values="N/A")
+            new_cols = []
+            for k in range(len(df.columns)):
+                new_col = list(df.columns[k])
+                new_col.append("")
+                new_cols.append(tuple(new_col))
+            df.columns = pd.MultiIndex.from_tuples(new_cols)
+            return df
 
         # ===== Output get_mc_all_areas =====
 
@@ -905,13 +915,13 @@ class TestWebClient:
         # ===== Output get_mc_ind_areas =====
 
         matrix_ind_area = output.get_mc_ind_area(1, frequency, MCIndAreasDataType.VALUES, area_be.id)
-        expected_ind_area = _read_matrix(ASSETS_DIR / "ind_area.tsv")
+        expected_ind_area = _read_matrix(ASSETS_DIR / "ind_area.tsv", mc_ind=True)
         pd.testing.assert_frame_equal(matrix_ind_area, expected_ind_area, check_dtype=False)
 
         # ===== Output get_mc_ind_links =====
 
         matrix_ind_links = output.get_mc_ind_link(1, frequency, MCIndLinksDataType.VALUES, area_be.id, area_fr.id)
-        expected_ind_links = _read_matrix(ASSETS_DIR / "ind_links.tsv")
+        expected_ind_links = _read_matrix(ASSETS_DIR / "ind_links.tsv", mc_ind=True)
         pd.testing.assert_frame_equal(matrix_ind_links, expected_ind_links, check_dtype=False)
 
         # ===== Output aggregate_values =====
