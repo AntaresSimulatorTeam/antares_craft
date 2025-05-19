@@ -87,8 +87,10 @@ from antares.craft.model.output import (
 )
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import Job, JobStatus
+from antares.craft.service.utils import read_output_matrix
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
+ASSETS_DIR = Path(__file__).parent / "assets"
 
 @pytest.fixture
 def antares_web() -> AntaresWebDesktop:
@@ -883,25 +885,37 @@ class TestWebClient:
             for output in outputs_from_api
         )
 
+        frequency = Frequency.DAILY
         # ===== Output get_mc_all_areas =====
 
-        matrix_all_area = output.get_mc_all_area(Frequency.DAILY, MCAllAreasDataType.VALUES, area_be.id)
+        matrix_all_area = output.get_mc_all_area(frequency, MCAllAreasDataType.VALUES, area_be.id)
+        expected_all_area = pd.read_csv(ASSETS_DIR / "all_area.tsv", sep="\t", header=[0, 1, 2], index_col=0, na_values="N/A")
+        pd.testing.assert_frame_equal(matrix_all_area, expected_all_area, check_dtype=False)
 
         # ===== Output get_mc_all_links =====
 
-        matrix_all_links = output.get_mc_all_link(Frequency.DAILY, MCAllLinksDataType.VALUES, area_be.id, area_fr.id)
+        matrix_all_links = output.get_mc_all_link(frequency, MCAllLinksDataType.VALUES, area_be.id, area_fr.id)
+        expected_all_links = pd.read_csv(ASSETS_DIR / "all_links.tsv", sep="\t", header=[0, 1, 2], index_col=0,
+                                        na_values="N/A")
+        pd.testing.assert_frame_equal(matrix_all_links, expected_all_links, check_dtype=False)
 
         # ===== Output get_mc_ind_areas =====
 
-        matrix_ind_areas = output.get_mc_ind_area(1, Frequency.DAILY, MCIndAreasDataType.VALUES, area_be.id)
+        matrix_ind_areas = output.get_mc_ind_area(1, frequency, MCIndAreasDataType.VALUES, area_be.id)
+        expected_ind_areas = pd.read_csv(ASSETS_DIR / "ind_areas.tsv", sep="\t", header=[0, 1, 2], index_col=0,
+                                         na_values="N/A")
+        # pd.testing.assert_frame_equal(matrix_ind_areas, expected_ind_areas, check_dtype=False)
 
         # ===== Output get_mc_ind_links =====
 
-        matrix_ind_links = output.get_mc_ind_link(1, Frequency.DAILY, MCIndLinksDataType.VALUES, area_be.id, area_fr.id)
+        matrix_ind_links = output.get_mc_ind_link(1, frequency, MCIndLinksDataType.VALUES, area_be.id, area_fr.id)
+        expected_ind_links = pd.read_csv(ASSETS_DIR / "ind_links.tsv", sep="\t", header=[0, 1, 2], index_col=0,
+                                         na_values="N/A")
+        # pd.testing.assert_frame_equal(matrix_ind_links, expected_ind_links, check_dtype=False)
 
         # ===== Output aggregate_values =====
 
-        aggregated_matrix = output.aggregate_mc_all_links(MCAllLinksDataType.VALUES, Frequency.DAILY)
+        aggregated_matrix = output.aggregate_mc_all_links(MCAllLinksDataType.VALUES, frequency)
         assert isinstance(aggregated_matrix, pd.DataFrame)
         assert not aggregated_matrix.empty
         assert aggregated_matrix.shape == (364, 30)
