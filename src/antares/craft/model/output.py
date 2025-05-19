@@ -202,7 +202,7 @@ class Output:
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
         type_ids = (
-            [f"{area_from} / {area_to}" for link_id in links_ids for area_from, area_to in [sorted(link_id)]]
+            [f"{area_from} - {area_to}" for link_id in links_ids for area_from, area_to in [sorted(link_id)]]
             if links_ids
             else None
         )
@@ -262,7 +262,7 @@ class Output:
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
         type_ids = (
-            [f"{area_from} / {area_to}" for link_id in links_ids for area_from, area_to in [sorted(link_id)]]
+            [f"{area_from} - {area_to}" for link_id in links_ids for area_from, area_to in [sorted(link_id)]]
             if links_ids
             else None
         )
