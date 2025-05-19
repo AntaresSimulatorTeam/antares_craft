@@ -201,7 +201,12 @@ class Output:
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
-        type_ids = None if not links_ids else [f"{link_id[0]} / {link_id[1]}" for link_id in links_ids]
+        type_ids = (
+            [f"{area_from} / {area_to}" for link_id in links_ids for area_from, area_to in [sorted(link_id)]]
+            if links_ids
+            else None
+        )
+
         aggregation_entry = AggregationEntry(
             data_type=data_type,
             frequency=frequency,
@@ -256,7 +261,12 @@ class Output:
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
-        type_ids = None if not links_ids else [f"{link_id[0]} / {link_id[1]}" for link_id in links_ids]
+        type_ids = (
+            [f"{area_from} / {area_to}" for link_id in links_ids for area_from, area_to in [sorted(link_id)]]
+            if links_ids
+            else None
+        )
+
         aggregation_entry = AggregationEntry(
             data_type=data_type,
             frequency=frequency,
