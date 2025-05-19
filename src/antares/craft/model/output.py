@@ -102,7 +102,7 @@ class Output:
 
         """
         file_path = f"mc-all/areas/{area}/{data_type.value}-{frequency.value}"
-        return self._output_service.get_matrix(self.name, file_path)
+        return self._output_service.get_matrix(self.name, file_path, frequency)
 
     def get_mc_all_link(
         self, frequency: Frequency, data_type: MCAllLinksDataType, area_from: str, area_to: str
@@ -119,7 +119,7 @@ class Output:
 
         """
         file_path = f"mc-all/links/{area_from}/{area_to}/{data_type.value}-{frequency.value}"
-        return self._output_service.get_matrix(self.name, file_path)
+        return self._output_service.get_matrix(self.name, file_path, frequency)
 
     def get_mc_ind_area(
         self, mc_year: int, frequency: Frequency, data_type: MCIndAreasDataType, area: str
@@ -136,7 +136,7 @@ class Output:
 
         """
         file_path = f"mc-ind/{mc_year:05}/areas/{area}/{data_type.value}-{frequency.value}"
-        return self._output_service.get_matrix(self.name, file_path)
+        return self._output_service.get_matrix(self.name, file_path, frequency)
 
     def get_mc_ind_link(
         self, mc_year: int, frequency: Frequency, data_type: MCIndLinksDataType, area_from: str, area_to: str
@@ -155,7 +155,7 @@ class Output:
         """
 
         file_path = f"mc-ind/{mc_year:05}/links/{area_from}/{area_to}/{data_type.value}-{frequency.value}"
-        return self._output_service.get_matrix(self.name, file_path)
+        return self._output_service.get_matrix(self.name, file_path, frequency)
 
     def aggregate_mc_ind_areas(
         self,
