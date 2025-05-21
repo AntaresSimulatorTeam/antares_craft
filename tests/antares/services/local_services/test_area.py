@@ -144,13 +144,18 @@ class TestCreateSTStorage:
         st_storage = local_study_with_st_storage.get_areas()["fr"].get_st_storages()["short term storage"]
         assert st_storage.properties == STStorageProperties()
 
+    def test_storage_has_correct_default_properties_92(self, local_study_92):
+        local_study_92.get_areas()["fr"].create_st_storage("short term storage")
+        st_storage = local_study_92.get_areas()["fr"].get_st_storages()["short term storage"]
+        assert st_storage.properties == STStorageProperties()
+
     def test_st_storage_list_ini_exists(self, local_study_with_st_storage):
         study_path = Path(local_study_with_st_storage.path)
         assert (study_path / "input" / "st-storage" / "clusters" / "fr" / "list.ini").exists()
 
     def test_st_storage_and_ini_have_custom_properties(self, local_study_w_areas):
         # Given
-        properties = STStorageProperties(group=STStorageGroup.BATTERY, reservoir_capacity=12.345)
+        properties = STStorageProperties(group=STStorageGroup.BATTERY.value, reservoir_capacity=12.345)
         st_storage_name = "short term storage"
 
         # When
@@ -170,6 +175,49 @@ enabled = True
 
 """
         study_path = Path(local_study_w_areas.path)
+        ini_content = (study_path / "input" / "st-storage" / "clusters" / "fr" / "list.ini").read_text()
+        assert ini_content == expected_st_storage_list_ini_content
+
+        assert created_storage.properties == properties
+
+    def test_st_storage_and_ini_raise_error_with_custom_properties_88(self, local_study_w_areas):
+        properties = STStorageProperties(
+            group=STStorageGroup.BATTERY.value, reservoir_capacity=12.345, penalize_variation_injection=True
+        )
+        st_storage_name = "short term storage"
+
+        with pytest.raises(
+            ValueError, match="In version 8.8, the following values are not allowed: penalize_variation_injection"
+        ):
+            local_study_w_areas.get_areas()["fr"].create_st_storage(st_storage_name, properties)
+
+    def test_st_storage_and_ini_have_custom_properties_92(self, local_study_92):
+        # Given
+        properties = STStorageProperties(
+            group=STStorageGroup.BATTERY.value, reservoir_capacity=12.345, efficiency_withdrawal=0.9
+        )
+        st_storage_name = "short term storage"
+
+        # When
+        created_storage = local_study_92.get_areas()["fr"].create_st_storage(st_storage_name, properties)
+
+        # Then
+        expected_st_storage_list_ini_content = """[short term storage]
+name = short term storage
+group = battery
+injectionnominalcapacity = 0.0
+withdrawalnominalcapacity = 0.0
+reservoircapacity = 12.345
+efficiency = 1.0
+initiallevel = 0.5
+initialleveloptim = False
+enabled = True
+efficiencywithdrawal = 0.9
+penalize-variation-injection = False
+penalize-variation-withdrawal = False
+
+"""
+        study_path = Path(local_study_92.path)
         ini_content = (study_path / "input" / "st-storage" / "clusters" / "fr" / "list.ini").read_text()
         assert ini_content == expected_st_storage_list_ini_content
 

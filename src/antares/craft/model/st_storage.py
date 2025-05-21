@@ -42,7 +42,7 @@ class STStorageMatrixName(Enum):
 
 @dataclass
 class STStoragePropertiesUpdate:
-    group: Optional[STStorageGroup] = None
+    group: Optional[str] = None
     injection_nominal_capacity: Optional[float] = None
     withdrawal_nominal_capacity: Optional[float] = None
     reservoir_capacity: Optional[float] = None
@@ -50,11 +50,14 @@ class STStoragePropertiesUpdate:
     initial_level: Optional[float] = None
     initial_level_optim: Optional[bool] = None
     enabled: Optional[bool] = None
+    efficiency_withdrawal: Optional[float] = None
+    penalize_variation_injection: Optional[bool] = None
+    penalize_variation_withdrawal: Optional[bool] = None
 
 
 @dataclass(frozen=True)
 class STStorageProperties:
-    group: STStorageGroup = STStorageGroup.OTHER1
+    group: str = STStorageGroup.OTHER1.value
     injection_nominal_capacity: float = 0
     withdrawal_nominal_capacity: float = 0
     reservoir_capacity: float = 0
@@ -62,6 +65,13 @@ class STStorageProperties:
     initial_level: float = 0.5
     initial_level_optim: bool = False
     enabled: bool = True
+    # add new parameter 9.2
+    efficiency_withdrawal: float = 1
+    penalize_variation_injection: bool = False
+    penalize_variation_withdrawal: bool = False
+
+
+# mettre tout a NONE pour refaire @field_validator
 
 
 class STStorage:
