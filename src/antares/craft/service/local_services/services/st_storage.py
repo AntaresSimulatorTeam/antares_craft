@@ -28,6 +28,7 @@ from antares.craft.model.st_storage import (
     STStorageProperties,
     STStoragePropertiesUpdate,
 )
+from antares.craft.model.study import STUDY_VERSION_9_2, STUDY_VERSION_8_8
 from antares.craft.service.base_services import BaseShortTermStorageService
 from antares.craft.service.local_services.models.st_storage import STStoragePropertiesLocal
 from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
@@ -92,11 +93,24 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
 
     @override
     def set_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:
+        forbidden_matrices_88 = [STStorageMatrixName.COST_INJECTION, STStorageMatrixName.COST_WITHDRAWAL,
+                              STStorageMatrixName.COST_LEVEL, STStorageMatrixName.COST_VARIATION_INJECTION,
+                              STStorageMatrixName.COST_VARIATION_WITHDRAWAL]
+
+        if self.study_version == STUDY_VERSION_8_8 and ts_name in forbidden_matrices_88:
+            raise ValueError(f"The matrix {ts_name} is not available for study version 8.8")
         checks_matrix_dimensions(matrix, f"storage/{storage.area_id}/{storage.name}", ts_name.value)
         write_timeseries(self.config.study_path, matrix, MAPPING[ts_name], storage.area_id, storage.id)
 
     @override
     def get_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName) -> pd.DataFrame:
+        forbidden_matrices_88 = [STStorageMatrixName.COST_INJECTION, STStorageMatrixName.COST_WITHDRAWAL,
+                              STStorageMatrixName.COST_LEVEL, STStorageMatrixName.COST_VARIATION_INJECTION,
+                              STStorageMatrixName.COST_VARIATION_WITHDRAWAL]
+
+        if self.study_version == STUDY_VERSION_8_8 and ts_name in forbidden_matrices_88:
+            raise ValueError(f"The matrix {ts_name} is not available for study version 8.8")
+
         return read_timeseries(MAPPING[ts_name], self.config.study_path, area_id=storage.area_id, cluster_id=storage.id)
 
     @override

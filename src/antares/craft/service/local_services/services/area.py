@@ -256,6 +256,7 @@ class AreaLocalService(BaseAreaService):
         cluster_id = storage.id
         default_matrix_ones = pd.DataFrame(default_series_with_ones)
         default_matrix_zeros = pd.DataFrame(default_series)
+        empty_matrix = pd.DataFrame()
         # fmt: off
         write_timeseries(self.config.study_path, default_matrix_ones, TimeSeriesFileType.ST_STORAGE_PMAX_INJECTION, area_id, cluster_id=cluster_id)
         write_timeseries(self.config.study_path, default_matrix_ones, TimeSeriesFileType.ST_STORAGE_PMAX_WITHDRAWAL, area_id, cluster_id=cluster_id)
@@ -267,35 +268,35 @@ class AreaLocalService(BaseAreaService):
         if self.study_version >= STUDY_VERSION_9_2:
             write_timeseries(
                 self.config.study_path,
-                default_matrix_zeros,
+                empty_matrix,
                 TimeSeriesFileType.ST_STORAGE_COST_INJECTION,
                 area_id,
                 cluster_id=cluster_id,
             )
             write_timeseries(
                 self.config.study_path,
-                default_matrix_zeros,
+                empty_matrix,
                 TimeSeriesFileType.ST_STORAGE_COST_WITHDRAWAL,
                 area_id,
                 cluster_id=cluster_id,
             )
             write_timeseries(
                 self.config.study_path,
-                default_matrix_zeros,
+                empty_matrix,
                 TimeSeriesFileType.ST_STORAGE_COST_LEVEL,
                 area_id,
                 cluster_id=cluster_id,
             )
             write_timeseries(
                 self.config.study_path,
-                default_matrix_zeros,
+                empty_matrix,
                 TimeSeriesFileType.ST_STORAGE_COST_VARIATION_INJECTION,
                 area_id,
                 cluster_id=cluster_id,
             )
             write_timeseries(
                 self.config.study_path,
-                default_matrix_zeros,
+                empty_matrix,
                 TimeSeriesFileType.ST_STORAGE_COST_VARIATION_WITHDRAWAL,
                 area_id,
                 cluster_id=cluster_id,
