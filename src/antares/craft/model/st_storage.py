@@ -57,7 +57,7 @@ class STStoragePropertiesUpdate:
 
 @dataclass(frozen=True)
 class STStorageProperties:
-    group: str = ""
+    group: str = STStorageGroup.OTHER1.value
     injection_nominal_capacity: float = 0
     withdrawal_nominal_capacity: float = 0
     reservoir_capacity: float = 0
@@ -69,6 +69,9 @@ class STStorageProperties:
     efficiency_withdrawal: float = 1
     penalize_variation_injection: bool = False
     penalize_variation_withdrawal: bool = False
+
+
+# mettre tout a NONE pour refaire @field_validator
 
 
 class STStorage:

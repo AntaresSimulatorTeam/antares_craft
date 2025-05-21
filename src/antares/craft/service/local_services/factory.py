@@ -43,7 +43,7 @@ def create_local_services(config: LocalConfiguration, study_name: str, study_ver
     area_service = AreaLocalService(
         config,
         study_name,
-        StudyVersion.parse(study_version),
+        study_version,
         storage_service,
         thermal_service,
         renewable_service,
@@ -55,7 +55,7 @@ def create_local_services(config: LocalConfiguration, study_name: str, study_ver
     bc_service = BindingConstraintLocalService(config, study_name)
     run_service = RunLocalService(config, study_name)
     settings_service = StudySettingsLocalService(config, study_name)
-    short_term_storage_service = ShortTermStorageLocalService(config, study_name, StudyVersion.parse(study_version))
+    short_term_storage_service = ShortTermStorageLocalService(config, study_name, study_version)
     return StudyServices(
         area_service=area_service,
         bc_service=bc_service,
