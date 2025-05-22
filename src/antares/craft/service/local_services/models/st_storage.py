@@ -28,7 +28,7 @@ def _sts_alias_generator(input: str) -> str:
 
 
 class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_generator):
-    group: str = ""
+    group: str = STStorageGroup.OTHER1.value
     injection_nominal_capacity: float = 0
     withdrawal_nominal_capacity: float = 0
     reservoir_capacity: float = 0
@@ -82,7 +82,6 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
 
         if study_version == STUDY_VERSION_8_8 and custom_properties is True:
             fields_to_check = ["penalize_variation_injection", "penalize_variation_withdrawal", "efficiency_withdrawal"]
-
             violations = []
             for field in fields_to_check:
                 value = user_dict.get(field)
@@ -96,10 +95,9 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
         return STStoragePropertiesLocal.model_validate(user_dict, context={"study_version": study_version})
 
     def to_user_model(self) -> STStorageProperties:
-        group_value = self.group
         return STStorageProperties(
             enabled=self.enabled,
-            group=group_value,
+            group=self.group,
             injection_nominal_capacity=self.injection_nominal_capacity,
             withdrawal_nominal_capacity=self.withdrawal_nominal_capacity,
             reservoir_capacity=self.reservoir_capacity,

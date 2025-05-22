@@ -199,4 +199,4 @@ class TestSTStorage:
             properties_92_no_group, StudyVersion.parse("9.2"), True
         )
 
-        assert local_92_no_group.group == ""
+        assert local_92_no_group.group == STStorageGroup.OTHER1.value

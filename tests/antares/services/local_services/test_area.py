@@ -232,20 +232,6 @@ penalize-variation-withdrawal = False
         # when
         storage = local_study_92.get_areas()["fr"].get_st_storages()[st_storage_name]
 
-        # why ?
-        storage.get_pmax_injection()
-        storage.get_pmax_withdrawal()
-        storage.get_lower_rule_curve()
-        storage.get_upper_rule_curve()
-        storage.get_storage_inflows()
-
-        # v9.2
-        storage.get_cost_injection()
-        storage.get_cost_withdrawal()
-        storage.get_cost_level()
-        storage.get_cost_variation_injection()
-        storage.get_cost_variation_withdrawal()
-
         # then
         matrix_default = pd.DataFrame(matrix_tool.default_series)
         assert storage.get_cost_injection().equals(matrix_default)
@@ -253,6 +239,38 @@ penalize-variation-withdrawal = False
         assert storage.get_cost_level().equals(matrix_default)
         assert storage.get_cost_variation_injection().equals(matrix_default)
         assert storage.get_cost_variation_withdrawal().equals(matrix_default)
+
+    def test_creation_matrices_not_allowed_88(self, tmp_path: Path, local_study_w_areas) -> None:
+        # given
+        st_storage_name = "storage_ts"
+        local_study_w_areas.get_areas()["fr"].create_st_storage(st_storage_name)
+
+        # when
+        storage = local_study_w_areas.get_areas()["fr"].get_st_storages()[st_storage_name]
+
+        # then
+        with pytest.raises(
+            ValueError, match="The matrix STStorageMatrixName.COST_INJECTION is not available for study version 8.8"
+        ):
+            storage.get_cost_injection()
+        with pytest.raises(
+            ValueError, match="The matrix STStorageMatrixName.COST_WITHDRAWAL is not available for study version 8.8"
+        ):
+            storage.get_cost_withdrawal()
+        with pytest.raises(
+            ValueError, match="The matrix STStorageMatrixName.COST_LEVEL is not available for study version 8.8"
+        ):
+            storage.get_cost_level()
+        with pytest.raises(
+            ValueError,
+            match="The matrix STStorageMatrixName.COST_VARIATION_INJECTION is not available for study version 8.8",
+        ):
+            storage.get_cost_variation_injection()
+        with pytest.raises(
+            ValueError,
+            match="The matrix STStorageMatrixName.COST_VARIATION_WITHDRAWAL is not available for study version 8.8",
+        ):
+            storage.get_cost_variation_withdrawal()
 
     def test_update_matrices_92(self, tmp_path: Path, local_study_92) -> None:
         # given
@@ -275,6 +293,20 @@ penalize-variation-withdrawal = False
         assert storage.get_cost_variation_injection().equals(matrix)
         storage.set_cost_variation_withdrawal(matrix)
         assert storage.get_cost_variation_withdrawal().equals(matrix)
+
+    def test_update_matrices_88_not_allowed(self, tmp_path: Path, local_study_w_areas) -> None:
+        # given
+        st_storage_name = "storage_ts"
+        local_study_w_areas.get_areas()["fr"].create_st_storage(st_storage_name)
+        storage = local_study_w_areas.get_areas()["fr"].get_st_storages()[st_storage_name]
+
+        # when
+        matrix = pd.DataFrame(data=8760 * [[3]])
+        # then
+        with pytest.raises(
+            ValueError, match="The matrix STStorageMatrixName.COST_INJECTION is not available for study version 8.8"
+        ):
+            storage.set_cost_injection(matrix)
 
     def test_update_matrices_wrong_format_92(self, tmp_path: Path, local_study_92) -> None:
         # given
