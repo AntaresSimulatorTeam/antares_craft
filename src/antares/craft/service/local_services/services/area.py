@@ -415,6 +415,10 @@ class AreaLocalService(BaseAreaService):
             # Hydro
             default_hydro_properties = HydroProperties()
             update_properties = default_hydro_properties.to_update_properties()
+
+            if self.study_version < STUDY_VERSION_9_2:
+                delattr(update_properties, "overflow_spilled_cost_difference")
+
             hydro_local_service = cast(HydroLocalService, self.hydro_service)
             hydro_local_service.edit_hydro_properties(area_id, update_properties, creation=True)
             hydro = Hydro(self.hydro_service, area_id, default_hydro_properties, InflowStructure())
