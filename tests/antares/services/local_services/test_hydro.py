@@ -26,8 +26,11 @@ class TestCreateHydro:
     def test_hydro_has_properties(self, local_study_w_areas):
         assert local_study_w_areas.get_areas()["fr"].hydro.properties
 
-    def test_hydro_has_correct_default_properties(self, local_study_w_areas, default_hydro_properties):
-        assert local_study_w_areas.get_areas()["fr"].hydro.properties == default_hydro_properties
+    def test_hydro_has_correct_default_properties_88(self, local_study_w_areas, default_hydro_properties_88):
+        assert local_study_w_areas.get_areas()["fr"].hydro.properties == default_hydro_properties_88
+
+    def test_hydro_has_correct_default_properties_92(self, local_study_92, default_hydro_properties_92):
+        assert local_study_92.get_areas()["fr"].hydro.properties == default_hydro_properties_92
 
     def test_files_exist(self, local_study_w_areas):
         """

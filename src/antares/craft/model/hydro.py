@@ -34,6 +34,8 @@ class HydroPropertiesUpdate:
     leeway_low: Optional[float] = None
     leeway_up: Optional[float] = None
     pumping_efficiency: Optional[float] = None
+    # add new parameter 9.2
+    overflow_spilled_cost_difference: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -53,6 +55,8 @@ class HydroProperties:
     leeway_low: float = 1
     leeway_up: float = 1
     pumping_efficiency: float = 1
+    # add new parameter 9.2
+    overflow_spilled_cost_difference: float = 1
 
     def from_update_properties(self, update_properties: HydroPropertiesUpdate) -> "HydroProperties":
         current_properties = asdict(self)
@@ -76,6 +80,8 @@ class HydroProperties:
             leeway_low=self.leeway_low,
             leeway_up=self.leeway_up,
             pumping_efficiency=self.pumping_efficiency,
+            # add new parameter 9.2
+            overflow_spilled_cost_difference=self.overflow_spilled_cost_difference,
         )
 
 
