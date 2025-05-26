@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 import os
+
 from pathlib import Path
 from typing import Optional
 
