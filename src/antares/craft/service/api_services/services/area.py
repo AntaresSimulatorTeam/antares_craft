@@ -461,8 +461,7 @@ class AreaApiService(BaseAreaService):
             area_properties = self._read_area_properties()
 
             # Read all hydro properties and inflow structure
-            hydro_properties = self.hydro_service.read_properties()
-            hydro_inflow_structure = self.hydro_service.read_inflow_structure()
+            hydro_properties_and_inflow_structure = self.hydro_service.read_properties_and_inflow_structure()
 
             # Read all area_ui
             ui_url = f"{self._base_url}/studies/{self.study_id}/areas?ui=true"
@@ -486,8 +485,8 @@ class AreaApiService(BaseAreaService):
                 area_obj._thermals = thermals.get(area_obj.id, {})
                 area_obj._renewables = renewables.get(area_obj.id, {})
                 area_obj._st_storages = st_storages.get(area_obj.id, {})
-                area_obj.hydro._properties = hydro_properties[area_obj.id]
-                area_obj.hydro._inflow_structure = hydro_inflow_structure[area_obj.id]
+                area_obj.hydro._properties = hydro_properties_and_inflow_structure[area_obj.id][0]
+                area_obj.hydro._inflow_structure = hydro_properties_and_inflow_structure[area_obj.id][1]
 
                 all_areas[area_obj.id] = area_obj
 
