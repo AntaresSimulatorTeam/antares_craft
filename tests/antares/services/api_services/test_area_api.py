@@ -41,7 +41,6 @@ from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.area import AreaPropertiesAPITableMode, AreaUiAPI
-from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
@@ -240,8 +239,7 @@ class TestCreateAPI:
         url_renewable = f"{study_url}/table-mode/renewables"
         url_st_storage = f"{study_url}/table-mode/st-storages"
         url_properties_form = f"{study_url}/table-mode/areas"
-        hydro_properties_url = url + f"/{area_id}/hydro/form"
-        hydro_inflow_structure_url = url + f"/{area_id}/hydro/inflow-structure"
+        hydro_url = f"{study_url}/hydro"
 
         json_ui = {
             area_id: {
@@ -304,8 +302,15 @@ class TestCreateAPI:
             mocker.get(url_renewable, json=json_renewable)
             mocker.get(url_st_storage, json=json_st_storage)
             mocker.get(url_properties_form, json=json_properties)
-            mocker.get(hydro_properties_url, json={"reservoir_capacity": 4.5})
-            mocker.get(hydro_inflow_structure_url, json={"interMonthlyCorrelation": 0.9})
+            mocker.get(
+                hydro_url,
+                json={
+                    area_id: {
+                        "managementOptions": {"reservoir_capacity": 4.5},
+                        "inflowStructure": {"interMonthlyCorrelation": 0.9},
+                    }
+                },
+            )
 
             self.study._read_areas()
 
@@ -370,35 +375,6 @@ class TestCreateAPI:
                 match=f"Could not retrieve the areas from study {self.study_id} : " + self.antares_web_description_msg,
             ):
                 self.study._read_areas()
-
-    def test_read_hydro(self):
-        areas = {self.area.id: ""}
-        json_hydro = {
-            "interDailyBreakdown": 1,
-            "intraDailyModulation": 24,
-            "interMonthlyBreakdown": 1,
-            "reservoir": "false",
-            "reservoirCapacity": 0,
-            "followLoad": "true",
-            "useWater": "false",
-            "hardBounds": "false",
-            "initializeReservoirDate": 0,
-            "useHeuristic": "true",
-            "powerToLevel": "false",
-            "useLeeway": "false",
-            "leewayLow": 1,
-            "leewayUp": 1,
-            "pumpingEfficiency": 1,
-        }
-        areas_url = f"{self.study_url}/areas?ui=True"
-        hydro_url = f"{self.study_url}/areas/{self.area.id}/hydro/form"
-
-        with requests_mock.Mocker() as mocker:
-            mocker.get(areas_url, json=areas)
-            mocker.get(hydro_url, json=json_hydro)
-            hydro_props = HydroPropertiesAPI(**json_hydro).to_user_model()
-
-            assert {self.area.id: hydro_props} == self.area._hydro_service.read_properties()
 
     def test_update_hydro_properties_success(self):
         hydro_url = f"{self.study_url}/areas/{self.area.id}/hydro/form"
