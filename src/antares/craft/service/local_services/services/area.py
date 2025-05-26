@@ -491,8 +491,10 @@ class AreaLocalService(BaseAreaService):
         if not areas_path.exists():
             return {}
 
+        hydro_service = cast(HydroLocalService, self.hydro_service)
+
         # Perf: Read only once the hydro_ini file as it's common to every area
-        all_hydro_properties = self.hydro_service.read_properties()
+        all_hydro_properties = hydro_service.read_properties()
 
         # Perf: Read only once the thermal_areas_ini file as it's common to every area
         thermal_area_dict = self._read_thermal_areas_ini()
@@ -519,8 +521,7 @@ class AreaLocalService(BaseAreaService):
                 ui_properties = local_ui.to_user_model()
 
                 # Hydro
-                prepro_dict = cast(HydroLocalService, self.hydro_service).read_inflow_ini(area_id)
-                inflow_structure = HydroInflowStructureLocal.model_validate(prepro_dict).to_user_model()
+                inflow_structure = hydro_service.read_inflow_structure_for_one_area(area_id)
 
                 area = Area(
                     name=area_id,
