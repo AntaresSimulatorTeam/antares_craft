@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -85,7 +85,7 @@ def create_study_local(
     study_directory = parent_directory / study_name
 
     study_version = StudyVersion.parse(version)
-    app = CreateApp(study_dir=study_directory, caption=study_name, version=study_version, author="Unknown")
+    app = CreateApp(study_dir=study_directory, caption=study_name, version=study_version, author=os.getlogin())
     app()
 
     study = Study(
