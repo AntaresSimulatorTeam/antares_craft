@@ -86,7 +86,11 @@ def create_study_local(
     study_directory = parent_directory / study_name
 
     study_version = StudyVersion.parse(version)
-    app = CreateApp(study_dir=study_directory, caption=study_name, version=study_version, author=os.getlogin())
+    try:
+        author = os.getlogin()
+    except OSError:
+        author = "Unknown"
+    app = CreateApp(study_dir=study_directory, caption=study_name, version=study_version, author=author)
     app()
 
     study = Study(
