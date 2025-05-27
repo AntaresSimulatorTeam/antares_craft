@@ -23,7 +23,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.craft import read_study_local
+from antares.craft import Study, read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import ReadingMethodUsedOufOfScopeError
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
@@ -40,7 +40,7 @@ from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
 
 class TestCreateRenewablesCluster:
-    def test_can_create_renewables_cluster(self, local_study_w_thermal):
+    def test_can_create_renewables_cluster(self, local_study_w_thermal: Study) -> None:
         # When
         renewable_cluster_name = "renewable cluster"
         local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
@@ -72,7 +72,7 @@ ts-interpretation = power-generation
         ini_content = (study_path / "input" / "renewables" / "clusters" / "fr" / "list.ini").read_text()
         assert ini_content == expected_renewables_list_ini_content
 
-    def test_renewable_cluster_and_ini_have_custom_properties(self, local_study_w_thermal):
+    def test_renewable_cluster_and_ini_have_custom_properties(self, local_study_w_thermal: Study) -> None:
         # Given
         renewable_properties = RenewableClusterProperties(
             group=RenewableClusterGroup.WIND_OFF_SHORE, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
@@ -99,7 +99,7 @@ ts-interpretation = production-factor
             == renewable_properties
         )
 
-    def test_renewable_cluster_and_series_is_empty(self, local_study_w_thermal):
+    def test_renewable_cluster_and_series_is_empty(self, local_study_w_thermal: Study) -> None:
         local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
             "generation_1", RenewableClusterProperties(), series=pd.DataFrame()
         )
@@ -817,7 +817,7 @@ class TestReadmisc_gen:
 
 
 class TestReadThermal:
-    def test_read_thermals_local(self, local_study_w_thermal):
+    def test_read_thermals_local(self, local_study_w_thermal: Study) -> None:
         areas = local_study_w_thermal.get_areas()
 
         for area in areas.values():

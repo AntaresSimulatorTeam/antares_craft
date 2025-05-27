@@ -49,7 +49,7 @@ class TestCreateAPI:
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
 
-    def test_update_st_storage_properties_success(self):
+    def test_update_st_storage_properties_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             properties = STStoragePropertiesUpdate(enabled=False)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/st-storages"
@@ -58,7 +58,7 @@ class TestCreateAPI:
             )
             self.study.update_st_storages({self.storage: properties})
 
-    def test_update_st_storage_properties_fails(self):
+    def test_update_st_storage_properties_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             properties = STStoragePropertiesUpdate(enabled=False)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/st-storages"
@@ -70,7 +70,7 @@ class TestCreateAPI:
             ):
                 self.study.update_st_storages({self.storage: properties})
 
-    def test_get_storage_matrix_success(self):
+    def test_get_storage_matrix_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.storage.area_id}"
@@ -80,7 +80,7 @@ class TestCreateAPI:
             inflow_matrix = self.storage.get_storage_inflows()
             assert inflow_matrix.equals(self.matrix)
 
-    def test_get_storage_matrix_fails(self):
+    def test_get_storage_matrix_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.storage.area_id}"
@@ -94,7 +94,7 @@ class TestCreateAPI:
             ):
                 self.storage.get_storage_inflows()
 
-    def test_update_storage_matrix_success(self):
+    def test_update_storage_matrix_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.storage.area_id}"
@@ -103,7 +103,7 @@ class TestCreateAPI:
             mocker.put(url, status_code=200)
             self.storage.set_storage_inflows(self.matrix)
 
-    def test_update_storage_matrix_fails(self):
+    def test_update_storage_matrix_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.storage.area_id}"
@@ -117,7 +117,7 @@ class TestCreateAPI:
             ):
                 self.storage.set_storage_inflows(self.matrix)
 
-    def test_read_st_storages(self):
+    def test_read_st_storages(self) -> None:
         json_storage = {
             "zone / test_storage": {
                 "group": "pondage",
@@ -157,7 +157,7 @@ class TestCreateAPI:
             assert expected_st_storage.id == actual_st_storage.id
             assert expected_st_storage.name == actual_st_storage.name
 
-    def test_update_st_storages_properties_success(self):
+    def test_update_st_storages_properties_success(self) -> None:
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/st-storages"
         dict_st_storages = {"battery_fr": self.storage, "duracell": self.storage_1}
 
@@ -227,7 +227,7 @@ class TestCreateAPI:
             assert storage_1.properties.efficiency == json_storages["study_test / duracell"]["efficiency"]
             assert storage_1.properties.group.value == json_storages["study_test / duracell"]["group"]
 
-    def test_update_st_storages_properties_fail(self):
+    def test_update_st_storages_properties_fail(self) -> None:
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/st-storages"
 
         with requests_mock.Mocker() as mocker:

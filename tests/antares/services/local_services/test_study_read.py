@@ -20,7 +20,7 @@ from antares.craft import create_study_local, read_study_local
 
 
 class TestReadStudy:
-    def test_directory_not_exists_error(self):
+    def test_directory_not_exists_error(self) -> None:
         current_dir = Path.cwd()
         study_path = current_dir / "fake_path"
         escaped_full_path = re.escape(str(study_path))

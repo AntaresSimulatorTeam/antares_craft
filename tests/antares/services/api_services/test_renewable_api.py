@@ -49,14 +49,14 @@ class TestCreateAPI:
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[0]])
 
-    def test_update_renewable_properties_success(self):
+    def test_update_renewable_properties_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             properties = RenewableClusterPropertiesUpdate(enabled=False)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/renewables"
             mocker.put(url, json={f"{self.renewable.area_id} / {self.renewable.id}": {"enabled": False}})
             self.renewable.update_properties(properties=properties)
 
-    def test_update_renewable_properties_fails(self):
+    def test_update_renewable_properties_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             properties = RenewableClusterProperties(enabled=False)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/renewables"
@@ -69,7 +69,7 @@ class TestCreateAPI:
             ):
                 self.renewable.update_properties(properties=properties)
 
-    def test_get_renewable_matrices_success(self):
+    def test_get_renewable_matrices_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/renewables/series/"
@@ -79,7 +79,7 @@ class TestCreateAPI:
             renewable_matrix = self.renewable.get_timeseries()
             assert renewable_matrix.equals(self.matrix)
 
-    def test_get_renewable_matrices_fails(self):
+    def test_get_renewable_matrices_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/renewables/series/"
@@ -93,7 +93,7 @@ class TestCreateAPI:
             ):
                 self.renewable.get_timeseries()
 
-    def test_update_renewable_matrices_success(self):
+    def test_update_renewable_matrices_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/renewables/series/"
@@ -102,7 +102,7 @@ class TestCreateAPI:
             mocker.post(url, status_code=200)
             self.renewable.set_series(self.matrix)
 
-    def test_update_renewable_matrices_fail(self):
+    def test_update_renewable_matrices_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/renewables/series/"
@@ -116,7 +116,7 @@ class TestCreateAPI:
             ):
                 self.renewable.set_series(self.matrix)
 
-    def test_read_renewables(self):
+    def test_read_renewables(self) -> None:
         json_renewable = {
             "zone / test_renouvelable": {
                 "group": "solar thermal",
@@ -153,7 +153,7 @@ class TestCreateAPI:
             assert expected_renewable.id == actual_renewable.id
             assert expected_renewable.name == actual_renewable.name
 
-    def test_update_renewable_clusters_success(self):
+    def test_update_renewable_clusters_success(self) -> None:
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/renewables"
         dict_renewables = {"onshore_fr": self.renewable, "at_solar_pv": self.renewable_1}
         json_renewables = {
@@ -216,7 +216,7 @@ class TestCreateAPI:
             assert renewable_2.properties.enabled == json_renewables["study_test / at_solar_pv"]["enabled"]
             assert renewable_2.properties.group.value == json_renewables["study_test / at_solar_pv"]["group"]
 
-    def test_update_renewable_clusters_fail(self):
+    def test_update_renewable_clusters_fail(self) -> None:
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/renewables"
 
         with requests_mock.Mocker() as mocker:
