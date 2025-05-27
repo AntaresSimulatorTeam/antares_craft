@@ -139,7 +139,7 @@ class TestCreateStudy:
         ini_content = IniReader().read(expected_study_antares_path)
         assert ini_content == {
             "antares": {
-                "author": "Unknown",
+                "author": ANY,
                 "caption": study_name,
                 "created": ANY,
                 "lastsave": ANY,

@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import getpass
 
 from pathlib import Path
 from typing import Optional
@@ -65,6 +66,13 @@ def create_local_services(config: LocalConfiguration, study_name: str = "") -> S
     )
 
 
+def _get_current_os_user() -> str:
+    try:
+        return getpass.getuser()
+    except ModuleNotFoundError:  # Can happen on Windows as the `pwd` module only exists on Unix
+        return "Unknown"
+
+
 def create_study_local(
     study_name: str, version: str, parent_directory: Path, solver_path: Optional[Path] = None
 ) -> "Study":
@@ -85,7 +93,7 @@ def create_study_local(
     study_directory = parent_directory / study_name
 
     study_version = StudyVersion.parse(version)
-    app = CreateApp(study_dir=study_directory, caption=study_name, version=study_version, author="Unknown")
+    app = CreateApp(study_dir=study_directory, caption=study_name, version=study_version, author=_get_current_os_user())
     app()
 
     study = Study(

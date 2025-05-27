@@ -313,18 +313,15 @@ class BaseHydroService(ABC):
         pass
 
     @abstractmethod
-    def read_properties(self) -> dict[str, "HydroProperties"]:
-        """
-        Returns:
-            The hydro properties for each area of the study
-        """
+    def read_inflow_structure_for_one_area(self, area_id: str) -> "InflowStructure":
+        """Reads the inflow structure for the given area"""
         pass
 
     @abstractmethod
-    def read_inflow_structure(self) -> dict[str, "InflowStructure"]:
+    def read_properties_and_inflow_structure(self) -> dict[str, tuple["HydroProperties", "InflowStructure"]]:
         """
         Returns:
-            The hydro inflow-structure for each area of the study
+            The hydro properties and inflow structure for each area of the study
         """
         pass
 

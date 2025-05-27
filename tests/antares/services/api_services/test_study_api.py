@@ -290,8 +290,7 @@ class TestCreateAPI:
         storage_url = f"{url}/table-mode/st-storages"
         output_url = f"{url}/outputs"
         constraints_url = f"{base_url}/studies/{self.study_id}/bindingconstraints"
-        hydro_properties_url = f"{area_url}/zone/hydro/form"
-        hydro_inflow_structure_url = f"{area_url}/zone/hydro/inflow-structure"
+        hydro_url = f"{url}/hydro"
         links_url = f"{url}/links"
 
         with requests_mock.Mocker() as mocker:
@@ -309,8 +308,15 @@ class TestCreateAPI:
             )
             mocker.get(constraints_url, json=[])
             mocker.get(links_url, json=[])
-            mocker.get(hydro_properties_url, json={})
-            mocker.get(hydro_inflow_structure_url, json={"interMonthlyCorrelation": 0.5})
+            mocker.get(
+                hydro_url,
+                json={
+                    "zone": {
+                        "managementOptions": {"reservoir_capacity": 4.5},
+                        "inflowStructure": {"interMonthlyCorrelation": 0.9},
+                    }
+                },
+            )
             actual_study = read_study_api(self.api, self.study_id)
 
             expected_study_name = json_study.pop("name")
@@ -354,10 +360,12 @@ class TestCreateAPI:
             renewable_url = f"{base_url}/studies/{variant_id}/table-mode/renewables"
             storage_url = f"{base_url}/studies/{variant_id}/table-mode/st-storages"
             properties_url = f"{base_url}/studies/{variant_id}/table-mode/areas"
+            hydro_url = f"{base_url}/studies/{variant_id}/hydro"
             mocker.get(renewable_url, json={})
             mocker.get(thermal_url, json={})
             mocker.get(storage_url, json={})
             mocker.get(properties_url, json={})
+            mocker.get(hydro_url, json={})
 
             output_url = f"{base_url}/studies/{variant_id}/outputs"
             mocker.get(
@@ -885,6 +893,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
         links_url = f"{base_url}/studies/{self.study_id}/links"
         config_urls = re.compile(f"{base_url}/studies/{self.study_id}/config/.*")
         ts_settings_url = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/config"
+        hydro_url = f"{base_url}/studies/{self.study_id}/hydro"
 
         url_import = f"{base_url}/studies/_import"
         url_move = f"{base_url}/studies/{self.study_id}/move?folder_dest={new_path}"
@@ -905,6 +914,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             mocker.get(output_url, json=[])
             mocker.get(constraints_url, json=[])
             mocker.get(links_url, json=[])
+            mocker.get(hydro_url, json={})
 
             mocker.put(url_move)
             mocker.get(url_study, json=json_study)

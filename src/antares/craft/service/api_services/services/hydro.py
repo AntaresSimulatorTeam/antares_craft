@@ -40,24 +40,24 @@ class HydroApiService(BaseHydroService):
         self._base_url = f"{self.api_config.get_host()}/api/v1"
 
     @override
-    def read_properties(self) -> dict[str, HydroProperties]:
-        # todo: this is really unefficient but we have to do this until AntaresWeb introduces a specific endpoint
-        hydro_properties: dict[str, HydroProperties] = {}
-
+    def read_properties_and_inflow_structure(self) -> dict[str, tuple[HydroProperties, InflowStructure]]:
+        response: dict[str, tuple[HydroProperties, InflowStructure]] = {}
         try:
-            # retrieve all areas
-            areas_url = f"{self._base_url}/studies/{self.study_id}/areas?ui=true"
-            json_response = self._wrapper.get(areas_url).json()
-            all_areas_ids = list(json_response.keys())
+            json_response = self._wrapper.get(f"{self._base_url}/studies/{self.study_id}/hydro").json()
+            for area_id, api_content in json_response.items():
+                # Inflow
+                api_inflow = api_content["inflowStructure"]
+                inflow_structure = HydroInflowStructureAPI.model_validate(api_inflow).to_user_model()
+                # Properties
+                api_properties = api_content["managementOptions"]
+                hydro_properties = HydroPropertiesAPI.model_validate(api_properties).to_user_model()
 
-            # for each area, retrieves its properties
-            for area_id in all_areas_ids:
-                hydro_properties[area_id] = self.read_properties_for_one_area(area_id)
+                response[area_id] = (hydro_properties, inflow_structure)
 
         except APIError as e:
             raise HydroPropertiesReadingError(self.study_id, e.message) from e
 
-        return hydro_properties
+        return response
 
     def read_properties_for_one_area(self, area_id: str) -> HydroProperties:
         try:
@@ -72,25 +72,6 @@ class HydroApiService(BaseHydroService):
         return hydro_props
 
     @override
-    def read_inflow_structure(self) -> dict[str, InflowStructure]:
-        # todo: this is really unefficient but we have to do this until AntaresWeb introduces a specific endpoint
-        all_inflow_structure: dict[str, InflowStructure] = {}
-
-        try:
-            # retrieve all areas
-            areas_url = f"{self._base_url}/studies/{self.study_id}/areas?ui=true"
-            json_response = self._wrapper.get(areas_url).json()
-            all_areas_ids = list(json_response.keys())
-
-            # for each area, retrieves its properties
-            for area_id in all_areas_ids:
-                all_inflow_structure[area_id] = self.read_inflow_structure_for_one_area(area_id)
-
-        except APIError as e:
-            raise HydroInflowStructureReadingError(self.study_id, e.message) from e
-
-        return all_inflow_structure
-
     def read_inflow_structure_for_one_area(self, area_id: str) -> InflowStructure:
         try:
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/inflow-structure"

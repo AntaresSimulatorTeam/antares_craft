@@ -723,8 +723,7 @@ class TestWebClient:
         assert actual_settings.general_parameters == default_settings.general_parameters
         assert actual_settings.advanced_parameters == default_settings.advanced_parameters
         assert actual_settings.thematic_trimming_parameters == default_settings.thematic_trimming_parameters
-        # todo: uncomment this check with AntaresWeb 2.20
-        # assert actual_settings.adequacy_patch_parameters == default_settings.adequacy_patch_parameters
+        assert actual_settings.adequacy_patch_parameters == default_settings.adequacy_patch_parameters
         assert actual_settings.seed_parameters == default_settings.seed_parameters
         assert actual_settings.playlist_parameters == {1: PlaylistParameters(status=False, weight=1)}
 
@@ -759,8 +758,6 @@ class TestWebClient:
         assert new_settings.thematic_trimming_parameters == new_trimming
 
         # test each hydro matrices returns the good values
-        # todo: uncomment this with AntaresWeb version 2.20
-        """
         default_reservoir_matrix = np.zeros((365, 3), dtype=np.float64)
         default_reservoir_matrix[:, 1] = 0.5
         default_reservoir_matrix[:, 2] = 1
@@ -793,7 +790,6 @@ class TestWebClient:
 
         default_energy = pd.DataFrame(np.zeros((12, 5), dtype=np.float64))
         assert area_fr.hydro.get_energy().equals(default_energy)
-        """
 
         # tests the update for hydro matrices
         mod_series = pd.DataFrame(data=np.full((365, 1), 100, dtype=np.float64))
