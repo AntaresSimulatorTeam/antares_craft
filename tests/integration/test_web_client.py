@@ -9,6 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from typing import Generator
+
 import pytest
 
 import shutil
@@ -84,7 +86,7 @@ from tests.integration.antares_web_desktop import AntaresWebDesktop
 
 
 @pytest.fixture
-def antares_web() -> AntaresWebDesktop:
+def antares_web() -> Generator[AntaresWebDesktop]:
     app = AntaresWebDesktop()
     app.wait_for_server_to_start()
     yield app
