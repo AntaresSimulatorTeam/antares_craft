@@ -19,7 +19,7 @@ from typing import cast
 import numpy as np
 import pandas as pd
 
-from antares.craft import LocalConfiguration
+from antares.craft import LocalConfiguration, Study
 from antares.craft.exceptions.exceptions import MatrixFormatError, ThermalCreationError, ThermalDeletionError
 from antares.craft.model.thermal import (
     LawOption,
@@ -35,7 +35,7 @@ from antares.craft.tools.serde_local.ini_reader import IniReader
 
 
 class TestThermalCluster:
-    def test_can_be_created(self, local_study_w_areas):
+    def test_can_be_created(self, local_study_w_areas: Study) -> None:
         # Given
         thermal_name = "test_thermal_cluster"
 
@@ -43,7 +43,7 @@ class TestThermalCluster:
         created_thermal = local_study_w_areas.get_areas()["fr"].create_thermal_cluster(thermal_name)
         assert isinstance(created_thermal, ThermalCluster)
 
-    def test_duplicate_name_errors(self, local_study_w_thermal):
+    def test_duplicate_name_errors(self, local_study_w_thermal: Study) -> None:
         # Given
         area_name = "fr"
         thermal_name = "test thermal cluster"
@@ -55,16 +55,16 @@ class TestThermalCluster:
         ):
             local_study_w_thermal.get_areas()[area_name].create_thermal_cluster(thermal_name)
 
-    def test_has_correct_default_properties(self, local_study_w_thermal):
+    def test_has_correct_default_properties(self, local_study_w_thermal: Study) -> None:
         thermal_cluster = local_study_w_thermal.get_areas()["fr"].get_thermals()["test thermal cluster"]
         assert thermal_cluster.properties == ThermalClusterProperties(group=ThermalClusterGroup.NUCLEAR, must_run=True)
 
-    def test_required_ini_files_exist(self, tmp_path, local_study_w_thermal):
+    def test_required_ini_files_exist(self, tmp_path: Path, local_study_w_thermal: Study) -> None:
         study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
         assert (study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini").exists()
         assert (study_path / "input" / "thermal" / "areas.ini").exists()
 
-    def test_list_ini_has_default_properties(self, tmp_path, local_study_w_thermal):
+    def test_list_ini_has_default_properties(self, tmp_path: Path, local_study_w_thermal: Study) -> None:
         # Given
         expected_list_ini_contents = """[test thermal cluster]
 name = test thermal cluster
@@ -110,7 +110,7 @@ variableomcost = 0.0
             study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini"
         ).read_text() == expected_list_ini_contents
 
-    def test_list_ini_has_custom_properties(self, tmp_path, local_study_w_areas):
+    def test_list_ini_has_custom_properties(self, tmp_path: Path, local_study_w_areas: Study) -> None:
         # Given
         expected_list_ini_contents = """[test thermal cluster]
 name = test thermal cluster
@@ -195,7 +195,7 @@ variableomcost = 5.0
         ini_content = (study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini").read_text()
         assert ini_content == expected_list_ini_contents
 
-    def test_list_ini_has_multiple_clusters(self, local_study_w_thermal):
+    def test_list_ini_has_multiple_clusters(self, local_study_w_thermal: Study) -> None:
         # Asserts we can create 2 clusters
         local_study_w_thermal.get_areas()["fr"].create_thermal_cluster("test thermal cluster two")
         study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
@@ -211,7 +211,7 @@ variableomcost = 5.0
             else:
                 assert created_properties == ThermalClusterProperties()
 
-    def test_create_thermal_initialization_files(self, local_study_w_areas):
+    def test_create_thermal_initialization_files(self, local_study_w_areas: Study) -> None:
         study_path = Path(local_study_w_areas.path)
         areas = local_study_w_areas.get_areas()
         cluster_id = "cluster_test"
@@ -228,7 +228,7 @@ variableomcost = 5.0
             for expected_path in expected_paths:
                 assert expected_path.is_file(), f"File not created: {expected_path}"
 
-    def test_update_properties(self, local_study_w_thermal):
+    def test_update_properties(self, local_study_w_thermal: Study) -> None:
         # Checks values before update
         thermal = local_study_w_thermal.get_areas()["fr"].get_thermals()["test thermal cluster"]
         current_properties = ThermalClusterProperties(
@@ -293,7 +293,7 @@ variableomcost = 5.0
             }
         }
 
-    def test_update_matrices(self, local_study_w_thermal):
+    def test_update_matrices(self, local_study_w_thermal: Study) -> None:
         # Checks all matrices exist
         thermal = local_study_w_thermal.get_areas()["fr"].get_thermals()["test thermal cluster"]
         thermal.get_series_matrix()
@@ -331,7 +331,7 @@ variableomcost = 5.0
         ):
             thermal.set_series(matrix)
 
-    def test_deletion(self, local_study_w_thermal):
+    def test_deletion(self, local_study_w_thermal: Study) -> None:
         # Creates 3 cluster to test all cases
         area_fr = local_study_w_thermal.get_areas()["fr"]
         thermal_1 = area_fr.get_thermals()["test thermal cluster"]
@@ -362,7 +362,7 @@ variableomcost = 5.0
         ):
             area_fr.delete_thermal_cluster(thermal_1)
 
-    def test_update_thermal_properties(self, local_study_w_thermal):
+    def test_update_thermal_properties(self, local_study_w_thermal: Study) -> None:
         area_fr = local_study_w_thermal.get_areas()["fr"]
         thermal = area_fr.get_thermals()["test thermal cluster"]
         update_for_thermal = ThermalClusterPropertiesUpdate(enabled=False, unit_count=13)

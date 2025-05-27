@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from antares.craft import LocalConfiguration
+from antares.craft import LocalConfiguration, Study
 from antares.craft.model.output import (
     Frequency,
     MCAllAreasDataType,
@@ -35,20 +35,30 @@ ASSETS_DIR = Path(__file__).parent / "assets"
 
 
 @dataclasses.dataclass(frozen=True)
-class TestParams:
+class TestParamsAreas:
     output_id: str
     query_file: Enum
     frequency: Frequency
     mc_years: list[int]
-    type_ids: list[str] | list[tuple[str, str]]
+    type_ids: list[str]
+    columns_names: list[str]
+
+
+@dataclasses.dataclass(frozen=True)
+class TestParamsLinks:
+    output_id: str
+    query_file: Enum
+    frequency: Frequency
+    mc_years: list[int]
+    type_ids: list[tuple[str, str]]
     columns_names: list[str]
 
 
 AREAS_REQUESTS__ALL = [
     (
-        TestParams(
+        TestParamsAreas(
             output_id="20201014-1427eco",
-            query_file=MCAllAreasDataType.VALUES.value,
+            query_file=MCAllAreasDataType.VALUES,
             frequency=Frequency.DAILY,
             mc_years=[],
             type_ids=[],
@@ -57,7 +67,7 @@ AREAS_REQUESTS__ALL = [
         "test-01-all.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsAreas(
             output_id="20201014-1427eco",
             query_file=MCAllAreasDataType.DETAILS,
             frequency=Frequency.MONTHLY,
@@ -68,7 +78,7 @@ AREAS_REQUESTS__ALL = [
         "test-02-all.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsAreas(
             output_id="20201014-1427eco",
             query_file=MCAllAreasDataType.VALUES,
             frequency=Frequency.DAILY,
@@ -79,7 +89,7 @@ AREAS_REQUESTS__ALL = [
         "test-03-all.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsAreas(
             output_id="20201014-1427eco",
             query_file=MCAllAreasDataType.VALUES,
             frequency=Frequency.DAILY,
@@ -90,7 +100,7 @@ AREAS_REQUESTS__ALL = [
         "test-04-all.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsAreas(
             output_id="20201014-1427eco",
             query_file=MCAllAreasDataType.VALUES,
             frequency=Frequency.MONTHLY,
@@ -101,7 +111,7 @@ AREAS_REQUESTS__ALL = [
         "test-05-all.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsAreas(
             output_id="20201014-1427eco",
             query_file=MCAllAreasDataType.ID,
             frequency=Frequency.DAILY,
@@ -112,7 +122,7 @@ AREAS_REQUESTS__ALL = [
         "test-06-all.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsAreas(
             output_id="20201014-1427eco",
             query_file=MCAllAreasDataType.VALUES,
             frequency=Frequency.DAILY,
@@ -123,7 +133,7 @@ AREAS_REQUESTS__ALL = [
         "test-07-all.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsAreas(
             output_id="20201014-1427eco",
             query_file=MCAllAreasDataType.DETAILS,
             frequency=Frequency.MONTHLY,
@@ -137,7 +147,7 @@ AREAS_REQUESTS__ALL = [
 
 LINKS_REQUESTS__ALL = [
     (
-        TestParams(
+        TestParamsLinks(
             output_id="20241807-1540eco-extra-outputs",
             query_file=MCAllLinksDataType.VALUES,
             frequency=Frequency.DAILY,
@@ -148,7 +158,7 @@ LINKS_REQUESTS__ALL = [
         "test-01-all.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsLinks(
             output_id="20241807-1540eco-extra-outputs",
             query_file=MCAllLinksDataType.VALUES,
             frequency=Frequency.MONTHLY,
@@ -159,7 +169,7 @@ LINKS_REQUESTS__ALL = [
         "test-02-all.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsLinks(
             output_id="20241807-1540eco-extra-outputs",
             query_file=MCAllLinksDataType.VALUES,
             frequency=Frequency.DAILY,
@@ -170,7 +180,7 @@ LINKS_REQUESTS__ALL = [
         "test-03-all.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsLinks(
             output_id="20241807-1540eco-extra-outputs",
             query_file=MCAllLinksDataType.VALUES,
             frequency=Frequency.MONTHLY,
@@ -181,7 +191,7 @@ LINKS_REQUESTS__ALL = [
         "test-04-all.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsLinks(
             output_id="20241807-1540eco-extra-outputs",
             query_file=MCAllLinksDataType.ID,
             frequency=Frequency.DAILY,
@@ -192,7 +202,7 @@ LINKS_REQUESTS__ALL = [
         "test-05-all.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsLinks(
             output_id="20241807-1540eco-extra-outputs",
             query_file=MCAllLinksDataType.VALUES,
             frequency=Frequency.DAILY,
@@ -206,7 +216,7 @@ LINKS_REQUESTS__ALL = [
 
 AREAS_REQUESTS__IND = [
     (
-        TestParams(
+        TestParamsAreas(
             output_id="20201014-1425eco-goodbye",
             query_file=MCIndAreasDataType.VALUES,
             frequency=Frequency.HOURLY,
@@ -217,7 +227,7 @@ AREAS_REQUESTS__IND = [
         "test-01-result.tsv",
     ),
     (
-        TestParams(
+        TestParamsAreas(
             output_id="20201014-1425eco-goodbye",
             query_file=MCIndAreasDataType.DETAILS,
             frequency=Frequency.HOURLY,
@@ -228,7 +238,7 @@ AREAS_REQUESTS__IND = [
         "test-02-result.tsv",
     ),
     (
-        TestParams(
+        TestParamsAreas(
             output_id="20201014-1425eco-goodbye",
             query_file=MCIndAreasDataType.VALUES,
             frequency=Frequency.WEEKLY,
@@ -239,7 +249,7 @@ AREAS_REQUESTS__IND = [
         "test-03-result.tsv",
     ),
     (
-        TestParams(
+        TestParamsAreas(
             output_id="20201014-1425eco-goodbye",
             query_file=MCIndAreasDataType.VALUES,
             frequency=Frequency.HOURLY,
@@ -250,7 +260,7 @@ AREAS_REQUESTS__IND = [
         "test-04-result.tsv",
     ),
     (
-        TestParams(
+        TestParamsAreas(
             output_id="20201014-1425eco-goodbye",
             query_file=MCIndAreasDataType.VALUES,
             frequency=Frequency.ANNUAL,
@@ -261,7 +271,7 @@ AREAS_REQUESTS__IND = [
         "test-05-result.tsv",
     ),
     (
-        TestParams(
+        TestParamsAreas(
             output_id="20201014-1425eco-goodbye",
             query_file=MCIndAreasDataType.VALUES,
             frequency=Frequency.HOURLY,
@@ -272,7 +282,7 @@ AREAS_REQUESTS__IND = [
         "test-06-result.tsv",
     ),
     (
-        TestParams(
+        TestParamsAreas(
             output_id="20201014-1425eco-goodbye",
             query_file=MCIndAreasDataType.DETAILS,
             frequency=Frequency.HOURLY,
@@ -286,7 +296,7 @@ AREAS_REQUESTS__IND = [
 
 LINKS_REQUESTS__IND = [
     (
-        TestParams(
+        TestParamsLinks(
             output_id="20201014-1425eco-goodbye",
             query_file=MCIndLinksDataType.VALUES,
             frequency=Frequency.HOURLY,
@@ -297,7 +307,7 @@ LINKS_REQUESTS__IND = [
         "test-01.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsLinks(
             output_id="20201014-1425eco-goodbye",
             query_file=MCIndLinksDataType.VALUES,
             frequency=Frequency.HOURLY,
@@ -308,7 +318,7 @@ LINKS_REQUESTS__IND = [
         "test-02.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsLinks(
             output_id="20201014-1425eco-goodbye",
             query_file=MCIndLinksDataType.VALUES,
             frequency=Frequency.HOURLY,
@@ -319,7 +329,7 @@ LINKS_REQUESTS__IND = [
         "test-03.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsLinks(
             output_id="20201014-1425eco-goodbye",
             query_file=MCIndLinksDataType.VALUES,
             frequency=Frequency.HOURLY,
@@ -330,7 +340,7 @@ LINKS_REQUESTS__IND = [
         "test-04.result.tsv",
     ),
     (
-        TestParams(
+        TestParamsLinks(
             output_id="20201014-1425eco-goodbye",
             query_file=MCIndLinksDataType.VALUES,
             frequency=Frequency.HOURLY,
@@ -343,7 +353,7 @@ LINKS_REQUESTS__IND = [
 ]
 
 
-def setup_output(tmp_path, output_id: str) -> Output:
+def setup_output(tmp_path: Path, output_id: str) -> Output:
     study_name = "studyTest"
     config = LocalConfiguration(tmp_path, study_name)
     services = create_local_services(config, study_name)
@@ -360,13 +370,13 @@ def setup_output(tmp_path, output_id: str) -> Output:
     return output
 
 
-def update_expected_result_if_absent(resource_file, df):
+def update_expected_result_if_absent(resource_file: Path, df: pd.DataFrame) -> None:
     if not resource_file.exists() or resource_file.stat().st_size == 0:
         df.to_csv(resource_file, sep="\t", index=False)
 
 
 class TestOutput:
-    def test_get_matrix(self, tmp_path, local_study):
+    def test_get_matrix(self, tmp_path: Path, local_study: Study) -> None:
         file_name = "details-monthly.txt"
         output_name = "20201014-1427eco"
 
@@ -390,7 +400,9 @@ class TestOutput:
         assert dataframe.equals(expected_dataframe)
 
     @pytest.mark.parametrize("params,expected_result_filename", AREAS_REQUESTS__ALL)
-    def test_area_aggregate_mc_all(self, tmp_path, params, expected_result_filename):
+    def test_area_aggregate_mc_all(
+        self, tmp_path: Path, params: TestParamsAreas, expected_result_filename: str
+    ) -> None:
         output = setup_output(tmp_path, params.output_id)
 
         df = output.aggregate_mc_all_areas(
@@ -410,7 +422,9 @@ class TestOutput:
         pd.testing.assert_frame_equal(df, expected_df, check_dtype=False)
 
     @pytest.mark.parametrize("params,expected_result_filename", AREAS_REQUESTS__IND)
-    def test_area_aggregate_mc_ind(self, tmp_path, params, expected_result_filename):
+    def test_area_aggregate_mc_ind(
+        self, tmp_path: Path, params: TestParamsAreas, expected_result_filename: str
+    ) -> None:
         output = setup_output(tmp_path, params.output_id)
 
         df = output.aggregate_mc_ind_areas(
@@ -430,7 +444,9 @@ class TestOutput:
         pd.testing.assert_frame_equal(df, expected_df, check_dtype=False)
 
     @pytest.mark.parametrize("params,expected_result_filename", LINKS_REQUESTS__ALL)
-    def test_link_aggregate_mc_all(self, tmp_path, params, expected_result_filename):
+    def test_link_aggregate_mc_all(
+        self, tmp_path: Path, params: TestParamsLinks, expected_result_filename: str
+    ) -> None:
         output = setup_output(tmp_path, params.output_id)
 
         df = output.aggregate_mc_all_links(
@@ -450,7 +466,9 @@ class TestOutput:
         pd.testing.assert_frame_equal(df, expected_df, check_dtype=False)
 
     @pytest.mark.parametrize("params,expected_result_filename", LINKS_REQUESTS__IND)
-    def test_link_aggregate_mc_ind(self, tmp_path, params, expected_result_filename):
+    def test_link_aggregate_mc_ind(
+        self, tmp_path: Path, params: TestParamsLinks, expected_result_filename: str
+    ) -> None:
         output = setup_output(tmp_path, params.output_id)
 
         df = output.aggregate_mc_ind_links(

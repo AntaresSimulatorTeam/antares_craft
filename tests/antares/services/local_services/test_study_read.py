@@ -16,11 +16,11 @@ import shutil
 
 from pathlib import Path
 
-from antares.craft import create_study_local, read_study_local
+from antares.craft import Study, create_study_local, read_study_local
 
 
 class TestReadStudy:
-    def test_directory_not_exists_error(self):
+    def test_directory_not_exists_error(self) -> None:
         current_dir = Path.cwd()
         study_path = current_dir / "fake_path"
         escaped_full_path = re.escape(str(study_path))
@@ -28,8 +28,8 @@ class TestReadStudy:
         with pytest.raises(FileNotFoundError, match=escaped_full_path):
             read_study_local(study_path)
 
-    def test_directory_is_a_file(self, local_study):
-        current_dir = local_study.service.config.study_path
+    def test_directory_is_a_file(self, local_study: Study) -> None:
+        current_dir = Path(local_study.path)
 
         study_path = current_dir / "file.txt"
         study_path.touch()
@@ -38,7 +38,7 @@ class TestReadStudy:
         with pytest.raises(FileNotFoundError, match=escaped_full_path):
             read_study_local(study_path)
 
-    def test_read_outputs(self, local_study):
+    def test_read_outputs(self, local_study: Study) -> None:
         """
         Ensures the reading methods doesn't fail when the output folder doesn't exist
         """
@@ -46,7 +46,7 @@ class TestReadStudy:
         (study_path / "output").rmdir()
         read_study_local(study_path)
 
-    def test_study_name(self, tmp_path: Path):
+    def test_study_name(self, tmp_path: Path) -> None:
         """
         Ensures the reading area method isn't based on the name but on the study path
         """

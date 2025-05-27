@@ -51,6 +51,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
+    LinkData,
 )
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate
@@ -143,7 +144,7 @@ class TestCreateAPI:
             assert mocker.request_history[0].url == expected_url
             assert isinstance(study, Study)
 
-    def test_create_study_fails(self):
+    def test_create_study_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = "https://antares.com/api/v1/studies?name=TestStudy&version=880"
             study_name = "TestStudy"
@@ -155,7 +156,7 @@ class TestCreateAPI:
             ):
                 create_study_api(study_name, "880", self.api)
 
-    def test_update_study_settings_success(self):
+    def test_update_study_settings_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             settings = StudySettingsUpdate()
             settings.general_parameters = GeneralParametersUpdate(mode=Mode.ADEQUACY)
@@ -166,7 +167,7 @@ class TestCreateAPI:
             mocker.get(ts_settings_url, json={"thermal": {"number": 1}}, status_code=200)
             self.study.update_settings(settings)
 
-    def test_update_study_settings_fails(self):
+    def test_update_study_settings_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             settings = StudySettingsUpdate()
             settings.general_parameters = GeneralParametersUpdate(mode=Mode.ADEQUACY)
@@ -179,7 +180,7 @@ class TestCreateAPI:
             ):
                 self.study.update_settings(settings)
 
-    def test_create_area_success(self):
+    def test_create_area_success(self) -> None:
         area_name = "area_test"
         with requests_mock.Mocker() as mocker:
             base_url = "https://antares.com/api/v1"
@@ -193,13 +194,13 @@ class TestCreateAPI:
             url3 = f"{base_url}/studies/{self.study_id}/areas/{area_name}/hydro/form"
             url4 = f"{base_url}/studies/{self.study_id}/areas/{area_name}/hydro/inflow-structure"
             mocker.put(url2, status_code=201)
-            mocker.get(url2, json=AreaPropertiesAPI().model_dump(), status_code=200)
-            mocker.get(url3, json=HydroPropertiesAPI().model_dump())
+            mocker.get(url2, json=AreaPropertiesAPI(**{}).model_dump(), status_code=200)
+            mocker.get(url3, json=HydroPropertiesAPI(**{}).model_dump())
             mocker.get(url4, json={"interMonthlyCorrelation": 0.5})
             area = self.study.create_area(area_name)
         assert isinstance(area, Area)
 
-    def test_create_area_fails(self):
+    def test_create_area_fails(self) -> None:
         area_name = "area_test"
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas"
@@ -211,10 +212,10 @@ class TestCreateAPI:
             ):
                 self.study.create_area(area_name)
 
-    def test_create_link_success(self):
+    def test_create_link_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
-            json_response = LinkPropertiesAndUiAPI().model_dump(by_alias=True)
+            json_response = LinkPropertiesAndUiAPI(**{}).model_dump(by_alias=True)
             mocker.post(url, status_code=200, json={"area1": "", "area2": "", **json_response})
             self.study._areas["area"] = Area(
                 "area",
@@ -236,7 +237,7 @@ class TestCreateAPI:
             link = self.study.create_link(area_from="area", area_to="area_to")
             assert isinstance(link, Link)
 
-    def test_create_binding_constraint_success(self):
+    def test_create_binding_constraint_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
             properties = BindingConstraintProperties(enabled=False, filter_synthesis={FilterOption.ANNUAL})
@@ -249,7 +250,7 @@ class TestCreateAPI:
             assert constraint.name == constraint_name
             assert constraint.properties == properties
 
-    def test_create_binding_constraint_fails(self):
+    def test_create_binding_constraint_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
@@ -261,7 +262,7 @@ class TestCreateAPI:
             ):
                 self.study.create_binding_constraint(name=constraint_name)
 
-    def test_read_study_api(self):
+    def test_read_study_api(self) -> None:
         json_study = {
             "id": "22c52f44-4c2a-407b-862b-490887f93dd8",
             "name": "test_read_areas",
@@ -321,19 +322,21 @@ class TestCreateAPI:
 
             expected_study_name = json_study.pop("name")
             expected_study_version = json_study.pop("version")
+            assert isinstance(expected_study_name, str)
+            assert isinstance(expected_study_version, str)
 
             expected_study = Study(
                 expected_study_name,
                 expected_study_version,
                 self.services,
-                None,
+                Path(),
             )
 
             assert actual_study.name == expected_study.name
             assert actual_study._version == expected_study._version
             assert actual_study.service.study_id == expected_study.service.study_id
 
-    def test_create_variant_success(self):
+    def test_create_variant_success(self) -> None:
         variant_name = "variant_test"
         with requests_mock.Mocker() as mocker:
             base_url = "https://antares.com/api/v1"
@@ -390,7 +393,7 @@ class TestCreateAPI:
             assert variant.service.study_id == variant_id
             assert variant_from_api.service.study_id == variant_id
 
-    def test_create_variant_fails(self):
+    def test_create_variant_fails(self) -> None:
         variant_name = "variant_test"
         with requests_mock.Mocker() as mocker:
             base_url = "https://antares.com/api/v1"
@@ -404,7 +407,7 @@ class TestCreateAPI:
             with pytest.raises(StudyVariantCreationError, match=error_message):
                 create_variant_api(self.api, self.study_id, variant_name)
 
-    def test_create_duplicated_link(self):
+    def test_create_duplicated_link(self) -> None:
         area_a = "area_a"
         area_b = "area_b"
 
@@ -434,7 +437,7 @@ class TestCreateAPI:
         ):
             self.study.create_link(area_from=area_b, area_to=area_a)
 
-    def test_create_link_unknown_area(self):
+    def test_create_link_unknown_area(self) -> None:
         area_from = "area_fr"
         area_to = "area_missing"
 
@@ -453,7 +456,7 @@ class TestCreateAPI:
         ):
             self.study.create_link(area_from=area_from, area_to=area_to)
 
-    def test_create_link_same_area(self):
+    def test_create_link_same_area(self) -> None:
         area = "area_1"
 
         self.study._areas[area] = Area(
@@ -471,7 +474,7 @@ class TestCreateAPI:
         ):
             self.study.create_link(area_from=area, area_to=area)
 
-    def test_run_and_wait_antares_simulation(self):
+    def test_run_and_wait_antares_simulation(self) -> None:
         parameters = AntaresSimulationParameters(solver=Solver.COIN, nb_cpu=2, unzip_output=True, presolve=False)
 
         # patch simulates the repeating intervals so that we don't have to wait X seconds during the tests
@@ -533,7 +536,7 @@ class TestCreateAPI:
 
             self.study.wait_job_completion(job, time_out=10)
 
-            assert job.status == JobStatus.SUCCESS
+            assert job.status == JobStatus.SUCCESS  # type: ignore
 
             # ========= TIMEOUT TEST ==========
 
@@ -564,7 +567,7 @@ class TestCreateAPI:
             with pytest.raises(SimulationFailedError):
                 self.study.wait_job_completion(job, time_out=10)
 
-    def test_read_outputs(self):
+    def test_read_outputs(self) -> None:
         with requests_mock.Mocker() as mocker:
             run_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs"
 
@@ -587,8 +590,8 @@ class TestCreateAPI:
             self.study._read_outputs()
 
             assert len(self.study.get_outputs()) == 2
-            output1 = self.study.get_output(json_output[0].get("name"))
-            output2 = self.study.get_output(json_output[1].get("name"))
+            output1 = self.study.get_output(json_output[0]["name"])  # type: ignore
+            output2 = self.study.get_output(json_output[1]["name"])  # type: ignore
             assert output1.archived == json_output[0].get("archived")
             assert output2.archived == json_output[1].get("archived")
 
@@ -598,7 +601,7 @@ class TestCreateAPI:
             with pytest.raises(OutputsRetrievalError, match=error_message):
                 self.study._read_outputs()
 
-    def test_read_constraints_success(self):
+    def test_read_constraints_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             constraints_url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
             json_constraints = [
@@ -638,12 +641,13 @@ class TestCreateAPI:
             assert constraint.properties.group == "default"
             assert len(constraint.get_terms()) == 1
             term = constraint.get_terms()["area_a%area_b"]
+            assert isinstance(term.data, LinkData)
             assert term.data.area1 == "area_a"
             assert term.data.area2 == "area_b"
             assert term.weight == 1.0
             assert term.offset == 0
 
-    def test_read_constraints_fails(self):
+    def test_read_constraints_fails(self) -> None:
         self.study._binding_constraints = {}
         with requests_mock.Mocker() as mocker:
             constraints_url = f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints"
@@ -652,7 +656,7 @@ class TestCreateAPI:
             with pytest.raises(ConstraintRetrievalError, match="Error while reading constraints"):
                 self.study._read_binding_constraints()
 
-    def test_output_get_mc_all(self, tmp_path):
+    def test_output_get_mc_all(self, tmp_path: Path) -> None:
         self.study._areas["area_test"] = self.area
         self.study._areas["area_test_1"] = self.area_1
         self.study._outputs["test-output-link"] = self.output_link
@@ -693,7 +697,7 @@ area_1	annual	FLOW LIN.	FLOW LIN.	FLOW LIN.	FLOW LIN.	UCAP LIN.	UCAP LIN.	UCAP L
             expected_matrix = read_output_matrix(StringIO(expected_link_content), frequency)
             assert matrix_link.equals(expected_matrix)
 
-    def test_output_get_mc_ind(self, tmp_path):
+    def test_output_get_mc_ind(self, tmp_path: Path) -> None:
         frequency = Frequency.ANNUAL
         with requests_mock.Mocker() as mocker:
             matrix_link_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_link.name}/economy/mc-ind/00001/links/{self.area.id}/{self.area_1.id}/values-{frequency.value}"
@@ -729,7 +733,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             expected_matrix_link = read_output_matrix(StringIO(expected_link_content), frequency)
             assert matrix_link.equals(expected_matrix_link)
 
-    def test_output_aggregate_values(self):
+    def test_output_aggregate_values(self) -> None:
         with requests_mock.Mocker() as mocker:
             output = Output(
                 name="test-output", output_service=OutputApiService(self.api, self.study_id), archived=False
@@ -774,7 +778,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)
 
-    def test_delete_output(self):
+    def test_delete_output(self) -> None:
         output_name = "test_output"
         with requests_mock.Mocker() as mocker:
             outputs_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs"
@@ -794,7 +798,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             with pytest.raises(OutputDeletionError, match=error_message):
                 self.study.delete_output(output_name)
 
-    def test_delete_outputs(self):
+    def test_delete_outputs(self) -> None:
         with requests_mock.Mocker() as mocker:
             outputs_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs"
             outputs_json = [
@@ -825,7 +829,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             with pytest.raises(OutputsRetrievalError, match=error_message):
                 self.study.delete_outputs()
 
-    def test_move_study(self):
+    def test_move_study(self) -> None:
         new_path = Path("/new/path/test")
         with requests_mock.Mocker() as mocker:
             move_url = f"https://antares.com/api/v1/studies/{self.study_id}/move?folder_dest={new_path}"
@@ -843,7 +847,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             with pytest.raises(StudyMoveError, match=error_message):
                 self.study.move(new_path)
 
-    def test_generate_thermal_timeseries_success(self):
+    def test_generate_thermal_timeseries_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/generate"
             url_config = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/config"
@@ -857,7 +861,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             with patch("antares.craft.service.api_services.utils.wait_task_completion", return_value=None):
                 self.study.generate_thermal_timeseries(1)
 
-    def test_generate_thermal_timeseries_failure(self):
+    def test_generate_thermal_timeseries_failure(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/generate"
             url_config = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/config"
@@ -868,7 +872,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             with pytest.raises(ThermalTimeseriesGenerationError, match=error_message):
                 self.study.generate_thermal_timeseries(1)
 
-    def test_import_study_success(self, tmp_path):
+    def test_import_study_success(self, tmp_path: Path) -> None:
         json_study = {
             "id": "22c52f44-4c2a-407b-862b-490887f93dd8",
             "name": "test_read_areas",
@@ -924,11 +928,11 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             assert actual_study.name == json_study["name"]
             assert actual_study.service.study_id == json_study["id"]
 
-    def test_import_study_fail_wrong_extension(self):
+    def test_import_study_fail_wrong_extension(self) -> None:
         with pytest.raises(Exception, match=re.escape("File doesn't have the right extensions (.zip/.7z): .rar")):
             import_study_api(self.api, Path("test.rar"))
 
-    def test_import_study_fail_api_error(self, tmp_path):
+    def test_import_study_fail_api_error(self, tmp_path: Path) -> None:
         study_path = tmp_path.joinpath("test.zip")
         study_path.touch()
 
@@ -944,7 +948,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             ):
                 import_study_api(self.api, study_path)
 
-    def test_update_multiple_areas_success(self):
+    def test_update_multiple_areas_success(self) -> None:
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/areas"
         self.study._areas["area_test_1"] = self.area_1
         self.study._areas["area_test_2"] = self.area_2
@@ -1012,7 +1016,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             areas = json_areas[0]
             areas_1 = json_areas_1[0]
             for area, props in areas.items():
-                area_up_props = AreaPropertiesUpdate(**props)  # snake_case
+                area_up_props = AreaPropertiesUpdate(**props)  # type: ignore
                 dict_areas.update({area: area_up_props})
 
             mocker.put(url, json=areas_1)  # CamelCase
@@ -1030,7 +1034,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             assert elec_props.dispatch_hydro_power == expected_elec["dispatch_hydro_power"]
             assert gaz_props.dispatch_hydro_power == expected_gaz["dispatch_hydro_power"]
 
-    def test_update_multiple_areas_fail(self):
+    def test_update_multiple_areas_fail(self) -> None:
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/areas"
         with requests_mock.Mocker() as mocker:
             mocker.put(url, status_code=400, json={"description": self.antares_web_description_msg})
@@ -1041,7 +1045,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             ):
                 self.study.update_areas({})
 
-    def test_update_multiple_links_success(self):
+    def test_update_multiple_links_success(self) -> None:
         updated_links = {}
         self.study._areas["area_test"] = self.area
         self.study._areas["area_test_1"] = self.area_1
@@ -1084,7 +1088,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             for link in json_update_links:
                 json_update_links[link].pop("area1")
                 json_update_links[link].pop("area2")
-                link_up = LinkPropertiesUpdate(**json_update_links[link])
+                link_up = LinkPropertiesUpdate(**json_update_links[link])  # type: ignore
                 updated_links.update({link: link_up})
                 json_update_links[link].update({"area1": "area_test"})
                 json_update_links[link].update({"area2": "area_test_2"})
@@ -1096,8 +1100,8 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             json_update_links["area_test / area_test_2"].pop("area1")
             json_update_links["area_test / area_test_2"].pop("area2")
 
-            link_props_1 = LinkProperties(**json_update_links["area_test / area_test_1"])
-            link_props_2 = LinkProperties(**json_update_links["area_test / area_test_2"])
+            link_props_1 = LinkProperties(**json_update_links["area_test / area_test_1"])  # type: ignore
+            link_props_2 = LinkProperties(**json_update_links["area_test / area_test_2"])  # type: ignore
 
             test_links_1 = self.study.get_links()["area_test / area_test_1"]
             assert test_links_1.properties.hurdles_cost == link_props_1.hurdles_cost
@@ -1106,7 +1110,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             assert test_links_2.properties.hurdles_cost == link_props_2.hurdles_cost
             assert test_links_2.properties.display_comments == link_props_2.display_comments
 
-    def test_update_multiple_links_fail(self):
+    def test_update_multiple_links_fail(self) -> None:
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/links"
 
         with requests_mock.Mocker() as mocker:
@@ -1118,7 +1122,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             ):
                 self.study.update_links({})
 
-    def test_update_multiple_binding_constraints_success(self):
+    def test_update_multiple_binding_constraints_success(self) -> None:
         self.study._binding_constraints["battery_state_evolution"] = self.b_constraint_1
         self.study._binding_constraints["battery_state_update"] = self.b_constraint_2
 
@@ -1131,7 +1135,13 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
         }
 
         for bc_id in json_binding_constraints:
-            bc_props = BindingConstraintPropertiesUpdate(**json_binding_constraints[bc_id])
+            operator = "equal" if bc_id == "battery_state_evolution" else "less"
+            bc_props = BindingConstraintPropertiesUpdate(
+                enabled=True,
+                time_step=BindingConstraintFrequency.HOURLY,
+                comments="",
+                operator=BindingConstraintOperator(operator),
+            )
             dict_binding_constraints[bc_id] = bc_props
 
         with requests_mock.Mocker() as mocker:
@@ -1140,17 +1150,16 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
 
             assert self.b_constraint_1.properties.enabled == dict_binding_constraints["battery_state_evolution"].enabled
             assert (
-                self.b_constraint_1.properties.time_step.value
+                self.b_constraint_1.properties.time_step
                 == dict_binding_constraints["battery_state_evolution"].time_step
             )
 
             assert self.b_constraint_2.properties.enabled == dict_binding_constraints["battery_state_update"].enabled
             assert (
-                self.b_constraint_2.properties.time_step.value
-                == dict_binding_constraints["battery_state_update"].time_step
+                self.b_constraint_2.properties.time_step == dict_binding_constraints["battery_state_update"].time_step
             )
 
-    def test_update_multiple_binding_constraints_fail(self):
+    def test_update_multiple_binding_constraints_fail(self) -> None:
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/binding-constraints"
 
         with requests_mock.Mocker() as mocker:
@@ -1162,7 +1171,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             ):
                 self.study.update_binding_constraints({})
 
-    def test_get_scenario_builder_success(self):
+    def test_get_scenario_builder_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/config/scenariobuilder"
             json_builder = {
@@ -1182,7 +1191,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             assert sc_builder.load.get_area("west").get_scenario() == [1]
             assert sc_builder.hydro_initial_level.get_area("west").get_scenario() == [0.5]
 
-    def test_get_scenario_builder_fails(self):
+    def test_get_scenario_builder_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/config/scenariobuilder"
             mocker.get(url, status_code=400, json={"description": self.antares_web_description_msg})

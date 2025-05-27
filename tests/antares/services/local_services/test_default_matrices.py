@@ -12,6 +12,7 @@
 import numpy as np
 import pandas as pd
 
+from antares.craft import Study
 from antares.craft.model.binding_constraint import BindingConstraintFrequency, BindingConstraintPropertiesUpdate
 from antares.craft.tools.matrix_tool import (
     default_credit_modulation,
@@ -32,7 +33,7 @@ from antares.craft.tools.matrix_tool import (
 
 
 class TestDefaultMatrices:
-    def test_all_matrices(self, local_study_with_constraint):
+    def test_all_matrices(self, local_study_with_constraint: Study) -> None:
         area_fr = local_study_with_constraint.get_areas()["fr"]
         # Load
         assert area_fr.get_load_matrix().equals(pd.DataFrame(default_series))

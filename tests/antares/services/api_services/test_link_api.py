@@ -32,7 +32,7 @@ from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAP
 
 
 @pytest.fixture()
-def expected_link():
+def expected_link() -> Link:
     area_from_name = "zone1 auto"
     area_to_name = "zone4auto"
     api = APIconf("https://antares.com", "token", verify=False)
@@ -70,7 +70,7 @@ class TestCreateAPI:
     matrix = pd.DataFrame(data=[[0]])
     study_url = f"https://antares.com/api/v1/studies/{study_id}"
 
-    def test_update_links_properties_success(self):
+    def test_update_links_properties_success(self) -> None:
         filter_opt = {FilterOption.DAILY}
         with requests_mock.Mocker() as mocker:
             properties = LinkProperties(filter_synthesis=filter_opt, filter_year_by_year=filter_opt)
@@ -83,7 +83,7 @@ class TestCreateAPI:
             self.link.update_properties(update_properties)
             assert self.link.properties == properties
 
-    def test_update_links_properties_fails(self):
+    def test_update_links_properties_fails(self) -> None:
         filter_opt = {FilterOption.DAILY}
         with requests_mock.Mocker() as mocker:
             update_properties = LinkPropertiesUpdate(filter_synthesis=filter_opt, filter_year_by_year=filter_opt)
@@ -97,7 +97,7 @@ class TestCreateAPI:
             ):
                 self.link.update_properties(update_properties)
 
-    def test_update_links_ui_success(self):
+    def test_update_links_ui_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             ui = LinkUi(link_width=12)
             update_ui = LinkUiUpdate(link_width=12)
@@ -109,7 +109,7 @@ class TestCreateAPI:
             self.link.update_ui(update_ui)
             assert self.link.ui == ui
 
-    def test_update_links_ui_fails(self):
+    def test_update_links_ui_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             update_ui = LinkUiUpdate(link_width=12)
             url = f"{self.study_url}/links/{self.area_from.id}/{self.area_to.id}"
@@ -121,7 +121,7 @@ class TestCreateAPI:
             ):
                 self.link.update_ui(update_ui)
 
-    def test_create_parameters_success(self):
+    def test_create_parameters_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/raw?path=input/links/{self.area_from.id}/{self.area_to.id}_parameters"
 
@@ -129,7 +129,7 @@ class TestCreateAPI:
 
             self.link.set_parameters(self.matrix)
 
-    def test_create_parameters_fail(self):
+    def test_create_parameters_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/raw?path=input/links/{self.area_from.id}/{self.area_to.id}_parameters"
 
@@ -142,7 +142,7 @@ class TestCreateAPI:
             ):
                 self.link.set_parameters(self.matrix)
 
-    def test_create_direct_capacity_success(self):
+    def test_create_direct_capacity_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/raw?path=input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
 
@@ -150,7 +150,7 @@ class TestCreateAPI:
 
             self.link.set_capacity_direct(self.matrix)
 
-    def test_create_direct_capacity_fail(self):
+    def test_create_direct_capacity_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/raw?path=input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
 
@@ -163,7 +163,7 @@ class TestCreateAPI:
             ):
                 self.link.set_capacity_direct(self.matrix)
 
-    def test_create_indirect_capacity_success(self):
+    def test_create_indirect_capacity_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/raw?path=input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
 
@@ -171,7 +171,7 @@ class TestCreateAPI:
 
             self.link.set_capacity_indirect(self.matrix)
 
-    def test_create_indirect_capacity_fail(self):
+    def test_create_indirect_capacity_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/raw?path=input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
 
@@ -183,7 +183,7 @@ class TestCreateAPI:
             ):
                 self.link.set_capacity_indirect(self.matrix)
 
-    def test_get_parameters_success(self):
+    def test_get_parameters_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/raw?path=input/links/{self.area_from.id}/{self.area_to.id}_parameters"
             mocker.get(raw_url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
@@ -191,7 +191,7 @@ class TestCreateAPI:
             matrix = self.link.get_parameters()
             assert matrix.equals(self.matrix)
 
-    def test_get_parameters_fail(self):
+    def test_get_parameters_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/raw?path=input/links/{self.area_from.id}/{self.area_to.id}_parameters"
 
@@ -203,7 +203,7 @@ class TestCreateAPI:
             ):
                 self.link.get_parameters()
 
-    def test_get_indirect_capacity_success(self):
+    def test_get_indirect_capacity_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/raw?path=input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
             mocker.get(raw_url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
@@ -211,7 +211,7 @@ class TestCreateAPI:
             matrix = self.link.get_capacity_indirect()
             assert matrix.equals(self.matrix)
 
-    def test_get_indirect_capacity_fail(self):
+    def test_get_indirect_capacity_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/raw?path=input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
 
@@ -223,7 +223,7 @@ class TestCreateAPI:
             ):
                 self.link.get_capacity_indirect()
 
-    def test_get_direct_capacity_success(self):
+    def test_get_direct_capacity_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/raw?path=input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
             mocker.get(raw_url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
@@ -231,7 +231,7 @@ class TestCreateAPI:
             matrix = self.link.get_capacity_direct()
             assert matrix.equals(self.matrix)
 
-    def test_get_direct_capacity_fail(self):
+    def test_get_direct_capacity_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/raw?path=input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
 
@@ -243,7 +243,7 @@ class TestCreateAPI:
             ):
                 self.link.get_capacity_direct()
 
-    def test_read_links_success(self, expected_link):
+    def test_read_links_success(self, expected_link: Link) -> None:
         url_read_links = f"{self.study_url}/links"
 
         json_links = [
@@ -277,7 +277,7 @@ class TestCreateAPI:
             assert expected_link.properties == actual_link.properties
             assert expected_link.ui == actual_link.ui
 
-    def test_read_links_fail(self):
+    def test_read_links_fail(self) -> None:
         self.study._links = {}
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/links"

@@ -16,11 +16,12 @@ import re
 import numpy as np
 import pandas as pd
 
+from antares.craft import Study
 from antares.craft.model.thermal import ThermalClusterPropertiesUpdate
 
 
 class TestThermalTsGeneration:
-    def test_nominal_case(self, local_study_w_thermals):
+    def test_nominal_case(self, local_study_w_thermals: Study) -> None:
         # Change nominal capacity
         cluster_1 = local_study_w_thermals.get_areas()["fr"].get_thermals()["test thermal cluster"]
         cluster_2 = local_study_w_thermals.get_areas()["fr"].get_thermals()["thermal_fr_2"]
@@ -36,7 +37,7 @@ class TestThermalTsGeneration:
             expected_series = pd.DataFrame(np.full((8760, 4), (k + 1) * 100), dtype=np.int64)
             assert series.equals(expected_series)
 
-    def test_error_case(self, local_study_w_thermals):
+    def test_error_case(self, local_study_w_thermals: Study) -> None:
         with pytest.raises(
             ValueError,
             match=re.escape("Area fr, cluster test thermal cluster: Nominal power must be strictly positive, got 0."),

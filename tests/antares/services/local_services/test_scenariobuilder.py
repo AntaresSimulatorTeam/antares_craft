@@ -12,11 +12,11 @@
 from dataclasses import asdict
 from pathlib import Path
 
-from antares.craft import StudySettingsUpdate
+from antares.craft import Study, StudySettingsUpdate
 from antares.craft.model.settings.general import GeneralParametersUpdate
 
 
-def test_empty_scenariobuilder(local_study) -> None:
+def test_empty_scenariobuilder(local_study: Study) -> None:
     sc_builder = local_study.get_scenario_builder()
     object_content = asdict(sc_builder)
     # Asserts the object is empty
@@ -25,7 +25,7 @@ def test_empty_scenariobuilder(local_study) -> None:
         assert value["_data"] == {}
 
 
-def test_scenario_builder_lifecycle(local_study_with_renewable) -> None:
+def test_scenario_builder_lifecycle(local_study_with_renewable: Study) -> None:
     # Set the nb_years to 4
     local_study_with_renewable.update_settings(
         StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4))

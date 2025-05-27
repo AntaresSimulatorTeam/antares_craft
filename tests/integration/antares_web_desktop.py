@@ -23,7 +23,7 @@ class AntaresWebDesktop:
     Launches an AntaresWebDesktop instance for integration tests
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         antares_web_desktop_path = [p for p in Path(__file__).parents if p.name == "antares_craft"][
             0
         ] / "AntaresWebDesktop"
@@ -39,7 +39,7 @@ class AntaresWebDesktop:
         self.url = f"http://{self.host}:{self.port}"
         self.process = subprocess.Popen(args, shell=True, cwd=str(antares_web_desktop_path))
 
-    def _is_server_ready(self):
+    def _is_server_ready(self) -> bool:
         healthcheck_url = f"{self.url}/api/health"
         try:
             session = requests.Session()
@@ -49,7 +49,7 @@ class AntaresWebDesktop:
         except requests.RequestException:
             return False
 
-    def wait_for_server_to_start(self):
+    def wait_for_server_to_start(self) -> None:
         timeout = 10
         interval = 1
         elapsed_time = 0
@@ -60,7 +60,7 @@ class AntaresWebDesktop:
             elapsed_time += interval
         raise Exception("The app did not start inside the given delays.")
 
-    def kill(self):
+    def kill(self) -> None:
         """
         Removes every study to ensure tests reproductibility + it cleans the database.
         It also kills the AntaresWebDesktop instance.
