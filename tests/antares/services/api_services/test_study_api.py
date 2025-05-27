@@ -526,7 +526,7 @@ class TestCreateAPI:
 
             self.study.wait_job_completion(job, time_out=10)
 
-            assert job.status == JobStatus.SUCCESS
+            assert job.status == JobStatus.SUCCESS  # type: ignore
 
             # ========= TIMEOUT TEST ==========
 
@@ -580,8 +580,8 @@ class TestCreateAPI:
             self.study._read_outputs()
 
             assert len(self.study.get_outputs()) == 2
-            output1 = self.study.get_output(json_output[0]["name"])
-            output2 = self.study.get_output(json_output[1]["name"])
+            output1 = self.study.get_output(json_output[0]["name"])  # type: ignore
+            output2 = self.study.get_output(json_output[1]["name"])  # type: ignore
             assert output1.archived == json_output[0].get("archived")
             assert output2.archived == json_output[1].get("archived")
 
@@ -656,7 +656,7 @@ class TestCreateAPI:
             mocker.get(matrix_url, json=matrix_output)
 
             matrix = output.get_matrix("mc-all/grid/links")
-            expected_matrix = pd.DataFrame(data=matrix_output["data"], columns=matrix_output["columns"])
+            expected_matrix = pd.DataFrame(data=matrix_output["data"], columns=matrix_output["columns"])  # type: ignore
             assert isinstance(matrix, pd.DataFrame)
             assert matrix.equals(expected_matrix)
 

@@ -9,13 +9,12 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from typing import Generator
-
 import pytest
 
 import shutil
 
 from pathlib import Path, PurePath
+from typing import Generator
 
 import numpy as np
 import pandas as pd
