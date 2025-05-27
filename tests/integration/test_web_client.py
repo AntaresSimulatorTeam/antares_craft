@@ -192,9 +192,8 @@ class TestWebClient:
         thermal_name = "gaz_be"
         thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS)
         thermal_be = area_be.create_thermal_cluster(thermal_name, thermal_properties)
-        properties = thermal_be.properties
-        assert properties.efficiency == 55
-        assert properties.group == ThermalClusterGroup.GAS
+        assert thermal_be.properties.efficiency == 55
+        assert thermal_be.properties.group == ThermalClusterGroup.GAS
 
         # test thermal cluster creation with prepro_modulation matrices
         thermal_name = "matrices_be"
@@ -274,9 +273,8 @@ class TestWebClient:
         renewable_name = "wind_onshore"
         renewable_properties = RenewableClusterProperties(enabled=False, group=RenewableClusterGroup.WIND_ON_SHORE)
         renewable_onshore = area_fr.create_renewable_cluster(renewable_name, renewable_properties, None)
-        properties = renewable_onshore.properties
-        assert not properties.enabled
-        assert properties.group == RenewableClusterGroup.WIND_ON_SHORE
+        assert not renewable_onshore.properties.enabled
+        assert renewable_onshore.properties.group == RenewableClusterGroup.WIND_ON_SHORE
 
         # Update multiple renewable clusters properties at once
         renewable_update_1 = RenewableClusterPropertiesUpdate(group=RenewableClusterGroup.WIND_ON_SHORE, unit_count=10)
