@@ -148,7 +148,7 @@ class TestCreateAPI:
 
             area_id, storage_id = list(json_storage.keys())[0].split(" / ")
 
-            storage_props = STStoragePropertiesAPI(**list(json_storage.values())[0]).to_user_model()
+            storage_props = STStoragePropertiesAPI.model_validate(list(json_storage.values())[0]).to_user_model()
             expected_st_storage = STStorage(area_api.storage_service, area_id, storage_id, storage_props)
 
             assert len(actual_storages) == 1
