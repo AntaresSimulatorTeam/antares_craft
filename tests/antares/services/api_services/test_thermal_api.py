@@ -149,7 +149,7 @@ class TestCreateAPI:
 
             area_id, thermal_id = list(json_thermal.keys())[0].split(" / ")
 
-            thermal_props = ThermalClusterPropertiesAPI(**list(json_thermal.values())[0]).to_user_model()
+            thermal_props = ThermalClusterPropertiesAPI.model_validate(list(json_thermal.values())[0]).to_user_model()
             expected_thermal = ThermalCluster(area_api.thermal_service, area_id, thermal_id, thermal_props)
 
             assert len(actual_thermals) == 1
@@ -424,7 +424,7 @@ class TestCreateAPI:
             updated_thermal = {}
 
             for cluster, props in json_thermals_1.items():
-                thermal_update = ThermalClusterPropertiesUpdate(**props)
+                thermal_update = ThermalClusterPropertiesUpdate(**props)  # type: ignore
                 thermal = dict_thermals[cluster]
                 updated_thermal[thermal] = thermal_update
 

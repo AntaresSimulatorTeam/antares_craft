@@ -184,8 +184,8 @@ class TestCreateAPI:
             url3 = f"{base_url}/studies/{self.study_id}/areas/{area_name}/hydro/form"
             url4 = f"{base_url}/studies/{self.study_id}/areas/{area_name}/hydro/inflow-structure"
             mocker.put(url2, status_code=201)
-            mocker.get(url2, json=AreaPropertiesAPI().model_dump(), status_code=200)
-            mocker.get(url3, json=HydroPropertiesAPI().model_dump())
+            mocker.get(url2, json=AreaPropertiesAPI(**{}).model_dump(), status_code=200)
+            mocker.get(url3, json=HydroPropertiesAPI(**{}).model_dump())
             mocker.get(url4, json={"interMonthlyCorrelation": 0.5})
             area = self.study.create_area(area_name)
         assert isinstance(area, Area)
@@ -205,7 +205,7 @@ class TestCreateAPI:
     def test_create_link_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/links"
-            json_response = LinkPropertiesAndUiAPI().model_dump(by_alias=True)
+            json_response = LinkPropertiesAndUiAPI(**{}).model_dump(by_alias=True)
             mocker.post(url, status_code=200, json={"area1": "", "area2": "", **json_response})
             self.study._areas["area"] = Area(
                 "area",
@@ -312,12 +312,14 @@ class TestCreateAPI:
 
             expected_study_name = json_study.pop("name")
             expected_study_version = json_study.pop("version")
+            assert isinstance(expected_study_name, str)
+            assert isinstance(expected_study_version, str)
 
             expected_study = Study(
                 expected_study_name,
                 expected_study_version,
                 self.services,
-                None,
+                Path(),
             )
 
             assert actual_study.name == expected_study.name
