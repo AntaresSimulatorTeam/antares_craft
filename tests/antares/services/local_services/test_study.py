@@ -22,7 +22,7 @@ from unittest.mock import ANY
 import numpy as np
 import pandas as pd
 
-from antares.craft import create_study_local, read_study_local
+from antares.craft import Study, create_study_local, read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
@@ -120,7 +120,7 @@ class TestCreateStudy:
         with pytest.raises(UnsupportedStudyVersion, match="Unsupported study version: 820, supported ones are 8.8"):
             read_study_local(tmp_path / "Study_Test")
 
-    def test_desktop_ini_creation(self, tmp_path, local_study):
+    def test_desktop_ini_creation(self, tmp_path: Path, local_study: Study) -> None:
         # Given
         expected_desktop_path = tmp_path / local_study.name / "Desktop.ini"
         assert expected_desktop_path.exists()
@@ -147,7 +147,7 @@ class TestCreateStudy:
             }
         }
 
-    def test_scenario_builder_creation(self, tmp_path, local_study):
+    def test_scenario_builder_creation(self, tmp_path: Path, local_study: Study) -> None:
         # Given
         expected_scenario_builder_path = tmp_path / local_study.name / "settings" / "scenariobuilder.dat"
         desktop_ini_content = """[Default Ruleset]
@@ -166,7 +166,7 @@ class TestCreateStudy:
         with pytest.raises(FileExistsError, match="Study directory already exists"):
             create_study_local(study_name, version, tmp_path.absolute())
 
-    def test_all_correlation_ini_files_exists(self, local_study):
+    def test_all_correlation_ini_files_exists(self, local_study: Study) -> None:
         expected_ini_content = """[general]
 mode = annual
 
@@ -183,73 +183,67 @@ mode = annual
 
 
 class TestStudyProperties:
-    def test_local_study_has_settings(self, local_study):
+    def test_local_study_has_settings(self, local_study: Study) -> None:
         # When
         local_study_settings = local_study.get_settings()
         # Then
         assert local_study.get_settings()
         assert isinstance(local_study_settings, StudySettings)
 
-    def test_local_study_has_correct_default_general_properties(self, local_study):
+    def test_local_study_has_correct_default_general_properties(self, local_study: Study) -> None:
         expected_general_properties = GeneralParameters(
-            **{
-                "mode": Mode.ECONOMY,
-                "horizon": "",
-                "nb_years": 1,
-                "simulation_start": 1,
-                "simulation_end": 365,
-                "january_first": WeekDay.MONDAY,
-                "first_month_in_year": Month.JANUARY,
-                "first_week_day": WeekDay.MONDAY,
-                "leap_year": False,
-                "year_by_year": False,
-                "building_mode": BuildingMode.AUTOMATIC,
-                "thematic_trimming": False,
-                "geographic_trimming": False,
-                "simulation_synthesis": True,
-                "user_playlist": False,
-                "store_new_set": False,
-                "nb_timeseries_thermal": 1,
-            }
+            mode=Mode.ECONOMY,
+            horizon="",
+            nb_years=1,
+            simulation_start=1,
+            simulation_end=365,
+            january_first=WeekDay.MONDAY,
+            first_month_in_year=Month.JANUARY,
+            first_week_day=WeekDay.MONDAY,
+            leap_year=False,
+            year_by_year=False,
+            simulation_synthesis=True,
+            building_mode=BuildingMode.AUTOMATIC,
+            user_playlist=False,
+            thematic_trimming=False,
+            geographic_trimming=False,
+            store_new_set=False,
+            nb_timeseries_thermal=1,
         )
 
         assert local_study.get_settings().general_parameters == expected_general_properties
 
-    def test_local_study_has_correct_default_adequacy_patch_properties(self, local_study):
+    def test_local_study_has_correct_default_adequacy_patch_properties(self, local_study: Study) -> None:
         expected_adequacy_patch_properties = AdequacyPatchParameters(
-            **{
-                "include_adq_patch": False,
-                "set_to_null_ntc_from_physical_out_to_physical_in_for_first_step": True,
-                "set_to_null_ntc_between_physical_out_for_first_step": True,
-                "price_taking_order": PriceTakingOrder.DENS,
-                "include_hurdle_cost_csr": False,
-                "check_csr_cost_function": False,
-                "threshold_initiate_curtailment_sharing_rule": 1,
-                "threshold_display_local_matching_rule_violations": 0,
-                "threshold_csr_variable_bounds_relaxation": 7,
-            }
+            include_adq_patch=False,
+            set_to_null_ntc_from_physical_out_to_physical_in_for_first_step=True,
+            set_to_null_ntc_between_physical_out_for_first_step=True,
+            price_taking_order=PriceTakingOrder.DENS,
+            include_hurdle_cost_csr=False,
+            check_csr_cost_function=False,
+            threshold_initiate_curtailment_sharing_rule=1,
+            threshold_display_local_matching_rule_violations=0,
+            threshold_csr_variable_bounds_relaxation=7,
         )
 
         assert local_study.get_settings().adequacy_patch_parameters == expected_adequacy_patch_properties
 
-    def test_local_study_has_correct_advanced_parameters(self, local_study):
+    def test_local_study_has_correct_advanced_parameters(self, local_study: Study) -> None:
         expected_advanced_parameters = AdvancedParameters(
-            **{
-                "accuracy_on_correlation": set(),
-                "initial_reservoir_levels": InitialReservoirLevel.COLD_START,
-                "hydro_heuristic_policy": HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES,
-                "hydro_pricing_mode": HydroPricingMode.FAST,
-                "power_fluctuations": PowerFluctuation.FREE_MODULATIONS,
-                "shedding_policy": SheddingPolicy.SHAVE_PEAKS,
-                "unit_commitment_mode": UnitCommitmentMode.FAST,
-                "number_of_cores_mode": SimulationCore.MEDIUM,
-                "renewable_generation_modelling": RenewableGenerationModeling.CLUSTERS,
-            }
+            initial_reservoir_levels=InitialReservoirLevel.COLD_START,
+            hydro_heuristic_policy=HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES,
+            hydro_pricing_mode=HydroPricingMode.FAST,
+            power_fluctuations=PowerFluctuation.FREE_MODULATIONS,
+            shedding_policy=SheddingPolicy.SHAVE_PEAKS,
+            unit_commitment_mode=UnitCommitmentMode.FAST,
+            number_of_cores_mode=SimulationCore.MEDIUM,
+            renewable_generation_modelling=RenewableGenerationModeling.CLUSTERS,
+            accuracy_on_correlation=set(),
         )
 
         assert local_study.get_settings().advanced_parameters == expected_advanced_parameters
 
-    def test_local_study_has_correct_seed_parameters(self, local_study):
+    def test_local_study_has_correct_seed_parameters(self, local_study: Study) -> None:
         expected_seed_parameters = SeedParameters(
             **{
                 "seed_tsgen_thermal": 3005489,
@@ -264,39 +258,37 @@ class TestStudyProperties:
 
         assert local_study.get_settings().seed_parameters == expected_seed_parameters
 
-    def test_local_study_has_correct_optimization_parameters(self, local_study):
+    def test_local_study_has_correct_optimization_parameters(self, local_study: Study) -> None:
         expected_optimization_parameters = OptimizationParameters(
-            **{
-                "simplex_range": SimplexOptimizationRange.WEEK,
-                "transmission_capacities": OptimizationTransmissionCapacities.LOCAL_VALUES,
-                "include_constraints": True,
-                "include_hurdlecosts": True,
-                "include_tc_minstablepower": True,
-                "include_tc_min_ud_time": True,
-                "include_dayahead": True,
-                "include_strategicreserve": True,
-                "include_spinningreserve": True,
-                "include_primaryreserve": True,
-                "include_exportmps": ExportMPS.FALSE,
-                "include_exportstructure": False,
-                "include_unfeasible_problem_behavior": UnfeasibleProblemBehavior.ERROR_VERBOSE,
-            }
+            simplex_range=SimplexOptimizationRange.WEEK,
+            transmission_capacities=OptimizationTransmissionCapacities.LOCAL_VALUES,
+            include_constraints=True,
+            include_hurdlecosts=True,
+            include_tc_minstablepower=True,
+            include_tc_min_ud_time=True,
+            include_dayahead=True,
+            include_strategicreserve=True,
+            include_spinningreserve=True,
+            include_primaryreserve=True,
+            include_exportmps=ExportMPS.FALSE,
+            include_exportstructure=False,
+            include_unfeasible_problem_behavior=UnfeasibleProblemBehavior.ERROR_VERBOSE,
         )
 
         assert local_study.get_settings().optimization_parameters == expected_optimization_parameters
 
-    def test_local_study_has_correct_playlist_and_thematic_parameters(self, local_study):
+    def test_local_study_has_correct_playlist_and_thematic_parameters(self, local_study: Study) -> None:
         assert local_study.get_settings().playlist_parameters == {}
         assert local_study.get_settings().thematic_trimming_parameters == ThematicTrimmingParameters()
 
-    def test_generaldata_ini_exists(self, local_study):
+    def test_generaldata_ini_exists(self, local_study: Study) -> None:
         # Given
         expected_file = local_study.service.config.study_path / "settings/generaldata.ini"
 
         # Then
         assert expected_file.is_file()
 
-    def test_generaldata_ini_has_correct_default_values(self, local_study):
+    def test_generaldata_ini_has_correct_default_values(self, local_study: Study) -> None:
         # Given
         expected_file_content = """[general]
 mode = Economy
@@ -402,7 +394,7 @@ seed-initial-reservoir-levels = 10005489
 
 
 class TestCreateArea:
-    def test_initialization_when_creating_area(self, tmp_path, local_study):
+    def test_initialization_when_creating_area(self, tmp_path: Path, local_study: Study) -> None:
         study_path = Path(local_study.path)
         area_id = "test_files"
         local_study.create_area(area_id)
@@ -420,7 +412,7 @@ class TestCreateArea:
         for expected_path in expected_paths:
             assert expected_path.is_file(), f"File not created: {expected_path}"
 
-    def test_areas_sets_ini_content(self, tmp_path, local_study):
+    def test_areas_sets_ini_content(self, tmp_path: Path, local_study: Study) -> None:
         # Given
         expected_sets_path = tmp_path / local_study.name / "input" / "areas" / "sets.ini"
 
@@ -441,7 +433,7 @@ apply-filter = add-all
         # Then
         assert actual_content == expected_sets_ini_content
 
-    def test_areas_list_txt_content(self, tmp_path, local_study):
+    def test_areas_list_txt_content(self, tmp_path: Path, local_study: Study) -> None:
         # Given
         study_antares_path = tmp_path / local_study.name
 
@@ -461,7 +453,7 @@ area2
         # Then
         assert actual_content == expected_list_txt_content
 
-    def test_areas_list_sorted_alphabetically(self, tmp_path, local_study):
+    def test_areas_list_sorted_alphabetically(self, tmp_path: Path, local_study: Study) -> None:
         # Given
         areas_to_create = ["ghi", "fr", "at", "def", "abc"]
         expected_list_txt = tmp_path / local_study.name / "input" / "areas" / "list.txt"
@@ -481,7 +473,7 @@ ghi
 
         assert actual_content == expected_list_txt_content
 
-    def test_area_optimization_ini_content(self, tmp_path, local_study):
+    def test_area_optimization_ini_content(self, tmp_path: Path, local_study: Study) -> None:
         # Given
         study_antares_path = tmp_path / local_study.name
 
@@ -516,7 +508,7 @@ filter-year-by-year = annual, daily, hourly, monthly, weekly
         assert actual_optimization_ini == expected_optimization_ini
         assert actual_optimization_ini_content == expected_optimization_ini_content
 
-    def test_custom_area_optimization_ini_content(self, tmp_path, local_study):
+    def test_custom_area_optimization_ini_content(self, tmp_path: Path, local_study: Study) -> None:
         # Given
         area_to_create = "area1"
         area_properties = AreaProperties(
@@ -555,7 +547,7 @@ filter-year-by-year = annual, hourly, weekly
         assert actual_optimization_ini == expected_optimization_ini
         assert actual_optimization_ini_content == expected_optimization_ini_content
 
-    def test_area_ui_ini_content(self, tmp_path, local_study):
+    def test_area_ui_ini_content(self, tmp_path: Path, local_study: Study) -> None:
         # Given
         study_antares_path = tmp_path / local_study.name
 
@@ -589,7 +581,7 @@ layers = 0
         # Then
         assert actual_content == ui_ini_content
 
-    def test_create_area_with_custom_error(self, local_study):
+    def test_create_area_with_custom_error(self, local_study: Study) -> None:
         area_id = "?"
         with pytest.raises(
             AreaCreationError,
@@ -597,7 +589,7 @@ layers = 0
         ):
             local_study.create_area(area_id)
 
-    def test_create_area_with_custom_ui(self, tmp_path, local_study):
+    def test_create_area_with_custom_ui(self, tmp_path: Path, local_study: Study) -> None:
         # Given
         study_antares_path = local_study.service.config.study_path
 
@@ -632,7 +624,7 @@ layers = 0
 
         assert actual_content == expected_content
 
-    def test_created_area_has_ui(self, tmp_path, local_study):
+    def test_created_area_has_ui(self, tmp_path: Path, local_study: Study) -> None:
         # Given
         area = "area1"
         area_ui = AreaUi(x=123, y=321, color_rgb=[255, 230, 210])
@@ -641,7 +633,7 @@ layers = 0
         local_study.create_area(area, ui=area_ui)
         assert local_study.get_areas()[area].ui == area_ui
 
-    def test_creating_duplicate_area_name_errors(self, local_study_w_areas):
+    def test_creating_duplicate_area_name_errors(self, local_study_w_areas: Study) -> None:
         # Given
         area_to_create = "fr"
 
@@ -652,13 +644,13 @@ layers = 0
         ):
             local_study_w_areas.create_area(area_to_create)
 
-    def test_areas_have_default_properties(self, tmp_path, local_study_w_areas):
+    def test_areas_have_default_properties(self, tmp_path: Path, local_study_w_areas: Study) -> None:
         actual_area_properties = local_study_w_areas.get_areas()["fr"].properties
         assert actual_area_properties == AreaProperties(
             energy_cost_spilled=1, energy_cost_unsupplied=0.5, filter_synthesis={FilterOption.WEEKLY}
         )
 
-    def test_areas_with_custom_properties(self, tmp_path, local_study):
+    def test_areas_with_custom_properties(self, tmp_path: Path, local_study: Study) -> None:
         # Given
         area_to_create = "fr"
         area_properties = AreaProperties(
@@ -672,13 +664,13 @@ layers = 0
         created_area = local_study.create_area(area_name=area_to_create, properties=area_properties)
         assert created_area.properties == area_properties
 
-    def test_created_area_has_hydro(self, local_study_w_areas):
+    def test_created_area_has_hydro(self, local_study_w_areas: Study) -> None:
         assert local_study_w_areas.get_areas()["fr"].hydro
         assert isinstance(local_study_w_areas.get_areas()["it"].hydro, Hydro)
 
 
 class TestCreateLink:
-    def test_create_link(self, tmp_path, local_study_w_areas):
+    def test_create_link(self, tmp_path: Path, local_study_w_areas: Study) -> None:
         # Given
         link_to_create = "fr_it"
 
@@ -691,7 +683,7 @@ class TestCreateLink:
 
         assert isinstance(link_created, Link)
 
-    def test_unknown_area_errors(self, tmp_path, local_study_w_areas):
+    def test_unknown_area_errors(self, tmp_path: Path, local_study_w_areas: Study) -> None:
         # Given
         link_to_create = "es_fr"
 
@@ -706,7 +698,7 @@ class TestCreateLink:
         ):
             local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
 
-    def test_create_link_alphabetically(self, tmp_path, local_study):
+    def test_create_link_alphabetically(self, tmp_path: Path, local_study: Study) -> None:
         # Given
         areas_to_create = ["fr", "at"]
         for area in areas_to_create:
@@ -723,7 +715,7 @@ class TestCreateLink:
         assert link_created.area_from_id == "at"
         assert link_created.area_to_id == "fr"
 
-    def test_create_link_sets_ini_content(self, tmp_path, local_study_w_areas):
+    def test_create_link_sets_ini_content(self, tmp_path: Path, local_study_w_areas: Study) -> None:
         # Given
         link_to_create = "fr_it"
         expected_content = """[it]
@@ -758,7 +750,7 @@ comments =
 
         assert actual_content == expected_content
 
-    def test_created_link_has_default_local_properties(self, tmp_path, local_study_w_areas):
+    def test_created_link_has_default_local_properties(self, tmp_path: Path, local_study_w_areas: Study) -> None:
         # Given
         link_to_create = "fr_it"
         expected_ini_content = """[it]
@@ -799,7 +791,7 @@ comments =
         assert actual_ini == expected_ini
         assert actual_ini_content == expected_ini_content
 
-    def test_created_link_has_custom_properties(self, tmp_path, local_study_w_areas):
+    def test_created_link_has_custom_properties(self, tmp_path: Path, local_study_w_areas: Study) -> None:
         # Given
         link_to_create = "fr_it"
         link_properties = LinkProperties(
@@ -843,7 +835,7 @@ comments =
         assert link_created.properties == link_properties
         assert expected_ini == actual_ini
 
-    def test_multiple_links_created_from_same_area(self, tmp_path, local_study_w_areas):
+    def test_multiple_links_created_from_same_area(self, tmp_path: Path, local_study_w_areas: Study) -> None:
         # Given
         local_study_w_areas.create_area("at")
         links_to_create = ["fr_at", "at_it"]
@@ -902,7 +894,9 @@ comments =
         assert actual_ini == expected_ini
         assert actual_ini_string == expected_ini_string
 
-    def test_multiple_links_created_from_same_area_are_alphabetical(self, tmp_path, local_study_w_areas):
+    def test_multiple_links_created_from_same_area_are_alphabetical(
+        self, tmp_path: Path, local_study_w_areas: Study
+    ) -> None:
         # Given
         local_study_w_areas.create_area("at")
         links_to_create = ["at_it", "fr_at"]
@@ -975,7 +969,7 @@ comments =
                 area_to=area_to,
             )
 
-    def test_created_link_has_default_ui_values(self, tmp_path, local_study_w_areas):
+    def test_created_link_has_default_ui_values(self, tmp_path: Path, local_study_w_areas: Study) -> None:
         # Given
         link_to_create = "fr / it"
         actual_ini_file = tmp_path / local_study_w_areas.name / "input" / "links" / "fr" / "properties.ini"
@@ -1013,7 +1007,7 @@ comments =
         assert actual_ini == expected_ini
         assert actual_ini_string == expected_ini_string
 
-    def test_created_link_with_custom_ui_values(self, tmp_path, local_study_w_areas):
+    def test_created_link_with_custom_ui_values(self, tmp_path: Path, local_study_w_areas: Study) -> None:
         # Given
         link_to_create = "fr / it"
         actual_ini_file = tmp_path / local_study_w_areas.name / "input" / "links" / "fr" / "properties.ini"
@@ -1077,7 +1071,7 @@ class TestCreateBindingconstraint:
         # Then
         assert isinstance(binding_constraint, BindingConstraint)
 
-    def test_duplicate_name_errors(self, local_study_with_constraint):
+    def test_duplicate_name_errors(self, local_study_with_constraint: Study) -> None:
         # Given
         binding_constraint_name = "test constraint"
 
@@ -1088,10 +1082,10 @@ class TestCreateBindingconstraint:
         ):
             local_study_with_constraint.create_binding_constraint(name=binding_constraint_name)
 
-    def test_constraints_have_correct_default_properties(self, test_constraint):
+    def test_constraints_have_correct_default_properties(self, test_constraint: BindingConstraint) -> None:
         assert test_constraint.properties == BindingConstraintProperties()
 
-    def test_creating_constraints_creates_ini(self, local_study_with_constraint):
+    def test_creating_constraints_creates_ini(self, local_study_with_constraint: Study) -> None:
         # Given
         expected_ini_file_path = (
             local_study_with_constraint.service.config.study_path / "input/bindingconstraints/bindingconstraints.ini"
@@ -1121,7 +1115,7 @@ group = default
         ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
         assert ini_content == expected_ini_contents
 
-    def test_constraints_and_ini_have_custom_properties(self, local_study_with_constraint):
+    def test_constraints_and_ini_have_custom_properties(self, local_study_with_constraint: Study) -> None:
         # Given
         custom_constraint_properties = BindingConstraintProperties(
             enabled=False,
@@ -1164,12 +1158,14 @@ group = test group
         ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
         assert ini_content == expected_ini_content
 
-    def test_constraint_can_add_term(self, test_constraint):
+    def test_constraint_can_add_term(self, test_constraint: BindingConstraint) -> None:
         new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]
         test_constraint.add_terms(new_term)
         assert test_constraint.get_terms()
 
-    def test_constraint_term_and_ini_have_correct_defaults(self, local_study_with_constraint, test_constraint):
+    def test_constraint_term_and_ini_have_correct_defaults(
+        self, local_study_with_constraint: Study, test_constraint: BindingConstraint
+    ) -> None:
         # Given
         expected_ini_contents = """[0]
 id = test constraint
@@ -1217,7 +1213,9 @@ at%fr = 1%1
 
         assert ini_content == expected_ini_contents
 
-    def test_binding_constraints_have_correct_default_time_series(self, test_constraint, local_study_with_constraint):
+    def test_binding_constraints_have_correct_default_time_series(
+        self, test_constraint: BindingConstraint, local_study_with_constraint: Study
+    ) -> None:
         # Given
         local_study_with_constraint.create_binding_constraint(
             name="test greater",
@@ -1257,7 +1255,7 @@ at%fr = 1%1
         actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test both_gt.txt")
         assert not actual_file_path.read_text()
 
-    def test_submitted_time_series_is_saved(self, local_study):
+    def test_submitted_time_series_is_saved(self, local_study: Study) -> None:
         # Given
         expected_time_series = pd.DataFrame(np.ones([3, 1]))
         bc_name = "test time series"
@@ -1277,7 +1275,7 @@ at%fr = 1%1
         # Then
         assert actual_time_series.equals(expected_time_series)
 
-    def test_get_constraint_matrix(self, local_study):
+    def test_get_constraint_matrix(self, local_study: Study) -> None:
         # Given
         expected_time_series = pd.DataFrame(np.random.randint(0, 100, [365 * 24, 1]), dtype=np.int64)
         bc_name = "test time series"
@@ -1295,13 +1293,13 @@ at%fr = 1%1
         # Then
         assert actual_time_series.equals(expected_time_series)
 
-    def test_study_delete(self, local_study):
+    def test_study_delete(self, local_study: Study) -> None:
         study_path = Path(local_study.path)
         assert study_path.exists()
         local_study.delete()
         assert not study_path.exists()
 
-    def test_variant_local(self, local_study):
+    def test_variant_local(self, local_study: Study) -> None:
         with pytest.raises(
             ValueError, match=re.escape("The variant creation should only be used for API studies not for local ones")
         ):
