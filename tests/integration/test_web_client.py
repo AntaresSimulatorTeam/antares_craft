@@ -85,7 +85,7 @@ from tests.integration.antares_web_desktop import AntaresWebDesktop
 
 
 @pytest.fixture
-def antares_web() -> Generator[AntaresWebDesktop]:
+def antares_web() -> Generator[AntaresWebDesktop, None, None]:
     app = AntaresWebDesktop()
     app.wait_for_server_to_start()
     yield app
