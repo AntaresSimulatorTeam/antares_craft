@@ -1060,7 +1060,13 @@ class TestCreateAPI:
         }
 
         for bc_id in json_binding_constraints:
-            bc_props = BindingConstraintPropertiesUpdate(**json_binding_constraints[bc_id])  # type: ignore
+            operator = "equal" if bc_id == "battery_state_evolution" else "less"
+            bc_props = BindingConstraintPropertiesUpdate(
+                enabled=True,
+                time_step=BindingConstraintFrequency.HOURLY,
+                comments="",
+                operator=BindingConstraintOperator(operator),
+            )
             dict_binding_constraints[bc_id] = bc_props
 
         with requests_mock.Mocker() as mocker:
