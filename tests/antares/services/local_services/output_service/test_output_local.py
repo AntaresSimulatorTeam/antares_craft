@@ -243,7 +243,7 @@ AREAS_REQUESTS__IND = [
             output_id="20201014-1425eco-goodbye",
             query_file=MCIndAreasDataType.VALUES,
             frequency=Frequency.HOURLY,
-            mc_years=[1],
+            mc_years=[2],
             type_ids=["es", "fr", "de"],
             columns_names=[],
         ),
