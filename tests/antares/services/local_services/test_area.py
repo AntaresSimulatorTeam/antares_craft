@@ -105,13 +105,7 @@ ts-interpretation = production-factor
             "generation_1", RenewableClusterProperties(), series=pd.DataFrame()
         )
         full_path = (
-            local_study_w_thermal.service.config.study_path
-            / "input"
-            / "renewables"
-            / "series"
-            / "fr"
-            / "generation_1"
-            / "series.txt"
+            Path(local_study_w_thermal.path) / "input" / "renewables" / "series" / "fr" / "generation_1" / "series.txt"
         )
         assert full_path.exists()
         assert full_path.stat().st_size == 0
@@ -119,13 +113,7 @@ ts-interpretation = production-factor
             "generation_2", RenewableClusterProperties(), series=None
         )
         full_path = (
-            local_study_w_thermal.service.config.study_path
-            / "input"
-            / "renewables"
-            / "series"
-            / "fr"
-            / "generation_2"
-            / "series.txt"
+            Path(local_study_w_thermal.path) / "input" / "renewables" / "series" / "fr" / "generation_2" / "series.txt"
         )
         assert full_path.exists()
         assert full_path.stat().st_size == 0

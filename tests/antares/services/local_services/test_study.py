@@ -283,7 +283,7 @@ class TestStudyProperties:
 
     def test_generaldata_ini_exists(self, local_study: Study) -> None:
         # Given
-        expected_file = local_study.service.config.study_path / "settings/generaldata.ini"
+        expected_file = Path(local_study.path) / "settings/generaldata.ini"
 
         # Then
         assert expected_file.is_file()
@@ -591,7 +591,7 @@ layers = 0
 
     def test_create_area_with_custom_ui(self, tmp_path: Path, local_study: Study) -> None:
         # Given
-        study_antares_path = local_study.service.config.study_path
+        study_antares_path = Path(local_study.path)
 
         area = "area1"
         ui_ini_path = study_antares_path / "input" / "areas" / area / "ui.ini"
@@ -952,7 +952,7 @@ comments =
         assert actual_ini == expected_ini
         assert actual_ini_string == expected_ini_string
 
-    def test_duplicate_links_raises_error(self, tmp_path, local_study_w_links):
+    def test_duplicate_links_raises_error(self, tmp_path: Path, local_study_w_links: Study) -> None:
         # Given
         link_to_create = "fr_it"
 
@@ -1063,7 +1063,7 @@ comments =
 
 
 class TestCreateBindingconstraint:
-    def test_can_be_created(self, local_study_with_hydro):
+    def test_can_be_created(self, local_study_with_hydro: Study) -> None:
         # When
         binding_constraint_name = "test constraint"
         binding_constraint = local_study_with_hydro.create_binding_constraint(name=binding_constraint_name)
@@ -1088,14 +1088,16 @@ class TestCreateBindingconstraint:
     def test_creating_constraints_creates_ini(self, local_study_with_constraint: Study) -> None:
         # Given
         expected_ini_file_path = (
-            local_study_with_constraint.service.config.study_path / "input/bindingconstraints/bindingconstraints.ini"
+            Path(local_study_with_constraint.path) / "input/bindingconstraints/bindingconstraints.ini"
         )
 
         # Then
         assert expected_ini_file_path.exists()
         assert expected_ini_file_path.is_file()
 
-    def test_constraints_ini_have_correct_default_content(self, local_study_with_constraint, test_constraint):
+    def test_constraints_ini_have_correct_default_content(
+        self, local_study_with_constraint: Study, test_constraint: BindingConstraint
+    ) -> None:
         # Given
         expected_ini_contents = """[0]
 id = test constraint
@@ -1122,8 +1124,8 @@ group = default
             time_step=BindingConstraintFrequency.WEEKLY,
             operator=BindingConstraintOperator.BOTH,
             comments="test comment",
-            filter_year_by_year="annual",
-            filter_synthesis="monthly",
+            filter_year_by_year={FilterOption.ANNUAL},
+            filter_synthesis={FilterOption.MONTHLY},
             group="test group",
         )
         expected_ini_content = """[0]
@@ -1189,8 +1191,8 @@ at%fr = 1
         assert ini_content == expected_ini_contents
 
     def test_constraint_term_with_offset_and_ini_have_correct_values(
-        self, local_study_with_constraint, test_constraint
-    ):
+        self, local_study_with_constraint: Study, test_constraint: BindingConstraint
+    ) -> None:
         # Given
         expected_ini_contents = """[0]
 id = test constraint
