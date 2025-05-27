@@ -208,7 +208,7 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             updated_storages = {}
             for cluster, props in json_storages_1.items():
-                storage_update = STStoragePropertiesUpdate(**props)
+                storage_update = STStoragePropertiesUpdate(**props)  # type: ignore
                 storage = dict_st_storages[cluster]
                 updated_storages[storage] = storage_update
 

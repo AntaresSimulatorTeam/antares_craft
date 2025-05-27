@@ -86,7 +86,7 @@ from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
 class TestCreateStudy:
-    def test_create_study_success(self, tmp_path):
+    def test_create_study_success(self, tmp_path: Path) -> None:
         # Given
         study_name = "studyTest"
         version = "880"
@@ -107,11 +107,11 @@ class TestCreateStudy:
             assert subdirectory_path.exists()
             assert subdirectory_path.is_dir()
 
-    def test_creation_with_wrong_version(self, tmp_path):
+    def test_creation_with_wrong_version(self, tmp_path: Path) -> None:
         with pytest.raises(UnsupportedStudyVersion, match="Unsupported study version: 830, supported ones are 8.8"):
             create_study_local("Study_Test", "830", tmp_path)
 
-    def test_reading_with_wrong_version(self, tmp_path):
+    def test_reading_with_wrong_version(self, tmp_path: Path) -> None:
         create_study_local("Study_Test", "880", tmp_path)
         ini_path = tmp_path / "Study_Test" / "study.antares"
         ini_content = IniReader().read(ini_path)
@@ -126,7 +126,7 @@ class TestCreateStudy:
         assert expected_desktop_path.exists()
         assert expected_desktop_path.is_file()
 
-    def test_study_antares_content(self, tmp_path):
+    def test_study_antares_content(self, tmp_path: Path) -> None:
         # Given
         study_name = "studyTest"
         version = "880"
@@ -156,7 +156,7 @@ class TestCreateStudy:
         actual_content = expected_scenario_builder_path.read_text()
         assert actual_content == desktop_ini_content
 
-    def test_verify_study_already_exists_error(self, tmp_path):
+    def test_verify_study_already_exists_error(self, tmp_path: Path) -> None:
         # Given
         study_name = "studyTest"
         version = "850"

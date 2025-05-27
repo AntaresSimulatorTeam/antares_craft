@@ -51,6 +51,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
+    LinkData,
 )
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate
@@ -577,8 +578,8 @@ class TestCreateAPI:
             self.study._read_outputs()
 
             assert len(self.study.get_outputs()) == 2
-            output1 = self.study.get_output(json_output[0].get("name"))
-            output2 = self.study.get_output(json_output[1].get("name"))
+            output1 = self.study.get_output(json_output[0]["name"])
+            output2 = self.study.get_output(json_output[1]["name"])
             assert output1.archived == json_output[0].get("archived")
             assert output2.archived == json_output[1].get("archived")
 
@@ -628,6 +629,7 @@ class TestCreateAPI:
             assert constraint.properties.group == "default"
             assert len(constraint.get_terms()) == 1
             term = constraint.get_terms()["area_a%area_b"]
+            assert isinstance(term.data, LinkData)
             assert term.data.area1 == "area_a"
             assert term.data.area2 == "area_b"
             assert term.weight == 1.0
@@ -793,7 +795,7 @@ class TestCreateAPI:
             with pytest.raises(ThermalTimeseriesGenerationError, match=error_message):
                 self.study.generate_thermal_timeseries(1)
 
-    def test_import_study_success(self, tmp_path):
+    def test_import_study_success(self, tmp_path: Path) -> None:
         json_study = {
             "id": "22c52f44-4c2a-407b-862b-490887f93dd8",
             "name": "test_read_areas",
@@ -853,7 +855,7 @@ class TestCreateAPI:
         with pytest.raises(Exception, match=re.escape("File doesn't have the right extensions (.zip/.7z): .rar")):
             import_study_api(self.api, Path("test.rar"))
 
-    def test_import_study_fail_api_error(self, tmp_path):
+    def test_import_study_fail_api_error(self, tmp_path: Path) -> None:
         study_path = tmp_path.joinpath("test.zip")
         study_path.touch()
 
@@ -937,7 +939,7 @@ class TestCreateAPI:
             areas = json_areas[0]
             areas_1 = json_areas_1[0]
             for area, props in areas.items():
-                area_up_props = AreaPropertiesUpdate(**props)  # snake_case
+                area_up_props = AreaPropertiesUpdate(**props)  # type: ignore
                 dict_areas.update({area: area_up_props})
 
             mocker.put(url, json=areas_1)  # CamelCase
@@ -1009,7 +1011,7 @@ class TestCreateAPI:
             for link in json_update_links:
                 json_update_links[link].pop("area1")
                 json_update_links[link].pop("area2")
-                link_up = LinkPropertiesUpdate(**json_update_links[link])
+                link_up = LinkPropertiesUpdate(**json_update_links[link])  # type: ignore
                 updated_links.update({link: link_up})
                 json_update_links[link].update({"area1": "area_test"})
                 json_update_links[link].update({"area2": "area_test_2"})
@@ -1021,8 +1023,8 @@ class TestCreateAPI:
             json_update_links["area_test / area_test_2"].pop("area1")
             json_update_links["area_test / area_test_2"].pop("area2")
 
-            link_props_1 = LinkProperties(**json_update_links["area_test / area_test_1"])
-            link_props_2 = LinkProperties(**json_update_links["area_test / area_test_2"])
+            link_props_1 = LinkProperties(**json_update_links["area_test / area_test_1"])  # type: ignore
+            link_props_2 = LinkProperties(**json_update_links["area_test / area_test_2"])  # type: ignore
 
             test_links_1 = self.study.get_links()["area_test / area_test_1"]
             assert test_links_1.properties.hurdles_cost == link_props_1.hurdles_cost
@@ -1056,7 +1058,7 @@ class TestCreateAPI:
         }
 
         for bc_id in json_binding_constraints:
-            bc_props = BindingConstraintPropertiesUpdate(**json_binding_constraints[bc_id])
+            bc_props = BindingConstraintPropertiesUpdate(**json_binding_constraints[bc_id])  # type: ignore
             dict_binding_constraints[bc_id] = bc_props
 
         with requests_mock.Mocker() as mocker:
@@ -1065,14 +1067,13 @@ class TestCreateAPI:
 
             assert self.b_constraint_1.properties.enabled == dict_binding_constraints["battery_state_evolution"].enabled
             assert (
-                self.b_constraint_1.properties.time_step.value
+                self.b_constraint_1.properties.time_step
                 == dict_binding_constraints["battery_state_evolution"].time_step
             )
 
             assert self.b_constraint_2.properties.enabled == dict_binding_constraints["battery_state_update"].enabled
             assert (
-                self.b_constraint_2.properties.time_step.value
-                == dict_binding_constraints["battery_state_update"].time_step
+                self.b_constraint_2.properties.time_step == dict_binding_constraints["battery_state_update"].time_step
             )
 
     def test_update_multiple_binding_constraints_fail(self) -> None:

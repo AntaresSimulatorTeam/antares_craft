@@ -24,7 +24,7 @@ from antares.craft.exceptions.exceptions import (
     RenewableMatrixUpdateError,
 )
 from antares.craft.model.area import Area
-from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesUpdate
+from antares.craft.model.renewable import RenewableCluster, RenewableClusterPropertiesUpdate
 from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.services.area import AreaApiService
@@ -58,7 +58,7 @@ class TestCreateAPI:
 
     def test_update_renewable_properties_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
-            properties = RenewableClusterProperties(enabled=False)
+            properties = RenewableClusterPropertiesUpdate(enabled=False)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/renewables"
             antares_web_description_msg = "Server KO"
             mocker.put(url, json={"description": antares_web_description_msg}, status_code=404)
@@ -199,7 +199,7 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             updated_renewable = {}
             for cluster, props in json_renewables_1.items():
-                renewable_update = RenewableClusterPropertiesUpdate(**props)
+                renewable_update = RenewableClusterPropertiesUpdate(**props)  # type: ignore
                 renewable = dict_renewables[cluster]
                 updated_renewable[renewable] = renewable_update
 

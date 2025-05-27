@@ -92,7 +92,7 @@ def antares_web() -> AntaresWebDesktop:
 
 
 class TestWebClient:
-    def test_lifecycle(self, antares_web: AntaresWebDesktop, tmp_path):
+    def test_lifecycle(self, antares_web: AntaresWebDesktop, tmp_path: Path) -> None:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
         study = create_study_api("antares-craft-test", "880", api_config)
