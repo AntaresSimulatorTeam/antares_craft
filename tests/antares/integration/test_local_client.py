@@ -39,7 +39,7 @@ class TestLocalClient:
     Testing lifespan of a study in local mode. Creating a study, adding areas, links, clusters and so on.
     """
 
-    def test_local_study(self, tmp_path: Path):
+    def test_local_study(self, tmp_path: Path) -> None:
         study_name = "test study"
         study_version = "880"
 
@@ -142,9 +142,8 @@ class TestLocalClient:
         thermal_name = "gaz_be"
         thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS)
         thermal_be = area_be.create_thermal_cluster(thermal_name, thermal_properties)
-        properties = thermal_be.properties
-        assert properties.efficiency == 55
-        assert properties.group == ThermalClusterGroup.GAS
+        assert thermal_be.properties.efficiency == 55
+        assert thermal_be.properties.group == ThermalClusterGroup.GAS
 
         # test renewable cluster creation with default values
         renewable_name = "cluster_test"
@@ -156,9 +155,8 @@ class TestLocalClient:
         renewable_name = "wind_onshore"
         renewable_properties = RenewableClusterProperties(enabled=False, group=RenewableClusterGroup.WIND_ON_SHORE)
         renewable_onshore = fr.create_renewable_cluster(renewable_name, renewable_properties, None)
-        properties = renewable_onshore.properties
-        assert not properties.enabled
-        assert properties.group == RenewableClusterGroup.WIND_ON_SHORE
+        assert not renewable_onshore.properties.enabled
+        assert renewable_onshore.properties.group == RenewableClusterGroup.WIND_ON_SHORE
 
         # test short term storage creation with default values
         st_storage_name = "cluster_test"
@@ -170,13 +168,12 @@ class TestLocalClient:
         st_storage_name = "wind_onshore"
         storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY)
         battery_fr = fr.create_st_storage(st_storage_name, storage_properties)
-        properties = battery_fr.properties
-        assert properties.reservoir_capacity == 0.5
-        assert properties.group == STStorageGroup.BATTERY
+        assert battery_fr.properties.reservoir_capacity == 0.5
+        assert battery_fr.properties.group == STStorageGroup.BATTERY
 
         # test binding constraint creation without terms
-        properties = BindingConstraintProperties(enabled=False, group="group_1")
-        constraint_1 = test_study.create_binding_constraint(name="bc_1", properties=properties)
+        bc_props = BindingConstraintProperties(enabled=False, group="group_1")
+        constraint_1 = test_study.create_binding_constraint(name="bc_1", properties=bc_props)
         assert constraint_1.name == "bc_1"
         assert not constraint_1.properties.enabled
         assert constraint_1.properties.group == "group_1"
@@ -202,9 +199,11 @@ class TestLocalClient:
         assert constraint_1.get_terms() == {link_term_1.id: link_term_1, cluster_term.id: cluster_term}
 
         # Case that succeeds
-        properties = BindingConstraintProperties(operator=BindingConstraintOperator.LESS)
+        bc_properties = BindingConstraintProperties(operator=BindingConstraintOperator.LESS)
         matrix = pd.DataFrame(data=(np.ones((8784, 1))))
-        constraint_3 = test_study.create_binding_constraint(name="bc_3", less_term_matrix=matrix, properties=properties)
+        constraint_3 = test_study.create_binding_constraint(
+            name="bc_3", less_term_matrix=matrix, properties=bc_properties
+        )
         assert constraint_3.get_less_term_matrix().equals(matrix)
 
         # asserts study contains the constraints

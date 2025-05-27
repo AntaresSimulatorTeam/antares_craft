@@ -56,13 +56,13 @@ class TestDeleteAPI:
     constraint_service = BindingConstraintApiService(api, study_id)
     antares_web_description_msg = "Mocked Server KO"
 
-    def test_delete_area_success(self):
+    def test_delete_area_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area_fr.id}"
             mocker.delete(url, status_code=200)
             self.area_service.delete_area(self.area_fr.id)
 
-    def test_delete_area_fails(self):
+    def test_delete_area_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area_fr.id}"
             mocker.delete(url, json={"description": self.antares_web_description_msg}, status_code=404)
@@ -72,14 +72,14 @@ class TestDeleteAPI:
             ):
                 self.area_service.delete_area(self.area_fr.id)
 
-    def test_delete_link_success(self):
+    def test_delete_link_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             link = Link(self.area_be.id, self.area_fr.id, self.link_service)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/links/{self.area_be.id}/{self.area_fr.id}"
             mocker.delete(url, status_code=200)
             self.link_service.delete_link(link)
 
-    def test_delete_link_fails(self):
+    def test_delete_link_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             link = Link(self.area_fr.name, self.area_be.name, self.link_service)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/links/{self.area_be.id}/{self.area_fr.id}"
@@ -90,14 +90,14 @@ class TestDeleteAPI:
             ):
                 self.link_service.delete_link(link)
 
-    def test_delete_thermal_success(self):
+    def test_delete_thermal_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             cluster = ThermalCluster(self.thermal_service, self.area_fr.id, "gaz_cluster")
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area_fr.id}/clusters/thermal"
             mocker.delete(url, status_code=200)
             self.area_service.delete_thermal_clusters(self.area_fr.id, [cluster])
 
-    def test_delete_thermal_fails(self):
+    def test_delete_thermal_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             cluster1 = ThermalCluster(self.thermal_service, self.area_fr.id, "gaz_cluster")
             cluster2 = ThermalCluster(self.thermal_service, self.area_fr.id, "gaz_cluster_2")
@@ -109,14 +109,14 @@ class TestDeleteAPI:
             ):
                 self.area_service.delete_thermal_clusters(self.area_fr.id, [cluster1, cluster2])
 
-    def test_delete_renewable_success(self):
+    def test_delete_renewable_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             cluster = RenewableCluster(self.renewable_service, self.area_fr.id, "gaz_cluster")
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area_fr.id}/clusters/renewable"
             mocker.delete(url, status_code=200)
             self.area_service.delete_renewable_clusters(self.area_fr.id, [cluster])
 
-    def test_delete_renewable_fails(self):
+    def test_delete_renewable_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             cluster = RenewableCluster(self.renewable_service, self.area_fr.id, "gaz_cluster")
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area_fr.id}/clusters/renewable"
@@ -127,14 +127,14 @@ class TestDeleteAPI:
             ):
                 self.area_service.delete_renewable_clusters(self.area_fr.id, [cluster])
 
-    def test_delete_st_storage_success(self):
+    def test_delete_st_storage_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             storage = STStorage(self.st_storage_service, self.area_fr.id, "battery_fr")
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area_fr.id}/storages"
             mocker.delete(url, status_code=200)
             self.area_service.delete_st_storages(self.area_fr.id, [storage])
 
-    def test_delete_st_storage_fails(self):
+    def test_delete_st_storage_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             storage = STStorage(self.st_storage_service, self.area_fr.id, "battery_fr")
             url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.area_fr.id}/storages"
@@ -145,7 +145,7 @@ class TestDeleteAPI:
             ):
                 self.area_service.delete_st_storages(self.area_fr.id, [storage])
 
-    def test_delete_binding_constraint_success(self):
+    def test_delete_binding_constraint_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             constraint_id = "bc_1"
             constraint = BindingConstraint(constraint_id, self.constraint_service)
@@ -153,7 +153,7 @@ class TestDeleteAPI:
             mocker.delete(url, status_code=200)
             self.study_service.delete_binding_constraint(constraint)
 
-    def test_delete_binding_constraint_fails(self):
+    def test_delete_binding_constraint_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             constraint_id = "bc_1"
             constraint = BindingConstraint(constraint_id, self.constraint_service)
@@ -165,7 +165,7 @@ class TestDeleteAPI:
             ):
                 self.study_service.delete_binding_constraint(constraint)
 
-    def test_delete_constraint_terms_success(self):
+    def test_delete_constraint_terms_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             constraint_id = "bc_1"
             term_id = "term_1"
@@ -175,7 +175,7 @@ class TestDeleteAPI:
             mocker.delete(url, status_code=200)
             self.constraint_service.delete_binding_constraint_term(constraint_id, term_id)
 
-    def test_delete_constraint_terms_fails(self):
+    def test_delete_constraint_terms_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             constraint_id = "bc_1"
             term_id = "term_1"

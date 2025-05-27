@@ -14,6 +14,7 @@ import pytest
 import shutil
 
 from pathlib import Path, PurePath
+from typing import Generator
 
 import numpy as np
 import pandas as pd
@@ -84,7 +85,7 @@ from tests.integration.antares_web_desktop import AntaresWebDesktop
 
 
 @pytest.fixture
-def antares_web() -> AntaresWebDesktop:
+def antares_web() -> Generator[AntaresWebDesktop, None, None]:
     app = AntaresWebDesktop()
     app.wait_for_server_to_start()
     yield app
@@ -92,7 +93,7 @@ def antares_web() -> AntaresWebDesktop:
 
 
 class TestWebClient:
-    def test_lifecycle(self, antares_web: AntaresWebDesktop, tmp_path):
+    def test_lifecycle(self, antares_web: AntaresWebDesktop, tmp_path: Path) -> None:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
         study = create_study_api("antares-craft-test", "880", api_config)
@@ -192,9 +193,8 @@ class TestWebClient:
         thermal_name = "gaz_be"
         thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS)
         thermal_be = area_be.create_thermal_cluster(thermal_name, thermal_properties)
-        properties = thermal_be.properties
-        assert properties.efficiency == 55
-        assert properties.group == ThermalClusterGroup.GAS
+        assert thermal_be.properties.efficiency == 55
+        assert thermal_be.properties.group == ThermalClusterGroup.GAS
 
         # test thermal cluster creation with prepro_modulation matrices
         thermal_name = "matrices_be"
@@ -274,9 +274,8 @@ class TestWebClient:
         renewable_name = "wind_onshore"
         renewable_properties = RenewableClusterProperties(enabled=False, group=RenewableClusterGroup.WIND_ON_SHORE)
         renewable_onshore = area_fr.create_renewable_cluster(renewable_name, renewable_properties, None)
-        properties = renewable_onshore.properties
-        assert not properties.enabled
-        assert properties.group == RenewableClusterGroup.WIND_ON_SHORE
+        assert not renewable_onshore.properties.enabled
+        assert renewable_onshore.properties.group == RenewableClusterGroup.WIND_ON_SHORE
 
         # Update multiple renewable clusters properties at once
         renewable_update_1 = RenewableClusterPropertiesUpdate(group=RenewableClusterGroup.WIND_ON_SHORE, unit_count=10)

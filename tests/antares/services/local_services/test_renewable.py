@@ -56,7 +56,7 @@ class TestRenewable:
         ):
             renewable.set_series(matrix)
 
-    def test_deletion(self, local_study_with_renewable):
+    def test_deletion(self, local_study_with_renewable: Study) -> None:
         area_fr = local_study_with_renewable.get_areas()["fr"]
         renewable = area_fr.get_renewables()["renewable cluster"]
         area_fr.delete_renewable_clusters([renewable])
@@ -66,7 +66,7 @@ class TestRenewable:
         ini_path = Path(local_study_with_renewable.path / "input" / "renewables" / "clusters" / "fr" / "list.ini")
         assert not ini_path.read_text()
 
-    def test_update_renewable_properties(self, local_study_with_renewable):
+    def test_update_renewable_properties(self, local_study_with_renewable: Study) -> None:
         area_fr = local_study_with_renewable.get_areas()["fr"]
         renewable = area_fr.get_renewables()["renewable cluster"]
         update_for_renewable = RenewableClusterPropertiesUpdate(
