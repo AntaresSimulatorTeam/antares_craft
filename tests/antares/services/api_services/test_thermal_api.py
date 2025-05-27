@@ -34,9 +34,11 @@ from antares.craft.service.api_services.models.thermal import ThermalClusterProp
 from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.api_services.services.thermal import ThermalApiService
 
+fixture_type = list[tuple[str, ThermalClusterMatrixName, str, str]]
+
 
 @pytest.fixture
-def thermal_matrix_set():
+def thermal_matrix_set() -> fixture_type:
     params = [
         ("get_prepro_data_matrix", ThermalClusterMatrixName.PREPRO_DATA, "input/thermal/prepro", "prepro"),
         ("get_prepro_modulation_matrix", ThermalClusterMatrixName.PREPRO_MODULATION, "input/thermal/prepro", "prepro"),
@@ -94,7 +96,7 @@ class TestCreateAPI:
             ):
                 self.thermal.update_properties(properties=properties)
 
-    def test_get_thermal_matrices_success(self, thermal_matrix_set):
+    def test_get_thermal_matrices_success(self, thermal_matrix_set: fixture_type) -> None:
         for matrix_method, matrix_enum, path, path_suffix in thermal_matrix_set:
             with requests_mock.Mocker() as mocker:
                 url = (
@@ -106,7 +108,7 @@ class TestCreateAPI:
                 result_matrix = getattr(self.thermal, matrix_method)()
                 assert result_matrix.equals(self.matrix)
 
-    def test_get_thermal_matrices_fails(self, thermal_matrix_set):
+    def test_get_thermal_matrices_fails(self, thermal_matrix_set: fixture_type) -> None:
         for matrix_method, matrix_enum, path, path_suffix in thermal_matrix_set:
             with requests_mock.Mocker() as mocker:
                 url = (

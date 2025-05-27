@@ -55,7 +55,7 @@ def local_study_w_areas(tmp_path: Path, local_study: Study) -> Study:
 
 
 @pytest.fixture
-def local_study_w_links(tmp_path: Path, local_study_w_areas: Study):
+def local_study_w_links(tmp_path: Path, local_study_w_areas: Study) -> Study:
     local_study_w_areas.create_area("at")
     links_to_create = ["fr_at", "at_it", "fr_it"]
     for link in links_to_create:

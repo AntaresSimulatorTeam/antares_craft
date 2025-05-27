@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from antares.craft import LocalConfiguration
+from antares.craft import LocalConfiguration, Study
 from antares.craft.model.output import (
     Frequency,
     MCAllAreas,
@@ -342,7 +342,7 @@ LINKS_REQUESTS__IND = [
 ]
 
 
-def setup_output(tmp_path, output_id: str) -> Output:
+def setup_output(tmp_path: Path, output_id: str) -> Output:
     study_name = "studyTest"
     config = LocalConfiguration(tmp_path, study_name)
     services = create_local_services(config, study_name)
@@ -359,13 +359,13 @@ def setup_output(tmp_path, output_id: str) -> Output:
     return output
 
 
-def update_expected_result_if_absent(resource_file, df):
+def update_expected_result_if_absent(resource_file: Path, df: pd.DataFrame) -> None:
     if not resource_file.exists() or resource_file.stat().st_size == 0:
         df.to_csv(resource_file, sep="\t", index=False)
 
 
 class TestOutput:
-    def test_get_matrix(self, tmp_path, local_study):
+    def test_get_matrix(self, tmp_path: Path, local_study: Study) -> None:
         file_name = "details-monthly.txt"
         output_name = "20201014-1427eco"
 
@@ -384,7 +384,7 @@ class TestOutput:
         assert dataframe.equals(expected_dataframe)
 
     @pytest.mark.parametrize("params,expected_result_filename", AREAS_REQUESTS__ALL)
-    def test_area_aggregate_mc_all(self, tmp_path, params, expected_result_filename):
+    def test_area_aggregate_mc_all(self, tmp_path: Path, params: TestParams, expected_result_filename: str) -> None:
         output = setup_output(tmp_path, params.output_id)
 
         df = output.aggregate_areas_mc_all(
@@ -404,7 +404,7 @@ class TestOutput:
         pd.testing.assert_frame_equal(df, expected_df, check_dtype=False)
 
     @pytest.mark.parametrize("params,expected_result_filename", AREAS_REQUESTS__IND)
-    def test_area_aggregate_mc_ind(self, tmp_path, params, expected_result_filename):
+    def test_area_aggregate_mc_ind(self, tmp_path: Path, params: TestParams, expected_result_filename: str) -> None:
         output = setup_output(tmp_path, params.output_id)
 
         df = output.aggregate_areas_mc_ind(
@@ -424,7 +424,7 @@ class TestOutput:
         pd.testing.assert_frame_equal(df, expected_df, check_dtype=False)
 
     @pytest.mark.parametrize("params,expected_result_filename", LINKS_REQUESTS__ALL)
-    def test_link_aggregate_mc_all(self, tmp_path, params, expected_result_filename):
+    def test_link_aggregate_mc_all(self, tmp_path: Path, params: TestParams, expected_result_filename: str) -> None:
         output = setup_output(tmp_path, params.output_id)
 
         df = output.aggregate_links_mc_all(
@@ -444,7 +444,7 @@ class TestOutput:
         pd.testing.assert_frame_equal(df, expected_df, check_dtype=False)
 
     @pytest.mark.parametrize("params,expected_result_filename", LINKS_REQUESTS__IND)
-    def test_link_aggregate_mc_ind(self, tmp_path, params, expected_result_filename):
+    def test_link_aggregate_mc_ind(self, tmp_path: Path, params: TestParams, expected_result_filename: str) -> None:
         output = setup_output(tmp_path, params.output_id)
 
         df = output.aggregate_links_mc_ind(
