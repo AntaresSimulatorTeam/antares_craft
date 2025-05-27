@@ -39,7 +39,7 @@ class AntaresWebDesktop:
         self.url = f"http://{self.host}:{self.port}"
         self.process = subprocess.Popen(args, shell=True, cwd=str(antares_web_desktop_path))
 
-    def _is_server_ready(self) -> None:
+    def _is_server_ready(self) -> bool:
         healthcheck_url = f"{self.url}/api/health"
         try:
             session = requests.Session()
