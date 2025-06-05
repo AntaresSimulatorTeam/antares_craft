@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+from typing_extensions import override
+
 
 class OptimizationTransmissionCapacities(Enum):
     LOCAL_VALUES = "local-values"
@@ -20,6 +22,19 @@ class OptimizationTransmissionCapacities(Enum):
     INFINITE_FOR_ALL_LINKS = "infinite-for-all-links"
     NULL_FOR_PHYSICAL_LINKS = "null-for-physical-links"
     INFINITE_FOR_PHYSICAL_LINKS = "infinite-for-physical-links"
+
+    @classmethod
+    @override
+    def _missing_(cls, value: object) -> Optional["OptimizationTransmissionCapacities"]:
+        """Handle legacy transmission capacities"""
+        if isinstance(value, bool):
+            if value:
+                return OptimizationTransmissionCapacities.LOCAL_VALUES
+            else:
+                return OptimizationTransmissionCapacities.NULL_FOR_ALL_LINKS
+        elif value == "infinite":
+            return OptimizationTransmissionCapacities.INFINITE_FOR_ALL_LINKS
+        return None
 
 
 class UnfeasibleProblemBehavior(Enum):
