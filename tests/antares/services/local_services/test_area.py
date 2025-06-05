@@ -663,8 +663,8 @@ class TestReadRenewable:
         area = local_study_with_renewable.get_areas()["fr"]
 
         renewable_list = list(area.get_renewables().values())
-        assert isinstance(renewable_list, list)
-        assert isinstance(renewable_list[0], RenewableCluster)
+        assert len(renewable_list) == 1
+
         renewable = renewable_list[0]
         assert renewable.name == "renewable cluster"
         assert renewable.properties.unit_count == 44
@@ -680,8 +680,8 @@ class TestReadRenewable:
         area = local_study_object.get_areas()["fr"]
 
         renewable_list = list(area.get_renewables().values())
-        assert isinstance(renewable_list, list)
-        assert isinstance(renewable_list[0], RenewableCluster)
+        assert len(renewable_list) == 1
+
         renewable = renewable_list[0]
         assert renewable.name == "renewable cluster"
         assert renewable.properties.unit_count == 44
