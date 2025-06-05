@@ -19,6 +19,7 @@ from antares.craft import (
     ExportMPS,
     GeneralParametersUpdate,
     HydroPricingMode,
+    OptimizationTransmissionCapacities,
     PlaylistParameters,
     StudySettingsUpdate,
     ThematicTrimmingParameters,
@@ -26,6 +27,8 @@ from antares.craft import (
     create_study_local,
     read_study_local,
 )
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
 def test_update_settings(tmp_path: Path) -> None:
@@ -223,3 +226,23 @@ def test_accuracy_on_correlation(tmp_path: Path, value: str) -> None:
     with open(ini_path, "w") as ini_file:
         ini_file.writelines(new_lines)
     read_study_local(study_path)
+
+
+@pytest.mark.parametrize("value", [True, False, "infinite"])
+def test_transmission_capacities(tmp_path: Path, value: bool | str) -> None:
+    study = create_study_local("study", "880", tmp_path)
+    study_path = Path(study.path)
+    ini_path = study_path / "settings" / "generaldata.ini"
+    ini_content = IniReader().read(ini_path)
+    ini_content["optimization"]["transmission-capacities"] = value
+    IniWriter().write(ini_content, ini_path)
+    # Ensure we're able to read the study
+    study = read_study_local(study_path)
+    transmission_value = study.get_settings().optimization_parameters.transmission_capacities
+    # Ensure we converted the legacy value into the right new one
+    if value is True:
+        assert transmission_value == OptimizationTransmissionCapacities.LOCAL_VALUES
+    elif value == "infinite":
+        assert transmission_value == OptimizationTransmissionCapacities.INFINITE_FOR_ALL_LINKS
+    else:
+        assert transmission_value == OptimizationTransmissionCapacities.NULL_FOR_ALL_LINKS
