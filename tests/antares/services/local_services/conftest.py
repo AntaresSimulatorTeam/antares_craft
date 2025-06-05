@@ -103,7 +103,7 @@ def local_study_w_storage(tmp_path: Path, local_study_w_areas: Study) -> Study:
 @pytest.fixture
 def local_study_with_renewable(local_study_w_thermal: Study) -> Study:
     cluster_name = "renewable cluster"
-    renewable_properties = RenewableClusterProperties(enabled=False, unit_count=1)
+    renewable_properties = RenewableClusterProperties(enabled=False, unit_count=44)
     local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(cluster_name, properties=renewable_properties)
     return local_study_w_thermal
 

@@ -13,7 +13,6 @@
 
 import pytest
 
-import os
 import re
 import typing as t
 
@@ -668,10 +667,10 @@ class TestReadRenewable:
         assert isinstance(renewable_list[0], RenewableCluster)
         renewable = renewable_list[0]
         assert renewable.name == "renewable cluster"
-        assert renewable.properties.unit_count == 1
+        assert renewable.properties.unit_count == 44
         assert renewable.properties.ts_interpretation.value == "power-generation"
         assert renewable.properties.nominal_capacity == 0.000000
-        assert renewable.properties.enabled == False
+        assert not renewable.properties.enabled
         assert renewable.properties.group.value == "other res 1"
         renewable.get_timeseries()
 
@@ -685,10 +684,10 @@ class TestReadRenewable:
         assert isinstance(renewable_list[0], RenewableCluster)
         renewable = renewable_list[0]
         assert renewable.name == "renewable cluster"
-        assert renewable.properties.unit_count == 1
+        assert renewable.properties.unit_count == 44
         assert renewable.properties.ts_interpretation.value == "power-generation"
         assert renewable.properties.nominal_capacity == 0.000000
-        assert renewable.properties.enabled == False
+        assert not renewable.properties.enabled
         assert renewable.properties.group.value == "other res 1"
         renewable.get_timeseries()
 
