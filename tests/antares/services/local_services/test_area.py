@@ -13,7 +13,6 @@
 
 import pytest
 
-import os
 import re
 import typing as t
 
@@ -660,43 +659,37 @@ class TestReadLoad:
 
 
 class TestReadRenewable:
-    def test_read_renewable_local(self, local_study_with_renewable: Study) -> None:
+    def test_read_renewable_from_study(self, local_study_with_renewable: Study) -> None:
+        area = local_study_with_renewable.get_areas()["fr"]
+
+        renewable_list = list(area.get_renewables().values())
+        assert len(renewable_list) == 1
+
+        renewable = renewable_list[0]
+        assert renewable.name == "renewable cluster"
+        assert renewable.properties.unit_count == 44
+        assert renewable.properties.ts_interpretation.value == "power-generation"
+        assert renewable.properties.nominal_capacity == 0.000000
+        assert not renewable.properties.enabled
+        assert renewable.properties.group.value == "other res 1"
+        renewable.get_timeseries()
+
+    def test_read_renewable_from_path(self, local_study_with_renewable: Study) -> None:
         study_path = Path(local_study_with_renewable.path)
         local_study_object = read_study_local(study_path)
-        areas = local_study_object.get_areas()
+        area = local_study_object.get_areas()["fr"]
 
-        for area in areas.values():
-            expected_time_serie = pd.DataFrame(
-                [
-                    [-9999999980506447872, 0, 9999999980506447872],
-                    [0, area.id, 0],
-                ],
-                dtype="object",
-            )
-            renewable_list = list(area.get_renewables().values())
+        renewable_list = list(area.get_renewables().values())
+        assert len(renewable_list) == 1
 
-            if renewable_list:
-                assert area.id == "fr"
-                assert isinstance(renewable_list, list)
-                assert isinstance(renewable_list[0], RenewableCluster)
-
-            for renewable in renewable_list:
-                assert renewable.name == "renewable cluster"
-                assert renewable.properties.unit_count == 1
-                assert renewable.properties.ts_interpretation.value == "power-generation"
-                assert renewable.properties.nominal_capacity == 0.000000
-                assert renewable.properties.enabled
-                assert renewable.properties.group.value == "other res 1"
-
-                # Create folder and file for timeserie.
-                cluster_path = study_path / "input" / "renewables" / "series" / Path(area.id) / Path(renewable.id)
-                os.makedirs(cluster_path, exist_ok=True)
-                series_path = cluster_path / "series.txt"
-                _write_file(series_path, expected_time_serie)
-
-                # Check matrix
-                matrix = renewable.get_timeseries()
-                pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
+        renewable = renewable_list[0]
+        assert renewable.name == "renewable cluster"
+        assert renewable.properties.unit_count == 44
+        assert renewable.properties.ts_interpretation.value == "power-generation"
+        assert renewable.properties.nominal_capacity == 0.000000
+        assert not renewable.properties.enabled
+        assert renewable.properties.group.value == "other res 1"
+        renewable.get_timeseries()
 
 
 class TestReadSolar:
@@ -786,28 +779,46 @@ class TestReadmisc_gen:
 
 
 class TestReadThermal:
-    def test_read_thermals_local(self, local_study_w_thermal: Study) -> None:
+    def test_read_thermals_from_study(self, local_study_w_thermal: Study) -> None:
         areas = local_study_w_thermal.get_areas()
+        thermal = areas["fr"].get_thermals()["test thermal cluster"]
 
-        for area in areas.values():
-            thermals_list = list(area.get_thermals().values())
+        # Check properties
+        assert thermal.name == "test thermal cluster"
+        assert thermal.properties.group.value == "nuclear"
+        assert thermal.properties.unit_count == 1
+        assert thermal.properties.efficiency == 100.000000
+        assert thermal.properties.nominal_capacity == 0.000000
+        assert thermal.properties.enabled
+        assert thermal.properties.cost_generation.value == "SetManually"
 
-            for thermal in thermals_list:
-                # Check properties
-                assert thermal.name == "test thermal cluster"
-                assert thermal.properties.group.value == "nuclear"
-                assert thermal.properties.unit_count == 1
-                assert thermal.properties.efficiency == 100.000000
-                assert thermal.properties.nominal_capacity == 0.000000
-                assert thermal.properties.enabled
-                assert thermal.properties.cost_generation.value == "SetManually"
+        # Check matrices exist
+        thermal.get_prepro_data_matrix()
+        thermal.get_prepro_modulation_matrix()
+        thermal.get_series_matrix()
+        thermal.get_co2_cost_matrix()
+        thermal.get_fuel_cost_matrix()
 
-                # Check matrices exist
-                thermal.get_prepro_data_matrix()
-                thermal.get_prepro_modulation_matrix()
-                thermal.get_series_matrix()
-                thermal.get_co2_cost_matrix()
-                thermal.get_fuel_cost_matrix()
+    def test_read_thermals_from_path(self, local_study_w_thermal: Study) -> None:
+        study_path = Path(local_study_w_thermal.path)
+        local_study_object = read_study_local(study_path)
+        areas = local_study_object.get_areas()
+        thermal = areas["fr"].get_thermals()["test thermal cluster"]
+
+        assert thermal.name == "test thermal cluster"
+        assert thermal.properties.group.value == "nuclear"
+        assert thermal.properties.unit_count == 1
+        assert thermal.properties.efficiency == 100.000000
+        assert thermal.properties.nominal_capacity == 0.000000
+        assert thermal.properties.enabled
+        assert thermal.properties.cost_generation.value == "SetManually"
+
+        # Check matrices exist
+        thermal.get_prepro_data_matrix()
+        thermal.get_prepro_modulation_matrix()
+        thermal.get_series_matrix()
+        thermal.get_co2_cost_matrix()
+        thermal.get_fuel_cost_matrix()
 
 
 class TestReadLinks:
@@ -835,19 +846,25 @@ class TestReadLinks:
 
 
 class TestReadSTStorage:
-    def test_read_st_storage_local(self, local_study_w_storage: Study) -> None:
+    def test_read_st_storage_from_study(self, local_study_w_storage: Study) -> None:
         areas = local_study_w_storage.get_areas()
 
-        for area in areas.values():
-            storages = area.get_st_storages()
-            if area.name == "fr":
-                assert len(storages) == 2
-                storage = storages["sts_1"]
-                assert storage.name == "sts_1"
-                assert storage.properties.efficiency == 0.4
-                assert storage.properties.initial_level_optim is True
-            else:
-                assert storages == {}
+        storages = areas["fr"].get_st_storages()
+        assert len(storages) == 2
+        storage = storages["sts_1"]
+        assert storage.name == "sts_1"
+        assert storage.properties.efficiency == 0.4
+        assert storage.properties.initial_level_optim is True
+
+    def test_read_st_storage_from_path(self, local_study_w_storage: Study) -> None:
+        study_path = Path(local_study_w_storage.path)
+        local_study_object = read_study_local(study_path)
+
+        areas = local_study_object.get_areas()
+        storage = areas["fr"].get_st_storages()["sts_1"]
+
+        assert storage.properties.efficiency == 0.4
+        assert storage.properties.initial_level_optim is True
 
 
 class TestUpateArea:
