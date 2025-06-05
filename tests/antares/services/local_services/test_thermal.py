@@ -30,8 +30,10 @@ from antares.craft.model.thermal import (
     ThermalClusterPropertiesUpdate,
     ThermalCostGeneration,
 )
+from antares.craft.service.local_services.factory import read_study_local
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
 from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
 class TestThermalCluster:
@@ -375,3 +377,16 @@ variableomcost = 5.0
 
         # testing the unmodified value
         assert thermal.properties.group == ThermalClusterGroup.NUCLEAR
+
+    def test_read_legacy_groups(self, local_study_w_thermal: Study) -> None:
+        """The group OTHER exists and is considered the same as OTHER1, so we have to be able to parse it"""
+        study_path = Path(local_study_w_thermal.path)
+        ini_path = study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini"
+        ini_content = IniReader().read(ini_path)
+        ini_content["test thermal cluster"]["group"] = "othER"
+        IniWriter().write(ini_content, ini_path)
+        # Ensure we're able to read the study
+        study = read_study_local(study_path)
+        thermal = study.get_areas()["fr"].get_thermals()["test thermal cluster"]
+        # Ensure we consider the group as OTHER1
+        assert thermal.properties.group == ThermalClusterGroup.OTHER1

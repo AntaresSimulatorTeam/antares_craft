@@ -17,10 +17,10 @@ import pandas as pd
 
 from antares.craft.model.cluster import ClusterProperties, ClusterPropertiesUpdate
 from antares.craft.service.base_services import BaseRenewableService
-from antares.craft.tools.contents_tool import transform_name_to_id
+from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 
 
-class RenewableClusterGroup(Enum):
+class RenewableClusterGroup(EnumIgnoreCase):
     """
     Renewable cluster groups.
 
