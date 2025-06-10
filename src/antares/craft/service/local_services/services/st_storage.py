@@ -51,6 +51,14 @@ MAPPING = {
     STStorageMatrixName.COST_VARIATION_WITHDRAWAL: TimeSeriesFileType.ST_STORAGE_COST_VARIATION_WITHDRAWAL,
 }
 
+FORBIDDEN_MATRICES_88 = {
+    STStorageMatrixName.COST_INJECTION,
+    STStorageMatrixName.COST_WITHDRAWAL,
+    STStorageMatrixName.COST_LEVEL,
+    STStorageMatrixName.COST_VARIATION_INJECTION,
+    STStorageMatrixName.COST_VARIATION_WITHDRAWAL,
+}
+
 
 class ShortTermStorageLocalService(BaseShortTermStorageService):
     def __init__(self, config: LocalConfiguration, study_name: str, study_version: StudyVersion, **kwargs: Any) -> None:
@@ -61,6 +69,10 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
 
     def _get_ini_path(self, area_id: str) -> Path:
         return self.config.study_path / "input" / "st-storage" / "clusters" / area_id / "list.ini"
+
+    def _check_matrix_allowed(self, ts_name: STStorageMatrixName) -> None:
+        if self.study_version == STUDY_VERSION_8_8 and ts_name in FORBIDDEN_MATRICES_88:
+            raise ValueError(f"The matrix {ts_name} is not available for study version 8.8")
 
     def read_ini(self, area_id: str) -> dict[str, Any]:
         return IniReader().read(self._get_ini_path(area_id))
@@ -93,32 +105,13 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
 
     @override
     def set_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:
-        forbidden_matrices_88 = [
-            STStorageMatrixName.COST_INJECTION,
-            STStorageMatrixName.COST_WITHDRAWAL,
-            STStorageMatrixName.COST_LEVEL,
-            STStorageMatrixName.COST_VARIATION_INJECTION,
-            STStorageMatrixName.COST_VARIATION_WITHDRAWAL,
-        ]
-
-        if self.study_version == STUDY_VERSION_8_8 and ts_name in forbidden_matrices_88:
-            raise ValueError(f"The matrix {ts_name} is not available for study version 8.8")
+        self._check_matrix_allowed(ts_name)
         checks_matrix_dimensions(matrix, f"storage/{storage.area_id}/{storage.name}", ts_name.value)
         write_timeseries(self.config.study_path, matrix, MAPPING[ts_name], storage.area_id, storage.id)
 
     @override
     def get_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName) -> pd.DataFrame:
-        forbidden_matrices_88 = [
-            STStorageMatrixName.COST_INJECTION,
-            STStorageMatrixName.COST_WITHDRAWAL,
-            STStorageMatrixName.COST_LEVEL,
-            STStorageMatrixName.COST_VARIATION_INJECTION,
-            STStorageMatrixName.COST_VARIATION_WITHDRAWAL,
-        ]
-
-        if self.study_version == STUDY_VERSION_8_8 and ts_name in forbidden_matrices_88:
-            raise ValueError(f"The matrix {ts_name} is not available for study version 8.8")
-
+        self._check_matrix_allowed(ts_name)
         return read_timeseries(MAPPING[ts_name], self.config.study_path, area_id=storage.area_id, cluster_id=storage.id)
 
     @override
