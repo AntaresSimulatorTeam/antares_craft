@@ -79,9 +79,18 @@ from antares.craft.exceptions.exceptions import (
     StudySettingsUpdateError,
 )
 from antares.craft.model.hydro import InflowStructureUpdate
+from antares.craft.model.output import (
+    Frequency,
+    MCAllAreasDataType,
+    MCAllLinksDataType,
+    MCIndAreasDataType,
+    MCIndLinksDataType,
+)
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import Job, JobStatus
 from tests.integration.antares_web_desktop import AntaresWebDesktop
+
+ASSETS_DIR = Path(__file__).parent / "assets"
 
 
 @pytest.fixture
@@ -642,7 +651,9 @@ class TestWebClient:
         #  SCENARIO BUILDER
         # =======================
         # Sets study nb_years to 4
-        study.update_settings(StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4)))
+        study.update_settings(
+            StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4, year_by_year=True))
+        )
 
         sc_builder = study.get_scenario_builder()
 
@@ -869,18 +880,48 @@ class TestWebClient:
             for output in outputs_from_api
         )
 
-        # ===== Output get_matrix =====
+        frequency = Frequency.DAILY
 
-        matrix = output.get_matrix("mc-all/grid/links")
+        def _read_matrix(matrix_path: Path, mc_ind: bool = False) -> pd.DataFrame:
+            if not mc_ind:
+                return pd.read_csv(matrix_path, sep="\t", header=[0, 1, 2], index_col=0, na_values="N/A")
 
-        assert isinstance(matrix, pd.DataFrame)
-        data = {"upstream": ["be"], "downstream": ["fr"]}
-        expected_matrix = pd.DataFrame(data)
-        assert matrix.equals(expected_matrix)
+            df = pd.read_csv(matrix_path, sep="\t", header=[0, 1], index_col=0, na_values="N/A")
+            new_cols = []
+            for k in range(len(df.columns)):
+                new_col = list(df.columns[k])
+                new_col.append("")
+                new_cols.append(tuple(new_col))
+            df.columns = pd.MultiIndex.from_tuples(new_cols)
+            return df
+
+        # ===== Output get_mc_all_areas =====
+
+        matrix_all_area = output.get_mc_all_area(frequency, MCAllAreasDataType.VALUES, area_be.id)
+        expected_all_area = _read_matrix(ASSETS_DIR / "all_area.tsv")
+        pd.testing.assert_frame_equal(matrix_all_area, expected_all_area, check_dtype=False)
+
+        # ===== Output get_mc_all_links =====
+
+        matrix_all_links = output.get_mc_all_link(frequency, MCAllLinksDataType.VALUES, area_be.id, area_fr.id)
+        expected_all_links = _read_matrix(ASSETS_DIR / "all_links.tsv")
+        pd.testing.assert_frame_equal(matrix_all_links, expected_all_links, check_dtype=False)
+
+        # ===== Output get_mc_ind_areas =====
+
+        matrix_ind_area = output.get_mc_ind_area(1, frequency, MCIndAreasDataType.VALUES, area_be.id)
+        expected_ind_area = _read_matrix(ASSETS_DIR / "ind_area.tsv", mc_ind=True)
+        pd.testing.assert_frame_equal(matrix_ind_area, expected_ind_area, check_dtype=False)
+
+        # ===== Output get_mc_ind_links =====
+
+        matrix_ind_links = output.get_mc_ind_link(1, frequency, MCIndLinksDataType.VALUES, area_be.id, area_fr.id)
+        expected_ind_links = _read_matrix(ASSETS_DIR / "ind_links.tsv", mc_ind=True)
+        pd.testing.assert_frame_equal(matrix_ind_links, expected_ind_links, check_dtype=False)
 
         # ===== Output aggregate_values =====
 
-        aggregated_matrix = output.aggregate_links_mc_all("values", "daily")
+        aggregated_matrix = output.aggregate_mc_all_links(MCAllLinksDataType.VALUES, frequency)
         assert isinstance(aggregated_matrix, pd.DataFrame)
         assert not aggregated_matrix.empty
         assert aggregated_matrix.shape == (364, 30)

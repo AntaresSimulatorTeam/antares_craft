@@ -24,8 +24,14 @@ from antares.craft.exceptions.exceptions import (
     OutputNotFound,
     OutputSubFolderNotFound,
 )
-from antares.craft.model.output import Frequency, MCAllAreas, MCAllLinks, MCIndAreas, MCIndLinks
-from antares.craft.service.local_services.services.output.date_serializer import FactoryDateSerializer, rename_unnamed
+from antares.craft.model.output import (
+    Frequency,
+    MCAllAreasDataType,
+    MCAllLinksDataType,
+    MCIndAreasDataType,
+    MCIndLinksDataType,
+)
+from antares.craft.service.utils import read_output_matrix
 
 
 class MCRoot(Enum):
@@ -112,16 +118,11 @@ def _filtered_files_listing(
     return filtered_files
 
 
-def get_output_matrix(file_path: Path) -> pd.DataFrame:
-    df = pd.read_csv(file_path, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy")
-    return df
-
-
 class AggregatorManager:
     def __init__(
         self,
         output_path: Path,
-        query_file: t.Union[MCIndAreas, MCAllAreas, MCIndLinks, MCAllLinks],
+        query_file: t.Union[MCIndAreasDataType, MCAllAreasDataType, MCIndLinksDataType, MCAllLinksDataType],
         frequency: Frequency,
         ids_to_consider: t.Sequence[str],
         columns_names: t.Sequence[str],
@@ -135,32 +136,28 @@ class AggregatorManager:
         self.columns_names = columns_names
         self.ids_to_consider = ids_to_consider
         self.output_type = (
-            "areas" if (isinstance(query_file, MCIndAreas) or isinstance(query_file, MCAllAreas)) else "links"
+            "areas"
+            if (isinstance(query_file, MCIndAreasDataType) or isinstance(query_file, MCAllAreasDataType))
+            else "links"
         )
         self.mc_ind_path = self.output_path / "economy" / MCRoot.MC_IND.value
         self.mc_all_path = self.output_path / "economy" / MCRoot.MC_ALL.value
         self.mc_root = (
             MCRoot.MC_IND
-            if (isinstance(query_file, MCIndAreas) or isinstance(query_file, MCIndLinks))
+            if (isinstance(query_file, MCIndAreasDataType) or isinstance(query_file, MCIndLinksDataType))
             else MCRoot.MC_ALL
         )
 
     def _parse_output_file(self, file_path: Path, normalize_column_name: bool = True) -> pd.DataFrame:
-        csv_file = get_output_matrix(file_path)
-        date_serializer = FactoryDateSerializer.create(self.frequency.value, "")
-        date, body = date_serializer.extract_date(csv_file)
-        df = rename_unnamed(body).astype(float)
-
-        df.index = date
-
+        df = read_output_matrix(file_path, self.frequency)
         if not normalize_column_name:
             return df
 
         # normalize columns names
         new_cols = []
-        for col in body.columns:
+        for col in df.columns:
             if self.mc_root.value == MCRoot.MC_IND.value:
-                name_to_consider = col[0] if self.query_file.value == MCIndAreas.VALUES.value else " ".join(col)
+                name_to_consider = col[0] if self.query_file.value == MCIndAreasDataType.VALUES.value else " ".join(col)
             else:
                 name_to_consider = " ".join([col[0], col[2]])
             new_cols.append(name_to_consider.upper().strip())
@@ -292,8 +289,8 @@ class AggregatorManager:
                 prod_col_name = (
                     PRODUCTION_COLUMN_NAME_ST
                     if (
-                        self.query_file.value == MCIndAreas.DETAILS_ST_STORAGE.value
-                        or self.query_file.value == MCAllAreas.DETAILS_ST_STORAGE.value
+                        self.query_file.value == MCIndAreasDataType.DETAILS_ST_STORAGE.value
+                        or self.query_file.value == MCAllAreasDataType.DETAILS_ST_STORAGE.value
                     )
                     else PRODUCTION_COLUMN_NAME_GENERAL
                 )
@@ -322,12 +319,12 @@ class AggregatorManager:
         if self.mc_root not in [MCRoot.MC_IND, MCRoot.MC_ALL]:
             raise MCRootNotHandled(f"Unknown Monte Carlo root: {self.mc_root}")
         is_details = self.query_file.value in [
-            MCIndAreas.DETAILS.value,
-            MCAllAreas.DETAILS.value,
-            MCIndAreas.DETAILS_ST_STORAGE.value,
-            MCAllAreas.DETAILS_ST_STORAGE.value,
-            MCIndAreas.DETAILS_RES.value,
-            MCAllAreas.DETAILS_RES.value,
+            MCIndAreasDataType.DETAILS.value,
+            MCAllAreasDataType.DETAILS.value,
+            MCIndAreasDataType.DETAILS_ST_STORAGE.value,
+            MCAllAreasDataType.DETAILS_ST_STORAGE.value,
+            MCIndAreasDataType.DETAILS_RES.value,
+            MCAllAreasDataType.DETAILS_RES.value,
         ]
         final_df = pd.DataFrame()
         for k, file_path in enumerate(files):

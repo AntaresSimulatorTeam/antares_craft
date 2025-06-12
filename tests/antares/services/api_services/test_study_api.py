@@ -56,6 +56,11 @@ from antares.craft.model.binding_constraint import (
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate
 from antares.craft.model.output import (
+    Frequency,
+    MCAllAreasDataType,
+    MCAllLinksDataType,
+    MCIndAreasDataType,
+    MCIndLinksDataType,
     Output,
 )
 from antares.craft.model.settings.general import GeneralParameters, GeneralParametersUpdate, Mode
@@ -68,6 +73,7 @@ from antares.craft.service.api_services.models.binding_constraint import Binding
 from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAPI
 from antares.craft.service.api_services.services.output import OutputApiService
+from antares.craft.service.utils import read_output_matrix
 
 
 class TestCreateAPI:
@@ -106,6 +112,10 @@ class TestCreateAPI:
 
     b_constraint_1 = BindingConstraint("battery_state_evolution", services.bc_service)
     b_constraint_2 = BindingConstraint("battery_state_update", services.bc_service)
+
+    output_link = Output(name="test-output-link", output_service=OutputApiService(api, study_id), archived=False)
+
+    output_area = Output(name="test-output-area", output_service=OutputApiService(api, study_id), archived=False)
 
     def test_create_study_test_ok(self) -> None:
         with requests_mock.Mocker() as mocker:
@@ -646,19 +656,82 @@ class TestCreateAPI:
             with pytest.raises(ConstraintRetrievalError, match="Error while reading constraints"):
                 self.study._read_binding_constraints()
 
-    def test_output_get_matrix(self) -> None:
-        with requests_mock.Mocker() as mocker:
-            output = Output(
-                name="test-output", output_service=OutputApiService(self.api, self.study_id), archived=False
-            )
-            matrix_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=output/{output.name}/economy/mc-all/grid/links"
-            matrix_output = {"columns": ["upstream", "downstream"], "data": [["be", "fr"]]}
-            mocker.get(matrix_url, json=matrix_output)
+    def test_output_get_mc_all(self, tmp_path: Path) -> None:
+        self.study._areas["area_test"] = self.area
+        self.study._areas["area_test_1"] = self.area_1
+        self.study._outputs["test-output-link"] = self.output_link
+        self.study._outputs["test-output-area"] = self.output_area
 
-            matrix = output.get_matrix("mc-all/grid/links")
-            expected_matrix = pd.DataFrame(data=matrix_output["data"], columns=matrix_output["columns"])  # type: ignore
-            assert isinstance(matrix, pd.DataFrame)
-            assert matrix.equals(expected_matrix)
+        frequency = Frequency.ANNUAL
+        with requests_mock.Mocker() as mocker:
+            matrix_link_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_link.name}/economy/mc-all/links/{self.area.id}/{self.area_1.id}/values-{frequency.value}"
+            matrix_area_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_area.name}/economy/mc-all/areas/{self.area.id}/values-{frequency.value}"
+
+            expected_area_content = """area_1	area	va	annual
+	VARIABLES	BEGIN	END
+	321	1	1
+
+area_1	annual	OV. COST	OP. COST	OP. COST	OP. COST	OP. COST	MRG. PRICE	MRG. PRICE	MRG. PRICE	MRG. PRICE	CO2 EMIS.	CO2 EMIS.	CO2 EMIS.	CO2 EMIS.	NH3 EMIS.	NH3 EMIS.	NH3 EMIS.	NH3 EMIS.	SO2 EMIS.	SO2 EMIS.	SO2 EMIS.	SO2 EMIS.	NOX EMIS.	NOX EMIS.	NOX EMIS.	NOX EMIS.	PM2_5 EMIS.	PM2_5 EMIS.	PM2_5 EMIS.	PM2_5 EMIS.	PM5 EMIS.	PM5 EMIS.	PM5 EMIS.	PM5 EMIS.	PM10 EMIS.	PM10 EMIS.	PM10 EMIS.	PM10 EMIS.	NMVOC EMIS.	NMVOC EMIS.	NMVOC EMIS.	NMVOC EMIS.	OP1 EMIS.	OP1 EMIS.	OP1 EMIS.	OP1 EMIS.	OP2 EMIS.	OP2 EMIS.	OP2 EMIS.	OP2 EMIS.	OP3 EMIS.	OP3 EMIS.	OP3 EMIS.	OP3 EMIS.	OP4 EMIS.	OP4 EMIS.	OP4 EMIS.	OP4 EMIS.	OP5 EMIS.	OP5 EMIS.	OP5 EMIS.	OP5 EMIS.	BALANCE	BALANCE	BALANCE	BALANCE	ROW BAL.	PSP	MISC. NDG	LOAD	LOAD	LOAD	LOAD	H. ROR	H. ROR	H. ROR	H. ROR	NUCLEAR	NUCLEAR	NUCLEAR	NUCLEAR	LIGNITE	LIGNITE	LIGNITE	LIGNITE	COAL	COAL	COAL	COAL	GAS	GAS	GAS	GAS	OIL	OIL	OIL	OIL	MIX. FUEL	MIX. FUEL	MIX. FUEL	MIX. FUEL	MISC. DTG	MISC. DTG	MISC. DTG	MISC. DTG	MISC. DTG 2	MISC. DTG 2	MISC. DTG 2	MISC. DTG 2	MISC. DTG 3	MISC. DTG 3	MISC. DTG 3	MISC. DTG 3	MISC. DTG 4	MISC. DTG 4	MISC. DTG 4	MISC. DTG 4	WIND OFFSHORE	WIND OFFSHORE	WIND OFFSHORE	WIND OFFSHORE	WIND ONSHORE	WIND ONSHORE	WIND ONSHORE	WIND ONSHORE	SOLAR CONCRT.	SOLAR CONCRT.	SOLAR CONCRT.	SOLAR CONCRT.	SOLAR PV	SOLAR PV	SOLAR PV	SOLAR PV	SOLAR ROOFT	SOLAR ROOFT	SOLAR ROOFT	SOLAR ROOFT	RENW. 1	RENW. 1	RENW. 1	RENW. 1	RENW. 2	RENW. 2	RENW. 2	RENW. 2	RENW. 3	RENW. 3	RENW. 3	RENW. 3	RENW. 4	RENW. 4	RENW. 4	RENW. 4	H. STOR	H. STOR	H. STOR	H. STOR	H. PUMP	H. PUMP	H. PUMP	H. PUMP	H. LEV	H. LEV	H. LEV	H. LEV	H. INFL	H. INFL	H. INFL	H. INFL	H. OVFL	H. OVFL	H. OVFL	H. OVFL	H. VAL	H. VAL	H. VAL	H. VAL	H. COST	H. COST	H. COST	H. COST	PSP_open_injection	PSP_open_injection	PSP_open_injection	PSP_open_injection	PSP_open_withdrawal	PSP_open_withdrawal	PSP_open_withdrawal	PSP_open_withdrawal	PSP_open_level	PSP_open_level	PSP_open_level	PSP_open_level	PSP_closed_injection	PSP_closed_injection	PSP_closed_injection	PSP_closed_injection	PSP_closed_withdrawal	PSP_closed_withdrawal	PSP_closed_withdrawal	PSP_closed_withdrawal	PSP_closed_level	PSP_closed_level	PSP_closed_level	PSP_closed_level	Pondage_injection	Pondage_injection	Pondage_injection	Pondage_injection	Pondage_withdrawal	Pondage_withdrawal	Pondage_withdrawal	Pondage_withdrawal	Pondage_level	Pondage_level	Pondage_level	Pondage_level	Battery_injection	Battery_injection	Battery_injection	Battery_injection	Battery_withdrawal	Battery_withdrawal	Battery_withdrawal	Battery_withdrawal	Battery_level	Battery_level	Battery_level	Battery_level	Other1_injection	Other1_injection	Other1_injection	Other1_injection	Other1_withdrawal	Other1_withdrawal	Other1_withdrawal	Other1_withdrawal	Other1_level	Other1_level	Other1_level	Other1_level	Other2_injection	Other2_injection	Other2_injection	Other2_injection	Other2_withdrawal	Other2_withdrawal	Other2_withdrawal	Other2_withdrawal	Other2_level	Other2_level	Other2_level	Other2_level	Other3_injection	Other3_injection	Other3_injection	Other3_injection	Other3_withdrawal	Other3_withdrawal	Other3_withdrawal	Other3_withdrawal	Other3_level	Other3_level	Other3_level	Other3_level	Other4_injection	Other4_injection	Other4_injection	Other4_injection	Other4_withdrawal	Other4_withdrawal	Other4_withdrawal	Other4_withdrawal	Other4_level	Other4_level	Other4_level	Other4_level	Other5_injection	Other5_injection	Other5_injection	Other5_injection	Other5_withdrawal	Other5_withdrawal	Other5_withdrawal	Other5_withdrawal	Other5_level	Other5_level	Other5_level	Other5_level	UNSP. ENRG	UNSP. ENRG	UNSP. ENRG	UNSP. ENRG	SPIL. ENRG	SPIL. ENRG	SPIL. ENRG	SPIL. ENRG	LOLD	LOLD	LOLD	LOLD	LOLP	AVL DTG	AVL DTG	AVL DTG	AVL DTG	DTG MRG	DTG MRG	DTG MRG	DTG MRG	MAX MRG	MAX MRG	MAX MRG	MAX MRG	NP COST	NP COST	NP COST	NP COST	NODU	NODU	NODU	NODU
+		Euro	Euro	Euro	Euro	Euro	Euro	Euro	Euro	Euro	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	Tons	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	%	%	%	%	MWh	MWh	MWh	MWh	%	%	%	%	Euro/MWh	Euro/MWh	Euro/MWh	Euro/MWh	Euro	Euro	Euro	Euro	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MW	MW	MW	MW	MW	MW	MW	MW	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	Hours	Hours	Hours	Hours	%	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	Euro	Euro	Euro	Euro	 	 	 	 
+		EXP	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	values	EXP	EXP	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	values	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max
+	Annual	0	0	0	0	0	-0.0006	0	-0.0006	-0.0006	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	N/A	N/A	N/A	N/A	0	0	0	0	N/A	N/A	N/A	N/A	N/A	N/A	N/A	N/A	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0"""
+
+            mocker.get(matrix_area_url, text=expected_area_content)
+            matrix_area = self.output_area.get_mc_all_area(frequency, MCAllAreasDataType.VALUES, self.area.id)
+            expected_matrix = read_output_matrix(StringIO(expected_area_content), frequency)
+            assert matrix_area.equals(expected_matrix)
+
+            expected_link_content = """area_1	link	va	annual
+area_2	VARIABLES	BEGIN	END
+	28	1	1
+
+area_1	annual	FLOW LIN.	FLOW LIN.	FLOW LIN.	FLOW LIN.	UCAP LIN.	UCAP LIN.	UCAP LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FEE (ALG.)	CONG. FEE (ALG.)	CONG. FEE (ALG.)	CONG. FEE (ABS.)	CONG. FEE (ABS.)	CONG. FEE (ABS.)	CONG. FEE (ABS.)	MARG. COST	MARG. COST	MARG. COST	MARG. COST	CONG. PROB +	CONG. PROB -	HURDLE COST	HURDLE COST	HURDLE COST	HURDLE COST
+		MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	Euro	Euro	Euro	Euro	Euro	Euro	Euro	Euro	Euro/MW	Euro/MW	Euro/MW	Euro/MW	%	%	Euro	Euro	Euro	Euro
+		EXP	std	min	max	EXP	std	min	max	values	values	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	values	values	EXP	std	min	max
+	Annual	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0"""
+
+            mocker.get(matrix_link_url, text=expected_link_content)
+            matrix_link = self.output_link.get_mc_all_link(
+                frequency, MCAllLinksDataType.VALUES, self.area.id, self.area_1.id
+            )
+            expected_matrix = read_output_matrix(StringIO(expected_link_content), frequency)
+            assert matrix_link.equals(expected_matrix)
+
+    def test_output_get_mc_ind(self, tmp_path: Path) -> None:
+        frequency = Frequency.ANNUAL
+        with requests_mock.Mocker() as mocker:
+            matrix_link_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_link.name}/economy/mc-ind/00001/links/{self.area.id}/{self.area_1.id}/values-{frequency.value}"
+            matrix_area_url = f"https://antares.com/api/v1/studies/{self.study_id}/raw/original-file?path=output/{self.output_area.name}/economy/mc-ind/00001/areas/{self.area.id}/values-{frequency.value}"
+
+            expected_area_content = """area_1	link	va	annual
+area_2	VARIABLES	BEGIN	END
+	28	1	1
+
+area_1	annual	FLOW LIN.	FLOW LIN.	FLOW LIN.	FLOW LIN.	UCAP LIN.	UCAP LIN.	UCAP LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FEE (ALG.)	CONG. FEE (ALG.)	CONG. FEE (ALG.)	CONG. FEE (ABS.)	CONG. FEE (ABS.)	CONG. FEE (ABS.)	CONG. FEE (ABS.)	MARG. COST	MARG. COST	MARG. COST	MARG. COST	CONG. PROB +	CONG. PROB -	HURDLE COST	HURDLE COST	HURDLE COST	HURDLE COST
+		MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	MWh	Euro	Euro	Euro	Euro	Euro	Euro	Euro	Euro	Euro/MW	Euro/MW	Euro/MW	Euro/MW	%	%	Euro	Euro	Euro	Euro
+		EXP	std	min	max	EXP	std	min	max	values	values	EXP	std	min	max	EXP	std	min	max	EXP	std	min	max	values	values	EXP	std	min	max
+	Annual	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0"""
+
+            mocker.get(matrix_area_url, text=expected_area_content)
+            matrix_area = self.output_area.get_mc_ind_area(1, frequency, MCIndAreasDataType.VALUES, self.area.id)
+            expected_matrix = read_output_matrix(StringIO(expected_area_content), frequency)
+            assert matrix_area.equals(expected_matrix)
+
+            expected_link_content = """area_1	link	va	annual
+area_2	VARIABLES	BEGIN	END
+	10	1	1
+
+area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FEE (ABS.)	MARG. COST	CONG. PROB +	CONG. PROB -	HURDLE COST
+		MWh	MWh	MWh	MWh	Euro	Euro	Euro/MW	%	%	Euro
+											
+	Annual	0	0	0	0	0	0	0	0	0	0"""
+
+            mocker.get(matrix_link_url, text=expected_link_content)
+            matrix_link = self.output_link.get_mc_ind_link(
+                1, frequency, MCIndLinksDataType.VALUES, self.area.id, self.area_1.id
+            )
+            expected_matrix_link = read_output_matrix(StringIO(expected_link_content), frequency)
+            assert matrix_link.equals(expected_matrix_link)
 
     def test_output_aggregate_values(self) -> None:
         with requests_mock.Mocker() as mocker:
@@ -674,7 +747,7 @@ class TestCreateAPI:
             be - fr,2,0.000000,0.000000
             """
             mocker.get(aggregate_url, text=aggregate_output)
-            aggregated_matrix = output.aggregate_areas_mc_ind("values", "annual")
+            aggregated_matrix = output.aggregate_mc_ind_areas(MCIndAreasDataType.VALUES, Frequency.ANNUAL)
             expected_matrix = pd.read_csv(StringIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)
@@ -682,7 +755,9 @@ class TestCreateAPI:
             # aggregate_values_links_mc_ind
             aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-ind/{output.name}?query_file=values&frequency=annual&format=csv"
             mocker.get(aggregate_url, text=aggregate_output)
-            aggregated_matrix = output.aggregate_links_mc_ind("values", "annual", columns_names=["fr"])
+            aggregated_matrix = output.aggregate_mc_ind_links(
+                MCIndLinksDataType.VALUES, Frequency.ANNUAL, columns_names=["fr"]
+            )
             expected_matrix = pd.read_csv(StringIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)
@@ -690,7 +765,7 @@ class TestCreateAPI:
             # aggregate_values_areas_mc_all
             aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
             mocker.get(aggregate_url, text=aggregate_output)
-            aggregated_matrix = output.aggregate_areas_mc_all("values", "annual")
+            aggregated_matrix = output.aggregate_mc_all_areas(MCAllAreasDataType.VALUES, Frequency.ANNUAL)
             expected_matrix = pd.read_csv(StringIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)
@@ -698,7 +773,7 @@ class TestCreateAPI:
             # aggregate_values_links_mc_all
             aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
             mocker.get(aggregate_url, text=aggregate_output)
-            aggregated_matrix = output.aggregate_links_mc_all("values", "annual")
+            aggregated_matrix = output.aggregate_mc_all_links(MCAllLinksDataType.VALUES, Frequency.ANNUAL)
             expected_matrix = pd.read_csv(StringIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)
