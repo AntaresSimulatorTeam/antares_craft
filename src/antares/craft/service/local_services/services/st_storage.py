@@ -72,7 +72,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
 
     def _check_matrix_allowed(self, ts_name: STStorageMatrixName) -> None:
         if self.study_version == STUDY_VERSION_8_8 and ts_name in FORBIDDEN_MATRICES_88:
-            raise ValueError(f"The matrix {ts_name} is not available for study version 8.8")
+            raise ValueError(f"The matrix {ts_name.value} is not available for study version 8.8")
 
     def read_ini(self, area_id: str) -> dict[str, Any]:
         return IniReader().read(self._get_ini_path(area_id))
