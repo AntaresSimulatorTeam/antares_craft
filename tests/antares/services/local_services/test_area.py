@@ -146,8 +146,7 @@ class TestCreateSTStorage:
         assert st_storage.properties == STStorageProperties()
 
     def test_storage_has_correct_default_properties_92(self, local_study_92):
-        local_study_92.get_areas()["fr"].create_st_storage("short term storage")
-        st_storage = local_study_92.get_areas()["fr"].get_st_storages()["short term storage"]
+        st_storage = local_study_92.get_areas()["fr"].create_st_storage("short term storage")
         assert st_storage.properties == STStorageProperties()
 
     def test_st_storage_list_ini_exists(self, local_study_with_st_storage):
@@ -227,10 +226,9 @@ penalize-variation-withdrawal = False
     def test_creation_default_matrices_92(self, tmp_path: Path, local_study_92) -> None:
         # given
         st_storage_name = "storage_ts"
-        local_study_92.get_areas()["fr"].create_st_storage(st_storage_name)
 
         # when
-        storage = local_study_92.get_areas()["fr"].get_st_storages()[st_storage_name]
+        storage = local_study_92.get_areas()["fr"].create_st_storage(st_storage_name)
 
         # then
         matrix_default = pd.DataFrame(matrix_tool.default_series)
@@ -243,10 +241,9 @@ penalize-variation-withdrawal = False
     def test_creation_matrices_not_allowed_88(self, tmp_path: Path, local_study_w_areas) -> None:
         # given
         st_storage_name = "storage_ts"
-        local_study_w_areas.get_areas()["fr"].create_st_storage(st_storage_name)
 
         # when
-        storage = local_study_w_areas.get_areas()["fr"].get_st_storages()[st_storage_name]
+        storage = local_study_w_areas.get_areas()["fr"].create_st_storage(st_storage_name)
 
         # then
         with pytest.raises(ValueError, match="The matrix cost_injection is not available for study version 8.8"):
@@ -269,14 +266,12 @@ penalize-variation-withdrawal = False
     def test_update_matrices_92(self, tmp_path: Path, local_study_92) -> None:
         # given
         st_storage_name = "storage_ts"
-        local_study_92.get_areas()["fr"].create_st_storage(st_storage_name)
-        # Checks all matrices exist
-        storage = local_study_92.get_areas()["fr"].get_st_storages()[st_storage_name]
 
         # when
-        matrix = pd.DataFrame(data=8760 * [[3]])
+        storage = local_study_92.get_areas()["fr"].create_st_storage(st_storage_name)
 
         # then
+        matrix = pd.DataFrame(data=8760 * [[3]])
         storage.set_cost_injection(matrix)
         assert storage.get_cost_injection().equals(matrix)
         storage.set_cost_withdrawal(matrix)
@@ -291,12 +286,12 @@ penalize-variation-withdrawal = False
     def test_update_matrices_88_not_allowed(self, tmp_path: Path, local_study_w_areas) -> None:
         # given
         st_storage_name = "storage_ts"
-        local_study_w_areas.get_areas()["fr"].create_st_storage(st_storage_name)
-        storage = local_study_w_areas.get_areas()["fr"].get_st_storages()[st_storage_name]
 
         # when
-        matrix = pd.DataFrame(data=8760 * [[3]])
+        storage = local_study_w_areas.get_areas()["fr"].create_st_storage(st_storage_name)
+
         # then
+        matrix = pd.DataFrame(data=8760 * [[3]])
         with pytest.raises(ValueError, match="The matrix cost_injection is not available for study version 8.8"):
             storage.set_cost_injection(matrix)
         with pytest.raises(ValueError, match="The matrix cost_withdrawal is not available for study version 8.8"):
@@ -320,13 +315,12 @@ penalize-variation-withdrawal = False
     def test_update_matrices_wrong_format_92(self, tmp_path: Path, local_study_92) -> None:
         # given
         st_storage_name = "storage_ts"
-        local_study_92.get_areas()["fr"].create_st_storage(st_storage_name)
-        storage = local_study_92.get_areas()["fr"].get_st_storages()[st_storage_name]
 
         # when
-        matrix = pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]])
+        storage = local_study_92.get_areas()["fr"].create_st_storage(st_storage_name)
 
         # then
+        matrix = pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]])
         with pytest.raises(
             MatrixFormatError,
             match=re.escape(
