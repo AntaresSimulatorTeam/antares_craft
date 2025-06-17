@@ -25,7 +25,7 @@ import pandas as pd
 
 from antares.craft import read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import ReadingMethodUsedOufOfScopeError
+from antares.craft.exceptions.exceptions import MatrixFormatError, ReadingMethodUsedOufOfScopeError
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.renewable import (
@@ -35,6 +35,7 @@ from antares.craft.model.renewable import (
     TimeSeriesInterpretation,
 )
 from antares.craft.model.st_storage import STStorage, STStorageGroup, STStorageProperties
+from antares.craft.tools import matrix_tool
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
@@ -145,8 +146,7 @@ class TestCreateSTStorage:
         assert st_storage.properties == STStorageProperties()
 
     def test_storage_has_correct_default_properties_92(self, local_study_92):
-        local_study_92.get_areas()["fr"].create_st_storage("short term storage")
-        st_storage = local_study_92.get_areas()["fr"].get_st_storages()["short term storage"]
+        st_storage = local_study_92.get_areas()["fr"].create_st_storage("short term storage")
         assert st_storage.properties == STStorageProperties()
 
     def test_st_storage_list_ini_exists(self, local_study_with_st_storage):
@@ -222,6 +222,112 @@ penalize-variation-withdrawal = False
         assert ini_content == expected_st_storage_list_ini_content
 
         assert created_storage.properties == properties
+
+    def test_creation_default_matrices_92(self, tmp_path: Path, local_study_92) -> None:
+        # given
+        st_storage_name = "storage_ts"
+
+        # when
+        storage = local_study_92.get_areas()["fr"].create_st_storage(st_storage_name)
+
+        # then
+        matrix_default = pd.DataFrame(matrix_tool.default_series)
+        assert storage.get_cost_injection().equals(matrix_default)
+        assert storage.get_cost_withdrawal().equals(matrix_default)
+        assert storage.get_cost_level().equals(matrix_default)
+        assert storage.get_cost_variation_injection().equals(matrix_default)
+        assert storage.get_cost_variation_withdrawal().equals(matrix_default)
+
+    def test_creation_matrices_not_allowed_88(self, tmp_path: Path, local_study_w_areas) -> None:
+        # given
+        st_storage_name = "storage_ts"
+
+        # when
+        storage = local_study_w_areas.get_areas()["fr"].create_st_storage(st_storage_name)
+
+        # then
+        with pytest.raises(ValueError, match="The matrix cost_injection is not available for study version 8.8"):
+            storage.get_cost_injection()
+        with pytest.raises(ValueError, match="The matrix cost_withdrawal is not available for study version 8.8"):
+            storage.get_cost_withdrawal()
+        with pytest.raises(ValueError, match="The matrix cost_level is not available for study version 8.8"):
+            storage.get_cost_level()
+        with pytest.raises(
+            ValueError,
+            match="The matrix cost_variation_injection is not available for study version 8.8",
+        ):
+            storage.get_cost_variation_injection()
+        with pytest.raises(
+            ValueError,
+            match="The matrix cost_variation_withdrawal is not available for study version 8.8",
+        ):
+            storage.get_cost_variation_withdrawal()
+
+    def test_update_matrices_92(self, tmp_path: Path, local_study_92) -> None:
+        # given
+        st_storage_name = "storage_ts"
+
+        # when
+        storage = local_study_92.get_areas()["fr"].create_st_storage(st_storage_name)
+
+        # then
+        matrix = pd.DataFrame(data=8760 * [[3]])
+        storage.set_cost_injection(matrix)
+        assert storage.get_cost_injection().equals(matrix)
+        storage.set_cost_withdrawal(matrix)
+        assert storage.get_cost_withdrawal().equals(matrix)
+        storage.set_cost_level(matrix)
+        assert storage.get_cost_level().equals(matrix)
+        storage.set_cost_variation_injection(matrix)
+        assert storage.get_cost_variation_injection().equals(matrix)
+        storage.set_cost_variation_withdrawal(matrix)
+        assert storage.get_cost_variation_withdrawal().equals(matrix)
+
+    def test_update_matrices_88_not_allowed(self, tmp_path: Path, local_study_w_areas) -> None:
+        # given
+        st_storage_name = "storage_ts"
+
+        # when
+        storage = local_study_w_areas.get_areas()["fr"].create_st_storage(st_storage_name)
+
+        # then
+        matrix = pd.DataFrame(data=8760 * [[3]])
+        with pytest.raises(ValueError, match="The matrix cost_injection is not available for study version 8.8"):
+            storage.set_cost_injection(matrix)
+        with pytest.raises(ValueError, match="The matrix cost_withdrawal is not available for study version 8.8"):
+            storage.set_cost_withdrawal(matrix)
+        with pytest.raises(
+            ValueError,
+            match="The matrix cost_level is not available for study version 8.8",
+        ):
+            storage.set_cost_level(matrix)
+        with pytest.raises(
+            ValueError,
+            match="The matrix cost_variation_injection is not available for study version 8.8",
+        ):
+            storage.set_cost_variation_injection(matrix)
+        with pytest.raises(
+            ValueError,
+            match="The matrix cost_variation_withdrawal is not available for study version 8.8",
+        ):
+            storage.set_cost_variation_withdrawal(matrix)
+
+    def test_update_matrices_wrong_format_92(self, tmp_path: Path, local_study_92) -> None:
+        # given
+        st_storage_name = "storage_ts"
+
+        # when
+        storage = local_study_92.get_areas()["fr"].create_st_storage(st_storage_name)
+
+        # then
+        matrix = pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]])
+        with pytest.raises(
+            MatrixFormatError,
+            match=re.escape(
+                "Wrong format for storage/fr/storage_ts/cost_injection matrix, expected shape is (8760, 1) and was : (2, 3)"
+            ),
+        ):
+            storage.set_cost_injection(matrix)
 
 
 class TestCreateReserves:

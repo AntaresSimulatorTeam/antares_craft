@@ -28,6 +28,7 @@ from antares.craft.model.st_storage import (
     STStorageProperties,
     STStoragePropertiesUpdate,
 )
+from antares.craft.model.study import STUDY_VERSION_8_8
 from antares.craft.service.base_services import BaseShortTermStorageService
 from antares.craft.service.local_services.models.st_storage import STStoragePropertiesLocal
 from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
@@ -43,6 +44,19 @@ MAPPING = {
     STStorageMatrixName.LOWER_CURVE_RULE: TimeSeriesFileType.ST_STORAGE_LOWER_RULE_CURVE,
     STStorageMatrixName.UPPER_RULE_CURVE: TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE,
     STStorageMatrixName.INFLOWS: TimeSeriesFileType.ST_STORAGE_INFLOWS,
+    STStorageMatrixName.COST_INJECTION: TimeSeriesFileType.ST_STORAGE_COST_INJECTION,
+    STStorageMatrixName.COST_WITHDRAWAL: TimeSeriesFileType.ST_STORAGE_COST_WITHDRAWAL,
+    STStorageMatrixName.COST_LEVEL: TimeSeriesFileType.ST_STORAGE_COST_LEVEL,
+    STStorageMatrixName.COST_VARIATION_INJECTION: TimeSeriesFileType.ST_STORAGE_COST_VARIATION_INJECTION,
+    STStorageMatrixName.COST_VARIATION_WITHDRAWAL: TimeSeriesFileType.ST_STORAGE_COST_VARIATION_WITHDRAWAL,
+}
+
+FORBIDDEN_MATRICES_88 = {
+    STStorageMatrixName.COST_INJECTION,
+    STStorageMatrixName.COST_WITHDRAWAL,
+    STStorageMatrixName.COST_LEVEL,
+    STStorageMatrixName.COST_VARIATION_INJECTION,
+    STStorageMatrixName.COST_VARIATION_WITHDRAWAL,
 }
 
 
@@ -55,6 +69,10 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
 
     def _get_ini_path(self, area_id: str) -> Path:
         return self.config.study_path / "input" / "st-storage" / "clusters" / area_id / "list.ini"
+
+    def _check_matrix_allowed(self, ts_name: STStorageMatrixName) -> None:
+        if self.study_version == STUDY_VERSION_8_8 and ts_name in FORBIDDEN_MATRICES_88:
+            raise ValueError(f"The matrix {ts_name.value} is not available for study version 8.8")
 
     def read_ini(self, area_id: str) -> dict[str, Any]:
         return IniReader().read(self._get_ini_path(area_id))
@@ -87,11 +105,13 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
 
     @override
     def set_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:
+        self._check_matrix_allowed(ts_name)
         checks_matrix_dimensions(matrix, f"storage/{storage.area_id}/{storage.name}", ts_name.value)
         write_timeseries(self.config.study_path, matrix, MAPPING[ts_name], storage.area_id, storage.id)
 
     @override
     def get_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName) -> pd.DataFrame:
+        self._check_matrix_allowed(ts_name)
         return read_timeseries(MAPPING[ts_name], self.config.study_path, area_id=storage.area_id, cluster_id=storage.id)
 
     @override
