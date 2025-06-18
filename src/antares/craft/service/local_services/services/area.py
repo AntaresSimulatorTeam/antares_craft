@@ -31,6 +31,7 @@ from antares.craft.model.area import (
 from antares.craft.model.hydro import Hydro, HydroProperties, InflowStructure
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
+from antares.craft.model.study import STUDY_VERSION_9_2
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.base_services import (
     BaseAreaService,
@@ -54,6 +55,7 @@ from antares.craft.tools.prepro_folder import PreproFolder
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from antares.study.version import StudyVersion
 
 
 class AreaLocalService(BaseAreaService):
@@ -61,6 +63,7 @@ class AreaLocalService(BaseAreaService):
         self,
         config: LocalConfiguration,
         study_name: str,
+        study_version: StudyVersion,
         storage_service: BaseShortTermStorageService,
         thermal_service: BaseThermalService,
         renewable_service: BaseRenewableService,
@@ -70,6 +73,7 @@ class AreaLocalService(BaseAreaService):
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
+        self.study_version = study_version
         self._storage_service: BaseShortTermStorageService = storage_service
         self._thermal_service: BaseThermalService = thermal_service
         self._renewable_service: BaseRenewableService = renewable_service
@@ -214,15 +218,30 @@ class AreaLocalService(BaseAreaService):
     def create_st_storage(
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
+        """
+        Args:
+            area_id: area in which st_storage will be created
+            st_storage_name: name of new st_storage
+            properties: if 'None', default values will be used,
+                        otherwise custom parameters to be validated with the study version
+
+        Returns:
+            New st_storage
+        """
+        custom_properties = False
+        if properties is not None:
+            custom_properties = True
         properties = properties or STStorageProperties()
-        local_properties = STStoragePropertiesLocal.from_user_model(properties)
+        local_properties = STStoragePropertiesLocal.from_user_model(properties, self.study_version, custom_properties)
 
         local_storage_service = cast(ShortTermStorageLocalService, self.storage_service)
         ini_content = local_storage_service.read_ini(area_id)
+
         ini_content[st_storage_name] = {
             "name": st_storage_name,
-            **local_properties.model_dump(mode="json", by_alias=True),
+            **local_properties.model_dump(mode="json", by_alias=True, exclude_none=True),
         }
+
         local_storage_service.save_ini(ini_content, area_id)
 
         storage = STStorage(
@@ -237,6 +256,7 @@ class AreaLocalService(BaseAreaService):
         cluster_id = storage.id
         default_matrix_ones = pd.DataFrame(default_series_with_ones)
         default_matrix_zeros = pd.DataFrame(default_series)
+        empty_matrix = pd.DataFrame()
         # fmt: off
         write_timeseries(self.config.study_path, default_matrix_ones, TimeSeriesFileType.ST_STORAGE_PMAX_INJECTION, area_id, cluster_id=cluster_id)
         write_timeseries(self.config.study_path, default_matrix_ones, TimeSeriesFileType.ST_STORAGE_PMAX_WITHDRAWAL, area_id, cluster_id=cluster_id)
@@ -245,6 +265,42 @@ class AreaLocalService(BaseAreaService):
         write_timeseries(self.config.study_path, default_matrix_ones, TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE, area_id, cluster_id=cluster_id)
         # fmt: on
 
+        if self.study_version >= STUDY_VERSION_9_2:
+            write_timeseries(
+                self.config.study_path,
+                empty_matrix,
+                TimeSeriesFileType.ST_STORAGE_COST_INJECTION,
+                area_id,
+                cluster_id=cluster_id,
+            )
+            write_timeseries(
+                self.config.study_path,
+                empty_matrix,
+                TimeSeriesFileType.ST_STORAGE_COST_WITHDRAWAL,
+                area_id,
+                cluster_id=cluster_id,
+            )
+            write_timeseries(
+                self.config.study_path,
+                empty_matrix,
+                TimeSeriesFileType.ST_STORAGE_COST_LEVEL,
+                area_id,
+                cluster_id=cluster_id,
+            )
+            write_timeseries(
+                self.config.study_path,
+                empty_matrix,
+                TimeSeriesFileType.ST_STORAGE_COST_VARIATION_INJECTION,
+                area_id,
+                cluster_id=cluster_id,
+            )
+            write_timeseries(
+                self.config.study_path,
+                empty_matrix,
+                TimeSeriesFileType.ST_STORAGE_COST_VARIATION_WITHDRAWAL,
+                area_id,
+                cluster_id=cluster_id,
+            )
         return storage
 
     @override

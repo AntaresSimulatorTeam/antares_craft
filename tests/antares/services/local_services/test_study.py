@@ -108,7 +108,9 @@ class TestCreateStudy:
             assert subdirectory_path.is_dir()
 
     def test_creation_with_wrong_version(self, tmp_path: Path) -> None:
-        with pytest.raises(UnsupportedStudyVersion, match="Unsupported study version: 830, supported ones are 8.8"):
+        with pytest.raises(
+            UnsupportedStudyVersion, match="Unsupported study version: 830, supported ones are 9.2, 8.8"
+        ):
             create_study_local("Study_Test", "830", tmp_path)
 
     def test_reading_with_wrong_version(self, tmp_path: Path) -> None:
@@ -117,7 +119,9 @@ class TestCreateStudy:
         ini_content = IniReader().read(ini_path)
         ini_content["antares"]["version"] = 820
         IniWriter().write(ini_content, ini_path)
-        with pytest.raises(UnsupportedStudyVersion, match="Unsupported study version: 820, supported ones are 8.8"):
+        with pytest.raises(
+            UnsupportedStudyVersion, match="Unsupported study version: 820, supported ones are 9.2, 8.8"
+        ):
             read_study_local(tmp_path / "Study_Test")
 
     def test_desktop_ini_creation(self, tmp_path: Path, local_study: Study) -> None:

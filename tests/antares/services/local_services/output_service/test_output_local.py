@@ -28,6 +28,7 @@ from antares.craft.model.output import (
     MCIndLinksDataType,
     Output,
 )
+from antares.craft.model.study import STUDY_VERSION_8_8
 from antares.craft.service.local_services.factory import create_local_services
 from antares.craft.service.utils import read_output_matrix
 
@@ -356,7 +357,7 @@ LINKS_REQUESTS__IND = [
 def setup_output(tmp_path: Path, output_id: str) -> Output:
     study_name = "studyTest"
     config = LocalConfiguration(tmp_path, study_name)
-    services = create_local_services(config, study_name)
+    services = create_local_services(config, study_name, STUDY_VERSION_8_8)
     output_service = services.output_service
 
     zip_path = Path(ASSETS_DIR).joinpath("output.zip")
