@@ -55,7 +55,7 @@ def find_executable_path() -> Path:
 
 
 class TestLocalLauncher:
-    def test_error_case(self, tmp_path: Path):
+    def test_error_case(self, tmp_path: Path) -> None:
         study = create_study_local("test study", "880", tmp_path)
         # Ensure it's impossible to run a study without giving a solver path at the instantiation
         with pytest.raises(
@@ -76,7 +76,7 @@ class TestLocalLauncher:
         output_path = Path(study.path / "output")
         assert list(output_path.iterdir()) == []
 
-    def test_lifecycle(self, tmp_path: Path):
+    def test_lifecycle(self, tmp_path: Path) -> None:
         solver_path = find_executable_path()
         study = create_study_local("test study", "880", tmp_path, solver_path)
         output_path = Path(study.path / "output")
@@ -138,7 +138,7 @@ class TestLocalLauncher:
         assert len(outputs) == 0
         assert study.get_outputs() == {}
 
-    def test_simulation_succeeds_with_real_study(self, tmp_path: Path):
+    def test_simulation_succeeds_with_real_study(self, tmp_path: Path) -> None:
         solver_path = find_executable_path()
         study = create_study_local("test study", "880", tmp_path, solver_path)
 
@@ -174,7 +174,7 @@ class TestLocalLauncher:
         area_fr.create_renewable_cluster("Wind onshore fr", renewable_properties)
 
         # Create short term storage
-        sts_properties = STStorageProperties(group=STStorageGroup.BATTERY, efficiency=0.4)
+        sts_properties = STStorageProperties(group=STStorageGroup.BATTERY.value, efficiency=0.4)
         area_fr.create_st_storage("Battery fr", sts_properties)
 
         # Create binding constraint

@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     )
     from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
-    from antares.craft.model.output import AggregationEntry, Output
+    from antares.craft.model.output import AggregationEntry, Frequency, Output
     from antares.craft.model.renewable import (
         RenewableCluster,
         RenewableClusterProperties,
@@ -313,18 +313,15 @@ class BaseHydroService(ABC):
         pass
 
     @abstractmethod
-    def read_properties(self) -> dict[str, "HydroProperties"]:
-        """
-        Returns:
-            The hydro properties for each area of the study
-        """
+    def read_inflow_structure_for_one_area(self, area_id: str) -> "InflowStructure":
+        """Reads the inflow structure for the given area"""
         pass
 
     @abstractmethod
-    def read_inflow_structure(self) -> dict[str, "InflowStructure"]:
+    def read_properties_and_inflow_structure(self) -> dict[str, tuple["HydroProperties", "InflowStructure"]]:
         """
         Returns:
-            The hydro inflow-structure for each area of the study
+            The hydro properties and inflow structure for each area of the study
         """
         pass
 
@@ -780,13 +777,14 @@ class BaseRunService(ABC):
 
 class BaseOutputService(ABC):
     @abstractmethod
-    def get_matrix(self, output_id: str, file_path: str) -> pd.DataFrame:
+    def get_matrix(self, output_id: str, file_path: str, frequency: "Frequency") -> pd.DataFrame:
         """
         Gets the matrix of the output
 
         Args:
             output_id: id of the output
             file_path: output path
+            frequency: Matrix frequency (annual, monthly, weekly, daily, hourly)
 
         Returns: Pandas DataFrame
         """

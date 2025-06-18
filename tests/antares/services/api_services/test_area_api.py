@@ -41,7 +41,6 @@ from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.area import AreaPropertiesAPITableMode, AreaUiAPI
-from antares.craft.service.api_services.models.hydro import HydroPropertiesAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
@@ -72,7 +71,7 @@ class TestCreateAPI:
     study = Study("TestStudy", "880", services)
     study_url = f"https://antares.com/api/v1/studies/{study_id}"
 
-    def test_update_area_properties_success(self):
+    def test_update_area_properties_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"{self.study_url}/table-mode/areas"
             properties = AreaPropertiesUpdate(energy_cost_spilled=1)
@@ -81,7 +80,7 @@ class TestCreateAPI:
             self.area.update_properties(properties=properties)
             assert self.area.properties.energy_cost_spilled == 1
 
-    def test_update_area_properties_fails(self):
+    def test_update_area_properties_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"{self.study_url}/table-mode/areas"
             properties = AreaPropertiesUpdate(energy_cost_unsupplied=100)
@@ -93,7 +92,7 @@ class TestCreateAPI:
             ):
                 self.area.update_properties(properties=properties)
 
-    def test_instantiate_area_ui_color(self):
+    def test_instantiate_area_ui_color(self) -> None:
         wrong_colors = [12]  # not enough values
         expected_msg = re.escape(f"The `color_rgb` list must contain exactly 3 values, currently {wrong_colors}")
 
@@ -103,7 +102,7 @@ class TestCreateAPI:
         with pytest.raises(ValueError, match=expected_msg):
             AreaUiUpdate(color_rgb=wrong_colors)
 
-    def test_update_area_ui_success(self):
+    def test_update_area_ui_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             ui = AreaUiUpdate(x=12, y=4, color_rgb=[16, 23, 3])
             url1 = f"{self.study_url}/areas?type=AREA&ui=true"
@@ -114,7 +113,7 @@ class TestCreateAPI:
 
             self.area.update_ui(ui)
 
-    def test_update_area_ui_fails(self):
+    def test_update_area_ui_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             ui = AreaUiUpdate(x=12, y=4, color_rgb=[16, 23, 3])
             url1 = f"{self.study_url}/areas?type=AREA&ui=true"
@@ -129,16 +128,16 @@ class TestCreateAPI:
             ):
                 self.area.update_ui(ui)
 
-    def test_create_thermal_success(self):
+    def test_create_thermal_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"{self.study_url}/areas/{self.area.id}/clusters/thermal"
-            json_response = ThermalClusterPropertiesAPI().model_dump(mode="json", by_alias=True)
+            json_response = ThermalClusterPropertiesAPI(**{}).model_dump(mode="json", by_alias=True)
             thermal_name = "thermal_cluster"
             mocker.post(url, json={"name": thermal_name, "id": thermal_name, **json_response}, status_code=201)
             thermal = self.area.create_thermal_cluster(thermal_name=thermal_name)
             assert isinstance(thermal, ThermalCluster)
 
-    def test_create_thermal_fails(self):
+    def test_create_thermal_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"{self.study_url}/areas/{self.area.id}/clusters/thermal"
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
@@ -150,10 +149,10 @@ class TestCreateAPI:
             ):
                 self.area.create_thermal_cluster(thermal_name=thermal_name)
 
-    def test_create_renewable_success(self):
+    def test_create_renewable_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"{self.study_url}/areas/{self.area.id}/clusters/renewable"
-            json_response = RenewableClusterPropertiesAPI().model_dump(mode="json", by_alias=True)
+            json_response = RenewableClusterPropertiesAPI(**{}).model_dump(mode="json", by_alias=True)
             renewable_name = "renewable_cluster"
             mocker.post(url, json={"name": renewable_name, "id": renewable_name, **json_response}, status_code=201)
 
@@ -162,7 +161,7 @@ class TestCreateAPI:
             )
             assert isinstance(renewable, RenewableCluster)
 
-    def test_create_renewable_fails(self):
+    def test_create_renewable_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"{self.study_url}/areas/{self.area.id}/clusters/renewable"
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
@@ -176,10 +175,10 @@ class TestCreateAPI:
                     renewable_name=renewable_name, properties=RenewableClusterProperties(), series=None
                 )
 
-    def test_create_st_storage_success(self):
+    def test_create_st_storage_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"{self.study_url}/areas/{self.area.id}/storages"
-            json_response = STStoragePropertiesAPI().model_dump(
+            json_response = STStoragePropertiesAPI(**{}).model_dump(
                 mode="json",
                 by_alias=True,
                 exclude={"efficiency_withdrawal", "penalize_variation_injection", "penalize_variation_withdrawal"},
@@ -190,7 +189,7 @@ class TestCreateAPI:
             st_storage = self.area.create_st_storage(st_storage_name=st_storage_name)
             assert isinstance(st_storage, STStorage)
 
-    def test_create_st_storage_fails(self):
+    def test_create_st_storage_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"{self.study_url}/areas/{self.area.id}/storages"
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
@@ -202,7 +201,7 @@ class TestCreateAPI:
             ):
                 self.area.create_st_storage(st_storage_name=st_storage_name)
 
-    def test_create_thermal_cluster_with_matrices(self):
+    def test_create_thermal_cluster_with_matrices(self) -> None:
         base_url = f"{self.api.api_host}/api/v1"
         with requests_mock.Mocker() as mocker:
             url = f"{base_url}/studies/{self.study_id}/areas/{self.area.id}/clusters/thermal"
@@ -225,7 +224,7 @@ class TestCreateAPI:
             assert len(mocker.request_history) == 4
             assert isinstance(thermal_cluster, ThermalCluster)
 
-    def test_create_hydro_success(self):
+    def test_create_hydro_success(self) -> None:
         url_hydro_form = f"{self.study_url}/areas/{self.area.id}/hydro/form"
         body = {"reservoir": True}
         with requests_mock.Mocker() as mocker:
@@ -235,7 +234,7 @@ class TestCreateAPI:
             self.area.hydro.update_properties(HydroPropertiesUpdate(reservoir=True))
             assert self.area.hydro.properties.reservoir is True
 
-    def test_read_areas_success(self):
+    def test_read_areas_success(self) -> None:
         area_id = "zone"
         study_url = f"{self.study_url}"
         url = study_url + "/areas"
@@ -244,8 +243,7 @@ class TestCreateAPI:
         url_renewable = f"{study_url}/table-mode/renewables"
         url_st_storage = f"{study_url}/table-mode/st-storages"
         url_properties_form = f"{study_url}/table-mode/areas"
-        hydro_properties_url = url + f"/{area_id}/hydro/form"
-        hydro_inflow_structure_url = url + f"/{area_id}/hydro/inflow-structure"
+        hydro_url = f"{study_url}/hydro"
 
         json_ui = {
             area_id: {
@@ -308,8 +306,15 @@ class TestCreateAPI:
             mocker.get(url_renewable, json=json_renewable)
             mocker.get(url_st_storage, json=json_st_storage)
             mocker.get(url_properties_form, json=json_properties)
-            mocker.get(hydro_properties_url, json={"reservoir_capacity": 4.5})
-            mocker.get(hydro_inflow_structure_url, json={"interMonthlyCorrelation": 0.9})
+            mocker.get(
+                hydro_url,
+                json={
+                    area_id: {
+                        "managementOptions": {"reservoir_capacity": 4.5},
+                        "inflowStructure": {"interMonthlyCorrelation": 0.9},
+                    }
+                },
+            )
 
             self.study._read_areas()
 
@@ -322,13 +327,13 @@ class TestCreateAPI:
             storage_ = list(json_st_storage.values())[0]
             storage_id = list(json_st_storage.keys())[0].split(" / ")[1]
 
-            thermal_props = ThermalClusterPropertiesAPI(**thermal_).to_user_model()
+            thermal_props = ThermalClusterPropertiesAPI.model_validate(thermal_).to_user_model()
             thermal_cluster = ThermalCluster(self.area_api.thermal_service, area_id, thermal_id, thermal_props)
-            renewable_props = RenewableClusterPropertiesAPI(**renewable_).to_user_model()
+            renewable_props = RenewableClusterPropertiesAPI.model_validate(renewable_).to_user_model()
             renewable_cluster = RenewableCluster(
                 self.area_api.renewable_service, area_id, renewable_id, renewable_props
             )
-            storage_props = STStoragePropertiesAPI(**storage_).to_user_model()
+            storage_props = STStoragePropertiesAPI.model_validate(storage_).to_user_model()
             st_storage = STStorage(self.area_api.storage_service, area_id, storage_id, storage_props)
 
             hydro = Hydro(self.area_api.hydro_service, area_id, hydro_properties, inflow_structure)
@@ -364,7 +369,7 @@ class TestCreateAPI:
             assert actual_storages[storage_id].name == expected_area.get_st_storages()[storage_id].name
             assert actual_area.hydro.properties == hydro_properties
 
-    def test_read_areas_fail(self):
+    def test_read_areas_fail(self) -> None:
         self.study._areas = {}
         with requests_mock.Mocker() as mocker:
             url_areas = f"{self.study_url}/table-mode/thermals"
@@ -375,43 +380,14 @@ class TestCreateAPI:
             ):
                 self.study._read_areas()
 
-    def test_read_hydro(self):
-        areas = {self.area.id: ""}
-        json_hydro = {
-            "interDailyBreakdown": 1,
-            "intraDailyModulation": 24,
-            "interMonthlyBreakdown": 1,
-            "reservoir": "false",
-            "reservoirCapacity": 0,
-            "followLoad": "true",
-            "useWater": "false",
-            "hardBounds": "false",
-            "initializeReservoirDate": 0,
-            "useHeuristic": "true",
-            "powerToLevel": "false",
-            "useLeeway": "false",
-            "leewayLow": 1,
-            "leewayUp": 1,
-            "pumpingEfficiency": 1,
-        }
-        areas_url = f"{self.study_url}/areas?ui=True"
-        hydro_url = f"{self.study_url}/areas/{self.area.id}/hydro/form"
-
-        with requests_mock.Mocker() as mocker:
-            mocker.get(areas_url, json=areas)
-            mocker.get(hydro_url, json=json_hydro)
-            hydro_props = HydroPropertiesAPI(**json_hydro).to_user_model()
-
-            assert {self.area.id: hydro_props} == self.area._hydro_service.read_properties()
-
-    def test_update_hydro_properties_success(self):
+    def test_update_hydro_properties_success(self) -> None:
         hydro_url = f"{self.study_url}/areas/{self.area.id}/hydro/form"
         new_properties = HydroPropertiesUpdate(hard_bounds=True)
         with requests_mock.Mocker() as mocker:
             mocker.put(hydro_url, json={})
             self.area._hydro_service.update_properties(self.area.id, new_properties)
 
-    def test_update_hydro_properties_fail(self):
+    def test_update_hydro_properties_fail(self) -> None:
         hydro_url = f"{self.study_url}/areas/{self.area.id}/hydro/form"
         new_properties = HydroPropertiesUpdate(hard_bounds=True)
         with requests_mock.Mocker() as mocker:
@@ -423,14 +399,14 @@ class TestCreateAPI:
             ):
                 self.area._hydro_service.update_properties(self.area.id, new_properties)
 
-    def test_update_inflow_structure_success(self):
+    def test_update_inflow_structure_success(self) -> None:
         hydro_url = f"{self.study_url}/areas/{self.area.id}/hydro/inflow-structure"
         inflow_structure = InflowStructureUpdate(intermonthly_correlation=0.4)
         with requests_mock.Mocker() as mocker:
             mocker.put(hydro_url, json={})
             self.area._hydro_service.update_inflow_structure(self.area.id, inflow_structure)
 
-    def test_update_inflow_structure_fail(self):
+    def test_update_inflow_structure_fail(self) -> None:
         hydro_url = f"{self.study_url}/areas/{self.area.id}/hydro/inflow-structure"
         inflow_structure = InflowStructureUpdate(intermonthly_correlation=0.4)
         with requests_mock.Mocker() as mocker:

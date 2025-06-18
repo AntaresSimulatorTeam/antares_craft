@@ -18,8 +18,8 @@ from antares.craft.tools.matrix_tool import write_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
 
-def test_write_timeseries(tmpdir):
-    file_path = Path(tmpdir)
+def test_write_timeseries(tmp_path: Path) -> None:
+    file_path = tmp_path
     df = pd.DataFrame([1, 2, 3], columns=["Value"])
 
     write_timeseries(file_path, df, TimeSeriesFileType.THERMAL_MODULATION, area_id="fr", cluster_id="gaz")

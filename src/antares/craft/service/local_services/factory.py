@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import getpass
 
 from pathlib import Path
 from typing import Optional
@@ -23,7 +24,7 @@ from antares.craft.service.local_services.services.area import AreaLocalService
 from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
 from antares.craft.service.local_services.services.hydro import HydroLocalService
 from antares.craft.service.local_services.services.link import LinkLocalService
-from antares.craft.service.local_services.services.output import OutputLocalService
+from antares.craft.service.local_services.services.output.output import OutputLocalService
 from antares.craft.service.local_services.services.renewable import RenewableLocalService
 from antares.craft.service.local_services.services.run import RunLocalService
 from antares.craft.service.local_services.services.settings import StudySettingsLocalService, edit_study_settings
@@ -71,6 +72,13 @@ def create_local_services(config: LocalConfiguration, study_name: str, study_ver
     )
 
 
+def _get_current_os_user() -> str:
+    try:
+        return getpass.getuser()
+    except ModuleNotFoundError:  # Can happen on Windows as the `pwd` module only exists on Unix
+        return "Unknown"
+
+
 def create_study_local(
     study_name: str, version: str, parent_directory: Path, solver_path: Optional[Path] = None
 ) -> "Study":
@@ -91,15 +99,13 @@ def create_study_local(
     study_directory = parent_directory / study_name
 
     study_version = StudyVersion.parse(version)
-    app = CreateApp(study_dir=study_directory, caption=study_name, version=study_version, author="Unknown")
+    app = CreateApp(study_dir=study_directory, caption=study_name, version=study_version, author=_get_current_os_user())
     app()
 
     study = Study(
         name=study_name,
         version=version,
-        services=create_local_services(
-            config=local_config, study_name=study_name, study_version=StudyVersion.parse(version)
-        ),
+        services=create_local_services(config=local_config, study_name=study_name, study_version=study_version),
         path=study_directory,
         solver_path=solver_path,
     )

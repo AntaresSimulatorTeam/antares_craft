@@ -16,11 +16,10 @@ from typing import Optional
 import pandas as pd
 
 from antares.craft.service.base_services import BaseShortTermStorageService
-from antares.craft.tools.contents_tool import transform_name_to_id
+from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 
 
-class STStorageGroup(Enum):
-    # todo: this class should disappear with Simulator version 9.1
+class STStorageGroup(EnumIgnoreCase):
     PSP_OPEN = "psp_open"
     PSP_CLOSED = "psp_closed"
     PONDAGE = "pondage"

@@ -34,9 +34,11 @@ from antares.craft.service.api_services.models.thermal import ThermalClusterProp
 from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.api_services.services.thermal import ThermalApiService
 
+fixture_type = list[tuple[str, ThermalClusterMatrixName, str, str]]
+
 
 @pytest.fixture
-def thermal_matrix_set():
+def thermal_matrix_set() -> fixture_type:
     params = [
         ("get_prepro_data_matrix", ThermalClusterMatrixName.PREPRO_DATA, "input/thermal/prepro", "prepro"),
         ("get_prepro_modulation_matrix", ThermalClusterMatrixName.PREPRO_MODULATION, "input/thermal/prepro", "prepro"),
@@ -74,14 +76,14 @@ class TestCreateAPI:
     matrix = pd.DataFrame(data=[[0]])
     study_url = f"https://antares.com/api/v1/studies/{study_id}"
 
-    def test_update_thermal_properties_success(self):
+    def test_update_thermal_properties_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             properties = ThermalClusterPropertiesUpdate(co2=4)
             url = f"{self.study_url}/table-mode/thermals"
             mocker.put(url, json={f"{self.thermal.area_id} / {self.thermal.id}": {"co2": 4}}, status_code=200)
             self.thermal.update_properties(properties=properties)
 
-    def test_update_thermal_properties_fails(self):
+    def test_update_thermal_properties_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             properties = ThermalClusterPropertiesUpdate(co2=4)
             url = f"{self.study_url}/table-mode/thermals"
@@ -94,7 +96,7 @@ class TestCreateAPI:
             ):
                 self.thermal.update_properties(properties=properties)
 
-    def test_get_thermal_matrices_success(self, thermal_matrix_set):
+    def test_get_thermal_matrices_success(self, thermal_matrix_set: fixture_type) -> None:
         for matrix_method, matrix_enum, path, path_suffix in thermal_matrix_set:
             with requests_mock.Mocker() as mocker:
                 url = (
@@ -106,7 +108,7 @@ class TestCreateAPI:
                 result_matrix = getattr(self.thermal, matrix_method)()
                 assert result_matrix.equals(self.matrix)
 
-    def test_get_thermal_matrices_fails(self, thermal_matrix_set):
+    def test_get_thermal_matrices_fails(self, thermal_matrix_set: fixture_type) -> None:
         for matrix_method, matrix_enum, path, path_suffix in thermal_matrix_set:
             with requests_mock.Mocker() as mocker:
                 url = (
@@ -122,7 +124,7 @@ class TestCreateAPI:
                 ):
                     getattr(self.thermal, matrix_method)()
 
-    def test_read_thermals(self):
+    def test_read_thermals(self) -> None:
         json_thermal = {
             "zone / therm_un": {
                 "group": "gas",
@@ -149,7 +151,7 @@ class TestCreateAPI:
 
             area_id, thermal_id = list(json_thermal.keys())[0].split(" / ")
 
-            thermal_props = ThermalClusterPropertiesAPI(**list(json_thermal.values())[0]).to_user_model()
+            thermal_props = ThermalClusterPropertiesAPI.model_validate(list(json_thermal.values())[0]).to_user_model()
             expected_thermal = ThermalCluster(area_api.thermal_service, area_id, thermal_id, thermal_props)
 
             assert len(actual_thermals) == 1
@@ -158,7 +160,7 @@ class TestCreateAPI:
             assert expected_thermal.id == actual_thermal.id
             assert expected_thermal.name == actual_thermal.name
 
-    def test_update_prepro_data_success(self):
+    def test_update_prepro_data_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/prepro/"
@@ -167,7 +169,7 @@ class TestCreateAPI:
             mocker.post(url, status_code=200)
             self.thermal.set_prepro_data(self.matrix)
 
-    def test_update_prepro_data_fail(self):
+    def test_update_prepro_data_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/prepro/"
@@ -181,7 +183,7 @@ class TestCreateAPI:
             ):
                 self.thermal.set_prepro_data(self.matrix)
 
-    def test_get_prepro_data_success(self):
+    def test_get_prepro_data_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}"
@@ -192,7 +194,7 @@ class TestCreateAPI:
             result_matrix = self.thermal.get_prepro_data_matrix()
             result_matrix.equals(self.matrix)
 
-    def test_get_prepro_data_fail(self):
+    def test_get_prepro_data_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/prepro/"
@@ -207,7 +209,7 @@ class TestCreateAPI:
             ):
                 self.thermal.get_prepro_data_matrix()
 
-    def test_update_prepro_modulation_success(self):
+    def test_update_prepro_modulation_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/prepro/"
@@ -216,7 +218,7 @@ class TestCreateAPI:
             mocker.post(url, status_code=200)
             self.thermal.set_prepro_modulation(self.matrix)
 
-    def test_update_prepro_modulation_fail(self):
+    def test_update_prepro_modulation_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/prepro/"
@@ -230,7 +232,7 @@ class TestCreateAPI:
             ):
                 self.thermal.set_prepro_modulation(self.matrix)
 
-    def test_get_prepro_modulation_success(self):
+    def test_get_prepro_modulation_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}"
@@ -241,7 +243,7 @@ class TestCreateAPI:
             result_matrix = self.thermal.get_prepro_modulation_matrix()
             result_matrix.equals(self.matrix)
 
-    def test_get_prepro_modulation_fail(self):
+    def test_get_prepro_modulation_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/prepro/"
@@ -256,7 +258,7 @@ class TestCreateAPI:
             ):
                 self.thermal.get_prepro_modulation_matrix()
 
-    def test_update_series_success(self):
+    def test_update_series_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
@@ -265,7 +267,7 @@ class TestCreateAPI:
             mocker.post(url, status_code=200)
             self.thermal.set_series(self.matrix)
 
-    def test_update_series_fail(self):
+    def test_update_series_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
@@ -279,7 +281,7 @@ class TestCreateAPI:
             ):
                 self.thermal.set_series(self.matrix)
 
-    def test_get_series_success(self):
+    def test_get_series_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}"
@@ -290,7 +292,7 @@ class TestCreateAPI:
             result_matrix = self.thermal.get_series_matrix()
             result_matrix.equals(self.matrix)
 
-    def test_get_series_fail(self):
+    def test_get_series_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
@@ -305,7 +307,7 @@ class TestCreateAPI:
             ):
                 self.thermal.get_series_matrix()
 
-    def test_update_co2_cost_success(self):
+    def test_update_co2_cost_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
@@ -314,7 +316,7 @@ class TestCreateAPI:
             mocker.post(url, status_code=200)
             self.thermal.set_co2_cost(self.matrix)
 
-    def test_update_co2_cost_fail(self):
+    def test_update_co2_cost_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
@@ -328,7 +330,7 @@ class TestCreateAPI:
             ):
                 self.thermal.set_co2_cost(self.matrix)
 
-    def test_get_co2_cost_success(self):
+    def test_get_co2_cost_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}"
@@ -339,7 +341,7 @@ class TestCreateAPI:
             result_matrix = self.thermal.get_co2_cost_matrix()
             result_matrix.equals(self.matrix)
 
-    def test_get_co2_cost_fail(self):
+    def test_get_co2_cost_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
@@ -354,7 +356,7 @@ class TestCreateAPI:
             ):
                 self.thermal.get_co2_cost_matrix()
 
-    def test_update_fuel_cost_success(self):
+    def test_update_fuel_cost_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
@@ -363,7 +365,7 @@ class TestCreateAPI:
             mocker.post(url, status_code=200)
             self.thermal.set_fuel_cost(self.matrix)
 
-    def test_update_fuel_cost_fail(self):
+    def test_update_fuel_cost_fail(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/thermal/series/"
@@ -377,7 +379,7 @@ class TestCreateAPI:
             ):
                 self.thermal.set_fuel_cost(self.matrix)
 
-    def test_update_multiple_thermal_clusters_success(self):
+    def test_update_multiple_thermal_clusters_success(self) -> None:
         dict_thermals = {"thermal-test": self.thermal, "thermal-2": self.thermal_2}
         json_thermals = {
             "area-test / thermal-test": {
@@ -424,7 +426,7 @@ class TestCreateAPI:
             updated_thermal = {}
 
             for cluster, props in json_thermals_1.items():
-                thermal_update = ThermalClusterPropertiesUpdate(**props)
+                thermal_update = ThermalClusterPropertiesUpdate(**props)  # type: ignore
                 thermal = dict_thermals[cluster]
                 updated_thermal[thermal] = thermal_update
 
@@ -442,7 +444,7 @@ class TestCreateAPI:
             assert thermal_1.properties.enabled == json_thermals["area-test-2 / thermal-2"]["enabled"]
             assert thermal_1.properties.marginal_cost == json_thermals["area-test-2 / thermal-2"]["marginalCost"]
 
-    def test_update_multiple_thermal_clusters_fail(self):
+    def test_update_multiple_thermal_clusters_fail(self) -> None:
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/thermals"
 
         with requests_mock.Mocker() as mocker:

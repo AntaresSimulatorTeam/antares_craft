@@ -11,13 +11,15 @@
 # This file is part of the Antares project.
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from typing import Optional, cast
 
 import pandas as pd
 
+from typing_extensions import override
+
 from antares.craft.model.cluster import ClusterProperties, ClusterPropertiesUpdate
 from antares.craft.service.base_services import BaseThermalService
-from antares.craft.tools.contents_tool import transform_name_to_id
+from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 
 
 class LawOption(Enum):
@@ -30,7 +32,7 @@ class LawOption(Enum):
     GEOMETRIC = "geometric"
 
 
-class ThermalClusterGroup(Enum):
+class ThermalClusterGroup(EnumIgnoreCase):
     NUCLEAR = "nuclear"
     LIGNITE = "lignite"
     HARD_COAL = "hard coal"
@@ -41,6 +43,13 @@ class ThermalClusterGroup(Enum):
     OTHER2 = "other 2"
     OTHER3 = "other 3"
     OTHER4 = "other 4"
+
+    @classmethod
+    @override
+    def _missing_(cls, value: object) -> Optional["ThermalClusterGroup"]:
+        if isinstance(value, str) and value.upper() == "OTHER":
+            return ThermalClusterGroup.OTHER1
+        return cast(Optional["ThermalClusterGroup"], super()._missing_(value))
 
 
 class LocalTSGenerationBehavior(Enum):

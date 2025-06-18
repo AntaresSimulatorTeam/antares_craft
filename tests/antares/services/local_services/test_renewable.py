@@ -17,9 +17,11 @@ from pathlib import Path
 
 import pandas as pd
 
-from antares.craft import RenewableClusterGroup, Study, TimeSeriesInterpretation
+from antares.craft import RenewableClusterGroup, Study, TimeSeriesInterpretation, read_study_local
 from antares.craft.exceptions.exceptions import MatrixFormatError
 from antares.craft.model.renewable import RenewableClusterProperties, RenewableClusterPropertiesUpdate
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
 class TestRenewable:
@@ -56,7 +58,7 @@ class TestRenewable:
         ):
             renewable.set_series(matrix)
 
-    def test_deletion(self, local_study_with_renewable):
+    def test_deletion(self, local_study_with_renewable: Study) -> None:
         area_fr = local_study_with_renewable.get_areas()["fr"]
         renewable = area_fr.get_renewables()["renewable cluster"]
         area_fr.delete_renewable_clusters([renewable])
@@ -66,7 +68,7 @@ class TestRenewable:
         ini_path = Path(local_study_with_renewable.path / "input" / "renewables" / "clusters" / "fr" / "list.ini")
         assert not ini_path.read_text()
 
-    def test_update_renewable_properties(self, local_study_with_renewable):
+    def test_update_renewable_properties(self, local_study_with_renewable: Study) -> None:
         area_fr = local_study_with_renewable.get_areas()["fr"]
         renewable = area_fr.get_renewables()["renewable cluster"]
         update_for_renewable = RenewableClusterPropertiesUpdate(
@@ -82,3 +84,16 @@ class TestRenewable:
 
         # testing the unmodified value
         assert renewable.properties.group == RenewableClusterGroup.OTHER1
+
+    def test_read_renewable_group_with_weird_case(self, local_study_with_renewable: Study) -> None:
+        """Asserts we're able to read a group written in a weird case"""
+        study_path = Path(local_study_with_renewable.path)
+        ini_path = study_path / "input" / "renewables" / "clusters" / "fr" / "list.ini"
+        ini_content = IniReader().read(ini_path)
+        ini_content["renewable cluster"]["group"] = "SolaR THERMAl"
+        IniWriter().write(ini_content, ini_path)
+        # Ensure we're able to read the study
+        study = read_study_local(study_path)
+        thermal = study.get_areas()["fr"].get_renewables()["renewable cluster"]
+        # Ensure we consider the group as THERMAL SOLAR
+        assert thermal.properties.group == RenewableClusterGroup.THERMAL_SOLAR

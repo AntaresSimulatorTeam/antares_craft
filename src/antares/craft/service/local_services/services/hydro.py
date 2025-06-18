@@ -53,7 +53,7 @@ class HydroLocalService(BaseHydroService):
     def _get_inflow_path(self, area_id: str) -> Path:
         return self.config.study_path / "input" / "hydro" / "prepro" / area_id / "prepro.ini"
 
-    def read_inflow_ini(self, area_id: str) -> dict[str, Any]:
+    def _read_inflow_ini(self, area_id: str) -> dict[str, Any]:
         return IniReader().read(self._get_inflow_path(area_id))
 
     def save_inflow_ini(self, content: dict[str, Any], area_id: str) -> None:
@@ -72,6 +72,21 @@ class HydroLocalService(BaseHydroService):
         self.save_inflow_ini(new_content, area_id)
 
     @override
+    def read_inflow_structure_for_one_area(self, area_id: str) -> InflowStructure:
+        prepro_dict = self._read_inflow_ini(area_id)
+        return HydroInflowStructureLocal.model_validate(prepro_dict).to_user_model()
+
+    @override
+    def read_properties_and_inflow_structure(self) -> dict[str, tuple[HydroProperties, InflowStructure]]:
+        response: dict[str, tuple[HydroProperties, InflowStructure]] = {}
+
+        all_properties = self.read_properties()
+        for area_id, hydro_properties in all_properties.items():
+            inflow_structure = self.read_inflow_structure_for_one_area(area_id)
+            response[area_id] = (hydro_properties, inflow_structure)
+
+        return response
+
     def read_properties(self) -> dict[str, HydroProperties]:
         hydro_properties: dict[str, HydroProperties] = {}
 
@@ -86,21 +101,6 @@ class HydroLocalService(BaseHydroService):
             hydro_properties[area_id] = user_properties
 
         return hydro_properties
-
-    @override
-    def read_inflow_structure(self) -> dict[str, InflowStructure]:
-        all_inflow_structure: dict[str, InflowStructure] = {}
-
-        prepro_path = self.config.study_path / "input" / "hydro" / "prepro"
-        if not prepro_path.exists():
-            return {}
-        for element in prepro_path.iterdir():
-            if element.is_dir():
-                ini_content = self.read_inflow_ini(area_id=element.name)
-                inflow_structure = HydroInflowStructureLocal.model_validate(ini_content).to_user_model()
-                all_inflow_structure[element.name] = inflow_structure
-
-        return all_inflow_structure
 
     @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:

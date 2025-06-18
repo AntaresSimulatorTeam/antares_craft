@@ -35,9 +35,11 @@ from antares.craft.model.study import Study
 from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 
+fixture_type = list[tuple[str, ConstraintMatrixName, str, list[list[int]]]]
+
 
 @pytest.fixture
-def constraint_set():
+def constraint_set() -> fixture_type:
     params = [
         ("get_less_term_matrix", ConstraintMatrixName.LESS_TERM, "input/bindingconstraints/bc_test_lt", [[0]]),
         ("get_greater_term_matrix", ConstraintMatrixName.GREATER_TERM, "input/bindingconstraints/bc_test_gt", [[0]]),
@@ -63,7 +65,7 @@ class TestCreateAPI:
     matrix = pd.DataFrame(data=[[0]])
     study_url = f"https://antares.com/api/v1/studies/{study_id}"
 
-    def test_update_binding_constraint_properties_success(self):
+    def test_update_binding_constraint_properties_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             update_properties = BindingConstraintPropertiesUpdate(enabled=False)
             creation_properties = BindingConstraintProperties(enabled=False)
@@ -78,7 +80,7 @@ class TestCreateAPI:
             constraint.update_properties(properties=update_properties)
             assert constraint.properties == BindingConstraintProperties(enabled=False)
 
-    def test_update_binding_constraint_properties_fails(self):
+    def test_update_binding_constraint_properties_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             update_properties = BindingConstraintPropertiesUpdate(enabled=False)
             constraint = BindingConstraint("bc_1", self.services.bc_service)
@@ -92,7 +94,7 @@ class TestCreateAPI:
             ):
                 constraint.update_properties(properties=update_properties)
 
-    def test_update_binding_constraint_term_success(self):
+    def test_update_binding_constraint_term_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             existing_term = ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=4, offset=3)
             constraint = BindingConstraint("bc_1", self.services.bc_service, None, [existing_term])
@@ -105,7 +107,7 @@ class TestCreateAPI:
             updated_term = constraint.get_terms()[existing_term.id]
             assert updated_term == ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=2, offset=3)
 
-    def test_update_binding_constraint_term_fails(self):
+    def test_update_binding_constraint_term_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             existing_term = ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=4, offset=3)
             constraint = BindingConstraint("bc_1", self.services.bc_service, None, [existing_term])
@@ -120,7 +122,7 @@ class TestCreateAPI:
             ):
                 constraint.update_term(new_term)
 
-    def test_get_constraint_matrix_success(self, constraint_set):
+    def test_get_constraint_matrix_success(self, constraint_set: fixture_type) -> None:
         constraint = BindingConstraint("bc_test", self.services.bc_service)
         for matrix_method, enum_value, path, expected_matrix in constraint_set:
             with requests_mock.Mocker() as mocker:
@@ -129,7 +131,7 @@ class TestCreateAPI:
                 constraint_matrix = getattr(constraint, matrix_method)()
             assert constraint_matrix.equals(self.matrix)
 
-    def test_get_constraint_matrix_fails(self, constraint_set):
+    def test_get_constraint_matrix_fails(self, constraint_set: fixture_type) -> None:
         constraint = BindingConstraint("bc_test", self.services.bc_service)
         for matrix_method, enum_value, path, _ in constraint_set:
             with requests_mock.Mocker() as mocker:

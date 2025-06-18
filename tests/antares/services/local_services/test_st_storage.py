@@ -115,7 +115,7 @@ class TestSTStorage:
         ):
             storage.update_pmax_injection(matrix)
 
-    def test_deletion(self, local_study_w_storage):
+    def test_deletion(self, local_study_w_storage: Study) -> None:
         area_fr = local_study_w_storage.get_areas()["fr"]
         storage = area_fr.get_st_storages()["sts_1"]
         storage_1 = area_fr.get_st_storages()["sts_2"]
@@ -126,7 +126,7 @@ class TestSTStorage:
         ini_path = Path(local_study_w_storage.path / "input" / "st-storage" / "clusters" / "fr" / "list.ini")
         assert not ini_path.read_text()
 
-    def test_st_storages_update_properties(self, local_study_w_storage):
+    def test_st_storages_update_properties(self, local_study_w_storage: Study) -> None:
         area_fr = local_study_w_storage.get_areas()["fr"]
         storage = area_fr.get_st_storages()["sts_1"]
         storage_1 = area_fr.get_st_storages()["sts_2"]
@@ -150,7 +150,7 @@ class TestSTStorage:
         assert storage_1.properties.enabled
         assert storage_1.properties.initial_level == 0.5
 
-    def test_storage_group_version_handling(self):
+    def test_storage_group_version_handling(self) -> None:
         properties_88 = STStorageProperties(
             enabled=True,
             group=STStorageGroup.BATTERY.value,

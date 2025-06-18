@@ -20,7 +20,7 @@ class LocalClass(LocalBaseModel):
     field_2: str = Field(default="char", alias="field-2")
 
 
-def test_nominal_case():
+def test_nominal_case() -> None:
     local_class = LocalClass.model_validate({"field_1": 2, "field_2": "double"})
     assert local_class.field_1 == 2
     assert local_class.field_2 == "double"
@@ -30,13 +30,13 @@ def test_nominal_case():
     assert local_class.field_2 == "double"
 
 
-def test_empty_fields():
+def test_empty_fields() -> None:
     local_class = LocalClass.model_validate({})
     assert local_class.field_1 == 1
     assert local_class.field_2 == "char"
 
 
-def test_fields_with_no_value():
+def test_fields_with_no_value() -> None:
     """
     The Simulator allows this format:
 

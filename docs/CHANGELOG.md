@@ -1,3 +1,38 @@
+v0.2.7 (2025-06-13)
+-------------------
+
+### Breaking changes
+This version is only compatible with AntaresWeb v2.21.0 and higher due to [188](https://github.com/AntaresSimulatorTeam/antares_craft/pull/188)
+
+We also changed the user output interaction due to [186](https://github.com/AntaresSimulatorTeam/antares_craft/pull/186)  
+**Example:**  
+Previously: 
+```res = output.aggregate_areas_mc_all(query_file="details", frequency="hourly")```   
+Now:
+```res = output.aggregate_mc_all_areas(data_type="details", frequency="hourly")```
+
+
+### Features
+* **version** handle explicitely only `v8.8` studies [181](https://github.com/AntaresSimulatorTeam/antares_craft/pull/181)
+* **local** implement local output service [185](https://github.com/AntaresSimulatorTeam/antares_craft/pull/185)
+* **local** use `getpass.getuser()` when creating a local study [189](https://github.com/AntaresSimulatorTeam/antares_craft/pull/189)
+* **local** add clusters reading inside `read_study_local` [191](https://github.com/AntaresSimulatorTeam/antares_craft/pull/191)
+
+### Bug fixes
+* **local**: allow study reading when there's no `output` folder [175](https://github.com/AntaresSimulatorTeam/antares_craft/pull/175)
+* **local**: `read_areas` method relies on study path [176](https://github.com/AntaresSimulatorTeam/antares_craft/pull/176)
+* **local**: support several values for `accuracy_on_correlation` field [177](https://github.com/AntaresSimulatorTeam/antares_craft/pull/177)
+* **local**: allow area names inside hydro.ini file [178](https://github.com/AntaresSimulatorTeam/antares_craft/pull/178)
+* **local**: fix several issues on cluster group parsing [192](https://github.com/AntaresSimulatorTeam/antares_craft/pull/192)
+* **settings**: allow reading legacy values [193](https://github.com/AntaresSimulatorTeam/antares_craft/pull/193)
+
+### Miscellaneous
+* **build**: restore Windows CI [172](https://github.com/AntaresSimulatorTeam/antares_craft/pull/172)
+* **build**: bump `ruff` and `mypy` [173](https://github.com/AntaresSimulatorTeam/antares_craft/pull/173)
+* **local**: use `antares-study-version` package to simplify the code [180](https://github.com/AntaresSimulatorTeam/antares_craft/pull/180)
+* **build**: bump tox [182](https://github.com/AntaresSimulatorTeam/antares_craft/pull/182)
+* **chore**: use mypy inside tests [190](https://github.com/AntaresSimulatorTeam/antares_craft/pull/190)
+
 v0.2.6 (2025-04-14)
 -------------------
 
