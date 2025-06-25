@@ -71,12 +71,9 @@ class STStorageProperties:
     initial_level_optim: bool = False
     enabled: bool = True
     # add new parameter 9.2
-    efficiency_withdrawal: float = 1
-    penalize_variation_injection: bool = False
-    penalize_variation_withdrawal: bool = False
-
-
-# mettre tout a NONE pour refaire @field_validator
+    efficiency_withdrawal: Optional[float] = None
+    penalize_variation_injection: Optional[float] = None
+    penalize_variation_withdrawal: Optional[float] = None
 
 
 class STStorage:

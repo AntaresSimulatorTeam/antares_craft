@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 from pydantic import Field, field_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -37,10 +37,9 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
     initial_level_optim: bool = False
     enabled: bool = True
     # add new parameter 9.2
-    efficiency_withdrawal: float = 1
-
-    penalize_variation_injection: bool = Field(False, alias="penalize-variation-injection")
-    penalize_variation_withdrawal: bool = Field(False, alias="penalize-variation-withdrawal")
+    efficiency_withdrawal: Optional[float] = None
+    penalize_variation_injection: Optional[bool] = Field(None, alias="penalize-variation-injection")
+    penalize_variation_withdrawal: Optional[bool] = Field(None, alias="penalize-variation-withdrawal")
 
     @field_validator("group")
     def validate_group(cls, v: str | STStorageGroup | None, info: ValidationInfo) -> str:
@@ -63,12 +62,14 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
         study_version = info.context.get("study_version") if info.context is not None else None
         if study_version == STUDY_VERSION_8_8:
             return None
+        if v is None:
+            if info.field_name == "efficiency_withdrawal":
+                return 1.0
+            return False
         return v
 
     @staticmethod
-    def from_user_model(
-        user_class: STStoragePropertiesType, study_version: StudyVersion, custom_properties: bool
-    ) -> "STStoragePropertiesLocal":
+    def from_user_model(user_class: STStoragePropertiesType, study_version: StudyVersion) -> "STStoragePropertiesLocal":
         user_dict = {k: v for k, v in asdict(user_class).items() if v is not None}
 
         if study_version == STUDY_VERSION_8_8:
@@ -80,31 +81,54 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
             if group not in valid_values:
                 raise ValueError("In 8.8, group must be a valid string value from STStorageGroup")
 
-        if study_version == STUDY_VERSION_8_8 and custom_properties is True:
             fields_to_check = ["penalize_variation_injection", "penalize_variation_withdrawal", "efficiency_withdrawal"]
-            violations = []
-            for field in fields_to_check:
-                value = user_dict.get(field)
-                expected_value = STStoragePropertiesLocal.model_fields[field].default
-                if value is not None and value != expected_value:
-                    violations.append(field)
 
+            violations = [field for field in fields_to_check if field in user_dict]
             if violations:
                 raise ValueError(f"In version 8.8, the following values are not allowed: {', '.join(violations)}")
+
+            for field in fields_to_check:
+                if field in user_dict:
+                    user_dict.pop(field)
+
+            user_dict["efficiency_withdrawal"] = None
+            user_dict["penalize_variation_injection"] = None
+            user_dict["penalize_variation_withdrawal"] = None
+        else:
+            if "efficiency_withdrawal" not in user_dict:
+                user_dict["efficiency_withdrawal"] = 1
+            if "penalize_variation_injection" not in user_dict:
+                user_dict["penalize_variation_injection"] = False
+            if "penalize_variation_withdrawal" not in user_dict:
+                user_dict["penalize_variation_withdrawal"] = False
 
         return STStoragePropertiesLocal.model_validate(user_dict, context={"study_version": study_version})
 
     def to_user_model(self) -> STStorageProperties:
-        return STStorageProperties(
-            enabled=self.enabled,
-            group=self.group,
-            injection_nominal_capacity=self.injection_nominal_capacity,
-            withdrawal_nominal_capacity=self.withdrawal_nominal_capacity,
-            reservoir_capacity=self.reservoir_capacity,
-            efficiency=self.efficiency,
-            initial_level=self.initial_level,
-            initial_level_optim=self.initial_level_optim,
-            efficiency_withdrawal=self.efficiency_withdrawal,
-            penalize_variation_injection=self.penalize_variation_injection,
-            penalize_variation_withdrawal=self.penalize_variation_withdrawal,
-        )
+        # For version 9.2 and above, include the additional properties
+        if self.efficiency_withdrawal is not None:
+            return STStorageProperties(
+                enabled=self.enabled,
+                group=self.group,
+                injection_nominal_capacity=self.injection_nominal_capacity,
+                withdrawal_nominal_capacity=self.withdrawal_nominal_capacity,
+                reservoir_capacity=self.reservoir_capacity,
+                efficiency=self.efficiency,
+                initial_level=self.initial_level,
+                initial_level_optim=self.initial_level_optim,
+                efficiency_withdrawal=self.efficiency_withdrawal,
+                penalize_variation_injection=self.penalize_variation_injection,
+                penalize_variation_withdrawal=self.penalize_variation_withdrawal,
+            )
+        # For version 8.8, use default values for the additional properties
+        else:
+            return STStorageProperties(
+                enabled=self.enabled,
+                group=self.group,
+                injection_nominal_capacity=self.injection_nominal_capacity,
+                withdrawal_nominal_capacity=self.withdrawal_nominal_capacity,
+                reservoir_capacity=self.reservoir_capacity,
+                efficiency=self.efficiency,
+                initial_level=self.initial_level,
+                initial_level_optim=self.initial_level_optim,
+            )
