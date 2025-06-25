@@ -140,8 +140,9 @@ class TestCreateAPI:
             renewable_service = Mock()
             thermal_service = Mock()
             hydro_service = Mock()
+            bc_service = Mock()
             area_api = AreaApiService(
-                self.api, study_id_test, storage_api, thermal_service, renewable_service, hydro_service
+                self.api, study_id_test, storage_api, thermal_service, renewable_service, hydro_service, bc_service
             )
 
             actual_storages = storage_api.read_st_storages()

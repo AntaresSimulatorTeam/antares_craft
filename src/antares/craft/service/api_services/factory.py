@@ -39,11 +39,13 @@ def create_api_services(config: APIconf, study_id: str = "") -> StudyServices:
     thermal_service = ThermalApiService(config, study_id)
     renewable_service = RenewableApiService(config, study_id)
     hydro_service = HydroApiService(config, study_id)
-    area_service = AreaApiService(config, study_id, storage_service, thermal_service, renewable_service, hydro_service)
+    bc_service = BindingConstraintApiService(config, study_id)
+    area_service = AreaApiService(
+        config, study_id, storage_service, thermal_service, renewable_service, hydro_service, bc_service
+    )
     link_service = LinkApiService(config, study_id)
     output_service = OutputApiService(config, study_id)
     study_service = StudyApiService(config, study_id, output_service)
-    bc_service = BindingConstraintApiService(config, study_id)
     run_service = RunApiService(config, study_id)
     settings_service = StudySettingsAPIService(config, study_id)
     return StudyServices(

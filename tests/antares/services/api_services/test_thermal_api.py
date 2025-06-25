@@ -143,8 +143,9 @@ class TestCreateAPI:
             renewable_service = Mock()
             storage_service = Mock()
             hydro_service = Mock()
+            bc_service = Mock()
             area_api = AreaApiService(
-                self.api, study_id_test, storage_service, thermal_api, renewable_service, hydro_service
+                self.api, study_id_test, storage_service, thermal_api, renewable_service, hydro_service, bc_service
             )
 
             actual_thermals = thermal_api.read_thermal_clusters()

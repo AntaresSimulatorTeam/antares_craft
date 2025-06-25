@@ -503,3 +503,28 @@ class UnsupportedStudyVersion(Exception):
         supported_list = ", ".join(f"{v:2d}" for v in supported_versions)
         msg = f"Unsupported study version: {version}, supported ones are {supported_list}"
         super().__init__(msg)
+
+
+class ReferencedObjectDeletionNotAllowed(Exception):
+    """
+    Exception raised when a binding constraint is not allowed to be deleted because it references
+    other objects: areas, links or thermal clusters.
+    """
+
+    def __init__(self, object_id: str, binding_ids: list[str], *, object_type: str) -> None:
+        """
+        Initialize the exception.
+
+        Args:
+            object_id: ID of the object that is not allowed to be deleted.
+            binding_ids: Binding constraints IDs that reference the object.
+            object_type: Type of the object that is not allowed to be deleted: area, link or thermal cluster.
+        """
+        max_count = 10
+        first_bcs_ids = ",\n".join(f"{i}- '{bc}'" for i, bc in enumerate(binding_ids[:max_count], 1))
+        and_more = f",\nand {len(binding_ids) - max_count} more..." if len(binding_ids) > max_count else "."
+        message = (
+            f"{object_type} '{object_id}' is not allowed to be deleted, because it is referenced"
+            f" in the following binding constraints:\n{first_bcs_ids}{and_more}"
+        )
+        super().__init__(message)

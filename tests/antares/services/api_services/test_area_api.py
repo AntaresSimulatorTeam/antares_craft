@@ -56,6 +56,7 @@ class TestCreateAPI:
     thermal_service = services.thermal_service
     renewable_service = services.renewable_service
     hydro_service = services.hydro_service
+    bc_service = services.bc_service
     area = Area("area_test", area_service, st_storage_service, thermal_service, renewable_service, hydro_service)
 
     area_api = AreaApiService(
@@ -65,6 +66,7 @@ class TestCreateAPI:
         thermal_service,
         renewable_service,
         hydro_service,
+        bc_service,
     )
     antares_web_description_msg = "Mocked Server KO"
     matrix = pd.DataFrame(data=[[1]])

@@ -49,7 +49,10 @@ class TestDeleteAPI:
     renewable_service = RenewableApiService(api, study_id)
     st_storage_service = ShortTermStorageApiService(api, study_id)
     hydro_service = HydroApiService(api, study_id)
-    area_service = AreaApiService(api, study_id, st_storage_service, thermal_service, renewable_service, hydro_service)
+    bc_service = BindingConstraintApiService(api, study_id)
+    area_service = AreaApiService(
+        api, study_id, st_storage_service, thermal_service, renewable_service, hydro_service, bc_service
+    )
     area_fr = Area("fr", area_service, st_storage_service, thermal_service, renewable_service, hydro_service)
     area_be = Area("be", area_service, st_storage_service, thermal_service, renewable_service, hydro_service)
     link_service = LinkApiService(api, study_id)
