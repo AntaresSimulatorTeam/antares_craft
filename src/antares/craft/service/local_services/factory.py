@@ -41,13 +41,13 @@ def create_local_services(config: LocalConfiguration, study_name: str = "") -> S
     thermal_service = ThermalLocalService(config, study_name)
     renewable_service = RenewableLocalService(config, study_name)
     hydro_service = HydroLocalService(config, study_name)
+    bc_service = BindingConstraintLocalService(config, study_name)
     area_service = AreaLocalService(
-        config, study_name, storage_service, thermal_service, renewable_service, hydro_service
+        config, study_name, storage_service, thermal_service, renewable_service, hydro_service, bc_service
     )
     link_service = LinkLocalService(config, study_name)
     output_service = OutputLocalService(config, study_name)
     study_service = StudyLocalService(config, study_name, output_service)
-    bc_service = BindingConstraintLocalService(config, study_name)
     run_service = RunLocalService(config, study_name)
     settings_service = StudySettingsLocalService(config, study_name)
     short_term_storage_service = ShortTermStorageLocalService(config, study_name)

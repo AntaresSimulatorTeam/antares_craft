@@ -18,8 +18,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.craft import FilterOption, Study
-from antares.craft.exceptions.exceptions import LinkDeletionError, MatrixFormatError
+from antares.craft import ConstraintTerm, FilterOption, LinkData, Study
+from antares.craft.exceptions.exceptions import LinkDeletionError, MatrixFormatError, ReferencedObjectDeletionNotAllowed
 from antares.craft.model.link import AssetType, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
 from antares.craft.tools.serde_local.ini_reader import IniReader
 
@@ -150,4 +150,21 @@ class TestLink:
         assert "fr" not in ini_content
 
         with pytest.raises(LinkDeletionError, match=re.escape("Could not delete the link at / fr: it doesn't exist")):
+            local_study_w_links.delete_link(link)
+
+        # Recreate the link
+        link = local_study_w_links.create_link(
+            area_from="at",
+            area_to="fr",
+        )
+        # Create a constraint referencing the link
+        cluster_data = LinkData(area1="at", area2="fr")
+        cluster_term = ConstraintTerm(data=cluster_data, weight=4.5, offset=3)
+        local_study_w_links.create_binding_constraint(name="bc 1", terms=[cluster_term])
+
+        # Ensures the link deletion fails
+        with pytest.raises(
+            ReferencedObjectDeletionNotAllowed,
+            match="Link 'at / fr' is not allowed to be deleted, because it is referenced in the following binding constraints:\n1- 'bc 1'",
+        ):
             local_study_w_links.delete_link(link)

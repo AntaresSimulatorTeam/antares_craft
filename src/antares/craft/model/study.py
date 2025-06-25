@@ -26,6 +26,7 @@ from antares.craft import (
 from antares.craft.exceptions.exceptions import (
     LinkCreationError,
     ReadingMethodUsedOufOfScopeError,
+    ReferencedObjectDeletionNotAllowed,
     UnsupportedStudyVersion,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
@@ -33,7 +34,9 @@ from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
+    ClusterData,
     ConstraintTerm,
+    LinkData,
 )
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi
 from antares.craft.model.output import Output
@@ -144,6 +147,20 @@ class Study:
         return area
 
     def delete_area(self, area: Area) -> None:
+        # Check area is not referenced in any binding constraint
+        referencing_binding_constraints = []
+        for bc in self._binding_constraints.values():
+            for term in bc._terms.values():
+                data = term.data
+                if (isinstance(data, ClusterData) and data.area == area.id) or (
+                    isinstance(data, LinkData) and (data.area1 == area.id or data.area2 == area.id)
+                ):
+                    referencing_binding_constraints.append(bc.name)
+                    break
+        if referencing_binding_constraints:
+            raise ReferencedObjectDeletionNotAllowed(area.id, referencing_binding_constraints, object_type="Area")
+
+        # Delete the area
         self._area_service.delete_area(area.id)
         self._areas.pop(area.id)
 
@@ -175,6 +192,18 @@ class Study:
         return link
 
     def delete_link(self, link: Link) -> None:
+        # Check link is not referenced in any binding constraint
+        referencing_binding_constraints = []
+        for bc in self._binding_constraints.values():
+            for term in bc._terms.values():
+                data = term.data
+                if isinstance(data, LinkData) and data.area1 == link.area_from_id and data.area2 == link.area_to_id:
+                    referencing_binding_constraints.append(bc.name)
+                    break
+        if referencing_binding_constraints:
+            raise ReferencedObjectDeletionNotAllowed(link.id, referencing_binding_constraints, object_type="Link")
+
+        # Delete the link
         self._link_service.delete_link(link)
         self._links.pop(link.id)
 

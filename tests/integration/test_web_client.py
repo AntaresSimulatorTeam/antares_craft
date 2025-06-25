@@ -70,11 +70,11 @@ from antares.craft import (
     read_study_api,
 )
 from antares.craft.exceptions.exceptions import (
-    AreaDeletionError,
     BindingConstraintCreationError,
     ConstraintMatrixUpdateError,
     InvalidRequestForScenarioBuilder,
     MatrixUploadError,
+    ReferencedObjectDeletionNotAllowed,
     STStorageMatrixUploadError,
     StudySettingsUpdateError,
 )
@@ -704,10 +704,8 @@ class TestWebClient:
 
         # tests area deletion error
         with pytest.raises(
-            AreaDeletionError,
-            match=f"Could not delete the area fr: Area '{area_fr.id}' is not allowed "
-            f"to be deleted, because it is referenced in "
-            f"the following binding constraints:\n1- 'bc_2'.",
+            ReferencedObjectDeletionNotAllowed,
+            match="Area 'fr' is not allowed to be deleted, because it is referenced in the following binding constraints:\n1- 'bc_2'.",
         ):
             study.delete_area(area_fr)
 
