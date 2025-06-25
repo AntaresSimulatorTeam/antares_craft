@@ -19,8 +19,13 @@ from typing import cast
 import numpy as np
 import pandas as pd
 
-from antares.craft import LocalConfiguration, Study
-from antares.craft.exceptions.exceptions import MatrixFormatError, ThermalCreationError, ThermalDeletionError
+from antares.craft import ClusterData, ConstraintTerm, LocalConfiguration, Study
+from antares.craft.exceptions.exceptions import (
+    MatrixFormatError,
+    ReferencedObjectDeletionNotAllowed,
+    ThermalCreationError,
+    ThermalDeletionError,
+)
 from antares.craft.model.thermal import (
     LawOption,
     LocalTSGenerationBehavior,
@@ -390,3 +395,25 @@ variableomcost = 5.0
         thermal = study.get_areas()["fr"].get_thermals()["test thermal cluster"]
         # Ensure we consider the group as OTHER1
         assert thermal.properties.group == ThermalClusterGroup.OTHER1
+
+    def test_delete_referenced_cluster(self, local_study_w_thermal: Study) -> None:
+        area_fr = local_study_w_thermal.get_areas()["fr"]
+
+        # Create a constraint referencing the cluster
+        cluster_data = ClusterData(area=area_fr.id, cluster="test thermal cluster")
+        cluster_term = ConstraintTerm(data=cluster_data, weight=4.5, offset=3)
+        local_study_w_thermal.create_binding_constraint(name="bc 1", terms=[cluster_term])
+
+        # Ensures the area deletion fails
+        with pytest.raises(
+            ReferencedObjectDeletionNotAllowed,
+            match="Area 'fr' is not allowed to be deleted, because it is referenced in the following binding constraints:\n1- 'bc 1'",
+        ):
+            local_study_w_thermal.delete_area(area_fr)
+
+        # Ensures the cluster deletion fails
+        with pytest.raises(
+            ReferencedObjectDeletionNotAllowed,
+            match="Thermal cluster 'test thermal cluster' is not allowed to be deleted, because it is referenced in the following binding constraints:\n1- 'bc 1'",
+        ):
+            area_fr.delete_thermal_cluster(area_fr.get_thermals()["test thermal cluster"])
