@@ -47,7 +47,6 @@ from antares.craft.service.api_services.services.hydro import HydroApiService
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import (
     BaseAreaService,
-    BaseBindingConstraintService,
     BaseHydroService,
     BaseRenewableService,
     BaseShortTermStorageService,
@@ -64,7 +63,6 @@ class AreaApiService(BaseAreaService):
         thermal_service: BaseThermalService,
         renewable_service: BaseRenewableService,
         hydro_service: BaseHydroService,
-        binding_constraint_service: BaseBindingConstraintService,
     ) -> None:
         super().__init__()
         self.api_config = config
@@ -75,7 +73,6 @@ class AreaApiService(BaseAreaService):
         self._thermal_service: BaseThermalService = thermal_service
         self._renewable_service: BaseRenewableService = renewable_service
         self._hydro_service: BaseHydroService = hydro_service
-        self._binding_constraint_service: BaseBindingConstraintService = binding_constraint_service
 
     @override
     @property
