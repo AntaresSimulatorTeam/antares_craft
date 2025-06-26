@@ -34,6 +34,13 @@ from antares.craft.model.link import (
     LinkUiUpdate,
     TransmissionCapacities,
 )
+from antares.craft.model.output import (
+    Frequency,
+    MCAllAreasDataType,
+    MCAllLinksDataType,
+    MCIndAreasDataType,
+    MCIndLinksDataType,
+)
 from antares.craft.model.renewable import (
     RenewableClusterGroup,
     RenewableClusterProperties,
@@ -135,6 +142,11 @@ __all__ = [
     "ThermalClusterGroup",
     "LocalTSGenerationBehavior",
     "ThermalCostGeneration",
+    "Frequency",
+    "MCIndAreasDataType",
+    "MCAllAreasDataType",
+    "MCIndLinksDataType",
+    "MCAllLinksDataType",
     # Model classes
     "AdequacyPatchParametersUpdate",
     "AdvancedParametersUpdate",
