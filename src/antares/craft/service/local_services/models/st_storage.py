@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from pydantic import Field, field_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -47,18 +47,21 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
         if study_version == STUDY_VERSION_8_8:
             if v is None or v == "":
                 return STStorageGroup.OTHER1.value
-            if isinstance(v, str):
-                try:
-                    _ = STStorageGroup(v)
-                    return v
-                except ValueError:
-                    raise ValueError(f"Group for 8.8 has to be a valid value : {[e.value for e in STStorageGroup]}")
-            if isinstance(v, STStorageGroup):
-                return v.value
+
+            value = v.value if isinstance(v, STStorageGroup) else v
+            valid_values = [e.value for e in STStorageGroup]
+
+            if value not in valid_values:
+                raise ValueError(f"Group for 8.8 has to be a valid value : {valid_values}")
+
+            return value
+
         return str(v) if v is not None else ""
 
-    @field_validator("efficiency_withdrawal", "penalize_variation_injection", "penalize_variation_withdrawal")
-    def check_version_support(cls, v: Union[str, STStorageGroup], info: ValidationInfo) -> Any:
+    @field_validator(
+        "efficiency_withdrawal", "penalize_variation_injection", "penalize_variation_withdrawal", mode="before"
+    )
+    def check_version_support(cls, v: str | bool | float | None, info: ValidationInfo) -> Any:
         study_version = info.context.get("study_version") if info.context is not None else None
         if study_version == STUDY_VERSION_8_8:
             return None
@@ -86,17 +89,9 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
             violations = [field for field in fields_to_check if field in user_dict]
             if violations:
                 raise ValueError(f"In version 8.8, the following values are not allowed: {', '.join(violations)}")
-
-            for field in fields_to_check:
-                if field in user_dict:
-                    user_dict.pop(field)
-
-            user_dict["efficiency_withdrawal"] = None
-            user_dict["penalize_variation_injection"] = None
-            user_dict["penalize_variation_withdrawal"] = None
         else:
             if "efficiency_withdrawal" not in user_dict:
-                user_dict["efficiency_withdrawal"] = 1
+                user_dict["efficiency_withdrawal"] = 1.0
             if "penalize_variation_injection" not in user_dict:
                 user_dict["penalize_variation_injection"] = False
             if "penalize_variation_withdrawal" not in user_dict:
@@ -105,30 +100,34 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
         return STStoragePropertiesLocal.model_validate(user_dict, context={"study_version": study_version})
 
     def to_user_model(self) -> STStorageProperties:
-        # For version 9.2 and above, include the additional properties
-        if self.efficiency_withdrawal is not None:
-            return STStorageProperties(
-                enabled=self.enabled,
-                group=self.group,
-                injection_nominal_capacity=self.injection_nominal_capacity,
-                withdrawal_nominal_capacity=self.withdrawal_nominal_capacity,
-                reservoir_capacity=self.reservoir_capacity,
-                efficiency=self.efficiency,
-                initial_level=self.initial_level,
-                initial_level_optim=self.initial_level_optim,
-                efficiency_withdrawal=self.efficiency_withdrawal,
-                penalize_variation_injection=self.penalize_variation_injection,
-                penalize_variation_withdrawal=self.penalize_variation_withdrawal,
-            )
-        # For version 8.8, use default values for the additional properties
-        else:
-            return STStorageProperties(
-                enabled=self.enabled,
-                group=self.group,
-                injection_nominal_capacity=self.injection_nominal_capacity,
-                withdrawal_nominal_capacity=self.withdrawal_nominal_capacity,
-                reservoir_capacity=self.reservoir_capacity,
-                efficiency=self.efficiency,
-                initial_level=self.initial_level,
-                initial_level_optim=self.initial_level_optim,
-            )
+        # For version 9.2 and above, we need to set the default values for the new properties
+        efficiency_withdrawal = self.efficiency_withdrawal
+        penalize_variation_injection = self.penalize_variation_injection
+        penalize_variation_withdrawal = self.penalize_variation_withdrawal
+
+        # If we're in version 9.2 or above and the values are None, set the defaults
+        if (
+            efficiency_withdrawal is not None
+            or penalize_variation_injection is not None
+            or penalize_variation_withdrawal is not None
+        ):
+            if efficiency_withdrawal is None:
+                efficiency_withdrawal = 1.0
+            if penalize_variation_injection is None:
+                penalize_variation_injection = False
+            if penalize_variation_withdrawal is None:
+                penalize_variation_withdrawal = False
+
+        return STStorageProperties(
+            enabled=self.enabled,
+            group=self.group,
+            injection_nominal_capacity=self.injection_nominal_capacity,
+            withdrawal_nominal_capacity=self.withdrawal_nominal_capacity,
+            reservoir_capacity=self.reservoir_capacity,
+            efficiency=self.efficiency,
+            initial_level=self.initial_level,
+            initial_level_optim=self.initial_level_optim,
+            efficiency_withdrawal=efficiency_withdrawal,
+            penalize_variation_injection=penalize_variation_injection,
+            penalize_variation_withdrawal=penalize_variation_withdrawal,
+        )

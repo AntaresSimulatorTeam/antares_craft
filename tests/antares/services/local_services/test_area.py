@@ -135,7 +135,22 @@ class TestCreateSTStorage:
 
     def test_storage_has_correct_default_properties_92(self, local_study_92: Study) -> None:
         st_storage = local_study_92.get_areas()["fr"].create_st_storage("short term storage")
-        assert st_storage.properties == STStorageProperties()
+
+        expected_properties_9_2 = STStorageProperties(
+            group=STStorageGroup.OTHER1.value,
+            injection_nominal_capacity=0,
+            withdrawal_nominal_capacity=0,
+            reservoir_capacity=0,
+            efficiency=1,
+            initial_level=0.5,
+            initial_level_optim=False,
+            enabled=True,
+            efficiency_withdrawal=1.0,
+            penalize_variation_injection=False,
+            penalize_variation_withdrawal=False,
+        )
+
+        assert st_storage.properties == expected_properties_9_2
 
     def test_st_storage_list_ini_exists(self, local_study_with_st_storage: Study) -> None:
         study_path = Path(local_study_with_st_storage.path)
@@ -209,7 +224,15 @@ penalize-variation-withdrawal = False
         ini_content = (study_path / "input" / "st-storage" / "clusters" / "fr" / "list.ini").read_text()
         assert ini_content == expected_st_storage_list_ini_content
 
-        assert created_storage.properties == properties
+        # For version 9.2, default values are set for properties that weren't explicitly provided
+        expected_properties = STStorageProperties(
+            group=STStorageGroup.BATTERY.value,
+            reservoir_capacity=12.345,
+            efficiency_withdrawal=0.9,
+            penalize_variation_injection=False,
+            penalize_variation_withdrawal=False,
+        )
+        assert created_storage.properties == expected_properties
 
     def test_creation_default_matrices_92(self, tmp_path: Path, local_study_92: Study) -> None:
         # given

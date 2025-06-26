@@ -218,17 +218,6 @@ class AreaLocalService(BaseAreaService):
     def create_st_storage(
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
-        """
-        Args:
-            area_id: area in which st_storage will be created
-            st_storage_name: name of new st_storage
-            properties: if 'None', default values will be used,
-                        otherwise custom parameters to be validated with the study version
-
-        Returns:
-            New st_storage
-        """
-
         properties = properties or STStorageProperties()
         local_properties = STStoragePropertiesLocal.from_user_model(properties, self.study_version)
 
@@ -242,11 +231,12 @@ class AreaLocalService(BaseAreaService):
 
         local_storage_service.save_ini(ini_content, area_id)
 
+        user_properties = local_properties.to_user_model()
         storage = STStorage(
             self.storage_service,
             area_id,
             st_storage_name,
-            properties,
+            user_properties,
         )
 
         # Create matrices

@@ -37,7 +37,7 @@ from antares.study.version.create_app import CreateApp
 
 
 def create_local_services(config: LocalConfiguration, study_name: str, study_version: StudyVersion) -> StudyServices:
-    storage_service = ShortTermStorageLocalService(config, study_name, study_version)
+    short_term_storage_service = ShortTermStorageLocalService(config, study_name, study_version)
     thermal_service = ThermalLocalService(config, study_name)
     renewable_service = RenewableLocalService(config, study_name)
     hydro_service = HydroLocalService(config, study_name)
@@ -45,7 +45,7 @@ def create_local_services(config: LocalConfiguration, study_name: str, study_ver
         config,
         study_name,
         study_version,
-        storage_service,
+        short_term_storage_service,
         thermal_service,
         renewable_service,
         hydro_service,
@@ -140,7 +140,9 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
         name=study_params["caption"],
         version=study_params["version"],
         services=create_local_services(
-            config=local_config, study_name=study_params["caption"], study_version=study_params["version"]
+            config=local_config,
+            study_name=study_params["caption"],
+            study_version=StudyVersion.parse(study_params["version"]),
         ),
         path=study_directory,
         solver_path=solver_path,
