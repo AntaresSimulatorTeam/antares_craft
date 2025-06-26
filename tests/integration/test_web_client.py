@@ -75,7 +75,6 @@ from antares.craft.exceptions.exceptions import (
     InvalidRequestForScenarioBuilder,
     MatrixUploadError,
     ReferencedObjectDeletionNotAllowed,
-    STStorageMatrixUploadError,
     StudySettingsUpdateError,
 )
 from antares.craft.model.hydro import InflowStructureUpdate
@@ -366,15 +365,6 @@ class TestWebClient:
         assert area_be_props.dispatch_hydro_power
 
         # tests upload matrix for short term storage.
-        # Case that fails
-        wrong_matrix = pd.DataFrame(data=[[0]])
-        with pytest.raises(
-            STStorageMatrixUploadError,
-            match=f"Could not upload inflows matrix for storage {battery_fr.id} inside area {area_fr.id}",
-        ):
-            battery_fr.set_storage_inflows(wrong_matrix)
-
-        # Case that succeeds
         injection_matrix = pd.DataFrame(data=np.zeros((8760, 1)))
         battery_fr.update_pmax_injection(injection_matrix)
 

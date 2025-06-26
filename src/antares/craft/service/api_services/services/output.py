@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+
 from io import StringIO
 from pathlib import Path
 
@@ -66,7 +67,15 @@ class OutputApiService(BaseOutputService):
     ) -> pd.DataFrame:
         url = f"{self._base_url}/studies/{self.study_id}/{object_type}/aggregate/mc-{mc_type}/{output_id}?{aggregation_entry.to_api_query(object_type)}"
         try:
-            response = self._wrapper.get(url)
-            return pd.read_csv(StringIO(response.text))
+            download_id = self._wrapper.get(url).json()
+            metadata_url = f"{self._base_url}/downloads/{download_id}/metadata?wait_for_availability=True"
+            # Wait for the aggregation to end
+            self._wrapper.get(metadata_url)
+
+            # Returns the aggregation
+            download_url = f"{self._base_url}/downloads/{download_id}"
+            aggregate = self._wrapper.get(download_url)
+            return pd.read_csv(StringIO(aggregate.text))
+
         except APIError as e:
             raise AggregateCreationError(self.study_id, output_id, mc_type, object_type, e.message)

@@ -16,6 +16,8 @@ import pandas as pd
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import TaskFailedError, TaskTimeOutError
 
+DEFAULT_TIME_OUT = 172800
+
 
 def update_series(base_url: str, study_id: str, wrapper: RequestWrapper, series: pd.DataFrame, path: str) -> None:
     url = f"{base_url}/studies/{study_id}/raw?path={path}"
@@ -36,7 +38,7 @@ def get_matrix(base_url: str, study_id: str, wrapper: RequestWrapper, series_pat
 
 
 def wait_task_completion(
-    base_url: str, wrapper: RequestWrapper, task_id: str, repeat_interval: int = 5, time_out: int = 172800
+    base_url: str, wrapper: RequestWrapper, task_id: str, repeat_interval: int = 5, time_out: int = DEFAULT_TIME_OUT
 ) -> None:
     url = f"{base_url}/tasks/{task_id}"
 
