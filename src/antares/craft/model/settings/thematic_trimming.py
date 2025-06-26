@@ -110,11 +110,11 @@ class ThematicTrimmingParameters:
     sts_cashflow_by_cluster: bool = True
 
     def all_enabled(self) -> "ThematicTrimmingParameters":
-        all_enabled = {key: True for key in asdict(self)}
+        all_enabled = dict.fromkeys(asdict(self), True)
         return ThematicTrimmingParameters(**all_enabled)
 
     def all_disabled(self) -> "ThematicTrimmingParameters":
-        all_disabled = {key: False for key in asdict(self)}
+        all_disabled = dict.fromkeys(asdict(self), False)
         return ThematicTrimmingParameters(**all_disabled)
 
     def all_reversed(self) -> "ThematicTrimmingParameters":

@@ -395,12 +395,12 @@ class PlaylistParametersLocal(LocalBaseModel):
 
         # Builds the `status` dict
         if self.playlist_reset:
-            status_dict = {k: True for k in range(nb_years)}
+            status_dict = dict.fromkeys(range(nb_years), True)
             if self.playlist_minus:
                 for disabled_year in self.playlist_minus:
                     status_dict[disabled_year] = False
         else:
-            status_dict = {k: False for k in range(nb_years)}
+            status_dict = dict.fromkeys(range(nb_years), False)
             if self.playlist_plus:
                 for enabled_year in self.playlist_plus:
                     status_dict[enabled_year] = True
@@ -583,12 +583,12 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
         if content.get("selected_vars_reset", True):
             # Means written fields are deactivated and others are activated
             unselected_vars = content.get("select_var -", [])
-            args = {var: False for var in unselected_vars}
+            args = dict.fromkeys(unselected_vars, False)
             return ThematicTrimmingParametersLocal(**args)
 
         # Means written fields are activated and others deactivated
         selected_vars = content.get("select_var +", [])
-        args = {var: True for var in selected_vars}
+        args = dict.fromkeys(selected_vars, True)
         file_data = ThematicTrimmingParametersLocal(**args)
         # Initialize missing fields
         for field in ThematicTrimmingParametersLocal.model_fields:
