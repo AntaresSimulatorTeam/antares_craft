@@ -29,6 +29,7 @@ from antares.craft.model.st_storage import (
     STStoragePropertiesUpdate,
 )
 from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
+from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseShortTermStorageService
 
 
@@ -42,27 +43,19 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
 
     @override
     def set_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{storage.area_id}/storages/{storage.id}/series/{ts_name.value}"
+        series_path = f"input/st-storage/series/{storage.area_id}/{storage.id}/{ts_name.value}"
         try:
-            body = {
-                "data": matrix.to_numpy().tolist(),
-                "index": matrix.index.tolist(),
-                "columns": matrix.columns.tolist(),
-            }
-            self._wrapper.put(url, json=body)
+            update_series(self._base_url, self.study_id, self._wrapper, matrix, series_path)
         except APIError as e:
             raise STStorageMatrixUploadError(storage.area_id, storage.id, ts_name.value, e.message) from e
 
     @override
     def get_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName) -> pd.DataFrame:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{storage.area_id}/storages/{storage.id}/series/{ts_name.value}"
+        series_path = f"input/st-storage/series/{storage.area_id}/{storage.id}/{ts_name.value}"
         try:
-            response = self._wrapper.get(url)
-            json_df = response.json()
-            dataframe = pd.DataFrame(data=json_df["data"], index=json_df["index"], columns=json_df["columns"])
+            return get_matrix(self._base_url, self.study_id, self._wrapper, series_path)
         except APIError as e:
             raise STStorageMatrixDownloadError(storage.area_id, storage.id, ts_name.value, e.message) from e
-        return dataframe
 
     @override
     def read_st_storages(self) -> dict[str, dict[str, STStorage]]:
