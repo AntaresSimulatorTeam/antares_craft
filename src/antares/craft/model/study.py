@@ -78,10 +78,10 @@ class Study:
         self._binding_constraints_service = services.bc_service
         self._settings_service = services.settings_service
         self._settings = StudySettings()
-        self._areas: dict[str, Area] = dict()
-        self._links: dict[str, Link] = dict()
-        self._binding_constraints: dict[str, BindingConstraint] = dict()
-        self._outputs: dict[str, Output] = dict()
+        self._areas: dict[str, Area] = {}
+        self._links: dict[str, Link] = {}
+        self._binding_constraints: dict[str, BindingConstraint] = {}
+        self._outputs: dict[str, Output] = {}
         self._solver_path: Optional[Path] = solver_path
 
         study_version = StudyVersion.parse(version)

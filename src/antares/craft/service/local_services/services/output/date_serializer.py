@@ -74,7 +74,7 @@ def rename_unnamed(df: pd.DataFrame) -> pd.DataFrame:
     unnamed_cols: List[str] = []
     for i in range(0, df.columns.nlevels):
         unnamed_cols += [name for name in df.columns.get_level_values(i).values if "Unnamed:" in name]
-    df.rename(columns={name: "" for name in unnamed_cols}, inplace=True)
+    df.rename(columns=dict.fromkeys(unnamed_cols, ""), inplace=True)
     return df
 
 
