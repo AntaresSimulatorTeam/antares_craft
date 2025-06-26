@@ -177,7 +177,7 @@ class Output:
         """
         aggregation_entry = AggregationEntry(
             data_type=data_type,
-            frequency=Frequency(frequency),
+            frequency=frequency,
             mc_years=mc_years,
             type_ids=areas_ids,
             columns_names=columns_names,
