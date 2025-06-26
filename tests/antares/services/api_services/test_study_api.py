@@ -746,7 +746,14 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             be - fr,1,0.000000,0.000000
             be - fr,2,0.000000,0.000000
             """
-            mocker.get(aggregate_url, text=aggregate_output)
+            download_id = "download-1"
+            download_metadata_url = (
+                f"https://antares.com/api/v1/downloads/{download_id}/metadata?wait_for_availability=True"
+            )
+            download_url = f"https://antares.com/api/v1/downloads/{download_id}"
+            mocker.get(aggregate_url, json=download_id)
+            mocker.get(download_metadata_url, json={})
+            mocker.get(download_url, text=aggregate_output)
             aggregated_matrix = output.aggregate_mc_ind_areas(MCIndAreasDataType.VALUES, Frequency.ANNUAL)
             expected_matrix = pd.read_csv(StringIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
@@ -754,7 +761,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
 
             # aggregate_values_links_mc_ind
             aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-ind/{output.name}?query_file=values&frequency=annual&format=csv"
-            mocker.get(aggregate_url, text=aggregate_output)
+            mocker.get(aggregate_url, json=download_id)
             aggregated_matrix = output.aggregate_mc_ind_links(
                 MCIndLinksDataType.VALUES, Frequency.ANNUAL, columns_names=["fr"]
             )
@@ -764,7 +771,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
 
             # aggregate_values_areas_mc_all
             aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
-            mocker.get(aggregate_url, text=aggregate_output)
+            mocker.get(aggregate_url, json=download_id)
             aggregated_matrix = output.aggregate_mc_all_areas(MCAllAreasDataType.VALUES, Frequency.ANNUAL)
             expected_matrix = pd.read_csv(StringIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
@@ -772,7 +779,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
 
             # aggregate_values_links_mc_all
             aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
-            mocker.get(aggregate_url, text=aggregate_output)
+            mocker.get(aggregate_url, json=download_id)
             aggregated_matrix = output.aggregate_mc_all_links(MCAllLinksDataType.VALUES, Frequency.ANNUAL)
             expected_matrix = pd.read_csv(StringIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
