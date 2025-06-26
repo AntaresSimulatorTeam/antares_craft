@@ -72,20 +72,14 @@ class TestCreateAPI:
 
     def test_get_storage_matrix_success(self) -> None:
         with requests_mock.Mocker() as mocker:
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.storage.area_id}"
-                f"/storages/{self.storage.id}/series/inflows"
-            )
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/st-storage/series/{self.area.id}/{self.storage.id}/inflows"
             mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             inflow_matrix = self.storage.get_storage_inflows()
             assert inflow_matrix.equals(self.matrix)
 
     def test_get_storage_matrix_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.storage.area_id}"
-                f"/storages/{self.storage.id}/series/inflows"
-            )
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/st-storage/series/{self.area.id}/{self.storage.id}/inflows"
             mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 STStorageMatrixDownloadError,
@@ -96,20 +90,14 @@ class TestCreateAPI:
 
     def test_update_storage_matrix_success(self) -> None:
         with requests_mock.Mocker() as mocker:
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.storage.area_id}"
-                f"/storages/{self.storage.id}/series/inflows"
-            )
-            mocker.put(url, status_code=200)
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/st-storage/series/{self.area.id}/{self.storage.id}/inflows"
+            mocker.post(url, status_code=200)
             self.storage.set_storage_inflows(self.matrix)
 
     def test_update_storage_matrix_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/areas/{self.storage.area_id}"
-                f"/storages/{self.storage.id}/series/inflows"
-            )
-            mocker.put(url, json={"description": self.antares_web_description_msg}, status_code=404)
+            url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/st-storage/series/{self.area.id}/{self.storage.id}/inflows"
+            mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 STStorageMatrixUploadError,
                 match=f"Could not upload inflows matrix for storage {self.storage.id} inside area {self.area.id}:"
