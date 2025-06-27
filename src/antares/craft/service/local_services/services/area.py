@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 import copy
 import os
+import shutil
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
@@ -406,10 +407,6 @@ class AreaLocalService(BaseAreaService):
         )
         return created_area
 
-    @override
-    def delete_area(self, area_id: str) -> None:
-        raise NotImplementedError
-
     def update_area_properties(self, area: Area, properties: AreaPropertiesUpdate) -> AreaProperties:
         area_id = area.id
         new_local_properties = AreaPropertiesLocal.build_for_update(properties, area.properties)
@@ -582,3 +579,78 @@ class AreaLocalService(BaseAreaService):
             new_properties = self.update_area_properties(area, update_properties)
             new_properties_dict[area.id] = new_properties
         return new_properties_dict
+
+    @override
+    def delete_area(self, area_id: str) -> None:
+        folders = [
+            Path(f"input/areas/{area_id}"),
+            Path(f"input/hydro/prepro/{area_id}"),
+            Path(f"input/hydro/series/{area_id}"),
+            Path(f"input/load/prepro/{area_id}"),
+            Path(f"input/solar/prepro/{area_id}"),
+            Path(f"input/wind/prepro/{area_id}"),
+            Path(f"input/reserves/{area_id}"),
+            Path(f"input/links/{area_id}"),
+            Path(f"input/renewables/clusters/{area_id}"),
+            Path(f"input/renewables/series/{area_id}"),
+            Path(f"input/st-storage/clusters/{area_id}"),
+            Path(f"input/st-storage/series/{area_id}"),
+            Path(f"input/thermal/clusters/{area_id}"),
+            Path(f"input/thermal/prepro/{area_id}"),
+            Path(f"input/thermal/series/{area_id}"),
+        ]
+        for folder in folders:
+            shutil.rmtree(folder)
+
+        files = [
+            TimeSeriesFileType.HYDRO_MAX_POWER.value.format(area_id=area_id),
+            TimeSeriesFileType.HYDRO_RESERVOIR.value.format(area_id=area_id),
+            TimeSeriesFileType.HYDRO_INFLOW_PATTERN.value.format(area_id=area_id),
+            TimeSeriesFileType.HYDRO_CREDITS_MODULATION.value.format(area_id=area_id),
+            TimeSeriesFileType.HYDRO_WATER_VALUES.value.format(area_id=area_id),
+            TimeSeriesFileType.LOAD.value.format(area_id=area_id),
+            TimeSeriesFileType.MISC_GEN.value.format(area_id=area_id),
+            TimeSeriesFileType.SOLAR.value.format(area_id=area_id),
+            TimeSeriesFileType.WIND.value.format(area_id=area_id),
+        ]
+        for file in files:
+            Path(file).unlink()
+
+        self._remove_area_from_hydro_ini_file(area_id)
+        self._remove_area_from_thermal_ini_file(area_id)
+        self._remove_area_from_list_txt_file(area_id)
+
+        # todo: implement those;
+        # todo: Correlation and allocation are not handled by ANtares-Craft yet :/
+        # todo: neither are districts
+        # todo: we have to do the scenario builder though. How ? We need the study service :/
+        # todo: or we can read the file as is ... Perhaps we'll have to.
+        # self._remove_area_from_correlation_matrices(study_data)
+        # self._remove_area_from_hydro_allocation(study_data)
+        # self._remove_area_from_districts(study_data)
+        # self._remove_area_from_scenario_builder(study_data)
+
+    def _remove_area_from_hydro_ini_file(self, id_to_remove: str) -> None:
+        hydro_service = cast(HydroLocalService, self._hydro_service)
+        ini_content = hydro_service.read_hydro_ini()
+        for key, values in ini_content.items():
+            for area_id in values:
+                if area_id == id_to_remove:
+                    del ini_content[key][area_id]
+                    break
+        hydro_service.save_hydro_ini(ini_content)
+
+    def _remove_area_from_thermal_ini_file(self, id_to_remove: str) -> None:
+        ini_content = self._read_thermal_areas_ini()
+        for key, values in ini_content.items():
+            for area_id in values:
+                if area_id == id_to_remove:
+                    del ini_content[key][area_id]
+                    break
+        self._save_thermal_areas_ini(ini_content)
+
+    def _remove_area_from_list_txt_file(self, id_to_remove: str) -> None:
+        with open(self.config.study_path / "input" / "areas" / "list.txt", mode="w") as list_txt:
+            lines = list_txt.readlines()
+            lines.remove(id_to_remove)
+            list_txt.writelines(lines)
