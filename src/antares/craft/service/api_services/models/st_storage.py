@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Optional
 
 from antares.craft.model.st_storage import STStorageProperties, STStoragePropertiesUpdate
 from antares.craft.service.api_services.models.base_model import APIBaseModel

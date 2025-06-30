@@ -43,7 +43,14 @@ def create_local_services(config: LocalConfiguration, study_name: str, study_ver
     hydro_service = HydroLocalService(config, study_name)
     bc_service = BindingConstraintLocalService(config, study_name)
     area_service = AreaLocalService(
-        config, study_name, short_term_storage_service, thermal_service, renewable_service, hydro_service, bc_service
+        config,
+        study_name,
+        study_version,
+        short_term_storage_service,
+        thermal_service,
+        renewable_service,
+        hydro_service,
+        bc_service,
     )
     link_service = LinkLocalService(config, study_name)
     output_service = OutputLocalService(config, study_name)

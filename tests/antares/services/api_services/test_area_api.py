@@ -178,10 +178,7 @@ class TestCreateAPI:
     def test_create_st_storage_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"{self.study_url}/areas/{self.area.id}/storages"
-            json_response = STStoragePropertiesAPI(**{}).model_dump(
-                mode="json",
-                by_alias=True
-            )
+            json_response = STStoragePropertiesAPI(**{}).model_dump(mode="json", by_alias=True)
             st_storage_name = "short_term_storage"
             mocker.post(url, json={"name": st_storage_name, "id": st_storage_name, **json_response}, status_code=201)
 

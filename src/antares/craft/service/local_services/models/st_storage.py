@@ -82,7 +82,7 @@ def validate_st_storage_against_version(
     Will raise an InvalidFieldForVersionError if a field is not valid for the given study version.
     """
     if version < STUDY_VERSION_9_2:
-        valid_values = [e.value for e in STStorageGroup]
+        valid_values = [e.value for e in STStorageGroup] + [None]
         if storage_data.group not in valid_values:
             raise ValueError(f"Group for 8.8 has to be a valid value : {valid_values}")
 
