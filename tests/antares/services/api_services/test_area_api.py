@@ -178,11 +178,9 @@ class TestCreateAPI:
     def test_create_st_storage_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"{self.study_url}/areas/{self.area.id}/storages"
-            # TODO remove exclude when antaresWeb is ready for 9.2
             json_response = STStoragePropertiesAPI(**{}).model_dump(
                 mode="json",
-                by_alias=True,
-                exclude={"efficiency_withdrawal", "penalize_variation_injection", "penalize_variation_withdrawal"},
+                by_alias=True
             )
             st_storage_name = "short_term_storage"
             mocker.post(url, json={"name": st_storage_name, "id": st_storage_name, **json_response}, status_code=201)

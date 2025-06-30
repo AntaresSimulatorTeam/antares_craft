@@ -22,7 +22,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.craft import Study, read_study_local
+from antares.craft import STStoragePropertiesUpdate, Study, read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     InvalidFieldForVersionError,
@@ -136,6 +136,17 @@ class TestCreateSTStorage:
     def test_storage_has_correct_default_properties(self, local_study_with_st_storage: Study) -> None:
         st_storage = local_study_with_st_storage.get_areas()["fr"].get_st_storages()["short term storage"]
         assert st_storage.properties == STStorageProperties()
+
+    def test_storage_error_for_custom_group88(self, local_study_with_st_storage: Study) -> None:
+        st_storage = local_study_with_st_storage.get_areas()["fr"].get_st_storages()["short term storage"]
+
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "Group for 8.8 has to be a valid value : ['psp_open', 'psp_closed', 'pondage', 'battery', 'other1', 'other2', 'other3', 'other4', 'other5']"
+            ),
+        ):
+            st_storage.update_properties(STStoragePropertiesUpdate(group="custom group"))
 
     def test_storage_has_correct_default_properties_92(self, local_study_92: Study) -> None:
         st_storage = local_study_92.get_areas()["fr"].create_st_storage("short term storage")
