@@ -30,7 +30,10 @@ from antares.craft.model.st_storage import (
 )
 from antares.craft.model.study import STUDY_VERSION_8_8
 from antares.craft.service.base_services import BaseShortTermStorageService
-from antares.craft.service.local_services.models.st_storage import STStoragePropertiesLocal
+from antares.craft.service.local_services.models.st_storage import (
+    parse_st_storage_local,
+    serialize_st_storage_local,
+)
 from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -97,7 +100,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
                         storage_service=self,
                         area_id=area_id,
                         name=storage_data["name"],
-                        properties=STStoragePropertiesLocal.model_validate(storage_data).to_user_model(),
+                        properties=parse_st_storage_local(self.study_version, storage_data),
                     )
                     st_storages.setdefault(area_id, {})[st_storage.id] = st_storage
 
@@ -136,17 +139,14 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
                     all_storage_name.remove(storage_name)
 
                     # Update properties
-                    upd_properties = STStoragePropertiesLocal.from_user_model(value[storage_name], self.study_version)
-                    upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_unset=True)
+                    upd_props_as_dict = serialize_st_storage_local(self.study_version, value[storage_name])
                     storage.update(upd_props_as_dict)
 
                     # Prepare the object to return
                     local_dict = copy.deepcopy(storage)
                     del local_dict["name"]
-                    local_properties = STStoragePropertiesLocal.model_validate(
-                        local_dict, context={"study_version": self.study_version}
-                    )
-                    new_properties_dict[cluster_name_to_object[storage_name]] = local_properties.to_user_model()
+                    user_properties = parse_st_storage_local(self.study_version, local_dict)
+                    new_properties_dict[cluster_name_to_object[storage_name]] = user_properties
 
             if len(all_storage_name) > 0:
                 raise STStoragePropertiesUpdateError(

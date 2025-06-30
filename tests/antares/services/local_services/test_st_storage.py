@@ -18,10 +18,13 @@ from pathlib import Path
 import pandas as pd
 
 from antares.craft import STStorageGroup, Study
-from antares.craft.exceptions.exceptions import MatrixFormatError
+from antares.craft.exceptions.exceptions import InvalidFieldForVersionError, MatrixFormatError
 from antares.craft.model.st_storage import STStorageProperties, STStoragePropertiesUpdate
-from antares.craft.service.local_services.models.st_storage import STStoragePropertiesLocal
-from antares.study.version import StudyVersion
+from antares.craft.model.study import STUDY_VERSION_8_8, STUDY_VERSION_9_2
+from antares.craft.service.local_services.models.st_storage import (
+    parse_st_storage_local,
+    serialize_st_storage_local,
+)
 
 
 class TestSTStorage:
@@ -48,7 +51,8 @@ class TestSTStorage:
             efficiency=0.1, reservoir_capacity=1.2, penalize_variation_withdrawal=True
         )
         with pytest.raises(
-            ValueError, match="In version 8.8, the following values are not allowed: penalize_variation_withdrawal"
+            InvalidFieldForVersionError,
+            match="Field penalize_variation_withdrawal is not a valid field for study version 8.8",
         ):
             storage.update_properties(update_properties)
 
@@ -156,20 +160,20 @@ class TestSTStorage:
             reservoir_capacity=1000,
         )
 
-        local_88 = STStoragePropertiesLocal.from_user_model(properties_88, StudyVersion.parse("8.8"))
-
-        assert local_88.group == STStorageGroup.BATTERY.value
-
-        back_to_user_88 = local_88.to_user_model()
-        assert back_to_user_88.group == STStorageGroup.BATTERY.value
+        # Round trip
+        local_88 = serialize_st_storage_local(STUDY_VERSION_8_8, properties_88)
+        assert local_88["group"] == STStorageGroup.BATTERY.value
+        user_88 = parse_st_storage_local(STUDY_VERSION_8_8, local_88)
+        assert user_88.group == STStorageGroup.BATTERY.value
 
         properties_88_no_group = STStorageProperties(
             enabled=True, injection_nominal_capacity=100, withdrawal_nominal_capacity=200, reservoir_capacity=1000
         )
-
-        local_88_no_group = STStoragePropertiesLocal.from_user_model(properties_88_no_group, StudyVersion.parse("8.8"))
-
-        assert local_88_no_group.group == STStorageGroup.OTHER1.value
+        # Round trip
+        local_88_no_group = serialize_st_storage_local(STUDY_VERSION_8_8, properties_88_no_group)
+        assert local_88_no_group["group"] == STStorageGroup.OTHER1.value
+        user_88_no_group = parse_st_storage_local(STUDY_VERSION_8_8, local_88_no_group)
+        assert user_88_no_group.group == STStorageGroup.OTHER1.value
 
         properties_92 = STStorageProperties(
             enabled=True,
@@ -179,17 +183,15 @@ class TestSTStorage:
             reservoir_capacity=1000,
         )
 
-        local_92 = STStoragePropertiesLocal.from_user_model(properties_92, StudyVersion.parse("9.2"))
-
-        assert local_92.group == "custom_group"
-
-        back_to_user_92 = local_92.to_user_model()
+        # Round trip
+        local_92 = serialize_st_storage_local(STUDY_VERSION_9_2, properties_92)
+        assert local_92["group"] == "custom_group"
+        back_to_user_92 = parse_st_storage_local(STUDY_VERSION_9_2, local_92)
         assert back_to_user_92.group == "custom_group"
 
+        # Round trip
         properties_92_no_group = STStorageProperties(
             enabled=True, injection_nominal_capacity=100, withdrawal_nominal_capacity=200, reservoir_capacity=1000
         )
-
-        local_92_no_group = STStoragePropertiesLocal.from_user_model(properties_92_no_group, StudyVersion.parse("9.2"))
-
-        assert local_92_no_group.group == STStorageGroup.OTHER1.value
+        local_92_no_group = serialize_st_storage_local(STUDY_VERSION_9_2, properties_92_no_group)
+        assert local_92_no_group["group"] == STStorageGroup.OTHER1.value

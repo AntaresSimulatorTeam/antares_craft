@@ -503,3 +503,8 @@ class UnsupportedStudyVersion(Exception):
         supported_list = ", ".join(f"{v:2d}" for v in supported_versions)
         msg = f"Unsupported study version: {version}, supported ones are {supported_list}"
         super().__init__(msg)
+
+
+class InvalidFieldForVersionError(ValueError):
+    def __init__(self, message: str) -> None:
+        super().__init__(self, message)

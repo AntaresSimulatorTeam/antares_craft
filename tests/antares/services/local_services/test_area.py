@@ -24,7 +24,11 @@ import pandas as pd
 
 from antares.craft import Study, read_study_local
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import MatrixFormatError, ReadingMethodUsedOufOfScopeError
+from antares.craft.exceptions.exceptions import (
+    InvalidFieldForVersionError,
+    MatrixFormatError,
+    ReadingMethodUsedOufOfScopeError,
+)
 from antares.craft.model.area import AdequacyPatchMode, Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.renewable import (
@@ -190,7 +194,8 @@ enabled = True
         st_storage_name = "short term storage"
 
         with pytest.raises(
-            ValueError, match="In version 8.8, the following values are not allowed: penalize_variation_injection"
+            InvalidFieldForVersionError,
+            match="Field penalize_variation_injection is not a valid field for study version 8.8",
         ):
             local_study_w_areas.get_areas()["fr"].create_st_storage(st_storage_name, properties)
 
@@ -216,8 +221,6 @@ initiallevel = 0.5
 initialleveloptim = False
 enabled = True
 efficiencywithdrawal = 0.9
-penalize-variation-injection = False
-penalize-variation-withdrawal = False
 
 """
         study_path = Path(local_study_92.path)

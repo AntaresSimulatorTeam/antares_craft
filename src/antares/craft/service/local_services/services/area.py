@@ -43,7 +43,10 @@ from antares.craft.service.base_services import (
 from antares.craft.service.local_services.models.area import AreaPropertiesLocal, AreaUiLocal
 from antares.craft.service.local_services.models.hydro import HydroInflowStructureLocal
 from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
-from antares.craft.service.local_services.models.st_storage import STStoragePropertiesLocal
+from antares.craft.service.local_services.models.st_storage import (
+    parse_st_storage_local,
+    serialize_st_storage_local,
+)
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
 from antares.craft.service.local_services.services.hydro import HydroLocalService
 from antares.craft.service.local_services.services.renewable import RenewableLocalService
@@ -219,19 +222,19 @@ class AreaLocalService(BaseAreaService):
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
         properties = properties or STStorageProperties()
-        local_properties = STStoragePropertiesLocal.from_user_model(properties, self.study_version)
+        local_properties = serialize_st_storage_local(self.study_version, properties)
+        user_properties = parse_st_storage_local(self.study_version, local_properties)
 
         local_storage_service = cast(ShortTermStorageLocalService, self.storage_service)
         ini_content = local_storage_service.read_ini(area_id)
 
         ini_content[st_storage_name] = {
             "name": st_storage_name,
-            **local_properties.model_dump(mode="json", by_alias=True, exclude_none=True),
+            **local_properties,
         }
 
         local_storage_service.save_ini(ini_content, area_id)
 
-        user_properties = local_properties.to_user_model()
         storage = STStorage(
             self.storage_service,
             area_id,
