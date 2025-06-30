@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
+from typing import Optional
 
 from antares.craft.model.st_storage import STStorageProperties, STStoragePropertiesUpdate
 from antares.craft.service.api_services.models.base_model import APIBaseModel
@@ -28,7 +29,7 @@ class STStoragePropertiesAPI(APIBaseModel):
     initial_level: float
     initial_level_optim: bool
     enabled: bool
-    # add new parameter 9.2 but not study_version validation in API
+    # add new parameter 9.2
     efficiency_withdrawal: float
     penalize_variation_injection: bool
     penalize_variation_withdrawal: bool

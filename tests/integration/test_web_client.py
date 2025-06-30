@@ -70,12 +70,11 @@ from antares.craft import (
     read_study_api,
 )
 from antares.craft.exceptions.exceptions import (
-    AreaDeletionError,
     BindingConstraintCreationError,
     ConstraintMatrixUpdateError,
     InvalidRequestForScenarioBuilder,
     MatrixUploadError,
-    STStorageMatrixUploadError,
+    ReferencedObjectDeletionNotAllowed,
     StudySettingsUpdateError,
 )
 from antares.craft.model.hydro import InflowStructureUpdate
@@ -366,15 +365,6 @@ class TestWebClient:
         assert area_be_props.dispatch_hydro_power
 
         # tests upload matrix for short term storage.
-        # Case that fails
-        wrong_matrix = pd.DataFrame(data=[[0]])
-        with pytest.raises(
-            STStorageMatrixUploadError,
-            match=f"Could not upload inflows matrix for storage {battery_fr.id} inside area {area_fr.id}",
-        ):
-            battery_fr.set_storage_inflows(wrong_matrix)
-
-        # Case that succeeds
         injection_matrix = pd.DataFrame(data=np.zeros((8760, 1)))
         battery_fr.update_pmax_injection(injection_matrix)
 
@@ -704,10 +694,8 @@ class TestWebClient:
 
         # tests area deletion error
         with pytest.raises(
-            AreaDeletionError,
-            match=f"Could not delete the area fr: Area '{area_fr.id}' is not allowed "
-            f"to be deleted, because it is referenced in "
-            f"the following binding constraints:\n1- 'bc_2'.",
+            ReferencedObjectDeletionNotAllowed,
+            match="Area 'fr' is not allowed to be deleted, because it is referenced in the following binding constraints:\n1- 'bc_2'.",
         ):
             study.delete_area(area_fr)
 

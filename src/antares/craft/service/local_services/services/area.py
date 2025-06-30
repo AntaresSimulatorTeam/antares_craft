@@ -19,8 +19,13 @@ import pandas as pd
 
 from typing_extensions import override
 
+from antares.craft import ClusterData
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import AreaCreationError, ThermalCreationError
+from antares.craft.exceptions.exceptions import (
+    AreaCreationError,
+    ReferencedObjectDeletionNotAllowed,
+    ThermalCreationError,
+)
 from antares.craft.model.area import (
     Area,
     AreaProperties,
@@ -35,6 +40,7 @@ from antares.craft.model.study import STUDY_VERSION_9_2
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.base_services import (
     BaseAreaService,
+    BaseBindingConstraintService,
     BaseHydroService,
     BaseRenewableService,
     BaseShortTermStorageService,
@@ -71,6 +77,7 @@ class AreaLocalService(BaseAreaService):
         thermal_service: BaseThermalService,
         renewable_service: BaseRenewableService,
         hydro_service: BaseHydroService,
+        binding_constraint_service: BaseBindingConstraintService,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -81,6 +88,7 @@ class AreaLocalService(BaseAreaService):
         self._thermal_service: BaseThermalService = thermal_service
         self._renewable_service: BaseRenewableService = renewable_service
         self._hydro_service: BaseHydroService = hydro_service
+        self._binding_constraint_service: BaseBindingConstraintService = binding_constraint_service
 
     def _read_adequacy_ini(self, area_id: str) -> dict[str, Any]:
         return IniReader().read(self.config.study_path / "input" / "areas" / area_id / "adequacy_patch.ini")
@@ -497,6 +505,22 @@ class AreaLocalService(BaseAreaService):
     @override
     def delete_thermal_clusters(self, area_id: str, thermal_clusters: List[ThermalCluster]) -> None:
         thermal_names_to_delete = {th.name for th in thermal_clusters}
+        # Check thermal clusters are not referenced in any binding constraint
+        all_constraints = self._binding_constraint_service.read_binding_constraints()
+        for cluster in thermal_clusters:
+            referencing_binding_constraints = []
+            for bc in all_constraints.values():
+                for term in bc._terms.values():
+                    data = term.data
+                    if isinstance(data, ClusterData) and data.area == cluster.area_id and data.cluster == cluster.id:
+                        referencing_binding_constraints.append(bc.name)
+                        break
+            if referencing_binding_constraints:
+                raise ReferencedObjectDeletionNotAllowed(
+                    cluster.id, referencing_binding_constraints, object_type="Thermal cluster"
+                )
+
+        # Delete the clusters
         self._delete_clusters("thermal", area_id, thermal_names_to_delete)
 
     @override
