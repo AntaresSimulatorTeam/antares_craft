@@ -823,7 +823,7 @@ class BaseOutputService(ABC):
     @abstractmethod
     def get_xpansion_sensitivity_result(self, output_id: str) -> "XpansionSensitivityResult":
         """
-        Parses the expansion/sensitivity/out.json file and converts it inside an XpansionResult object
+        Parses the sensitivity/out.json file and converts it inside an XpansionResult object
         """
         pass
 
