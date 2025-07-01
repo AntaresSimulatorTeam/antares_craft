@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 from io import StringIO
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
 
@@ -30,9 +29,9 @@ def read_output_matrix(data: Path | StringIO, frequency: Frequency) -> pd.DataFr
     return final_df
 
 
-def parse_xpansion_out_json(content: dict[str, Any]) -> XpansionResult:
+def parse_xpansion_out_json(content: StringIO) -> XpansionResult:
     raise NotImplementedError
 
 
-def parse_xpansion_sensitivity_out_json(content: dict[str, Any]) -> XpansionSensitivityResult:
+def parse_xpansion_sensitivity_out_json(content: StringIO) -> XpansionSensitivityResult:
     raise NotImplementedError

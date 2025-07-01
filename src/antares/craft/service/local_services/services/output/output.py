@@ -9,12 +9,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from io import StringIO
 
 import pandas as pd
 
 from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.exceptions.exceptions import XpansionOutputParsingError
 from antares.craft.model.output import AggregationEntry, Frequency, XpansionResult, XpansionSensitivityResult
 from antares.craft.service.base_services import BaseOutputService
 from antares.craft.service.local_services.services.output.output_aggregation import AggregatorManager
@@ -54,8 +56,18 @@ class OutputLocalService(BaseOutputService):
 
     @override
     def get_xpansion_result(self, output_id: str) -> XpansionResult:
-        return parse_xpansion_out_json({})
+        file_path = self.config.study_path / "output" / output_id / "expansion" / "out.json"
+        try:
+            data = StringIO(file_path.read_text())
+            return parse_xpansion_out_json(data)
+        except Exception as e:
+            raise XpansionOutputParsingError(self.study_name, output_id, "out.json", e.args[0])
 
     @override
     def get_xpansion_sensitivity_result(self, output_id: str) -> XpansionSensitivityResult:
-        return parse_xpansion_sensitivity_out_json({})
+        file_path = self.config.study_path / "output" / output_id / "sensitivity" / "out.json"
+        try:
+            data = StringIO(file_path.read_text())
+            return parse_xpansion_sensitivity_out_json(data)
+        except Exception as e:
+            raise XpansionOutputParsingError(self.study_name, output_id, "sensitivity/out.json", e.args[0])

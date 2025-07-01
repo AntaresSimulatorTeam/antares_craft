@@ -93,7 +93,7 @@ class OutputApiService(BaseOutputService):
 
     @override
     def get_xpansion_sensitivity_result(self, output_id: str) -> XpansionSensitivityResult:
-        full_path = f"output/{output_id}/expansion/out.json"
+        full_path = f"output/{output_id}/sensitivity/out.json"
         raw_url = f"{self._base_url}/studies/{self.study_id}/raw/original-file?path={full_path}"
         try:
             response = self._wrapper.get(raw_url)
