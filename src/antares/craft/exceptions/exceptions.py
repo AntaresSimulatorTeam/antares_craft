@@ -528,3 +528,9 @@ class ReferencedObjectDeletionNotAllowed(Exception):
             f" in the following binding constraints:\n{first_bcs_ids}{and_more}"
         )
         super().__init__(message)
+
+
+class XpansionOutputParsingError(Exception):
+    def __init__(self, study_id: str, output_id: str, file_name: str, message: str) -> None:
+        self.message = f"Could not parse {file_name} for study {study_id}, output {output_id}: " + message
+        super().__init__(self.message)

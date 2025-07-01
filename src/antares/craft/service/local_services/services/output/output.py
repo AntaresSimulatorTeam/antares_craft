@@ -53,9 +53,9 @@ class OutputLocalService(BaseOutputService):
         return df
 
     @override
-    def get_xpansion_result(self) -> XpansionResult:
+    def get_xpansion_result(self, output_id: str) -> XpansionResult:
         return parse_xpansion_out_json({})
 
     @override
-    def get_xpansion_sensitivity_result(self) -> XpansionSensitivityResult:
+    def get_xpansion_sensitivity_result(self, output_id: str) -> XpansionSensitivityResult:
         return parse_xpansion_sensitivity_out_json({})

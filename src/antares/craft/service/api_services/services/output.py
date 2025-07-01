@@ -19,7 +19,7 @@ from typing_extensions import override
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
-from antares.craft.exceptions.exceptions import AggregateCreationError, APIError
+from antares.craft.exceptions.exceptions import AggregateCreationError, APIError, XpansionOutputParsingError
 from antares.craft.model.output import AggregationEntry, Frequency, XpansionResult, XpansionSensitivityResult
 from antares.craft.service.base_services import BaseOutputService
 from antares.craft.service.utils import parse_xpansion_out_json, parse_xpansion_sensitivity_out_json, read_output_matrix
@@ -81,9 +81,23 @@ class OutputApiService(BaseOutputService):
             raise AggregateCreationError(self.study_id, output_id, mc_type, object_type, e.message)
 
     @override
-    def get_xpansion_result(self) -> XpansionResult:
-        return parse_xpansion_out_json({})
+    def get_xpansion_result(self, output_id: str) -> XpansionResult:
+        full_path = f"output/{output_id}/expansion/out.json"
+        raw_url = f"{self._base_url}/studies/{self.study_id}/raw/original-file?path={full_path}"
+        try:
+            response = self._wrapper.get(raw_url)
+            data = StringIO(response.text)
+            return parse_xpansion_out_json(data)
+        except APIError as e:
+            raise XpansionOutputParsingError(self.study_id, output_id, "out.json", e.message)
 
     @override
-    def get_xpansion_sensitivity_result(self) -> XpansionSensitivityResult:
-        return parse_xpansion_sensitivity_out_json({})
+    def get_xpansion_sensitivity_result(self, output_id: str) -> XpansionSensitivityResult:
+        full_path = f"output/{output_id}/expansion/out.json"
+        raw_url = f"{self._base_url}/studies/{self.study_id}/raw/original-file?path={full_path}"
+        try:
+            response = self._wrapper.get(raw_url)
+            data = StringIO(response.text)
+            return parse_xpansion_sensitivity_out_json(data)
+        except APIError as e:
+            raise XpansionOutputParsingError(self.study_id, output_id, "sensitivity/out.json", e.message)

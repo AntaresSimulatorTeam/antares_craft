@@ -814,14 +814,14 @@ class BaseOutputService(ABC):
         pass
 
     @abstractmethod
-    def get_xpansion_result(self) -> "XpansionResult":
+    def get_xpansion_result(self, output_id: str) -> "XpansionResult":
         """
         Parses the expansion/out.json file and converts it inside an XpansionResult object
         """
         pass
 
     @abstractmethod
-    def get_xpansion_sensitivity_result(self) -> "XpansionSensitivityResult":
+    def get_xpansion_sensitivity_result(self, output_id: str) -> "XpansionSensitivityResult":
         """
         Parses the expansion/sensitivity/out.json file and converts it inside an XpansionResult object
         """

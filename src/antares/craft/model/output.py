@@ -289,7 +289,7 @@ class Output:
         return self._output_service.aggregate_values(self.name, aggregation_entry, "links", "all")
 
     def get_xpansion_result(self) -> XpansionResult:
-        return self._output_service.get_xpansion_result()
+        return self._output_service.get_xpansion_result(self.name)
 
     def get_xpansion_sensitivity_result(self) -> XpansionSensitivityResult:
-        return self._output_service.get_xpansion_sensitivity_result()
+        return self._output_service.get_xpansion_sensitivity_result(self.name)
