@@ -51,6 +51,16 @@ class Frequency(Enum):
 
 
 @dataclass
+class XpansionResult:
+    pass
+
+
+@dataclass
+class XpansionSensitivityResult:
+    pass
+
+
+@dataclass
 class AggregationEntry:
     """
     Represents an entry for aggregation queries
@@ -277,3 +287,9 @@ class Output:
         )
 
         return self._output_service.aggregate_values(self.name, aggregation_entry, "links", "all")
+
+    def get_xpansion_result(self) -> XpansionResult:
+        raise NotImplementedError
+
+    def get_xpansion_sensitivity_result(self) -> XpansionSensitivityResult:
+        raise NotImplementedError

@@ -15,7 +15,7 @@ import pandas as pd
 from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.output import AggregationEntry, Frequency
+from antares.craft.model.output import AggregationEntry, Frequency, XpansionResult, XpansionSensitivityResult
 from antares.craft.service.base_services import BaseOutputService
 from antares.craft.service.local_services.services.output.output_aggregation import AggregatorManager
 from antares.craft.service.utils import read_output_matrix
@@ -51,3 +51,11 @@ class OutputLocalService(BaseOutputService):
         df = aggregator_manager.aggregate_output_data()
 
         return df
+
+    @override
+    def get_xpansion_result(self) -> XpansionResult:
+        raise NotImplementedError
+
+    @override
+    def get_xpansion_sensitivity_result(self) -> XpansionSensitivityResult:
+        raise NotImplementedError

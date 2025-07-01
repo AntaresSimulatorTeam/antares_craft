@@ -34,7 +34,13 @@ if TYPE_CHECKING:
     )
     from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
-    from antares.craft.model.output import AggregationEntry, Frequency, Output
+    from antares.craft.model.output import (
+        AggregationEntry,
+        Frequency,
+        Output,
+        XpansionResult,
+        XpansionSensitivityResult,
+    )
     from antares.craft.model.renewable import (
         RenewableCluster,
         RenewableClusterProperties,
@@ -804,6 +810,20 @@ class BaseOutputService(ABC):
             object_type: links or areas (enum)
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
+        """
+        pass
+
+    @abstractmethod
+    def get_xpansion_result(self) -> "XpansionResult":
+        """
+        Parses the expansion/out.json file and converts it inside an XpansionResult object
+        """
+        pass
+
+    @abstractmethod
+    def get_xpansion_sensitivity_result(self) -> "XpansionSensitivityResult":
+        """
+        Parses the expansion/sensitivity/out.json file and converts it inside an XpansionResult object
         """
         pass
 

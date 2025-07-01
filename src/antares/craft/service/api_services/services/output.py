@@ -20,7 +20,7 @@ from typing_extensions import override
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import AggregateCreationError, APIError
-from antares.craft.model.output import AggregationEntry, Frequency
+from antares.craft.model.output import AggregationEntry, Frequency, XpansionResult, XpansionSensitivityResult
 from antares.craft.service.base_services import BaseOutputService
 from antares.craft.service.utils import read_output_matrix
 
@@ -79,3 +79,11 @@ class OutputApiService(BaseOutputService):
 
         except APIError as e:
             raise AggregateCreationError(self.study_id, output_id, mc_type, object_type, e.message)
+
+    @override
+    def get_xpansion_result(self) -> XpansionResult:
+        raise NotImplementedError
+
+    @override
+    def get_xpansion_sensitivity_result(self) -> XpansionSensitivityResult:
+        raise NotImplementedError
