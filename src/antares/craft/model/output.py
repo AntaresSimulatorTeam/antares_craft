@@ -50,12 +50,28 @@ class Frequency(Enum):
     ANNUAL = "annual"
 
 
-@dataclass
+@dataclass(frozen=True)
+class CandidateResult:
+    invest: float
+    max: float
+    min: float
+
+
+@dataclass(frozen=True)
 class XpansionResult:
-    pass
+    iterations: list[dict[str, CandidateResult]]
+    investment_cost: float
+    nb_iteration: int
+    operational_cost: float
+    optimality_gap: float
+    overall_cost: float
+    problem_status: str
+    relative_gap: float
+    stopping_criterion: str
+    values: dict[str, float]
 
 
-@dataclass
+@dataclass(frozen=True)
 class XpansionSensitivityResult:
     pass
 
