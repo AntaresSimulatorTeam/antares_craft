@@ -18,7 +18,7 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.output import AggregationEntry, Frequency, XpansionResult, XpansionSensitivityResult
 from antares.craft.service.base_services import BaseOutputService
 from antares.craft.service.local_services.services.output.output_aggregation import AggregatorManager
-from antares.craft.service.utils import read_output_matrix
+from antares.craft.service.utils import parse_xpansion_out_json, parse_xpansion_sensitivity_out_json, read_output_matrix
 
 
 class OutputLocalService(BaseOutputService):
@@ -54,8 +54,8 @@ class OutputLocalService(BaseOutputService):
 
     @override
     def get_xpansion_result(self) -> XpansionResult:
-        raise NotImplementedError
+        return parse_xpansion_out_json({})
 
     @override
     def get_xpansion_sensitivity_result(self) -> XpansionSensitivityResult:
-        raise NotImplementedError
+        return parse_xpansion_sensitivity_out_json({})
