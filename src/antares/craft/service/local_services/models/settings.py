@@ -585,10 +585,10 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
 
     @staticmethod
     def _get_default_fields(study_version: StudyVersion) -> set[str]:
-        all_fields = ThematicTrimmingParametersLocal.model_fields
+        all_fields = set(ThematicTrimmingParametersLocal.model_fields)
         if study_version < STUDY_VERSION_9_2:
-            del all_fields["sts_by_group"]
-        return set(all_fields)
+            all_fields.remove("sts_by_group")
+        return all_fields
 
     @staticmethod
     def from_ini(content: dict[str, Any], study_version: StudyVersion) -> "ThematicTrimmingParametersLocal":
