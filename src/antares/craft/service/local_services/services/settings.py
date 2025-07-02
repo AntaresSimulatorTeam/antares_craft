@@ -74,12 +74,14 @@ class StudySettingsLocalService(BaseStudySettingsService):
         _save_ini(self.config.study_path, ini_content)
 
     @override
-    def set_thematic_trimming(self, new_thematic_trimming: ThematicTrimmingParameters) -> None:
+    def set_thematic_trimming(self, new_thematic_trimming: ThematicTrimmingParameters) -> ThematicTrimmingParameters:
         ini_content = _read_ini(self.config.study_path)
         ini_content["variables selection"] = serialize_thematic_trimming_local(
             self.study_version, new_thematic_trimming
         )
         _save_ini(self.config.study_path, ini_content)
+        # We're performing this round-trip to fill default values
+        return parse_thematic_trimming_local(self.study_version, ini_content["variables selection"])
 
 
 def _read_ini(study_directory: Path) -> dict[str, Any]:
