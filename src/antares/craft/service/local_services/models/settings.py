@@ -557,15 +557,8 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
     # Since v9.2
     sts_by_group: bool | None = Field(default=None, alias="STS by group")
 
-    def to_user_model(self, study_version: StudyVersion) -> ThematicTrimmingParameters:
-        # Initialize optional fields that aren't always filled inside the INI file
-
-        args = self.model_dump(exclude_none=True)
-        if study_version >= STUDY_VERSION_9_2 and "sts_by_group" not in args:
-            args["sts_by_group"] = True
-
-        # Returns the user object
-        return ThematicTrimmingParameters(**args)
+    def to_user_model(self) -> ThematicTrimmingParameters:
+        return ThematicTrimmingParameters(**self.model_dump(exclude_none=True))
 
     @staticmethod
     def from_user_model(user_class: ThematicTrimmingParameters) -> "ThematicTrimmingParametersLocal":
@@ -632,7 +625,7 @@ def validate_against_version(version: StudyVersion, parameters: ThematicTrimming
 def parse_thematic_trimming_local(study_version: StudyVersion, data: Any) -> ThematicTrimmingParameters:
     thematic_trimming_parameters_local = ThematicTrimmingParametersLocal.from_ini(data, study_version)
     validate_against_version(study_version, thematic_trimming_parameters_local)
-    return thematic_trimming_parameters_local.to_user_model(study_version)
+    return thematic_trimming_parameters_local.to_user_model()
 
 
 def serialize_thematic_trimming_local(
