@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict, dataclass
+from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -108,6 +109,8 @@ class ThematicTrimmingParameters:
     other5_withdrawal: bool = True
     other5_level: bool = True
     sts_cashflow_by_cluster: bool = True
+    # Simulator v9.2 parameters
+    sts_by_group: Optional[bool] = None
 
     def all_enabled(self) -> "ThematicTrimmingParameters":
         all_enabled = dict.fromkeys(asdict(self), True)
