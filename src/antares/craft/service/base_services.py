@@ -834,7 +834,9 @@ class BaseStudySettingsService(ABC):
         pass
 
     @abstractmethod
-    def set_thematic_trimming(self, new_thematic_trimming: "ThematicTrimmingParameters") -> ThematicTrimmingParameters:
+    def set_thematic_trimming(
+        self, new_thematic_trimming: "ThematicTrimmingParameters"
+    ) -> "ThematicTrimmingParameters":
         """
         Set new playlist for the study
         """
