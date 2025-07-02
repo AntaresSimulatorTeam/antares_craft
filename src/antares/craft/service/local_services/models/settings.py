@@ -565,7 +565,7 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
         return ThematicTrimmingParametersLocal(**asdict(user_class))
 
     def to_ini(self) -> dict[str, Any]:
-        data = self.model_dump(by_alias=True)
+        data = self.model_dump(by_alias=True, exclude_none=True)
         content_plus = []
         content_minus = []
         for key, value in data.items():

@@ -113,13 +113,16 @@ class ThematicTrimmingParameters:
     sts_by_group: Optional[bool] = None
 
     def all_enabled(self) -> "ThematicTrimmingParameters":
-        all_enabled = dict.fromkeys(asdict(self), True)
+        args = {k: v for k, v in asdict(self).items() if v is not None}
+        all_enabled = dict.fromkeys(args, True)
         return ThematicTrimmingParameters(**all_enabled)
 
     def all_disabled(self) -> "ThematicTrimmingParameters":
-        all_disabled = dict.fromkeys(asdict(self), False)
+        args = {k: v for k, v in asdict(self).items() if v is not None}
+        all_disabled = dict.fromkeys(args, False)
         return ThematicTrimmingParameters(**all_disabled)
 
     def all_reversed(self) -> "ThematicTrimmingParameters":
-        all_reversed = {key: not value for key, value in asdict(self).items()}
+        args = {k: v for k, v in asdict(self).items() if v is not None}
+        all_reversed = {key: not value for key, value in args.items()}
         return ThematicTrimmingParameters(**all_reversed)
