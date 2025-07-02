@@ -106,25 +106,29 @@ playlist_year_weight = 0,2.5"""
 
 def test_thematic_trimming_methods(tmp_path: Path) -> None:
     trimming = ThematicTrimmingParameters(spil_enrg=False)
-    for field in asdict(trimming):
-        if field != "spil_enrg":
-            assert getattr(trimming, field) is True
-        else:
-            assert getattr(trimming, field) is False
+    args = asdict(trimming)
+    assert args.pop("spil_enrg") is False
+    assert args.pop("sts_by_group") is None
+    for field in args:
+        assert args[field] is True
+
     # Reverse it
     new_trimming = trimming.all_reversed()
-    for field in asdict(new_trimming):
-        if field != "spil_enrg":
-            assert getattr(new_trimming, field) is False
-        else:
-            assert getattr(new_trimming, field) is True
+    args = asdict(new_trimming)
+    assert args.pop("spil_enrg") is True
+    assert args.pop("sts_by_group") is None
+    for field in args:
+        assert args[field] is False
+
     # Enable everything
     all_true_trimming = trimming.all_enabled()
     assert all_true_trimming == ThematicTrimmingParameters()
     # Disable everything
     all_false_trimming = trimming.all_disabled()
-    for field in asdict(all_false_trimming):
-        assert getattr(all_false_trimming, field) is False
+    args = asdict(all_false_trimming)
+    assert args.pop("sts_by_group") is None
+    for field in args:
+        assert args[field] is False
 
 
 def test_thematic_trimming(tmp_path: Path) -> None:
