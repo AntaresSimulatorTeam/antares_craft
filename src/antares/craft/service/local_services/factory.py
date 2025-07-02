@@ -137,13 +137,14 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
 
     local_config = LocalConfiguration(study_directory.parent, study_directory.name)
 
+    version = StudyVersion.parse(str(study_params["version"]))
     study = Study(
         name=study_params["caption"],
-        version=study_params["version"],
+        version=f"{version:2d}",
         services=create_local_services(
             config=local_config,
             study_name=study_params["caption"],
-            study_version=StudyVersion.parse(study_params["version"]),
+            study_version=version,
         ),
         path=study_directory,
         solver_path=solver_path,
