@@ -12,9 +12,11 @@
 from dataclasses import asdict
 from typing import Any, Set
 
+from antares.study.version import StudyVersion
 from pydantic import Field, field_serializer, field_validator
 
 from antares.craft import PlaylistParameters, ThematicTrimmingParameters
+from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
 from antares.craft.model.commons import join_with_comma
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
@@ -52,6 +54,7 @@ from antares.craft.model.settings.optimization import (
     SimplexOptimizationRange,
     UnfeasibleProblemBehavior,
 )
+from antares.craft.model.study import STUDY_VERSION_9_2
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
 
@@ -551,6 +554,8 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
     other5_level: bool | None = Field(default=None, alias="Other5_level")
     # Since v8.8
     sts_cashflow_by_cluster: bool | None = Field(default=None, alias="STS Cashflow By Cluster")
+    # Since v9.2
+    sts_by_group: bool | None = Field(default=None, alias="STS by group")
 
     def to_user_model(self) -> ThematicTrimmingParameters:
         return ThematicTrimmingParameters(**self.model_dump(exclude_none=True))
@@ -595,3 +600,28 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
             if getattr(file_data, field) is None:
                 setattr(file_data, field, False)
         return file_data
+
+
+def _check_min_version(data: Any, field: str, version: StudyVersion) -> None:
+    if getattr(data, field) is not None:
+        raise InvalidFieldForVersionError(f"Field {field} is not a valid field for study version {version}")
+
+
+def validate_against_version(version: StudyVersion, parameters: ThematicTrimmingParametersLocal) -> None:
+    if version >= STUDY_VERSION_9_2:
+        _check_min_version(parameters, "sts_by_group", version)
+
+
+def parse_thematic_trimming(study_version: StudyVersion, data: Any) -> ThematicTrimmingParameters:
+    thematic_trimming_parameters_local = ThematicTrimmingParametersLocal.from_ini(data)
+    validate_against_version(study_version, thematic_trimming_parameters_local)
+    return thematic_trimming_parameters_local.to_user_model()
+
+
+def serialize_thematic_trimming(
+    study_version: StudyVersion, thematic_trimming_update: ThematicTrimmingParameters, current_thematic_trimming: ThematicTrimmingParameters
+) -> dict[str, Any]:
+    validate_against_version(thematic_trimming_update, study_version)
+    new_trimming = current_thematic_trimming.model_copy(update=thematic_trimming_update.model_dump(exclude_none=True))
+    return ThematicTrimmingParametersLocal.to_ini_file(new_trimming)
+
