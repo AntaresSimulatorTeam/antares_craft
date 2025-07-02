@@ -997,10 +997,12 @@ class TestWebClient:
         ):
             imported_study.update_settings(update_settings)
 
+        # TODO: Uncomment this when we'll support the 9.2 API
         ######################
         # Specific tests for study version 9.2
         ######################
 
+        """
         # Create study
         study = create_study_api("Study_92", "9.2", api_config)
 
@@ -1018,3 +1020,4 @@ class TestWebClient:
         assert storage.properties.efficiency_withdrawal == 0.9
         assert storage.properties.group == "new group"
         assert storage.properties.penalize_variation_injection is True
+        """
