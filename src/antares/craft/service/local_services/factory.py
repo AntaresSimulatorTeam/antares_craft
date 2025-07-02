@@ -56,7 +56,7 @@ def create_local_services(config: LocalConfiguration, study_name: str, study_ver
     output_service = OutputLocalService(config, study_name)
     study_service = StudyLocalService(config, study_name, output_service)
     run_service = RunLocalService(config, study_name)
-    settings_service = StudySettingsLocalService(config, study_name)
+    settings_service = StudySettingsLocalService(config, study_name, study_version)
     short_term_storage_service = ShortTermStorageLocalService(config, study_name, study_version)
     return StudyServices(
         area_service=area_service,

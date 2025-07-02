@@ -24,7 +24,8 @@ from antares.craft.service.api_services.models.settings import (
     AdvancedAndSeedParametersAPI,
     GeneralParametersAPI,
     OptimizationParametersAPI,
-    ThematicTrimmingParametersAPI,
+    parse_thematic_trimming_api,
+    serialize_thematic_trimming_api,
 )
 from antares.craft.service.base_services import BaseStudySettingsService
 
@@ -62,8 +63,7 @@ class StudySettingsAPIService(BaseStudySettingsService):
     @override
     def set_thematic_trimming(self, new_thematic_trimming: ThematicTrimmingParameters) -> None:
         thematic_trimming_url = f"{self._base_url}/studies/{self.study_id}/config/thematictrimming/form"
-        api_model = ThematicTrimmingParametersAPI.from_user_model(new_thematic_trimming)
-        body = api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
+        body = serialize_thematic_trimming_api(new_thematic_trimming)
         self._wrapper.put(thematic_trimming_url, json=body)
 
 
@@ -115,8 +115,7 @@ def read_study_settings_api(base_url: str, study_id: str, wrapper: RequestWrappe
     # thematic trimming
     thematic_trimming_url = f"{settings_base_url}/thematictrimming/form"
     response = wrapper.get(thematic_trimming_url)
-    thematic_trimming_api_model = ThematicTrimmingParametersAPI.model_validate(response.json())
-    thematic_trimming_parameters = thematic_trimming_api_model.to_user_model()
+    thematic_trimming_parameters = parse_thematic_trimming_api(response.json())
 
     # playlist
     playlist_url = f"{settings_base_url}/playlist/form"

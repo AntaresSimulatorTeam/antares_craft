@@ -34,10 +34,12 @@ from antares.craft.service.local_services.models.settings import (
     OtherPreferencesLocal,
     PlaylistParametersLocal,
     SeedParametersLocal,
-    ThematicTrimmingParametersLocal,
+    parse_thematic_trimming_local,
+    serialize_thematic_trimming_local,
 )
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
+from antares.study.version import StudyVersion
 
 DUPLICATE_KEYS = [
     "playlist_year_weight",
@@ -49,10 +51,11 @@ DUPLICATE_KEYS = [
 
 
 class StudySettingsLocalService(BaseStudySettingsService):
-    def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
+    def __init__(self, config: LocalConfiguration, study_name: str, study_version: StudyVersion, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
+        self.study_version = study_version
 
     @override
     def edit_study_settings(self, settings: StudySettingsUpdate) -> None:
@@ -60,7 +63,7 @@ class StudySettingsLocalService(BaseStudySettingsService):
 
     @override
     def read_study_settings(self) -> StudySettings:
-        return read_study_settings(self.config.study_path)
+        return read_study_settings(self.config.study_path, self.study_version)
 
     @override
     def set_playlist(self, new_playlist: dict[int, PlaylistParameters]) -> None:
@@ -73,8 +76,9 @@ class StudySettingsLocalService(BaseStudySettingsService):
     @override
     def set_thematic_trimming(self, new_thematic_trimming: ThematicTrimmingParameters) -> None:
         ini_content = _read_ini(self.config.study_path)
-        trimming_local_parameters = ThematicTrimmingParametersLocal.from_user_model(new_thematic_trimming)
-        ini_content["variables selection"] = trimming_local_parameters.to_ini()
+        ini_content["variables selection"] = serialize_thematic_trimming_local(
+            self.study_version, new_thematic_trimming
+        )
         _save_ini(self.config.study_path, ini_content)
 
 
@@ -87,7 +91,7 @@ def _save_ini(study_directory: Path, content: dict[str, Any]) -> None:
     IniWriter(DUPLICATE_KEYS).write(content, ini_path)
 
 
-def read_study_settings(study_directory: Path) -> StudySettings:
+def read_study_settings(study_directory: Path, study_version: StudyVersion) -> StudySettings:
     ini_content = _read_ini(study_directory)
 
     # general
@@ -141,8 +145,7 @@ def read_study_settings(study_directory: Path) -> StudySettings:
     # thematic trimming
     thematic_trimming_parameters = ThematicTrimmingParameters()
     if "variables selection" in ini_content:
-        thematic_trimming_local = ThematicTrimmingParametersLocal.from_ini(ini_content["variables selection"])
-        thematic_trimming_parameters = thematic_trimming_local.to_user_model()
+        thematic_trimming_parameters = parse_thematic_trimming_local(study_version, ini_content["variables selection"])
 
     return StudySettings(
         general_parameters=general_parameters,

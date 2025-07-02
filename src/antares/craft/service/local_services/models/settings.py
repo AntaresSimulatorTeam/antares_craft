@@ -12,7 +12,6 @@
 from dataclasses import asdict
 from typing import Any, Set
 
-from antares.study.version import StudyVersion
 from pydantic import Field, field_serializer, field_validator
 
 from antares.craft import PlaylistParameters, ThematicTrimmingParameters
@@ -57,6 +56,7 @@ from antares.craft.model.settings.optimization import (
 from antares.craft.model.study import STUDY_VERSION_9_2
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
+from antares.study.version import StudyVersion
 
 AdequacyPatchParametersType = AdequacyPatchParameters | AdequacyPatchParametersUpdate
 
@@ -608,20 +608,19 @@ def _check_min_version(data: Any, field: str, version: StudyVersion) -> None:
 
 
 def validate_against_version(version: StudyVersion, parameters: ThematicTrimmingParametersLocal) -> None:
-    if version >= STUDY_VERSION_9_2:
+    if version < STUDY_VERSION_9_2:
         _check_min_version(parameters, "sts_by_group", version)
 
 
-def parse_thematic_trimming(study_version: StudyVersion, data: Any) -> ThematicTrimmingParameters:
+def parse_thematic_trimming_local(study_version: StudyVersion, data: Any) -> ThematicTrimmingParameters:
     thematic_trimming_parameters_local = ThematicTrimmingParametersLocal.from_ini(data)
     validate_against_version(study_version, thematic_trimming_parameters_local)
     return thematic_trimming_parameters_local.to_user_model()
 
 
-def serialize_thematic_trimming(
-    study_version: StudyVersion, thematic_trimming_update: ThematicTrimmingParameters, current_thematic_trimming: ThematicTrimmingParameters
+def serialize_thematic_trimming_local(
+    study_version: StudyVersion, thematic_trimming: ThematicTrimmingParameters
 ) -> dict[str, Any]:
-    validate_against_version(thematic_trimming_update, study_version)
-    new_trimming = current_thematic_trimming.model_copy(update=thematic_trimming_update.model_dump(exclude_none=True))
-    return ThematicTrimmingParametersLocal.to_ini_file(new_trimming)
-
+    thematic_trimming_parameters_local = ThematicTrimmingParametersLocal.from_user_model(thematic_trimming)
+    validate_against_version(study_version, thematic_trimming_parameters_local)
+    return thematic_trimming_parameters_local.to_ini()
