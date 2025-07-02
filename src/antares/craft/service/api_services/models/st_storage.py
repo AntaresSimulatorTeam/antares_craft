@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
+from typing import Any
 
 from antares.craft.model.st_storage import STStorageProperties, STStoragePropertiesUpdate
 from antares.craft.service.api_services.models.base_model import APIBaseModel
@@ -52,3 +53,13 @@ class STStoragePropertiesAPI(APIBaseModel):
             penalize_variation_injection=self.penalize_variation_injection,
             penalize_variation_withdrawal=self.penalize_variation_withdrawal,
         )
+
+
+def parse_st_storage_api(data: Any) -> STStorageProperties:
+    return STStoragePropertiesAPI.model_validate(data).to_user_model()
+
+
+def serialize_st_storage_api(storage: STStoragePropertiesType) -> dict[str, Any]:
+    return STStoragePropertiesAPI.from_user_model(storage).model_dump(
+        mode="json", by_alias=True, exclude_none=True, exclude_unset=True
+    )

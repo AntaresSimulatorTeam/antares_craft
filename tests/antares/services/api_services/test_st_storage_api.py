@@ -26,7 +26,7 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.area import Area
 from antares.craft.model.st_storage import STStorage, STStoragePropertiesUpdate
 from antares.craft.service.api_services.factory import create_api_services
-from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
+from antares.craft.service.api_services.models.st_storage import parse_st_storage_api
 from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.api_services.services.st_storage import ShortTermStorageApiService
 
@@ -136,7 +136,7 @@ class TestCreateAPI:
 
             area_id, storage_id = list(json_storage.keys())[0].split(" / ")
 
-            storage_props = STStoragePropertiesAPI.model_validate(list(json_storage.values())[0]).to_user_model()
+            storage_props = parse_st_storage_api(list(json_storage.values())[0])
             expected_st_storage = STStorage(area_api.storage_service, area_id, storage_id, storage_props)
 
             assert len(actual_storages) == 1
