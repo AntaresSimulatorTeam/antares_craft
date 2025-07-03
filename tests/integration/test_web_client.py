@@ -80,7 +80,9 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.hydro import InflowStructureUpdate
 from antares.craft.model.output import (
     Frequency,
+    MCAllAreasDataType,
     MCAllLinksDataType,
+    MCIndAreasDataType,
     MCIndLinksDataType,
 )
 from antares.craft.model.settings.study_settings import StudySettings
@@ -883,12 +885,9 @@ class TestWebClient:
 
         # ===== Output get_mc_all_areas =====
 
-        # todo: Uncomment this with AntaresWeb 2.23 (use npcap false inside thematic trimming)
-        """
         matrix_all_area = output.get_mc_all_area(frequency, MCAllAreasDataType.VALUES, area_be.id)
         expected_all_area = _read_matrix(ASSETS_DIR / "all_area.tsv")
         pd.testing.assert_frame_equal(matrix_all_area, expected_all_area, check_dtype=False)
-        """
 
         # ===== Output get_mc_all_links =====
 
@@ -898,12 +897,9 @@ class TestWebClient:
 
         # ===== Output get_mc_ind_areas =====
 
-        # todo: Uncomment this with AntaresWeb 2.23 (use npcap false inside thematic trimming)
-        """
         matrix_ind_area = output.get_mc_ind_area(1, frequency, MCIndAreasDataType.VALUES, area_be.id)
         expected_ind_area = _read_matrix(ASSETS_DIR / "ind_area.tsv", mc_ind=True)
         pd.testing.assert_frame_equal(matrix_ind_area, expected_ind_area, check_dtype=False)
-        """
 
         # ===== Output get_mc_ind_links =====
 
