@@ -11,12 +11,13 @@
 # This file is part of the Antares project.
 import getpass
 
+from dataclasses import replace
 from pathlib import Path
 from typing import Optional
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.settings.study_settings import StudySettings
-from antares.craft.model.study import Study
+from antares.craft.model.study import STUDY_VERSION_9_2, Study
 from antares.craft.service.base_services import (
     StudyServices,
 )
@@ -80,6 +81,12 @@ def _get_current_os_user() -> str:
         return "Unknown"
 
 
+def _initialize_settings_according_to_version(settings: StudySettings, version: StudyVersion) -> StudySettings:
+    if version >= STUDY_VERSION_9_2:
+        settings.thematic_trimming_parameters = replace(settings.thematic_trimming_parameters, sts_by_group=True)
+    return settings
+
+
 def create_study_local(
     study_name: str, version: str, parent_directory: Path, solver_path: Optional[Path] = None
 ) -> "Study":
@@ -114,7 +121,7 @@ def create_study_local(
     default_settings = StudySettings()
     update_settings = default_settings.to_update_settings()
     edit_study_settings(study_directory, update_settings, True)
-    study._settings = default_settings
+    study._settings = _initialize_settings_according_to_version(default_settings, study_version)
     return study
 
 

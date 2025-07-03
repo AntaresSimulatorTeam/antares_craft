@@ -117,8 +117,10 @@ def test_88(tmp_path: Path) -> None:
 
 def test_92(tmp_path: Path) -> None:
     study = create_study_local("second_study", "9.2", tmp_path)
-    settings = study.get_settings()
-    assert settings.thematic_trimming_parameters == ThematicTrimmingParameters()
+    for study_9_2 in [study, read_study_local(tmp_path / "second_study")]:
+        settings = study_9_2.get_settings()
+        # Ensures `sts_by_group` is not None as we have a 9.2 study
+        assert settings.thematic_trimming_parameters == ThematicTrimmingParameters(sts_by_group=True)
     # Checks the `set` method
     new_trimming = ThematicTrimmingParameters(sts_cashflow_by_cluster=False, nuclear=False)
     study.set_thematic_trimming(new_trimming)

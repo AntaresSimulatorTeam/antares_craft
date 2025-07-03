@@ -145,9 +145,9 @@ def read_study_settings(study_directory: Path, study_version: StudyVersion) -> S
         playlist_parameters = local_parameters.to_user_model(general_parameters.nb_years)
 
     # thematic trimming
-    thematic_trimming_parameters = ThematicTrimmingParameters()
-    if "variables selection" in ini_content:
-        thematic_trimming_parameters = parse_thematic_trimming_local(study_version, ini_content["variables selection"])
+    thematic_trimming_parameters = parse_thematic_trimming_local(
+        study_version, ini_content.get("variables selection", {})
+    )
 
     return StudySettings(
         general_parameters=general_parameters,
