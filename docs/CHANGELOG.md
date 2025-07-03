@@ -1,7 +1,7 @@
 v0.2.8 (2025-07-03)
 -------------------
 
-### Breaking changes
+### Compatiblity
 This version is compatible with AntaresWeb v2.22. The previous is not.
 
 ### Features
