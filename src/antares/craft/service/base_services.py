@@ -829,7 +829,7 @@ class BaseStudySettingsService(ABC):
     @abstractmethod
     def set_playlist(self, new_playlist: dict[int, "PlaylistParameters"]) -> None:
         """
-        Set new playlist for the study
+        Set a new playlist for the study
         """
         pass
 
@@ -838,7 +838,7 @@ class BaseStudySettingsService(ABC):
         self, new_thematic_trimming: "ThematicTrimmingParameters"
     ) -> "ThematicTrimmingParameters":
         """
-        Set new playlist for the study
+        Set new thematic trimming for the study
         """
         pass
 
