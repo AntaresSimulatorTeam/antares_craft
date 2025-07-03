@@ -1,3 +1,20 @@
+v0.2.8 (2025-07-03)
+-------------------
+
+### Compatiblity
+This version is compatible with AntaresWeb v2.22. The previous is not.
+
+### Features
+* **bcs**: forbid deletion if area/link/cluster is referenced inside a constraint term [195](https://github.com/AntaresSimulatorTeam/antares_craft/pull/195)
+* **api** handle AntaresWeb version 2.22 [197](https://github.com/AntaresSimulatorTeam/antares_craft/pull/197)
+
+### Miscellaneous
+* **deps**: bump pydantic and move documentation requirements [198](https://github.com/AntaresSimulatorTeam/antares_craft/pull/198)
+* **sonar**: fix little sonar issues [199](https://github.com/AntaresSimulatorTeam/antares_craft/pull/199)
+* **output**: add aggregation enums inside `__all__` [200](https://github.com/AntaresSimulatorTeam/antares_craft/pull/200)
+* **tests**: adapt code to custom desktop version [210](https://github.com/AntaresSimulatorTeam/antares_craft/pull/210)
+
+
 v0.2.7 (2025-06-13)
 -------------------
 
