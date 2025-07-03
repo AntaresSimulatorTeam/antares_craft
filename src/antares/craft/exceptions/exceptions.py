@@ -533,3 +533,9 @@ class ReferencedObjectDeletionNotAllowed(Exception):
 class InvalidFieldForVersionError(ValueError):
     def __init__(self, message: str) -> None:
         super().__init__(self, message)
+
+
+class ThematicTrimmingUpdateError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not update thematic_trimming for study {study_name}: " + message
+        super().__init__(self.message)

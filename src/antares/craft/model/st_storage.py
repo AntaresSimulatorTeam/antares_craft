@@ -70,7 +70,7 @@ class STStorageProperties:
     initial_level: float = 0.5
     initial_level_optim: bool = False
     enabled: bool = True
-    # add new parameter 9.2
+    # Simulator v9.2 parameters
     efficiency_withdrawal: Optional[float] = None  # default 1.0
     penalize_variation_injection: Optional[bool] = None  # default False
     penalize_variation_withdrawal: Optional[bool] = None  # default False

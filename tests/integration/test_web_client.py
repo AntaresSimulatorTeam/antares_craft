@@ -996,3 +996,28 @@ class TestWebClient:
             match=f"Could not update settings for study {imported_study.service.study_id}: AntaresWeb doesn't support editing the parameter include_exportstructure",
         ):
             imported_study.update_settings(update_settings)
+
+        # TODO: Uncomment this when we'll support the 9.2 API
+        ######################
+        # Specific tests for study version 9.2
+        ######################
+
+        """
+        # Create study
+        study = create_study_api("Study_92", "9.2", api_config)
+
+        # Create a st-storage with specific v9.2 parameters
+        area_fr = study.create_area("FR")
+        sts_properties = STStorageProperties(efficiency_withdrawal=0.9, group="free group")
+        storage = area_fr.create_st_storage("sts_test", sts_properties)
+        assert storage.properties.efficiency_withdrawal == 0.9
+        assert storage.properties.group == "free group"
+        assert storage.properties.penalize_variation_injection is False
+
+        # Update its properties
+        new_properties = STStoragePropertiesUpdate(group="new group", penalize_variation_injection=True)
+        storage.update_properties(new_properties)
+        assert storage.properties.efficiency_withdrawal == 0.9
+        assert storage.properties.group == "new group"
+        assert storage.properties.penalize_variation_injection is True
+        """
