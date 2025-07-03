@@ -80,9 +80,7 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.hydro import InflowStructureUpdate
 from antares.craft.model.output import (
     Frequency,
-    MCAllAreasDataType,
     MCAllLinksDataType,
-    MCIndAreasDataType,
     MCIndLinksDataType,
 )
 from antares.craft.model.settings.study_settings import StudySettings
@@ -885,9 +883,12 @@ class TestWebClient:
 
         # ===== Output get_mc_all_areas =====
 
+        # todo: Uncomment this with AntaresWeb 2.23 (use npcap false inside thematic trimming)
+        """
         matrix_all_area = output.get_mc_all_area(frequency, MCAllAreasDataType.VALUES, area_be.id)
         expected_all_area = _read_matrix(ASSETS_DIR / "all_area.tsv")
         pd.testing.assert_frame_equal(matrix_all_area, expected_all_area, check_dtype=False)
+        """
 
         # ===== Output get_mc_all_links =====
 
@@ -897,9 +898,12 @@ class TestWebClient:
 
         # ===== Output get_mc_ind_areas =====
 
+        # todo: Uncomment this with AntaresWeb 2.23 (use npcap false inside thematic trimming)
+        """
         matrix_ind_area = output.get_mc_ind_area(1, frequency, MCIndAreasDataType.VALUES, area_be.id)
         expected_ind_area = _read_matrix(ASSETS_DIR / "ind_area.tsv", mc_ind=True)
         pd.testing.assert_frame_equal(matrix_ind_area, expected_ind_area, check_dtype=False)
+        """
 
         # ===== Output get_mc_ind_links =====
 
@@ -996,3 +1000,28 @@ class TestWebClient:
             match=f"Could not update settings for study {imported_study.service.study_id}: AntaresWeb doesn't support editing the parameter include_exportstructure",
         ):
             imported_study.update_settings(update_settings)
+
+        # TODO: Uncomment this when we'll support the 9.2 API
+        ######################
+        # Specific tests for study version 9.2
+        ######################
+
+        """
+        # Create study
+        study = create_study_api("Study_92", "9.2", api_config)
+
+        # Create a st-storage with specific v9.2 parameters
+        area_fr = study.create_area("FR")
+        sts_properties = STStorageProperties(efficiency_withdrawal=0.9, group="free group")
+        storage = area_fr.create_st_storage("sts_test", sts_properties)
+        assert storage.properties.efficiency_withdrawal == 0.9
+        assert storage.properties.group == "free group"
+        assert storage.properties.penalize_variation_injection is False
+
+        # Update its properties
+        new_properties = STStoragePropertiesUpdate(group="new group", penalize_variation_injection=True)
+        storage.update_properties(new_properties)
+        assert storage.properties.efficiency_withdrawal == 0.9
+        assert storage.properties.group == "new group"
+        assert storage.properties.penalize_variation_injection is True
+        """

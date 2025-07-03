@@ -47,11 +47,15 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
         return STStoragePropertiesLocal.model_validate(user_dict)
 
     def to_user_model(self, study_version: StudyVersion) -> STStorageProperties:
+        # Initialize optional fields that aren't always filled inside the INI file
+
         # fmt: off
         efficiency_withdrawal = self.efficiency_withdrawal or (1 if study_version >= STUDY_VERSION_9_2 else None)
         penalize_variation_injection = self.penalize_variation_injection or (False if study_version >= STUDY_VERSION_9_2 else None)
         penalize_variation_withdrawal = self.penalize_variation_withdrawal or (False if study_version >= STUDY_VERSION_9_2 else None)
         # fmt: on
+
+        # Returns the user object
         return STStorageProperties(
             enabled=self.enabled,
             group=self.group,
