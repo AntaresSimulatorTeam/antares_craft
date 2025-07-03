@@ -37,6 +37,7 @@ MAPPING = {
     "r": "renewable",
     "bc": "binding_constraint",
     "hl": "hydro_initial_level",
+    "hfl": "hydro_final_level",
     "hgp": "hydro_generation_power",
 }
 
@@ -52,6 +53,7 @@ class ScenarioBuilderLocal(LocalBaseModel):
     renewable: dict[str, dict[str, dict[str, int]]] = Field(alias="r")
     binding_constraint: dict[str, dict[str, int]] = Field(alias="bc")
     hydro_initial_level: dict[str, dict[str, float]] = Field(alias="hl")
+    hydro_final_level: dict[str, dict[str, float]] = Field(alias="hfl")
     hydro_generation_power: dict[str, dict[str, int]] = Field(alias="hgp")
 
     @staticmethod
@@ -112,6 +114,7 @@ class ScenarioBuilderLocal(LocalBaseModel):
             renewable=ScenarioCluster(_data={}, _years=nb_years),
             binding_constraint=ScenarioConstraint(_data={}, _years=nb_years),
             hydro_initial_level=ScenarioHydroLevel(_data={}, _years=nb_years),
+            hydro_final_level=ScenarioHydroLevel(_data={}, _years=nb_years),
             hydro_generation_power=ScenarioArea(_data={}, _years=nb_years),
         )
 
@@ -141,13 +144,14 @@ class ScenarioBuilderLocal(LocalBaseModel):
                 field_value = ScenarioConstraint(_data=user_dict, _years=nb_years)
             setattr(scenario_builder, keyword, field_value)
 
-        user_dict_hydro: dict[str, ScenarioMatrixHydro] = {}
-        if self.hydro_initial_level:
-            for key, value in self.hydro_initial_level.items():
-                user_dict_hydro[key] = ScenarioMatrixHydro([None] * nb_years)
-                for mc_year, level_value in value.items():
-                    user_dict_hydro[key]._matrix[int(mc_year)] = level_value
-            scenario_builder.hydro_initial_level = ScenarioHydroLevel(_data=user_dict_hydro, _years=nb_years)
+        for keyword in ["hydro_initial_level", "hydro_final_level"]:
+            user_dict_hydro: dict[str, ScenarioMatrixHydro] = {}
+            if getattr(self, keyword):
+                for key, value in getattr(self, keyword).items():
+                    user_dict_hydro[key] = ScenarioMatrixHydro([None] * nb_years)
+                    for mc_year, level_value in value.items():
+                        user_dict_hydro[key]._matrix[int(mc_year)] = level_value
+            setattr(scenario_builder, keyword, ScenarioHydroLevel(_data=user_dict_hydro, _years=nb_years))
 
         for keyword in ["renewable", "thermal"]:
             cluster_dict: dict[str, dict[str, ScenarioMatrix]] = {}
@@ -182,11 +186,12 @@ class ScenarioBuilderLocal(LocalBaseModel):
                     api_data[area_id] = {str(index): value for index, value in enumerate(values._matrix) if value}
                 args[keyword] = api_data
 
-        if user_class.hydro_initial_level:
+        for keyword in ["hydro_initial_level", "hydro_final_level"]:
             api_data = {}
-            for area_id, values in user_class.hydro_initial_level._data.items():
-                api_data[area_id] = {str(index): value / 100 for index, value in enumerate(values._matrix) if value}
-            args["hydro_initial_level"] = api_data
+            if getattr(user_class, keyword):
+                for area_id, values in getattr(user_class, keyword)._data.items():
+                    api_data[area_id] = {str(index): value / 100 for index, value in enumerate(values._matrix) if value}
+                args[keyword] = api_data
 
         for keyword in ["renewable", "thermal"]:
             if cluster_user_data := getattr(user_class, keyword)._data:
