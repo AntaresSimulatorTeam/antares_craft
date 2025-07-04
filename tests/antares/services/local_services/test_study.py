@@ -28,6 +28,7 @@ from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
     LinkCreationError,
+    MatrixFormatError,
     UnsupportedStudyVersion,
 )
 from antares.craft.model.area import AreaProperties, AreaUi
@@ -1259,7 +1260,7 @@ at%fr = 1%1
 
     def test_submitted_time_series_is_saved(self, local_study: Study) -> None:
         # Given
-        expected_time_series = pd.DataFrame(np.ones([3, 1]))
+        expected_time_series = pd.DataFrame(np.ones([8784, 1]))
         bc_name = "test time series"
         local_study.create_binding_constraint(
             name=bc_name,
@@ -1277,9 +1278,32 @@ at%fr = 1%1
         # Then
         assert actual_time_series.equals(expected_time_series)
 
+    def test_giving_wrongly_formatted_matrix_fails(self, local_study: Study) -> None:
+        wrong_time_series = pd.DataFrame(np.ones([3, 1]))
+        bc_name = "bc_1"
+        # Ensures creation fails
+        with pytest.raises(
+            MatrixFormatError,
+            match=re.escape(
+                f"Wrong format for bindingconstraints/{bc_name}/bc_hourly matrix, expected shape is (8784, Any) and was : (3, 1)"
+            ),
+        ):
+            local_study.create_binding_constraint(name=bc_name, greater_term_matrix=wrong_time_series)
+
+        bc_name = "bc_2"
+        bc = local_study.create_binding_constraint(name=bc_name)
+        # Ensures edition fails
+        with pytest.raises(
+            MatrixFormatError,
+            match=re.escape(
+                f"Wrong format for bindingconstraints/{bc_name}/bc_hourly matrix, expected shape is (8784, Any) and was : (3, 1)"
+            ),
+        ):
+            bc.set_equal_term(wrong_time_series)
+
     def test_get_constraint_matrix(self, local_study: Study) -> None:
         # Given
-        expected_time_series = pd.DataFrame(np.random.randint(0, 100, [365 * 24, 1]), dtype=np.int64)
+        expected_time_series = pd.DataFrame(np.random.randint(0, 100, [366 * 24, 1]), dtype=np.int64)
         bc_name = "test time series"
         local_study.create_binding_constraint(
             name=bc_name,
