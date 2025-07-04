@@ -85,26 +85,17 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
         self._create_constraint_inside_ini(name, local_properties, terms or [])
 
-        self._store_time_series(constraint, less_term_matrix, equal_term_matrix, greater_term_matrix)
+        # Save matrices
+        mapping = {
+            ConstraintMatrixName.LESS_TERM: less_term_matrix,
+            ConstraintMatrixName.EQUAL_TERM: equal_term_matrix,
+            ConstraintMatrixName.GREATER_TERM: greater_term_matrix,
+        }
+        for matrix_name, matrix in mapping.items():
+            matrix = matrix if matrix is not None else pd.DataFrame()
+            self.set_constraint_matrix(constraint, matrix_name, matrix)
 
         return constraint
-
-    def _store_time_series(
-        self,
-        constraint: BindingConstraint,
-        less_term_matrix: Optional[pd.DataFrame],
-        equal_term_matrix: Optional[pd.DataFrame],
-        greater_term_matrix: Optional[pd.DataFrame],
-    ) -> None:
-        study_path = self.config.study_path
-        bc_id = constraint.id
-        write_timeseries(study_path, less_term_matrix, TimeSeriesFileType.BINDING_CONSTRAINT_LESS, constraint_id=bc_id)
-        write_timeseries(
-            study_path, greater_term_matrix, TimeSeriesFileType.BINDING_CONSTRAINT_GREATER, constraint_id=bc_id
-        )
-        write_timeseries(
-            study_path, equal_term_matrix, TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL, constraint_id=bc_id
-        )
 
     def _read_ini(self) -> dict[str, Any]:
         return IniReader().read(self._ini_path)
