@@ -62,7 +62,7 @@ class TimeSeriesFileType(Enum):
     THERMAL_SERIES = "input/thermal/series/{area_id}/{cluster_id}/series.txt"
     THERMAL_DATA = "input/thermal/prepro/{area_id}/{cluster_id}/data.txt"
     THERMAL_MODULATION = "input/thermal/prepro/{area_id}/{cluster_id}/modulation.txt"
-    THERMAL_CO2 = "input/thermal/series/{area_id}/{cluster_id}/C02Cost.txt"
+    THERMAL_CO2 = "input/thermal/series/{area_id}/{cluster_id}/CO2Cost.txt"
     THERMAL_FUEL = "input/thermal/series/{area_id}/{cluster_id}/fuelCost.txt"
     WIND = "input/wind/series/wind_{area_id}.txt"
     WIND_CONVERSION = "input/wind/prepro/{area_id}/conversion.txt"
