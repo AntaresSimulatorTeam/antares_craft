@@ -335,11 +335,11 @@ class TestWebClient:
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
-        storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY)
+        storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY.value)
         battery_fr = area_fr.create_st_storage(st_storage_name, storage_properties)
         properties = battery_fr.properties
         assert properties.reservoir_capacity == 0.5
-        assert properties.group == STStorageGroup.BATTERY
+        assert properties.group == STStorageGroup.BATTERY.value
 
         # checking multiple areas properties update
         area_props_update_1 = AreaPropertiesUpdate(
@@ -381,23 +381,23 @@ class TestWebClient:
 
         # using update_st_storages to modify existing storages properties and checking they've been modified
         battery_fr_update = STStoragePropertiesUpdate(
-            group=STStorageGroup.PSP_CLOSED, enabled=False, injection_nominal_capacity=1000
+            group=STStorageGroup.PSP_CLOSED.value, enabled=False, injection_nominal_capacity=1000
         )
-        storage_fr_update = STStoragePropertiesUpdate(group=STStorageGroup.PONDAGE, efficiency=0)
+        storage_fr_update = STStoragePropertiesUpdate(group=STStorageGroup.PONDAGE.value, efficiency=0)
         update_for_storages = {battery_fr: battery_fr_update, storage_fr: storage_fr_update}
 
         study.update_st_storages(update_for_storages)
 
         battery_fr_properties = battery_fr.properties
         storage_fr_properties = storage_fr.properties
-        assert battery_fr_properties.group == STStorageGroup.PSP_CLOSED
+        assert battery_fr_properties.group == STStorageGroup.PSP_CLOSED.value
         assert not battery_fr_properties.enabled
         assert battery_fr_properties.injection_nominal_capacity == 1000
         # Checking if the other values haven't been modified
         assert battery_fr_properties.initial_level == 0.5
         assert battery_fr_properties.efficiency == 1
 
-        assert storage_fr_properties.group == STStorageGroup.PONDAGE
+        assert storage_fr_properties.group == STStorageGroup.PONDAGE.value
         assert storage_fr_properties.efficiency == 0
         # Checking if the other values haven't been modified
         assert storage_fr_properties.enabled
@@ -572,9 +572,9 @@ class TestWebClient:
         assert renewable_onshore.properties.ts_interpretation == TimeSeriesInterpretation.POWER_GENERATION
 
         # tests short term storage properties update
-        new_props = STStoragePropertiesUpdate(group=STStorageGroup.PONDAGE)
+        new_props = STStoragePropertiesUpdate(group=STStorageGroup.PONDAGE.value)
         battery_fr.update_properties(new_props)
-        assert battery_fr.properties.group == STStorageGroup.PONDAGE
+        assert battery_fr.properties.group == STStorageGroup.PONDAGE.value
         assert battery_fr.properties.reservoir_capacity == 0.5  # Checks old value wasn't modified
 
         # tests constraint properties update
@@ -996,3 +996,28 @@ class TestWebClient:
             match=f"Could not update settings for study {imported_study.service.study_id}: AntaresWeb doesn't support editing the parameter include_exportstructure",
         ):
             imported_study.update_settings(update_settings)
+
+        # TODO: Uncomment this when we'll support the 9.2 API
+        ######################
+        # Specific tests for study version 9.2
+        ######################
+
+        """
+        # Create study
+        study = create_study_api("Study_92", "9.2", api_config)
+
+        # Create a st-storage with specific v9.2 parameters
+        area_fr = study.create_area("FR")
+        sts_properties = STStorageProperties(efficiency_withdrawal=0.9, group="free group")
+        storage = area_fr.create_st_storage("sts_test", sts_properties)
+        assert storage.properties.efficiency_withdrawal == 0.9
+        assert storage.properties.group == "free group"
+        assert storage.properties.penalize_variation_injection is False
+
+        # Update its properties
+        new_properties = STStoragePropertiesUpdate(group="new group", penalize_variation_injection=True)
+        storage.update_properties(new_properties)
+        assert storage.properties.efficiency_withdrawal == 0.9
+        assert storage.properties.group == "new group"
+        assert storage.properties.penalize_variation_injection is True
+        """

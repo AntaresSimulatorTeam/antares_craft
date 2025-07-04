@@ -175,7 +175,7 @@ class TestLocalLauncher:
         area_fr.create_renewable_cluster("Wind onshore fr", renewable_properties)
 
         # Create short term storage
-        sts_properties = STStorageProperties(group=STStorageGroup.BATTERY, efficiency=0.4)
+        sts_properties = STStorageProperties(group=STStorageGroup.BATTERY.value, efficiency=0.4)
         area_fr.create_st_storage("Battery fr", sts_properties)
 
         # Create binding constraint

@@ -11,12 +11,13 @@
 # This file is part of the Antares project.
 import getpass
 
+from dataclasses import replace
 from pathlib import Path
 from typing import Optional
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.settings.study_settings import StudySettings
-from antares.craft.model.study import Study
+from antares.craft.model.study import STUDY_VERSION_9_2, Study
 from antares.craft.service.base_services import (
     StudyServices,
 )
@@ -36,21 +37,28 @@ from antares.study.version import StudyVersion
 from antares.study.version.create_app import CreateApp
 
 
-def create_local_services(config: LocalConfiguration, study_name: str = "") -> StudyServices:
-    storage_service = ShortTermStorageLocalService(config, study_name)
+def create_local_services(config: LocalConfiguration, study_name: str, study_version: StudyVersion) -> StudyServices:
+    short_term_storage_service = ShortTermStorageLocalService(config, study_name, study_version)
     thermal_service = ThermalLocalService(config, study_name)
     renewable_service = RenewableLocalService(config, study_name)
     hydro_service = HydroLocalService(config, study_name)
     bc_service = BindingConstraintLocalService(config, study_name)
     area_service = AreaLocalService(
-        config, study_name, storage_service, thermal_service, renewable_service, hydro_service, bc_service
+        config,
+        study_name,
+        study_version,
+        short_term_storage_service,
+        thermal_service,
+        renewable_service,
+        hydro_service,
+        bc_service,
     )
     link_service = LinkLocalService(config, study_name)
     output_service = OutputLocalService(config, study_name)
     study_service = StudyLocalService(config, study_name, output_service)
     run_service = RunLocalService(config, study_name)
-    settings_service = StudySettingsLocalService(config, study_name)
-    short_term_storage_service = ShortTermStorageLocalService(config, study_name)
+    settings_service = StudySettingsLocalService(config, study_name, study_version)
+    short_term_storage_service = ShortTermStorageLocalService(config, study_name, study_version)
     return StudyServices(
         area_service=area_service,
         bc_service=bc_service,
@@ -71,6 +79,12 @@ def _get_current_os_user() -> str:
         return getpass.getuser()
     except ModuleNotFoundError:  # Can happen on Windows as the `pwd` module only exists on Unix
         return "Unknown"
+
+
+def _initialize_settings_according_to_version(settings: StudySettings, version: StudyVersion) -> StudySettings:
+    if version >= STUDY_VERSION_9_2:
+        settings.thematic_trimming_parameters = replace(settings.thematic_trimming_parameters, sts_by_group=True)
+    return settings
 
 
 def create_study_local(
@@ -99,7 +113,7 @@ def create_study_local(
     study = Study(
         name=study_name,
         version=version,
-        services=create_local_services(config=local_config, study_name=study_name),
+        services=create_local_services(config=local_config, study_name=study_name, study_version=study_version),
         path=study_directory,
         solver_path=solver_path,
     )
@@ -107,7 +121,7 @@ def create_study_local(
     default_settings = StudySettings()
     update_settings = default_settings.to_update_settings()
     edit_study_settings(study_directory, update_settings, True)
-    study._settings = default_settings
+    study._settings = _initialize_settings_according_to_version(default_settings, study_version)
     return study
 
 
@@ -130,10 +144,15 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
 
     local_config = LocalConfiguration(study_directory.parent, study_directory.name)
 
+    version = StudyVersion.parse(str(study_params["version"]))
     study = Study(
         name=study_params["caption"],
-        version=study_params["version"],
-        services=create_local_services(config=local_config, study_name=study_params["caption"]),
+        version=f"{version:2d}",
+        services=create_local_services(
+            config=local_config,
+            study_name=study_params["caption"],
+            study_version=version,
+        ),
         path=study_directory,
         solver_path=solver_path,
     )

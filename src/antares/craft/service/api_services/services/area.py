@@ -41,7 +41,10 @@ from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaPropertiesAPITableMode, AreaUiAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
-from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
+from antares.craft.service.api_services.models.st_storage import (
+    parse_st_storage_api,
+    serialize_st_storage_api,
+)
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.services.hydro import HydroApiService
 from antares.craft.service.api_services.utils import get_matrix, update_series
@@ -290,15 +293,13 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages"
             body = {"name": st_storage_name}
             if properties:
-                api_model = STStoragePropertiesAPI.from_user_model(properties)
-                camel_properties = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
+                camel_properties = serialize_st_storage_api(properties)
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
             name = json_response.pop("name")
             del json_response["id"]
-            api_properties = STStoragePropertiesAPI.model_validate(json_response)
-            properties = api_properties.to_user_model()
+            properties = parse_st_storage_api(json_response)
 
         except APIError as e:
             raise STStorageCreationError(st_storage_name, area_id, e.message) from e

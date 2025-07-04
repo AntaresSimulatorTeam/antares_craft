@@ -147,13 +147,13 @@ class BaseAreaService(ABC):
     ) -> "STStorage":
         """
         Args:
-
-            area_id: the area id in which to create the short term storage
-            st_storage_name: the name of the short term storage
-            properties: the properties of the short term storage. If not provided, AntaresWeb will use its own default values.
+            area_id: area in which st_storage will be created
+            st_storage_name: name of new st_storage
+            properties: if 'None', default values will be used,
+                        otherwise custom parameters to be validated with the study version
 
         Returns:
-            The created short term storage
+            New st_storage
         """
         pass
 
@@ -829,14 +829,16 @@ class BaseStudySettingsService(ABC):
     @abstractmethod
     def set_playlist(self, new_playlist: dict[int, "PlaylistParameters"]) -> None:
         """
-        Set new playlist for the study
+        Set a new playlist for the study
         """
         pass
 
     @abstractmethod
-    def set_thematic_trimming(self, new_thematic_trimming: "ThematicTrimmingParameters") -> None:
+    def set_thematic_trimming(
+        self, new_thematic_trimming: "ThematicTrimmingParameters"
+    ) -> "ThematicTrimmingParameters":
         """
-        Set new playlist for the study
+        Set new thematic trimming for the study
         """
         pass
 

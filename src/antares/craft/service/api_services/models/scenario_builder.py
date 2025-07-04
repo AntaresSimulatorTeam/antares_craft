@@ -40,6 +40,7 @@ class ScenarioBuilderAPI(APIBaseModel):
     binding_constraint: dict[str, dict[str, int]] = Field(alias="bc")
     hydro_initial_level: dict[str, dict[str, float]] = Field(alias="hl")
     hydro_generation_power: dict[str, dict[str, int]] = Field(alias="hgp")
+    hydro_final_level: dict[str, dict[str, int]] = Field(alias="hfl")
 
     @staticmethod
     def from_api(data: dict[str, Any]) -> "ScenarioBuilderAPI":
@@ -61,6 +62,7 @@ class ScenarioBuilderAPI(APIBaseModel):
             binding_constraint=ScenarioConstraint(_data={}, _years=nb_years),
             hydro_initial_level=ScenarioHydroLevel(_data={}, _years=nb_years),
             hydro_generation_power=ScenarioArea(_data={}, _years=nb_years),
+            hydro_final_level=ScenarioHydroLevel(_data={}, _years=nb_years),
         )
 
         for keyword in [
@@ -89,13 +91,14 @@ class ScenarioBuilderAPI(APIBaseModel):
                 field_value = ScenarioConstraint(_data=user_dict, _years=nb_years)
             setattr(scenario_builder, keyword, field_value)
 
-        user_dict_hydro: dict[str, ScenarioMatrixHydro] = {}
-        if self.hydro_initial_level:
-            for key, value in self.hydro_initial_level.items():
-                user_dict_hydro[key] = ScenarioMatrixHydro([None] * nb_years)
-                for mc_year, level_value in value.items():
-                    user_dict_hydro[key]._matrix[int(mc_year)] = level_value
-            scenario_builder.hydro_initial_level = ScenarioHydroLevel(_data=user_dict_hydro, _years=nb_years)
+        for keyword in ["hydro_initial_level", "hydro_final_level"]:
+            user_dict_hydro: dict[str, ScenarioMatrixHydro] = {}
+            if getattr(self, keyword):
+                for key, value in getattr(self, keyword).items():
+                    user_dict_hydro[key] = ScenarioMatrixHydro([None] * nb_years)
+                    for mc_year, level_value in value.items():
+                        user_dict_hydro[key]._matrix[int(mc_year)] = level_value
+            setattr(scenario_builder, keyword, ScenarioHydroLevel(_data=user_dict_hydro, _years=nb_years))
 
         for keyword in ["renewable", "thermal"]:
             cluster_dict: dict[str, dict[str, ScenarioMatrix]] = {}
@@ -121,6 +124,7 @@ class ScenarioBuilderAPI(APIBaseModel):
             "wind",
             "hydro",
             "hydro_initial_level",
+            "hydro_final_level",
             "hydro_generation_power",
             "link",
             "binding_constraint",
