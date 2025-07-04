@@ -135,15 +135,6 @@ class AreaLocalService(BaseAreaService):
                 f"A thermal cluster called '{thermal_name}' already exists in area '{area_id}'.",
             )
 
-        # Creating files
-        prepro_folder_path = self.config.study_path / "input" / "thermal" / "prepro" / area_id / thermal_id
-        series_folder_path = self.config.study_path / "input" / "thermal" / "prepro" / area_id / thermal_id
-        for folder in [prepro_folder_path, series_folder_path]:
-            folder.mkdir(parents=True, exist_ok=True)
-        (prepro_folder_path / "modulation.txt").touch()
-        (prepro_folder_path / "data.txt").touch()
-        (series_folder_path / "series.txt").touch()
-
         # Writing properties
         properties = properties or ThermalClusterProperties()
         local_properties = ThermalClusterPropertiesLocal.from_user_model(properties)
