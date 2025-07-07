@@ -54,7 +54,7 @@ class TestLocalClient:
         # Area already exists
         with pytest.raises(
             AreaCreationError,
-            match="Could not create the area fr: There is already an area 'fr' in the study 'test study'",
+            match="Could not create the area 'fr': There is already an area 'fr' in the study 'test study'",
         ):
             test_study.create_area("fr")
 
@@ -62,7 +62,7 @@ class TestLocalClient:
         at_fr = test_study.create_link(area_from=fr.id, area_to=at.id)
 
         # Cannot create a link from an area that doesn't exist in the study
-        with pytest.raises(LinkCreationError, match="Could not create the link fr / usa: usa does not exist"):
+        with pytest.raises(LinkCreationError, match="Could not create the link 'fr / usa': usa does not exist"):
             test_study.create_link(area_from=fr.id, area_to="usa")
 
         # Thermal

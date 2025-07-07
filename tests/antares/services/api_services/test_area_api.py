@@ -91,7 +91,7 @@ class TestCreateAPI:
             mocker.put(url, json={"description": antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 AreasPropertiesUpdateError,
-                match=f"Could not update areas properties from study {self.study_id} : {antares_web_description_msg}",
+                match=f"Could not update areas properties from study '{self.study_id}' : {antares_web_description_msg}",
             ):
                 self.area.update_properties(properties=properties)
 
@@ -127,7 +127,7 @@ class TestCreateAPI:
             mocker.put(url2, json={"description": antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 AreaUiUpdateError,
-                match=f"Could not update ui for area {self.area.id}: {antares_web_description_msg}",
+                match=f"Could not update ui for area '{self.area.id}': {antares_web_description_msg}",
             ):
                 self.area.update_ui(ui)
 
@@ -148,7 +148,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 ThermalCreationError,
-                match=f"Could not create the thermal cluster {thermal_name} inside area {self.area.id}: {self.antares_web_description_msg}",
+                match=f"Could not create the thermal cluster '{thermal_name}' inside area '{self.area.id}': {self.antares_web_description_msg}",
             ):
                 self.area.create_thermal_cluster(thermal_name=thermal_name)
 
@@ -172,7 +172,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 RenewableCreationError,
-                match=f"Could not create the renewable cluster {renewable_name} inside area {self.area.id}: {self.antares_web_description_msg}",
+                match=f"Could not create the renewable cluster '{renewable_name}' inside area '{self.area.id}': {self.antares_web_description_msg}",
             ):
                 self.area.create_renewable_cluster(
                     renewable_name=renewable_name, properties=RenewableClusterProperties(), series=None
@@ -196,7 +196,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 STStorageCreationError,
-                match=f"Could not create the short term storage {st_storage_name} inside area {self.area.id}: {self.antares_web_description_msg}",
+                match=f"Could not create the short term storage '{st_storage_name}' inside area '{self.area.id}': {self.antares_web_description_msg}",
             ):
                 self.area.create_st_storage(st_storage_name=st_storage_name)
 
@@ -375,7 +375,8 @@ class TestCreateAPI:
             mocker.get(url_areas, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 AreasRetrievalError,
-                match=f"Could not retrieve the areas from study {self.study_id} : " + self.antares_web_description_msg,
+                match=f"Could not retrieve the areas from study '{self.study_id}' : "
+                + self.antares_web_description_msg,
             ):
                 self.study._read_areas()
 
@@ -394,7 +395,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 HydroPropertiesUpdateError,
-                match="Could not update hydro properties for area area_test: " + self.antares_web_description_msg,
+                match="Could not update hydro properties for area 'area_test': " + self.antares_web_description_msg,
             ):
                 self.area._hydro_service.update_properties(self.area.id, new_properties)
 
@@ -412,6 +413,7 @@ class TestCreateAPI:
             mocker.put(hydro_url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 HydroInflowStructureUpdateError,
-                match="Could not update hydro inflow-structure for area area_test: " + self.antares_web_description_msg,
+                match="Could not update hydro inflow-structure for area 'area_test': "
+                + self.antares_web_description_msg,
             ):
                 self.area._hydro_service.update_inflow_structure(self.area.id, inflow_structure)

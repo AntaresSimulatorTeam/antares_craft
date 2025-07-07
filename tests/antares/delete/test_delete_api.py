@@ -68,7 +68,7 @@ class TestDeleteAPI:
             mocker.delete(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 AreaDeletionError,
-                match=f"Could not delete the area {self.area_fr.id}: {self.antares_web_description_msg}",
+                match=f"Could not delete the area '{self.area_fr.id}': {self.antares_web_description_msg}",
             ):
                 self.area_service.delete_area(self.area_fr.id)
 
@@ -86,7 +86,7 @@ class TestDeleteAPI:
             mocker.delete(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 LinkDeletionError,
-                match=f"Could not delete the link {self.area_be.id} / {self.area_fr.id}: {self.antares_web_description_msg}",
+                match=f"Could not delete the link '{self.area_be.id} / {self.area_fr.id}': {self.antares_web_description_msg}",
             ):
                 self.link_service.delete_link(link)
 
@@ -105,7 +105,7 @@ class TestDeleteAPI:
             mocker.delete(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 ThermalDeletionError,
-                match=f"Could not delete the following thermal clusters: gaz_cluster, gaz_cluster_2 inside area fr: {self.antares_web_description_msg}",
+                match=f"Could not delete the following thermal clusters: 'gaz_cluster, gaz_cluster_2' inside area 'fr': {self.antares_web_description_msg}",
             ):
                 self.area_service.delete_thermal_clusters(self.area_fr.id, [cluster1, cluster2])
 
@@ -123,7 +123,7 @@ class TestDeleteAPI:
             mocker.delete(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 RenewableDeletionError,
-                match=f"Could not delete the following renewable clusters: gaz_cluster inside area fr: {self.antares_web_description_msg}",
+                match=f"Could not delete the following renewable clusters: 'gaz_cluster' inside area 'fr': {self.antares_web_description_msg}",
             ):
                 self.area_service.delete_renewable_clusters(self.area_fr.id, [cluster])
 
@@ -141,7 +141,7 @@ class TestDeleteAPI:
             mocker.delete(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 STStorageDeletionError,
-                match=f"Could not delete the following short term storages: battery_fr inside area fr: {self.antares_web_description_msg}",
+                match=f"Could not delete the following short term storages: 'battery_fr' inside area 'fr': {self.antares_web_description_msg}",
             ):
                 self.area_service.delete_st_storages(self.area_fr.id, [storage])
 
@@ -161,7 +161,7 @@ class TestDeleteAPI:
             mocker.delete(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 BindingConstraintDeletionError,
-                match=f"Could not delete the binding constraint {constraint_id}: {self.antares_web_description_msg}",
+                match=f"Could not delete the binding constraint '{constraint_id}': {self.antares_web_description_msg}",
             ):
                 self.study_service.delete_binding_constraint(constraint)
 
@@ -185,6 +185,6 @@ class TestDeleteAPI:
             mocker.delete(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 ConstraintTermDeletionError,
-                match=f"Could not delete the term {term_id} of the binding constraint {constraint_id}: {self.antares_web_description_msg}",
+                match=f"Could not delete the term '{term_id}' of the binding constraint '{constraint_id}': {self.antares_web_description_msg}",
             ):
                 self.constraint_service.delete_binding_constraint_term(constraint_id, term_id)

@@ -38,7 +38,7 @@ class TestBindingConstraints:
         with pytest.raises(
             ReadingMethodUsedOufOfScopeError,
             match=re.escape(
-                "The method read_binding_constraints was used on study studyTest which already contains some constraints. This is prohibited."
+                "The method read_binding_constraints was used on study 'studyTest' which already contains some constraints. This is prohibited."
             ),
         ):
             local_study_w_constraints._read_binding_constraints()
@@ -140,6 +140,6 @@ class TestBindingConstraints:
 
         with pytest.raises(
             ConstraintDoesNotExistError,
-            match=re.escape("The binding constraint bc_1 doesn't exist inside study studyTest."),
+            match=re.escape("The binding constraint 'bc_1' doesn't exist inside study 'studyTest'."),
         ):
             local_study_w_constraints.delete_binding_constraint(bc)

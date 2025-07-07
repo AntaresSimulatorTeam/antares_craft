@@ -103,7 +103,7 @@ class TestRenewable:
         with pytest.raises(
             RenewablePropertiesUpdateError,
             match=re.escape(
-                "Could not update properties for renewable cluster renewable cluster inside area fake: The cluster does not exist"
+                "Could not update properties for renewable cluster 'renewable cluster' inside area 'fake': The cluster does not exist"
             ),
         ):
             local_study_with_renewable.update_renewable_clusters(dict_renewable)

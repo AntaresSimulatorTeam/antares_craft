@@ -65,7 +65,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 ClustersPropertiesUpdateError,
-                match=f"Could not update properties of the renewable clusters from study {self.study_id} : {antares_web_description_msg}",
+                match=f"Could not update properties of the renewable clusters from study '{self.study_id}' : {antares_web_description_msg}",
             ):
                 self.renewable.update_properties(properties=properties)
 
@@ -88,7 +88,7 @@ class TestCreateAPI:
             mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 RenewableMatrixDownloadError,
-                match=f"Could not download matrix for cluster {self.renewable.name} inside area {self.area.id}"
+                match=f"Could not download matrix for cluster '{self.renewable.name}' inside area '{self.area.id}'"
                 f": {self.antares_web_description_msg}",
             ):
                 self.renewable.get_timeseries()
@@ -111,7 +111,7 @@ class TestCreateAPI:
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 RenewableMatrixUpdateError,
-                match=f"Could not upload matrix for cluster {self.renewable.name} inside area {self.area.name}: "
+                match=f"Could not upload matrix for cluster '{self.renewable.name}' inside area '{self.area.name}': "
                 + self.antares_web_description_msg,
             ):
                 self.renewable.set_series(self.matrix)
@@ -226,6 +226,6 @@ class TestCreateAPI:
 
             with pytest.raises(
                 ClustersPropertiesUpdateError,
-                match=f"Could not update properties of the renewable clusters from study {self.study_id} : {self.antares_web_description_msg}",
+                match=f"Could not update properties of the renewable clusters from study '{self.study_id}' : {self.antares_web_description_msg}",
             ):
                 self.study.update_renewable_clusters({})

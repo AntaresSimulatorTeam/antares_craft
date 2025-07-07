@@ -218,7 +218,7 @@ class TestSTStorage:
         with pytest.raises(
             STStoragePropertiesUpdateError,
             match=re.escape(
-                "Could not update properties for short term storage sts_1 inside area fake: The storage does not exist"
+                "Could not update properties for short term storage 'sts_1' inside area 'fake': The storage does not exist"
             ),
         ):
             local_study_w_storage.update_st_storages(dict_storage)

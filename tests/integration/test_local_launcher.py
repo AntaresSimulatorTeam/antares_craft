@@ -61,7 +61,7 @@ class TestLocalLauncher:
         # Ensure it's impossible to run a study without giving a solver path at the instantiation
         with pytest.raises(
             AntaresSimulationRunningError,
-            match=re.escape("Could not run the simulation for study test study: No solver path was provided"),
+            match=re.escape("Could not run the simulation for study 'test study': No solver path was provided"),
         ):
             study.run_antares_simulation()
 
