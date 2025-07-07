@@ -557,6 +557,42 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
     # Since v9.2
     sts_by_group: bool | None = Field(default=None, alias="STS by group")
 
+    @staticmethod
+    def get_9_2_fields() -> set[str]:
+        return {"sts_by_group"}
+
+    @staticmethod
+    def get_sts_group_fields() -> set[str]:
+        return {
+            "psp_open_injection",
+            "psp_open_withdrawal",
+            "psp_open_level",
+            "psp_closed_injection",
+            "psp_closed_withdrawal",
+            "psp_closed_level",
+            "pondage_injection",
+            "pondage_withdrawal",
+            "pondage_level",
+            "battery_injection",
+            "battery_withdrawal",
+            "battery_level",
+            "other1_injection",
+            "other1_withdrawal",
+            "other1_level",
+            "other2_injection",
+            "other2_withdrawal",
+            "other2_level",
+            "other3_injection",
+            "other3_withdrawal",
+            "other3_level",
+            "other4_injection",
+            "other4_withdrawal",
+            "other4_level",
+            "other5_injection",
+            "other5_withdrawal",
+            "other5_level",
+        }
+
     def to_user_model(self) -> ThematicTrimmingParameters:
         return ThematicTrimmingParameters(**self.model_dump(exclude_none=True))
 
@@ -584,31 +620,17 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
         return ini_content
 
     @staticmethod
-    def _get_default_fields(study_version: StudyVersion) -> set[str]:
-        all_fields = set(ThematicTrimmingParametersLocal.model_fields)
-        if study_version < STUDY_VERSION_9_2:
-            all_fields.remove("sts_by_group")
-        return all_fields
-
-    @staticmethod
-    def from_ini(content: dict[str, Any], study_version: StudyVersion) -> "ThematicTrimmingParametersLocal":
+    def from_ini(content: dict[str, Any]) -> "ThematicTrimmingParametersLocal":
         if content.get("selected_vars_reset", True):
             # Means written fields are deactivated and others are activated
             unselected_vars = content.get("select_var -", [])
             args = dict.fromkeys(unselected_vars, False)
-            # Fill newer version fields that aren't filled
-            if study_version >= STUDY_VERSION_9_2 and "sts_by_group" not in args:
-                args["sts_by_group"] = True
             return ThematicTrimmingParametersLocal(**args)
 
         # Means written fields are activated and others deactivated
         selected_vars = content.get("select_var +", [])
         args = dict.fromkeys(selected_vars, True)
         file_data = ThematicTrimmingParametersLocal(**args)
-        # Initialize missing fields
-        for field in ThematicTrimmingParametersLocal._get_default_fields(study_version):
-            if getattr(file_data, field) is None:
-                setattr(file_data, field, False)
         return file_data
 
 
@@ -619,12 +641,46 @@ def _check_min_version(data: Any, field: str, version: StudyVersion) -> None:
 
 def validate_against_version(version: StudyVersion, parameters: ThematicTrimmingParametersLocal) -> None:
     if version < STUDY_VERSION_9_2:
-        _check_min_version(parameters, "sts_by_group", version)
+        for field in ThematicTrimmingParametersLocal.get_9_2_fields():
+            _check_min_version(parameters, field, version)
+    else:
+        for field in ThematicTrimmingParametersLocal.get_sts_group_fields():
+            _check_min_version(parameters, field, version)
+
+
+def _initialize_field_default(parameters: ThematicTrimmingParametersLocal, field: str, default_bool: bool) -> None:
+    if getattr(parameters, field) is None:
+        setattr(parameters, field, default_bool)
+
+
+def initialize_with_version(
+    parameters: ThematicTrimmingParametersLocal, version: StudyVersion, default_bool: bool
+) -> None:
+    all_fields = set(ThematicTrimmingParametersLocal.model_fields)
+    if version < STUDY_VERSION_9_2:
+        for field in ThematicTrimmingParametersLocal.get_9_2_fields():
+            all_fields.remove(field)
+    else:
+        for field in ThematicTrimmingParametersLocal.get_sts_group_fields():
+            all_fields.remove(field)
+
+    for field in all_fields:
+        _initialize_field_default(parameters, field, default_bool)
+
+
+def _find_the_right_boolean(parameters: ThematicTrimmingParametersLocal) -> bool:
+    """
+    Based on how is filled the `ThematicTrimmingParametersLocal` class, find the right boolean value to use to fill None values.
+    """
+    args = parameters.model_dump(exclude_none=True)
+    return next(iter(args.values()), True)
 
 
 def parse_thematic_trimming_local(study_version: StudyVersion, data: Any) -> ThematicTrimmingParameters:
-    thematic_trimming_parameters_local = ThematicTrimmingParametersLocal.from_ini(data, study_version)
+    thematic_trimming_parameters_local = ThematicTrimmingParametersLocal.from_ini(data)
     validate_against_version(study_version, thematic_trimming_parameters_local)
+    right_bool = _find_the_right_boolean(thematic_trimming_parameters_local)
+    initialize_with_version(thematic_trimming_parameters_local, study_version, right_bool)
     return thematic_trimming_parameters_local.to_user_model()
 
 
@@ -633,4 +689,5 @@ def serialize_thematic_trimming_local(
 ) -> dict[str, Any]:
     thematic_trimming_parameters_local = ThematicTrimmingParametersLocal.from_user_model(thematic_trimming)
     validate_against_version(study_version, thematic_trimming_parameters_local)
+    initialize_with_version(thematic_trimming_parameters_local, study_version, True)
     return thematic_trimming_parameters_local.to_ini()

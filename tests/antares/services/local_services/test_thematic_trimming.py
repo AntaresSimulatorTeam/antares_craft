@@ -122,10 +122,10 @@ def test_92(tmp_path: Path) -> None:
         # Ensures `sts_by_group` is not None as we have a 9.2 study
         assert settings.thematic_trimming_parameters == ThematicTrimmingParameters(sts_by_group=True)
     # Checks the `set` method
-    new_trimming = ThematicTrimmingParameters(sts_cashflow_by_cluster=False, nuclear=False)
+    new_trimming = ThematicTrimmingParameters(ov_cost=False, nuclear=False)
     study.set_thematic_trimming(new_trimming)
     # We expect the sts_by_group field to be set as we have a 9.2 study
-    expected_trimming = ThematicTrimmingParameters(sts_cashflow_by_cluster=False, nuclear=False, sts_by_group=True)
+    expected_trimming = ThematicTrimmingParameters(ov_cost=False, nuclear=False, sts_by_group=True)
     assert study.get_settings().thematic_trimming_parameters == expected_trimming
     # Checks the `reading` method
     study_path = Path(study.path)
