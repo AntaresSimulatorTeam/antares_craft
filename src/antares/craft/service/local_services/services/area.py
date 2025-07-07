@@ -15,6 +15,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
 
+import numpy as np
 import pandas as pd
 
 from typing_extensions import override
@@ -146,6 +147,17 @@ class AreaLocalService(BaseAreaService):
 
         # Upload matrices
         cluster_id = transform_name_to_id(thermal_name)
+
+        # Use default matrices for prepro and modulation as in AntaresWeb.
+        # We do so because the default Simulator matrices don't make sense
+        if prepro is None:
+            default_data_matrix = np.zeros((365, 6), dtype=np.float64)
+            default_data_matrix[:, :2] = 1
+            prepro = pd.DataFrame(default_data_matrix)
+        if modulation is None:
+            default_modulation_matrix = np.ones((8760, 4), dtype=np.float64)
+            default_modulation_matrix[:, 3] = 0
+            modulation = pd.DataFrame(default_modulation_matrix)
 
         write_timeseries(self.config.study_path, prepro, TimeSeriesFileType.THERMAL_DATA, area_id, cluster_id)
         write_timeseries(self.config.study_path, modulation, TimeSeriesFileType.THERMAL_MODULATION, area_id, cluster_id)
