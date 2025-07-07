@@ -12,7 +12,7 @@
 
 import pytest
 
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 
 from antares.craft import (
@@ -24,20 +24,57 @@ from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
 
 
 def test_class_methods(tmp_path: Path) -> None:
+    none_fields = {
+        "psp_open_injection",
+        "psp_open_withdrawal",
+        "psp_open_level",
+        "psp_closed_injection",
+        "psp_closed_withdrawal",
+        "psp_closed_level",
+        "pondage_injection",
+        "pondage_withdrawal",
+        "pondage_level",
+        "battery_injection",
+        "battery_withdrawal",
+        "battery_level",
+        "other1_injection",
+        "other1_withdrawal",
+        "other1_level",
+        "other2_injection",
+        "other2_withdrawal",
+        "other2_level",
+        "other3_injection",
+        "other3_withdrawal",
+        "other3_level",
+        "other4_injection",
+        "other4_withdrawal",
+        "other4_level",
+        "other5_injection",
+        "other5_withdrawal",
+        "other5_level",
+        "sts_by_group",
+    }
+
     trimming = ThematicTrimmingParameters(spil_enrg=False)
     args = asdict(trimming)
-    assert args.pop("spil_enrg") is False
-    assert args.pop("sts_by_group") is None
-    for field in args:
-        assert args[field] is True
+    for key, value in args.items():
+        if key == "spil_enrg":
+            assert value is False
+        elif key in none_fields:
+            assert value is None
+        else:
+            assert value is True
 
     # Reverse it
     new_trimming = trimming.all_reversed()
     args = asdict(new_trimming)
-    assert args.pop("spil_enrg") is True
-    assert args.pop("sts_by_group") is None
-    for field in args:
-        assert args[field] is False
+    for key, value in args.items():
+        if key == "spil_enrg":
+            assert value is True
+        elif key in none_fields:
+            assert value is None
+        else:
+            assert value is False
 
     # Enable everything
     all_true_trimming = trimming.all_enabled()
@@ -45,24 +82,27 @@ def test_class_methods(tmp_path: Path) -> None:
     # Disable everything
     all_false_trimming = trimming.all_disabled()
     args = asdict(all_false_trimming)
-    assert args.pop("sts_by_group") is None
-    for field in args:
-        assert args[field] is False
+    for key, value in args.items():
+        if key in none_fields:
+            assert value is None
+        else:
+            assert value is False
 
 
-def test_nominal_case(tmp_path: Path) -> None:
+def test_nominal_case(tmp_path: Path, default_thematic_trimming_88: ThematicTrimmingParameters) -> None:
     study = create_study_local("second_study", "880", tmp_path)
     settings = study.get_settings()
-    assert settings.thematic_trimming_parameters == ThematicTrimmingParameters()
+    assert settings.thematic_trimming_parameters == default_thematic_trimming_88
     # Checks the `set` method
     new_trimming = ThematicTrimmingParameters(sts_cashflow_by_cluster=False, nuclear=False)
     study.set_thematic_trimming(new_trimming)
-    assert study.get_settings().thematic_trimming_parameters == new_trimming
+    expected_trimming = replace(default_thematic_trimming_88, sts_cashflow_by_cluster=False, nuclear=False)
+    assert study.get_settings().thematic_trimming_parameters == expected_trimming
     # Checks the `reading` method
     study_path = Path(study.path)
     study = read_study_local(study_path)
     trimming = study.get_settings().thematic_trimming_parameters
-    assert trimming == new_trimming
+    assert trimming == expected_trimming
     # Checks the ini content
     ini_path = study_path / "settings" / "generaldata.ini"
     content = ini_path.read_text()
@@ -78,11 +118,12 @@ select_var - = STS Cashflow By Cluster
     # Inverts the trimming
     new_trimming = new_trimming.all_reversed()
     study.set_thematic_trimming(new_trimming)
-    assert study.get_settings().thematic_trimming_parameters == new_trimming
+    expected_trimming = expected_trimming.all_reversed()
+    assert study.get_settings().thematic_trimming_parameters == expected_trimming
     # Checks the `reading` method
     study = read_study_local(study_path)
     trimming = study.get_settings().thematic_trimming_parameters
-    assert trimming == new_trimming
+    assert trimming == expected_trimming
     # Checks the ini content
     content = ini_path.read_text()
     assert (
@@ -104,13 +145,22 @@ selected_vars_reset = False"""
     )
 
 
-def test_88(tmp_path: Path) -> None:
+def test_error_cases(tmp_path: Path) -> None:
     study = create_study_local("second_study", "8.8", tmp_path)
     # Asserts we can't set `sts_by_group` as it's a 9.2 field
     for value in [True, False]:
         new_trimming = ThematicTrimmingParameters(sts_by_group=value)
         with pytest.raises(
             InvalidFieldForVersionError, match="Field sts_by_group is not a valid field for study version 8.8"
+        ):
+            study.set_thematic_trimming(new_trimming)
+
+    # Asserts we can't set `psp_open_level` as the field disappeared in version 9.2
+    study = create_study_local("study", "9.2", tmp_path)
+    for value in [True, False]:
+        new_trimming = ThematicTrimmingParameters(psp_open_level=value)
+        with pytest.raises(
+            InvalidFieldForVersionError, match="Field psp_open_level is not a valid field for study version 9.2"
         ):
             study.set_thematic_trimming(new_trimming)
 
@@ -122,10 +172,10 @@ def test_92(tmp_path: Path) -> None:
         # Ensures `sts_by_group` is not None as we have a 9.2 study
         assert settings.thematic_trimming_parameters == ThematicTrimmingParameters(sts_by_group=True)
     # Checks the `set` method
-    new_trimming = ThematicTrimmingParameters(sts_cashflow_by_cluster=False, nuclear=False)
+    new_trimming = ThematicTrimmingParameters(ov_cost=False, nuclear=False)
     study.set_thematic_trimming(new_trimming)
     # We expect the sts_by_group field to be set as we have a 9.2 study
-    expected_trimming = ThematicTrimmingParameters(sts_cashflow_by_cluster=False, nuclear=False, sts_by_group=True)
+    expected_trimming = ThematicTrimmingParameters(ov_cost=False, nuclear=False, sts_by_group=True)
     assert study.get_settings().thematic_trimming_parameters == expected_trimming
     # Checks the `reading` method
     study_path = Path(study.path)

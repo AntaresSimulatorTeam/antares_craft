@@ -81,36 +81,37 @@ class ThematicTrimmingParameters:
     sts_inj_by_plant: bool = True
     sts_withdrawal_by_plant: bool = True
     sts_lvl_by_plant: bool = True
-    psp_open_injection: bool = True
-    psp_open_withdrawal: bool = True
-    psp_open_level: bool = True
-    psp_closed_injection: bool = True
-    psp_closed_withdrawal: bool = True
-    psp_closed_level: bool = True
-    pondage_injection: bool = True
-    pondage_withdrawal: bool = True
-    pondage_level: bool = True
-    battery_injection: bool = True
-    battery_withdrawal: bool = True
-    battery_level: bool = True
-    other1_injection: bool = True
-    other1_withdrawal: bool = True
-    other1_level: bool = True
-    other2_injection: bool = True
-    other2_withdrawal: bool = True
-    other2_level: bool = True
-    other3_injection: bool = True
-    other3_withdrawal: bool = True
-    other3_level: bool = True
-    other4_injection: bool = True
-    other4_withdrawal: bool = True
-    other4_level: bool = True
-    other5_injection: bool = True
-    other5_withdrawal: bool = True
-    other5_level: bool = True
     sts_cashflow_by_cluster: bool = True
-    # Simulator v9.2 parameters
+    # Simulator v9.1 parameters
     sts_by_group: Optional[bool] = None
+    # Parameters removed since v9.1
+    psp_open_injection: Optional[bool] = None
+    psp_open_withdrawal: Optional[bool] = None
+    psp_open_level: Optional[bool] = None
+    psp_closed_injection: Optional[bool] = None
+    psp_closed_withdrawal: Optional[bool] = None
+    psp_closed_level: Optional[bool] = None
+    pondage_injection: Optional[bool] = None
+    pondage_withdrawal: Optional[bool] = None
+    pondage_level: Optional[bool] = None
+    battery_injection: Optional[bool] = None
+    battery_withdrawal: Optional[bool] = None
+    battery_level: Optional[bool] = None
+    other1_injection: Optional[bool] = None
+    other1_withdrawal: Optional[bool] = None
+    other1_level: Optional[bool] = None
+    other2_injection: Optional[bool] = None
+    other2_withdrawal: Optional[bool] = None
+    other2_level: Optional[bool] = None
+    other3_injection: Optional[bool] = None
+    other3_withdrawal: Optional[bool] = None
+    other3_level: Optional[bool] = None
+    other4_injection: Optional[bool] = None
+    other4_withdrawal: Optional[bool] = None
+    other4_level: Optional[bool] = None
+    other5_injection: Optional[bool] = None
+    other5_withdrawal: Optional[bool] = None
+    other5_level: Optional[bool] = None
 
     def all_enabled(self) -> "ThematicTrimmingParameters":
         args = {k: v for k, v in asdict(self).items() if v is not None}

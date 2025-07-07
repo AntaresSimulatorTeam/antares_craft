@@ -282,9 +282,11 @@ class TestStudyProperties:
 
         assert local_study.get_settings().optimization_parameters == expected_optimization_parameters
 
-    def test_local_study_has_correct_playlist_and_thematic_parameters(self, local_study: Study) -> None:
+    def test_local_study_has_correct_playlist_and_thematic_parameters(
+        self, local_study: Study, default_thematic_trimming_88: ThematicTrimmingParameters
+    ) -> None:
         assert local_study.get_settings().playlist_parameters == {}
-        assert local_study.get_settings().thematic_trimming_parameters == ThematicTrimmingParameters()
+        assert local_study.get_settings().thematic_trimming_parameters == default_thematic_trimming_88
 
     def test_generaldata_ini_exists(self, local_study: Study) -> None:
         # Given
