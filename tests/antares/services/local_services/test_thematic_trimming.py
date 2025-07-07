@@ -106,13 +106,22 @@ selected_vars_reset = False"""
     )
 
 
-def test_88(tmp_path: Path) -> None:
+def test_error_cases(tmp_path: Path) -> None:
     study = create_study_local("second_study", "8.8", tmp_path)
     # Asserts we can't set `sts_by_group` as it's a 9.2 field
     for value in [True, False]:
         new_trimming = ThematicTrimmingParameters(sts_by_group=value)
         with pytest.raises(
             InvalidFieldForVersionError, match="Field sts_by_group is not a valid field for study version 8.8"
+        ):
+            study.set_thematic_trimming(new_trimming)
+
+    # Asserts we can't set `psp_open_level` as the field disappeared in version 9.2
+    study = create_study_local("study", "9.2", tmp_path)
+    for value in [True, False]:
+        new_trimming = ThematicTrimmingParameters(psp_open_level=value)
+        with pytest.raises(
+            InvalidFieldForVersionError, match="Field psp_open_level is not a valid field for study version 9.2"
         ):
             study.set_thematic_trimming(new_trimming)
 
