@@ -24,20 +24,57 @@ from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
 
 
 def test_class_methods(tmp_path: Path) -> None:
+    none_fields = {
+        "psp_open_injection",
+        "psp_open_withdrawal",
+        "psp_open_level",
+        "psp_closed_injection",
+        "psp_closed_withdrawal",
+        "psp_closed_level",
+        "pondage_injection",
+        "pondage_withdrawal",
+        "pondage_level",
+        "battery_injection",
+        "battery_withdrawal",
+        "battery_level",
+        "other1_injection",
+        "other1_withdrawal",
+        "other1_level",
+        "other2_injection",
+        "other2_withdrawal",
+        "other2_level",
+        "other3_injection",
+        "other3_withdrawal",
+        "other3_level",
+        "other4_injection",
+        "other4_withdrawal",
+        "other4_level",
+        "other5_injection",
+        "other5_withdrawal",
+        "other5_level",
+        "sts_by_group",
+    }
+
     trimming = ThematicTrimmingParameters(spil_enrg=False)
     args = asdict(trimming)
-    assert args.pop("spil_enrg") is False
-    assert args.pop("sts_by_group") is None
-    for field in args:
-        assert args[field] is True
+    for key, value in args.items():
+        if key == "spil_enrg":
+            assert value is False
+        elif key in none_fields:
+            assert value is None
+        else:
+            assert value is True
 
     # Reverse it
     new_trimming = trimming.all_reversed()
     args = asdict(new_trimming)
-    assert args.pop("spil_enrg") is True
-    assert args.pop("sts_by_group") is None
-    for field in args:
-        assert args[field] is False
+    for key, value in args.items():
+        if key == "spil_enrg":
+            assert value is True
+        elif key in none_fields:
+            assert value is None
+        else:
+            assert value is False
 
     # Enable everything
     all_true_trimming = trimming.all_enabled()
@@ -45,9 +82,11 @@ def test_class_methods(tmp_path: Path) -> None:
     # Disable everything
     all_false_trimming = trimming.all_disabled()
     args = asdict(all_false_trimming)
-    assert args.pop("sts_by_group") is None
-    for field in args:
-        assert args[field] is False
+    for key, value in args.items():
+        if key in none_fields:
+            assert value is None
+        else:
+            assert value is False
 
 
 def test_nominal_case(tmp_path: Path, default_thematic_trimming_parameters_88: ThematicTrimmingParameters) -> None:
