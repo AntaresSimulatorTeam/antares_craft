@@ -22,6 +22,36 @@ from antares.craft import (
 )
 from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
 
+DEFAULT_THEMATIC_TRIMMING_PARAMETERS_88 = ThematicTrimmingParameters(
+    psp_open_injection=True,
+    psp_open_withdrawal=True,
+    psp_open_level=True,
+    psp_closed_injection=True,
+    psp_closed_withdrawal=True,
+    psp_closed_level=True,
+    pondage_injection=True,
+    pondage_withdrawal=True,
+    pondage_level=True,
+    battery_injection=True,
+    battery_withdrawal=True,
+    battery_level=True,
+    other1_injection=True,
+    other1_withdrawal=True,
+    other1_level=True,
+    other2_injection=True,
+    other2_withdrawal=True,
+    other2_level=True,
+    other3_injection=True,
+    other3_withdrawal=True,
+    other3_level=True,
+    other4_injection=True,
+    other4_withdrawal=True,
+    other4_level=True,
+    other5_injection=True,
+    other5_withdrawal=True,
+    other5_level=True,
+)
+
 
 def test_class_methods(tmp_path: Path) -> None:
     none_fields = {
@@ -89,14 +119,14 @@ def test_class_methods(tmp_path: Path) -> None:
             assert value is False
 
 
-def test_nominal_case(tmp_path: Path, default_thematic_trimming_parameters_88: ThematicTrimmingParameters) -> None:
+def test_nominal_case(tmp_path: Path) -> None:
     study = create_study_local("second_study", "880", tmp_path)
     settings = study.get_settings()
-    assert settings.thematic_trimming_parameters == default_thematic_trimming_parameters_88
+    assert settings.thematic_trimming_parameters == DEFAULT_THEMATIC_TRIMMING_PARAMETERS_88
     # Checks the `set` method
     new_trimming = ThematicTrimmingParameters(sts_cashflow_by_cluster=False, nuclear=False)
     study.set_thematic_trimming(new_trimming)
-    expected_trimming = replace(default_thematic_trimming_parameters_88, sts_cashflow_by_cluster=False, nuclear=False)
+    expected_trimming = replace(DEFAULT_THEMATIC_TRIMMING_PARAMETERS_88, sts_cashflow_by_cluster=False, nuclear=False)
     assert study.get_settings().thematic_trimming_parameters == expected_trimming
     # Checks the `reading` method
     study_path = Path(study.path)
