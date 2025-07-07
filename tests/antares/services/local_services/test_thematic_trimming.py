@@ -12,7 +12,7 @@
 
 import pytest
 
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 
 from antares.craft import (
@@ -50,19 +50,20 @@ def test_class_methods(tmp_path: Path) -> None:
         assert args[field] is False
 
 
-def test_nominal_case(tmp_path: Path) -> None:
+def test_nominal_case(tmp_path: Path, default_thematic_trimming_parameters_88: ThematicTrimmingParameters) -> None:
     study = create_study_local("second_study", "880", tmp_path)
     settings = study.get_settings()
-    assert settings.thematic_trimming_parameters == ThematicTrimmingParameters()
+    assert settings.thematic_trimming_parameters == default_thematic_trimming_parameters_88
     # Checks the `set` method
     new_trimming = ThematicTrimmingParameters(sts_cashflow_by_cluster=False, nuclear=False)
     study.set_thematic_trimming(new_trimming)
-    assert study.get_settings().thematic_trimming_parameters == new_trimming
+    expected_trimming = replace(default_thematic_trimming_parameters_88, sts_cashflow_by_cluster=False, nuclear=False)
+    assert study.get_settings().thematic_trimming_parameters == expected_trimming
     # Checks the `reading` method
     study_path = Path(study.path)
     study = read_study_local(study_path)
     trimming = study.get_settings().thematic_trimming_parameters
-    assert trimming == new_trimming
+    assert trimming == expected_trimming
     # Checks the ini content
     ini_path = study_path / "settings" / "generaldata.ini"
     content = ini_path.read_text()
@@ -78,11 +79,12 @@ select_var - = STS Cashflow By Cluster
     # Inverts the trimming
     new_trimming = new_trimming.all_reversed()
     study.set_thematic_trimming(new_trimming)
-    assert study.get_settings().thematic_trimming_parameters == new_trimming
+    expected_trimming = expected_trimming.all_reversed()
+    assert study.get_settings().thematic_trimming_parameters == expected_trimming
     # Checks the `reading` method
     study = read_study_local(study_path)
     trimming = study.get_settings().thematic_trimming_parameters
-    assert trimming == new_trimming
+    assert trimming == expected_trimming
     # Checks the ini content
     content = ini_path.read_text()
     assert (

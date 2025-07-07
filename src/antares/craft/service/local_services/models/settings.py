@@ -664,7 +664,7 @@ def initialize_with_version(parameters: ThematicTrimmingParametersLocal, version
 
     # Find the right boolean to fill the user model
     args = parameters.model_dump(exclude_none=True)
-    boolean = not next(iter(args.values()), True)
+    boolean = not next(iter(args.values()), False)
 
     for field in all_fields:
         _initialize_field_default(parameters, field, boolean)
