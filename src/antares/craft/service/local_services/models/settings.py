@@ -653,9 +653,7 @@ def _initialize_field_default(parameters: ThematicTrimmingParametersLocal, field
         setattr(parameters, field, default_bool)
 
 
-def initialize_with_version(
-    parameters: ThematicTrimmingParametersLocal, version: StudyVersion, default_bool: bool
-) -> None:
+def initialize_with_version(parameters: ThematicTrimmingParametersLocal, version: StudyVersion) -> None:
     all_fields = set(ThematicTrimmingParametersLocal.model_fields)
     if version < STUDY_VERSION_9_2:
         for field in ThematicTrimmingParametersLocal.get_9_2_fields():
@@ -664,23 +662,18 @@ def initialize_with_version(
         for field in ThematicTrimmingParametersLocal.get_sts_group_fields():
             all_fields.remove(field)
 
-    for field in all_fields:
-        _initialize_field_default(parameters, field, default_bool)
-
-
-def _find_the_right_boolean(parameters: ThematicTrimmingParametersLocal) -> bool:
-    """
-    Based on how is filled the `ThematicTrimmingParametersLocal` class, find the right boolean value to use to fill None values.
-    """
+    # Find the right boolean to fill the user model
     args = parameters.model_dump(exclude_none=True)
-    return not next(iter(args.values()), True)
+    boolean = not next(iter(args.values()), True)
+
+    for field in all_fields:
+        _initialize_field_default(parameters, field, boolean)
 
 
 def parse_thematic_trimming_local(study_version: StudyVersion, data: Any) -> ThematicTrimmingParameters:
     thematic_trimming_parameters_local = ThematicTrimmingParametersLocal.from_ini(data)
     validate_against_version(study_version, thematic_trimming_parameters_local)
-    right_bool = _find_the_right_boolean(thematic_trimming_parameters_local)
-    initialize_with_version(thematic_trimming_parameters_local, study_version, right_bool)
+    initialize_with_version(thematic_trimming_parameters_local, study_version)
     return thematic_trimming_parameters_local.to_user_model()
 
 
@@ -689,5 +682,4 @@ def serialize_thematic_trimming_local(
 ) -> dict[str, Any]:
     thematic_trimming_parameters_local = ThematicTrimmingParametersLocal.from_user_model(thematic_trimming)
     validate_against_version(study_version, thematic_trimming_parameters_local)
-    initialize_with_version(thematic_trimming_parameters_local, study_version, True)
     return thematic_trimming_parameters_local.to_ini()
