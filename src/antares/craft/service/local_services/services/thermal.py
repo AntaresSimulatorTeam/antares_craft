@@ -101,6 +101,12 @@ class ThermalLocalService(BaseThermalService):
     def update_thermal_clusters_properties(
         self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]
     ) -> dict[ThermalCluster, ThermalClusterProperties]:
+        """
+        We validate ALL objects before saving them.
+        This way, if some data is invalid, we're not modifying the study partially only.
+        """
+        memory_mapping = {}
+
         new_properties_dict: dict[ThermalCluster, ThermalClusterProperties] = {}
         cluster_name_to_object: dict[str, ThermalCluster] = {}
 
@@ -131,7 +137,10 @@ class ThermalLocalService(BaseThermalService):
             if len(all_thermal_names) > 0:
                 raise ThermalPropertiesUpdateError(next(iter(all_thermal_names)), area_id, "The cluster does not exist")
 
-            # Update ini file
-            self.save_ini(thermal_dict, area_id)
+            memory_mapping[area_id] = thermal_dict
+
+        # Update ini files
+        for area_id, ini_content in memory_mapping.items():
+            self.save_ini(ini_content, area_id)
 
         return new_properties_dict
