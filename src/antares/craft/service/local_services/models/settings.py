@@ -673,7 +673,7 @@ def _find_the_right_boolean(parameters: ThematicTrimmingParametersLocal) -> bool
     Based on how is filled the `ThematicTrimmingParametersLocal` class, find the right boolean value to use to fill None values.
     """
     args = parameters.model_dump(exclude_none=True)
-    return next(iter(args.values()), True)
+    return not next(iter(args.values()), True)
 
 
 def parse_thematic_trimming_local(study_version: StudyVersion, data: Any) -> ThematicTrimmingParameters:
