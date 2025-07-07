@@ -619,7 +619,7 @@ it = 10000.000000
         with pytest.raises(
             ReadingMethodUsedOufOfScopeError,
             match=re.escape(
-                "The method read_areas was used on study studyTest which already contains some areas. This is prohibited."
+                "The method read_areas was used on study 'studyTest' which already contains some areas. This is prohibited."
             ),
         ):
             local_study_object._read_areas()

@@ -90,7 +90,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 ConstraintsPropertiesUpdateError,
-                match=f"Could not update binding constraints properties from study {self.study_id}: {antares_web_description_msg}",
+                match=f"Could not update binding constraints properties from study '{self.study_id}': {antares_web_description_msg}",
             ):
                 constraint.update_properties(properties=update_properties)
 
@@ -118,7 +118,7 @@ class TestCreateAPI:
             new_term = ConstraintTermUpdate(data=LinkData(area1="fr", area2="be"), weight=2)
             with pytest.raises(
                 ConstraintTermEditionError,
-                match=f"Could not update the term {new_term.id} of the binding constraint {constraint.id}: {self.antares_web_description_msg}",
+                match=f"Could not update the term '{new_term.id}' of the binding constraint '{constraint.id}': {self.antares_web_description_msg}",
             ):
                 constraint.update_term(new_term)
 
@@ -139,6 +139,6 @@ class TestCreateAPI:
                 mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
                 with pytest.raises(
                     ConstraintMatrixDownloadError,
-                    match=f"Could not download matrix {enum_value.value} for binding constraint {constraint.name}:",
+                    match=f"Could not download matrix {enum_value.value} for binding constraint '{constraint.name}':",
                 ):
                     getattr(constraint, matrix_method)()
