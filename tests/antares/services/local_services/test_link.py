@@ -149,7 +149,7 @@ class TestLink:
         ini_content = IniReader().read(study_path / "input" / "links" / link.area_from_id / "properties.ini")
         assert "fr" not in ini_content
 
-        with pytest.raises(LinkDeletionError, match=re.escape("Could not delete the link at / fr: it doesn't exist")):
+        with pytest.raises(LinkDeletionError, match=re.escape("Could not delete the link 'at / fr': it doesn't exist")):
             local_study_w_links.delete_link(link)
 
         # Recreate the link

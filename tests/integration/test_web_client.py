@@ -117,7 +117,7 @@ class TestWebClient:
         wrong_load_matrix = pd.DataFrame(data=[[0]])
         with pytest.raises(
             MatrixUploadError,
-            match=f"Error uploading load matrix for area {area_fr.id}: Expected 8760 rows and received 1",
+            match=f"Error uploading load matrix for area '{area_fr.id}': Expected 8760 rows and received 1",
         ):
             area_fr.set_load(wrong_load_matrix)
 
@@ -451,14 +451,14 @@ class TestWebClient:
         wrong_matrix = pd.DataFrame(data=(np.ones((12, 1))))
         with pytest.raises(
             BindingConstraintCreationError,
-            match="Could not create the binding constraint bc_3",
+            match="Could not create the binding constraint 'bc_3'",
         ):
             study.create_binding_constraint(name="bc_3", less_term_matrix=wrong_matrix)
 
         # Other case with failure
         with pytest.raises(
             ConstraintMatrixUpdateError,
-            match=f"Could not update matrix eq for binding constraint {constraint_2.id}",
+            match=f"Could not update matrix eq for binding constraint '{constraint_2.id}'",
         ):
             constraint_2.set_equal_term(wrong_matrix)
 
@@ -993,6 +993,6 @@ class TestWebClient:
         update_settings.optimization_parameters = OptimizationParametersUpdate(include_exportstructure=True)
         with pytest.raises(
             StudySettingsUpdateError,
-            match=f"Could not update settings for study {imported_study.service.study_id}: AntaresWeb doesn't support editing the parameter include_exportstructure",
+            match=f"Could not update settings for study '{imported_study.service.study_id}': AntaresWeb doesn't support editing the parameter include_exportstructure",
         ):
             imported_study.update_settings(update_settings)

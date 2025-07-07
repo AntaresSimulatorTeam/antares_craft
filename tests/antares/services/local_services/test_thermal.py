@@ -62,7 +62,7 @@ class TestThermalCluster:
         # Then
         with pytest.raises(
             ThermalCreationError,
-            match=f"Could not create the thermal cluster {thermal_name} inside area {area_name}: A thermal cluster called '{thermal_name}' already exists in area '{area_name}'.",
+            match=f"Could not create the thermal cluster '{thermal_name}' inside area '{area_name}': A thermal cluster called '{thermal_name}' already exists in area '{area_name}'.",
         ):
             local_study_w_thermal.get_areas()[area_name].create_thermal_cluster(thermal_name)
 
@@ -368,7 +368,7 @@ variableomcost = 5.0
         with pytest.raises(
             ThermalDeletionError,
             match=re.escape(
-                "Could not delete the following thermal clusters: test thermal cluster inside area fr: it doesn't exist"
+                "Could not delete the following thermal clusters: 'test thermal cluster' inside area 'fr': it doesn't exist"
             ),
         ):
             area_fr.delete_thermal_cluster(thermal_1)
@@ -402,7 +402,7 @@ variableomcost = 5.0
         with pytest.raises(
             ThermalPropertiesUpdateError,
             match=re.escape(
-                "Could not update properties for thermal cluster test thermal cluster inside area fake: The cluster does not exist"
+                "Could not update properties for thermal cluster 'test thermal cluster' inside area 'fake': The cluster does not exist"
             ),
         ):
             local_study_w_thermals.update_thermal_clusters(dict_thermal)
