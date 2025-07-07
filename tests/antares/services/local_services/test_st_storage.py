@@ -11,14 +11,17 @@
 # This file is part of the Antares project.
 import pytest
 
+import copy
 import re
 
 from pathlib import Path
 
 import pandas as pd
 
+from checksumdir import dirhash
+
 from antares.craft import STStorageGroup, Study
-from antares.craft.exceptions.exceptions import MatrixFormatError
+from antares.craft.exceptions.exceptions import MatrixFormatError, STStoragePropertiesUpdateError
 from antares.craft.model.st_storage import STStorageProperties, STStoragePropertiesUpdate
 
 
@@ -104,3 +107,25 @@ class TestSTStorage:
         # testing the unmodified value
         assert storage_1.properties.enabled
         assert storage_1.properties.initial_level == 0.5
+
+    def test_update_several_properties_fails(self, local_study_w_storage: Study) -> None:
+        """
+        Ensures the update fails as the area doesn't exist.
+        We also want to ensure the study wasn't partially modified.
+        """
+        update_for_storage = STStoragePropertiesUpdate(enabled=False, efficiency=0.6)
+        storage = local_study_w_storage.get_areas()["fr"].get_st_storages()["sts_1"]
+        fake_storage = copy.deepcopy(storage)
+        fake_storage._area_id = "fake"
+        dict_storage = {storage: update_for_storage, fake_storage: update_for_storage}
+        storage_folder = Path(local_study_w_storage.path) / "input" / "st-storage"
+        hash_before_update = dirhash(storage_folder, "md5")
+        with pytest.raises(
+            STStoragePropertiesUpdateError,
+            match=re.escape(
+                "Could not update properties for short term storage sts_1 inside area fake: The storage does not exist"
+            ),
+        ):
+            local_study_w_storage.update_st_storages(dict_storage)
+        hash_after_update = dirhash(storage_folder, "md5")
+        assert hash_before_update == hash_after_update

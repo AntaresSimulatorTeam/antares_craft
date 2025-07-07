@@ -96,6 +96,12 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
     def update_st_storages_properties(
         self, new_properties: dict[STStorage, STStoragePropertiesUpdate]
     ) -> dict[STStorage, STStorageProperties]:
+        """
+        We validate ALL objects before saving them.
+        This way, if some data is invalid, we're not modifying the study partially only.
+        """
+        memory_mapping = {}
+
         new_properties_dict: dict[STStorage, STStorageProperties] = {}
         cluster_name_to_object: dict[str, STStorage] = {}
 
@@ -129,7 +135,10 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
                     next(iter(all_storage_name)), area_id, "The storage does not exist"
                 )
 
-            # Update ini file
-            self.save_ini(st_storage_dict, area_id)
+            memory_mapping[area_id] = st_storage_dict
+
+        # Update ini files
+        for area_id, ini_content in memory_mapping.items():
+            self.save_ini(ini_content, area_id)
 
         return new_properties_dict
