@@ -113,9 +113,8 @@ def create_study_local(
     default_settings = StudySettings()
     update_settings = default_settings.to_update_settings()
     edit_study_settings(study_directory, update_settings, True)
-    study._settings.thematic_trimming_parameters = parse_thematic_trimming_local(
-        study_version, {}
-    )  # Used to initialize fields according to version
+    # Initialize thematic trimming with the default values
+    study._settings.thematic_trimming_parameters = parse_thematic_trimming_local(study_version, {})
     return study
 
 
