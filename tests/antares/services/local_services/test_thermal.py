@@ -388,6 +388,10 @@ variableomcost = 5.0
         assert thermal.properties.group == ThermalClusterGroup.NUCLEAR
 
     def test_update_several_properties_fails(self, local_study_w_thermals: Study) -> None:
+        """
+        Ensures the update fails as the area doesn't exist.
+        We also want to ensure the study wasn't partially modified.
+        """
         update_for_thermal = ThermalClusterPropertiesUpdate(enabled=False, unit_count=13)
         thermal = local_study_w_thermals.get_areas()["fr"].get_thermals()["test thermal cluster"]
         fake_thermal = copy.deepcopy(thermal)
