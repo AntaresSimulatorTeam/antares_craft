@@ -94,6 +94,12 @@ class RenewableLocalService(BaseRenewableService):
     def update_renewable_clusters_properties(
         self, new_props: dict[RenewableCluster, RenewableClusterPropertiesUpdate]
     ) -> dict[RenewableCluster, RenewableClusterProperties]:
+        """
+        We validate ALL objects before saving them.
+        This way, if some data is invalid, we're not modifying the study partially only.
+        """
+        memory_mapping = {}
+
         new_properties_dict: dict[RenewableCluster, RenewableClusterProperties] = {}
         cluster_name_to_object: dict[str, RenewableCluster] = {}
 
@@ -127,7 +133,10 @@ class RenewableLocalService(BaseRenewableService):
                     next(iter(all_renewable_names)), area_id, "The cluster does not exist"
                 )
 
-            # Update ini file
-            self.save_ini(renewable_dict, area_id)
+            memory_mapping[area_id] = renewable_dict
+
+        # Update ini files
+        for area_id, ini_content in memory_mapping.items():
+            self.save_ini(ini_content, area_id)
 
         return new_properties_dict
