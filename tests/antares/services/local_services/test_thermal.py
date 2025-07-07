@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 import pytest
 
+import copy
 import re
 
 from pathlib import Path
@@ -19,12 +20,15 @@ from typing import cast
 import numpy as np
 import pandas as pd
 
+from checksumdir import dirhash
+
 from antares.craft import ClusterData, ConstraintTerm, LocalConfiguration, Study
 from antares.craft.exceptions.exceptions import (
     MatrixFormatError,
     ReferencedObjectDeletionNotAllowed,
     ThermalCreationError,
     ThermalDeletionError,
+    ThermalPropertiesUpdateError,
 )
 from antares.craft.model.thermal import (
     LawOption,
@@ -369,12 +373,12 @@ variableomcost = 5.0
         ):
             area_fr.delete_thermal_cluster(thermal_1)
 
-    def test_update_thermal_properties(self, local_study_w_thermal: Study) -> None:
-        area_fr = local_study_w_thermal.get_areas()["fr"]
+    def test_update_thermal_properties(self, local_study_w_thermals: Study) -> None:
+        area_fr = local_study_w_thermals.get_areas()["fr"]
         thermal = area_fr.get_thermals()["test thermal cluster"]
         update_for_thermal = ThermalClusterPropertiesUpdate(enabled=False, unit_count=13)
         dict_thermal = {thermal: update_for_thermal}
-        local_study_w_thermal.update_thermal_clusters(dict_thermal)
+        local_study_w_thermals.update_thermal_clusters(dict_thermal)
 
         # testing the modified value
         assert not thermal.properties.enabled
@@ -382,6 +386,28 @@ variableomcost = 5.0
 
         # testing the unmodified value
         assert thermal.properties.group == ThermalClusterGroup.NUCLEAR
+
+    def test_update_several_properties_fails(self, local_study_w_thermals: Study) -> None:
+        """
+        Ensures the update fails as the area doesn't exist.
+        We also want to ensure the study wasn't partially modified.
+        """
+        update_for_thermal = ThermalClusterPropertiesUpdate(enabled=False, unit_count=13)
+        thermal = local_study_w_thermals.get_areas()["fr"].get_thermals()["test thermal cluster"]
+        fake_thermal = copy.deepcopy(thermal)
+        fake_thermal._area_id = "fake"
+        dict_thermal = {thermal: update_for_thermal, fake_thermal: update_for_thermal}
+        thermal_folder = Path(local_study_w_thermals.path) / "input" / "thermal"
+        hash_before_update = dirhash(thermal_folder, "md5")
+        with pytest.raises(
+            ThermalPropertiesUpdateError,
+            match=re.escape(
+                "Could not update properties for thermal cluster test thermal cluster inside area fake: The cluster does not exist"
+            ),
+        ):
+            local_study_w_thermals.update_thermal_clusters(dict_thermal)
+        hash_after_update = dirhash(thermal_folder, "md5")
+        assert hash_before_update == hash_after_update
 
     def test_read_legacy_groups(self, local_study_w_thermal: Study) -> None:
         """The group OTHER exists and is considered the same as OTHER1, so we have to be able to parse it"""
