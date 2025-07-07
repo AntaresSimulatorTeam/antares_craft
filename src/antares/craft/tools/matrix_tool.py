@@ -20,11 +20,9 @@ import pandas as pd
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
 default_data_matrix = np.zeros((365, 6), dtype=np.float64)
-default_data_matrix[:, :2] = 1
 default_data_matrix.flags.writeable = False
 
-default_modulation_matrix = np.ones((8760, 4), dtype=np.float64)
-default_modulation_matrix[:, 3] = 0
+default_modulation_matrix = np.zeros((8760, 4), dtype=np.float64)
 default_modulation_matrix.flags.writeable = False
 
 default_series = np.zeros((8760, 1), dtype=np.float64)
