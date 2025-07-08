@@ -18,6 +18,7 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.study import Study
 from antares.craft.service.base_services import StudyServices
+from antares.craft.service.local_services.models.settings.adequacy_patch import parse_adequacy_parameters_local
 from antares.craft.service.local_services.models.settings.advanced_parameters import (
     parse_advanced_and_seed_parameters_local,
 )
@@ -121,6 +122,7 @@ def create_study_local(
     advanced_parameters, seed_parameters = parse_advanced_and_seed_parameters_local(study_version, {})
     study._settings.advanced_parameters = advanced_parameters
     study._settings.seed_parameters = seed_parameters
+    study._settings.adequacy_patch_parameters = parse_adequacy_parameters_local(study_version, {})
 
     return study
 
