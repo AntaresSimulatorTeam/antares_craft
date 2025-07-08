@@ -54,6 +54,7 @@ from antares.craft import (
     RenewableClusterProperties,
     RenewableClusterPropertiesUpdate,
     RenewableGenerationModeling,
+    SheddingPolicy,
     STStorageGroup,
     STStorageProperties,
     STStoragePropertiesUpdate,
@@ -68,7 +69,7 @@ from antares.craft import (
     create_study_api,
     create_variant_api,
     import_study_api,
-    read_study_api, SheddingPolicy,
+    read_study_api,
 )
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
@@ -107,7 +108,6 @@ class TestWebClient:
     ) -> None:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
-        """
         study = create_study_api("antares-craft-test", "880", api_config)
 
         # tests area creation with default values
@@ -998,8 +998,6 @@ class TestWebClient:
         ):
             imported_study.update_settings(update_settings)
 
-        """
-
         ######################
         # Specific tests for study version 9.2
         ######################
@@ -1090,3 +1088,13 @@ class TestWebClient:
         assert job.status == JobStatus.SUCCESS
 
         ########## Outputs ##########
+
+        output = list(study.get_outputs().values())[0]
+        assert output.name.endswith("test_integration")
+        aggregated_df = output.aggregate_mc_all_areas(
+            MCAllAreasDataType.VALUES, Frequency.ANNUAL, columns_names=["NODU EXP", "LOLD MAX"]
+        )
+        cols = ["area", "timeId", "LOLD MAX", "NODU EXP"]
+        data = [["fr", 1, 0.0, 0.0]]
+        expected_df = pd.DataFrame(data=data, columns=cols)
+        assert expected_df.equals(aggregated_df)
