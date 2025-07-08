@@ -13,8 +13,6 @@ import pytest
 
 from pathlib import Path
 
-import pandas as pd
-
 from antares.craft import LinkProperties, LinkUi, create_study_local
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -123,7 +121,7 @@ def local_study_with_hydro(local_study_with_st_storage: Study) -> Study:
 
 
 @pytest.fixture
-def default_hydro_properties() -> HydroProperties:
+def default_hydro_properties_88() -> HydroProperties:
     return HydroProperties(
         inter_daily_breakdown=1,
         intra_daily_modulation=24,
@@ -140,27 +138,13 @@ def default_hydro_properties() -> HydroProperties:
         leeway_low=1,
         leeway_up=1,
         pumping_efficiency=1,
+        overflow_spilled_cost_difference=None,
     )
 
 
 @pytest.fixture
 def area_fr(local_study_with_hydro: Study) -> Area:
     return local_study_with_hydro.get_areas()["fr"]
-
-
-@pytest.fixture
-def fr_solar(area_fr: Area) -> None:
-    return area_fr.set_solar(pd.DataFrame())
-
-
-@pytest.fixture
-def fr_wind(area_fr: Area) -> None:
-    return area_fr.set_wind(pd.DataFrame())
-
-
-@pytest.fixture
-def fr_load(area_fr: Area) -> None:
-    return area_fr.set_load(pd.DataFrame())
 
 
 @pytest.fixture

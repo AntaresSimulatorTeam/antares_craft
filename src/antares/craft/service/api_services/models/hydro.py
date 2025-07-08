@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
+from typing import Optional
 
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
 from antares.craft.service.api_services.models.base_model import APIBaseModel
@@ -36,6 +37,8 @@ class HydroPropertiesAPI(APIBaseModel):
     leeway_low: float
     leeway_up: float
     pumping_efficiency: float
+    # Introduced in v9.2
+    overflow_spilled_cost_difference: Optional[float] = None
 
     @staticmethod
     def from_user_model(user_class: HydroPropertiesType) -> "HydroPropertiesAPI":
@@ -59,6 +62,7 @@ class HydroPropertiesAPI(APIBaseModel):
             leeway_low=self.leeway_low or default_properties.leeway_low,
             leeway_up=self.leeway_up or default_properties.leeway_up,
             pumping_efficiency=self.pumping_efficiency or default_properties.pumping_efficiency,
+            overflow_spilled_cost_difference=self.overflow_spilled_cost_difference,
         )
 
 
