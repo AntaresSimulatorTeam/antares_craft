@@ -56,7 +56,7 @@ class HydroProperties:
     leeway_up: float = 1
     pumping_efficiency: float = 1
     # Introduced in v9.2
-    overflow_spilled_cost_difference: Optional[float] = None
+    overflow_spilled_cost_difference: Optional[float] = None  # default 1
 
     def from_update_properties(self, update_properties: HydroPropertiesUpdate) -> "HydroProperties":
         current_properties = asdict(self)
