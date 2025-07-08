@@ -9,12 +9,16 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import pytest
+
 from dataclasses import replace
 from pathlib import Path
 
 from antares.craft import Study, read_study_local
+from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
 from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate, InflowStructureUpdate
 from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
 class TestCreateHydro:
@@ -207,3 +211,24 @@ fr = True
 
 """
         assert actual_ini_content == expected_ini_content
+
+    def test_errors(self, local_study_w_areas: Study) -> None:
+        # Ensures modification fails
+        new_properties = HydroPropertiesUpdate(overflow_spilled_cost_difference=0.9)
+        with pytest.raises(
+            InvalidFieldForVersionError,
+            match="Field overflow_spilled_cost_difference is not a valid field for study version 8.8",
+        ):
+            local_study_w_areas.get_areas()["fr"].hydro.update_properties(new_properties)
+
+        # Ensures reading fails
+        study_path = Path(local_study_w_areas.path)
+        ini_path = study_path / "input" / "hydro" / "hydro.ini"
+        ini_content = IniReader().read(ini_path)
+        ini_content["overflow spilled cost difference"] = {"fr": 0.5}
+        IniWriter().write(ini_content, ini_path)
+        with pytest.raises(
+            InvalidFieldForVersionError,
+            match="Field overflow_spilled_cost_difference is not a valid field for study version 8.8",
+        ):
+            read_study_local(study_path)
