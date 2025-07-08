@@ -54,6 +54,7 @@ from antares.craft import (
     RenewableClusterProperties,
     RenewableClusterPropertiesUpdate,
     RenewableGenerationModeling,
+    SheddingPolicy,
     STStorageGroup,
     STStorageProperties,
     STStoragePropertiesUpdate,
@@ -997,27 +998,103 @@ class TestWebClient:
         ):
             imported_study.update_settings(update_settings)
 
-        # TODO: Uncomment this when we'll support the 9.2 API
         ######################
         # Specific tests for study version 9.2
         ######################
 
-        """
-        # Create study
+        # Create a study with an area
         study = create_study_api("Study_92", "9.2", api_config)
-
-        # Create a st-storage with specific v9.2 parameters
         area_fr = study.create_area("FR")
-        sts_properties = STStorageProperties(efficiency_withdrawal=0.9, group="free group")
+
+        ########## Short-Term storage ##########
+
+        sts_properties = STStorageProperties(efficiency=0.9, efficiency_withdrawal=0.9, group="free group")
         storage = area_fr.create_st_storage("sts_test", sts_properties)
         assert storage.properties.efficiency_withdrawal == 0.9
+        assert storage.properties.efficiency == 0.9
         assert storage.properties.group == "free group"
         assert storage.properties.penalize_variation_injection is False
 
-        # Update its properties
         new_properties = STStoragePropertiesUpdate(group="new group", penalize_variation_injection=True)
         storage.update_properties(new_properties)
         assert storage.properties.efficiency_withdrawal == 0.9
         assert storage.properties.group == "new group"
         assert storage.properties.penalize_variation_injection is True
-        """
+
+        assert storage.get_cost_variation_injection().equals(pd.DataFrame(np.zeros((8760, 1))))
+        new_matrix = pd.DataFrame(np.full((8760, 4), 10))
+        storage.set_cost_variation_withdrawal(new_matrix)
+        assert storage.get_cost_variation_withdrawal().equals(new_matrix)
+
+        ########## Hydro ##########
+
+        assert area_fr.hydro.properties.overflow_spilled_cost_difference == 1
+        assert area_fr.hydro.properties.reservoir is False
+        assert area_fr.hydro.properties.reservoir_capacity == 0
+
+        new_hydro_properties = HydroPropertiesUpdate(overflow_spilled_cost_difference=0.3, reservoir_capacity=1)
+        area_fr.hydro.update_properties(new_hydro_properties)
+        assert area_fr.hydro.properties.overflow_spilled_cost_difference == 0.3
+        assert area_fr.hydro.properties.reservoir is False
+        assert area_fr.hydro.properties.reservoir_capacity == 1
+
+        ########## Thematic trimming ##########
+
+        thematic_trimming = study.get_settings().thematic_trimming_parameters
+        assert thematic_trimming.sts_by_group is True
+        assert thematic_trimming.oil is True
+        assert thematic_trimming.nuclear is True
+        assert thematic_trimming.psp_open_level is None
+
+        new_trimming = ThematicTrimmingParameters(sts_by_group=False, oil=False)
+        study.set_thematic_trimming(new_trimming)
+        thematic_trimming = study.get_settings().thematic_trimming_parameters
+        assert thematic_trimming.sts_by_group is False
+        assert thematic_trimming.oil is False
+        assert thematic_trimming.nuclear is True
+        assert thematic_trimming.psp_open_level is None
+
+        ########## Settings ##########
+        settings = study.get_settings()
+        assert settings.adequacy_patch_parameters.set_to_null_ntc_between_physical_out_for_first_step is None
+        assert settings.advanced_parameters.shedding_policy == SheddingPolicy.ACCURATE_SHAVE_PEAKS
+        new_settings = StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4))
+        study.update_settings(new_settings)
+        assert study.get_settings().general_parameters.nb_years == 4
+
+        ########## Scenario Builder ##########
+        sc_builder = study.get_scenario_builder()
+        assert sc_builder.load.get_area("fr").get_scenario() == [None, None, None, None]
+        assert sc_builder.hydro_final_level.get_area("fr").get_scenario() == [None, None, None, None]
+        assert sc_builder.hydro_initial_level.get_area("fr").get_scenario() == [None, None, None, None]
+
+        sc_builder.load.get_area("fr").set_new_scenario([None, None, 2, 4])
+        sc_builder.hydro_final_level.get_area("fr").set_new_scenario([1, 4, 2, 3])
+        study.set_scenario_builder(sc_builder)
+
+        sc_builder = study.get_scenario_builder()
+        assert sc_builder.load.get_area("fr").get_scenario() == [None, None, 2, 4]
+        assert sc_builder.hydro_final_level.get_area("fr").get_scenario() == [1, 4, 2, 3]
+        assert sc_builder.hydro_initial_level.get_area("fr").get_scenario() == [None, None, None, None]
+
+        ########## Simulation ##########
+
+        parameters = AntaresSimulationParameters(nb_cpu=4, output_suffix="test_integration")
+        job = study.run_antares_simulation(parameters)
+        assert isinstance(job, Job)
+        assert job.status == JobStatus.PENDING
+
+        study.wait_job_completion(job, time_out=60)
+        assert job.status == JobStatus.SUCCESS
+
+        ########## Outputs ##########
+
+        output = list(study.get_outputs().values())[0]
+        assert output.name.endswith("test_integration")
+        aggregated_df = output.aggregate_mc_all_areas(
+            MCAllAreasDataType.VALUES, Frequency.ANNUAL, columns_names=["NODU EXP", "LOLD MAX"]
+        )
+        cols = ["area", "timeId", "LOLD MAX", "NODU EXP"]
+        data = [["fr", 1, 0.0, 0.0]]
+        expected_df = pd.DataFrame(data=data, columns=cols)
+        assert expected_df.equals(aggregated_df)
