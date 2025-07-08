@@ -373,7 +373,6 @@ threshold-csr-variable-bounds-relaxation = 7
 enable-first-step = False
 
 [other preferences]
-initial-reservoir-levels = cold start
 hydro-heuristic-policy = accommodate rule curves
 hydro-pricing-mode = fast
 power-fluctuations = free modulations
