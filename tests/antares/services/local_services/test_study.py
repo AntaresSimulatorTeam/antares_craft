@@ -254,7 +254,7 @@ class TestStudyProperties:
                 accuracy_on_correlation=set(),
             )
 
-            assert local_study.get_settings().advanced_parameters == expected_advanced_parameters
+            assert study.get_settings().advanced_parameters == expected_advanced_parameters
 
     def test_local_study_has_correct_seed_parameters(self, local_study: Study) -> None:
         expected_seed_parameters = SeedParameters(

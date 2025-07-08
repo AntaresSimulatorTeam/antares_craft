@@ -167,8 +167,8 @@ def initialize_with_version(
     parameters: AdvancedAndSeedParametersLocal, version: StudyVersion
 ) -> AdvancedAndSeedParametersLocal:
     if version < STUDY_VERSION_9_2:
-        for class_field, value in AdvancedAndSeedParametersLocal.get_9_2_removed_fields_and_default_value().items():
-            for field in value:
+        for class_field, values in AdvancedAndSeedParametersLocal.get_9_2_removed_fields_and_default_value().items():
+            for field, value in values.items():
                 initialize_field_default(getattr(parameters, class_field), field, value)
     return parameters
 
