@@ -176,7 +176,15 @@ def initialize_with_version(
 def parse_advanced_and_seed_parameters_local(
     study_version: StudyVersion, data: Any
 ) -> tuple[AdvancedParameters, SeedParameters]:
-    local_parameters = AdvancedAndSeedParametersLocal.model_validate(data)
+    seed_local_parameters = SeedParametersLocal.model_validate(data["seeds - Mersenne Twister"])
+    advanced_local_parameters = AdvancedParametersLocal.model_validate(data["advanced parameters"])
+    other_preferences_local_parameters = OtherPreferencesLocal.model_validate(data["other preferences"])
+    args = {
+        "other_preferences": other_preferences_local_parameters,
+        "seeds": seed_local_parameters,
+        "advanced_parameters": advanced_local_parameters,
+    }
+    local_parameters = AdvancedAndSeedParametersLocal.model_validate(args)
     validate_advanced_and_seed_parameters_against_version(local_parameters, study_version)
     initialize_with_version(local_parameters, study_version)
     return local_parameters.to_advanced_parameters_model(), local_parameters.to_seed_parameters_model()
