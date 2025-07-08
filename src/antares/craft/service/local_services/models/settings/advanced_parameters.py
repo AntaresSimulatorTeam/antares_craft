@@ -116,7 +116,7 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
         return AdvancedAndSeedParametersLocal.model_validate(local_dict)
 
     def to_ini_file(self, update: bool, current_content: dict[str, Any]) -> dict[str, Any]:
-        content = self.model_dump(mode="json", by_alias=True, exclude_unset=update)
+        content = self.model_dump(mode="json", by_alias=True, exclude_unset=update, exclude_none=True)
         if update:
             for key in ["other preferences", "advanced parameters", "seeds - Mersenne Twister"]:
                 if content[key]:
