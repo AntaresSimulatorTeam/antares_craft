@@ -18,7 +18,7 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.study import Study
 from antares.craft.service.base_services import StudyServices
-from antares.craft.service.local_services.models.settings import parse_thematic_trimming_local
+from antares.craft.service.local_services.models.settings.thematic_trimming import parse_thematic_trimming_local
 from antares.craft.service.local_services.services.area import AreaLocalService
 from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
 from antares.craft.service.local_services.services.hydro import HydroLocalService

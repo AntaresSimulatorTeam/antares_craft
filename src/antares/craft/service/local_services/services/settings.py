@@ -25,15 +25,17 @@ from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.service.base_services import BaseStudySettingsService
-from antares.craft.service.local_services.models.settings import (
-    AdequacyPatchParametersLocal,
+from antares.craft.service.local_services.models.settings.adequacy_patch import AdequacyPatchParametersLocal
+from antares.craft.service.local_services.models.settings.advanced_parameters import (
     AdvancedAndSeedParametersLocal,
     AdvancedParametersLocal,
-    GeneralParametersLocal,
-    OptimizationParametersLocal,
     OtherPreferencesLocal,
-    PlaylistParametersLocal,
     SeedParametersLocal,
+)
+from antares.craft.service.local_services.models.settings.general import GeneralParametersLocal
+from antares.craft.service.local_services.models.settings.optimization import OptimizationParametersLocal
+from antares.craft.service.local_services.models.settings.playlist_parameters import PlaylistParametersLocal
+from antares.craft.service.local_services.models.settings.thematic_trimming import (
     parse_thematic_trimming_local,
     serialize_thematic_trimming_local,
 )
