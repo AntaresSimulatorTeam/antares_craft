@@ -1004,48 +1004,59 @@ class TestWebClient:
         # Specific tests for study version 9.2
         ######################
 
-        # Create study
+        # Create a study with an area
         study = create_study_api("Study_92", "9.2", api_config)
-
-        # Create a st-storage with specific v9.2 parameters
         area_fr = study.create_area("FR")
+
+        ########## Short-Term storage ##########
+
         sts_properties = STStorageProperties(efficiency_withdrawal=0.9, group="free group")
         storage = area_fr.create_st_storage("sts_test", sts_properties)
         assert storage.properties.efficiency_withdrawal == 0.9
         assert storage.properties.group == "free group"
         assert storage.properties.penalize_variation_injection is False
 
-        # Update its properties
         new_properties = STStoragePropertiesUpdate(group="new group", penalize_variation_injection=True)
         storage.update_properties(new_properties)
         assert storage.properties.efficiency_withdrawal == 0.9
         assert storage.properties.group == "new group"
         assert storage.properties.penalize_variation_injection is True
 
-        # Play with the matrices
         assert storage.get_cost_variation_injection().equals(pd.DataFrame(np.zeros((8760, 1))))
         new_matrix = pd.DataFrame(np.full((8760, 4), 10))
         storage.set_cost_variation_withdrawal(new_matrix)
         assert storage.get_cost_variation_withdrawal().equals(new_matrix)
 
-        # Ensures new hydro property is written
+        ########## Hydro ##########
+
         assert area_fr.hydro.properties.overflow_spilled_cost_difference == 1
         assert area_fr.hydro.properties.reservoir is False
         assert area_fr.hydro.properties.reservoir_capacity == 0
 
-        # Modify hydro properties
         new_hydro_properties = HydroPropertiesUpdate(overflow_spilled_cost_difference=0.3, reservoir=True)
         area_fr.hydro.update_properties(new_hydro_properties)
         assert area_fr.hydro.properties.overflow_spilled_cost_difference == 0.3
         assert area_fr.hydro.properties.reservoir is True
         assert area_fr.hydro.properties.reservoir_capacity == 0
 
-        # Modify new thematic trimming values
+        ########## Thematic trimming ##########
 
-        # Modify scenario builder
+        thematic_trimming = study.get_settings().thematic_trimming_parameters
+        assert thematic_trimming.sts_by_group is True
+        assert thematic_trimming.oil is True
+        assert thematic_trimming.nuclear is True
+        assert thematic_trimming.psp_open_level is None
 
-        # Modify settings
+        new_trimming = ThematicTrimmingParameters(sts_by_group=False, oil=False)
+        study.set_thematic_trimming(new_trimming)
+        thematic_trimming = study.get_settings().thematic_trimming_parameters
+        assert thematic_trimming.sts_by_group is False
+        assert thematic_trimming.oil is False
+        assert thematic_trimming.nuclear is True
+        assert thematic_trimming.psp_open_level is None
 
-        # Run a simulation
+        ########## Scenario Builder ##########
 
-        # Check outputs
+        ########## Settings ##########
+
+        ########## Simulation ##########
