@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Any, Optional
+from typing import Annotated, Any, Optional, TypeAlias
 
 from pydantic import Field
 
@@ -27,17 +27,20 @@ def _sts_alias_generator(input: str) -> str:
     return input.replace("_", "")
 
 
+Capacity: TypeAlias = Annotated[float, Field(default=0, ge=0)]
+
+
 class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_generator):
     group: str = STStorageGroup.OTHER1.value
-    injection_nominal_capacity: float = 0
-    withdrawal_nominal_capacity: float = 0
-    reservoir_capacity: float = 0
-    efficiency: float = 1
+    injection_nominal_capacity: Capacity
+    withdrawal_nominal_capacity: Capacity
+    reservoir_capacity: Capacity
+    efficiency: float = Field(1, ge=0)
     initial_level: float = 0.5
     initial_level_optim: bool = False
     enabled: bool = True
     # add new parameter 9.2
-    efficiency_withdrawal: Optional[float] = None
+    efficiency_withdrawal: Optional[float] = Field(None, ge=0)
     penalize_variation_injection: Optional[bool] = Field(None, alias="penalize-variation-injection")
     penalize_variation_withdrawal: Optional[bool] = Field(None, alias="penalize-variation-withdrawal")
 
@@ -71,11 +74,6 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
 
 
 def validate_st_storage_against_version(properties: STStoragePropertiesLocal, version: StudyVersion) -> None:
-    """
-    Validates input short-term storage data against the provided study versions
-
-    Will raise an InvalidFieldForVersionError if a field is not valid for the given study version.
-    """
     if version < STUDY_VERSION_9_2:
         valid_values = [e.value for e in STStorageGroup] + [None]
         if properties.group not in valid_values:
@@ -92,10 +90,19 @@ def initialize_with_version(properties: STStoragePropertiesLocal, version: Study
     return properties
 
 
+def validate_attributes_coherence(properties: STStoragePropertiesLocal, version: StudyVersion) -> None:
+    if version >= STUDY_VERSION_9_2:
+        assert isinstance(properties.efficiency, (float, int))
+        assert isinstance(properties.efficiency_withdrawal, (float, int))
+        if properties.efficiency > properties.efficiency_withdrawal:
+            raise ValueError("efficiency_withdrawal must be greater than efficiency")
+
+
 def parse_st_storage_local(study_version: StudyVersion, data: Any) -> STStorageProperties:
     local_properties = STStoragePropertiesLocal.model_validate(data)
     validate_st_storage_against_version(local_properties, study_version)
     initialize_with_version(local_properties, study_version)
+    validate_attributes_coherence(local_properties, study_version)
     return local_properties.to_user_model()
 
 

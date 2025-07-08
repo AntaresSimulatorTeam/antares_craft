@@ -70,7 +70,7 @@ class TestSTStorage:
         # Update properties with some fields set
         update_properties = STStoragePropertiesUpdate(
             group="free_group",
-            efficiency_withdrawal=0.4,
+            efficiency_withdrawal=6.4,
             penalize_variation_injection=True,
             penalize_variation_withdrawal=True,
         )
@@ -78,13 +78,13 @@ class TestSTStorage:
 
         # Check only the updated fields have the expected values
         assert new_properties.group == "free_group"
-        assert new_properties.efficiency_withdrawal == 0.4
+        assert new_properties.efficiency_withdrawal == 6.4
         assert new_properties.penalize_variation_injection is True
         assert new_properties.penalize_variation_withdrawal is True
 
         # Also check storage properties reflect those updates
         assert storage.properties.group == "free_group"
-        assert storage.properties.efficiency_withdrawal == 0.4
+        assert storage.properties.efficiency_withdrawal == 6.4
         assert storage.properties.penalize_variation_injection is True
         assert storage.properties.penalize_variation_withdrawal is True
 
@@ -224,3 +224,23 @@ class TestSTStorage:
             local_study_w_storage.update_st_storages(dict_storage)
         hash_after_update = dirhash(storage_folder, "md5")
         assert hash_before_update == hash_after_update
+
+    def test_errors_inside_properties_values(self, local_study_92: Study) -> None:
+        area = local_study_92.get_areas()["fr"]
+
+        for field in [
+            "injection_nominal_capacity",
+            "withdrawal_nominal_capacity",
+            "reservoir_capacity",
+            "efficiency",
+            "efficiency_withdrawal",
+        ]:
+            with pytest.raises(ValueError, match="Input should be greater than or equal to 0"):
+                area.create_st_storage("sts", properties=STStorageProperties(**{field: -2}))
+
+        with pytest.raises(ValueError, match=re.escape("efficiency_withdrawal must be greater than efficiency")):
+            area.create_st_storage("sts", properties=STStorageProperties(efficiency_withdrawal=0.4))
+
+        storage = area.create_st_storage("sts")
+        with pytest.raises(ValueError, match=re.escape("efficiency_withdrawal must be greater than efficiency")):
+            storage.update_properties(STStoragePropertiesUpdate(efficiency=4))
