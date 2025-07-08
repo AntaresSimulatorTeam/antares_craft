@@ -13,8 +13,6 @@ import pytest
 
 from pathlib import Path
 
-import pandas as pd
-
 from antares.craft import LinkProperties, LinkUi, create_study_local
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -147,21 +145,6 @@ def default_hydro_properties_88() -> HydroProperties:
 @pytest.fixture
 def area_fr(local_study_with_hydro: Study) -> Area:
     return local_study_with_hydro.get_areas()["fr"]
-
-
-@pytest.fixture
-def fr_solar(area_fr: Area) -> None:
-    return area_fr.set_solar(pd.DataFrame())
-
-
-@pytest.fixture
-def fr_wind(area_fr: Area) -> None:
-    return area_fr.set_wind(pd.DataFrame())
-
-
-@pytest.fixture
-def fr_load(area_fr: Area) -> None:
-    return area_fr.set_load(pd.DataFrame())
 
 
 @pytest.fixture

@@ -455,7 +455,7 @@ class TestCreateWind:
         assert actual_time_series.equals(expected_time_series)
         assert actual_time_series_string == expected_time_series_string
 
-    def test_settings_ini_exists(self, area_fr: Area, fr_wind: None) -> None:
+    def test_settings_ini_exists(self, area_fr: Area) -> None:
         # Given
         study_path = t.cast(AreaLocalService, area_fr._area_service).config.study_path
         expected_ini_path = study_path / "input/wind/prepro/fr/settings.ini"
@@ -464,16 +464,7 @@ class TestCreateWind:
         assert expected_ini_path.exists()
         assert expected_ini_path.is_file()
 
-    def test_conversion_txt_exists(self, area_fr: Area, fr_wind: None) -> None:
-        # Given
-        study_path = t.cast(AreaLocalService, area_fr._area_service).config.study_path
-        expected_file_path = study_path / TimeSeriesFileType.WIND_CONVERSION.value.format(area_id=area_fr.id)
-
-        # Then
-        assert expected_file_path.exists()
-        assert expected_file_path.is_file()
-
-    def test_conversion_txt_has_correct_default_values(self, local_study: Study, fr_wind: None) -> None:
+    def test_conversion_txt_has_correct_default_values(self, local_study_w_areas: Study) -> None:
         # Given
         expected_file_contents = """-9999999980506447872\t0\t9999999980506447872
 0\t0\t0
@@ -482,60 +473,30 @@ class TestCreateWind:
         expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None).astype(str)
 
         # When
-        local_config = t.cast(LocalConfiguration, local_study.service.config)
-        study_path = local_config.study_path
+        study_path = Path(local_study_w_areas.path)
         actual_file_path = study_path.joinpath(Path("input") / "wind" / "prepro" / "fr" / "conversion.txt")
         actual_data = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=str)
 
         # Then
         assert actual_data.equals(expected_file_data)
 
-    def test_data_txt_exists(self, area_fr: Area, fr_wind: None) -> None:
-        # Given
-        study_path = t.cast(AreaLocalService, area_fr._area_service).config.study_path
-        expected_file_path = study_path / TimeSeriesFileType.WIND_DATA.value.format(area_id=area_fr.id)
-
-        # Then
-        assert expected_file_path.exists()
-        assert expected_file_path.is_file()
-
-    def test_data_txt_has_correct_default_values(self, local_study: Study, fr_wind: None) -> None:
+    def test_data_txt_has_correct_default_values(self, local_study_w_areas: Study) -> None:
         # Given
         expected_file_data = pd.DataFrame(np.ones([12, 6]), dtype=int)
         expected_file_data[2] = 0
 
         # Then
-        local_config = t.cast(LocalConfiguration, local_study.service.config)
-        study_path = local_config.study_path
+        study_path = Path(local_study_w_areas.path)
         actual_file_path = study_path.joinpath(Path("input") / "wind" / "prepro" / "fr" / "data.txt")
         actual_data = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=int)
         # For some reason the equality check fails on windows, so we check it in a different way
         assert actual_data.to_dict() == expected_file_data.to_dict()
 
-    def test_k_txt_exists(self, area_fr: Area, fr_wind: None) -> None:
-        # Given
-        study_path = t.cast(AreaLocalService, area_fr._area_service).config.study_path
-        expected_file_path = study_path / TimeSeriesFileType.WIND_K.value.format(area_id=area_fr.id)
-
-        # Then
-        assert expected_file_path.exists()
-        assert expected_file_path.is_file()
-
-    def test_k_and_translation_txt_is_empty_by_default(self, local_study: Study, fr_wind: None) -> None:
-        local_config = t.cast(LocalConfiguration, local_study.service.config)
-        study_path = local_config.study_path
+    def test_k_and_translation_txt_is_empty_by_default(self, local_study_w_areas: Study) -> None:
+        study_path = Path(local_study_w_areas.path)
         for file in ["k", "translation"]:
             actual_file_path = study_path.joinpath(Path("input") / "wind" / "prepro" / "fr" / f"{file}.txt")
             assert actual_file_path.read_text() == ""
-
-    def test_translation_txt_exists(self, area_fr: Area, fr_wind: None) -> None:
-        # Given
-        study_path = t.cast(AreaLocalService, area_fr._area_service).config.study_path
-        expected_file_path = study_path / TimeSeriesFileType.WIND_TRANSLATION.value.format(area_id=area_fr.id)
-
-        # Then
-        assert expected_file_path.exists()
-        assert expected_file_path.is_file()
 
 
 class TestCreateSolar:
@@ -572,7 +533,7 @@ class TestCreateSolar:
         assert actual_time_series.equals(expected_time_series)
         assert actual_time_series_string == expected_time_series_string
 
-    def test_settings_ini_exists(self, area_fr: Area, fr_solar: None) -> None:
+    def test_settings_ini_exists(self, area_fr: Area) -> None:
         # Given
         study_path = t.cast(AreaLocalService, area_fr._area_service).config.study_path
         expected_ini_path = study_path / "input/solar/prepro/fr/settings.ini"
@@ -581,16 +542,7 @@ class TestCreateSolar:
         assert expected_ini_path.exists()
         assert expected_ini_path.is_file()
 
-    def test_conversion_txt_exists(self, area_fr: Area, fr_solar: None) -> None:
-        # Given
-        study_path = t.cast(AreaLocalService, area_fr._area_service).config.study_path
-        expected_file_path = study_path / TimeSeriesFileType.SOLAR_CONVERSION.value.format(area_id=area_fr.id)
-
-        # Then
-        assert expected_file_path.exists()
-        assert expected_file_path.is_file()
-
-    def test_conversion_txt_has_correct_default_values(self, local_study: Study, fr_solar: None) -> None:
+    def test_conversion_txt_has_correct_default_values(self, local_study_w_areas: Study) -> None:
         # Given
         expected_file_contents = """-9999999980506447872\t0\t9999999980506447872
 0\t0\t0
@@ -599,60 +551,30 @@ class TestCreateSolar:
         expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None).astype(str)
 
         # When
-        local_config = t.cast(LocalConfiguration, local_study.service.config)
-        study_path = local_config.study_path
+        study_path = Path(local_study_w_areas.path)
         actual_file_path = study_path.joinpath(Path("input") / "solar" / "prepro" / "fr" / "conversion.txt")
         actual_data = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=str)
 
         # Then
         assert actual_data.equals(expected_file_data)
 
-    def test_data_txt_exists(self, area_fr: Area, fr_solar: None) -> None:
-        # Given
-        study_path = t.cast(AreaLocalService, area_fr._area_service).config.study_path
-        expected_file_path = study_path / TimeSeriesFileType.SOLAR_DATA.value.format(area_id=area_fr.id)
-
-        # Then
-        assert expected_file_path.exists()
-        assert expected_file_path.is_file()
-
-    def test_data_txt_has_correct_default_values(self, local_study: Study, fr_solar: None) -> None:
+    def test_data_txt_has_correct_default_values(self, local_study_w_areas: Study) -> None:
         # Given
         expected_file_data = pd.DataFrame(np.ones([12, 6]), dtype=int)
         expected_file_data[2] = 0
 
         # Then
-        local_config = t.cast(LocalConfiguration, local_study.service.config)
-        study_path = local_config.study_path
+        study_path = Path(local_study_w_areas.path)
         actual_file_path = study_path.joinpath(Path("input") / "solar" / "prepro" / "fr" / "data.txt")
         actual_data = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=int)
         # For some reason the equality check fails on windows, so we check it in a different way
         assert actual_data.to_dict() == expected_file_data.to_dict()
 
-    def test_k_txt_exists(self, area_fr: Area, fr_solar: None) -> None:
-        # Given
-        study_path = t.cast(AreaLocalService, area_fr._area_service).config.study_path
-        expected_file_path = study_path / TimeSeriesFileType.SOLAR_K.value.format(area_id=area_fr.id)
-
-        # Then
-        assert expected_file_path.exists()
-        assert expected_file_path.is_file()
-
-    def test_k_and_translation_txt_is_empty_by_default(self, local_study: Study, fr_solar: None) -> None:
-        local_config = t.cast(LocalConfiguration, local_study.service.config)
-        study_path = local_config.study_path
+    def test_k_and_translation_txt_is_empty_by_default(self, local_study_w_areas: Study) -> None:
+        study_path = Path(local_study_w_areas.path)
         for file in ["k", "translation"]:
             actual_file_path = study_path.joinpath(Path("input") / "solar" / "prepro" / "fr" / f"{file}.txt")
             assert actual_file_path.read_text() == ""
-
-    def test_translation_txt_exists(self, area_fr: Area, fr_solar: None) -> None:
-        # Given
-        study_path = t.cast(AreaLocalService, area_fr._area_service).config.study_path
-        expected_file_path = study_path / TimeSeriesFileType.SOLAR_TRANSLATION.value.format(area_id=area_fr.id)
-
-        # Then
-        assert expected_file_path.exists()
-        assert expected_file_path.is_file()
 
 
 class TestCreateLoad:
@@ -689,7 +611,7 @@ class TestCreateLoad:
         assert actual_time_series.equals(expected_time_series)
         assert actual_time_series_string == expected_time_series_string
 
-    def test_settings_ini_exists(self, area_fr: Area, fr_load: None) -> None:
+    def test_settings_ini_exists(self, area_fr: Area) -> None:
         # Given
         study_path = t.cast(AreaLocalService, area_fr._area_service).config.study_path
         expected_ini_path = study_path / "input/load/prepro/fr/settings.ini"
@@ -698,16 +620,7 @@ class TestCreateLoad:
         assert expected_ini_path.exists()
         assert expected_ini_path.is_file()
 
-    def test_conversion_txt_exists(self, area_fr: Area, fr_load: None) -> None:
-        # Given
-        study_path = t.cast(AreaLocalService, area_fr._area_service).config.study_path
-        expected_file_path = study_path / TimeSeriesFileType.LOAD_CONVERSION.value.format(area_id=area_fr.id)
-
-        # Then
-        assert expected_file_path.exists()
-        assert expected_file_path.is_file()
-
-    def test_conversion_txt_has_correct_default_values(self, local_study: Study, fr_load: None) -> None:
+    def test_conversion_txt_has_correct_default_values(self, local_study_w_areas: Study) -> None:
         # Given
         expected_file_contents = """-9999999980506447872\t0\t9999999980506447872
 0\t0\t0
@@ -716,57 +629,27 @@ class TestCreateLoad:
         expected_file_data = pd.read_csv(StringIO(expected_file_contents), sep="\t", header=None).astype(str)
 
         # When
-        local_config = t.cast(LocalConfiguration, local_study.service.config)
-        study_path = local_config.study_path
+        study_path = Path(local_study_w_areas.path)
         actual_file_path = study_path.joinpath(Path("input") / "load" / "prepro" / "fr" / "conversion.txt")
         actual_data = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=str)
 
         # Then
         assert actual_data.equals(expected_file_data)
 
-    def test_data_txt_exists(self, area_fr: Area, fr_load: None) -> None:
-        # Given
-        study_path = t.cast(AreaLocalService, area_fr._area_service).config.study_path
-        expected_file_path = study_path / TimeSeriesFileType.LOAD_DATA.value.format(area_id=area_fr.id)
-
-        # Then
-        assert expected_file_path.exists()
-        assert expected_file_path.is_file()
-
-    def test_data_txt_has_correct_default_values(self, local_study: Study, fr_load: None) -> None:
+    def test_data_txt_has_correct_default_values(self, local_study_w_areas: Study) -> None:
         # Given
         expected_file_data = pd.DataFrame(np.ones([12, 6]), dtype=int)
         expected_file_data[2] = 0
 
         # Then
-        local_config = t.cast(LocalConfiguration, local_study.service.config)
-        study_path = local_config.study_path
+        study_path = Path(local_study_w_areas.path)
         actual_file_path = study_path.joinpath(Path("input") / "load" / "prepro" / "fr" / "data.txt")
         actual_data = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=int)
         # For some reason the equality check fails on windows, so we check it in a different way
         assert actual_data.to_dict() == expected_file_data.to_dict()
 
-    def test_k_txt_exists(self, area_fr: Area, fr_load: None) -> None:
-        # Given
-        study_path = t.cast(AreaLocalService, area_fr._area_service).config.study_path
-        expected_file_path = study_path / TimeSeriesFileType.LOAD_K.value.format(area_id=area_fr.id)
-
-        # Then
-        assert expected_file_path.exists()
-        assert expected_file_path.is_file()
-
-    def test_translation_txt_exists(self, area_fr: Area, fr_load: None) -> None:
-        # Given
-        study_path = t.cast(AreaLocalService, area_fr._area_service).config.study_path
-        expected_file_path = study_path / TimeSeriesFileType.LOAD_TRANSLATION.value.format(area_id=area_fr.id)
-
-        # Then
-        assert expected_file_path.exists()
-        assert expected_file_path.is_file()
-
-    def test_k_and_translation_txt_is_empty_by_default(self, local_study: Study, fr_load: None) -> None:
-        local_config = t.cast(LocalConfiguration, local_study.service.config)
-        study_path = local_config.study_path
+    def test_k_and_translation_txt_is_empty_by_default(self, local_study_w_areas: Study) -> None:
+        study_path = Path(local_study_w_areas.path)
         for file in ["k", "translation"]:
             actual_file_path = study_path.joinpath(Path("input") / "load" / "prepro" / "fr" / f"{file}.txt")
             assert actual_file_path.read_text() == ""
