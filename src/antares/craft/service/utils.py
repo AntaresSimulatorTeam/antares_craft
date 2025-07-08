@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from antares.craft.model.output import Frequency
+from antares.craft.model.output import Frequency, XpansionResult, XpansionSensitivityResult
 from antares.craft.service.local_services.services.output.date_serializer import FactoryDateSerializer, rename_unnamed
 
 
@@ -27,3 +27,11 @@ def read_output_matrix(data: Path | StringIO, frequency: Frequency) -> pd.DataFr
     final_df = rename_unnamed(body).astype(float)
 
     return final_df
+
+
+def parse_xpansion_out_json(content: StringIO) -> XpansionResult:
+    raise NotImplementedError
+
+
+def parse_xpansion_sensitivity_out_json(content: StringIO) -> XpansionSensitivityResult:
+    raise NotImplementedError
