@@ -40,6 +40,8 @@ class PowerFluctuation(Enum):
 class SheddingPolicy(Enum):
     SHAVE_PEAKS = "shave peaks"
     MINIMIZE_DURATION = "minimize duration"
+    # Introduced in v9.2
+    ACCURATE_SHAVE_PEAKS = "accurate shave peaks"
 
 
 class UnitCommitmentMode(Enum):

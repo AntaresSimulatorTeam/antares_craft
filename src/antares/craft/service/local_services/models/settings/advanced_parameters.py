@@ -14,6 +14,7 @@ from typing import Any, Optional
 
 from pydantic import Field, field_serializer, field_validator
 
+from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
 from antares.craft.model.commons import join_with_comma
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParameters,
@@ -159,6 +160,12 @@ def validate_against_version(parameters: AdvancedAndSeedParametersLocal, version
         for class_field, value in AdvancedAndSeedParametersLocal.get_9_2_removed_fields_and_default_value().items():
             for field in value:
                 check_min_version(getattr(parameters, class_field), field, version)
+    else:
+        # We have to check if the used `shedding_policy` was available in the old version
+        if parameters.other_preferences.shedding_policy == SheddingPolicy.ACCURATE_SHAVE_PEAKS:
+            raise InvalidFieldForVersionError(
+                f"Shedding policy should be `shave peaks` or `minimize duration` and was '{parameters.other_preferences.shedding_policy.value}'"
+            )
 
 
 def initialize_with_version(
