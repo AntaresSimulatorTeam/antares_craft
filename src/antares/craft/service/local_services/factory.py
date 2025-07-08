@@ -18,6 +18,9 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.study import Study
 from antares.craft.service.base_services import StudyServices
+from antares.craft.service.local_services.models.settings.advanced_parameters import (
+    parse_advanced_and_seed_parameters_local,
+)
 from antares.craft.service.local_services.models.settings.thematic_trimming import parse_thematic_trimming_local
 from antares.craft.service.local_services.services.area import AreaLocalService
 from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
@@ -109,12 +112,16 @@ def create_study_local(
         path=study_directory,
         solver_path=solver_path,
     )
-    # We need to create the file with default value
+    # We need to create the file with default values
     default_settings = StudySettings()
     update_settings = default_settings.to_update_settings()
     edit_study_settings(study_directory, update_settings, True, study_version)
-    # Initialize thematic trimming with the default values
+    # Initialize settings with the default values
     study._settings.thematic_trimming_parameters = parse_thematic_trimming_local(study_version, {})
+    advanced_parameters, seed_parameters = parse_advanced_and_seed_parameters_local(study_version, {})
+    study._settings.advanced_parameters = advanced_parameters
+    study._settings.seed_parameters = seed_parameters
+
     return study
 
 
