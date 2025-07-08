@@ -209,7 +209,7 @@ enabled = True
     def test_st_storage_and_ini_have_custom_properties_92(self, local_study_92: Study) -> None:
         # Given
         properties = STStorageProperties(
-            group=STStorageGroup.BATTERY.value, reservoir_capacity=12.345, efficiency_withdrawal=0.9
+            group=STStorageGroup.BATTERY.value, reservoir_capacity=12.345, efficiency_withdrawal=3.2
         )
         st_storage_name = "short term storage"
 
@@ -227,7 +227,7 @@ efficiency = 1.0
 initiallevel = 0.5
 initialleveloptim = False
 enabled = True
-efficiencywithdrawal = 0.9
+efficiencywithdrawal = 3.2
 
 """
         study_path = Path(local_study_92.path)
@@ -238,7 +238,7 @@ efficiencywithdrawal = 0.9
         expected_properties = STStorageProperties(
             group=STStorageGroup.BATTERY.value,
             reservoir_capacity=12.345,
-            efficiency_withdrawal=0.9,
+            efficiency_withdrawal=3.2,
             penalize_variation_injection=False,
             penalize_variation_withdrawal=False,
         )

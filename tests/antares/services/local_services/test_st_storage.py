@@ -70,7 +70,7 @@ class TestSTStorage:
         # Update properties with some fields set
         update_properties = STStoragePropertiesUpdate(
             group="free_group",
-            efficiency_withdrawal=0.4,
+            efficiency_withdrawal=6.4,
             penalize_variation_injection=True,
             penalize_variation_withdrawal=True,
         )
@@ -78,13 +78,13 @@ class TestSTStorage:
 
         # Check only the updated fields have the expected values
         assert new_properties.group == "free_group"
-        assert new_properties.efficiency_withdrawal == 0.4
+        assert new_properties.efficiency_withdrawal == 6.4
         assert new_properties.penalize_variation_injection is True
         assert new_properties.penalize_variation_withdrawal is True
 
         # Also check storage properties reflect those updates
         assert storage.properties.group == "free_group"
-        assert storage.properties.efficiency_withdrawal == 0.4
+        assert storage.properties.efficiency_withdrawal == 6.4
         assert storage.properties.penalize_variation_injection is True
         assert storage.properties.penalize_variation_withdrawal is True
 
