@@ -363,7 +363,6 @@ include-unfeasible-problem-behavior = error-verbose
 [adequacy patch]
 include-adq-patch = False
 set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = True
-set-to-null-ntc-between-physical-out-for-first-step = True
 price-taking-order = DENS
 include-hurdle-cost-csr = False
 check-csr-cost-function = False
