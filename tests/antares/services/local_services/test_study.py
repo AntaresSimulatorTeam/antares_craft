@@ -238,20 +238,23 @@ class TestStudyProperties:
 
             assert local_study.get_settings().adequacy_patch_parameters == expected_adequacy_patch_properties
 
-    def test_local_study_has_correct_advanced_parameters(self, local_study: Study) -> None:
-        expected_advanced_parameters = AdvancedParameters(
-            initial_reservoir_levels=InitialReservoirLevel.COLD_START,
-            hydro_heuristic_policy=HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES,
-            hydro_pricing_mode=HydroPricingMode.FAST,
-            power_fluctuations=PowerFluctuation.FREE_MODULATIONS,
-            shedding_policy=SheddingPolicy.SHAVE_PEAKS,
-            unit_commitment_mode=UnitCommitmentMode.FAST,
-            number_of_cores_mode=SimulationCore.MEDIUM,
-            renewable_generation_modelling=RenewableGenerationModeling.CLUSTERS,
-            accuracy_on_correlation=set(),
-        )
+    def test_local_study_has_correct_advanced_parameters(self, local_study: Study, local_study_92: Study) -> None:
+        for study in [local_study, local_study_92]:
+            value = InitialReservoirLevel.COLD_START if study == local_study else None  # Depends on the version
 
-        assert local_study.get_settings().advanced_parameters == expected_advanced_parameters
+            expected_advanced_parameters = AdvancedParameters(
+                initial_reservoir_levels=value,
+                hydro_heuristic_policy=HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES,
+                hydro_pricing_mode=HydroPricingMode.FAST,
+                power_fluctuations=PowerFluctuation.FREE_MODULATIONS,
+                shedding_policy=SheddingPolicy.SHAVE_PEAKS,
+                unit_commitment_mode=UnitCommitmentMode.FAST,
+                number_of_cores_mode=SimulationCore.MEDIUM,
+                renewable_generation_modelling=RenewableGenerationModeling.CLUSTERS,
+                accuracy_on_correlation=set(),
+            )
+
+            assert local_study.get_settings().advanced_parameters == expected_advanced_parameters
 
     def test_local_study_has_correct_seed_parameters(self, local_study: Study) -> None:
         expected_seed_parameters = SeedParameters(
