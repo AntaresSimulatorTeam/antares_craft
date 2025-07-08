@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from dataclasses import replace
 from pathlib import Path
 
 from antares.craft import Study, read_study_local
@@ -31,7 +31,8 @@ class TestCreateHydro:
     def test_hydro_has_correct_default_properties_v92(
         self, default_hydro_properties_88: HydroProperties, local_study_92: Study
     ) -> None:
-        assert local_study_92.get_areas()["fr"].hydro.properties == default_hydro_properties_88
+        expected_properties = replace(default_hydro_properties_88, overflow_spilled_cost_difference=1)
+        assert local_study_92.get_areas()["fr"].hydro.properties == expected_properties
 
     def test_files_exist(self, local_study_w_areas: Study) -> None:
         """

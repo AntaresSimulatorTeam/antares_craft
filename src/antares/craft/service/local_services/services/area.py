@@ -48,7 +48,7 @@ from antares.craft.service.base_services import (
     BaseThermalService,
 )
 from antares.craft.service.local_services.models.area import AreaPropertiesLocal, AreaUiLocal
-from antares.craft.service.local_services.models.hydro import HydroInflowStructureLocal
+from antares.craft.service.local_services.models.hydro import HydroInflowStructureLocal, parse_hydro_properties_local
 from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
 from antares.craft.service.local_services.models.st_storage import (
     parse_st_storage_local,
@@ -403,7 +403,9 @@ class AreaLocalService(BaseAreaService):
             update_properties = default_hydro_properties.to_update_properties()
             hydro_local_service = cast(HydroLocalService, self.hydro_service)
             hydro_local_service.edit_hydro_properties(area_id, update_properties, creation=True)
-            hydro = Hydro(self.hydro_service, area_id, default_hydro_properties, InflowStructure())
+            # Use parsing method to fill default values according to version
+            hydro_properties = parse_hydro_properties_local(self.study_version, {})
+            hydro = Hydro(self.hydro_service, area_id, hydro_properties, InflowStructure())
             # Create files
             hydro_local_service.save_inflow_ini(
                 HydroInflowStructureLocal.from_user_model(InflowStructure()).model_dump(by_alias=True), area_id
