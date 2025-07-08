@@ -113,18 +113,13 @@ class BaseAreaService(ABC):
 
     @abstractmethod
     def create_renewable_cluster(
-        self,
-        area_id: str,
-        renewable_name: str,
-        properties: Optional["RenewableClusterProperties"] = None,
-        series: Optional[pd.DataFrame] = None,
+        self, area_id: str, renewable_name: str, properties: Optional["RenewableClusterProperties"] = None
     ) -> "RenewableCluster":
         """
         Args:
             area_id: the area id in which to create the renewable cluster
             renewable_name: the name of the renewable cluster
             properties: the properties of the renewable cluster. If not provided, AntaresWeb will use its own default values.
-            series: matrix for renewables/area_id/renewable_name/series.txt
 
         Returns:
             The created renewable cluster

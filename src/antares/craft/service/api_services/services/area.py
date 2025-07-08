@@ -226,18 +226,13 @@ class AreaApiService(BaseAreaService):
 
     @override
     def create_renewable_cluster(
-        self,
-        area_id: str,
-        renewable_name: str,
-        properties: Optional[RenewableClusterProperties] = None,
-        series: Optional[pd.DataFrame] = None,
+        self, area_id: str, renewable_name: str, properties: Optional[RenewableClusterProperties] = None
     ) -> RenewableCluster:
         """
         Args:
             area_id: the area id of the renewable cluster
             renewable_name: the name of the renewable cluster
             properties: the properties of the renewable cluster. If not provided, AntaresWeb will use its own default values
-            series: matrix for series.txt
 
         Returns:
             The created renewable cluster
@@ -259,10 +254,6 @@ class AreaApiService(BaseAreaService):
             del json_response["id"]
             api_properties = RenewableClusterPropertiesAPI.model_validate(json_response)
             properties = api_properties.to_user_model()
-
-            if series is not None:
-                series_path = f"input/renewables/series/{area_id}/{renewable_name.lower()}/series"
-                update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
 
         except APIError as e:
             raise RenewableCreationError(renewable_name, area_id, e.message) from e

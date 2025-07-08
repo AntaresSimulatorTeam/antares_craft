@@ -44,7 +44,7 @@ class TestCreateRenewablesCluster:
         # When
         renewable_cluster_name = "renewable cluster"
         local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
-            renewable_cluster_name, RenewableClusterProperties(), None
+            renewable_cluster_name, RenewableClusterProperties()
         )
 
         # Then
@@ -89,7 +89,7 @@ ts-interpretation = production-factor
 """
 
         # When
-        local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(renewable_name, renewable_properties, None)
+        local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(renewable_name, renewable_properties)
         study_path = Path(local_study_w_thermal.path)
         ini_content = (study_path / "input" / "renewables" / "clusters" / "fr" / "list.ini").read_text()
         assert ini_content == expected_renewables_list_ini_content
@@ -100,17 +100,13 @@ ts-interpretation = production-factor
         )
 
     def test_renewable_cluster_and_series_is_empty(self, local_study_w_thermal: Study) -> None:
-        local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
-            "generation_1", RenewableClusterProperties(), series=pd.DataFrame()
-        )
+        local_study_w_thermal.get_areas()["fr"].create_renewable_cluster("generation_1", RenewableClusterProperties())
         full_path = (
             Path(local_study_w_thermal.path) / "input" / "renewables" / "series" / "fr" / "generation_1" / "series.txt"
         )
         assert full_path.exists()
         assert full_path.stat().st_size == 0
-        local_study_w_thermal.get_areas()["fr"].create_renewable_cluster(
-            "generation_2", RenewableClusterProperties(), series=None
-        )
+        local_study_w_thermal.get_areas()["fr"].create_renewable_cluster("generation_2", RenewableClusterProperties())
         full_path = (
             Path(local_study_w_thermal.path) / "input" / "renewables" / "series" / "fr" / "generation_2" / "series.txt"
         )

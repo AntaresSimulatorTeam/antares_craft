@@ -157,7 +157,7 @@ class TestCreateAPI:
             mocker.post(url, json={"name": renewable_name, "id": renewable_name, **json_response}, status_code=201)
 
             renewable = self.area.create_renewable_cluster(
-                renewable_name=renewable_name, properties=RenewableClusterProperties(), series=None
+                renewable_name=renewable_name, properties=RenewableClusterProperties()
             )
             assert isinstance(renewable, RenewableCluster)
 
@@ -172,7 +172,7 @@ class TestCreateAPI:
                 match=f"Could not create the renewable cluster '{renewable_name}' inside area '{self.area.id}': {self.antares_web_description_msg}",
             ):
                 self.area.create_renewable_cluster(
-                    renewable_name=renewable_name, properties=RenewableClusterProperties(), series=None
+                    renewable_name=renewable_name, properties=RenewableClusterProperties()
                 )
 
     def test_create_st_storage_success(self) -> None:

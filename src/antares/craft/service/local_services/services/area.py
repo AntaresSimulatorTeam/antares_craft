@@ -189,11 +189,7 @@ class AreaLocalService(BaseAreaService):
 
     @override
     def create_renewable_cluster(
-        self,
-        area_id: str,
-        renewable_name: str,
-        properties: Optional[RenewableClusterProperties] = None,
-        series: Optional[pd.DataFrame] = None,
+        self, area_id: str, renewable_name: str, properties: Optional[RenewableClusterProperties] = None
     ) -> RenewableCluster:
         properties = properties or RenewableClusterProperties()
         local_properties = RenewableClusterPropertiesLocal.from_user_model(properties)
@@ -209,7 +205,7 @@ class AreaLocalService(BaseAreaService):
 
         write_timeseries(
             self.config.study_path,
-            series,
+            None,
             TimeSeriesFileType.RENEWABLE_SERIES,
             area_id,
             cluster_id=transform_name_to_id(renewable_name),
