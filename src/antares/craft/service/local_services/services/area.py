@@ -37,6 +37,7 @@ from antares.craft.model.area import (
 from antares.craft.model.hydro import Hydro, HydroProperties, InflowStructure
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
+from antares.craft.model.study import STUDY_VERSION_9_2
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.base_services import (
     BaseAreaService,
@@ -47,20 +48,24 @@ from antares.craft.service.base_services import (
     BaseThermalService,
 )
 from antares.craft.service.local_services.models.area import AreaPropertiesLocal, AreaUiLocal
-from antares.craft.service.local_services.models.hydro import HydroInflowStructureLocal
+from antares.craft.service.local_services.models.hydro import HydroInflowStructureLocal, parse_hydro_properties_local
 from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
-from antares.craft.service.local_services.models.st_storage import STStoragePropertiesLocal
+from antares.craft.service.local_services.models.st_storage import (
+    parse_st_storage_local,
+    serialize_st_storage_local,
+)
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
 from antares.craft.service.local_services.services.hydro import HydroLocalService
 from antares.craft.service.local_services.services.renewable import RenewableLocalService
 from antares.craft.service.local_services.services.st_storage import ShortTermStorageLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService
 from antares.craft.tools.contents_tool import transform_name_to_id
-from antares.craft.tools.matrix_tool import default_series, default_series_with_ones, read_timeseries, write_timeseries
+from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.prepro_folder import PreproFolder
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from antares.study.version import StudyVersion
 
 
 class AreaLocalService(BaseAreaService):
@@ -68,6 +73,7 @@ class AreaLocalService(BaseAreaService):
         self,
         config: LocalConfiguration,
         study_name: str,
+        study_version: StudyVersion,
         storage_service: BaseShortTermStorageService,
         thermal_service: BaseThermalService,
         renewable_service: BaseRenewableService,
@@ -78,6 +84,7 @@ class AreaLocalService(BaseAreaService):
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
+        self.study_version = study_version
         self._storage_service: BaseShortTermStorageService = storage_service
         self._thermal_service: BaseThermalService = thermal_service
         self._renewable_service: BaseRenewableService = renewable_service
@@ -212,36 +219,73 @@ class AreaLocalService(BaseAreaService):
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
         properties = properties or STStorageProperties()
-        local_properties = STStoragePropertiesLocal.from_user_model(properties)
+        local_properties = serialize_st_storage_local(self.study_version, properties)
+        user_properties = parse_st_storage_local(self.study_version, local_properties)
 
         local_storage_service = cast(ShortTermStorageLocalService, self.storage_service)
         ini_content = local_storage_service.read_ini(area_id)
+
         ini_content[st_storage_name] = {
             "name": st_storage_name,
-            **local_properties.model_dump(mode="json", by_alias=True),
+            **local_properties,
         }
+
         local_storage_service.save_ini(ini_content, area_id)
 
         storage = STStorage(
             self.storage_service,
             area_id,
             st_storage_name,
-            properties,
+            user_properties,
         )
 
         # Create matrices
-        # todo: The Simulator expects non-empty matrices. It will change but for now we need to create non-empty matrices.
         cluster_id = storage.id
-        default_matrix_ones = pd.DataFrame(default_series_with_ones)
-        default_matrix_zeros = pd.DataFrame(default_series)
+        empty_matrix = pd.DataFrame()
         # fmt: off
-        write_timeseries(self.config.study_path, default_matrix_ones, TimeSeriesFileType.ST_STORAGE_PMAX_INJECTION, area_id, cluster_id=cluster_id)
-        write_timeseries(self.config.study_path, default_matrix_ones, TimeSeriesFileType.ST_STORAGE_PMAX_WITHDRAWAL, area_id, cluster_id=cluster_id)
-        write_timeseries(self.config.study_path, default_matrix_zeros, TimeSeriesFileType.ST_STORAGE_INFLOWS, area_id, cluster_id=cluster_id)
-        write_timeseries(self.config.study_path, default_matrix_zeros, TimeSeriesFileType.ST_STORAGE_LOWER_RULE_CURVE, area_id, cluster_id=cluster_id)
-        write_timeseries(self.config.study_path, default_matrix_ones, TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE, area_id, cluster_id=cluster_id)
+        write_timeseries(self.config.study_path, empty_matrix, TimeSeriesFileType.ST_STORAGE_PMAX_INJECTION, area_id, cluster_id=cluster_id)
+        write_timeseries(self.config.study_path, empty_matrix, TimeSeriesFileType.ST_STORAGE_PMAX_WITHDRAWAL, area_id, cluster_id=cluster_id)
+        write_timeseries(self.config.study_path, empty_matrix, TimeSeriesFileType.ST_STORAGE_INFLOWS, area_id, cluster_id=cluster_id)
+        write_timeseries(self.config.study_path, empty_matrix, TimeSeriesFileType.ST_STORAGE_LOWER_RULE_CURVE, area_id, cluster_id=cluster_id)
+        write_timeseries(self.config.study_path, empty_matrix, TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE, area_id, cluster_id=cluster_id)
         # fmt: on
 
+        if self.study_version >= STUDY_VERSION_9_2:
+            write_timeseries(
+                self.config.study_path,
+                empty_matrix,
+                TimeSeriesFileType.ST_STORAGE_COST_INJECTION,
+                area_id,
+                cluster_id=cluster_id,
+            )
+            write_timeseries(
+                self.config.study_path,
+                empty_matrix,
+                TimeSeriesFileType.ST_STORAGE_COST_WITHDRAWAL,
+                area_id,
+                cluster_id=cluster_id,
+            )
+            write_timeseries(
+                self.config.study_path,
+                empty_matrix,
+                TimeSeriesFileType.ST_STORAGE_COST_LEVEL,
+                area_id,
+                cluster_id=cluster_id,
+            )
+            write_timeseries(
+                self.config.study_path,
+                empty_matrix,
+                TimeSeriesFileType.ST_STORAGE_COST_VARIATION_INJECTION,
+                area_id,
+                cluster_id=cluster_id,
+            )
+            write_timeseries(
+                self.config.study_path,
+                empty_matrix,
+                TimeSeriesFileType.ST_STORAGE_COST_VARIATION_WITHDRAWAL,
+                area_id,
+                cluster_id=cluster_id,
+            )
         return storage
 
     @override
@@ -359,7 +403,9 @@ class AreaLocalService(BaseAreaService):
             update_properties = default_hydro_properties.to_update_properties()
             hydro_local_service = cast(HydroLocalService, self.hydro_service)
             hydro_local_service.edit_hydro_properties(area_id, update_properties, creation=True)
-            hydro = Hydro(self.hydro_service, area_id, default_hydro_properties, InflowStructure())
+            # Use parsing method to fill default values according to version
+            hydro_properties = parse_hydro_properties_local(self.study_version, {})
+            hydro = Hydro(self.hydro_service, area_id, hydro_properties, InflowStructure())
             # Create files
             hydro_local_service.save_inflow_ini(
                 HydroInflowStructureLocal.from_user_model(InflowStructure()).model_dump(by_alias=True), area_id

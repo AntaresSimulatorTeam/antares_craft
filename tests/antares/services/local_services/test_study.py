@@ -109,7 +109,9 @@ class TestCreateStudy:
             assert subdirectory_path.is_dir()
 
     def test_creation_with_wrong_version(self, tmp_path: Path) -> None:
-        with pytest.raises(UnsupportedStudyVersion, match="Unsupported study version: '830', supported ones are '8.8'"):
+        with pytest.raises(
+            UnsupportedStudyVersion, match="Unsupported study version: '830', supported ones are '9.2, 8.8'"
+        ):
             create_study_local("Study_Test", "830", tmp_path)
 
     def test_reading_with_wrong_version(self, tmp_path: Path) -> None:
@@ -118,7 +120,9 @@ class TestCreateStudy:
         ini_content = IniReader().read(ini_path)
         ini_content["antares"]["version"] = 820
         IniWriter().write(ini_content, ini_path)
-        with pytest.raises(UnsupportedStudyVersion, match="Unsupported study version: '820', supported ones are '8.8'"):
+        with pytest.raises(
+            UnsupportedStudyVersion, match="Unsupported study version: '8.2', supported ones are '9.2, 8.8'"
+        ):
             read_study_local(tmp_path / "Study_Test")
 
     def test_desktop_ini_creation(self, tmp_path: Path, local_study: Study) -> None:
@@ -214,35 +218,43 @@ class TestStudyProperties:
 
         assert local_study.get_settings().general_parameters == expected_general_properties
 
-    def test_local_study_has_correct_default_adequacy_patch_properties(self, local_study: Study) -> None:
-        expected_adequacy_patch_properties = AdequacyPatchParameters(
-            include_adq_patch=False,
-            set_to_null_ntc_from_physical_out_to_physical_in_for_first_step=True,
-            set_to_null_ntc_between_physical_out_for_first_step=True,
-            price_taking_order=PriceTakingOrder.DENS,
-            include_hurdle_cost_csr=False,
-            check_csr_cost_function=False,
-            threshold_initiate_curtailment_sharing_rule=1,
-            threshold_display_local_matching_rule_violations=0,
-            threshold_csr_variable_bounds_relaxation=7,
-        )
+    def test_local_study_has_correct_default_adequacy_patch_properties(
+        self, local_study: Study, local_study_92: Study
+    ) -> None:
+        for study in [local_study, local_study_92]:
+            value = True if study == local_study else None  # Depends on the version
 
-        assert local_study.get_settings().adequacy_patch_parameters == expected_adequacy_patch_properties
+            expected_adequacy_patch_properties = AdequacyPatchParameters(
+                include_adq_patch=False,
+                set_to_null_ntc_from_physical_out_to_physical_in_for_first_step=True,
+                price_taking_order=PriceTakingOrder.DENS,
+                include_hurdle_cost_csr=False,
+                check_csr_cost_function=False,
+                threshold_initiate_curtailment_sharing_rule=1,
+                threshold_display_local_matching_rule_violations=0,
+                threshold_csr_variable_bounds_relaxation=7,
+                set_to_null_ntc_between_physical_out_for_first_step=value,
+            )
 
-    def test_local_study_has_correct_advanced_parameters(self, local_study: Study) -> None:
-        expected_advanced_parameters = AdvancedParameters(
-            initial_reservoir_levels=InitialReservoirLevel.COLD_START,
-            hydro_heuristic_policy=HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES,
-            hydro_pricing_mode=HydroPricingMode.FAST,
-            power_fluctuations=PowerFluctuation.FREE_MODULATIONS,
-            shedding_policy=SheddingPolicy.SHAVE_PEAKS,
-            unit_commitment_mode=UnitCommitmentMode.FAST,
-            number_of_cores_mode=SimulationCore.MEDIUM,
-            renewable_generation_modelling=RenewableGenerationModeling.CLUSTERS,
-            accuracy_on_correlation=set(),
-        )
+            assert study.get_settings().adequacy_patch_parameters == expected_adequacy_patch_properties
 
-        assert local_study.get_settings().advanced_parameters == expected_advanced_parameters
+    def test_local_study_has_correct_advanced_parameters(self, local_study: Study, local_study_92: Study) -> None:
+        for study in [local_study, local_study_92]:
+            value = InitialReservoirLevel.COLD_START if study == local_study else None  # Depends on the version
+
+            expected_advanced_parameters = AdvancedParameters(
+                initial_reservoir_levels=value,
+                hydro_heuristic_policy=HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES,
+                hydro_pricing_mode=HydroPricingMode.FAST,
+                power_fluctuations=PowerFluctuation.FREE_MODULATIONS,
+                shedding_policy=SheddingPolicy.SHAVE_PEAKS,
+                unit_commitment_mode=UnitCommitmentMode.FAST,
+                number_of_cores_mode=SimulationCore.MEDIUM,
+                renewable_generation_modelling=RenewableGenerationModeling.CLUSTERS,
+                accuracy_on_correlation=set(),
+            )
+
+            assert study.get_settings().advanced_parameters == expected_advanced_parameters
 
     def test_local_study_has_correct_seed_parameters(self, local_study: Study) -> None:
         expected_seed_parameters = SeedParameters(
@@ -278,9 +290,11 @@ class TestStudyProperties:
 
         assert local_study.get_settings().optimization_parameters == expected_optimization_parameters
 
-    def test_local_study_has_correct_playlist_and_thematic_parameters(self, local_study: Study) -> None:
+    def test_local_study_has_correct_playlist_and_thematic_parameters(
+        self, local_study: Study, default_thematic_trimming_88: ThematicTrimmingParameters
+    ) -> None:
         assert local_study.get_settings().playlist_parameters == {}
-        assert local_study.get_settings().thematic_trimming_parameters == ThematicTrimmingParameters()
+        assert local_study.get_settings().thematic_trimming_parameters == default_thematic_trimming_88
 
     def test_generaldata_ini_exists(self, local_study: Study) -> None:
         # Given
@@ -349,7 +363,6 @@ include-unfeasible-problem-behavior = error-verbose
 [adequacy patch]
 include-adq-patch = False
 set-to-null-ntc-from-physical-out-to-physical-in-for-first-step = True
-set-to-null-ntc-between-physical-out-for-first-step = True
 price-taking-order = DENS
 include-hurdle-cost-csr = False
 check-csr-cost-function = False
@@ -359,7 +372,6 @@ threshold-csr-variable-bounds-relaxation = 7
 enable-first-step = False
 
 [other preferences]
-initial-reservoir-levels = cold start
 hydro-heuristic-policy = accommodate rule curves
 hydro-pricing-mode = fast
 power-fluctuations = free modulations

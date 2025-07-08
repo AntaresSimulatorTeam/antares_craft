@@ -37,11 +37,17 @@ class STStorageMatrixName(Enum):
     LOWER_CURVE_RULE = "lower_rule_curve"
     UPPER_RULE_CURVE = "upper_rule_curve"
     INFLOWS = "inflows"
+    # NEW TS name v9.2
+    COST_INJECTION = "cost_injection"
+    COST_WITHDRAWAL = "cost_withdrawal"
+    COST_LEVEL = "cost_level"
+    COST_VARIATION_INJECTION = "cost_variation_injection"
+    COST_VARIATION_WITHDRAWAL = "cost_variation_withdrawal"
 
 
 @dataclass
 class STStoragePropertiesUpdate:
-    group: Optional[STStorageGroup] = None
+    group: Optional[str] = None
     injection_nominal_capacity: Optional[float] = None
     withdrawal_nominal_capacity: Optional[float] = None
     reservoir_capacity: Optional[float] = None
@@ -49,11 +55,15 @@ class STStoragePropertiesUpdate:
     initial_level: Optional[float] = None
     initial_level_optim: Optional[bool] = None
     enabled: Optional[bool] = None
+    # Introduced in v9.2
+    efficiency_withdrawal: Optional[float] = None
+    penalize_variation_injection: Optional[bool] = None
+    penalize_variation_withdrawal: Optional[bool] = None
 
 
 @dataclass(frozen=True)
 class STStorageProperties:
-    group: STStorageGroup = STStorageGroup.OTHER1
+    group: str = STStorageGroup.OTHER1.value
     injection_nominal_capacity: float = 0
     withdrawal_nominal_capacity: float = 0
     reservoir_capacity: float = 0
@@ -61,6 +71,10 @@ class STStorageProperties:
     initial_level: float = 0.5
     initial_level_optim: bool = False
     enabled: bool = True
+    # Introduced in v9.2
+    efficiency_withdrawal: Optional[float] = None  # default 1.0
+    penalize_variation_injection: Optional[bool] = None  # default False
+    penalize_variation_withdrawal: Optional[bool] = None  # default False
 
 
 class STStorage:
@@ -113,6 +127,21 @@ class STStorage:
     def get_storage_inflows(self) -> pd.DataFrame:
         return self._storage_service.get_storage_matrix(self, STStorageMatrixName.INFLOWS)
 
+    def get_cost_injection(self) -> pd.DataFrame:
+        return self._storage_service.get_storage_matrix(self, STStorageMatrixName.COST_INJECTION)
+
+    def get_cost_withdrawal(self) -> pd.DataFrame:
+        return self._storage_service.get_storage_matrix(self, STStorageMatrixName.COST_WITHDRAWAL)
+
+    def get_cost_level(self) -> pd.DataFrame:
+        return self._storage_service.get_storage_matrix(self, STStorageMatrixName.COST_LEVEL)
+
+    def get_cost_variation_injection(self) -> pd.DataFrame:
+        return self._storage_service.get_storage_matrix(self, STStorageMatrixName.COST_VARIATION_INJECTION)
+
+    def get_cost_variation_withdrawal(self) -> pd.DataFrame:
+        return self._storage_service.get_storage_matrix(self, STStorageMatrixName.COST_VARIATION_WITHDRAWAL)
+
     def update_pmax_injection(self, p_max_injection_matrix: pd.DataFrame) -> None:
         self._storage_service.set_storage_matrix(self, STStorageMatrixName.PMAX_INJECTION, p_max_injection_matrix)
 
@@ -127,3 +156,22 @@ class STStorage:
 
     def set_storage_inflows(self, inflows_matrix: pd.DataFrame) -> None:
         self._storage_service.set_storage_matrix(self, STStorageMatrixName.INFLOWS, inflows_matrix)
+
+    def set_cost_injection(self, cost_injection_matrix: pd.DataFrame) -> None:
+        self._storage_service.set_storage_matrix(self, STStorageMatrixName.COST_INJECTION, cost_injection_matrix)
+
+    def set_cost_withdrawal(self, cost_withdrawal_matrix: pd.DataFrame) -> None:
+        self._storage_service.set_storage_matrix(self, STStorageMatrixName.COST_WITHDRAWAL, cost_withdrawal_matrix)
+
+    def set_cost_level(self, cost_level_matrix: pd.DataFrame) -> None:
+        self._storage_service.set_storage_matrix(self, STStorageMatrixName.COST_LEVEL, cost_level_matrix)
+
+    def set_cost_variation_injection(self, cost_variation_injection_matrix: pd.DataFrame) -> None:
+        self._storage_service.set_storage_matrix(
+            self, STStorageMatrixName.COST_VARIATION_INJECTION, cost_variation_injection_matrix
+        )
+
+    def set_cost_variation_withdrawal(self, cost_variation_withdrawal_matrix: pd.DataFrame) -> None:
+        self._storage_service.set_storage_matrix(
+            self, STStorageMatrixName.COST_VARIATION_WITHDRAWAL, cost_variation_withdrawal_matrix
+        )

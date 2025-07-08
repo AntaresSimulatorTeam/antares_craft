@@ -36,13 +36,16 @@ from antares.craft.model.hydro import (
     InflowStructureUpdate,
 )
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
-from antares.craft.model.st_storage import STStorage
+from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.area import AreaPropertiesAPITableMode, AreaUiAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
-from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
+from antares.craft.service.api_services.models.st_storage import (
+    parse_st_storage_api,
+    serialize_st_storage_api,
+)
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.services.area import AreaApiService
 
@@ -178,7 +181,7 @@ class TestCreateAPI:
     def test_create_st_storage_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"{self.study_url}/areas/{self.area.id}/storages"
-            json_response = STStoragePropertiesAPI(**{}).model_dump(mode="json", by_alias=True)
+            json_response = serialize_st_storage_api(STStorageProperties())
             st_storage_name = "short_term_storage"
             mocker.post(url, json={"name": st_storage_name, "id": st_storage_name, **json_response}, status_code=201)
 
@@ -321,7 +324,7 @@ class TestCreateAPI:
             renewable_cluster = RenewableCluster(
                 self.area_api.renewable_service, area_id, renewable_id, renewable_props
             )
-            storage_props = STStoragePropertiesAPI.model_validate(storage_).to_user_model()
+            storage_props = parse_st_storage_api(storage_)
             st_storage = STStorage(self.area_api.storage_service, area_id, storage_id, storage_props)
 
             hydro = Hydro(self.area_api.hydro_service, area_id, hydro_properties, inflow_structure)

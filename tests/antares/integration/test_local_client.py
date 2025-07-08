@@ -166,10 +166,10 @@ class TestLocalClient:
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
-        storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY)
+        storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY.value)
         battery_fr = fr.create_st_storage(st_storage_name, storage_properties)
         assert battery_fr.properties.reservoir_capacity == 0.5
-        assert battery_fr.properties.group == STStorageGroup.BATTERY
+        assert battery_fr.properties.group == STStorageGroup.BATTERY.value
 
         # test binding constraint creation without terms
         bc_props = BindingConstraintProperties(enabled=False, group="group_1")

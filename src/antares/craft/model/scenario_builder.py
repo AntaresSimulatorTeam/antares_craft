@@ -146,6 +146,7 @@ class ScenarioBuilder:
     binding_constraint: ScenarioConstraint
     hydro_initial_level: ScenarioHydroLevel
     hydro_generation_power: ScenarioArea
+    hydro_final_level: ScenarioHydroLevel
 
     def _set_study(self, study: "Study") -> None:
         areas = study.get_areas()
@@ -157,6 +158,7 @@ class ScenarioBuilder:
         self.hydro._areas = area_ids
         self.hydro_initial_level._areas = area_ids
         self.hydro_generation_power._areas = area_ids
+        self.hydro_final_level._areas = area_ids
 
         thermal_ids: dict[str, set[str]] = {}
         renewable_ids: dict[str, set[str]] = {}

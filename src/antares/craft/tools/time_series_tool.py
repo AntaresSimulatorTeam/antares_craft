@@ -53,6 +53,13 @@ class TimeSeriesFileType(Enum):
     ST_STORAGE_INFLOWS = "input/st-storage/series/{area_id}/{cluster_id}/inflows.txt"
     ST_STORAGE_LOWER_RULE_CURVE = "input/st-storage/series/{area_id}/{cluster_id}/lower-rule-curve.txt"
     ST_STORAGE_UPPER_RULE_CURVE = "input/st-storage/series/{area_id}/{cluster_id}/upper-rule-curve.txt"
+    ST_STORAGE_COST_INJECTION = "input/st-storage/series/{area_id}/{cluster_id}/cost-injection.txt"
+    ST_STORAGE_COST_WITHDRAWAL = "input/st-storage/series/{area_id}/{cluster_id}/cost-withdrawal.txt"
+    ST_STORAGE_COST_LEVEL = "input/st-storage/series/{area_id}/{cluster_id}/cost-level.txt"
+    ST_STORAGE_COST_VARIATION_INJECTION = "input/st-storage/series/{area_id}/{cluster_id}/cost-variation-injection.txt"
+    ST_STORAGE_COST_VARIATION_WITHDRAWAL = (
+        "input/st-storage/series/{area_id}/{cluster_id}/cost-variation-withdrawal.txt"
+    )
     RESERVES = "input/reserves/{area_id}.txt"
     SOLAR = "input/solar/series/solar_{area_id}.txt"
     SOLAR_CONVERSION = "input/solar/prepro/{area_id}/conversion.txt"

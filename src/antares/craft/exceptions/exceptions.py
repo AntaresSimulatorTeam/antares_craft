@@ -410,7 +410,7 @@ class AntaresSimulationUnzipError(Exception):
 
 class SimulationFailedError(Exception):
     def __init__(self, study_id: str, job_id: str) -> None:
-        self.message = f"Simulation failed for '{study_id}' and job '{job_id}'"
+        self.message = f"Simulation failed for study '{study_id}' and job '{job_id}'"
         super().__init__(self.message)
 
 
@@ -529,3 +529,14 @@ class ReferencedObjectDeletionNotAllowed(Exception):
             f" in the following binding constraints:\n{first_bcs_ids}{and_more}"
         )
         super().__init__(message)
+
+
+class InvalidFieldForVersionError(ValueError):
+    def __init__(self, message: str) -> None:
+        super().__init__(self, message)
+
+
+class ThematicTrimmingUpdateError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not update thematic_trimming for study {study_name}: " + message
+        super().__init__(self.message)

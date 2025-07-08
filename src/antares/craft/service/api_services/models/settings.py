@@ -390,6 +390,8 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
     other5_level: bool
     sts_cashflow_by_cluster: bool
     npcap_hours: bool
+    # Since v9.2
+    sts_by_group: bool
 
     @staticmethod
     def from_user_model(user_class: ThematicTrimmingParameters) -> "ThematicTrimmingParametersAPI":
@@ -398,3 +400,11 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
 
     def to_user_model(self) -> ThematicTrimmingParameters:
         return ThematicTrimmingParameters(**self.model_dump(mode="json"))
+
+
+def parse_thematic_trimming_api(data: Any) -> ThematicTrimmingParameters:
+    return ThematicTrimmingParametersAPI.model_validate(data).to_user_model()
+
+
+def serialize_thematic_trimming_api(thematic_trimming: ThematicTrimmingParameters) -> dict[str, Any]:
+    return ThematicTrimmingParametersAPI.from_user_model(thematic_trimming).model_dump(mode="json", exclude_none=True)

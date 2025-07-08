@@ -40,6 +40,8 @@ class PowerFluctuation(Enum):
 class SheddingPolicy(Enum):
     SHAVE_PEAKS = "shave peaks"
     MINIMIZE_DURATION = "minimize duration"
+    # Introduced in v9.2
+    ACCURATE_SHAVE_PEAKS = "accurate shave peaks"
 
 
 class UnitCommitmentMode(Enum):
@@ -63,7 +65,6 @@ class RenewableGenerationModeling(Enum):
 
 @dataclass(frozen=True)
 class AdvancedParameters:
-    initial_reservoir_levels: InitialReservoirLevel = InitialReservoirLevel.COLD_START
     hydro_heuristic_policy: HydroHeuristicPolicy = HydroHeuristicPolicy.ACCOMMODATE_RULES_CURVES
     hydro_pricing_mode: HydroPricingMode = HydroPricingMode.FAST
     power_fluctuations: PowerFluctuation = PowerFluctuation.FREE_MODULATIONS
@@ -72,6 +73,8 @@ class AdvancedParameters:
     number_of_cores_mode: SimulationCore = SimulationCore.MEDIUM
     renewable_generation_modelling: RenewableGenerationModeling = RenewableGenerationModeling.CLUSTERS
     accuracy_on_correlation: set[OutputChoices] = field(default_factory=set)
+    # Parameters removed since v9.2
+    initial_reservoir_levels: Optional[InitialReservoirLevel] = None  # was InitialReservoirLevel.COLD_START in v8.8
 
 
 @dataclass
