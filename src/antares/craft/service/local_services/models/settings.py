@@ -15,7 +15,6 @@ from typing import Any, Set
 from pydantic import Field, field_serializer, field_validator
 
 from antares.craft import PlaylistParameters, ThematicTrimmingParameters
-from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
 from antares.craft.model.commons import join_with_comma
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
@@ -55,6 +54,7 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.study import STUDY_VERSION_9_2
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
+from antares.craft.service.local_services.models.utils import check_min_version, initialize_field_default
 from antares.craft.tools.alias_generators import to_kebab
 from antares.study.version import StudyVersion
 
@@ -635,23 +635,13 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
         return file_data
 
 
-def _check_min_version(data: Any, field: str, version: StudyVersion) -> None:
-    if getattr(data, field) is not None:
-        raise InvalidFieldForVersionError(f"Field {field} is not a valid field for study version {version}")
-
-
-def validate_against_version(version: StudyVersion, parameters: ThematicTrimmingParametersLocal) -> None:
+def validate_against_version(parameters: ThematicTrimmingParametersLocal, version: StudyVersion) -> None:
     if version < STUDY_VERSION_9_2:
         for field in ThematicTrimmingParametersLocal.get_9_2_fields():
-            _check_min_version(parameters, field, version)
+            check_min_version(parameters, field, version)
     else:
         for field in ThematicTrimmingParametersLocal.get_sts_group_fields():
-            _check_min_version(parameters, field, version)
-
-
-def _initialize_field_default(parameters: ThematicTrimmingParametersLocal, field: str, default_bool: bool) -> None:
-    if getattr(parameters, field) is None:
-        setattr(parameters, field, default_bool)
+            check_min_version(parameters, field, version)
 
 
 def initialize_with_version(parameters: ThematicTrimmingParametersLocal, version: StudyVersion) -> None:
@@ -668,12 +658,12 @@ def initialize_with_version(parameters: ThematicTrimmingParametersLocal, version
     boolean = not next(iter(args.values()), False)
 
     for field in all_fields:
-        _initialize_field_default(parameters, field, boolean)
+        initialize_field_default(parameters, field, boolean)
 
 
 def parse_thematic_trimming_local(study_version: StudyVersion, data: Any) -> ThematicTrimmingParameters:
     thematic_trimming_parameters_local = ThematicTrimmingParametersLocal.from_ini(data)
-    validate_against_version(study_version, thematic_trimming_parameters_local)
+    validate_against_version(thematic_trimming_parameters_local, study_version)
     initialize_with_version(thematic_trimming_parameters_local, study_version)
     return thematic_trimming_parameters_local.to_user_model()
 
@@ -682,5 +672,5 @@ def serialize_thematic_trimming_local(
     study_version: StudyVersion, thematic_trimming: ThematicTrimmingParameters
 ) -> dict[str, Any]:
     thematic_trimming_parameters_local = ThematicTrimmingParametersLocal.from_user_model(thematic_trimming)
-    validate_against_version(study_version, thematic_trimming_parameters_local)
+    validate_against_version(thematic_trimming_parameters_local, study_version)
     return thematic_trimming_parameters_local.to_ini()
