@@ -49,7 +49,7 @@ class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
         return AdequacyPatchParametersLocal.model_validate(user_dict)
 
     def to_ini_file(self, update: bool, current_content: dict[str, Any]) -> dict[str, Any]:
-        content = self.model_dump(mode="json", by_alias=True, exclude_unset=update)
+        content = self.model_dump(mode="json", by_alias=True, exclude_unset=update, exclude_none=True)
         current_content.setdefault("adequacy patch", {}).update(content)
         return current_content
 
@@ -69,18 +69,16 @@ class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
 
 def validate_against_version(parameters: AdequacyPatchParametersLocal, version: StudyVersion) -> None:
     if version >= STUDY_VERSION_9_2:
-        for class_field, value in AdequacyPatchParametersLocal.get_9_2_removed_fields_and_default_value().items():
-            for field in value:
-                check_min_version(getattr(parameters, class_field), field, version)
+        for field in AdequacyPatchParametersLocal.get_9_2_removed_fields_and_default_value():
+            check_min_version(parameters, field, version)
 
 
 def initialize_with_version(
     parameters: AdequacyPatchParametersLocal, version: StudyVersion
 ) -> AdequacyPatchParametersLocal:
     if version < STUDY_VERSION_9_2:
-        for class_field, values in AdequacyPatchParametersLocal.get_9_2_removed_fields_and_default_value().items():
-            for field, value in values.items():
-                initialize_field_default(getattr(parameters, class_field), field, value)
+        for field, value in AdequacyPatchParametersLocal.get_9_2_removed_fields_and_default_value().items():
+            initialize_field_default(parameters, field, value)
     return parameters
 
 
