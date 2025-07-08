@@ -1010,9 +1010,10 @@ class TestWebClient:
 
         ########## Short-Term storage ##########
 
-        sts_properties = STStorageProperties(efficiency_withdrawal=0.9, group="free group")
+        sts_properties = STStorageProperties(efficiency=0.9, efficiency_withdrawal=0.9, group="free group")
         storage = area_fr.create_st_storage("sts_test", sts_properties)
         assert storage.properties.efficiency_withdrawal == 0.9
+        assert storage.properties.efficiency == 0.9
         assert storage.properties.group == "free group"
         assert storage.properties.penalize_variation_injection is False
 
@@ -1033,11 +1034,11 @@ class TestWebClient:
         assert area_fr.hydro.properties.reservoir is False
         assert area_fr.hydro.properties.reservoir_capacity == 0
 
-        new_hydro_properties = HydroPropertiesUpdate(overflow_spilled_cost_difference=0.3, reservoir=True)
+        new_hydro_properties = HydroPropertiesUpdate(overflow_spilled_cost_difference=0.3, reservoir_capacity=1)
         area_fr.hydro.update_properties(new_hydro_properties)
         assert area_fr.hydro.properties.overflow_spilled_cost_difference == 0.3
-        assert area_fr.hydro.properties.reservoir is True
-        assert area_fr.hydro.properties.reservoir_capacity == 0
+        assert area_fr.hydro.properties.reservoir is False
+        assert area_fr.hydro.properties.reservoir_capacity == 1
 
         ########## Thematic trimming ##########
 
@@ -1079,3 +1080,13 @@ class TestWebClient:
         assert sc_builder.hydro_initial_level.get_area("fr").get_scenario() == [None, None, None, None]
 
         ########## Simulation ##########
+
+        parameters = AntaresSimulationParameters(nb_cpu=4, output_suffix="test_integration")
+        job = study.run_antares_simulation(parameters)
+        assert isinstance(job, Job)
+        assert job.status == JobStatus.PENDING
+
+        study.wait_job_completion(job, time_out=60)
+        assert job.status == JobStatus.SUCCESS
+
+        ########## Outputs ##########
