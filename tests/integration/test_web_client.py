@@ -68,7 +68,7 @@ from antares.craft import (
     create_study_api,
     create_variant_api,
     import_study_api,
-    read_study_api,
+    read_study_api, SheddingPolicy,
 )
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
@@ -1055,8 +1055,27 @@ class TestWebClient:
         assert thematic_trimming.nuclear is True
         assert thematic_trimming.psp_open_level is None
 
-        ########## Scenario Builder ##########
-
         ########## Settings ##########
+        settings = study.get_settings()
+        assert settings.adequacy_patch_parameters.set_to_null_ntc_between_physical_out_for_first_step is None
+        assert settings.advanced_parameters.shedding_policy == SheddingPolicy.ACCURATE_SHAVE_PEAKS
+        new_settings = StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4))
+        study.update_settings(new_settings)
+        assert study.get_settings().general_parameters.nb_years == 4
+
+        ########## Scenario Builder ##########
+        sc_builder = study.get_scenario_builder()
+        assert sc_builder.load.get_area("fr").get_scenario() == [None, None, None, None]
+        assert sc_builder.hydro_final_level.get_area("fr").get_scenario() == [None, None, None, None]
+        assert sc_builder.hydro_initial_level.get_area("fr").get_scenario() == [None, None, None, None]
+
+        sc_builder.load.get_area("fr").set_new_scenario([None, None, 2, 4])
+        sc_builder.hydro_final_level.get_area("fr").set_new_scenario([1, 4, 2, 3])
+        study.set_scenario_builder(sc_builder)
+
+        sc_builder = study.get_scenario_builder()
+        assert sc_builder.load.get_area("fr").get_scenario() == [None, None, 2, 4]
+        assert sc_builder.hydro_final_level.get_area("fr").get_scenario() == [1, 4, 2, 3]
+        assert sc_builder.hydro_initial_level.get_area("fr").get_scenario() == [None, None, None, None]
 
         ########## Simulation ##########
