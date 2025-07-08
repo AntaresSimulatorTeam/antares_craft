@@ -157,7 +157,7 @@ class TestCreateAPI:
             mocker.post(url, json={"name": renewable_name, "id": renewable_name, **json_response}, status_code=201)
 
             renewable = self.area.create_renewable_cluster(
-                renewable_name=renewable_name, properties=RenewableClusterProperties(), series=None
+                renewable_name=renewable_name, properties=RenewableClusterProperties()
             )
             assert isinstance(renewable, RenewableCluster)
 
@@ -172,7 +172,7 @@ class TestCreateAPI:
                 match=f"Could not create the renewable cluster '{renewable_name}' inside area '{self.area.id}': {self.antares_web_description_msg}",
             ):
                 self.area.create_renewable_cluster(
-                    renewable_name=renewable_name, properties=RenewableClusterProperties(), series=None
+                    renewable_name=renewable_name, properties=RenewableClusterProperties()
                 )
 
     def test_create_st_storage_success(self) -> None:
@@ -205,19 +205,11 @@ class TestCreateAPI:
             creation_response = {"name": cluster_name, "id": cluster_name, "group": "nuclear"}
             mocker.post(url, json=creation_response, status_code=200)
 
-            raw_url = f"{base_url}/studies/{self.study_id}/raw"
-            mocker.post(raw_url, json={}, status_code=200)
-
             thermal_cluster = self.area.create_thermal_cluster(
-                thermal_name=cluster_name,
-                properties=ThermalClusterProperties(),
-                prepro=self.matrix,
-                series=self.matrix,
-                fuel_cost=self.matrix,
+                thermal_name=cluster_name, properties=ThermalClusterProperties()
             )
-            # Asserts 4 commands were created
-            # 1 for the properties and 1 for each matrix we filled
-            assert len(mocker.request_history) == 4
+            # Asserts only 1 request was created: for properties
+            assert len(mocker.request_history) == 1
             assert isinstance(thermal_cluster, ThermalCluster)
 
     def test_create_hydro_success(self) -> None:

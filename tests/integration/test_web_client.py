@@ -225,15 +225,12 @@ class TestWebClient:
         series_matrix.equals(indirect_matrix)
 
         # Case that succeeds
-        thermal_value_be = area_fr.create_thermal_cluster(
-            thermal_name=thermal_name,
-            properties=thermal_properties,
-            prepro=prepro_modulation_matrix,
-            modulation=modulation_matrix,
-            series=series_matrix,
-            co2_cost=co2_cost_matrix,
-            fuel_cost=fuel_cost_matrix,
-        )
+        thermal_value_be = area_fr.create_thermal_cluster(thermal_name=thermal_name, properties=thermal_properties)
+        thermal_value_be.set_series(series_matrix)
+        thermal_value_be.set_prepro_modulation(modulation_matrix)
+        thermal_value_be.set_prepro_data(prepro_modulation_matrix)
+        thermal_value_be.set_co2_cost(co2_cost_matrix)
+        thermal_value_be.set_fuel_cost(fuel_cost_matrix)
 
         # Updating multiple thermal clusters properties at once
         thermal_update_1 = ThermalClusterPropertiesUpdate(marginal_cost=10.7, enabled=False, nominal_capacity=9.8)
@@ -274,14 +271,14 @@ class TestWebClient:
 
         # test renewable cluster creation with default values
         renewable_name = "cluster_test %?"
-        renewable_fr = area_fr.create_renewable_cluster(renewable_name, None, None)
+        renewable_fr = area_fr.create_renewable_cluster(renewable_name, None)
         assert renewable_fr.name == renewable_name
         assert renewable_fr.id == "cluster_test"
 
         # test renewable cluster creation with properties
         renewable_name = "wind_onshore"
         renewable_properties = RenewableClusterProperties(enabled=False, group=RenewableClusterGroup.WIND_ON_SHORE)
-        renewable_onshore = area_fr.create_renewable_cluster(renewable_name, renewable_properties, None)
+        renewable_onshore = area_fr.create_renewable_cluster(renewable_name, renewable_properties)
         assert not renewable_onshore.properties.enabled
         assert renewable_onshore.properties.group == RenewableClusterGroup.WIND_ON_SHORE
 

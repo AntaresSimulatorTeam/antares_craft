@@ -163,28 +163,16 @@ class Area:
         return self._ui
 
     def create_thermal_cluster(
-        self,
-        thermal_name: str,
-        properties: Optional[ThermalClusterProperties] = None,
-        prepro: Optional[pd.DataFrame] = None,
-        modulation: Optional[pd.DataFrame] = None,
-        series: Optional[pd.DataFrame] = None,
-        co2_cost: Optional[pd.DataFrame] = None,
-        fuel_cost: Optional[pd.DataFrame] = None,
+        self, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
     ) -> ThermalCluster:
-        thermal = self._area_service.create_thermal_cluster(
-            self.id, thermal_name, properties, prepro, modulation, series, co2_cost, fuel_cost
-        )
+        thermal = self._area_service.create_thermal_cluster(self.id, thermal_name, properties)
         self._thermals[thermal.id] = thermal
         return thermal
 
     def create_renewable_cluster(
-        self,
-        renewable_name: str,
-        properties: Optional[RenewableClusterProperties] = None,
-        series: Optional[pd.DataFrame] = None,
+        self, renewable_name: str, properties: Optional[RenewableClusterProperties] = None
     ) -> RenewableCluster:
-        renewable = self._area_service.create_renewable_cluster(self.id, renewable_name, properties, series=series)
+        renewable = self._area_service.create_renewable_cluster(self.id, renewable_name, properties)
         self._renewables[renewable.id] = renewable
         return renewable
 

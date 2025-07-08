@@ -159,15 +159,7 @@ class AreaApiService(BaseAreaService):
 
     @override
     def create_thermal_cluster(
-        self,
-        area_id: str,
-        cluster_name: str,
-        properties: Optional[ThermalClusterProperties] = None,
-        prepro: Optional[pd.DataFrame] = None,
-        modulation: Optional[pd.DataFrame] = None,
-        series: Optional[pd.DataFrame] = None,
-        co2_cost: Optional[pd.DataFrame] = None,
-        fuel_cost: Optional[pd.DataFrame] = None,
+        self, area_id: str, cluster_name: str, properties: Optional[ThermalClusterProperties] = None
     ) -> ThermalCluster:
         """
         Args:
@@ -175,11 +167,6 @@ class AreaApiService(BaseAreaService):
             area_id: the area id of the thermal cluster
             cluster_name: the name of the thermal cluster
             properties: the properties of the thermal cluster.
-            prepro: prepro matrix as a pandas DataFrame.
-            modulation: modulation matrix as a pandas DataFrame.
-            series: matrix for series at input/thermal/series/series.txt (optional).
-            co2_cost: matrix for CO2Cost at input/thermal/series/CO2Cost.txt (optional).
-            fuel_cost: matrix for CO2Cost at input/thermal/series/fuelCost.txt (optional).
 
         Returns:
             The created thermal cluster with matrices.
@@ -198,26 +185,9 @@ class AreaApiService(BaseAreaService):
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
             name = json_response.pop("name")
-            thermal_id = json_response.pop("id")
+            json_response.pop("id")
             created_api_properties = ThermalClusterPropertiesAPI.model_validate(json_response)
             properties = created_api_properties.to_user_model()
-
-            # Upload matrices
-            if prepro is not None:
-                matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/data"
-                update_series(self._base_url, self.study_id, self._wrapper, prepro, matrix_path)
-            if modulation is not None:
-                matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/modulation"
-                update_series(self._base_url, self.study_id, self._wrapper, modulation, matrix_path)
-            if series is not None:
-                matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/series"
-                update_series(self._base_url, self.study_id, self._wrapper, series, matrix_path)
-            if co2_cost is not None:
-                matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/CO2Cost"
-                update_series(self._base_url, self.study_id, self._wrapper, co2_cost, matrix_path)
-            if fuel_cost is not None:
-                matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/fuelCost"
-                update_series(self._base_url, self.study_id, self._wrapper, fuel_cost, matrix_path)
 
         except APIError as e:
             raise ThermalCreationError(cluster_name, area_id, e.message) from e
@@ -226,18 +196,13 @@ class AreaApiService(BaseAreaService):
 
     @override
     def create_renewable_cluster(
-        self,
-        area_id: str,
-        renewable_name: str,
-        properties: Optional[RenewableClusterProperties] = None,
-        series: Optional[pd.DataFrame] = None,
+        self, area_id: str, renewable_name: str, properties: Optional[RenewableClusterProperties] = None
     ) -> RenewableCluster:
         """
         Args:
             area_id: the area id of the renewable cluster
             renewable_name: the name of the renewable cluster
             properties: the properties of the renewable cluster. If not provided, AntaresWeb will use its own default values
-            series: matrix for series.txt
 
         Returns:
             The created renewable cluster
@@ -259,10 +224,6 @@ class AreaApiService(BaseAreaService):
             del json_response["id"]
             api_properties = RenewableClusterPropertiesAPI.model_validate(json_response)
             properties = api_properties.to_user_model()
-
-            if series is not None:
-                series_path = f"input/renewables/series/{area_id}/{renewable_name.lower()}/series"
-                update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
 
         except APIError as e:
             raise RenewableCreationError(renewable_name, area_id, e.message) from e
