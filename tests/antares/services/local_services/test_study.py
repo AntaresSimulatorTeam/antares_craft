@@ -236,7 +236,7 @@ class TestStudyProperties:
                 set_to_null_ntc_between_physical_out_for_first_step=value,
             )
 
-            assert local_study.get_settings().adequacy_patch_parameters == expected_adequacy_patch_properties
+            assert study.get_settings().adequacy_patch_parameters == expected_adequacy_patch_properties
 
     def test_local_study_has_correct_advanced_parameters(self, local_study: Study, local_study_92: Study) -> None:
         for study in [local_study, local_study_92]:
