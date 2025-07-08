@@ -25,15 +25,18 @@ from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.service.base_services import BaseStudySettingsService
-from antares.craft.service.local_services.models.settings import (
-    AdequacyPatchParametersLocal,
-    AdvancedAndSeedParametersLocal,
-    AdvancedParametersLocal,
-    GeneralParametersLocal,
-    OptimizationParametersLocal,
-    OtherPreferencesLocal,
-    PlaylistParametersLocal,
-    SeedParametersLocal,
+from antares.craft.service.local_services.models.settings.adequacy_patch import (
+    parse_adequacy_parameters_local,
+    serialize_adequacy_parameters_local,
+)
+from antares.craft.service.local_services.models.settings.advanced_parameters import (
+    parse_advanced_and_seed_parameters_local,
+    serialize_advanced_and_seed_parameters_local,
+)
+from antares.craft.service.local_services.models.settings.general import GeneralParametersLocal
+from antares.craft.service.local_services.models.settings.optimization import OptimizationParametersLocal
+from antares.craft.service.local_services.models.settings.playlist_parameters import PlaylistParametersLocal
+from antares.craft.service.local_services.models.settings.thematic_trimming import (
     parse_thematic_trimming_local,
     serialize_thematic_trimming_local,
 )
@@ -58,8 +61,8 @@ class StudySettingsLocalService(BaseStudySettingsService):
         self.study_version = study_version
 
     @override
-    def edit_study_settings(self, settings: StudySettingsUpdate) -> None:
-        edit_study_settings(self.config.study_path, settings, creation=False)
+    def edit_study_settings(self, settings: StudySettingsUpdate, study_version: StudyVersion) -> None:
+        edit_study_settings(self.config.study_path, settings, creation=False, study_version=study_version)
 
     @override
     def read_study_settings(self) -> StudySettings:
@@ -121,22 +124,10 @@ def read_study_settings(study_directory: Path, study_version: StudyVersion) -> S
     optimization_parameters = optimization_parameters_local.to_user_model()
 
     # adequacy_patch
-    adequacy_ini = ini_content["adequacy patch"]
-    adequacy_parameters_local = AdequacyPatchParametersLocal.model_validate(adequacy_ini)
-    adequacy_patch_parameters = adequacy_parameters_local.to_user_model()
+    adequacy_patch_parameters = parse_adequacy_parameters_local(study_version, ini_content)
 
     # seed and advanced
-    seed_local_parameters = SeedParametersLocal.model_validate(ini_content["seeds - Mersenne Twister"])
-    advanced_local_parameters = AdvancedParametersLocal.model_validate(ini_content["advanced parameters"])
-    other_preferences_local_parameters = OtherPreferencesLocal.model_validate(ini_content["other preferences"])
-    args = {
-        "other_preferences": other_preferences_local_parameters,
-        "seeds": seed_local_parameters,
-        "advanced_parameters": advanced_local_parameters,
-    }
-    seed_and_advanced_local_parameters = AdvancedAndSeedParametersLocal.model_validate(args)
-    seed_parameters = seed_and_advanced_local_parameters.to_seed_parameters_model()
-    advanced_parameters = seed_and_advanced_local_parameters.to_advanced_parameters_model()
+    advanced_parameters, seed_parameters = parse_advanced_and_seed_parameters_local(study_version, ini_content)
 
     # playlist
     playlist_parameters: dict[int, PlaylistParameters] = {}
@@ -160,7 +151,9 @@ def read_study_settings(study_directory: Path, study_version: StudyVersion) -> S
     )
 
 
-def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, creation: bool) -> None:
+def edit_study_settings(
+    study_directory: Path, settings: StudySettingsUpdate, creation: bool, study_version: StudyVersion
+) -> None:
     if creation:
         _save_ini(study_directory, {})
     update = not creation
@@ -178,14 +171,18 @@ def edit_study_settings(study_directory: Path, settings: StudySettingsUpdate, cr
 
     # adequacy_patch
     if settings.adequacy_patch_parameters:
-        adequacy_local_parameters = AdequacyPatchParametersLocal.from_user_model(settings.adequacy_patch_parameters)
+        adequacy_local_parameters = serialize_adequacy_parameters_local(
+            settings.adequacy_patch_parameters, study_version
+        )
         ini_content = adequacy_local_parameters.to_ini_file(update=update, current_content=ini_content)
 
     # seed and advanced
     seed_parameters = settings.seed_parameters or SeedParametersUpdate()
     advanced_parameters = settings.advanced_parameters or AdvancedParametersUpdate()
-    advanced_parameters_local = AdvancedAndSeedParametersLocal.from_user_model(advanced_parameters, seed_parameters)
-    ini_content = advanced_parameters_local.to_ini_file(update=update, current_content=ini_content)
+    local_parameters = serialize_advanced_and_seed_parameters_local(
+        (advanced_parameters, seed_parameters), study_version
+    )
+    ini_content = local_parameters.to_ini_file(update=update, current_content=ini_content)
 
     # writing
     _save_ini(study_directory, ini_content)

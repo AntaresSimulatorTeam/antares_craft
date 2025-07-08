@@ -20,6 +20,7 @@ import pandas as pd
 from antares.craft.config.base_configuration import BaseConfiguration
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
+from antares.study.version import StudyVersion
 
 if TYPE_CHECKING:
     from antares.craft import PlaylistParameters, ScenarioBuilder, ThematicTrimmingParameters
@@ -792,12 +793,13 @@ class BaseOutputService(ABC):
 
 class BaseStudySettingsService(ABC):
     @abstractmethod
-    def edit_study_settings(self, settings: StudySettingsUpdate) -> None:
+    def edit_study_settings(self, settings: StudySettingsUpdate, study_version: StudyVersion) -> None:
         """
         Edit the settings for a given study
 
         Args:
             settings: the settings to update with their values
+            study_version: the version of the current study
         """
         pass
 

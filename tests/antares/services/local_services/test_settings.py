@@ -20,11 +20,13 @@ from antares.craft import (
     HydroPricingMode,
     OptimizationTransmissionCapacities,
     PlaylistParameters,
+    SheddingPolicy,
     StudySettingsUpdate,
     UnitCommitmentMode,
     create_study_local,
     read_study_local,
 )
+from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 
@@ -167,3 +169,23 @@ def test_transmission_capacities(tmp_path: Path, value: bool | str) -> None:
         assert transmission_value == OptimizationTransmissionCapacities.INFINITE_FOR_ALL_LINKS
     else:
         assert transmission_value == OptimizationTransmissionCapacities.NULL_FOR_ALL_LINKS
+
+
+@pytest.mark.parametrize("version", ["8.8", "9.2"])
+def test_shedding_policy(tmp_path: Path, version: str) -> None:
+    study = create_study_local("study", version, tmp_path)
+    study_path = Path(study.path)
+    ini_path = study_path / "settings" / "generaldata.ini"
+    ini_content = IniReader().read(ini_path)
+    ini_content["other preferences"]["shedding-policy"] = "accurate shave peaks"
+    IniWriter().write(ini_content, ini_path)
+    # Ensure we're able to read the study if we're in v9.2 but not in v8.8
+    if version == "9.2":
+        study = read_study_local(study_path)
+        assert study.get_settings().advanced_parameters.shedding_policy == SheddingPolicy.ACCURATE_SHAVE_PEAKS
+    else:
+        with pytest.raises(
+            InvalidFieldForVersionError,
+            match="Shedding policy should be `shave peaks` or `minimize duration` and was 'accurate shave peaks'",
+        ):
+            read_study_local(study_path)
