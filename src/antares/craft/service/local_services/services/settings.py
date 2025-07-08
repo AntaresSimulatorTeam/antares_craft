@@ -25,7 +25,10 @@ from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.service.base_services import BaseStudySettingsService
-from antares.craft.service.local_services.models.settings.adequacy_patch import AdequacyPatchParametersLocal
+from antares.craft.service.local_services.models.settings.adequacy_patch import (
+    parse_adequacy_parameters_local,
+    serialize_adequacy_parameters_local,
+)
 from antares.craft.service.local_services.models.settings.advanced_parameters import (
     parse_advanced_and_seed_parameters_local,
     serialize_advanced_and_seed_parameters_local,
@@ -121,9 +124,7 @@ def read_study_settings(study_directory: Path, study_version: StudyVersion) -> S
     optimization_parameters = optimization_parameters_local.to_user_model()
 
     # adequacy_patch
-    adequacy_ini = ini_content["adequacy patch"]
-    adequacy_parameters_local = AdequacyPatchParametersLocal.model_validate(adequacy_ini)
-    adequacy_patch_parameters = adequacy_parameters_local.to_user_model()
+    adequacy_patch_parameters = parse_adequacy_parameters_local(study_version, ini_content)
 
     # seed and advanced
     advanced_parameters, seed_parameters = parse_advanced_and_seed_parameters_local(study_version, ini_content)
@@ -170,7 +171,9 @@ def edit_study_settings(
 
     # adequacy_patch
     if settings.adequacy_patch_parameters:
-        adequacy_local_parameters = AdequacyPatchParametersLocal.from_user_model(settings.adequacy_patch_parameters)
+        adequacy_local_parameters = serialize_adequacy_parameters_local(
+            settings.adequacy_patch_parameters, study_version
+        )
         ini_content = adequacy_local_parameters.to_ini_file(update=update, current_content=ini_content)
 
     # seed and advanced

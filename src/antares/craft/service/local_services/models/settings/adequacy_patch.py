@@ -10,15 +10,18 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Any
+from typing import Any, Optional
 
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
     AdequacyPatchParametersUpdate,
     PriceTakingOrder,
 )
+from antares.craft.model.study import STUDY_VERSION_9_2
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
+from antares.craft.service.local_services.models.utils import check_min_version, initialize_field_default
 from antares.craft.tools.alias_generators import to_kebab
+from antares.study.version import StudyVersion
 
 AdequacyPatchParametersType = AdequacyPatchParameters | AdequacyPatchParametersUpdate
 
@@ -26,7 +29,6 @@ AdequacyPatchParametersType = AdequacyPatchParameters | AdequacyPatchParametersU
 class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     include_adq_patch: bool = False
     set_to_null_ntc_from_physical_out_to_physical_in_for_first_step: bool = True
-    set_to_null_ntc_between_physical_out_for_first_step: bool = True
     price_taking_order: PriceTakingOrder = PriceTakingOrder.DENS
     include_hurdle_cost_csr: bool = False
     check_csr_cost_function: bool = False
@@ -34,6 +36,12 @@ class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     threshold_display_local_matching_rule_violations: int = 0
     threshold_csr_variable_bounds_relaxation: int = 7
     enable_first_step: bool = False
+    # Parameters removed since v9.2
+    set_to_null_ntc_between_physical_out_for_first_step: Optional[bool] = None
+
+    @staticmethod
+    def get_9_2_removed_fields_and_default_value() -> dict[str, Any]:
+        return {"set_to_null_ntc_between_physical_out_for_first_step": True}
 
     @staticmethod
     def from_user_model(user_class: AdequacyPatchParametersType) -> "AdequacyPatchParametersLocal":
@@ -57,3 +65,35 @@ class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
             threshold_display_local_matching_rule_violations=self.threshold_display_local_matching_rule_violations,
             threshold_csr_variable_bounds_relaxation=self.threshold_csr_variable_bounds_relaxation,
         )
+
+
+def validate_against_version(parameters: AdequacyPatchParametersLocal, version: StudyVersion) -> None:
+    if version >= STUDY_VERSION_9_2:
+        for class_field, value in AdequacyPatchParametersLocal.get_9_2_removed_fields_and_default_value().items():
+            for field in value:
+                check_min_version(getattr(parameters, class_field), field, version)
+
+
+def initialize_with_version(
+    parameters: AdequacyPatchParametersLocal, version: StudyVersion
+) -> AdequacyPatchParametersLocal:
+    if version < STUDY_VERSION_9_2:
+        for class_field, values in AdequacyPatchParametersLocal.get_9_2_removed_fields_and_default_value().items():
+            for field, value in values.items():
+                initialize_field_default(getattr(parameters, class_field), field, value)
+    return parameters
+
+
+def parse_adequacy_parameters_local(study_version: StudyVersion, data: Any) -> AdequacyPatchParameters:
+    local_parameters = AdequacyPatchParametersLocal.model_validate(data.get("adequacy patch", {}))
+    validate_against_version(local_parameters, study_version)
+    initialize_with_version(local_parameters, study_version)
+    return local_parameters.to_user_model()
+
+
+def serialize_adequacy_parameters_local(
+    parameters: AdequacyPatchParametersType, study_version: StudyVersion
+) -> AdequacyPatchParametersLocal:
+    local_parameters = AdequacyPatchParametersLocal.from_user_model(parameters)
+    validate_against_version(local_parameters, study_version)
+    return local_parameters

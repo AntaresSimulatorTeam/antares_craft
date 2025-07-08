@@ -154,9 +154,7 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
         )
 
 
-def validate_advanced_and_seed_parameters_against_version(
-    parameters: AdvancedAndSeedParametersLocal, version: StudyVersion
-) -> None:
+def validate_against_version(parameters: AdvancedAndSeedParametersLocal, version: StudyVersion) -> None:
     if version >= STUDY_VERSION_9_2:
         for class_field, value in AdvancedAndSeedParametersLocal.get_9_2_removed_fields_and_default_value().items():
             for field in value:
@@ -185,7 +183,7 @@ def parse_advanced_and_seed_parameters_local(
         "advanced_parameters": advanced_local_parameters,
     }
     local_parameters = AdvancedAndSeedParametersLocal.model_validate(args)
-    validate_advanced_and_seed_parameters_against_version(local_parameters, study_version)
+    validate_against_version(local_parameters, study_version)
     initialize_with_version(local_parameters, study_version)
     return local_parameters.to_advanced_parameters_model(), local_parameters.to_seed_parameters_model()
 
@@ -194,5 +192,5 @@ def serialize_advanced_and_seed_parameters_local(
     parameters: tuple[AdvancedParametersType, SeedParametersType], study_version: StudyVersion
 ) -> AdvancedAndSeedParametersLocal:
     local_parameters = AdvancedAndSeedParametersLocal.from_user_model(parameters[0], parameters[1])
-    validate_advanced_and_seed_parameters_against_version(local_parameters, study_version)
+    validate_against_version(local_parameters, study_version)
     return local_parameters
