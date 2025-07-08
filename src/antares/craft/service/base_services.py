@@ -84,15 +84,7 @@ class BaseAreaService(ABC):
 
     @abstractmethod
     def create_thermal_cluster(
-        self,
-        area_id: str,
-        cluster_name: str,
-        properties: Optional["ThermalClusterProperties"] = None,
-        prepro: Optional[pd.DataFrame] = None,
-        modulation: Optional[pd.DataFrame] = None,
-        series: Optional[pd.DataFrame] = None,
-        co2_cost: Optional[pd.DataFrame] = None,
-        fuel_cost: Optional[pd.DataFrame] = None,
+        self, area_id: str, cluster_name: str, properties: Optional["ThermalClusterProperties"] = None
     ) -> "ThermalCluster":
         """
         Args:
@@ -100,11 +92,6 @@ class BaseAreaService(ABC):
             area_id: area id in which to create the thermal cluster
             cluster_name: thermal cluster nam
             properties: properties of the thermal cluster.
-            prepro: matrix corresponding to prepro/data.txt
-            modulation: matrix corresponding to prepro/modulation.txt
-            series: matrix for series/series.txt
-            co2_cost: matrix for series/CO2Cost.txt
-            fuel_cost: matrix for series/fuelCost.txt
 
         Returns:
            Thermal cluster created

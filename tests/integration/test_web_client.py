@@ -225,15 +225,12 @@ class TestWebClient:
         series_matrix.equals(indirect_matrix)
 
         # Case that succeeds
-        thermal_value_be = area_fr.create_thermal_cluster(
-            thermal_name=thermal_name,
-            properties=thermal_properties,
-            prepro=prepro_modulation_matrix,
-            modulation=modulation_matrix,
-            series=series_matrix,
-            co2_cost=co2_cost_matrix,
-            fuel_cost=fuel_cost_matrix,
-        )
+        thermal_value_be = area_fr.create_thermal_cluster(thermal_name=thermal_name, properties=thermal_properties)
+        thermal_value_be.set_series(series_matrix)
+        thermal_value_be.set_prepro_modulation(modulation_matrix)
+        thermal_value_be.set_prepro_data(prepro_modulation_matrix)
+        thermal_value_be.set_co2_cost(co2_cost_matrix)
+        thermal_value_be.set_fuel_cost(fuel_cost_matrix)
 
         # Updating multiple thermal clusters properties at once
         thermal_update_1 = ThermalClusterPropertiesUpdate(marginal_cost=10.7, enabled=False, nominal_capacity=9.8)

@@ -163,18 +163,9 @@ class Area:
         return self._ui
 
     def create_thermal_cluster(
-        self,
-        thermal_name: str,
-        properties: Optional[ThermalClusterProperties] = None,
-        prepro: Optional[pd.DataFrame] = None,
-        modulation: Optional[pd.DataFrame] = None,
-        series: Optional[pd.DataFrame] = None,
-        co2_cost: Optional[pd.DataFrame] = None,
-        fuel_cost: Optional[pd.DataFrame] = None,
+        self, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
     ) -> ThermalCluster:
-        thermal = self._area_service.create_thermal_cluster(
-            self.id, thermal_name, properties, prepro, modulation, series, co2_cost, fuel_cost
-        )
+        thermal = self._area_service.create_thermal_cluster(self.id, thermal_name, properties)
         self._thermals[thermal.id] = thermal
         return thermal
 
