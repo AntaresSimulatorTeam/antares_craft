@@ -176,7 +176,7 @@ def test_constraint(local_study_with_constraint: Study) -> BindingConstraint:
 
 @pytest.fixture
 def local_study_92(tmp_path: Path) -> Study:
-    study_name = "studyTest"
+    study_name = "study_92"
     study_version = "9.2"
 
     local_study = create_study_local(study_name, study_version, tmp_path.absolute())

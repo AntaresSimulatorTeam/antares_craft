@@ -218,20 +218,25 @@ class TestStudyProperties:
 
         assert local_study.get_settings().general_parameters == expected_general_properties
 
-    def test_local_study_has_correct_default_adequacy_patch_properties(self, local_study: Study) -> None:
-        expected_adequacy_patch_properties = AdequacyPatchParameters(
-            include_adq_patch=False,
-            set_to_null_ntc_from_physical_out_to_physical_in_for_first_step=True,
-            set_to_null_ntc_between_physical_out_for_first_step=True,
-            price_taking_order=PriceTakingOrder.DENS,
-            include_hurdle_cost_csr=False,
-            check_csr_cost_function=False,
-            threshold_initiate_curtailment_sharing_rule=1,
-            threshold_display_local_matching_rule_violations=0,
-            threshold_csr_variable_bounds_relaxation=7,
-        )
+    def test_local_study_has_correct_default_adequacy_patch_properties(
+        self, local_study: Study, local_study_92: Study
+    ) -> None:
+        for study in [local_study, local_study_92]:
+            value = True if study == local_study else None  # Depends on the version
 
-        assert local_study.get_settings().adequacy_patch_parameters == expected_adequacy_patch_properties
+            expected_adequacy_patch_properties = AdequacyPatchParameters(
+                include_adq_patch=False,
+                set_to_null_ntc_from_physical_out_to_physical_in_for_first_step=True,
+                price_taking_order=PriceTakingOrder.DENS,
+                include_hurdle_cost_csr=False,
+                check_csr_cost_function=False,
+                threshold_initiate_curtailment_sharing_rule=1,
+                threshold_display_local_matching_rule_violations=0,
+                threshold_csr_variable_bounds_relaxation=7,
+                set_to_null_ntc_between_physical_out_for_first_step=value,
+            )
+
+            assert local_study.get_settings().adequacy_patch_parameters == expected_adequacy_patch_properties
 
     def test_local_study_has_correct_advanced_parameters(self, local_study: Study) -> None:
         expected_advanced_parameters = AdvancedParameters(
