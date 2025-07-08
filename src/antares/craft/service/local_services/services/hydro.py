@@ -21,19 +21,22 @@ from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, In
 from antares.craft.service.base_services import BaseHydroService
 from antares.craft.service.local_services.models.hydro import (
     HydroInflowStructureLocal,
-    HydroPropertiesLocal,
+    parse_hydro_properties_local,
+    serialize_hydro_properties_local,
 )
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from antares.study.version import StudyVersion
 
 
 class HydroLocalService(BaseHydroService):
-    def __init__(self, config: LocalConfiguration, study_name: str):
+    def __init__(self, config: LocalConfiguration, study_name: str, study_version: StudyVersion):
         self.config = config
         self.study_name = study_name
+        self.study_version = study_version
 
     @staticmethod
     def _transform_areas_name_to_id(content: dict[str, Any]) -> dict[str, Any]:
@@ -97,7 +100,7 @@ class HydroLocalService(BaseHydroService):
             for area_id, data in value.items():
                 body_by_area.setdefault(area_id, {})[key] = data
         for area_id, local_properties in body_by_area.items():
-            user_properties = HydroPropertiesLocal.model_validate(local_properties).to_user_model()
+            user_properties = parse_hydro_properties_local(self.study_version, local_properties)
             hydro_properties[area_id] = user_properties
 
         return hydro_properties
@@ -177,9 +180,7 @@ class HydroLocalService(BaseHydroService):
     def edit_hydro_properties(self, area_id: str, properties: HydroPropertiesUpdate, creation: bool) -> None:
         current_content = self._read_ini()
 
-        local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(
-            mode="json", by_alias=True, exclude_unset=not creation
-        )
+        local_dict = serialize_hydro_properties_local(self.study_version, properties, exclude_unset=not creation)
 
         for key, value in local_dict.items():
             current_content.setdefault(key, {})[area_id] = value
