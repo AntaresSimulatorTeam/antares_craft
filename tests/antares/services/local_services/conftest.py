@@ -123,7 +123,7 @@ def local_study_with_hydro(local_study_with_st_storage: Study) -> Study:
 
 
 @pytest.fixture
-def default_hydro_properties() -> HydroProperties:
+def default_hydro_properties_88() -> HydroProperties:
     return HydroProperties(
         inter_daily_breakdown=1,
         intra_daily_modulation=24,
@@ -140,6 +140,7 @@ def default_hydro_properties() -> HydroProperties:
         leeway_low=1,
         leeway_up=1,
         pumping_efficiency=1,
+        overflow_spilled_cost_difference=None,
     )
 
 

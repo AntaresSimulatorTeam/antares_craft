@@ -23,13 +23,15 @@ class TestCreateHydro:
         assert isinstance(hydro, Hydro)
         assert hydro.properties == HydroProperties(reservoir_capacity=4.3, use_heuristic=False)
 
-    def test_hydro_has_properties(self, local_study_w_areas: Study) -> None:
-        assert local_study_w_areas.get_areas()["fr"].hydro.properties
-
     def test_hydro_has_correct_default_properties(
-        self, local_study_w_areas: Study, default_hydro_properties: HydroProperties
+        self, local_study_w_areas: Study, default_hydro_properties_88: HydroProperties
     ) -> None:
-        assert local_study_w_areas.get_areas()["fr"].hydro.properties == default_hydro_properties
+        assert local_study_w_areas.get_areas()["fr"].hydro.properties == default_hydro_properties_88
+
+    def test_hydro_has_correct_default_properties_v92(
+        self, default_hydro_properties_88: HydroProperties, local_study_92: Study
+    ) -> None:
+        assert local_study_92.get_areas()["fr"].hydro.properties == default_hydro_properties_88
 
     def test_files_exist(self, local_study_w_areas: Study) -> None:
         """
