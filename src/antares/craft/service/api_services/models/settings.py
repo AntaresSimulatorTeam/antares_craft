@@ -389,6 +389,7 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
     other5_withdrawal: bool
     other5_level: bool
     sts_cashflow_by_cluster: bool
+    npcap_hours: bool
 
     @staticmethod
     def from_user_model(user_class: ThematicTrimmingParameters) -> "ThematicTrimmingParametersAPI":

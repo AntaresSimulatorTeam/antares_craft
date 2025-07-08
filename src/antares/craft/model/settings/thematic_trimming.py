@@ -108,6 +108,7 @@ class ThematicTrimmingParameters:
     other5_withdrawal: bool = True
     other5_level: bool = True
     sts_cashflow_by_cluster: bool = True
+    npcap_hours: bool = True
 
     def all_enabled(self) -> "ThematicTrimmingParameters":
         all_enabled = dict.fromkeys(asdict(self), True)
