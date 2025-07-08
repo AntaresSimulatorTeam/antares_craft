@@ -82,6 +82,7 @@ class ThematicTrimmingParameters:
     sts_withdrawal_by_plant: bool = True
     sts_lvl_by_plant: bool = True
     sts_cashflow_by_cluster: bool = True
+    npcap_hours: bool = True
     # Simulator v9.1 parameters
     sts_by_group: Optional[bool] = None
     # Parameters removed since v9.1

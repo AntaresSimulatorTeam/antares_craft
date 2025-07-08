@@ -147,14 +147,14 @@ class TestLocalClient:
 
         # test renewable cluster creation with default values
         renewable_name = "cluster_test"
-        renewable_fr = fr.create_renewable_cluster(renewable_name, None, None)
+        renewable_fr = fr.create_renewable_cluster(renewable_name, None)
         assert renewable_fr.name == renewable_name
         assert renewable_fr.id == "cluster_test"
 
         # test renewable cluster creation with properties
         renewable_name = "wind_onshore"
         renewable_properties = RenewableClusterProperties(enabled=False, group=RenewableClusterGroup.WIND_ON_SHORE)
-        renewable_onshore = fr.create_renewable_cluster(renewable_name, renewable_properties, None)
+        renewable_onshore = fr.create_renewable_cluster(renewable_name, renewable_properties)
         assert not renewable_onshore.properties.enabled
         assert renewable_onshore.properties.group == RenewableClusterGroup.WIND_ON_SHORE
 

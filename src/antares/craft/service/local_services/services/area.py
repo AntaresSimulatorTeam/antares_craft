@@ -120,15 +120,7 @@ class AreaLocalService(BaseAreaService):
 
     @override
     def create_thermal_cluster(
-        self,
-        area_id: str,
-        thermal_name: str,
-        properties: Optional[ThermalClusterProperties] = None,
-        prepro: Optional[pd.DataFrame] = None,
-        modulation: Optional[pd.DataFrame] = None,
-        series: Optional[pd.DataFrame] = None,
-        co2_cost: Optional[pd.DataFrame] = None,
-        fuel_cost: Optional[pd.DataFrame] = None,
+        self, area_id: str, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
     ) -> ThermalCluster:
         local_thermal_service = cast(ThermalLocalService, self.thermal_service)
         thermal_list_content = local_thermal_service.read_ini(area_id)
@@ -157,20 +149,18 @@ class AreaLocalService(BaseAreaService):
 
         # Use default matrices for prepro and modulation as in AntaresWeb.
         # We do so because the default Simulator matrices don't make sense
-        if prepro is None:
-            default_data_matrix = np.zeros((365, 6), dtype=np.float64)
-            default_data_matrix[:, :2] = 1
-            prepro = pd.DataFrame(default_data_matrix)
-        if modulation is None:
-            default_modulation_matrix = np.ones((8760, 4), dtype=np.float64)
-            default_modulation_matrix[:, 3] = 0
-            modulation = pd.DataFrame(default_modulation_matrix)
+        default_data_matrix = np.zeros((365, 6), dtype=np.float64)
+        default_data_matrix[:, :2] = 1
+        prepro = pd.DataFrame(default_data_matrix)
+        default_modulation_matrix = np.ones((8760, 4), dtype=np.float64)
+        default_modulation_matrix[:, 3] = 0
+        modulation = pd.DataFrame(default_modulation_matrix)
 
         write_timeseries(self.config.study_path, prepro, TimeSeriesFileType.THERMAL_DATA, area_id, cluster_id)
         write_timeseries(self.config.study_path, modulation, TimeSeriesFileType.THERMAL_MODULATION, area_id, cluster_id)
-        write_timeseries(self.config.study_path, series, TimeSeriesFileType.THERMAL_SERIES, area_id, cluster_id)
-        write_timeseries(self.config.study_path, co2_cost, TimeSeriesFileType.THERMAL_CO2, area_id, cluster_id)
-        write_timeseries(self.config.study_path, fuel_cost, TimeSeriesFileType.THERMAL_FUEL, area_id, cluster_id)
+        write_timeseries(self.config.study_path, None, TimeSeriesFileType.THERMAL_SERIES, area_id, cluster_id)
+        write_timeseries(self.config.study_path, None, TimeSeriesFileType.THERMAL_CO2, area_id, cluster_id)
+        write_timeseries(self.config.study_path, None, TimeSeriesFileType.THERMAL_FUEL, area_id, cluster_id)
 
         return ThermalCluster(self.thermal_service, area_id, thermal_name, properties)
 
@@ -196,11 +186,7 @@ class AreaLocalService(BaseAreaService):
 
     @override
     def create_renewable_cluster(
-        self,
-        area_id: str,
-        renewable_name: str,
-        properties: Optional[RenewableClusterProperties] = None,
-        series: Optional[pd.DataFrame] = None,
+        self, area_id: str, renewable_name: str, properties: Optional[RenewableClusterProperties] = None
     ) -> RenewableCluster:
         properties = properties or RenewableClusterProperties()
         local_properties = RenewableClusterPropertiesLocal.from_user_model(properties)
@@ -216,7 +202,7 @@ class AreaLocalService(BaseAreaService):
 
         write_timeseries(
             self.config.study_path,
-            series,
+            None,
             TimeSeriesFileType.RENEWABLE_SERIES,
             area_id,
             cluster_id=transform_name_to_id(renewable_name),

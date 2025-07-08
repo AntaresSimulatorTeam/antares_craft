@@ -389,6 +389,7 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
     other5_withdrawal: bool
     other5_level: bool
     sts_cashflow_by_cluster: bool
+    npcap_hours: bool
     # Since v9.2
     sts_by_group: bool
 
