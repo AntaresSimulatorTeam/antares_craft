@@ -551,6 +551,7 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
     other5_level: bool | None = Field(default=None, alias="Other5_level")
     # Since v8.8
     sts_cashflow_by_cluster: bool | None = Field(default=None, alias="STS Cashflow By Cluster")
+    npcap_hours: bool | None = Field(default=None, alias="NPCAP HOURS")
 
     def to_user_model(self) -> ThematicTrimmingParameters:
         return ThematicTrimmingParameters(**self.model_dump(exclude_none=True))
