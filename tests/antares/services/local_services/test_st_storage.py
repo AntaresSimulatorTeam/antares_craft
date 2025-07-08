@@ -236,7 +236,7 @@ class TestSTStorage:
             "efficiency_withdrawal",
         ]:
             with pytest.raises(ValueError, match="Input should be greater than or equal to 0"):
-                area.create_st_storage("sts", properties=STStorageProperties(**{field: -2}))
+                area.create_st_storage("sts", properties=STStorageProperties(**{field: -2}))  # type: ignore
 
         with pytest.raises(ValueError, match=re.escape("efficiency_withdrawal must be greater than efficiency")):
             area.create_st_storage("sts", properties=STStorageProperties(efficiency_withdrawal=0.4))
