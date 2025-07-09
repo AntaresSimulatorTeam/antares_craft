@@ -1,3 +1,38 @@
+v0.2.9 (2025-07-09)
+-------------------
+
+### Compatiblity
+* This version is compatible with AntaresWeb v2.22.1. The previous is not.
+* This version is compatible with Simulator v9.2 except for the short-term storage additional constraints.
+
+### Features
+* **api**: support AntaresWeb 2.22.1 [220](https://github.com/AntaresSimulatorTeam/antares_craft/pull/220)
+* **version**:  handle Simulator v9.2 [179](https://github.com/AntaresSimulatorTeam/antares_craft/pull/179)
+
+### Breaking changes
+* **clusters**: forbid creation with matrices for thermal and renewable clusters [219](https://github.com/AntaresSimulatorTeam/antares_craft/pull/219)
+  * Thermal and renewable clusters can no longer be instantiated with matrices (`DataFrame`)
+  * Before:
+    ```python
+    thermal = area_fr.create_thermal_cluster("cluster_nuclear", series=matrix)
+    ```
+  * After:
+    ```python
+    thermal = area_fr.create_thermal_cluster("cluster_nuclear")
+    thermal.set_series(matrix)
+    ```
+
+### Bug fixes
+* **local**: remove useless thermal file [212](https://github.com/AntaresSimulatorTeam/antares_craft/pull/212)
+* **local**: rename matrix C02Cost in CO2Cost [213](https://github.com/AntaresSimulatorTeam/antares_craft/pull/213)
+* **local**: check constraint matrices size at the creation [214](https://github.com/AntaresSimulatorTeam/antares_craft/pull/214)
+* **local**: use different thermal prepro matrices [215](https://github.com/AntaresSimulatorTeam/antares_craft/pull/215)
+* **local**: perform whole data validation before writing data inside mass update methods [216](https://github.com/AntaresSimulatorTeam/antares_craft/pull/216)
+* **api**: allow extra fields from API inside pydantic model [225](https://github.com/AntaresSimulatorTeam/antares_craft/pull/225)
+
+### Miscellaneous
+* **chore**: make exception messages a bit clearer [217](https://github.com/AntaresSimulatorTeam/antares_craft/pull/217)
+
 v0.2.8 (2025-07-03)
 -------------------
 
