@@ -2,11 +2,17 @@ v0.2.9 (2025-07-09)
 -------------------
 
 ### Compatiblity
-This version is compatible with AntaresWeb v2.22.1 and simulator v9.2. The previous is not.
+* This version is compatible with AntaresWeb v2.22.1. The previous is not.
+* This version is compatible with Simulator v9.2 except for the short-term storage addition constraints.
 
 ### Features
 * **api**: support AntaresWeb 2.22.1 [220](https://github.com/AntaresSimulatorTeam/antares_craft/pull/220)
 * **version**:  handle Simulator v9.2 [179](https://github.com/AntaresSimulatorTeam/antares_craft/pull/179)
+
+### Breaking changes
+* **clusters**: forbid creation with matrices for thermal and renewable clusters [219](https://github.com/AntaresSimulatorTeam/antares_craft/pull/219)
+  * Thermal and renewable clusters can't be created using an optional matrix (`DataFrame`) anymore. The `create`
+  methods only take the `id`, `name` and optional `properties` as parameters now.
 
 ### Bug fixes
 * **local**: remove useless thermal file [212](https://github.com/AntaresSimulatorTeam/antares_craft/pull/212)
@@ -16,9 +22,9 @@ This version is compatible with AntaresWeb v2.22.1 and simulator v9.2. The previ
 * **local**: perform whole data validation before writing data inside mass update methods [216](https://github.com/AntaresSimulatorTeam/antares_craft/pull/216)
 * **api**: allow extra fields from API inside pydantic model [225](https://github.com/AntaresSimulatorTeam/antares_craft/pull/225)
 
+
 ### Miscellaneous
 * **chore**: make exception messages a bit clearer [217](https://github.com/AntaresSimulatorTeam/antares_craft/pull/217)
-* **clusters**: forbid creation with matrices for thermal and renewable clusters [219](https://github.com/AntaresSimulatorTeam/antares_craft/pull/219)
 
 v0.2.8 (2025-07-03)
 -------------------
