@@ -3,7 +3,7 @@ v0.2.9 (2025-07-09)
 
 ### Compatiblity
 * This version is compatible with AntaresWeb v2.22.1. The previous is not.
-* This version is compatible with Simulator v9.2 except for the short-term storage addition constraints.
+* This version is compatible with Simulator v9.2 except for the short-term storage additional constraints.
 
 ### Features
 * **api**: support AntaresWeb 2.22.1 [220](https://github.com/AntaresSimulatorTeam/antares_craft/pull/220)
@@ -11,8 +11,16 @@ v0.2.9 (2025-07-09)
 
 ### Breaking changes
 * **clusters**: forbid creation with matrices for thermal and renewable clusters [219](https://github.com/AntaresSimulatorTeam/antares_craft/pull/219)
-  * Thermal and renewable clusters can't be created using an optional matrix (`DataFrame`) anymore. The `create`
-  methods only take the `id`, `name` and optional `properties` as parameters now.
+  * Thermal and renewable clusters can no longer be instantiated with matrices (`DataFrame`)
+  * Before:
+    ```python
+    thermal = area_fr.create_thermal_cluster("cluster_nuclear", series=matrix)
+    ```
+  * After:
+    ```python
+    thermal = area_fr.create_thermal_cluster("cluster_nuclear")
+    thermal.set_series(matrix)
+    ```
 
 ### Bug fixes
 * **local**: remove useless thermal file [212](https://github.com/AntaresSimulatorTeam/antares_craft/pull/212)
