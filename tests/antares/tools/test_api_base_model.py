@@ -9,9 +9,16 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from pydantic import BaseModel, ConfigDict
-from pydantic.alias_generators import to_camel
+
+from antares.craft.service.api_services.models.base_model import APIBaseModel
 
 
-class APIBaseModel(BaseModel):
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel, extra="allow")
+class TestModel(APIBaseModel):
+    test: int
+
+
+def test_extra_fields_are_permitted() -> None:
+    data = {"test": 1, "extra": 2}
+    model = TestModel(**data)
+    assert model.test == 1
+    assert model.__pydantic_extra__ is not None and model.__pydantic_extra__["extra"] == 2
