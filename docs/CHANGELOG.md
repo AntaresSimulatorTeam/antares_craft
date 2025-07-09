@@ -22,7 +22,6 @@ v0.2.9 (2025-07-09)
 * **local**: perform whole data validation before writing data inside mass update methods [216](https://github.com/AntaresSimulatorTeam/antares_craft/pull/216)
 * **api**: allow extra fields from API inside pydantic model [225](https://github.com/AntaresSimulatorTeam/antares_craft/pull/225)
 
-
 ### Miscellaneous
 * **chore**: make exception messages a bit clearer [217](https://github.com/AntaresSimulatorTeam/antares_craft/pull/217)
 
