@@ -13,7 +13,7 @@ from typing_extensions import override
 
 from antares.craft import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
-from antares.craft.model.xpansion.xpansion_configuration import Xpansion
+from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import BaseXpansionService
 
 
@@ -26,5 +26,5 @@ class XpansionAPIService(BaseXpansionService):
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
     @override
-    def read_xpansion_configuration(self) -> Xpansion:
+    def read_xpansion_configuration(self) -> XpansionConfiguration | None:
         raise NotImplementedError()

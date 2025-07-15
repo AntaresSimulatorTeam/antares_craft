@@ -18,8 +18,8 @@ from antares.craft.model.xpansion.settings import XpansionSettings
 
 
 @dataclass
-class Xpansion:
-    settings: XpansionSettings = XpansionSettings()
+class XpansionConfiguration:
+    settings: XpansionSettings
     candidates: dict[str, XpansionCandidate] = field(default_factory=dict)
     constraints: dict[str, XpansionConstraint] = field(default_factory=dict)
     sensitivity: dict[str, XpansionSensitivity] = field(default_factory=dict)
