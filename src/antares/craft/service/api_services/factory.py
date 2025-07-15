@@ -146,6 +146,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     study._read_links()
     study._read_outputs()
     study._read_binding_constraints()
+    study._read_xpansion_configuration()
 
     return study
 
