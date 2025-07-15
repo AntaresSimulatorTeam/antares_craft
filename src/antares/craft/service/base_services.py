@@ -839,7 +839,7 @@ class BaseXpansionService(ABC):
     @abstractmethod
     def create_xpansion_configuration(self) -> "XpansionConfiguration":
         """
-        Creates an xpansion configuration for a given study
+        Creates an Xpansion configuration for a given study
         """
         pass
 

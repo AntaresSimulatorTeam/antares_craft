@@ -54,7 +54,11 @@ class XpansionAPIService(BaseXpansionService):
             if settings.additional_constraints:
                 constraints = self._read_constraints(settings.additional_constraints)
             return XpansionConfiguration(
-                settings=settings, sensitivity=sensitivity, candidates=candidates, constraints=constraints
+                xpansion_service=self,
+                settings=settings,
+                sensitivity=sensitivity,
+                candidates=candidates,
+                constraints=constraints,
             )
         except APIError as e:
             raise XpansionConfigurationReadingError(self.study_id, e.message) from e
@@ -64,7 +68,7 @@ class XpansionAPIService(BaseXpansionService):
         try:
             self._wrapper.post(f"{self._expansion_url}/settings")
             settings, sensitivity = self._read_settings_and_sensitivity()
-            return XpansionConfiguration(settings=settings, sensitivity=sensitivity)
+            return XpansionConfiguration(xpansion_service=self, settings=settings, sensitivity=sensitivity)
         except APIError as e:
             raise XpansionConfigurationCreationError(self.study_id, e.message) from e
 

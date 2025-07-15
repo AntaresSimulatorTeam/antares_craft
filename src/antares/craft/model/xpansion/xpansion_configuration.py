@@ -9,18 +9,26 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import dataclass, field
 from typing import Optional
 
 from antares.craft.model.xpansion.candidate import XpansionCandidate
 from antares.craft.model.xpansion.constraint import XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
+from antares.craft.service.base_services import BaseXpansionService
 
 
-@dataclass
 class XpansionConfiguration:
-    settings: XpansionSettings
-    candidates: dict[str, XpansionCandidate] = field(default_factory=dict)
-    constraints: dict[str, XpansionConstraint] = field(default_factory=dict)
-    sensitivity: Optional[XpansionSensitivity] = None
+    def __init__(
+        self,
+        xpansion_service: BaseXpansionService,
+        settings: XpansionSettings,
+        candidates: Optional[dict[str, XpansionCandidate]] = None,
+        constraints: Optional[dict[str, XpansionConstraint]] = None,
+        sensitivity: Optional[XpansionSensitivity] = None,
+    ):
+        self._settings = settings
+        self._candidates = candidates or {}
+        self._constraints = constraints or {}
+        self._sensitivity = sensitivity
+        self._xpansion_service = xpansion_service
