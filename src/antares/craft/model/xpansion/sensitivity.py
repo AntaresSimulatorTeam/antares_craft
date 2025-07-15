@@ -11,13 +11,18 @@
 # This file is part of the Antares project.
 
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass(frozen=True)
 class XpansionSensitivity:
-    pass
+    epsilon: float
+    projection: list[str]
+    capex: bool
 
 
 @dataclass
 class XpansionSensitivityUpdate:
-    pass
+    epsilon: Optional[float] = None
+    projection: Optional[list[str]] = None
+    capex: Optional[bool] = None

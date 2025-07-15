@@ -14,8 +14,10 @@ from typing_extensions import override
 from antares.craft import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import APIError, XpansionConfigurationCreationError
+from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
+from antares.craft.service.api_services.models.xpansion import parse_xpansion_settings_api
 from antares.craft.service.base_services import BaseXpansionService
 
 
@@ -31,7 +33,7 @@ class XpansionAPIService(BaseXpansionService):
     def read_xpansion_configuration(self) -> XpansionConfiguration | None:
         # Checks the settings. If we have a 404 Exception, it means we don't have any Xpansion configuration
         try:
-            self._read_settings()
+            self._read_settings_and_sensitivity()
         except APIError:
             return None
 
@@ -39,11 +41,11 @@ class XpansionAPIService(BaseXpansionService):
     def create_xpansion_configuration(self) -> XpansionConfiguration:
         try:
             self._wrapper.post(f"{self._expansion_url}/settings")
-            settings = self._read_settings()
+            settings, sensitivity = self._read_settings_and_sensitivity()
             return XpansionConfiguration(settings=settings)
         except APIError as e:
             raise XpansionConfigurationCreationError(self.study_id, e.message) from e
 
-    def _read_settings(self) -> XpansionSettings:
+    def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()
-        return api_settings
+        return parse_xpansion_settings_api(api_settings)
