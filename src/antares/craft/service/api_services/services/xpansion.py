@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
+from typing_extensions import override
 
 from antares.craft import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
@@ -23,3 +23,7 @@ class XpansionAPIService(BaseXpansionService):
         self.study_id = study_id
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
+
+    @override
+    def read_xpansion_configuration(self) -> None:
+        raise NotImplementedError()
