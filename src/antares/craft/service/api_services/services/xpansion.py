@@ -19,10 +19,15 @@ from antares.craft.exceptions.exceptions import (
     XpansionConfigurationReadingError,
 )
 from antares.craft.model.xpansion.candidate import XpansionCandidate
+from antares.craft.model.xpansion.constraint import XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
-from antares.craft.service.api_services.models.xpansion import parse_xpansion_candidate_api, parse_xpansion_settings_api
+from antares.craft.service.api_services.models.xpansion import (
+    parse_xpansion_candidate_api,
+    parse_xpansion_constraints_api,
+    parse_xpansion_settings_api,
+)
 from antares.craft.service.base_services import BaseXpansionService
 
 
@@ -44,9 +49,15 @@ class XpansionAPIService(BaseXpansionService):
         try:
             # Candidates
             candidates = self._read_candidates()
-            # Constraints, weights and capacities
+            # Constraints
+            constraints = {}
+            if settings.additional_constraints:
+                constraints = self._read_constraints(settings.additional_constraints)
+            # weights and capacities ??
             # todo
-            return XpansionConfiguration(settings=settings, sensitivity=sensitivity, candidates=candidates)
+            return XpansionConfiguration(
+                settings=settings, sensitivity=sensitivity, candidates=candidates, constraints=constraints
+            )
         except APIError as e:
             raise XpansionConfigurationReadingError(self.study_id, e.message) from e
 
@@ -70,3 +81,7 @@ class XpansionAPIService(BaseXpansionService):
             cdt = parse_xpansion_candidate_api(cdt_api)
             candidates[cdt.name] = cdt
         return candidates
+
+    def _read_constraints(self, file_name: str) -> dict[str, XpansionConstraint]:
+        constraints_api = self._wrapper.get(f"{self._expansion_url}/resources/constraints/{file_name}").json()
+        return parse_xpansion_constraints_api(constraints_api)
