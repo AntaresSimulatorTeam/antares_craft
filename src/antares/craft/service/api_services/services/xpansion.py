@@ -53,8 +53,6 @@ class XpansionAPIService(BaseXpansionService):
             constraints = {}
             if settings.additional_constraints:
                 constraints = self._read_constraints(settings.additional_constraints)
-            # weights and capacities ??
-            # todo
             return XpansionConfiguration(
                 settings=settings, sensitivity=sensitivity, candidates=candidates, constraints=constraints
             )
