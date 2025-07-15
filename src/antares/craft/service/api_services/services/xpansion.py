@@ -13,11 +13,16 @@ from typing_extensions import override
 
 from antares.craft import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
-from antares.craft.exceptions.exceptions import APIError, XpansionConfigurationCreationError
+from antares.craft.exceptions.exceptions import (
+    APIError,
+    XpansionConfigurationCreationError,
+    XpansionConfigurationReadingError,
+)
+from antares.craft.model.xpansion.candidate import XpansionCandidate
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
-from antares.craft.service.api_services.models.xpansion import parse_xpansion_settings_api
+from antares.craft.service.api_services.models.xpansion import parse_xpansion_candidate_api, parse_xpansion_settings_api
 from antares.craft.service.base_services import BaseXpansionService
 
 
@@ -34,10 +39,16 @@ class XpansionAPIService(BaseXpansionService):
         # Checks the settings. If we have a 404 Exception, it means we don't have any Xpansion configuration
         try:
             settings, sensitivity = self._read_settings_and_sensitivity()
-            return XpansionConfiguration(settings=settings, sensitivity=sensitivity)
         except APIError:
             return None
-        # todo: here, we should add the reading for candidates and constraints.
+        try:
+            # Candidates
+            candidates = self._read_candidates()
+            # Constraints, weights and capacities
+            # todo
+            return XpansionConfiguration(settings=settings, sensitivity=sensitivity, candidates=candidates)
+        except APIError as e:
+            raise XpansionConfigurationReadingError(self.study_id, e.message) from e
 
     @override
     def create_xpansion_configuration(self) -> XpansionConfiguration:
@@ -51,3 +62,11 @@ class XpansionAPIService(BaseXpansionService):
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()
         return parse_xpansion_settings_api(api_settings)
+
+    def _read_candidates(self) -> dict[str, XpansionCandidate]:
+        candidates_api = self._wrapper.get(f"{self._expansion_url}/candidates").json()
+        candidates = {}
+        for cdt_api in candidates_api:
+            cdt = parse_xpansion_candidate_api(cdt_api)
+            candidates[cdt.name] = cdt
+        return candidates
