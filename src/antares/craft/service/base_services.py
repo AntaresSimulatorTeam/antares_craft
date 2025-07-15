@@ -827,6 +827,15 @@ class BaseStudySettingsService(ABC):
         pass
 
 
+class BaseXpansionService(ABC):
+    @abstractmethod
+    def read_xpansion_configuration(self) -> None:
+        """
+        Reads the Xpansion configuration of a study
+        """
+        pass
+
+
 @dataclass(frozen=True)
 class StudyServices:
     settings_service: BaseStudySettingsService
@@ -840,3 +849,4 @@ class StudyServices:
     short_term_storage_service: BaseShortTermStorageService
     run_service: BaseRunService
     output_service: BaseOutputService
+    xpansion_service: BaseXpansionService

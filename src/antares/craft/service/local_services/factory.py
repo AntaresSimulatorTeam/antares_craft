@@ -34,6 +34,7 @@ from antares.craft.service.local_services.services.settings import StudySettings
 from antares.craft.service.local_services.services.st_storage import ShortTermStorageLocalService
 from antares.craft.service.local_services.services.study import StudyLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService
+from antares.craft.service.local_services.services.xpansion import XpansionLocalService
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.study.version import StudyVersion
 from antares.study.version.create_app import CreateApp
@@ -61,6 +62,7 @@ def create_local_services(config: LocalConfiguration, study_name: str, study_ver
     run_service = RunLocalService(config, study_name)
     settings_service = StudySettingsLocalService(config, study_name, study_version)
     short_term_storage_service = ShortTermStorageLocalService(config, study_name, study_version)
+    xpansion_service = XpansionLocalService(config, study_name)
     return StudyServices(
         area_service=area_service,
         bc_service=bc_service,
@@ -73,6 +75,7 @@ def create_local_services(config: LocalConfiguration, study_name: str, study_ver
         renewable_service=renewable_service,
         settings_service=settings_service,
         short_term_storage_service=short_term_storage_service,
+        xpansion_service=xpansion_service,
     )
 
 
