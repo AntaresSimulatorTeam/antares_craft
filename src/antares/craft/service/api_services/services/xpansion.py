@@ -33,9 +33,11 @@ class XpansionAPIService(BaseXpansionService):
     def read_xpansion_configuration(self) -> XpansionConfiguration | None:
         # Checks the settings. If we have a 404 Exception, it means we don't have any Xpansion configuration
         try:
-            self._read_settings_and_sensitivity()
+            settings, sensitivity = self._read_settings_and_sensitivity()
+            return XpansionConfiguration(settings=settings, sensitivity=sensitivity)
         except APIError:
             return None
+        # todo: here, we should add the reading for candidates and constraints.
 
     @override
     def create_xpansion_configuration(self) -> XpansionConfiguration:
