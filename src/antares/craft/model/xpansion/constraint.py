@@ -11,14 +11,29 @@
 # This file is part of the Antares project.
 
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
+
+from antares.craft.tools.contents_tool import EnumIgnoreCase
+
+
+class ConstraintSign(EnumIgnoreCase):
+    LESS_OR_EQUAL = "less_or_equal"
+    GREATER_OR_EQUAL = "greater_or_equal"
+    EQUAL = "equal"
 
 
 @dataclass(frozen=True)
 class XpansionConstraint:
-    pass
+    name: str
+    sign: ConstraintSign
+    right_hand_side: float
+    candidates_coefficients: dict[str, float] = field(default_factory=dict)
 
 
 @dataclass
 class XpansionConstraintUpdate:
-    pass
+    name: Optional[str] = None
+    sign: Optional[ConstraintSign] = None
+    right_hand_side: Optional[float] = None
+    candidates_coefficients: Optional[dict[str, float]] = None

@@ -13,6 +13,7 @@ from dataclasses import asdict
 from typing import Any
 
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate
+from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint, XpansionConstraintUpdate
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity, XpansionSensitivityUpdate
 from antares.craft.model.xpansion.settings import Master, Solver, UcType, XpansionSettings, XpansionSettingsUpdate
 from antares.craft.service.api_services.models.base_model import APIBaseModel
@@ -145,3 +146,34 @@ def parse_xpansion_candidate_api(data: dict[str, Any]) -> XpansionCandidate:
 def serialize_xpansion_candidate_api(user_class: XpansionCandidateType) -> dict[str, Any]:
     api_model = XpansionCandidateAPI.from_user_model(user_class)
     return api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
+
+
+######################
+# Constraints part
+######################
+
+XpansionConstraintType = XpansionConstraint | XpansionConstraintUpdate
+
+
+@all_optional_model
+class XpansionConstraintAPI(APIBaseModel):
+    name: str
+    sign: ConstraintSign
+    rhs: float
+
+    @staticmethod
+    def from_user_model(user_class: XpansionConstraintType) -> "XpansionConstraintAPI":
+        user_dict = asdict(user_class)
+        user_dict["rhs"] = user_dict.pop("right_hand_side")
+        user_dict.update(user_dict.pop("candidates_coefficients"))
+        return XpansionConstraintAPI.model_validate(user_dict)
+
+    def to_user_model(self) -> XpansionConstraint:
+        # todo: find a way to fill this
+        args: dict[str, float] = {}
+        return XpansionConstraint(
+            name=self.name,
+            sign=self.sign,
+            right_hand_side=self.rhs,
+            candidates_coefficients=args,
+        )
