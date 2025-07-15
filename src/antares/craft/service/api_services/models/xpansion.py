@@ -9,6 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import io
+
 from dataclasses import asdict
 from typing import Any
 
@@ -18,6 +20,7 @@ from antares.craft.model.xpansion.sensitivity import XpansionSensitivity, Xpansi
 from antares.craft.model.xpansion.settings import Master, Solver, UcType, XpansionSettings, XpansionSettingsUpdate
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
+from antares.craft.tools.serde_local.ini_reader import IniReader
 
 XpansionSettingsType = XpansionSettings | XpansionSettingsUpdate
 XpansionSensitivityType = XpansionSensitivity | XpansionSensitivityUpdate
@@ -169,11 +172,18 @@ class XpansionConstraintAPI(APIBaseModel):
         return XpansionConstraintAPI.model_validate(user_dict)
 
     def to_user_model(self) -> XpansionConstraint:
-        # todo: find a way to fill this
-        args: dict[str, float] = {}
         return XpansionConstraint(
             name=self.name,
             sign=self.sign,
             right_hand_side=self.rhs,
-            candidates_coefficients=args,
+            candidates_coefficients=self.model_extra,  # type: ignore
         )
+
+
+def parse_xpansion_constraints_api(data: Any) -> dict[str, XpansionConstraint]:
+    parsed_content = {}
+    data_as_dict = IniReader().read(io.StringIO(data))
+    for values in data_as_dict.values():
+        api_model = XpansionConstraintAPI.model_validate(values)
+        parsed_content[api_model.name] = api_model.to_user_model()
+    return parsed_content
