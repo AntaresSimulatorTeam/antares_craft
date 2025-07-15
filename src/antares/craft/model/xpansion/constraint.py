@@ -10,3 +10,15 @@
 #
 # This file is part of the Antares project.
 
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class XpansionConstraint:
+    pass
+
+
+@dataclass
+class XpansionConstraintUpdate:
+    pass

@@ -10,3 +10,14 @@
 #
 # This file is part of the Antares project.
 
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class XpansionSensitivity:
+    pass
+
+
+@dataclass
+class XpansionSensitivityUpdate:
+    pass

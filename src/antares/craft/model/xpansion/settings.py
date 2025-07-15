@@ -9,4 +9,14 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from dataclasses import dataclass
 
+
+@dataclass(frozen=True)
+class XpansionSettings:
+    pass
+
+
+@dataclass
+class XpansionSettingsUpdate:
+    pass
