@@ -540,3 +540,9 @@ class ThematicTrimmingUpdateError(Exception):
     def __init__(self, study_name: str, message: str) -> None:
         self.message = f"Could not update thematic_trimming for study {study_name}: " + message
         super().__init__(self.message)
+
+
+class XpansionConfigurationCreationError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not create an xpansion configuration for study {study_name}: " + message
+        super().__init__(self.message)
