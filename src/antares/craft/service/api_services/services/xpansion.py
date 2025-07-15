@@ -42,7 +42,7 @@ class XpansionAPIService(BaseXpansionService):
         try:
             self._wrapper.post(f"{self._expansion_url}/settings")
             settings, sensitivity = self._read_settings_and_sensitivity()
-            return XpansionConfiguration(settings=settings)
+            return XpansionConfiguration(settings=settings, sensitivity=sensitivity)
         except APIError as e:
             raise XpansionConfigurationCreationError(self.study_id, e.message) from e
 

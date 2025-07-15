@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import dataclass, field
+from typing import Optional
 
 from antares.craft.model.xpansion.candidate import XpansionCandidate
 from antares.craft.model.xpansion.constraint import XpansionConstraint
@@ -22,4 +23,4 @@ class XpansionConfiguration:
     settings: XpansionSettings
     candidates: dict[str, XpansionCandidate] = field(default_factory=dict)
     constraints: dict[str, XpansionConstraint] = field(default_factory=dict)
-    sensitivity: dict[str, XpansionSensitivity] = field(default_factory=dict)
+    sensitivity: Optional[XpansionSensitivity] = None
