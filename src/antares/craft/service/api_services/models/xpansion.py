@@ -12,6 +12,7 @@
 from dataclasses import asdict
 from typing import Any
 
+from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity, XpansionSensitivityUpdate
 from antares.craft.model.xpansion.settings import Master, Solver, UcType, XpansionSettings, XpansionSettingsUpdate
 from antares.craft.service.api_services.models.base_model import APIBaseModel
@@ -90,4 +91,57 @@ def serialize_xpansion_settings_api(
     settings_class: XpansionSettingsType | None, sensitivity_class: XpansionSensitivityType | None
 ) -> dict[str, Any]:
     api_model = XpansionSettingsAPI.from_user_model(settings_class, sensitivity_class)
+    return api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
+
+
+######################
+# Candidates part
+######################
+
+XpansionCandidateType = XpansionCandidate | XpansionCandidateUpdate
+
+
+@all_optional_model
+class XpansionCandidateAPI(APIBaseModel):
+    name: str
+    area_from: str
+    area_to: str
+    annual_cost_per_mw: float
+    already_installed_capacity: int
+    unit_size: float
+    max_units: int
+    max_investment: float
+    direct_link_profile: str
+    indirect_link_profile: str
+    already_installed_direct_link_profile: str
+    already_installed_indirect_link_profile: str
+
+    @staticmethod
+    def from_user_model(user_class: XpansionCandidateType) -> "XpansionCandidateAPI":
+        user_dict = asdict(user_class)
+        return XpansionCandidateAPI.model_validate(user_dict)
+
+    def to_user_model(self) -> XpansionCandidate:
+        return XpansionCandidate(
+            name=self.name,
+            area_from=self.area_from,
+            area_to=self.area_to,
+            annual_cost_per_mw=self.annual_cost_per_mw,
+            already_installed_capacity=self.already_installed_capacity,
+            unit_size=self.unit_size,
+            max_units=self.max_units,
+            max_investment=self.max_investment,
+            direct_link_profile=self.direct_link_profile,
+            indirect_link_profile=self.indirect_link_profile,
+            already_installed_direct_link_profile=self.already_installed_direct_link_profile,
+            already_installed_indirect_link_profile=self.already_installed_indirect_link_profile,
+        )
+
+
+def parse_xpansion_candidate_api(data: dict[str, Any]) -> XpansionCandidate:
+    return XpansionCandidateAPI.model_validate(data).to_user_model()
+
+
+def serialize_xpansion_candidate_api(user_class: XpansionCandidateType) -> dict[str, Any]:
+    api_model = XpansionCandidateAPI.from_user_model(user_class)
     return api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
