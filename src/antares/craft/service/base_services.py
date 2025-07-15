@@ -836,6 +836,13 @@ class BaseXpansionService(ABC):
         """
         pass
 
+    @abstractmethod
+    def create_xpansion_configuration(self) -> "XpansionConfiguration":
+        """
+        Creates an xpansion configuration for a given study
+        """
+        pass
+
 
 @dataclass(frozen=True)
 class StudyServices:

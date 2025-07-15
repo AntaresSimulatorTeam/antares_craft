@@ -24,3 +24,7 @@ class XpansionLocalService(BaseXpansionService):
     @override
     def read_xpansion_configuration(self) -> XpansionConfiguration | None:
         raise NotImplementedError()
+
+    @override
+    def create_xpansion_configuration(self) -> XpansionConfiguration:
+        raise NotImplementedError()

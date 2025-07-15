@@ -98,10 +98,6 @@ class Study:
     def service(self) -> BaseStudyService:
         return self._study_service
 
-    @property
-    def xpansion(self) -> XpansionConfiguration | None:
-        return self._xpansion_configuration
-
     def _read_areas(self) -> None:
         """
         Synchronize the internal study object with the actual object written in an antares study
@@ -406,8 +402,17 @@ class Study:
     def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
         self._study_service.set_scenario_builder(scenario_builder)
 
+    @property
+    def xpansion(self) -> XpansionConfiguration | None:
+        return self._xpansion_configuration
+
     def _read_xpansion_configuration(self) -> None:
         self._xpansion_configuration = self._xpansion_service.read_xpansion_configuration()
+
+    def create_xpansion_configuration(self) -> XpansionConfiguration:
+        configuration = self._xpansion_service.create_xpansion_configuration()
+        self._xpansion_configuration = configuration
+        return configuration
 
 
 # Design note:
