@@ -38,6 +38,7 @@ from antares.craft import (
     ConstraintTermUpdate,
     ExportMPS,
     FilterOption,
+    Frequency,
     GeneralParametersUpdate,
     HydroPropertiesUpdate,
     InitialReservoirLevel,
@@ -48,6 +49,10 @@ from antares.craft import (
     LinkStyle,
     LinkUi,
     LinkUiUpdate,
+    MCAllAreasDataType,
+    MCAllLinksDataType,
+    MCIndAreasDataType,
+    MCIndLinksDataType,
     Mode,
     OptimizationParametersUpdate,
     PlaylistParameters,
@@ -81,13 +86,6 @@ from antares.craft.exceptions.exceptions import (
     StudySettingsUpdateError,
 )
 from antares.craft.model.hydro import InflowStructureUpdate
-from antares.craft.model.output import (
-    Frequency,
-    MCAllAreasDataType,
-    MCAllLinksDataType,
-    MCIndAreasDataType,
-    MCIndLinksDataType,
-)
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters
 from antares.craft.model.settings.study_settings import StudySettings
