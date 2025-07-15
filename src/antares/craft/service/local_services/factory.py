@@ -17,9 +17,12 @@ from typing import Optional
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.study import Study
-from antares.craft.service.base_services import (
-    StudyServices,
+from antares.craft.service.base_services import StudyServices
+from antares.craft.service.local_services.models.settings.adequacy_patch import parse_adequacy_parameters_local
+from antares.craft.service.local_services.models.settings.advanced_parameters import (
+    parse_advanced_and_seed_parameters_local,
 )
+from antares.craft.service.local_services.models.settings.thematic_trimming import parse_thematic_trimming_local
 from antares.craft.service.local_services.services.area import AreaLocalService
 from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
 from antares.craft.service.local_services.services.hydro import HydroLocalService
@@ -36,21 +39,28 @@ from antares.study.version import StudyVersion
 from antares.study.version.create_app import CreateApp
 
 
-def create_local_services(config: LocalConfiguration, study_name: str = "") -> StudyServices:
-    storage_service = ShortTermStorageLocalService(config, study_name)
+def create_local_services(config: LocalConfiguration, study_name: str, study_version: StudyVersion) -> StudyServices:
+    short_term_storage_service = ShortTermStorageLocalService(config, study_name, study_version)
     thermal_service = ThermalLocalService(config, study_name)
     renewable_service = RenewableLocalService(config, study_name)
-    hydro_service = HydroLocalService(config, study_name)
+    hydro_service = HydroLocalService(config, study_name, study_version)
     bc_service = BindingConstraintLocalService(config, study_name)
     area_service = AreaLocalService(
-        config, study_name, storage_service, thermal_service, renewable_service, hydro_service, bc_service
+        config,
+        study_name,
+        study_version,
+        short_term_storage_service,
+        thermal_service,
+        renewable_service,
+        hydro_service,
+        bc_service,
     )
     link_service = LinkLocalService(config, study_name)
     output_service = OutputLocalService(config, study_name)
     study_service = StudyLocalService(config, study_name, output_service)
     run_service = RunLocalService(config, study_name)
-    settings_service = StudySettingsLocalService(config, study_name)
-    short_term_storage_service = ShortTermStorageLocalService(config, study_name)
+    settings_service = StudySettingsLocalService(config, study_name, study_version)
+    short_term_storage_service = ShortTermStorageLocalService(config, study_name, study_version)
     return StudyServices(
         area_service=area_service,
         bc_service=bc_service,
@@ -99,15 +109,21 @@ def create_study_local(
     study = Study(
         name=study_name,
         version=version,
-        services=create_local_services(config=local_config, study_name=study_name),
+        services=create_local_services(config=local_config, study_name=study_name, study_version=study_version),
         path=study_directory,
         solver_path=solver_path,
     )
-    # We need to create the file with default value
+    # We need to create the file with default values
     default_settings = StudySettings()
     update_settings = default_settings.to_update_settings()
-    edit_study_settings(study_directory, update_settings, True)
-    study._settings = default_settings
+    edit_study_settings(study_directory, update_settings, True, study_version)
+    # Initialize settings with the default values
+    study._settings.thematic_trimming_parameters = parse_thematic_trimming_local(study_version, {})
+    advanced_parameters, seed_parameters = parse_advanced_and_seed_parameters_local(study_version, {})
+    study._settings.advanced_parameters = advanced_parameters
+    study._settings.seed_parameters = seed_parameters
+    study._settings.adequacy_patch_parameters = parse_adequacy_parameters_local(study_version, {})
+
     return study
 
 
@@ -130,10 +146,15 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
 
     local_config = LocalConfiguration(study_directory.parent, study_directory.name)
 
+    version = StudyVersion.parse(str(study_params["version"]))
     study = Study(
         name=study_params["caption"],
-        version=study_params["version"],
-        services=create_local_services(config=local_config, study_name=study_params["caption"]),
+        version=f"{version:2d}",
+        services=create_local_services(
+            config=local_config,
+            study_name=study_params["caption"],
+            study_version=version,
+        ),
         path=study_directory,
         solver_path=solver_path,
     )

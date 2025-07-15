@@ -36,13 +36,16 @@ from antares.craft.model.hydro import (
     InflowStructureUpdate,
 )
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
-from antares.craft.model.st_storage import STStorage
+from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.area import AreaPropertiesAPITableMode, AreaUiAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
-from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
+from antares.craft.service.api_services.models.st_storage import (
+    parse_st_storage_api,
+    serialize_st_storage_api,
+)
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.services.area import AreaApiService
 
@@ -88,7 +91,7 @@ class TestCreateAPI:
             mocker.put(url, json={"description": antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 AreasPropertiesUpdateError,
-                match=f"Could not update areas properties from study {self.study_id} : {antares_web_description_msg}",
+                match=f"Could not update areas properties from study '{self.study_id}' : {antares_web_description_msg}",
             ):
                 self.area.update_properties(properties=properties)
 
@@ -124,7 +127,7 @@ class TestCreateAPI:
             mocker.put(url2, json={"description": antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 AreaUiUpdateError,
-                match=f"Could not update ui for area {self.area.id}: {antares_web_description_msg}",
+                match=f"Could not update ui for area '{self.area.id}': {antares_web_description_msg}",
             ):
                 self.area.update_ui(ui)
 
@@ -145,7 +148,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 ThermalCreationError,
-                match=f"Could not create the thermal cluster {thermal_name} inside area {self.area.id}: {self.antares_web_description_msg}",
+                match=f"Could not create the thermal cluster '{thermal_name}' inside area '{self.area.id}': {self.antares_web_description_msg}",
             ):
                 self.area.create_thermal_cluster(thermal_name=thermal_name)
 
@@ -157,7 +160,7 @@ class TestCreateAPI:
             mocker.post(url, json={"name": renewable_name, "id": renewable_name, **json_response}, status_code=201)
 
             renewable = self.area.create_renewable_cluster(
-                renewable_name=renewable_name, properties=RenewableClusterProperties(), series=None
+                renewable_name=renewable_name, properties=RenewableClusterProperties()
             )
             assert isinstance(renewable, RenewableCluster)
 
@@ -169,16 +172,16 @@ class TestCreateAPI:
 
             with pytest.raises(
                 RenewableCreationError,
-                match=f"Could not create the renewable cluster {renewable_name} inside area {self.area.id}: {self.antares_web_description_msg}",
+                match=f"Could not create the renewable cluster '{renewable_name}' inside area '{self.area.id}': {self.antares_web_description_msg}",
             ):
                 self.area.create_renewable_cluster(
-                    renewable_name=renewable_name, properties=RenewableClusterProperties(), series=None
+                    renewable_name=renewable_name, properties=RenewableClusterProperties()
                 )
 
     def test_create_st_storage_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"{self.study_url}/areas/{self.area.id}/storages"
-            json_response = STStoragePropertiesAPI(**{}).model_dump(mode="json", by_alias=True)
+            json_response = serialize_st_storage_api(STStorageProperties())
             st_storage_name = "short_term_storage"
             mocker.post(url, json={"name": st_storage_name, "id": st_storage_name, **json_response}, status_code=201)
 
@@ -193,7 +196,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 STStorageCreationError,
-                match=f"Could not create the short term storage {st_storage_name} inside area {self.area.id}: {self.antares_web_description_msg}",
+                match=f"Could not create the short term storage '{st_storage_name}' inside area '{self.area.id}': {self.antares_web_description_msg}",
             ):
                 self.area.create_st_storage(st_storage_name=st_storage_name)
 
@@ -205,19 +208,11 @@ class TestCreateAPI:
             creation_response = {"name": cluster_name, "id": cluster_name, "group": "nuclear"}
             mocker.post(url, json=creation_response, status_code=200)
 
-            raw_url = f"{base_url}/studies/{self.study_id}/raw"
-            mocker.post(raw_url, json={}, status_code=200)
-
             thermal_cluster = self.area.create_thermal_cluster(
-                thermal_name=cluster_name,
-                properties=ThermalClusterProperties(),
-                prepro=self.matrix,
-                series=self.matrix,
-                fuel_cost=self.matrix,
+                thermal_name=cluster_name, properties=ThermalClusterProperties()
             )
-            # Asserts 4 commands were created
-            # 1 for the properties and 1 for each matrix we filled
-            assert len(mocker.request_history) == 4
+            # Asserts only 1 request was created: for properties
+            assert len(mocker.request_history) == 1
             assert isinstance(thermal_cluster, ThermalCluster)
 
     def test_create_hydro_success(self) -> None:
@@ -329,7 +324,7 @@ class TestCreateAPI:
             renewable_cluster = RenewableCluster(
                 self.area_api.renewable_service, area_id, renewable_id, renewable_props
             )
-            storage_props = STStoragePropertiesAPI.model_validate(storage_).to_user_model()
+            storage_props = parse_st_storage_api(storage_)
             st_storage = STStorage(self.area_api.storage_service, area_id, storage_id, storage_props)
 
             hydro = Hydro(self.area_api.hydro_service, area_id, hydro_properties, inflow_structure)
@@ -372,7 +367,8 @@ class TestCreateAPI:
             mocker.get(url_areas, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 AreasRetrievalError,
-                match=f"Could not retrieve the areas from study {self.study_id} : " + self.antares_web_description_msg,
+                match=f"Could not retrieve the areas from study '{self.study_id}' : "
+                + self.antares_web_description_msg,
             ):
                 self.study._read_areas()
 
@@ -391,7 +387,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 HydroPropertiesUpdateError,
-                match="Could not update hydro properties for area area_test: " + self.antares_web_description_msg,
+                match="Could not update hydro properties for area 'area_test': " + self.antares_web_description_msg,
             ):
                 self.area._hydro_service.update_properties(self.area.id, new_properties)
 
@@ -409,6 +405,7 @@ class TestCreateAPI:
             mocker.put(hydro_url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 HydroInflowStructureUpdateError,
-                match="Could not update hydro inflow-structure for area area_test: " + self.antares_web_description_msg,
+                match="Could not update hydro inflow-structure for area 'area_test': "
+                + self.antares_web_description_msg,
             ):
                 self.area._hydro_service.update_inflow_structure(self.area.id, inflow_structure)

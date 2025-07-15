@@ -44,12 +44,13 @@ from antares.craft.exceptions.exceptions import AntaresSimulationRunningError
 from antares.craft.model.simulation import JobStatus
 
 
-def find_executable_path() -> Path:
+def find_executable_path(version: str) -> Path:
     solver_parent_path = (
         [p for p in Path(__file__).parents if p.name == "antares_craft"][0]
         / "AntaresWebDesktop"
         / "AntaresWeb"
         / "antares_solver"
+        / version
     )
     return list(solver_parent_path.glob("antares-*"))[0]
 
@@ -60,11 +61,11 @@ class TestLocalLauncher:
         # Ensure it's impossible to run a study without giving a solver path at the instantiation
         with pytest.raises(
             AntaresSimulationRunningError,
-            match=re.escape("Could not run the simulation for study test study: No solver path was provided"),
+            match=re.escape("Could not run the simulation for study 'test study': No solver path was provided"),
         ):
             study.run_antares_simulation()
 
-        solver_path = find_executable_path()
+        solver_path = find_executable_path("8_8")
         study = read_study_local(tmp_path / "test study", solver_path)
 
         # Asserts running a simulation without areas fail and doesn't create an output file
@@ -77,7 +78,7 @@ class TestLocalLauncher:
         assert list(output_path.iterdir()) == []
 
     def test_lifecycle(self, tmp_path: Path) -> None:
-        solver_path = find_executable_path()
+        solver_path = find_executable_path("8_8")
         study = create_study_local("test study", "880", tmp_path, solver_path)
         output_path = Path(study.path / "output")
 
@@ -139,7 +140,7 @@ class TestLocalLauncher:
         assert study.get_outputs() == {}
 
     def test_simulation_succeeds_with_real_study(self, tmp_path: Path) -> None:
-        solver_path = find_executable_path()
+        solver_path = find_executable_path("8_8")
         study = create_study_local("test study", "880", tmp_path, solver_path)
 
         # Create 2 areas
@@ -174,7 +175,7 @@ class TestLocalLauncher:
         area_fr.create_renewable_cluster("Wind onshore fr", renewable_properties)
 
         # Create short term storage
-        sts_properties = STStorageProperties(group=STStorageGroup.BATTERY, efficiency=0.4)
+        sts_properties = STStorageProperties(group=STStorageGroup.BATTERY.value, efficiency=0.4)
         area_fr.create_st_storage("Battery fr", sts_properties)
 
         # Create binding constraint

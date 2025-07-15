@@ -54,10 +54,12 @@ from antares.craft import (
     RenewableClusterProperties,
     RenewableClusterPropertiesUpdate,
     RenewableGenerationModeling,
+    SheddingPolicy,
     STStorageGroup,
     STStorageProperties,
     STStoragePropertiesUpdate,
     StudySettingsUpdate,
+    ThematicTrimmingParameters,
     ThermalClusterGroup,
     ThermalClusterProperties,
     ThermalClusterPropertiesUpdate,
@@ -101,7 +103,9 @@ def antares_web() -> Generator[AntaresWebDesktop, None, None]:
 
 
 class TestWebClient:
-    def test_lifecycle(self, antares_web: AntaresWebDesktop, tmp_path: Path) -> None:
+    def test_lifecycle(
+        self, antares_web: AntaresWebDesktop, tmp_path: Path, default_thematic_trimming_88: ThematicTrimmingParameters
+    ) -> None:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
         study = create_study_api("antares-craft-test", "880", api_config)
@@ -117,7 +121,7 @@ class TestWebClient:
         wrong_load_matrix = pd.DataFrame(data=[[0]])
         with pytest.raises(
             MatrixUploadError,
-            match=f"Error uploading load matrix for area {area_fr.id}: Expected 8760 rows and received 1",
+            match=f"Error uploading load matrix for area '{area_fr.id}': Expected 8760 rows and received 1",
         ):
             area_fr.set_load(wrong_load_matrix)
 
@@ -225,15 +229,12 @@ class TestWebClient:
         series_matrix.equals(indirect_matrix)
 
         # Case that succeeds
-        thermal_value_be = area_fr.create_thermal_cluster(
-            thermal_name=thermal_name,
-            properties=thermal_properties,
-            prepro=prepro_modulation_matrix,
-            modulation=modulation_matrix,
-            series=series_matrix,
-            co2_cost=co2_cost_matrix,
-            fuel_cost=fuel_cost_matrix,
-        )
+        thermal_value_be = area_fr.create_thermal_cluster(thermal_name=thermal_name, properties=thermal_properties)
+        thermal_value_be.set_series(series_matrix)
+        thermal_value_be.set_prepro_modulation(modulation_matrix)
+        thermal_value_be.set_prepro_data(prepro_modulation_matrix)
+        thermal_value_be.set_co2_cost(co2_cost_matrix)
+        thermal_value_be.set_fuel_cost(fuel_cost_matrix)
 
         # Updating multiple thermal clusters properties at once
         thermal_update_1 = ThermalClusterPropertiesUpdate(marginal_cost=10.7, enabled=False, nominal_capacity=9.8)
@@ -274,14 +275,14 @@ class TestWebClient:
 
         # test renewable cluster creation with default values
         renewable_name = "cluster_test %?"
-        renewable_fr = area_fr.create_renewable_cluster(renewable_name, None, None)
+        renewable_fr = area_fr.create_renewable_cluster(renewable_name, None)
         assert renewable_fr.name == renewable_name
         assert renewable_fr.id == "cluster_test"
 
         # test renewable cluster creation with properties
         renewable_name = "wind_onshore"
         renewable_properties = RenewableClusterProperties(enabled=False, group=RenewableClusterGroup.WIND_ON_SHORE)
-        renewable_onshore = area_fr.create_renewable_cluster(renewable_name, renewable_properties, None)
+        renewable_onshore = area_fr.create_renewable_cluster(renewable_name, renewable_properties)
         assert not renewable_onshore.properties.enabled
         assert renewable_onshore.properties.group == RenewableClusterGroup.WIND_ON_SHORE
 
@@ -335,11 +336,11 @@ class TestWebClient:
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
-        storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY)
+        storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY.value)
         battery_fr = area_fr.create_st_storage(st_storage_name, storage_properties)
         properties = battery_fr.properties
         assert properties.reservoir_capacity == 0.5
-        assert properties.group == STStorageGroup.BATTERY
+        assert properties.group == STStorageGroup.BATTERY.value
 
         # checking multiple areas properties update
         area_props_update_1 = AreaPropertiesUpdate(
@@ -381,23 +382,23 @@ class TestWebClient:
 
         # using update_st_storages to modify existing storages properties and checking they've been modified
         battery_fr_update = STStoragePropertiesUpdate(
-            group=STStorageGroup.PSP_CLOSED, enabled=False, injection_nominal_capacity=1000
+            group=STStorageGroup.PSP_CLOSED.value, enabled=False, injection_nominal_capacity=1000
         )
-        storage_fr_update = STStoragePropertiesUpdate(group=STStorageGroup.PONDAGE, efficiency=0)
+        storage_fr_update = STStoragePropertiesUpdate(group=STStorageGroup.PONDAGE.value, efficiency=0)
         update_for_storages = {battery_fr: battery_fr_update, storage_fr: storage_fr_update}
 
         study.update_st_storages(update_for_storages)
 
         battery_fr_properties = battery_fr.properties
         storage_fr_properties = storage_fr.properties
-        assert battery_fr_properties.group == STStorageGroup.PSP_CLOSED
+        assert battery_fr_properties.group == STStorageGroup.PSP_CLOSED.value
         assert not battery_fr_properties.enabled
         assert battery_fr_properties.injection_nominal_capacity == 1000
         # Checking if the other values haven't been modified
         assert battery_fr_properties.initial_level == 0.5
         assert battery_fr_properties.efficiency == 1
 
-        assert storage_fr_properties.group == STStorageGroup.PONDAGE
+        assert storage_fr_properties.group == STStorageGroup.PONDAGE.value
         assert storage_fr_properties.efficiency == 0
         # Checking if the other values haven't been modified
         assert storage_fr_properties.enabled
@@ -451,14 +452,14 @@ class TestWebClient:
         wrong_matrix = pd.DataFrame(data=(np.ones((12, 1))))
         with pytest.raises(
             BindingConstraintCreationError,
-            match="Could not create the binding constraint bc_3",
+            match="Could not create the binding constraint 'bc_3'",
         ):
             study.create_binding_constraint(name="bc_3", less_term_matrix=wrong_matrix)
 
         # Other case with failure
         with pytest.raises(
             ConstraintMatrixUpdateError,
-            match=f"Could not update matrix eq for binding constraint {constraint_2.id}",
+            match=f"Could not update matrix eq for binding constraint '{constraint_2.id}'",
         ):
             constraint_2.set_equal_term(wrong_matrix)
 
@@ -572,9 +573,9 @@ class TestWebClient:
         assert renewable_onshore.properties.ts_interpretation == TimeSeriesInterpretation.POWER_GENERATION
 
         # tests short term storage properties update
-        new_props = STStoragePropertiesUpdate(group=STStorageGroup.PONDAGE)
+        new_props = STStoragePropertiesUpdate(group=STStorageGroup.PONDAGE.value)
         battery_fr.update_properties(new_props)
-        assert battery_fr.properties.group == STStorageGroup.PONDAGE
+        assert battery_fr.properties.group == STStorageGroup.PONDAGE.value
         assert battery_fr.properties.reservoir_capacity == 0.5  # Checks old value wasn't modified
 
         # tests constraint properties update
@@ -709,7 +710,7 @@ class TestWebClient:
         default_settings = StudySettings()
         assert actual_settings.general_parameters == default_settings.general_parameters
         assert actual_settings.advanced_parameters == default_settings.advanced_parameters
-        assert actual_settings.thematic_trimming_parameters == default_settings.thematic_trimming_parameters
+        assert actual_settings.thematic_trimming_parameters == default_thematic_trimming_88
         assert actual_settings.adequacy_patch_parameters == default_settings.adequacy_patch_parameters
         assert actual_settings.seed_parameters == default_settings.seed_parameters
         assert actual_settings.playlist_parameters == {1: PlaylistParameters(status=False, weight=1)}
@@ -993,6 +994,107 @@ class TestWebClient:
         update_settings.optimization_parameters = OptimizationParametersUpdate(include_exportstructure=True)
         with pytest.raises(
             StudySettingsUpdateError,
-            match=f"Could not update settings for study {imported_study.service.study_id}: AntaresWeb doesn't support editing the parameter include_exportstructure",
+            match=f"Could not update settings for study '{imported_study.service.study_id}': AntaresWeb doesn't support editing the parameter include_exportstructure",
         ):
             imported_study.update_settings(update_settings)
+
+        ######################
+        # Specific tests for study version 9.2
+        ######################
+
+        # Create a study with an area
+        study = create_study_api("Study_92", "9.2", api_config)
+        area_fr = study.create_area("FR")
+
+        ########## Short-Term storage ##########
+
+        sts_properties = STStorageProperties(efficiency=0.9, efficiency_withdrawal=0.9, group="free group")
+        storage = area_fr.create_st_storage("sts_test", sts_properties)
+        assert storage.properties.efficiency_withdrawal == 0.9
+        assert storage.properties.efficiency == 0.9
+        assert storage.properties.group == "free group"
+        assert storage.properties.penalize_variation_injection is False
+
+        new_properties = STStoragePropertiesUpdate(group="new group", penalize_variation_injection=True)
+        storage.update_properties(new_properties)
+        assert storage.properties.efficiency_withdrawal == 0.9
+        assert storage.properties.group == "new group"
+        assert storage.properties.penalize_variation_injection is True
+
+        assert storage.get_cost_variation_injection().equals(pd.DataFrame(np.zeros((8760, 1))))
+        new_matrix = pd.DataFrame(np.full((8760, 4), 10))
+        storage.set_cost_variation_withdrawal(new_matrix)
+        assert storage.get_cost_variation_withdrawal().equals(new_matrix)
+
+        ########## Hydro ##########
+
+        assert area_fr.hydro.properties.overflow_spilled_cost_difference == 1
+        assert area_fr.hydro.properties.reservoir is False
+        assert area_fr.hydro.properties.reservoir_capacity == 0
+
+        new_hydro_properties = HydroPropertiesUpdate(overflow_spilled_cost_difference=0.3, reservoir_capacity=1)
+        area_fr.hydro.update_properties(new_hydro_properties)
+        assert area_fr.hydro.properties.overflow_spilled_cost_difference == 0.3
+        assert area_fr.hydro.properties.reservoir is False
+        assert area_fr.hydro.properties.reservoir_capacity == 1
+
+        ########## Thematic trimming ##########
+
+        thematic_trimming = study.get_settings().thematic_trimming_parameters
+        assert thematic_trimming.sts_by_group is True
+        assert thematic_trimming.oil is True
+        assert thematic_trimming.nuclear is True
+        assert thematic_trimming.psp_open_level is None
+
+        new_trimming = ThematicTrimmingParameters(sts_by_group=False, oil=False)
+        study.set_thematic_trimming(new_trimming)
+        thematic_trimming = study.get_settings().thematic_trimming_parameters
+        assert thematic_trimming.sts_by_group is False
+        assert thematic_trimming.oil is False
+        assert thematic_trimming.nuclear is True
+        assert thematic_trimming.psp_open_level is None
+
+        ########## Settings ##########
+        settings = study.get_settings()
+        assert settings.adequacy_patch_parameters.set_to_null_ntc_between_physical_out_for_first_step is None
+        assert settings.advanced_parameters.shedding_policy == SheddingPolicy.ACCURATE_SHAVE_PEAKS
+        new_settings = StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4))
+        study.update_settings(new_settings)
+        assert study.get_settings().general_parameters.nb_years == 4
+
+        ########## Scenario Builder ##########
+        sc_builder = study.get_scenario_builder()
+        assert sc_builder.load.get_area("fr").get_scenario() == [None, None, None, None]
+        assert sc_builder.hydro_final_level.get_area("fr").get_scenario() == [None, None, None, None]
+        assert sc_builder.hydro_initial_level.get_area("fr").get_scenario() == [None, None, None, None]
+
+        sc_builder.load.get_area("fr").set_new_scenario([None, None, 2, 4])
+        sc_builder.hydro_final_level.get_area("fr").set_new_scenario([1, 4, 2, 3])
+        study.set_scenario_builder(sc_builder)
+
+        sc_builder = study.get_scenario_builder()
+        assert sc_builder.load.get_area("fr").get_scenario() == [None, None, 2, 4]
+        assert sc_builder.hydro_final_level.get_area("fr").get_scenario() == [1, 4, 2, 3]
+        assert sc_builder.hydro_initial_level.get_area("fr").get_scenario() == [None, None, None, None]
+
+        ########## Simulation ##########
+
+        parameters = AntaresSimulationParameters(nb_cpu=4, output_suffix="test_integration")
+        job = study.run_antares_simulation(parameters)
+        assert isinstance(job, Job)
+        assert job.status == JobStatus.PENDING
+
+        study.wait_job_completion(job, time_out=60)
+        assert job.status == JobStatus.SUCCESS
+
+        ########## Outputs ##########
+
+        output = list(study.get_outputs().values())[0]
+        assert output.name.endswith("test_integration")
+        aggregated_df = output.aggregate_mc_all_areas(
+            MCAllAreasDataType.VALUES, Frequency.ANNUAL, columns_names=["NODU EXP", "LOLD MAX"]
+        )
+        cols = ["area", "timeId", "LOLD MAX", "NODU EXP"]
+        data = [["fr", 1, 0.0, 0.0]]
+        expected_df = pd.DataFrame(data=data, columns=cols)
+        assert expected_df.equals(aggregated_df)

@@ -26,7 +26,7 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.area import Area
 from antares.craft.model.st_storage import STStorage, STStoragePropertiesUpdate
 from antares.craft.service.api_services.factory import create_api_services
-from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
+from antares.craft.service.api_services.models.st_storage import parse_st_storage_api
 from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.api_services.services.st_storage import ShortTermStorageApiService
 
@@ -66,7 +66,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 ClustersPropertiesUpdateError,
-                match=f"Could not update properties of the short term storage clusters from study {self.study_id} : {self.antares_web_description_msg}",
+                match=f"Could not update properties of the short term storage clusters from study '{self.study_id}' : {self.antares_web_description_msg}",
             ):
                 self.study.update_st_storages({self.storage: properties})
 
@@ -83,8 +83,8 @@ class TestCreateAPI:
             mocker.get(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 STStorageMatrixDownloadError,
-                match=f"Could not download inflows matrix for storage {self.storage.id} "
-                f"inside area {self.area.id}: {self.antares_web_description_msg}",
+                match=f"Could not download inflows matrix for storage '{self.storage.id}' "
+                f"inside area '{self.area.id}': {self.antares_web_description_msg}",
             ):
                 self.storage.get_storage_inflows()
 
@@ -100,7 +100,7 @@ class TestCreateAPI:
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 STStorageMatrixUploadError,
-                match=f"Could not upload inflows matrix for storage {self.storage.id} inside area {self.area.id}:"
+                match=f"Could not upload inflows matrix for storage '{self.storage.id}' inside area '{self.area.id}':"
                 f" {self.antares_web_description_msg}",
             ):
                 self.storage.set_storage_inflows(self.matrix)
@@ -136,7 +136,7 @@ class TestCreateAPI:
 
             area_id, storage_id = list(json_storage.keys())[0].split(" / ")
 
-            storage_props = STStoragePropertiesAPI.model_validate(list(json_storage.values())[0]).to_user_model()
+            storage_props = parse_st_storage_api(list(json_storage.values())[0])
             expected_st_storage = STStorage(area_api.storage_service, area_id, storage_id, storage_props)
 
             assert len(actual_storages) == 1
@@ -209,11 +209,11 @@ class TestCreateAPI:
 
             assert storage.properties.initial_level == json_storages["study_test / battery_fr"]["initialLevel"]
             assert storage.properties.efficiency == json_storages["study_test / battery_fr"]["efficiency"]
-            assert storage.properties.group.value == json_storages["study_test / battery_fr"]["group"]
+            assert storage.properties.group == json_storages["study_test / battery_fr"]["group"]
 
             assert storage_1.properties.initial_level == json_storages["study_test / duracell"]["initialLevel"]
             assert storage_1.properties.efficiency == json_storages["study_test / duracell"]["efficiency"]
-            assert storage_1.properties.group.value == json_storages["study_test / duracell"]["group"]
+            assert storage_1.properties.group == json_storages["study_test / duracell"]["group"]
 
     def test_update_st_storages_properties_fail(self) -> None:
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/st-storages"
@@ -222,6 +222,6 @@ class TestCreateAPI:
             mocker.put(url, json={"description": self.antares_web_description_msg}, status_code=400)
             with pytest.raises(
                 ClustersPropertiesUpdateError,
-                match=f"Could not update properties of the short term storage clusters from study {self.study_id} : {self.antares_web_description_msg}",
+                match=f"Could not update properties of the short term storage clusters from study '{self.study_id}' : {self.antares_web_description_msg}",
             ):
                 self.study.update_st_storages({})

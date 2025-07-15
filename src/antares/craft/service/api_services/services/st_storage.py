@@ -28,7 +28,10 @@ from antares.craft.model.st_storage import (
     STStorageProperties,
     STStoragePropertiesUpdate,
 )
-from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
+from antares.craft.service.api_services.models.st_storage import (
+    parse_st_storage_api,
+    serialize_st_storage_api,
+)
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseShortTermStorageService
 
@@ -66,8 +69,7 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
 
         for key, storage in json_storage.items():
             area_id, storage_id = key.split(" / ")
-            api_props = STStoragePropertiesAPI.model_validate(storage)
-            storage_props = api_props.to_user_model()
+            storage_props = parse_st_storage_api(storage)
             st_storage = STStorage(self, area_id, storage_id, storage_props)
 
             storages.setdefault(area_id, {})[st_storage.id] = st_storage
@@ -84,8 +86,7 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
         cluster_dict = {}
 
         for storage, props in new_properties.items():
-            api_properties = STStoragePropertiesAPI.from_user_model(props)
-            api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+            api_dict = serialize_st_storage_api(props)
             cluster_id = f"{storage.area_id} / {storage.id}"
             body[cluster_id] = api_dict
 
@@ -95,8 +96,7 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
             json_response = self._wrapper.put(url, json=body).json()
             for key, json_properties in json_response.items():
                 if key in cluster_dict:  # Currently AntaresWeb returns all clusters not only the modified ones
-                    api_properties = STStoragePropertiesAPI.model_validate(json_properties)
-                    storage_properties = api_properties.to_user_model()
+                    storage_properties = parse_st_storage_api(json_properties)
                     updated_storages.update({cluster_dict[key]: storage_properties})
 
         except APIError as e:

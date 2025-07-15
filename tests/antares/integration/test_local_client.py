@@ -54,7 +54,7 @@ class TestLocalClient:
         # Area already exists
         with pytest.raises(
             AreaCreationError,
-            match="Could not create the area fr: There is already an area 'fr' in the study 'test study'",
+            match="Could not create the area 'fr': There is already an area 'fr' in the study 'test study'",
         ):
             test_study.create_area("fr")
 
@@ -62,7 +62,7 @@ class TestLocalClient:
         at_fr = test_study.create_link(area_from=fr.id, area_to=at.id)
 
         # Cannot create a link from an area that doesn't exist in the study
-        with pytest.raises(LinkCreationError, match="Could not create the link fr / usa: usa does not exist"):
+        with pytest.raises(LinkCreationError, match="Could not create the link 'fr / usa': usa does not exist"):
             test_study.create_link(area_from=fr.id, area_to="usa")
 
         # Thermal
@@ -147,14 +147,14 @@ class TestLocalClient:
 
         # test renewable cluster creation with default values
         renewable_name = "cluster_test"
-        renewable_fr = fr.create_renewable_cluster(renewable_name, None, None)
+        renewable_fr = fr.create_renewable_cluster(renewable_name, None)
         assert renewable_fr.name == renewable_name
         assert renewable_fr.id == "cluster_test"
 
         # test renewable cluster creation with properties
         renewable_name = "wind_onshore"
         renewable_properties = RenewableClusterProperties(enabled=False, group=RenewableClusterGroup.WIND_ON_SHORE)
-        renewable_onshore = fr.create_renewable_cluster(renewable_name, renewable_properties, None)
+        renewable_onshore = fr.create_renewable_cluster(renewable_name, renewable_properties)
         assert not renewable_onshore.properties.enabled
         assert renewable_onshore.properties.group == RenewableClusterGroup.WIND_ON_SHORE
 
@@ -166,10 +166,10 @@ class TestLocalClient:
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
-        storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY)
+        storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY.value)
         battery_fr = fr.create_st_storage(st_storage_name, storage_properties)
         assert battery_fr.properties.reservoir_capacity == 0.5
-        assert battery_fr.properties.group == STStorageGroup.BATTERY
+        assert battery_fr.properties.group == STStorageGroup.BATTERY.value
 
         # test binding constraint creation without terms
         bc_props = BindingConstraintProperties(enabled=False, group="group_1")

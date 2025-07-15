@@ -152,7 +152,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 StudyCreationError,
-                match=f"Could not create the study {study_name}: {self.antares_web_description_msg}",
+                match=f"Could not create the study '{study_name}': {self.antares_web_description_msg}",
             ):
                 create_study_api(study_name, "880", self.api)
 
@@ -176,7 +176,7 @@ class TestCreateAPI:
             mocker.put(config_urls, json={"description": antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 StudySettingsUpdateError,
-                match=f"Could not update settings for study {self.study_id}: {antares_web_description_msg}",
+                match=f"Could not update settings for study '{self.study_id}': {antares_web_description_msg}",
             ):
                 self.study.update_settings(settings)
 
@@ -208,7 +208,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 AreaCreationError,
-                match=f"Could not create the area {area_name}: {self.antares_web_description_msg}",
+                match=f"Could not create the area '{area_name}': {self.antares_web_description_msg}",
             ):
                 self.study.create_area(area_name)
 
@@ -258,7 +258,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 BindingConstraintCreationError,
-                match=f"Could not create the binding constraint {constraint_name}: {self.antares_web_description_msg}",
+                match=f"Could not create the binding constraint '{constraint_name}': {self.antares_web_description_msg}",
             ):
                 self.study.create_binding_constraint(name=constraint_name)
 
@@ -433,7 +433,7 @@ class TestCreateAPI:
 
         with pytest.raises(
             LinkCreationError,
-            match=f"Could not create the link {area_a} / {area_b}: A link from {area_a} to {area_b} already exists",
+            match=f"Could not create the link '{area_a} / {area_b}': A link from {area_a} to {area_b} already exists",
         ):
             self.study.create_link(area_from=area_b, area_to=area_a)
 
@@ -452,7 +452,7 @@ class TestCreateAPI:
 
         with pytest.raises(
             LinkCreationError,
-            match=f"Could not create the link {area_from} / {area_to}: {area_to} does not exist",
+            match=f"Could not create the link '{area_from} / {area_to}': {area_to} does not exist",
         ):
             self.study.create_link(area_from=area_from, area_to=area_to)
 
@@ -470,7 +470,7 @@ class TestCreateAPI:
 
         with pytest.raises(
             LinkCreationError,
-            match=f"Could not create the link {area} / {area}: A link cannot start and end at the same area",
+            match=f"Could not create the link '{area} / {area}': A link cannot start and end at the same area",
         ):
             self.study.create_link(area_from=area, area_to=area)
 
@@ -951,7 +951,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             mocker.post(url_import, json=self.study_id)
             mocker.get(url_read_study, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
-                StudyImportError, match=f"Could not import the study test.zip : {self.antares_web_description_msg}"
+                StudyImportError, match=f"Could not import the study 'test.zip' : {self.antares_web_description_msg}"
             ):
                 import_study_api(self.api, study_path)
 
@@ -1048,7 +1048,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
 
             with pytest.raises(
                 AreasPropertiesUpdateError,
-                match=f"Could not update areas properties from study {self.study_id} : {self.antares_web_description_msg}",
+                match=f"Could not update areas properties from study '{self.study_id}' : {self.antares_web_description_msg}",
             ):
                 self.study.update_areas({})
 
@@ -1125,7 +1125,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
 
             with pytest.raises(
                 LinksPropertiesUpdateError,
-                match=f"Could not update links properties from study {self.study_id} : {self.antares_web_description_msg}",
+                match=f"Could not update links properties from study '{self.study_id}' : {self.antares_web_description_msg}",
             ):
                 self.study.update_links({})
 
@@ -1174,7 +1174,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
 
             with pytest.raises(
                 ConstraintsPropertiesUpdateError,
-                match=f"Could not update binding constraints properties from study {self.study_id}: {self.antares_web_description_msg}",
+                match=f"Could not update binding constraints properties from study '{self.study_id}': {self.antares_web_description_msg}",
             ):
                 self.study.update_binding_constraints({})
 
@@ -1204,6 +1204,6 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             mocker.get(url, status_code=400, json={"description": self.antares_web_description_msg})
             with pytest.raises(
                 ScenarioBuilderReadingError,
-                match=f"Could not read the scenario builder for study {self.study_id}: {self.antares_web_description_msg}",
+                match=f"Could not read the scenario builder for study '{self.study_id}': {self.antares_web_description_msg}",
             ):
                 self.study.get_scenario_builder()

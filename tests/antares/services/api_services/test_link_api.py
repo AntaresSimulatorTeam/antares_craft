@@ -93,7 +93,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinksPropertiesUpdateError,
-                match=f"Could not update links properties from study {self.study_id} : {antares_web_description_msg}",
+                match=f"Could not update links properties from study '{self.study_id}' : {antares_web_description_msg}",
             ):
                 self.link.update_properties(update_properties)
 
@@ -117,7 +117,7 @@ class TestCreateAPI:
             mocker.put(url, json={"description": antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 LinkUiUpdateError,
-                match=f"Could not update ui for link {self.link.id}: {antares_web_description_msg}",
+                match=f"Could not update ui for link '{self.link.id}': {antares_web_description_msg}",
             ):
                 self.link.update_ui(update_ui)
 
@@ -138,7 +138,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinkUploadError,
-                match=f"Error uploading parameters matrix for link {self.link.area_from_id}/{self.link.area_to_id}",
+                match=f"Error uploading parameters matrix for link '{self.link.area_from_id}/{self.link.area_to_id}'",
             ):
                 self.link.set_parameters(self.matrix)
 
@@ -159,7 +159,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinkUploadError,
-                match=f"Error uploading directcapacity matrix for link {self.link.area_from_id}/{self.link.area_to_id}",
+                match=f"Error uploading directcapacity matrix for link '{self.link.area_from_id}/{self.link.area_to_id}'",
             ):
                 self.link.set_capacity_direct(self.matrix)
 
@@ -179,7 +179,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinkUploadError,
-                match=f"Error uploading indirectcapacity matrix for link {self.link.area_from_id}/{self.link.area_to_id}",
+                match=f"Error uploading indirectcapacity matrix for link '{self.link.area_from_id}/{self.link.area_to_id}'",
             ):
                 self.link.set_capacity_indirect(self.matrix)
 
@@ -199,7 +199,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinkDownloadError,
-                match=f"Could not download parameters matrix for link {self.area_from.id}/{self.area_to.id}",
+                match=f"Could not download parameters matrix for link '{self.area_from.id}/{self.area_to.id}'",
             ):
                 self.link.get_parameters()
 
@@ -219,7 +219,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinkDownloadError,
-                match=f"Could not download indirectcapacity matrix for link {self.area_from.id}/{self.area_to.id}",
+                match=f"Could not download indirectcapacity matrix for link '{self.area_from.id}/{self.area_to.id}'",
             ):
                 self.link.get_capacity_indirect()
 
@@ -239,7 +239,7 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinkDownloadError,
-                match=f"Could not download directcapacity matrix for link {self.area_from.id}/{self.area_to.id}",
+                match=f"Could not download directcapacity matrix for link '{self.area_from.id}/{self.area_to.id}'",
             ):
                 self.link.get_capacity_direct()
 
@@ -285,6 +285,6 @@ class TestCreateAPI:
 
             with pytest.raises(
                 LinksRetrievalError,
-                match=f"Could not retrieve links from study {self.study_id} : {self.antares_web_description_msg}",
+                match=f"Could not retrieve links from study '{self.study_id}' : {self.antares_web_description_msg}",
             ):
                 self.study._read_links()

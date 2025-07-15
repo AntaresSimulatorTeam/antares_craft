@@ -20,6 +20,7 @@ import pandas as pd
 from antares.craft.config.base_configuration import BaseConfiguration
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
+from antares.study.version import StudyVersion
 
 if TYPE_CHECKING:
     from antares.craft import PlaylistParameters, ScenarioBuilder, ThematicTrimmingParameters
@@ -90,15 +91,7 @@ class BaseAreaService(ABC):
 
     @abstractmethod
     def create_thermal_cluster(
-        self,
-        area_id: str,
-        cluster_name: str,
-        properties: Optional["ThermalClusterProperties"] = None,
-        prepro: Optional[pd.DataFrame] = None,
-        modulation: Optional[pd.DataFrame] = None,
-        series: Optional[pd.DataFrame] = None,
-        co2_cost: Optional[pd.DataFrame] = None,
-        fuel_cost: Optional[pd.DataFrame] = None,
+        self, area_id: str, cluster_name: str, properties: Optional["ThermalClusterProperties"] = None
     ) -> "ThermalCluster":
         """
         Args:
@@ -106,11 +99,6 @@ class BaseAreaService(ABC):
             area_id: area id in which to create the thermal cluster
             cluster_name: thermal cluster nam
             properties: properties of the thermal cluster.
-            prepro: matrix corresponding to prepro/data.txt
-            modulation: matrix corresponding to prepro/modulation.txt
-            series: matrix for series/series.txt
-            co2_cost: matrix for series/CO2Cost.txt
-            fuel_cost: matrix for series/fuelCost.txt
 
         Returns:
            Thermal cluster created
@@ -119,18 +107,13 @@ class BaseAreaService(ABC):
 
     @abstractmethod
     def create_renewable_cluster(
-        self,
-        area_id: str,
-        renewable_name: str,
-        properties: Optional["RenewableClusterProperties"] = None,
-        series: Optional[pd.DataFrame] = None,
+        self, area_id: str, renewable_name: str, properties: Optional["RenewableClusterProperties"] = None
     ) -> "RenewableCluster":
         """
         Args:
             area_id: the area id in which to create the renewable cluster
             renewable_name: the name of the renewable cluster
             properties: the properties of the renewable cluster. If not provided, AntaresWeb will use its own default values.
-            series: matrix for renewables/area_id/renewable_name/series.txt
 
         Returns:
             The created renewable cluster
@@ -153,13 +136,13 @@ class BaseAreaService(ABC):
     ) -> "STStorage":
         """
         Args:
-
-            area_id: the area id in which to create the short term storage
-            st_storage_name: the name of the short term storage
-            properties: the properties of the short term storage. If not provided, AntaresWeb will use its own default values.
+            area_id: area in which st_storage will be created
+            st_storage_name: name of new st_storage
+            properties: if 'None', default values will be used,
+                        otherwise custom parameters to be validated with the study version
 
         Returns:
-            The created short term storage
+            New st_storage
         """
         pass
 
@@ -830,12 +813,13 @@ class BaseOutputService(ABC):
 
 class BaseStudySettingsService(ABC):
     @abstractmethod
-    def edit_study_settings(self, settings: StudySettingsUpdate) -> None:
+    def edit_study_settings(self, settings: StudySettingsUpdate, study_version: StudyVersion) -> None:
         """
         Edit the settings for a given study
 
         Args:
             settings: the settings to update with their values
+            study_version: the version of the current study
         """
         pass
 
@@ -849,14 +833,16 @@ class BaseStudySettingsService(ABC):
     @abstractmethod
     def set_playlist(self, new_playlist: dict[int, "PlaylistParameters"]) -> None:
         """
-        Set new playlist for the study
+        Set a new playlist for the study
         """
         pass
 
     @abstractmethod
-    def set_thematic_trimming(self, new_thematic_trimming: "ThematicTrimmingParameters") -> None:
+    def set_thematic_trimming(
+        self, new_thematic_trimming: "ThematicTrimmingParameters"
+    ) -> "ThematicTrimmingParameters":
         """
-        Set new playlist for the study
+        Set new thematic trimming for the study
         """
         pass
 

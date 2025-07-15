@@ -13,8 +13,6 @@ import pytest
 
 from pathlib import Path
 
-import pandas as pd
-
 from antares.craft import LinkProperties, LinkUi, create_study_local
 from antares.craft.model.area import Area, AreaProperties, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -123,7 +121,7 @@ def local_study_with_hydro(local_study_with_st_storage: Study) -> Study:
 
 
 @pytest.fixture
-def default_hydro_properties() -> HydroProperties:
+def default_hydro_properties_88() -> HydroProperties:
     return HydroProperties(
         inter_daily_breakdown=1,
         intra_daily_modulation=24,
@@ -140,27 +138,13 @@ def default_hydro_properties() -> HydroProperties:
         leeway_low=1,
         leeway_up=1,
         pumping_efficiency=1,
+        overflow_spilled_cost_difference=None,
     )
 
 
 @pytest.fixture
 def area_fr(local_study_with_hydro: Study) -> Area:
     return local_study_with_hydro.get_areas()["fr"]
-
-
-@pytest.fixture
-def fr_solar(area_fr: Area) -> None:
-    return area_fr.set_solar(pd.DataFrame())
-
-
-@pytest.fixture
-def fr_wind(area_fr: Area) -> None:
-    return area_fr.set_wind(pd.DataFrame())
-
-
-@pytest.fixture
-def fr_load(area_fr: Area) -> None:
-    return area_fr.set_load(pd.DataFrame())
 
 
 @pytest.fixture
@@ -172,3 +156,21 @@ def local_study_with_constraint(local_study_with_hydro: Study) -> Study:
 @pytest.fixture
 def test_constraint(local_study_with_constraint: Study) -> BindingConstraint:
     return local_study_with_constraint.get_binding_constraints()["test constraint"]
+
+
+@pytest.fixture
+def local_study_92(tmp_path: Path) -> Study:
+    study_name = "study_92"
+    study_version = "9.2"
+
+    local_study = create_study_local(study_name, study_version, tmp_path.absolute())
+
+    areas_to_create = ["fr", "it"]
+    for area in areas_to_create:
+        area_properties = AreaProperties(
+            energy_cost_spilled=1, energy_cost_unsupplied=0.5, filter_synthesis={FilterOption.WEEKLY}
+        )
+        area_ui = AreaUi(x=56)
+        local_study.create_area(area, properties=area_properties, ui=area_ui)
+
+    return local_study

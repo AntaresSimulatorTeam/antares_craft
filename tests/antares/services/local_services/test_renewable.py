@@ -11,14 +11,17 @@
 # This file is part of the Antares project.
 import pytest
 
+import copy
 import re
 
 from pathlib import Path
 
 import pandas as pd
 
+from checksumdir import dirhash
+
 from antares.craft import RenewableClusterGroup, Study, TimeSeriesInterpretation, read_study_local
-from antares.craft.exceptions.exceptions import MatrixFormatError
+from antares.craft.exceptions.exceptions import MatrixFormatError, RenewablePropertiesUpdateError
 from antares.craft.model.renewable import RenewableClusterProperties, RenewableClusterPropertiesUpdate
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
@@ -84,6 +87,28 @@ class TestRenewable:
 
         # testing the unmodified value
         assert renewable.properties.group == RenewableClusterGroup.OTHER1
+
+    def test_update_several_properties_fails(self, local_study_with_renewable: Study) -> None:
+        """
+        Ensures the update fails as the area doesn't exist.
+        We also want to ensure the study wasn't partially modified.
+        """
+        update_for_renewable = RenewableClusterPropertiesUpdate(enabled=False, unit_count=13)
+        renewable = local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"]
+        fake_renewable = copy.deepcopy(renewable)
+        fake_renewable._area_id = "fake"
+        dict_renewable = {renewable: update_for_renewable, fake_renewable: update_for_renewable}
+        renewable_folder = Path(local_study_with_renewable.path) / "input" / "renewables"
+        hash_before_update = dirhash(renewable_folder, "md5")
+        with pytest.raises(
+            RenewablePropertiesUpdateError,
+            match=re.escape(
+                "Could not update properties for renewable cluster 'renewable cluster' inside area 'fake': The cluster does not exist"
+            ),
+        ):
+            local_study_with_renewable.update_renewable_clusters(dict_renewable)
+        hash_after_update = dirhash(renewable_folder, "md5")
+        assert hash_before_update == hash_after_update
 
     def test_read_renewable_group_with_weird_case(self, local_study_with_renewable: Study) -> None:
         """Asserts we're able to read a group written in a weird case"""

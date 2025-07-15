@@ -16,7 +16,12 @@ from typing_extensions import override
 from antares.craft import ThematicTrimmingParameters
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
-from antares.craft.exceptions.exceptions import APIError, StudySettingsReadError, StudySettingsUpdateError
+from antares.craft.exceptions.exceptions import (
+    APIError,
+    StudySettingsReadError,
+    StudySettingsUpdateError,
+    ThematicTrimmingUpdateError,
+)
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.service.api_services.models.settings import (
@@ -24,9 +29,11 @@ from antares.craft.service.api_services.models.settings import (
     AdvancedAndSeedParametersAPI,
     GeneralParametersAPI,
     OptimizationParametersAPI,
-    ThematicTrimmingParametersAPI,
+    parse_thematic_trimming_api,
+    serialize_thematic_trimming_api,
 )
 from antares.craft.service.base_services import BaseStudySettingsService
+from antares.study.version import StudyVersion
 
 
 class StudySettingsAPIService(BaseStudySettingsService):
@@ -38,7 +45,7 @@ class StudySettingsAPIService(BaseStudySettingsService):
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
     @override
-    def edit_study_settings(self, settings: StudySettingsUpdate) -> None:
+    def edit_study_settings(self, settings: StudySettingsUpdate, study_version: StudyVersion) -> None:
         try:
             edit_study_settings(self._base_url, self.study_id, self._wrapper, settings)
         except APIError as e:
@@ -60,11 +67,14 @@ class StudySettingsAPIService(BaseStudySettingsService):
         self._wrapper.put(playlist_url, json=body)
 
     @override
-    def set_thematic_trimming(self, new_thematic_trimming: ThematicTrimmingParameters) -> None:
-        thematic_trimming_url = f"{self._base_url}/studies/{self.study_id}/config/thematictrimming/form"
-        api_model = ThematicTrimmingParametersAPI.from_user_model(new_thematic_trimming)
-        body = api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
-        self._wrapper.put(thematic_trimming_url, json=body)
+    def set_thematic_trimming(self, new_thematic_trimming: ThematicTrimmingParameters) -> ThematicTrimmingParameters:
+        try:
+            thematic_trimming_url = f"{self._base_url}/studies/{self.study_id}/config/thematictrimming/form"
+            body = serialize_thematic_trimming_api(new_thematic_trimming)
+            self._wrapper.put(thematic_trimming_url, json=body)
+            return get_thematic_trimming(thematic_trimming_url, self._wrapper)
+        except APIError as e:
+            raise ThematicTrimmingUpdateError(self.study_id, e.message) from e
 
 
 def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, settings: StudySettingsUpdate) -> None:
@@ -109,14 +119,17 @@ def edit_study_settings(base_url: str, study_id: str, wrapper: RequestWrapper, s
         wrapper.put(adequacy_patch_url, json=body)
 
 
+def get_thematic_trimming(url: str, wrapper: RequestWrapper) -> ThematicTrimmingParameters:
+    response = wrapper.get(url)
+    return parse_thematic_trimming_api(response.json())
+
+
 def read_study_settings_api(base_url: str, study_id: str, wrapper: RequestWrapper) -> StudySettings:
     settings_base_url = f"{base_url}/studies/{study_id}/config"
 
     # thematic trimming
     thematic_trimming_url = f"{settings_base_url}/thematictrimming/form"
-    response = wrapper.get(thematic_trimming_url)
-    thematic_trimming_api_model = ThematicTrimmingParametersAPI.model_validate(response.json())
-    thematic_trimming_parameters = thematic_trimming_api_model.to_user_model()
+    thematic_trimming_parameters = get_thematic_trimming(thematic_trimming_url, wrapper)
 
     # playlist
     playlist_url = f"{settings_base_url}/playlist/form"

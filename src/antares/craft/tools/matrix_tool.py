@@ -20,11 +20,9 @@ import pandas as pd
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
 default_data_matrix = np.zeros((365, 6), dtype=np.float64)
-default_data_matrix[:, :2] = 1
 default_data_matrix.flags.writeable = False
 
-default_modulation_matrix = np.ones((8760, 4), dtype=np.float64)
-default_modulation_matrix[:, 3] = 0
+default_modulation_matrix = np.zeros((8760, 4), dtype=np.float64)
 default_modulation_matrix.flags.writeable = False
 
 default_series = np.zeros((8760, 1), dtype=np.float64)
@@ -92,6 +90,11 @@ DEFAULT_MATRIX_MAPPING = {
     TimeSeriesFileType.ST_STORAGE_INFLOWS: pd.DataFrame(default_series),
     TimeSeriesFileType.ST_STORAGE_LOWER_RULE_CURVE: pd.DataFrame(default_series),
     TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE: pd.DataFrame(default_series_with_ones),
+    TimeSeriesFileType.ST_STORAGE_COST_INJECTION: pd.DataFrame(default_series),
+    TimeSeriesFileType.ST_STORAGE_COST_WITHDRAWAL: pd.DataFrame(default_series),
+    TimeSeriesFileType.ST_STORAGE_COST_VARIATION_INJECTION: pd.DataFrame(default_series),
+    TimeSeriesFileType.ST_STORAGE_COST_VARIATION_WITHDRAWAL: pd.DataFrame(default_series),
+    TimeSeriesFileType.ST_STORAGE_COST_LEVEL: pd.DataFrame(default_series),
     TimeSeriesFileType.RESERVES: pd.DataFrame(default_reserves),
     TimeSeriesFileType.SOLAR: pd.DataFrame(default_series),
     TimeSeriesFileType.THERMAL_SERIES: pd.DataFrame(default_series),

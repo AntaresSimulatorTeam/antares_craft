@@ -57,7 +57,9 @@ _study_path if stored in a disk
 """
 
 STUDY_VERSION_8_8 = StudyVersion.parse("8.8")
-SUPPORTED_STUDY_VERSIONS: set[StudyVersion] = {STUDY_VERSION_8_8}
+STUDY_VERSION_9_2 = StudyVersion.parse("9.2")
+
+SUPPORTED_STUDY_VERSIONS: set[StudyVersion] = {STUDY_VERSION_8_8, STUDY_VERSION_9_2}
 
 
 class Study:
@@ -110,7 +112,7 @@ class Study:
         self._settings = self._settings_service.read_study_settings()
 
     def update_settings(self, settings: StudySettingsUpdate) -> None:
-        self._settings_service.edit_study_settings(settings)
+        self._settings_service.edit_study_settings(settings, self._version)
         new_settings = self._settings_service.read_study_settings()
         self._settings.general_parameters = new_settings.general_parameters
         self._settings.optimization_parameters = new_settings.optimization_parameters
@@ -124,8 +126,8 @@ class Study:
         self._settings.playlist_parameters = playlist
 
     def set_thematic_trimming(self, thematic_trimming: ThematicTrimmingParameters) -> None:
-        self._settings_service.set_thematic_trimming(thematic_trimming)
-        self._settings.thematic_trimming_parameters = thematic_trimming
+        trimming = self._settings_service.set_thematic_trimming(thematic_trimming)
+        self._settings.thematic_trimming_parameters = trimming
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         return MappingProxyType(dict(sorted(self._areas.items())))
