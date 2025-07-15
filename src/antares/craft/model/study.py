@@ -79,6 +79,7 @@ class Study:
         self._run_service = services.run_service
         self._binding_constraints_service = services.bc_service
         self._settings_service = services.settings_service
+        self._xpansion_service = services.xpansion_service
         self._settings = StudySettings()
         self._areas: dict[str, Area] = {}
         self._links: dict[str, Link] = {}
@@ -398,6 +399,9 @@ class Study:
 
     def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
         self._study_service.set_scenario_builder(scenario_builder)
+
+    def _read_xpansion_configuration(self) -> None:
+        self._xpansion_service.read_xpansion_configuration()
 
 
 # Design note:
