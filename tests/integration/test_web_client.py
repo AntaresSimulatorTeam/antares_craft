@@ -40,6 +40,7 @@ from antares.craft import (
     FilterOption,
     GeneralParametersUpdate,
     HydroPropertiesUpdate,
+    InitialReservoirLevel,
     LawOption,
     LinkData,
     LinkProperties,
@@ -87,6 +88,8 @@ from antares.craft.model.output import (
     MCIndAreasDataType,
     MCIndLinksDataType,
 )
+from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
+from antares.craft.model.settings.advanced_parameters import AdvancedParameters
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import Job, JobStatus
 from tests.integration.antares_web_desktop import AntaresWebDesktop
@@ -709,11 +712,16 @@ class TestWebClient:
         actual_settings = new_study.get_settings()
         default_settings = StudySettings()
         assert actual_settings.general_parameters == default_settings.general_parameters
-        assert actual_settings.advanced_parameters == default_settings.advanced_parameters
-        assert actual_settings.thematic_trimming_parameters == default_thematic_trimming_88
-        assert actual_settings.adequacy_patch_parameters == default_settings.adequacy_patch_parameters
         assert actual_settings.seed_parameters == default_settings.seed_parameters
         assert actual_settings.playlist_parameters == {1: PlaylistParameters(status=False, weight=1)}
+        # Checks default values for study 8.8 are filled even if put at None inside the user class
+        assert actual_settings.advanced_parameters == AdvancedParameters(
+            initial_reservoir_levels=InitialReservoirLevel.COLD_START
+        )
+        assert actual_settings.thematic_trimming_parameters == default_thematic_trimming_88
+        assert actual_settings.adequacy_patch_parameters == AdequacyPatchParameters(
+            set_to_null_ntc_between_physical_out_for_first_step=True
+        )
 
         # tests update settings
         study_settings = StudySettingsUpdate()
