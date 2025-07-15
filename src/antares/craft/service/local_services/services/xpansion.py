@@ -12,6 +12,7 @@
 from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.model.xpansion.xpansion_configuration import Xpansion
 from antares.craft.service.base_services import BaseXpansionService
 
 
@@ -21,5 +22,5 @@ class XpansionLocalService(BaseXpansionService):
         self.study_name = study_name
 
     @override
-    def read_xpansion_configuration(self) -> None:
+    def read_xpansion_configuration(self) -> Xpansion:
         raise NotImplementedError()

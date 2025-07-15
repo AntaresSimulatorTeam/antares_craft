@@ -45,6 +45,7 @@ from antares.craft.model.settings.study_settings import StudySettings, StudySett
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.model.st_storage import STStorage
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterPropertiesUpdate
+from antares.craft.model.xpansion.xpansion_configuration import Xpansion
 from antares.craft.service.base_services import BaseLinkService, BaseStudyService, StudyServices
 from antares.study.version import StudyVersion
 
@@ -80,6 +81,7 @@ class Study:
         self._binding_constraints_service = services.bc_service
         self._settings_service = services.settings_service
         self._xpansion_service = services.xpansion_service
+        self._xpansion = Xpansion()
         self._settings = StudySettings()
         self._areas: dict[str, Area] = {}
         self._links: dict[str, Link] = {}
@@ -401,7 +403,7 @@ class Study:
         self._study_service.set_scenario_builder(scenario_builder)
 
     def _read_xpansion_configuration(self) -> None:
-        self._xpansion_service.read_xpansion_configuration()
+        self._xpansion = self._xpansion_service.read_xpansion_configuration()
 
 
 # Design note:

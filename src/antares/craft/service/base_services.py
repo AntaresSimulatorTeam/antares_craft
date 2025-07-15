@@ -54,6 +54,7 @@ if TYPE_CHECKING:
         ThermalClusterProperties,
         ThermalClusterPropertiesUpdate,
     )
+    from antares.craft.model.xpansion.xpansion_configuration import Xpansion
 
 
 class BaseAreaService(ABC):
@@ -829,7 +830,7 @@ class BaseStudySettingsService(ABC):
 
 class BaseXpansionService(ABC):
     @abstractmethod
-    def read_xpansion_configuration(self) -> None:
+    def read_xpansion_configuration(self) -> "Xpansion":
         """
         Reads the Xpansion configuration of a study
         """
