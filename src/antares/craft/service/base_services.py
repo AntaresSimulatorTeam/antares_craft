@@ -830,7 +830,7 @@ class BaseStudySettingsService(ABC):
 
 class BaseXpansionService(ABC):
     @abstractmethod
-    def read_xpansion_configuration(self) -> "XpansionConfiguration" | None:
+    def read_xpansion_configuration(self) -> Optional["XpansionConfiguration"]:
         """
         Reads the Xpansion configuration of a study
         """
