@@ -25,6 +25,7 @@ class XpansionLocalService(BaseXpansionService):
     def __init__(self, config: LocalConfiguration, study_name: str):
         self.config = config
         self.study_name = study_name
+        self._xpansion_path = self.config.study_path / "user" / "expansion"
 
     @override
     def read_xpansion_configuration(self) -> XpansionConfiguration | None:
@@ -32,17 +33,16 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def create_xpansion_configuration(self) -> XpansionConfiguration:
-        expansion_path = self.config.study_path / "user" / "expansion"
         for folder in ["capa", "constraints", "weights"]:
-            (expansion_path / folder).mkdir(parents=True)
-        with open(expansion_path / "sensitivity" / "sensitivity.in", "w") as f:
+            (self._xpansion_path / folder).mkdir(parents=True)
+        with open(self._xpansion_path / "sensitivity" / "sensitivity.in", "w") as f:
             f.write("{}")
-        (expansion_path / "candidates.ini").touch()
+        (self._xpansion_path / "candidates.ini").touch()
         settings = XpansionSettings()
         ini_content = serialize_xpansion_settings_local(settings)
-        IniWriter().write(ini_content, expansion_path / "settings.ini")
+        IniWriter().write(ini_content, self._xpansion_path / "settings.ini")
         return XpansionConfiguration(self, settings)
 
     @override
     def delete(self) -> None:
-        shutil.rmtree(self.config.study_path / "user" / "expansion")
+        shutil.rmtree(self._xpansion_path)
