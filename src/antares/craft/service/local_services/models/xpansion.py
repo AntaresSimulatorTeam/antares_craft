@@ -192,7 +192,7 @@ def parse_xpansion_constraints_local(data: dict[str, Any]) -> dict[str, Xpansion
 
 
 class XpansionSensitivityLocal(LocalBaseModel):
-    epsilon: float
+    epsilon: float = Field(ge=0)
     projection: list[str]
     capex: bool
 
