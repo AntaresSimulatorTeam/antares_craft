@@ -1082,6 +1082,12 @@ class TestWebClient:
         }
         assert xpansion.sensitivity == XpansionSensitivity(epsilon=10000, projection=["battery", "pv"], capex=True)
 
+        # Deletes the configuration
+        imported_study.delete_xpansion_configuration()
+        assert imported_study.xpansion is None
+        study = read_study_api(api_config, imported_study.service.study_id)
+        assert study.xpansion is None
+
         ######################
         # Specific tests for study version 9.2
         ######################
