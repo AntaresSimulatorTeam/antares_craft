@@ -11,13 +11,19 @@
 # This file is part of the Antares project.
 import shutil
 
+from typing import Any
+
 from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import BaseXpansionService
-from antares.craft.service.local_services.models.xpansion import serialize_xpansion_settings_local
+from antares.craft.service.local_services.models.xpansion import (
+    parse_xpansion_settings_local,
+    serialize_xpansion_settings_local,
+)
+from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
@@ -29,7 +35,11 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def read_xpansion_configuration(self) -> XpansionConfiguration | None:
-        raise NotImplementedError()
+        if not self._xpansion_path.exists():
+            return None
+        settings = parse_xpansion_settings_local(self._read_settings())
+        return XpansionConfiguration(self, settings)
+        # todo: add candidates, constraints, sensitivity
 
     @override
     def create_xpansion_configuration(self) -> XpansionConfiguration:
@@ -46,3 +56,6 @@ class XpansionLocalService(BaseXpansionService):
     @override
     def delete(self) -> None:
         shutil.rmtree(self._xpansion_path)
+
+    def _read_settings(self) -> dict[str, Any]:
+        return IniReader().read(self._xpansion_path / "settings.ini")
