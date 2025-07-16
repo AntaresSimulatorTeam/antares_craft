@@ -16,6 +16,7 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
     XpansionConfigurationCreationError,
+    XpansionConfigurationDeletionError,
     XpansionConfigurationReadingError,
 )
 from antares.craft.model.xpansion.candidate import XpansionCandidate
@@ -71,6 +72,13 @@ class XpansionAPIService(BaseXpansionService):
             return XpansionConfiguration(xpansion_service=self, settings=settings, sensitivity=sensitivity)
         except APIError as e:
             raise XpansionConfigurationCreationError(self.study_id, e.message) from e
+
+    @override
+    def delete(self) -> None:
+        try:
+            self._wrapper.delete(self._expansion_url)
+        except APIError as e:
+            raise XpansionConfigurationDeletionError(self.study_id, e.message) from e
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()

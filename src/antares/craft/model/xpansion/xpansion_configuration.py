@@ -47,3 +47,6 @@ class XpansionConfiguration:
 
     def get_constraints(self) -> MappingProxyType[str, XpansionConstraint]:
         return MappingProxyType(self._constraints)
+
+    def delete(self) -> None:
+        pass

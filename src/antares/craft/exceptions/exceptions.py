@@ -548,6 +548,12 @@ class XpansionConfigurationCreationError(Exception):
         super().__init__(self.message)
 
 
+class XpansionConfigurationDeletionError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not delete the xpansion configuration for study {study_name}: " + message
+        super().__init__(self.message)
+
+
 class XpansionConfigurationReadingError(Exception):
     def __init__(self, study_name: str, message: str) -> None:
         self.message = f"Could not read the xpansion configuration for study {study_name}: " + message

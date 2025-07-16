@@ -843,6 +843,13 @@ class BaseXpansionService(ABC):
         """
         pass
 
+    @abstractmethod
+    def delete(self) -> None:
+        """
+        Deletes the Xpansion configuration for a given study
+        """
+        pass
+
 
 @dataclass(frozen=True)
 class StudyServices:
