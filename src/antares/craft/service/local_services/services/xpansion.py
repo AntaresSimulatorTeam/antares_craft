@@ -27,7 +27,6 @@ from antares.craft.service.local_services.models.xpansion import (
     serialize_xpansion_settings_local,
 )
 from antares.craft.tools.serde_local.ini_reader import IniReader
-from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
 class XpansionLocalService(BaseXpansionService):
@@ -66,12 +65,13 @@ class XpansionLocalService(BaseXpansionService):
     def create_xpansion_configuration(self) -> XpansionConfiguration:
         for folder in ["capa", "constraints", "weights", "sensitivity"]:
             (self._xpansion_path / folder).mkdir(parents=True)
-        with open(self._xpansion_path / "sensitivity" / "sensitivity.in", "w") as f:
+        with open(self._xpansion_path / "sensitivity" / "sensitivity_in.json", "w") as f:
             f.write("{}")
         (self._xpansion_path / "candidates.ini").touch()
         settings = XpansionSettings()
         ini_content = serialize_xpansion_settings_local(settings)
-        IniWriter().write(ini_content, self._xpansion_path / "settings.ini")
+        with open(self._xpansion_path / "settings.ini", "w") as f:
+            f.writelines(f"{k}={v}\n" for k, v in ini_content.items())
         return XpansionConfiguration(self, settings)
 
     @override
@@ -88,7 +88,7 @@ class XpansionLocalService(BaseXpansionService):
         return IniReader().read(self._xpansion_path / "constraints" / file_name)
 
     def _read_sensitivity(self) -> dict[str, Any]:
-        file_path = self._xpansion_path / "sensitivity" / "sensitivity.json"
+        file_path = self._xpansion_path / "sensitivity" / "sensitivity_in.json"
         if file_path.exists():
             return IniReader().read(file_path)
         return {}
