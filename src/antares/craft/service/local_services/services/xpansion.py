@@ -20,6 +20,8 @@ from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import BaseXpansionService
 from antares.craft.service.local_services.models.xpansion import (
+    parse_xpansion_candidate_local,
+    parse_xpansion_constraints_local,
     parse_xpansion_settings_local,
     serialize_xpansion_settings_local,
 )
@@ -37,9 +39,21 @@ class XpansionLocalService(BaseXpansionService):
     def read_xpansion_configuration(self) -> XpansionConfiguration | None:
         if not self._xpansion_path.exists():
             return None
+        # Settings
         settings = parse_xpansion_settings_local(self._read_settings())
-        return XpansionConfiguration(self, settings)
-        # todo: add candidates, constraints, sensitivity
+        # Candidates
+        candidates = {}
+        ini_candidates = self._read_candidates()
+        for values in ini_candidates.values():
+            cdt = parse_xpansion_candidate_local(values)
+            candidates[cdt.name] = cdt
+        # Constraints
+        constraints = {}
+        file_name = settings.additional_constraints
+        if file_name:
+            constraints = parse_xpansion_constraints_local(self._read_constraints(file_name))
+        # Sensitivity
+        return XpansionConfiguration(self, settings=settings, candidates=candidates, constraints=constraints)
 
     @override
     def create_xpansion_configuration(self) -> XpansionConfiguration:
@@ -62,3 +76,6 @@ class XpansionLocalService(BaseXpansionService):
 
     def _read_candidates(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "candidates.ini")
+
+    def _read_constraints(self, file_name: str) -> dict[str, Any]:
+        return IniReader().read(self._xpansion_path / "constraints" / file_name)
