@@ -12,6 +12,7 @@
 import pytest
 
 import shutil
+import zipfile
 
 from pathlib import Path, PurePath
 from typing import Generator
@@ -34,10 +35,12 @@ from antares.craft import (
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
     ClusterData,
+    ConstraintSign,
     ConstraintTerm,
     ConstraintTermUpdate,
     ExportMPS,
     FilterOption,
+    Frequency,
     GeneralParametersUpdate,
     HydroPropertiesUpdate,
     InitialReservoirLevel,
@@ -48,6 +51,10 @@ from antares.craft import (
     LinkStyle,
     LinkUi,
     LinkUiUpdate,
+    MCAllAreasDataType,
+    MCAllLinksDataType,
+    MCIndAreasDataType,
+    MCIndLinksDataType,
     Mode,
     OptimizationParametersUpdate,
     PlaylistParameters,
@@ -67,7 +74,12 @@ from antares.craft import (
     TimeSeriesInterpretation,
     TransmissionCapacities,
     UnitCommitmentMode,
+    XpansionCandidate,
+    XpansionConstraint,
+    XpansionSensitivity,
+    XpansionSettings,
     create_study_api,
+    create_study_local,
     create_variant_api,
     import_study_api,
     read_study_api,
@@ -81,17 +93,11 @@ from antares.craft.exceptions.exceptions import (
     StudySettingsUpdateError,
 )
 from antares.craft.model.hydro import InflowStructureUpdate
-from antares.craft.model.output import (
-    Frequency,
-    MCAllAreasDataType,
-    MCAllLinksDataType,
-    MCIndAreasDataType,
-    MCIndLinksDataType,
-)
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import Job, JobStatus
+from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
 ASSETS_DIR = Path(__file__).parent / "assets"
@@ -107,7 +113,11 @@ def antares_web() -> Generator[AntaresWebDesktop, None, None]:
 
 class TestWebClient:
     def test_lifecycle(
-        self, antares_web: AntaresWebDesktop, tmp_path: Path, default_thematic_trimming_88: ThematicTrimmingParameters
+        self,
+        antares_web: AntaresWebDesktop,
+        tmp_path: Path,
+        default_thematic_trimming_88: ThematicTrimmingParameters,
+        xpansion_input_path: Path,
     ) -> None:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
@@ -1005,6 +1015,78 @@ class TestWebClient:
             match=f"Could not update settings for study '{imported_study.service.study_id}': AntaresWeb doesn't support editing the parameter include_exportstructure",
         ):
             imported_study.update_settings(update_settings)
+
+        ######################
+        # Specific tests for Xpansion
+        ######################
+
+        # Asserts a random study doesn't contain any Xpansion configuration
+        assert imported_study.xpansion is None
+
+        # Imports a study with a real case Xpansion configuration
+        study = create_study_local("Xpansion study", "8.8", tmp_path)
+        study_path = Path(study.path)
+        with zipfile.ZipFile(xpansion_input_path, "r") as zf:
+            zf.extractall(study_path / "user" / "expansion")
+        zip_study = Path(shutil.make_archive(base_name=str(study_path), base_dir=study_path, format="zip"))
+
+        # Ensures the reading succeeds.
+        imported_study = import_study_api(api_config, zip_study)
+        xpansion = imported_study.xpansion
+        assert isinstance(xpansion, XpansionConfiguration)
+        assert xpansion.settings == XpansionSettings(
+            optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
+        )
+        assert xpansion.get_candidates() == {
+            "battery": XpansionCandidate(
+                name="battery", area_from="Area2", area_to="flex", annual_cost_per_mw=60000, max_investment=1000
+            ),
+            "peak": XpansionCandidate(
+                name="peak", area_from="area1", area_to="peak", annual_cost_per_mw=60000, unit_size=100, max_units=20
+            ),
+            "pv": XpansionCandidate(
+                name="pv",
+                area_from="area2",
+                area_to="pv",
+                annual_cost_per_mw=55400,
+                max_investment=1000,
+                direct_link_profile="direct_capa_pv.ini",
+                indirect_link_profile="direct_capa_pv.ini",
+            ),
+            "semibase": XpansionCandidate(
+                name="semibase",
+                area_from="area1",
+                area_to="semibase",
+                annual_cost_per_mw=126000,
+                unit_size=200,
+                max_units=10,
+            ),
+            "transmission_line": XpansionCandidate(
+                name="transmission_line",
+                area_from="area1",
+                area_to="area2",
+                annual_cost_per_mw=10000,
+                unit_size=400,
+                max_units=8,
+                direct_link_profile="direct_04_fr-05_fr.txt",
+                indirect_link_profile="indirect_04_fr-05_fr.txt",
+            ),
+        }
+        assert xpansion.get_constraints() == {
+            "additional_c1": XpansionConstraint(
+                name="additional_c1",
+                sign=ConstraintSign.LESS_OR_EQUAL,
+                right_hand_side=300,
+                candidates_coefficients={"semibase": 1, "transmission_line": 1},
+            )
+        }
+        assert xpansion.sensitivity == XpansionSensitivity(epsilon=10000, projection=["battery", "pv"], capex=True)
+
+        # Deletes the configuration
+        imported_study.delete_xpansion_configuration()
+        assert imported_study.xpansion is None
+        study = read_study_api(api_config, imported_study.service.study_id)
+        assert study.xpansion is None
 
         ######################
         # Specific tests for study version 9.2

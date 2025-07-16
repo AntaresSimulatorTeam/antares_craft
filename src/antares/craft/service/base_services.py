@@ -54,6 +54,7 @@ if TYPE_CHECKING:
         ThermalClusterProperties,
         ThermalClusterPropertiesUpdate,
     )
+    from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 
 
 class BaseAreaService(ABC):
@@ -827,6 +828,29 @@ class BaseStudySettingsService(ABC):
         pass
 
 
+class BaseXpansionService(ABC):
+    @abstractmethod
+    def read_xpansion_configuration(self) -> Optional["XpansionConfiguration"]:
+        """
+        Reads the Xpansion configuration of a study
+        """
+        pass
+
+    @abstractmethod
+    def create_xpansion_configuration(self) -> "XpansionConfiguration":
+        """
+        Creates an Xpansion configuration for a given study
+        """
+        pass
+
+    @abstractmethod
+    def delete(self) -> None:
+        """
+        Deletes the Xpansion configuration for a given study
+        """
+        pass
+
+
 @dataclass(frozen=True)
 class StudyServices:
     settings_service: BaseStudySettingsService
@@ -840,3 +864,4 @@ class StudyServices:
     short_term_storage_service: BaseShortTermStorageService
     run_service: BaseRunService
     output_service: BaseOutputService
+    xpansion_service: BaseXpansionService

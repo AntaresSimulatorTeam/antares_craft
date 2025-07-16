@@ -29,6 +29,7 @@ from antares.craft.service.api_services.services.settings import StudySettingsAP
 from antares.craft.service.api_services.services.st_storage import ShortTermStorageApiService
 from antares.craft.service.api_services.services.study import StudyApiService
 from antares.craft.service.api_services.services.thermal import ThermalApiService
+from antares.craft.service.api_services.services.xpansion import XpansionAPIService
 from antares.craft.service.base_services import (
     StudyServices,
 )
@@ -46,6 +47,7 @@ def create_api_services(config: APIconf, study_id: str = "") -> StudyServices:
     bc_service = BindingConstraintApiService(config, study_id)
     run_service = RunApiService(config, study_id)
     settings_service = StudySettingsAPIService(config, study_id)
+    xpansion_service = XpansionAPIService(config, study_id)
     return StudyServices(
         area_service=area_service,
         bc_service=bc_service,
@@ -58,6 +60,7 @@ def create_api_services(config: APIconf, study_id: str = "") -> StudyServices:
         renewable_service=renewable_service,
         settings_service=settings_service,
         short_term_storage_service=storage_service,
+        xpansion_service=xpansion_service,
     )
 
 
@@ -143,6 +146,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     study._read_links()
     study._read_outputs()
     study._read_binding_constraints()
+    study._read_xpansion_configuration()
 
     return study
 

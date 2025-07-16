@@ -293,6 +293,7 @@ class TestCreateAPI:
         constraints_url = f"{base_url}/studies/{self.study_id}/bindingconstraints"
         hydro_url = f"{url}/hydro"
         links_url = f"{url}/links"
+        xpansion_url = f"{url}/extensions/xpansion/settings"
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url, json=json_study)
@@ -309,6 +310,7 @@ class TestCreateAPI:
             )
             mocker.get(constraints_url, json=[])
             mocker.get(links_url, json=[])
+            mocker.get(xpansion_url, status_code=404)
             mocker.get(
                 hydro_url,
                 json={
@@ -335,6 +337,7 @@ class TestCreateAPI:
             assert actual_study.name == expected_study.name
             assert actual_study._version == expected_study._version
             assert actual_study.service.study_id == expected_study.service.study_id
+            assert actual_study.xpansion is None
 
     def test_create_variant_success(self) -> None:
         variant_name = "variant_test"
@@ -351,24 +354,26 @@ class TestCreateAPI:
                 status_code=200,
             )
 
-            config_urls = re.compile(f"{base_url}/studies/{variant_id}/config/.*")
+            config_urls = re.compile(f"{variant_url}/config/.*")
             mocker.get(config_urls, json={}, status_code=200)
             ts_settings_url = f"https://antares.com/api/v1/studies/{variant_id}/timeseries/config"
             mocker.get(ts_settings_url, json={"thermal": {"number": 1}}, status_code=200)
 
-            areas_url = f"{base_url}/studies/{variant_id}/areas?ui=true"
+            areas_url = f"{variant_url}/areas?ui=true"
             mocker.get(areas_url, json={}, status_code=200)
 
-            thermal_url = f"{base_url}/studies/{variant_id}/table-mode/thermals"
-            renewable_url = f"{base_url}/studies/{variant_id}/table-mode/renewables"
-            storage_url = f"{base_url}/studies/{variant_id}/table-mode/st-storages"
-            properties_url = f"{base_url}/studies/{variant_id}/table-mode/areas"
-            hydro_url = f"{base_url}/studies/{variant_id}/hydro"
+            thermal_url = f"{variant_url}/table-mode/thermals"
+            renewable_url = f"{variant_url}/table-mode/renewables"
+            storage_url = f"{variant_url}/table-mode/st-storages"
+            properties_url = f"{variant_url}/table-mode/areas"
+            hydro_url = f"{variant_url}/hydro"
+            xpansion_url = f"{variant_url}/extensions/xpansion/settings"
             mocker.get(renewable_url, json={})
             mocker.get(thermal_url, json={})
             mocker.get(storage_url, json={})
             mocker.get(properties_url, json={})
             mocker.get(hydro_url, json={})
+            mocker.get(xpansion_url, status_code=404)
 
             output_url = f"{base_url}/studies/{variant_id}/outputs"
             mocker.get(
@@ -909,6 +914,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
         url_import = f"{base_url}/studies/_import"
         url_move = f"{base_url}/studies/{self.study_id}/move?folder_dest={new_path}"
         url_study = f"{base_url}/studies/{self.study_id}"
+        url_xpansion = f"{base_url}/studies/{self.study_id}/extensions/xpansion/settings"
 
         with requests_mock.Mocker() as mocker:
             mocker.post(url_import, status_code=200, json=self.study_id)
@@ -926,6 +932,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             mocker.get(constraints_url, json=[])
             mocker.get(links_url, json=[])
             mocker.get(hydro_url, json={})
+            mocker.get(url_xpansion, status_code=404)
 
             mocker.put(url_move)
             mocker.get(url_study, json=json_study)
