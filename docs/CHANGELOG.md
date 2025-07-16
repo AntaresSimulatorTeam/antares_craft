@@ -1,3 +1,12 @@
+v0.2.10 (2025-07-16)
+-------------------
+
+### Features
+* **xpansion**: implement inputs reading [227](https://github.com/AntaresSimulatorTeam/antares_craft/pull/227)
+
+### Bug fixes
+* **api**: change thematic-trimming `to_model` method [229](https://github.com/AntaresSimulatorTeam/antares_craft/pull/229)
+
 v0.2.9 (2025-07-09)
 -------------------
 
