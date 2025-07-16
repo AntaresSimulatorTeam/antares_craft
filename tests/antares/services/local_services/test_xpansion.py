@@ -17,7 +17,7 @@ from antares.craft.model.xpansion.xpansion_configuration import XpansionConfigur
 
 
 class TestXpansion:
-    def test_create_configuration(self, local_study_w_links: Study) -> None:
+    def test_create_and_read_basic_configuration(self, local_study_w_links: Study) -> None:
         # Asserts at first Xpansion is None.
         assert local_study_w_links.xpansion is None
         # Reading a study without an Xpansion configuration works. It returns None as an ` xpansion ` attribute.
