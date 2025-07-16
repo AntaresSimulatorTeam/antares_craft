@@ -59,3 +59,6 @@ class XpansionLocalService(BaseXpansionService):
 
     def _read_settings(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "settings.ini")
+
+    def _read_candidates(self) -> dict[str, Any]:
+        return IniReader().read(self._xpansion_path / "candidates.ini")

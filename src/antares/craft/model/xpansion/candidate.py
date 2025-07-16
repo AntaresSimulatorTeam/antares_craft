@@ -23,7 +23,7 @@ class XpansionCandidate:
     area_from: str
     area_to: str
     annual_cost_per_mw: float
-    already_installed_capacity: int
+    already_installed_capacity: Optional[int] = None
     unit_size: Optional[float] = None
     max_units: Optional[int] = None
     max_investment: Optional[float] = None

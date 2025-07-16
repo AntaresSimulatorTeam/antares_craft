@@ -10,12 +10,14 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Any, Optional
+from typing import Annotated, Any, Optional, TypeAlias
 
-from pydantic import Field
+from pydantic import BeforeValidator, Field, PlainSerializer
 
+from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate
 from antares.craft.model.xpansion.settings import Master, Solver, UcType, XpansionSettings, XpansionSettingsUpdate
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
+from antares.craft.tools.alias_generators import to_kebab
 
 XpansionSettingsType = XpansionSettings | XpansionSettingsUpdate
 
@@ -66,3 +68,68 @@ def parse_xpansion_settings_local(data: Any) -> XpansionSettings:
 def serialize_xpansion_settings_local(settings: XpansionSettingsType) -> dict[str, Any]:
     local_settings = XpansionSettingsLocal.from_user_model(settings)
     return local_settings.model_dump(mode="json", by_alias=True, exclude_none=True)
+
+
+######################
+# Candidates part
+######################
+
+XpansionCandidateType = XpansionCandidate | XpansionCandidateUpdate
+
+
+class XpansionLink(LocalBaseModel):
+    area_from: str
+    area_to: str
+
+    def serialize(self) -> str:
+        return f"{self.area_from} - {self.area_to}"
+
+
+def split_areas(x: str) -> dict[str, str]:
+    if " - " not in x:
+        raise ValueError(f"The link must be in the format 'area1 - area2'. Currently: {x}")
+    area_list = sorted(x.split(" - "))
+    return {"area_from": area_list[0], "area_to": area_list[1]}
+
+
+# link parsed and serialized as "area1 - area2"
+XpansionLinkStr: TypeAlias = Annotated[
+    XpansionLink,
+    BeforeValidator(lambda x: split_areas(x)),
+    PlainSerializer(lambda x: x.serialize()),
+]
+
+
+class XpansionCandidateLocal(LocalBaseModel, alias_generator=to_kebab):
+    name: str
+    link: XpansionLinkStr
+    annual_cost_per_mw: float = Field(ge=0)
+    unit_size: Optional[float] = Field(default=None, ge=0)
+    max_units: Optional[int] = Field(default=None, ge=0)
+    max_investment: Optional[float] = Field(default=None, ge=0)
+    already_installed_capacity: Optional[int] = Field(default=None, ge=0)
+    direct_link_profile: Optional[str] = None
+    indirect_link_profile: Optional[str] = None
+    already_installed_direct_link_profile: Optional[str] = None
+    already_installed_indirect_link_profile: Optional[str] = None
+
+    @staticmethod
+    def from_user_model(user_class: XpansionCandidate) -> "XpansionCandidateLocal":
+        user_dict = asdict(user_class)
+        user_dict["link"] = user_dict.pop("area_from") + " - " + user_dict.pop("area_to")
+        return XpansionCandidateLocal.model_validate(user_dict)
+
+    def to_user_model(self) -> XpansionCandidate:
+        return XpansionCandidate(
+            name=self.name,
+            area_from=self.link.area_from,
+            area_to=self.link.area_to,
+            annual_cost_per_mw=self.annual_cost_per_mw,
+            unit_size=self.unit_size,
+            max_units=self.max_units,
+            max_investment=self.max_investment,
+            already_installed_capacity=self.already_installed_capacity,
+            direct_link_profile=self.direct_link_profile,
+            indirect_link_profile=self.indirect_link_profile,
+            already_installed_direct_link_profile=self.already_installed_direct_link_profile,
+        )
