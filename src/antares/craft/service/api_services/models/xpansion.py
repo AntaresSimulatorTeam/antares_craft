@@ -105,11 +105,15 @@ def serialize_xpansion_settings_api(
 XpansionCandidateType = XpansionCandidate | XpansionCandidateUpdate
 
 
+class XpansionLink(APIBaseModel):
+    area_from: str
+    area_to: str
+
+
 @all_optional_model
 class XpansionCandidateAPI(APIBaseModel):
     name: str
-    area_from: str
-    area_to: str
+    link: XpansionLink
     annual_cost_per_mw: float
     already_installed_capacity: int
     unit_size: float
@@ -123,13 +127,15 @@ class XpansionCandidateAPI(APIBaseModel):
     @staticmethod
     def from_user_model(user_class: XpansionCandidateType) -> "XpansionCandidateAPI":
         user_dict = asdict(user_class)
+        user_dict["link"] = {"area_from": user_dict.pop("area_from"), "area_to": user_dict.pop("area_to")}
         return XpansionCandidateAPI.model_validate(user_dict)
 
     def to_user_model(self) -> XpansionCandidate:
+        assert isinstance(self.link, XpansionLink)
         return XpansionCandidate(
             name=self.name,
-            area_from=self.area_from,
-            area_to=self.area_to,
+            area_from=self.link.area_from,
+            area_to=self.link.area_to,
             annual_cost_per_mw=self.annual_cost_per_mw,
             already_installed_capacity=self.already_installed_capacity,
             unit_size=self.unit_size,
