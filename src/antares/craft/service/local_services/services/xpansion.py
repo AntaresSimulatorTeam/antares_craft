@@ -64,7 +64,7 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def create_xpansion_configuration(self) -> XpansionConfiguration:
-        for folder in ["capa", "constraints", "weights"]:
+        for folder in ["capa", "constraints", "weights", "sensitivity"]:
             (self._xpansion_path / folder).mkdir(parents=True)
         with open(self._xpansion_path / "sensitivity" / "sensitivity.in", "w") as f:
             f.write("{}")
