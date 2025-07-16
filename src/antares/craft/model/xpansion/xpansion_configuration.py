@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from types import MappingProxyType
 from typing import Optional
 
 from antares.craft.model.xpansion.candidate import XpansionCandidate
@@ -32,3 +33,17 @@ class XpansionConfiguration:
         self._constraints = constraints or {}
         self._sensitivity = sensitivity
         self._xpansion_service = xpansion_service
+
+    @property
+    def settings(self) -> XpansionSettings:
+        return self._settings
+
+    @property
+    def sensitivity(self) -> XpansionSensitivity | None:
+        return self._sensitivity
+
+    def get_candidates(self) -> MappingProxyType[str, XpansionCandidate]:
+        return MappingProxyType(self._candidates)
+
+    def get_constraints(self) -> MappingProxyType[str, XpansionConstraint]:
+        return MappingProxyType(self._constraints)
