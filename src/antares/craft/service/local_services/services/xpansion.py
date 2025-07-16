@@ -27,6 +27,7 @@ from antares.craft.service.local_services.models.xpansion import (
     serialize_xpansion_settings_local,
 )
 from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.json import from_json
 
 
 class XpansionLocalService(BaseXpansionService):
@@ -40,7 +41,7 @@ class XpansionLocalService(BaseXpansionService):
         if not self._xpansion_path.exists():
             return None
         # Settings
-        settings = parse_xpansion_settings_local(self._read_settings())
+        settings = parse_xpansion_settings_local(self._read_settings()["settings"])
         # Candidates
         candidates = {}
         ini_candidates = self._read_candidates()
@@ -90,5 +91,5 @@ class XpansionLocalService(BaseXpansionService):
     def _read_sensitivity(self) -> dict[str, Any]:
         file_path = self._xpansion_path / "sensitivity" / "sensitivity_in.json"
         if file_path.exists():
-            return IniReader().read(file_path)
+            return from_json(file_path.read_text())
         return {}

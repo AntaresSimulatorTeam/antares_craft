@@ -34,6 +34,9 @@ class TestXpansion:
         assert xpansion.sensitivity is None
 
         # Asserts the reading works.
-        study_path = Path(local_study_w_links.path)
-        study = read_study_local(study_path)
-        assert study.xpansion is not None
+        xpansion_read = read_study_local(study_path).xpansion
+        assert isinstance(xpansion_read, XpansionConfiguration)
+        assert xpansion_read.settings == XpansionSettings()
+        assert xpansion_read.get_candidates() == {}
+        assert xpansion_read.get_constraints() == {}
+        assert xpansion_read.sensitivity is None
