@@ -9,11 +9,18 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import zipfile
+
 from pathlib import Path
 
 from antares.craft import Study, read_study_local
+from antares.craft.model.xpansion.candidate import XpansionCandidate
+from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint
+from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
+
+ASSETS_DIR = Path(__file__).parent.parent.parent.parent / "assets"
 
 
 class TestXpansion:
@@ -42,4 +49,59 @@ class TestXpansion:
         assert xpansion_read.sensitivity is None
 
     def test_fancy_configuration(self, local_study_w_links: Study) -> None:
-        pass
+        # Asserts at first Xpansion is None.
+        assert local_study_w_links.xpansion is None
+        study_path = Path(local_study_w_links.path)
+        # Put a real case configuration inside the study and tests the reading method.
+        with zipfile.ZipFile(ASSETS_DIR / "expansion.zip", "r") as zf:
+            zf.extractall(study_path / "user" / "expansion")
+        # Read the study
+        xpansion = read_study_local(study_path).xpansion
+        assert isinstance(xpansion, XpansionConfiguration)
+        assert xpansion.settings == XpansionSettings(
+            optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
+        )
+        assert xpansion.get_candidates() == {
+            "battery": XpansionCandidate(
+                name="battery", area_from="Area2", area_to="flex", annual_cost_per_mw=60000, max_investment=1000
+            ),
+            "peak": XpansionCandidate(
+                name="peak", area_from="area1", area_to="peak", annual_cost_per_mw=60000, unit_size=100, max_units=20
+            ),
+            "pv": XpansionCandidate(
+                name="pv",
+                area_from="area2",
+                area_to="pv",
+                annual_cost_per_mw=55400,
+                max_investment=1000,
+                direct_link_profile="direct_capa_pv.ini",
+                indirect_link_profile="direct_capa_pv.ini",
+            ),
+            "semibase": XpansionCandidate(
+                name="semibase",
+                area_from="area1",
+                area_to="semibase",
+                annual_cost_per_mw=126000,
+                unit_size=200,
+                max_units=10,
+            ),
+            "transmission_line": XpansionCandidate(
+                name="transmission_line",
+                area_from="area1",
+                area_to="area2",
+                annual_cost_per_mw=10000,
+                unit_size=400,
+                max_units=8,
+                direct_link_profile="direct_04_fr-05_fr.txt",
+                indirect_link_profile="indirect_04_fr-05_fr.txt",
+            ),
+        }
+        assert xpansion.get_constraints() == {
+            "additional_c1": XpansionConstraint(
+                name="additional_c1",
+                sign=ConstraintSign.LESS_OR_EQUAL,
+                right_hand_side=300,
+                candidates_coefficients={"semibase": 1, "transmission_line": 1},
+            )
+        }
+        assert xpansion.sensitivity == XpansionSensitivity(epsilon=10000, projection=["battery", "pv"], capex=True)
