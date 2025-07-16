@@ -39,12 +39,18 @@ class TestXpansion:
         assert xpansion.sensitivity is None
 
         # Asserts the reading works.
-        xpansion_read = read_study_local(study_path).xpansion
+        study = read_study_local(study_path)
+        xpansion_read = study.xpansion
         assert isinstance(xpansion_read, XpansionConfiguration)
         assert xpansion_read.settings == XpansionSettings()
         assert xpansion_read.get_candidates() == {}
         assert xpansion_read.get_constraints() == {}
         assert xpansion_read.sensitivity is None
+
+        # Deletes the configuration.
+        study.delete_xpansion_configuration()
+        assert study.xpansion is None
+        assert not (study_path / "user" / "expansion").exists()
 
     def test_fancy_configuration(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Asserts at first Xpansion is None.

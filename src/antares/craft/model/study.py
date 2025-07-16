@@ -414,6 +414,10 @@ class Study:
         self._xpansion_configuration = configuration
         return configuration
 
+    def delete_xpansion_configuration(self) -> None:
+        self._xpansion_service.delete()
+        self._xpansion_configuration = None
+
 
 # Design note:
 # all following methods are entry points for study creation.
