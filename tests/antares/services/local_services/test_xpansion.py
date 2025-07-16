@@ -12,6 +12,8 @@
 
 
 from antares.craft import Study
+from antares.craft.model.xpansion.settings import XpansionSettings
+from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 
 
 class TestXpansion:
@@ -19,4 +21,8 @@ class TestXpansion:
         assert local_study_w_links.xpansion is None
 
         xpansion = local_study_w_links.create_xpansion_configuration()
-        assert xpansion is not None
+        assert isinstance(xpansion, XpansionConfiguration)
+        assert xpansion.settings == XpansionSettings()
+        assert xpansion.get_candidates() == {}
+        assert xpansion.get_constraints() == {}
+        assert xpansion.sensitivity is None
