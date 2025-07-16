@@ -40,3 +40,6 @@ class TestXpansion:
         assert xpansion_read.get_candidates() == {}
         assert xpansion_read.get_constraints() == {}
         assert xpansion_read.sensitivity is None
+
+    def test_fancy_configuration(self, local_study_w_links: Study) -> None:
+        pass
