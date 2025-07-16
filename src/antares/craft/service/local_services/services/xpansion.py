@@ -22,6 +22,7 @@ from antares.craft.service.base_services import BaseXpansionService
 from antares.craft.service.local_services.models.xpansion import (
     parse_xpansion_candidate_local,
     parse_xpansion_constraints_local,
+    parse_xpansion_sensitivity_local,
     parse_xpansion_settings_local,
     serialize_xpansion_settings_local,
 )
@@ -53,7 +54,13 @@ class XpansionLocalService(BaseXpansionService):
         if file_name:
             constraints = parse_xpansion_constraints_local(self._read_constraints(file_name))
         # Sensitivity
-        return XpansionConfiguration(self, settings=settings, candidates=candidates, constraints=constraints)
+        sensitivity = None
+        sensitivity_content = self._read_sensitivity()
+        if sensitivity_content:
+            sensitivity = parse_xpansion_sensitivity_local(sensitivity_content)
+        return XpansionConfiguration(
+            self, settings=settings, candidates=candidates, constraints=constraints, sensitivity=sensitivity
+        )
 
     @override
     def create_xpansion_configuration(self) -> XpansionConfiguration:
@@ -79,3 +86,9 @@ class XpansionLocalService(BaseXpansionService):
 
     def _read_constraints(self, file_name: str) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "constraints" / file_name)
+
+    def _read_sensitivity(self) -> dict[str, Any]:
+        file_path = self._xpansion_path / "sensitivity" / "sensitivity.json"
+        if file_path.exists():
+            return IniReader().read(file_path)
+        return {}

@@ -16,6 +16,7 @@ from pydantic import BeforeValidator, Field, PlainSerializer
 
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint
+from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import Master, Solver, UcType, XpansionSettings, XpansionSettingsUpdate
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
@@ -177,3 +178,26 @@ def parse_xpansion_constraints_local(data: dict[str, Any]) -> dict[str, Xpansion
         local_model = XpansionConstraintLocal.model_validate(values)
         parsed_content[local_model.name] = local_model.to_user_model()
     return parsed_content
+
+
+######################
+# Sensitivity part
+######################
+
+
+class XpansionSensitivityLocal(LocalBaseModel):
+    epsilon: float
+    projection: list[str]
+    capex: bool
+
+    @staticmethod
+    def from_user_model(user_class: XpansionSensitivity) -> "XpansionSensitivityLocal":
+        user_dict = asdict(user_class)
+        return XpansionSensitivityLocal.model_validate(user_dict)
+
+    def to_user_model(self) -> XpansionSensitivity:
+        return XpansionSensitivity(epsilon=self.epsilon, projection=self.projection, capex=self.capex)
+
+
+def parse_xpansion_sensitivity_local(data: dict[str, Any]) -> XpansionSensitivity:
+    return XpansionSensitivityLocal.model_validate(data).to_user_model()
