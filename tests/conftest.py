@@ -11,6 +11,8 @@
 # This file is part of the Antares project.
 import pytest
 
+from pathlib import Path
+
 from antares.craft import ThematicTrimmingParameters
 
 
@@ -45,3 +47,7 @@ def default_thematic_trimming_88() -> ThematicTrimmingParameters:
         other5_withdrawal=True,
         other5_level=True,
     )
+
+@pytest.fixture
+def xpansion_input_path() -> Path:
+    return Path(__file__).parent / "assets" / "expansion.zip"

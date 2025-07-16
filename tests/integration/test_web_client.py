@@ -12,84 +12,31 @@
 import pytest
 
 import shutil
+import zipfile
 
-from pathlib import Path, PurePath
+from pathlib import Path
 from typing import Generator
 
 import numpy as np
 import pandas as pd
 
 from antares.craft import (
-    AdequacyPatchMode,
-    AdvancedParametersUpdate,
     AntaresSimulationParameters,
     APIconf,
-    AreaProperties,
-    AreaPropertiesUpdate,
-    AreaUi,
-    AreaUiUpdate,
-    AssetType,
-    BindingConstraintFrequency,
-    BindingConstraintOperator,
-    BindingConstraintProperties,
-    BindingConstraintPropertiesUpdate,
-    ClusterData,
-    ConstraintTerm,
-    ConstraintTermUpdate,
-    ExportMPS,
-    FilterOption,
     Frequency,
     GeneralParametersUpdate,
     HydroPropertiesUpdate,
-    InitialReservoirLevel,
-    LawOption,
-    LinkData,
-    LinkProperties,
-    LinkPropertiesUpdate,
-    LinkStyle,
-    LinkUi,
-    LinkUiUpdate,
     MCAllAreasDataType,
-    MCAllLinksDataType,
-    MCIndAreasDataType,
-    MCIndLinksDataType,
-    Mode,
-    OptimizationParametersUpdate,
-    PlaylistParameters,
-    RenewableClusterGroup,
-    RenewableClusterProperties,
-    RenewableClusterPropertiesUpdate,
-    RenewableGenerationModeling,
     SheddingPolicy,
-    STStorageGroup,
     STStorageProperties,
     STStoragePropertiesUpdate,
     StudySettingsUpdate,
     ThematicTrimmingParameters,
-    ThermalClusterGroup,
-    ThermalClusterProperties,
-    ThermalClusterPropertiesUpdate,
-    TimeSeriesInterpretation,
-    TransmissionCapacities,
-    UnitCommitmentMode,
     create_study_api,
-    create_variant_api,
     import_study_api,
-    read_study_api,
 )
-from antares.craft.exceptions.exceptions import (
-    BindingConstraintCreationError,
-    ConstraintMatrixUpdateError,
-    InvalidRequestForScenarioBuilder,
-    MatrixUploadError,
-    ReferencedObjectDeletionNotAllowed,
-    StudySettingsUpdateError,
-)
-from antares.craft.model.hydro import InflowStructureUpdate
-from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
-from antares.craft.model.settings.advanced_parameters import AdvancedParameters
-from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import Job, JobStatus
+from antares.craft.service.local_services.factory import create_study_local
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
 ASSETS_DIR = Path(__file__).parent / "assets"
@@ -105,10 +52,11 @@ def antares_web() -> Generator[AntaresWebDesktop, None, None]:
 
 class TestWebClient:
     def test_lifecycle(
-        self, antares_web: AntaresWebDesktop, tmp_path: Path, default_thematic_trimming_88: ThematicTrimmingParameters
+        self, antares_web: AntaresWebDesktop, tmp_path: Path, default_thematic_trimming_88: ThematicTrimmingParameters, xpansion_input_path: Path
     ) -> None:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
+        """
         study = create_study_api("antares-craft-test", "880", api_config)
 
         # tests area creation with default values
@@ -1003,6 +951,26 @@ class TestWebClient:
             match=f"Could not update settings for study '{imported_study.service.study_id}': AntaresWeb doesn't support editing the parameter include_exportstructure",
         ):
             imported_study.update_settings(update_settings)
+            
+        
+        """
+
+        ######################
+        # Specific tests for Xpansion
+        ######################
+
+        # Asserts a random study doesn't contain any Xpansion configuration
+        # assert imported_study.xpansion is None
+
+        # Imports a study with a real case Xpansion configuration
+        study = create_study_local("Xpansion study", "8.8", tmp_path)
+        study_path = Path(study.path)
+        with zipfile.ZipFile(xpansion_input_path, "r") as zf:
+            zf.extractall(study_path / "user" / "expansion")
+        zip_study = Path(shutil.make_archive(base_name=str(study_path), base_dir=study_path, format="zip"))
+
+        # Ensures the reading succeeds.
+        imported_study = import_study_api(api_config, zip_study)
 
         ######################
         # Specific tests for study version 9.2

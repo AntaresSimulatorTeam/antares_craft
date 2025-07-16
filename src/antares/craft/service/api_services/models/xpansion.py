@@ -12,13 +12,16 @@
 import io
 
 from dataclasses import asdict
-from typing import Any
+from typing import Annotated, Any, TypeAlias
+
+from pydantic import BeforeValidator, Field
 
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint, XpansionConstraintUpdate
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity, XpansionSensitivityUpdate
 from antares.craft.model.xpansion.settings import Master, Solver, UcType, XpansionSettings, XpansionSettingsUpdate
 from antares.craft.service.api_services.models.base_model import APIBaseModel
+from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.serde_local.ini_reader import IniReader
 
@@ -45,8 +48,8 @@ class XpansionSettingsAPI(APIBaseModel):
     log_level: int
     separation_parameter: float
     batch_size: int
-    yearly_weights: str
-    additional_constraints: str
+    yearly_weights: str = Field(alias="yearly-weights")  # Due to old AntaresWeb endpoint
+    additional_constraints: str = Field(alias="additional-constraints")  # Due to old AntaresWeb endpoint
     timelimit: int
     sensitivity_config: XpansionSensitivityAPI
 
@@ -109,11 +112,19 @@ class XpansionLink(APIBaseModel):
     area_from: str
     area_to: str
 
+def split_areas(x: str) -> dict[str, str]:
+    area_list = sorted(x.split(" - "))
+    return {"area_from": area_list[0], "area_to": area_list[1]}
+
+# link parsed as "area1 - area2"
+XpansionLinkStr: TypeAlias = Annotated[XpansionLink, BeforeValidator(lambda x: split_areas(x))]
+
+
 
 @all_optional_model
-class XpansionCandidateAPI(APIBaseModel):
+class XpansionCandidateAPI(APIBaseModel, alias_generator=to_kebab):  # Due to old AntaresWeb endpoint
     name: str
-    link: XpansionLink
+    link: XpansionLinkStr
     annual_cost_per_mw: float
     already_installed_capacity: int
     unit_size: float

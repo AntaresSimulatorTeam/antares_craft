@@ -20,8 +20,6 @@ from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 
-ASSETS_DIR = Path(__file__).parent.parent.parent.parent / "assets"
-
 
 class TestXpansion:
     def test_create_and_read_basic_configuration(self, local_study_w_links: Study) -> None:
@@ -48,12 +46,12 @@ class TestXpansion:
         assert xpansion_read.get_constraints() == {}
         assert xpansion_read.sensitivity is None
 
-    def test_fancy_configuration(self, local_study_w_links: Study) -> None:
+    def test_fancy_configuration(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Asserts at first Xpansion is None.
         assert local_study_w_links.xpansion is None
         study_path = Path(local_study_w_links.path)
         # Put a real case configuration inside the study and tests the reading method.
-        with zipfile.ZipFile(ASSETS_DIR / "expansion.zip", "r") as zf:
+        with zipfile.ZipFile(xpansion_input_path, "r") as zf:
             zf.extractall(study_path / "user" / "expansion")
         # Read the study
         xpansion = read_study_local(study_path).xpansion
