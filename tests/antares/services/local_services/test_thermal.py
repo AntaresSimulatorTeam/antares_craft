@@ -216,6 +216,7 @@ variableomcost = 5.0
         expected_sections = ["test thermal cluster", "test thermal cluster two"]
         for key in expected_sections:
             assert key in ini_content
+            ini_content[key].pop("name")
             created_properties = ThermalClusterPropertiesLocal(**ini_content[key]).to_user_model()
             if key == "test thermal cluster":
                 assert created_properties == ThermalClusterProperties(group=ThermalClusterGroup.NUCLEAR, must_run=True)

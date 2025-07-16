@@ -26,7 +26,7 @@ from antares.craft.service.local_services.models.base_model import LocalBaseMode
 BindingConstraintPropertiesType = BindingConstraintProperties | BindingConstraintPropertiesUpdate
 
 
-class BindingConstraintPropertiesLocal(LocalBaseModel):
+class BindingConstraintPropertiesLocal(LocalBaseModel, extra="allow"):
     enabled: bool = True
     time_step: BindingConstraintFrequency = Field(BindingConstraintFrequency.HOURLY, alias="type")
     operator: BindingConstraintOperator = BindingConstraintOperator.LESS

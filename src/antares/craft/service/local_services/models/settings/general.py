@@ -27,7 +27,7 @@ from antares.craft.service.local_services.models.base_model import LocalBaseMode
 GeneralParametersType = GeneralParameters | GeneralParametersUpdate
 
 
-class GeneralSectionLocal(LocalBaseModel):
+class GeneralSectionLocal(LocalBaseModel, extra="allow"):
     mode: Mode = Mode.ECONOMY
     horizon: str = ""
     nb_years: int = Field(default=1, alias="nbyears")
@@ -65,7 +65,7 @@ class OutputSectionLocal(LocalBaseModel):
     archives: Any = ""
 
 
-class GeneralParametersLocal(LocalBaseModel):
+class GeneralParametersLocal(LocalBaseModel, extra="allow"):
     general: GeneralSectionLocal
     input: dict[str, str] = {"import": ""}
     output: OutputSectionLocal
