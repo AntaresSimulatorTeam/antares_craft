@@ -83,8 +83,8 @@ class XpansionSettingsAPI(APIBaseModel):
             log_level=self.log_level,
             separation_parameter=self.separation_parameter,
             batch_size=self.batch_size,
-            yearly_weights=self.yearly_weights,
-            additional_constraints=self.additional_constraints,
+            yearly_weights=self.yearly_weights or None,  # AntaresWeb endpoint uses empty strings instead of None
+            additional_constraints=self.additional_constraints or None,  # Same here
             timelimit=self.timelimit,
         )
 
@@ -112,13 +112,14 @@ class XpansionLink(APIBaseModel):
     area_from: str
     area_to: str
 
+
 def split_areas(x: str) -> dict[str, str]:
     area_list = sorted(x.split(" - "))
     return {"area_from": area_list[0], "area_to": area_list[1]}
 
+
 # link parsed as "area1 - area2"
 XpansionLinkStr: TypeAlias = Annotated[XpansionLink, BeforeValidator(lambda x: split_areas(x))]
-
 
 
 @all_optional_model

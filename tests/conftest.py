@@ -48,6 +48,7 @@ def default_thematic_trimming_88() -> ThematicTrimmingParameters:
         other5_level=True,
     )
 
+
 @pytest.fixture
 def xpansion_input_path() -> Path:
     return Path(__file__).parent / "assets" / "expansion.zip"
