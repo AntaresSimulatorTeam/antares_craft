@@ -19,7 +19,13 @@ from pydantic import BeforeValidator, Field
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint, XpansionConstraintUpdate
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity, XpansionSensitivityUpdate
-from antares.craft.model.xpansion.settings import Master, Solver, UcType, XpansionSettings, XpansionSettingsUpdate
+from antares.craft.model.xpansion.settings import (
+    Master,
+    UcType,
+    XpansionSettings,
+    XpansionSettingsUpdate,
+    XpansionSolver,
+)
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
@@ -44,7 +50,7 @@ class XpansionSettingsAPI(APIBaseModel):
     relative_gap: float
     relaxed_optimality_gap: float
     max_iteration: int
-    solver: Solver
+    solver: XpansionSolver
     log_level: int
     separation_parameter: float
     batch_size: int

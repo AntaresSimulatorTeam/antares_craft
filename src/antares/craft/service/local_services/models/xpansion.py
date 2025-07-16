@@ -17,7 +17,13 @@ from pydantic import BeforeValidator, Field, PlainSerializer
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
-from antares.craft.model.xpansion.settings import Master, Solver, UcType, XpansionSettings, XpansionSettingsUpdate
+from antares.craft.model.xpansion.settings import (
+    Master,
+    UcType,
+    XpansionSettings,
+    XpansionSettingsUpdate,
+    XpansionSolver,
+)
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
 
@@ -31,7 +37,7 @@ class XpansionSettingsLocal(LocalBaseModel):
     relative_gap: float = 1e-6
     relaxed_optimality_gap: float = 1e-5
     max_iteration: int = 1000
-    solver: Solver = Solver.XPRESS
+    solver: XpansionSolver = XpansionSolver.XPRESS
     log_level: int = 0
     separation_parameter: float = 0.5
     batch_size: int = 96

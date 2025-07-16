@@ -15,12 +15,6 @@ from typing import Optional
 from antares.craft.tools.contents_tool import EnumIgnoreCase
 
 
-class XpansionResourceFileType(EnumIgnoreCase):
-    CAPACITIES = "capacities"
-    WEIGHTS = "weights"
-    CONSTRAINTS = "constraints"
-
-
 class UcType(EnumIgnoreCase):
     EXPANSION_FAST = "expansion_fast"
     EXPANSION_ACCURATE = "expansion_accurate"
@@ -31,7 +25,7 @@ class Master(EnumIgnoreCase):
     RELAXED = "relaxed"
 
 
-class Solver(EnumIgnoreCase):
+class XpansionSolver(EnumIgnoreCase):
     CBC = "Cbc"
     COIN = "Coin"
     XPRESS = "Xpress"
@@ -45,7 +39,7 @@ class XpansionSettings:
     relative_gap: float = 1e-6
     relaxed_optimality_gap: float = 1e-5
     max_iteration: int = 1000
-    solver: Solver = Solver.XPRESS
+    solver: XpansionSolver = XpansionSolver.XPRESS
     log_level: int = 0
     separation_parameter: float = 0.5
     batch_size: int = 96
@@ -62,7 +56,7 @@ class XpansionSettingsUpdate:
     relative_gap: Optional[float] = None
     relaxed_optimality_gap: Optional[float] = None
     max_iteration: Optional[int] = None
-    solver: Optional[Solver] = None
+    solver: Optional[XpansionSolver] = None
     log_level: Optional[int] = None
     separation_parameter: Optional[float] = None
     batch_size: Optional[int] = None
