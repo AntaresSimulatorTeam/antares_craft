@@ -166,5 +166,6 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
     study._read_links()
     study._read_binding_constraints()
     study._read_outputs()
+    study._read_xpansion_configuration()
 
     return study
