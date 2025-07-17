@@ -164,16 +164,19 @@ class XpansionAPIService(BaseXpansionService):
             raise XpansionCandidateEditionError(self.study_id, name, e.message) from e
 
     @override
-    def remove_links_profile_from_candidate(self, name: str, profiles: list[XpansionLinkProfile]) -> None:
+    def remove_links_profile_from_candidate(self, name: str, profiles: list[XpansionLinkProfile]) -> XpansionCandidate:
         url = f"{self._expansion_url}/candidates/{name}"
         try:
             # Update properties
-            body: dict[str, None] = {}
+            body: dict[str, str | None] = {"name": name}
             for profile in profiles:
                 body[profile.value] = None
 
             # Saves the content
             self._wrapper.put(url, json=body)
+            # Fetch the result
+            response = self._wrapper.get(url).json()
+            return parse_xpansion_candidate_api(response)
 
         except APIError as e:
             raise XpansionCandidateEditionError(self.study_id, name, e.message) from e

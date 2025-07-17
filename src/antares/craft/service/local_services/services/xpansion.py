@@ -157,7 +157,7 @@ class XpansionLocalService(BaseXpansionService):
         raise XpansionCandidateEditionError(self.study_name, name, "Candidate does not exist")
 
     @override
-    def remove_links_profile_from_candidate(self, name: str, profiles: list[XpansionLinkProfile]) -> None:
+    def remove_links_profile_from_candidate(self, name: str, profiles: list[XpansionLinkProfile]) -> XpansionCandidate:
         ini_content = self._read_candidates()
         for key, value in ini_content.items():
             if name == value["name"]:
@@ -169,9 +169,11 @@ class XpansionLocalService(BaseXpansionService):
                         )
                     del value[profile.value]
 
+                user_class = parse_xpansion_candidate_local(value)
+
                 # Saves the content
                 self._save_candidates(ini_content)
-                return None
+                return user_class
 
         raise XpansionCandidateEditionError(self.study_name, name, "Candidate does not exist")
 
