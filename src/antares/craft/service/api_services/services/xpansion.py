@@ -20,6 +20,7 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
     XpansionCandidateCreationError,
+    XpansionCandidateEditionError,
     XpansionConfigurationCreationError,
     XpansionConfigurationDeletionError,
     XpansionConfigurationReadingError,
@@ -136,7 +137,14 @@ class XpansionAPIService(BaseXpansionService):
 
     @override
     def update_candidate(self, name: str, candidate: XpansionCandidateUpdate) -> XpansionCandidate:
-        raise NotImplementedError()
+        url = f"{self._expansion_url}/candidates/{name}"
+        try:
+            body = serialize_xpansion_candidate_api(candidate)
+            self._wrapper.put(url, json=body)
+            response = self._wrapper.get(url).json()
+            return parse_xpansion_candidate_api(response)
+        except APIError as e:
+            raise XpansionCandidateEditionError(self.study_id, name, e.message) from e
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()

@@ -588,3 +588,9 @@ class XpansionCandidateCreationError(Exception):
     def __init__(self, study_name: str, candidate_name: str, message: str) -> None:
         self.message = f"Could not create the candidate {candidate_name} for study {study_name}: " + message
         super().__init__(self.message)
+
+
+class XpansionCandidateEditionError(Exception):
+    def __init__(self, study_name: str, candidate_name: str, message: str) -> None:
+        self.message = f"Could not edit the candidate {candidate_name} for study {study_name}: " + message
+        super().__init__(self.message)
