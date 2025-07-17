@@ -15,6 +15,7 @@ import zipfile
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from antares.craft import Study, read_study_local
@@ -121,13 +122,9 @@ class TestXpansion:
         }
         assert xpansion.sensitivity == XpansionSensitivity(epsilon=10000, projection=["battery", "pv"], capex=True)
 
-    def test_matrices(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+    def test_weight_matrices(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Set up
         xpansion = self._set_up(local_study_w_links, xpansion_input_path)
-
-        ######################
-        # Weights part
-        ######################
 
         # Asserts we can get a content
         weight = xpansion.get_weight("weights.txt")
@@ -164,3 +161,45 @@ class TestXpansion:
             match="Could not delete the xpansion matrix fake_weight for study studyTest: The file does not exist",
         ):
             xpansion.delete_weight("fake_weight")
+
+    def test_capacities_matrices(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+        # Set up
+        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+
+        # Asserts we can get a content
+        capacity = xpansion.get_capacity("direct_04_fr-05_fr.txt")
+        expected_capacity = pd.DataFrame(np.full((8760, 1), 0.95))
+        expected_capacity[2208:6576] = 1
+        assert capacity.equals(expected_capacity)
+
+        # Asserts fetching a fake matrix raises an appropriate exception
+        with pytest.raises(
+            XpansionMatrixReadingError,
+            match="Could not read the xpansion matrix fake_capacity for study studyTest: The file does not exist",
+        ):
+            xpansion.get_capacity("fake_capacity")
+
+        # Asserts we can modify and create a matrix
+        new_capacity_matrix = pd.DataFrame(np.full((8760, 1), 0.87))
+        for file_name in ["capa_pv.ini", "other_capa.txt"]:
+            xpansion.set_capacity(file_name, new_capacity_matrix)
+            capacity = xpansion.get_capacity(file_name)
+            assert capacity.equals(new_capacity_matrix)
+
+        # Asserts there's a default matrix for capacities
+        empty_matrix = pd.DataFrame()
+        xpansion.set_capacity("capa_pv.ini", empty_matrix)
+        capacity = xpansion.get_capacity("capa_pv.ini")
+        assert capacity.equals(pd.DataFrame(np.ones((8760, 1))))
+
+        # Asserts we can delete a matrix
+        study_path = Path(local_study_w_links.path)
+        xpansion.delete_capacity("04_fr-05_fr.txt")
+        assert not (study_path / "user" / "expansion" / "capa" / "04_fr-05_fr.txt").exists()
+
+        # Asserts deleting a fake matrix raises an appropriate exception
+        with pytest.raises(
+            XpansionMatrixDeletionError,
+            match="Could not delete the xpansion matrix fake_capacity for study studyTest: The file does not exist",
+        ):
+            xpansion.delete_weight("fake_capacity")
