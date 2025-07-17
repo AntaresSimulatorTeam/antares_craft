@@ -202,4 +202,4 @@ class TestXpansion:
             XpansionMatrixDeletionError,
             match="Could not delete the xpansion matrix fake_capacity for study studyTest: The file does not exist",
         ):
-            xpansion.delete_weight("fake_capacity")
+            xpansion.delete_capacity("fake_capacity")
