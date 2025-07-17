@@ -26,6 +26,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionMatrixDeletionError,
     XpansionMatrixReadingError,
 )
+from antares.craft.model.xpansion.candidate import update_candidate
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.base_services import BaseXpansionService
@@ -36,7 +37,6 @@ from antares.craft.service.local_services.models.xpansion import (
     parse_xpansion_settings_local,
     serialize_xpansion_candidate_local,
     serialize_xpansion_settings_local,
-    update_candidate_local,
 )
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -141,7 +141,7 @@ class XpansionLocalService(BaseXpansionService):
             if name == value["name"]:
                 # Update properties
                 current_candidate = parse_xpansion_candidate_local(value)
-                updated_candidate = update_candidate_local(current_candidate, candidate)
+                updated_candidate = update_candidate(current_candidate, candidate)
 
                 # Round-trip to validate data
                 new_content = serialize_xpansion_candidate_local(updated_candidate)

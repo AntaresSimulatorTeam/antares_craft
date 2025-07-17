@@ -14,7 +14,7 @@ import io
 from dataclasses import asdict
 from typing import Annotated, Any, TypeAlias
 
-from pydantic import BeforeValidator, Field
+from pydantic import BeforeValidator, Field, PlainSerializer
 
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint, XpansionConstraintUpdate
@@ -118,14 +118,21 @@ class XpansionLink(APIBaseModel):
     area_from: str
     area_to: str
 
+    def serialize(self) -> str:
+        return f"{self.area_from} - {self.area_to}"
+
 
 def split_areas(x: str) -> dict[str, str]:
     area_list = sorted(x.split(" - "))
     return {"area_from": area_list[0], "area_to": area_list[1]}
 
 
-# link parsed as "area1 - area2"
-XpansionLinkStr: TypeAlias = Annotated[XpansionLink, BeforeValidator(lambda x: split_areas(x))]
+# link parsed and serialized as "area1 - area2"
+XpansionLinkStr: TypeAlias = Annotated[
+    XpansionLink,
+    BeforeValidator(lambda x: split_areas(x)),
+    PlainSerializer(lambda x: x.serialize()),
+]
 
 
 @all_optional_model
@@ -145,7 +152,7 @@ class XpansionCandidateAPI(APIBaseModel, alias_generator=to_kebab):  # Due to ol
     @staticmethod
     def from_user_model(user_class: XpansionCandidateType) -> "XpansionCandidateAPI":
         user_dict = asdict(user_class)
-        user_dict["link"] = {"area_from": user_dict.pop("area_from"), "area_to": user_dict.pop("area_to")}
+        user_dict["link"] = user_dict.pop("area_from") + " - " + user_dict.pop("area_to")
         return XpansionCandidateAPI.model_validate(user_dict)
 
     def to_user_model(self) -> XpansionCandidate:
