@@ -28,7 +28,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionMatrixEditionError,
     XpansionMatrixReadingError,
 )
-from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate
+from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate, update_candidate
 from antares.craft.model.xpansion.constraint import XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
@@ -139,8 +139,15 @@ class XpansionAPIService(BaseXpansionService):
     def update_candidate(self, name: str, candidate: XpansionCandidateUpdate) -> XpansionCandidate:
         url = f"{self._expansion_url}/candidates/{name}"
         try:
-            body = serialize_xpansion_candidate_api(candidate)
-            self._wrapper.put(url, json=body)
+            # Update properties
+            current_candidate = self._read_candidates()[name]
+            updated_candidate = update_candidate(current_candidate, candidate)
+
+            # Round-trip to validate data
+            new_content = serialize_xpansion_candidate_api(updated_candidate)
+
+            # Saves the content
+            self._wrapper.put(url, json=new_content)
             response = self._wrapper.get(url).json()
             return parse_xpansion_candidate_api(response)
         except APIError as e:

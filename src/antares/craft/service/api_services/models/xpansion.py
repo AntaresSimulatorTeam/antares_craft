@@ -16,7 +16,7 @@ from typing import Annotated, Any, TypeAlias
 
 from pydantic import BeforeValidator, Field, PlainSerializer
 
-from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate
+from antares.craft.model.xpansion.candidate import XpansionCandidate
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint, XpansionConstraintUpdate
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity, XpansionSensitivityUpdate
 from antares.craft.model.xpansion.settings import (
@@ -111,8 +111,6 @@ def serialize_xpansion_settings_api(
 # Candidates part
 ######################
 
-XpansionCandidateType = XpansionCandidate | XpansionCandidateUpdate
-
 
 class XpansionLink(APIBaseModel):
     area_from: str
@@ -150,7 +148,7 @@ class XpansionCandidateAPI(APIBaseModel, alias_generator=to_kebab):  # Due to ol
     already_installed_indirect_link_profile: str
 
     @staticmethod
-    def from_user_model(user_class: XpansionCandidateType) -> "XpansionCandidateAPI":
+    def from_user_model(user_class: XpansionCandidate) -> "XpansionCandidateAPI":
         user_dict = asdict(user_class)
         user_dict["link"] = user_dict.pop("area_from") + " - " + user_dict.pop("area_to")
         return XpansionCandidateAPI.model_validate(user_dict)
@@ -177,7 +175,7 @@ def parse_xpansion_candidate_api(data: dict[str, Any]) -> XpansionCandidate:
     return XpansionCandidateAPI.model_validate(data).to_user_model()
 
 
-def serialize_xpansion_candidate_api(user_class: XpansionCandidateType) -> dict[str, Any]:
+def serialize_xpansion_candidate_api(user_class: XpansionCandidate) -> dict[str, Any]:
     api_model = XpansionCandidateAPI.from_user_model(user_class)
     return api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
 

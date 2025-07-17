@@ -14,7 +14,7 @@ from typing import Annotated, Any, Optional, TypeAlias
 
 from pydantic import BeforeValidator, Field, PlainSerializer
 
-from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate
+from antares.craft.model.xpansion.candidate import XpansionCandidate
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import (
@@ -81,8 +81,6 @@ def serialize_xpansion_settings_local(settings: XpansionSettingsType) -> dict[st
 ######################
 # Candidates part
 ######################
-
-XpansionCandidateType = XpansionCandidate | XpansionCandidateUpdate
 
 
 class XpansionLink(LocalBaseModel):
