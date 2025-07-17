@@ -20,6 +20,7 @@ from typing_extensions import override
 from antares.craft import XpansionCandidate, XpansionCandidateUpdate
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
+    XpansionCandidateCoherenceError,
     XpansionCandidateCreationError,
     XpansionCandidateEditionError,
     XpansionMatrixDeletionError,
@@ -118,6 +119,7 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def create_candidate(self, candidate: XpansionCandidate) -> XpansionCandidate:
+        self._checks_candidate_coherence(candidate)
         ini_content = self._read_candidates()
         for key, value in ini_content.items():
             if candidate.name == value["name"]:
@@ -144,6 +146,7 @@ class XpansionLocalService(BaseXpansionService):
                 # Round-trip to validate data
                 new_content = serialize_xpansion_candidate_local(updated_candidate)
                 user_class = parse_xpansion_candidate_local(new_content)
+                self._checks_candidate_coherence(user_class)
 
                 # Saves the content
                 ini_content[key] = new_content
@@ -170,3 +173,23 @@ class XpansionLocalService(BaseXpansionService):
         if file_path.exists():
             return from_json(file_path.read_text())
         return {}
+
+    def _checks_candidate_coherence(self, candidate: XpansionCandidate) -> None:
+        area_from, area_to = sorted([candidate.area_from, candidate.area_to])
+        if not (self.config.study_path / "input" / "links" / area_from / f"{area_to}_parameters.txt").exists():
+            raise XpansionCandidateCoherenceError(
+                self.study_name, candidate.name, f"Link between {area_from} and {area_to} does not exist"
+            )
+
+        files_to_check = []
+        for attr in [
+            "direct_link_profile",
+            "indirect_link_profile",
+            "already_installed_direct_link_profile",
+            "already_installed_indirect_link_profile",
+        ]:
+            if getattr(candidate, attr) is not None:
+                files_to_check.append(attr)
+        for file in files_to_check:
+            if not (self._xpansion_path / "capa" / file).exists():
+                raise XpansionCandidateCoherenceError(self.study_name, candidate.name, f"File {file} does not exist")
