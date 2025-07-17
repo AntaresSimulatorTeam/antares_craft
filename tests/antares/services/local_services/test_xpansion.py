@@ -19,10 +19,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.craft import Study, read_study_local
+from antares.craft import Study, XpansionCandidateUpdate, read_study_local
 from antares.craft.exceptions.exceptions import (
     BadCandidateFormatError,
     XpansionCandidateCoherenceError,
+    XpansionCandidateEditionError,
     XpansionMatrixDeletionError,
     XpansionMatrixReadingError,
 )
@@ -237,7 +238,7 @@ class TestXpansion:
         # Asserts we cannot create a candidate with fake link-profiles
         with pytest.raises(
             XpansionCandidateCoherenceError,
-            match="The candidate my_cdt for study studyTest has incoherence: File direct_link_profile does not exist",
+            match="The candidate my_cdt for study studyTest has incoherence: File fake_profile does not exist",
         ):
             my_cdt = XpansionCandidate(
                 name="my_cdt",
@@ -248,6 +249,13 @@ class TestXpansion:
                 direct_link_profile="fake_profile",
             )
             xpansion.create_candidate(my_cdt)
+
+        # Asserts we cannot update a fake candidate
+        with pytest.raises(
+            XpansionCandidateEditionError,
+            match="Could not edit the candidate fake_candidate for study studyTest: Candidate does not exist",
+        ):
+            xpansion.update_candidate("fake_candidate", XpansionCandidateUpdate(name="new_name"))
 
     def test_candidates(self, local_study: Study, xpansion_input_path: Path) -> None:
         # Set up
@@ -265,7 +273,7 @@ class TestXpansion:
         for link in links_to_create:
             local_study.create_link(area_from=link[0], area_to=link[1])
 
-        # Create a candidate
+        # Creates a candidate
         my_cdt = XpansionCandidate(
             name="my_cdt",
             area_from="area1",
@@ -274,4 +282,9 @@ class TestXpansion:
             max_investment=2,
             direct_link_profile="capa_pv.ini",
         )
-        xpansion.create_candidate(my_cdt)
+        cdt = xpansion.create_candidate(my_cdt)
+        assert cdt == my_cdt
+
+        # Update several properties
+
+        # Rename it
