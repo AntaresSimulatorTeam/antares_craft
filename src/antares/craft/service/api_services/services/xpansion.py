@@ -11,8 +11,6 @@
 # This file is part of the Antares project.
 import io
 
-from typing import Any
-
 import pandas as pd
 
 from typing_extensions import override
@@ -172,18 +170,7 @@ class XpansionAPIService(BaseXpansionService):
         url = f"{self._expansion_url}/candidates/{candidate.name}"
         try:
             # Update properties
-            # AntaresWeb needs all these fields to work ...
-            body: dict[str, str | Any] = {
-                "name": candidate.name,
-                "annual-cost-per-mw": candidate.annual_cost_per_mw,
-                "link": f"{candidate.area_from} - {candidate.area_to}",
-            }
-            if candidate.max_investment is not None:
-                body["max-investment"] = candidate.max_investment
-            else:
-                body["max-units"] = candidate.max_units
-                body["unit-size"] = candidate.unit_size
-
+            body = serialize_xpansion_candidate_api(candidate)
             for profile in profiles:
                 body[profile.value] = None
 
