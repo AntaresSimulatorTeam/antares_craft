@@ -172,11 +172,18 @@ class XpansionAPIService(BaseXpansionService):
         url = f"{self._expansion_url}/candidates/{candidate.name}"
         try:
             # Update properties
+            # AntaresWeb needs all these fields to work ...
             body: dict[str, str | Any] = {
                 "name": candidate.name,
-                "annual_cost_per_mw": candidate.annual_cost_per_mw,
+                "annual-cost-per-mw": candidate.annual_cost_per_mw,
                 "link": f"{candidate.area_from} - {candidate.area_to}",
             }
+            if candidate.max_investment is not None:
+                body["max-investment"] = candidate.max_investment
+            else:
+                body["max-units"] = candidate.max_units
+                body["unit-size"] = candidate.unit_size
+
             for profile in profiles:
                 body[profile.value] = None
 
