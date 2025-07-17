@@ -13,11 +13,13 @@ import shutil
 
 from typing import Any
 
+import pandas as pd
+
 from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.xpansion.settings import XpansionSettings
-from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
+from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.base_services import BaseXpansionService
 from antares.craft.service.local_services.models.xpansion import (
     parse_xpansion_candidate_local,
@@ -78,6 +80,18 @@ class XpansionLocalService(BaseXpansionService):
     @override
     def delete(self) -> None:
         shutil.rmtree(self._xpansion_path)
+
+    @override
+    def get_matrix(self, file_name: str, file_type: XpansionMatrix) -> pd.DataFrame:
+        raise NotImplementedError()
+
+    @override
+    def delete_matrix(self, file_name: str, file_type: XpansionMatrix) -> None:
+        raise NotImplementedError()
+
+    @override
+    def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: XpansionMatrix) -> None:
+        raise NotImplementedError()
 
     def _read_settings(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "settings.ini")

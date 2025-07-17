@@ -9,6 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import pandas as pd
+
 from typing_extensions import override
 
 from antares.craft import APIconf
@@ -23,7 +25,7 @@ from antares.craft.model.xpansion.candidate import XpansionCandidate
 from antares.craft.model.xpansion.constraint import XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
-from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
+from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.api_services.models.xpansion import (
     parse_xpansion_candidate_api,
     parse_xpansion_constraints_api,
@@ -79,6 +81,18 @@ class XpansionAPIService(BaseXpansionService):
             self._wrapper.delete(self._expansion_url)
         except APIError as e:
             raise XpansionConfigurationDeletionError(self.study_id, e.message) from e
+
+    @override
+    def get_matrix(self, file_name: str, file_type: XpansionMatrix) -> pd.DataFrame:
+        raise NotImplementedError()
+
+    @override
+    def delete_matrix(self, file_name: str, file_type: XpansionMatrix) -> None:
+        raise NotImplementedError()
+
+    @override
+    def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: XpansionMatrix) -> None:
+        raise NotImplementedError()
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()
