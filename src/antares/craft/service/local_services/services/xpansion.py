@@ -17,8 +17,12 @@ import pandas as pd
 
 from typing_extensions import override
 
+from antares.craft import XpansionCandidate, XpansionCandidateUpdate
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import XpansionMatrixDeletionError, XpansionMatrixReadingError
+from antares.craft.exceptions.exceptions import (
+    XpansionMatrixDeletionError,
+    XpansionMatrixReadingError,
+)
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.base_services import BaseXpansionService
@@ -106,6 +110,14 @@ class XpansionLocalService(BaseXpansionService):
     @override
     def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: XpansionMatrix) -> None:
         write_timeseries(self.config.study_path, series, FILE_MAPPING[file_type][1], file_name=file_name)
+
+    @override
+    def create_candidate(self, candidate: XpansionCandidate) -> XpansionCandidate:
+        raise NotImplementedError()
+
+    @override
+    def update_candidate(self, name: str, candidate: XpansionCandidateUpdate) -> XpansionCandidate:
+        raise NotImplementedError()
 
     def _read_settings(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "settings.ini")
