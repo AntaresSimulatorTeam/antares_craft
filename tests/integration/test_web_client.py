@@ -1128,6 +1128,13 @@ class TestWebClient:
         assert cdt.max_investment == 3
         assert cdt.direct_link_profile == "capa_pv.ini"
 
+        # Rename it
+        new_properties = XpansionCandidateUpdate(name="new_name")
+        cdt = xpansion.update_candidate("my_cdt", new_properties)
+        assert cdt.name == "new_name"
+        assert cdt.max_investment == 3
+        assert cdt.direct_link_profile == "capa_pv.ini"
+
         # Deletes the configuration
         imported_study.delete_xpansion_configuration()
         assert imported_study.xpansion is None

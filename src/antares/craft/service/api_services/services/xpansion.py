@@ -148,6 +148,11 @@ class XpansionAPIService(BaseXpansionService):
 
             # Saves the content
             self._wrapper.put(url, json=new_content)
+
+            # Fetch the saved data to return it to the user
+            if candidate.name is not None and candidate.name != name:
+                # We're renaming the candidate, we should change the url
+                url = f"{self._expansion_url}/candidates/{candidate.name}"
             response = self._wrapper.get(url).json()
             return parse_xpansion_candidate_api(response)
         except APIError as e:
