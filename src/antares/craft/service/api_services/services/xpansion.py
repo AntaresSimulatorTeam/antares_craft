@@ -93,7 +93,7 @@ class XpansionAPIService(BaseXpansionService):
 
     @override
     def get_matrix(self, file_name: str, file_type: XpansionMatrix) -> pd.DataFrame:
-        series_path = f"user/xpansion/{FILE_MAPPING[file_type]}/{file_name}"
+        series_path = f"user/expansion/{FILE_MAPPING[file_type]}/{file_name}"
         try:
             return get_matrix(self._base_url, self.study_id, self._wrapper, series_path)
         except APIError as e:
@@ -106,11 +106,10 @@ class XpansionAPIService(BaseXpansionService):
             self._wrapper.delete(url)
         except APIError as e:
             raise XpansionMatrixDeletionError(self.study_id, file_name, e.message) from e
-        raise NotImplementedError()
 
     @override
     def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: XpansionMatrix) -> None:
-        series_path = f"user/xpansion/{FILE_MAPPING[file_type]}/{file_name}"
+        series_path = f"user/expansion/{FILE_MAPPING[file_type]}/{file_name}"
         try:
             update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError:
@@ -118,8 +117,8 @@ class XpansionAPIService(BaseXpansionService):
             url = f"{self._expansion_url}/resources/{file_type.value}"
             try:
                 buffer = io.StringIO()
-                series.to_csv(buffer, sep="\t")
-                self._wrapper.post(url, files={"file": buffer.getvalue()})
+                series.to_csv(buffer, sep="\t", header=False, index=False)
+                self._wrapper.post(url, files={"file": (file_name, buffer.getvalue())})
             except APIError as e:
                 raise XpansionMatrixEditionError(self.study_id, file_name, e.message) from e
 
