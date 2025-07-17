@@ -129,11 +129,26 @@ class TestXpansion:
         # Weights part
         ######################
 
+        # Asserts we can get a content
         weight = xpansion.get_weight("weights.txt")
         assert weight.equals(pd.DataFrame([0.2, 0.4, 0.4]))
 
+        # Asserts fetching a fake matrix raises an appropriate exception
         with pytest.raises(
             XpansionMatrixReadingError,
             match="Could not read the xpansion matrix fake_weight for study studyTest: The file does not exist",
         ):
             xpansion.get_weight("fake_weight")
+
+        # Asserts we can modify and create a matrix
+        new_weight_matrix = pd.DataFrame([0.1, 0.2, 0.7])
+        for file_name in ["weights.txt", "other_weights.ini"]:
+            xpansion.set_weight(file_name, new_weight_matrix)
+            weight = xpansion.get_weight(file_name)
+            assert weight.equals(new_weight_matrix)
+
+        # Asserts there's no default matrix for weights
+        empty_matrix = pd.DataFrame()
+        xpansion.set_weight("weights.txt", empty_matrix)
+        weight = xpansion.get_weight("weights.txt")
+        assert weight.equals(empty_matrix)
