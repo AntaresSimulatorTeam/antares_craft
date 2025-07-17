@@ -89,5 +89,6 @@ class XpansionConfiguration:
         return cdt
 
     def remove_links_profile_from_candidate(self, name: str, profiles: list[XpansionLinkProfile]) -> None:
-        new_candidate = self._xpansion_service.remove_links_profile_from_candidate(name, profiles)
+        current_candidate = self._candidates[name]
+        new_candidate = self._xpansion_service.remove_links_profile_from_candidate(current_candidate, profiles)
         self._candidates[name] = new_candidate

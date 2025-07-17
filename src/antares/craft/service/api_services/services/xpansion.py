@@ -11,6 +11,8 @@
 # This file is part of the Antares project.
 import io
 
+from typing import Any
+
 import pandas as pd
 
 from typing_extensions import override
@@ -164,11 +166,17 @@ class XpansionAPIService(BaseXpansionService):
             raise XpansionCandidateEditionError(self.study_id, name, e.message) from e
 
     @override
-    def remove_links_profile_from_candidate(self, name: str, profiles: list[XpansionLinkProfile]) -> XpansionCandidate:
-        url = f"{self._expansion_url}/candidates/{name}"
+    def remove_links_profile_from_candidate(
+        self, candidate: XpansionCandidate, profiles: list[XpansionLinkProfile]
+    ) -> XpansionCandidate:
+        url = f"{self._expansion_url}/candidates/{candidate.name}"
         try:
             # Update properties
-            body: dict[str, str | None] = {"name": name}
+            body: dict[str, str | Any] = {
+                "name": candidate.name,
+                "annual_cost_per_mw": candidate.annual_cost_per_mw,
+                "link": f"{candidate.area_from} - {candidate.area_to}",
+            }
             for profile in profiles:
                 body[profile.value] = None
 
@@ -179,7 +187,7 @@ class XpansionAPIService(BaseXpansionService):
             return parse_xpansion_candidate_api(response)
 
         except APIError as e:
-            raise XpansionCandidateEditionError(self.study_id, name, e.message) from e
+            raise XpansionCandidateEditionError(self.study_id, candidate.name, e.message) from e
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()

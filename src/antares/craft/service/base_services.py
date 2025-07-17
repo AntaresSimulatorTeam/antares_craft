@@ -894,7 +894,7 @@ class BaseXpansionService(ABC):
 
     @abstractmethod
     def remove_links_profile_from_candidate(
-        self, name: str, profiles: list["XpansionLinkProfile"]
+        self, candidate: "XpansionCandidate", profiles: list["XpansionLinkProfile"]
     ) -> "XpansionCandidate":
         """
         Edits a candidate by removing some reference he has to capacity files
