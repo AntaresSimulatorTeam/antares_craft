@@ -32,7 +32,10 @@ from antares.craft.service.api_services.models.xpansion import (
     parse_xpansion_constraints_api,
     parse_xpansion_settings_api,
 )
+from antares.craft.service.api_services.utils import get_matrix
 from antares.craft.service.base_services import BaseXpansionService
+
+FILE_MAPPING: dict[XpansionMatrix, str] = {XpansionMatrix.WEIGHTS: "weights", XpansionMatrix.CAPACITIES: "capa"}
 
 
 class XpansionAPIService(BaseXpansionService):
@@ -41,7 +44,8 @@ class XpansionAPIService(BaseXpansionService):
         self.config = config
         self.study_id = study_id
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
-        self._expansion_url = f"{self.config.get_host()}/api/v1/studies/{study_id}/extensions/xpansion"
+        self._base_url = f"{self.config.get_host()}/api/v1"
+        self._expansion_url = f"{self._base_url}/studies/{study_id}/extensions/xpansion"
 
     @override
     def read_xpansion_configuration(self) -> XpansionConfiguration | None:
@@ -85,7 +89,8 @@ class XpansionAPIService(BaseXpansionService):
 
     @override
     def get_matrix(self, file_name: str, file_type: XpansionMatrix) -> pd.DataFrame:
-        raise NotImplementedError()
+        series_path = f"user/xpansion/{FILE_MAPPING[file_type]}/{file_name}"
+        return get_matrix(self._base_url, self.study_id, self._wrapper, series_path)
 
     @override
     def delete_matrix(self, file_name: str, file_type: XpansionMatrix) -> None:
