@@ -75,7 +75,9 @@ from antares.craft import (
     TransmissionCapacities,
     UnitCommitmentMode,
     XpansionCandidate,
+    XpansionCandidateUpdate,
     XpansionConstraint,
+    XpansionLinkProfile,
     XpansionSensitivity,
     XpansionSettings,
     create_study_api,
@@ -1150,6 +1152,56 @@ class TestWebClient:
             match=f"Could not delete the xpansion matrix fake_capacity for study {study_id}",
         ):
             xpansion.delete_capacity("fake_capacity")
+
+        ############# Candidates ##############
+        # Creates areas and links corresponding to Xpansion candidates
+        areas_to_create = ["area1", "area2", "flex", "peak", "pv", "semibase"]
+        links_to_create = [
+            ("area1", "area2"),
+            ("area2", "flex"),
+            ("area1", "peak"),
+            ("area2", "pv"),
+            ("area1", "semibase"),
+        ]
+        for area in areas_to_create:
+            imported_study.create_area(area)
+        for link in links_to_create:
+            imported_study.create_link(area_from=link[0], area_to=link[1])
+
+        # Creates a candidate
+        my_cdt = XpansionCandidate(
+            name="my_cdt",
+            area_from="area1",
+            area_to="area2",
+            annual_cost_per_mw=3.17,
+            max_investment=2,
+            direct_link_profile="capa_pv.ini",
+        )
+        cdt = xpansion.create_candidate(my_cdt)
+        assert cdt == my_cdt
+
+        # Update several properties
+        new_properties = XpansionCandidateUpdate(area_from="pv", max_investment=3)
+        cdt = xpansion.update_candidate("my_cdt", new_properties)
+        assert cdt.name == "my_cdt"
+        assert cdt.area_from == "area2"  # Areas were re-ordered by alphabetical name
+        assert cdt.area_to == "pv"
+        assert cdt.max_investment == 3
+        assert cdt.direct_link_profile == "capa_pv.ini"
+
+        # Rename it
+        new_properties = XpansionCandidateUpdate(name="new_name")
+        cdt = xpansion.update_candidate("my_cdt", new_properties)
+        assert cdt.name == "new_name"
+        assert cdt.max_investment == 3
+        assert cdt.direct_link_profile == "capa_pv.ini"
+
+        # Removes the direct link profile from the candidate
+        xpansion.remove_links_profile_from_candidate("new_name", [XpansionLinkProfile.DIRECT_LINK])
+        assert xpansion.get_candidates()["new_name"].direct_link_profile is None
+        # Ensures that even when reading the candidate we still have `direct_link_profile` to None
+        imported_study = read_study_api(api_config, imported_study.service.study_id)
+        assert imported_study.xpansion.get_candidates()["new_name"].direct_link_profile is None
 
         # Deletes the configuration
         imported_study.delete_xpansion_configuration()

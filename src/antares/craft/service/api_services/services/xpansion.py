@@ -19,6 +19,8 @@ from antares.craft import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
+    XpansionCandidateCreationError,
+    XpansionCandidateEditionError,
     XpansionConfigurationCreationError,
     XpansionConfigurationDeletionError,
     XpansionConfigurationReadingError,
@@ -26,7 +28,12 @@ from antares.craft.exceptions.exceptions import (
     XpansionMatrixEditionError,
     XpansionMatrixReadingError,
 )
-from antares.craft.model.xpansion.candidate import XpansionCandidate
+from antares.craft.model.xpansion.candidate import (
+    XpansionCandidate,
+    XpansionCandidateUpdate,
+    XpansionLinkProfile,
+    update_candidate,
+)
 from antares.craft.model.xpansion.constraint import XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
@@ -35,6 +42,7 @@ from antares.craft.service.api_services.models.xpansion import (
     parse_xpansion_candidate_api,
     parse_xpansion_constraints_api,
     parse_xpansion_settings_api,
+    serialize_xpansion_candidate_api,
 )
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseXpansionService
@@ -121,6 +129,59 @@ class XpansionAPIService(BaseXpansionService):
                 self._wrapper.post(url, files={"file": (file_name, buffer.getvalue())})
             except APIError as e:
                 raise XpansionMatrixEditionError(self.study_id, file_name, e.message) from e
+
+    @override
+    def create_candidate(self, candidate: XpansionCandidate) -> XpansionCandidate:
+        url = f"{self._expansion_url}/candidates"
+        try:
+            body = serialize_xpansion_candidate_api(candidate)
+            response = self._wrapper.post(url, json=body).json()
+            return parse_xpansion_candidate_api(response)
+        except APIError as e:
+            raise XpansionCandidateCreationError(self.study_id, candidate.name, e.message) from e
+
+    @override
+    def update_candidate(self, name: str, candidate: XpansionCandidateUpdate) -> XpansionCandidate:
+        url = f"{self._expansion_url}/candidates/{name}"
+        try:
+            # Update properties
+            current_candidate = self._read_candidates()[name]
+            updated_candidate = update_candidate(current_candidate, candidate)
+
+            # Round-trip to validate data
+            new_content = serialize_xpansion_candidate_api(updated_candidate)
+
+            # Saves the content
+            self._wrapper.put(url, json=new_content)
+
+            # Fetch the saved data to return it to the user
+            if candidate.name is not None and candidate.name != name:
+                # We're renaming the candidate, we should change the url
+                url = f"{self._expansion_url}/candidates/{candidate.name}"
+            response = self._wrapper.get(url).json()
+            return parse_xpansion_candidate_api(response)
+        except APIError as e:
+            raise XpansionCandidateEditionError(self.study_id, name, e.message) from e
+
+    @override
+    def remove_links_profile_from_candidate(
+        self, candidate: XpansionCandidate, profiles: list[XpansionLinkProfile]
+    ) -> XpansionCandidate:
+        url = f"{self._expansion_url}/candidates/{candidate.name}"
+        try:
+            # Update properties
+            body = serialize_xpansion_candidate_api(candidate)
+            for profile in profiles:
+                body[profile.value] = None
+
+            # Saves the content
+            self._wrapper.put(url, json=body)
+            # Fetch the result
+            response = self._wrapper.get(url).json()
+            return parse_xpansion_candidate_api(response)
+
+        except APIError as e:
+            raise XpansionCandidateEditionError(self.study_id, candidate.name, e.message) from e
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()

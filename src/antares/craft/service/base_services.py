@@ -20,10 +20,17 @@ import pandas as pd
 from antares.craft.config.base_configuration import BaseConfiguration
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
+from antares.craft.model.xpansion.candidate import XpansionLinkProfile
 from antares.study.version import StudyVersion
 
 if TYPE_CHECKING:
-    from antares.craft import PlaylistParameters, ScenarioBuilder, ThematicTrimmingParameters
+    from antares.craft import (
+        PlaylistParameters,
+        ScenarioBuilder,
+        ThematicTrimmingParameters,
+        XpansionCandidate,
+        XpansionCandidateUpdate,
+    )
     from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
     from antares.craft.model.binding_constraint import (
         BindingConstraint,
@@ -868,6 +875,29 @@ class BaseXpansionService(ABC):
     def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: "XpansionMatrix") -> None:
         """
         Modifies or creates a matrix (either capacity or weights) for a given study
+        """
+        pass
+
+    @abstractmethod
+    def create_candidate(self, candidate: "XpansionCandidate") -> "XpansionCandidate":
+        """
+        Creates an Xpansion candidate inside a given study
+        """
+        pass
+
+    @abstractmethod
+    def update_candidate(self, name: str, candidate: "XpansionCandidateUpdate") -> "XpansionCandidate":
+        """
+        Updates an existing Xpansion candidate inside a given study
+        """
+        pass
+
+    @abstractmethod
+    def remove_links_profile_from_candidate(
+        self, candidate: "XpansionCandidate", profiles: list["XpansionLinkProfile"]
+    ) -> "XpansionCandidate":
+        """
+        Edits a candidate by removing some reference he has to capacity files
         """
         pass
 

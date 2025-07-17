@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 import pytest
 
+import re
 import zipfile
 
 from pathlib import Path
@@ -18,13 +19,20 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.craft import Study, read_study_local
-from antares.craft.exceptions.exceptions import XpansionMatrixDeletionError, XpansionMatrixReadingError
-from antares.craft.model.xpansion.candidate import XpansionCandidate
+from antares.craft import Study, XpansionCandidateUpdate, read_study_local
+from antares.craft.exceptions.exceptions import (
+    BadCandidateFormatError,
+    XpansionCandidateCoherenceError,
+    XpansionCandidateEditionError,
+    XpansionMatrixDeletionError,
+    XpansionMatrixReadingError,
+)
+from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
+from antares.craft.tools.serde_local.ini_reader import IniReader
 
 
 class TestXpansion:
@@ -203,3 +211,119 @@ class TestXpansion:
             match="Could not delete the xpansion matrix fake_capacity for study studyTest: The file does not exist",
         ):
             xpansion.delete_capacity("fake_capacity")
+
+    def test_candidates_error_cases(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+        # Set up
+        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+
+        # Asserts we cannot create a candidate without filling investment values
+        with pytest.raises(
+            BadCandidateFormatError,
+            match=re.escape(
+                "The candidate my_cdt is not well formatted. It should either contain max-investment or (max-units and unit-size)."
+            ),
+        ):
+            my_cdt = XpansionCandidate(name="my_cdt", area_from="Area1", area_to="Area2", annual_cost_per_mw=3.17)
+            xpansion.create_candidate(my_cdt)
+
+        # Asserts we cannot create a candidate with fake links
+        with pytest.raises(
+            XpansionCandidateCoherenceError,
+            match="The candidate my_cdt for study studyTest has incoherence: Link between Area1 and Area2 does not exist",
+        ):
+            my_cdt = XpansionCandidate(
+                name="my_cdt", area_from="Area1", area_to="Area2", annual_cost_per_mw=3.17, max_investment=2
+            )
+            xpansion.create_candidate(my_cdt)
+
+        # Asserts we cannot create a candidate with fake link-profiles
+        with pytest.raises(
+            XpansionCandidateCoherenceError,
+            match="The candidate my_cdt for study studyTest has incoherence: File fake_profile does not exist",
+        ):
+            my_cdt = XpansionCandidate(
+                name="my_cdt",
+                area_from="fr",
+                area_to="at",
+                annual_cost_per_mw=3.17,
+                max_investment=2,
+                direct_link_profile="fake_profile",
+            )
+            xpansion.create_candidate(my_cdt)
+
+        # Asserts we cannot update a fake candidate
+        with pytest.raises(
+            XpansionCandidateEditionError,
+            match="Could not edit the candidate fake_candidate for study studyTest: Candidate does not exist",
+        ):
+            xpansion.update_candidate("fake_candidate", XpansionCandidateUpdate(name="new_name"))
+
+    def test_candidates(self, local_study: Study, xpansion_input_path: Path) -> None:
+        # Set up
+        xpansion = self._set_up(local_study, xpansion_input_path)
+        areas_to_create = ["area1", "area2", "flex", "peak", "pv", "semibase"]
+        links_to_create = [
+            ("area1", "area2"),
+            ("area2", "flex"),
+            ("area1", "peak"),
+            ("area2", "pv"),
+            ("area1", "semibase"),
+        ]
+        for area in areas_to_create:
+            local_study.create_area(area)
+        for link in links_to_create:
+            local_study.create_link(area_from=link[0], area_to=link[1])
+
+        # Creates a candidate
+        my_cdt = XpansionCandidate(
+            name="my_cdt",
+            area_from="area1",
+            area_to="area2",
+            annual_cost_per_mw=3.17,
+            max_investment=2,
+            direct_link_profile="capa_pv.ini",
+        )
+        cdt = xpansion.create_candidate(my_cdt)
+        assert cdt == my_cdt
+
+        # Update several properties
+        new_properties = XpansionCandidateUpdate(area_from="pv", max_investment=3)
+        cdt = xpansion.update_candidate("my_cdt", new_properties)
+        assert cdt.name == "my_cdt"
+        assert cdt.area_from == "area2"  # Areas were re-ordered by alphabetical name
+        assert cdt.area_to == "pv"
+        assert cdt.max_investment == 3
+        assert cdt.direct_link_profile == "capa_pv.ini"
+
+        # Rename it
+        new_properties = XpansionCandidateUpdate(name="new_name")
+        cdt = xpansion.update_candidate("my_cdt", new_properties)
+        assert cdt.name == "new_name"
+        assert cdt.max_investment == 3
+        assert cdt.direct_link_profile == "capa_pv.ini"
+
+        # Checks ini content
+        ini_path = Path(local_study.path) / "user" / "expansion" / "candidates.ini"
+        content = IniReader().read(ini_path)
+        assert len(content) == 6
+        my_candidate = content["6"]
+        assert my_candidate == {
+            "name": "new_name",
+            "link": "area2 - pv",
+            "annual-cost-per-mw": 3.17,
+            "max-investment": 3.0,
+            "direct-link-profile": "capa_pv.ini",
+        }
+
+        # Removes the direct link profile from the candidate
+        xpansion.remove_links_profile_from_candidate("new_name", [XpansionLinkProfile.DIRECT_LINK])
+        assert xpansion.get_candidates()["new_name"].direct_link_profile is None
+        content = IniReader().read(ini_path)
+        assert len(content) == 6
+        my_candidate = content["6"]
+        assert my_candidate == {
+            "name": "new_name",
+            "link": "area2 - pv",
+            "annual-cost-per-mw": 3.17,
+            "max-investment": 3.0,
+        }

@@ -11,10 +11,18 @@
 # This file is part of the Antares project.
 
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Optional
 
 from antares.craft.exceptions.exceptions import BadCandidateFormatError
+from antares.craft.tools.contents_tool import EnumIgnoreCase
+
+
+class XpansionLinkProfile(EnumIgnoreCase):
+    DIRECT_LINK = "direct-link-profile"
+    INDIRECT_LINK = "indirect-link-profile"
+    ALREADY_INSTALLED_DIRECT_LINK = "already-installed-direct-link-profile"
+    ALREADY_INSTALLED_INDIRECT_LINK = "already-installed-indirect-link-profile"
 
 
 @dataclass(frozen=True)
@@ -51,3 +59,9 @@ class XpansionCandidateUpdate:
     indirect_link_profile: Optional[str] = None
     already_installed_direct_link_profile: Optional[str] = None
     already_installed_indirect_link_profile: Optional[str] = None
+
+
+def update_candidate(candidate: XpansionCandidate, candidate_update: XpansionCandidateUpdate) -> XpansionCandidate:
+    candidate_dict = asdict(candidate)
+    candidate_dict.update({k: v for k, v in asdict(candidate_update).items() if v is not None})
+    return XpansionCandidate(**candidate_dict)
