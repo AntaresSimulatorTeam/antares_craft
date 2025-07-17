@@ -9,11 +9,16 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import pytest
+
 import zipfile
 
 from pathlib import Path
 
+import pandas as pd
+
 from antares.craft import Study, read_study_local
+from antares.craft.exceptions.exceptions import XpansionMatrixReadingError
 from antares.craft.model.xpansion.candidate import XpansionCandidate
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
@@ -22,13 +27,15 @@ from antares.craft.model.xpansion.xpansion_configuration import XpansionConfigur
 
 
 class TestXpansion:
-
-    def _set_up(self, study: Study, resource: Path) -> Path:
+    def _set_up(self, study: Study, resource: Path) -> XpansionConfiguration:
         study_path = Path(study.path)
         # Put a real case configuration inside the study and tests the reading method.
         with zipfile.ZipFile(resource, "r") as zf:
             zf.extractall(study_path / "user" / "expansion")
-        return study_path
+        # Read the study
+        xpansion = read_study_local(study_path).xpansion
+        assert isinstance(xpansion, XpansionConfiguration)
+        return xpansion
 
     def test_create_and_read_basic_configuration(self, local_study_w_links: Study) -> None:
         # Asserts at first Xpansion is None.
@@ -64,10 +71,8 @@ class TestXpansion:
         # Asserts at first Xpansion is None.
         assert local_study_w_links.xpansion is None
         # Set up
-        study_path = self._set_up(local_study_w_links, xpansion_input_path)
-        # Read the study
-        xpansion = read_study_local(study_path).xpansion
-        assert isinstance(xpansion, XpansionConfiguration)
+        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+        # Checks
         assert xpansion.settings == XpansionSettings(
             optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
         )
@@ -118,5 +123,17 @@ class TestXpansion:
 
     def test_matrices(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Set up
-        study_path = self._set_up(local_study_w_links, xpansion_input_path)
-        pass
+        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+
+        ######################
+        # Weights part
+        ######################
+
+        weight = xpansion.get_weight("weights.txt")
+        assert weight.equals(pd.DataFrame([0.2, 0.4, 0.4]))
+
+        with pytest.raises(
+            XpansionMatrixReadingError,
+            match="Could not read the xpansion matrix fake_weight for study studyTest: The file does not exist",
+        ):
+            xpansion.get_weight("fake_weight")

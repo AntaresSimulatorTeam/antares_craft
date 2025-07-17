@@ -18,7 +18,7 @@ import pandas as pd
 from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import XpansionMatrixDeletionError
+from antares.craft.exceptions.exceptions import XpansionMatrixDeletionError, XpansionMatrixReadingError
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.base_services import BaseXpansionService
@@ -91,7 +91,10 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def get_matrix(self, file_name: str, file_type: XpansionMatrix) -> pd.DataFrame:
-        return read_timeseries(FILE_MAPPING[file_type][1], self.config.study_path, file_name=file_name)
+        try:
+            return read_timeseries(FILE_MAPPING[file_type][1], self.config.study_path, file_name=file_name)
+        except FileNotFoundError:
+            raise XpansionMatrixReadingError(self.study_name, file_name, "The file does not exist")
 
     @override
     def delete_matrix(self, file_name: str, file_type: XpansionMatrix) -> None:
