@@ -14,8 +14,7 @@ from typing import Optional
 
 import pandas as pd
 
-from antares.craft import XpansionCandidateUpdate
-from antares.craft.model.xpansion.candidate import XpansionCandidate
+from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate
 from antares.craft.model.xpansion.constraint import XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
