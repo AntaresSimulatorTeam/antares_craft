@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from dataclasses import replace
 from types import MappingProxyType
 from typing import Optional
 
@@ -90,3 +91,14 @@ class XpansionConfiguration:
 
     def remove_links_profile_from_candidate(self, name: str, profiles: list[XpansionLinkProfile]) -> None:
         self._xpansion_service.remove_links_profile_from_candidate(name, profiles)
+        candidate = self._candidates[name]
+        for profile in profiles:
+            if profile == XpansionLinkProfile.DIRECT_LINK:
+                candidate = replace(candidate, direct_link_profile=None)
+            elif profile == XpansionLinkProfile.INDIRECT_LINK:
+                candidate = replace(candidate, indirect_link_profile=None)
+            elif profile == XpansionLinkProfile.ALREADY_INSTALLED_DIRECT_LINK:
+                candidate = replace(candidate, already_installed_direct_link_profile=None)
+            else:
+                candidate = replace(candidate, already_installed_indirect_link_profile=None)
+        self._candidates[name] = candidate

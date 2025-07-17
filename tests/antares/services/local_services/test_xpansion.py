@@ -27,7 +27,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionMatrixDeletionError,
     XpansionMatrixReadingError,
 )
-from antares.craft.model.xpansion.candidate import XpansionCandidate
+from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
@@ -313,4 +313,17 @@ class TestXpansion:
             "annual-cost-per-mw": 3.17,
             "max-investment": 3.0,
             "direct-link-profile": "capa_pv.ini",
+        }
+
+        # Removes the direct link profile from the candidate
+        xpansion.remove_links_profile_from_candidate("new_name", [XpansionLinkProfile.DIRECT_LINK])
+        assert xpansion.get_candidates()["new_name"].direct_link_profile is None
+        content = IniReader().read(ini_path)
+        assert len(content) == 6
+        my_candidate = content["6"]
+        assert my_candidate == {
+            "name": "new_name",
+            "link": "area2 - pv",
+            "annual-cost-per-mw": 3.17,
+            "max-investment": 3.0,
         }

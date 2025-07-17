@@ -171,6 +171,7 @@ class XpansionLocalService(BaseXpansionService):
 
                 # Saves the content
                 self._save_candidates(ini_content)
+                return None
 
         raise XpansionCandidateEditionError(self.study_name, name, "Candidate does not exist")
 
