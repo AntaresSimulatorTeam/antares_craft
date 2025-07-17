@@ -564,3 +564,9 @@ class BadCandidateFormatError(Exception):
     def __init__(self, candidate_name: str) -> None:
         self.message = f"The candidate {candidate_name} is not well formatted. It should either contain max-investment or (max-units and unit-size)."
         super().__init__(self.message)
+
+
+class XpansionMatrixDeletionError(Exception):
+    def __init__(self, study_name: str, file_name: str, message: str) -> None:
+        self.message = f"Could not delete the xpansion matrix {file_name} for study {study_name}: " + message
+        super().__init__(self.message)

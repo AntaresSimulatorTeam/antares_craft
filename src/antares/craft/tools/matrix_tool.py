@@ -103,6 +103,8 @@ DEFAULT_MATRIX_MAPPING = {
     TimeSeriesFileType.THERMAL_CO2: pd.DataFrame(default_series),
     TimeSeriesFileType.THERMAL_FUEL: pd.DataFrame(default_series),
     TimeSeriesFileType.WIND: pd.DataFrame(default_series),
+    TimeSeriesFileType.XPANSION_WEIGHT: pd.DataFrame(),
+    TimeSeriesFileType.XPANSION_CAPACITY: pd.DataFrame(default_series_with_ones),
 }
 
 
@@ -113,12 +115,17 @@ def read_timeseries(
     constraint_id: Optional[str] = None,
     cluster_id: Optional[str] = None,
     second_area_id: Optional[str] = None,
+    file_name: Optional[str] = None,
 ) -> pd.DataFrame:
     file_path = study_path / (
         ts_file_type.value
-        if not (area_id or constraint_id or cluster_id or second_area_id)
+        if not (area_id or constraint_id or cluster_id or second_area_id or file_name)
         else ts_file_type.value.format(
-            area_id=area_id, constraint_id=constraint_id, cluster_id=cluster_id, second_area_id=second_area_id
+            area_id=area_id,
+            constraint_id=constraint_id,
+            cluster_id=cluster_id,
+            second_area_id=second_area_id,
+            file_name=file_name,
         )
     )
     if os.path.getsize(file_path) != 0:
@@ -137,6 +144,7 @@ def write_timeseries(
     cluster_id: Optional[str] = None,
     second_area_id: Optional[str] = None,
     constraint_id: Optional[str] = None,
+    file_name: Optional[str] = None,
 ) -> None:
     series = pd.DataFrame() if series is None else series
     format_kwargs = {}
@@ -148,6 +156,8 @@ def write_timeseries(
         format_kwargs["second_area_id"] = second_area_id
     if constraint_id:
         format_kwargs["constraint_id"] = constraint_id
+    if file_name:
+        format_kwargs["file_name"] = file_name
 
     file_path = study_path / ts_file_type.value.format(**format_kwargs)
 
