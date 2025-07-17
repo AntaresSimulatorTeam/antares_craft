@@ -21,6 +21,7 @@ from antares.craft import XpansionCandidate, XpansionCandidateUpdate
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     XpansionCandidateCreationError,
+    XpansionCandidateEditionError,
     XpansionMatrixDeletionError,
     XpansionMatrixReadingError,
 )
@@ -34,6 +35,7 @@ from antares.craft.service.local_services.models.xpansion import (
     parse_xpansion_settings_local,
     serialize_xpansion_candidate_local,
     serialize_xpansion_settings_local,
+    update_candidate_local,
 )
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -132,7 +134,24 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def update_candidate(self, name: str, candidate: XpansionCandidateUpdate) -> XpansionCandidate:
-        raise NotImplementedError()
+        ini_content = self._read_candidates()
+        for key, value in ini_content.items():
+            if name == value["name"]:
+                # Update properties
+                current_candidate = parse_xpansion_candidate_local(value)
+                updated_candidate = update_candidate_local(current_candidate, candidate)
+
+                # Round-trip to validate data
+                new_content = serialize_xpansion_candidate_local(updated_candidate)
+                user_class = parse_xpansion_candidate_local(new_content)
+
+                # Saves the content
+                ini_content[key] = new_content
+                self._save_candidates(ini_content)
+
+                return user_class
+
+        raise XpansionCandidateEditionError(self.study_name, name, "Candidate does not exist")
 
     def _read_settings(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "settings.ini")

@@ -152,6 +152,14 @@ def serialize_xpansion_candidate_local(user_class: XpansionCandidate) -> dict[st
     return local_model.model_dump(mode="json", by_alias=True, exclude_none=True)
 
 
+def update_candidate_local(
+    candidate: XpansionCandidate, candidate_update: XpansionCandidateUpdate
+) -> XpansionCandidate:
+    candidate_dict = asdict(candidate)
+    candidate_dict.update({k: v for k, v in asdict(candidate_update).items() if v is not None})
+    return XpansionCandidate(**candidate_dict)
+
+
 ######################
 # Constraints part
 ######################
