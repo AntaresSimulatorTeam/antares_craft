@@ -22,6 +22,7 @@ import pandas as pd
 from antares.craft import Study, read_study_local
 from antares.craft.exceptions.exceptions import (
     BadCandidateFormatError,
+    XpansionCandidateCoherenceError,
     XpansionMatrixDeletionError,
     XpansionMatrixReadingError,
 )
@@ -221,4 +222,29 @@ class TestXpansion:
             ),
         ):
             my_cdt = XpansionCandidate(name="my_cdt", area_from="Area1", area_to="Area2", annual_cost_per_mw=3.17)
+            xpansion.create_candidate(my_cdt)
+
+        # Asserts we cannot create a candidate with fake links
+        with pytest.raises(
+            XpansionCandidateCoherenceError,
+            match="The candidate my_cdt for study studyTest has incoherence: Link between Area1 and Area2 does not exist",
+        ):
+            my_cdt = XpansionCandidate(
+                name="my_cdt", area_from="Area1", area_to="Area2", annual_cost_per_mw=3.17, max_investment=2
+            )
+            xpansion.create_candidate(my_cdt)
+
+        # Asserts we cannot create a candidate with fake link-profiles
+        with pytest.raises(
+            XpansionCandidateCoherenceError,
+            match="The candidate my_cdt for study studyTest has incoherence: File direct_link_profile does not exist",
+        ):
+            my_cdt = XpansionCandidate(
+                name="my_cdt",
+                area_from="fr",
+                area_to="at",
+                annual_cost_per_mw=3.17,
+                max_investment=2,
+                direct_link_profile="fake_profile",
+            )
             xpansion.create_candidate(my_cdt)
