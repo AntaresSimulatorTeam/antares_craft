@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 import pytest
 
+import re
 import zipfile
 
 from pathlib import Path
@@ -19,7 +20,11 @@ import numpy as np
 import pandas as pd
 
 from antares.craft import Study, read_study_local
-from antares.craft.exceptions.exceptions import XpansionMatrixDeletionError, XpansionMatrixReadingError
+from antares.craft.exceptions.exceptions import (
+    BadCandidateFormatError,
+    XpansionMatrixDeletionError,
+    XpansionMatrixReadingError,
+)
 from antares.craft.model.xpansion.candidate import XpansionCandidate
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
@@ -208,6 +213,12 @@ class TestXpansion:
         # Set up
         xpansion = self._set_up(local_study_w_links, xpansion_input_path)
 
-        # Asserts we can create a candidate
-        my_cdt = XpansionCandidate(name="my_cdt", area_from="Area1", area_to="Area2", annual_cost_per_mw=3.17)
-        xpansion.create_candidate(my_cdt)
+        # Asserts we cannot create a candidate without filling investment values
+        with pytest.raises(
+            BadCandidateFormatError,
+            match=re.escape(
+                "The candidate my_cdt is not well formatted. It should either contain max-investment or (max-units and unit-size)."
+            ),
+        ):
+            my_cdt = XpansionCandidate(name="my_cdt", area_from="Area1", area_to="Area2", annual_cost_per_mw=3.17)
+            xpansion.create_candidate(my_cdt)
