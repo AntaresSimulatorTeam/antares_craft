@@ -14,6 +14,7 @@ from typing import Optional
 
 import pandas as pd
 
+from antares.craft import XpansionCandidateUpdate
 from antares.craft.model.xpansion.candidate import XpansionCandidate
 from antares.craft.model.xpansion.constraint import XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
@@ -73,3 +74,17 @@ class XpansionConfiguration:
 
     def set_weight(self, file_name: str, series: pd.DataFrame) -> None:
         return self._xpansion_service.set_matrix(file_name, series, XpansionMatrix.WEIGHTS)
+
+    def create_candidate(self, candidate: XpansionCandidate) -> XpansionCandidate:
+        cdt = self._xpansion_service.create_candidate(candidate)
+        self._candidates[cdt.name] = cdt
+        return cdt
+
+    def update_candidate(self, candidate_name: str, candidate: XpansionCandidateUpdate) -> XpansionCandidate:
+        cdt = self._xpansion_service.update_candidate(candidate_name, candidate)
+        if cdt.name not in self._candidates:
+            # Means we're renaming a candidate (+ updating it)
+            del self._candidates[candidate_name]
+
+        self._candidates[cdt.name] = cdt
+        return cdt
