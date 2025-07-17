@@ -20,6 +20,7 @@ from typing_extensions import override
 from antares.craft import XpansionCandidate, XpansionCandidateUpdate
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
+    XpansionCandidateCreationError,
     XpansionMatrixDeletionError,
     XpansionMatrixReadingError,
 )
@@ -31,10 +32,12 @@ from antares.craft.service.local_services.models.xpansion import (
     parse_xpansion_constraints_local,
     parse_xpansion_sensitivity_local,
     parse_xpansion_settings_local,
+    serialize_xpansion_candidate_local,
     serialize_xpansion_settings_local,
 )
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.serde_local.json import from_json
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
@@ -113,7 +116,19 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def create_candidate(self, candidate: XpansionCandidate) -> XpansionCandidate:
-        raise NotImplementedError()
+        ini_content = self._read_candidates()
+        for key, value in ini_content.items():
+            if candidate.name == value["name"]:
+                raise XpansionCandidateCreationError(self.study_name, candidate.name, "Candidate already exists")
+
+        # Round-trip to validate data
+        local_content = serialize_xpansion_candidate_local(candidate)
+        user_class = parse_xpansion_candidate_local(local_content)
+
+        # Saves the content
+        ini_content[str(len(ini_content) + 1)] = local_content  # ini key starts at 1
+        self._save_candidates(ini_content)
+        return user_class
 
     @override
     def update_candidate(self, name: str, candidate: XpansionCandidateUpdate) -> XpansionCandidate:
@@ -124,6 +139,9 @@ class XpansionLocalService(BaseXpansionService):
 
     def _read_candidates(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "candidates.ini")
+
+    def _save_candidates(self, content: dict[str, Any]) -> None:
+        IniWriter().write(content, self._xpansion_path / "candidates.ini")
 
     def _read_constraints(self, file_name: str) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "constraints" / file_name)
