@@ -98,7 +98,7 @@ from antares.craft.model.thermal import (
     ThermalClusterPropertiesUpdate,
     ThermalCostGeneration,
 )
-from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate
+from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint, XpansionConstraintUpdate
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity, XpansionSensitivityUpdate
 from antares.craft.model.xpansion.settings import (
@@ -161,6 +161,7 @@ __all__ = [
     "UcType",
     "Master",
     "XpansionSolver",
+    "XpansionLinkProfile",
     # Model classes
     "AdequacyPatchParametersUpdate",
     "AdvancedParametersUpdate",

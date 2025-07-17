@@ -165,7 +165,18 @@ class XpansionAPIService(BaseXpansionService):
 
     @override
     def remove_links_profile_from_candidate(self, name: str, profiles: list[XpansionLinkProfile]) -> None:
-        raise NotImplementedError()
+        url = f"{self._expansion_url}/candidates/{name}"
+        try:
+            # Update properties
+            body: dict[str, None] = {}
+            for profile in profiles:
+                body[profile.value] = None
+
+            # Saves the content
+            self._wrapper.put(url, json=body)
+
+        except APIError as e:
+            raise XpansionCandidateEditionError(self.study_id, name, e.message) from e
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()

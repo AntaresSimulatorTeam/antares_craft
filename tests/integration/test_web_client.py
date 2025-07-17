@@ -77,6 +77,7 @@ from antares.craft import (
     XpansionCandidate,
     XpansionCandidateUpdate,
     XpansionConstraint,
+    XpansionLinkProfile,
     XpansionSensitivity,
     XpansionSettings,
     create_study_api,
@@ -1194,6 +1195,13 @@ class TestWebClient:
         assert cdt.name == "new_name"
         assert cdt.max_investment == 3
         assert cdt.direct_link_profile == "capa_pv.ini"
+
+        # Removes the direct link profile from the candidate
+        xpansion.remove_links_profile_from_candidate("new_name", [XpansionLinkProfile.DIRECT_LINK])
+        assert xpansion.get_candidates()["new_name"].direct_link_profile is None
+        # Ensures that even when reading the candidate we still have `direct_link_profile` to None
+        imported_study = read_study_api(api_config, imported_study.service.study_id)
+        assert imported_study.xpansion.get_candidates()["new_name"].direct_link_profile is None
 
         # Deletes the configuration
         imported_study.delete_xpansion_configuration()
