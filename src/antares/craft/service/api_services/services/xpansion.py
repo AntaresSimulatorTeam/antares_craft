@@ -21,6 +21,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionConfigurationDeletionError,
     XpansionConfigurationReadingError,
     XpansionMatrixDeletionError,
+    XpansionMatrixReadingError,
 )
 from antares.craft.model.xpansion.candidate import XpansionCandidate
 from antares.craft.model.xpansion.constraint import XpansionConstraint
@@ -90,7 +91,10 @@ class XpansionAPIService(BaseXpansionService):
     @override
     def get_matrix(self, file_name: str, file_type: XpansionMatrix) -> pd.DataFrame:
         series_path = f"user/xpansion/{FILE_MAPPING[file_type]}/{file_name}"
-        return get_matrix(self._base_url, self.study_id, self._wrapper, series_path)
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, series_path)
+        except APIError as e:
+            raise XpansionMatrixReadingError(self.study_id, file_name, e.message) from e
 
     @override
     def delete_matrix(self, file_name: str, file_type: XpansionMatrix) -> None:
