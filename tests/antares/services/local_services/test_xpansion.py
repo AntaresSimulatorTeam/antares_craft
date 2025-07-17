@@ -22,6 +22,14 @@ from antares.craft.model.xpansion.xpansion_configuration import XpansionConfigur
 
 
 class TestXpansion:
+
+    def _set_up(self, study: Study, resource: Path) -> Path:
+        study_path = Path(study.path)
+        # Put a real case configuration inside the study and tests the reading method.
+        with zipfile.ZipFile(resource, "r") as zf:
+            zf.extractall(study_path / "user" / "expansion")
+        return study_path
+
     def test_create_and_read_basic_configuration(self, local_study_w_links: Study) -> None:
         # Asserts at first Xpansion is None.
         assert local_study_w_links.xpansion is None
@@ -55,10 +63,8 @@ class TestXpansion:
     def test_fancy_configuration(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Asserts at first Xpansion is None.
         assert local_study_w_links.xpansion is None
-        study_path = Path(local_study_w_links.path)
-        # Put a real case configuration inside the study and tests the reading method.
-        with zipfile.ZipFile(xpansion_input_path, "r") as zf:
-            zf.extractall(study_path / "user" / "expansion")
+        # Set up
+        study_path = self._set_up(local_study_w_links, xpansion_input_path)
         # Read the study
         xpansion = read_study_local(study_path).xpansion
         assert isinstance(xpansion, XpansionConfiguration)
@@ -109,3 +115,8 @@ class TestXpansion:
             )
         }
         assert xpansion.sensitivity == XpansionSensitivity(epsilon=10000, projection=["battery", "pv"], capex=True)
+
+    def test_matrices(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+        # Set up
+        study_path = self._set_up(local_study_w_links, xpansion_input_path)
+        pass
