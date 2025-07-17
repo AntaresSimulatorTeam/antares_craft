@@ -54,7 +54,7 @@ if TYPE_CHECKING:
         ThermalClusterProperties,
         ThermalClusterPropertiesUpdate,
     )
-    from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
+    from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 
 
 class BaseAreaService(ABC):
@@ -847,6 +847,27 @@ class BaseXpansionService(ABC):
     def delete(self) -> None:
         """
         Deletes the Xpansion configuration for a given study
+        """
+        pass
+
+    @abstractmethod
+    def get_matrix(self, file_name: str, file_type: XpansionMatrix) -> pd.DataFrame:
+        """
+        Returns an existing matrix (either capacity or weights) for a given study
+        """
+        pass
+
+    @abstractmethod
+    def delete_matrix(self, file_name: str, file_type: XpansionMatrix) -> None:
+        """
+        Deletes an existing matrix (either capacity or weights) for a given study
+        """
+        pass
+
+    @abstractmethod
+    def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: XpansionMatrix) -> None:
+        """
+        Modifies or creates a matrix (either capacity or weights) for a given study
         """
         pass
 
