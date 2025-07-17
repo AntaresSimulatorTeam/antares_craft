@@ -32,6 +32,7 @@ from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionCons
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
+from antares.craft.tools.serde_local.ini_reader import IniReader
 
 
 class TestXpansion:
@@ -300,3 +301,16 @@ class TestXpansion:
         assert cdt.name == "new_name"
         assert cdt.max_investment == 3
         assert cdt.direct_link_profile == "capa_pv.ini"
+
+        # Checks ini content
+        ini_path = Path(local_study.path) / "user" / "expansion" / "candidates.ini"
+        content = IniReader().read(ini_path)
+        assert len(content) == 6
+        my_candidate = content["6"]
+        assert my_candidate == {
+            "name": "new_name",
+            "link": "area2 - pv",
+            "annual-cost-per-mw": 3.17,
+            "max-investment": 3.0,
+            "direct-link-profile": "capa_pv.ini",
+        }
