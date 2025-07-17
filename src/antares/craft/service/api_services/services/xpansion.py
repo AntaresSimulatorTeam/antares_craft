@@ -9,6 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import io
+
 import pandas as pd
 
 from typing_extensions import override
@@ -21,6 +23,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionConfigurationDeletionError,
     XpansionConfigurationReadingError,
     XpansionMatrixDeletionError,
+    XpansionMatrixEditionError,
     XpansionMatrixReadingError,
 )
 from antares.craft.model.xpansion.candidate import XpansionCandidate
@@ -33,7 +36,7 @@ from antares.craft.service.api_services.models.xpansion import (
     parse_xpansion_constraints_api,
     parse_xpansion_settings_api,
 )
-from antares.craft.service.api_services.utils import get_matrix
+from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseXpansionService
 
 FILE_MAPPING: dict[XpansionMatrix, str] = {XpansionMatrix.WEIGHTS: "weights", XpansionMatrix.CAPACITIES: "capa"}
@@ -107,7 +110,18 @@ class XpansionAPIService(BaseXpansionService):
 
     @override
     def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: XpansionMatrix) -> None:
-        raise NotImplementedError()
+        series_path = f"user/xpansion/{FILE_MAPPING[file_type]}/{file_name}"
+        try:
+            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+        except APIError:
+            # Perhaps the file didn't exist, we should try to create it.
+            url = f"{self._expansion_url}/resources/{file_type.value}"
+            try:
+                buffer = io.StringIO()
+                series.to_csv(buffer, sep="\t")
+                self._wrapper.post(url, files={"file": buffer.getvalue()})
+            except APIError as e:
+                raise XpansionMatrixEditionError(self.study_id, file_name, e.message) from e
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()

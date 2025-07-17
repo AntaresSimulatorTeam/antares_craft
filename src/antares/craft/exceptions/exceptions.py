@@ -572,6 +572,12 @@ class XpansionMatrixDeletionError(Exception):
         super().__init__(self.message)
 
 
+class XpansionMatrixEditionError(Exception):
+    def __init__(self, study_name: str, file_name: str, message: str) -> None:
+        self.message = f"Could not edit the xpansion matrix {file_name} for study {study_name}: " + message
+        super().__init__(self.message)
+
+
 class XpansionMatrixReadingError(Exception):
     def __init__(self, study_name: str, file_name: str, message: str) -> None:
         self.message = f"Could not read the xpansion matrix {file_name} for study {study_name}: " + message
