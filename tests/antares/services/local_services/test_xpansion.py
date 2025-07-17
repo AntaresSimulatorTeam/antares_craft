@@ -210,7 +210,7 @@ class TestXpansion:
         ):
             xpansion.delete_capacity("fake_capacity")
 
-    def test_candidates(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+    def test_candidates_error_cases(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Set up
         xpansion = self._set_up(local_study_w_links, xpansion_input_path)
 
@@ -248,3 +248,13 @@ class TestXpansion:
                 direct_link_profile="fake_profile",
             )
             xpansion.create_candidate(my_cdt)
+
+    def test_candidates(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+        # Set up
+        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+        areas_to_create = ["area1", "area2", "flex", "peak", "pv", "semibase"]
+        links_to_create = [("area1", "area2"), ("area2", "flex"), ("area1", "peak"), ("area2", "pv"), ("area1", "semibase")]
+        for area in areas_to_create:
+            local_study_w_links.create_area(area)
+        for link in links_to_create:
+            local_study_w_links.create_link(area_from=link[0], area_to= link[1])
