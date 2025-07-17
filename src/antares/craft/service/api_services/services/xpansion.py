@@ -20,6 +20,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionConfigurationCreationError,
     XpansionConfigurationDeletionError,
     XpansionConfigurationReadingError,
+    XpansionMatrixDeletionError,
 )
 from antares.craft.model.xpansion.candidate import XpansionCandidate
 from antares.craft.model.xpansion.constraint import XpansionConstraint
@@ -88,6 +89,11 @@ class XpansionAPIService(BaseXpansionService):
 
     @override
     def delete_matrix(self, file_name: str, file_type: XpansionMatrix) -> None:
+        url = f"{self._expansion_url}/resources/{file_type.value}/{file_name}"
+        try:
+            self._wrapper.delete(url)
+        except APIError as e:
+            raise XpansionMatrixDeletionError(self.study_id, file_name, e.message) from e
         raise NotImplementedError()
 
     @override
