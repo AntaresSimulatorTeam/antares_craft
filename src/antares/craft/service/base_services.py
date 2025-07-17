@@ -20,6 +20,7 @@ import pandas as pd
 from antares.craft.config.base_configuration import BaseConfiguration
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
+from antares.craft.model.xpansion.candidate import XpansionLinkProfile
 from antares.study.version import StudyVersion
 
 if TYPE_CHECKING:
@@ -888,6 +889,13 @@ class BaseXpansionService(ABC):
     def update_candidate(self, name: str, candidate: "XpansionCandidateUpdate") -> "XpansionCandidate":
         """
         Updates an existing Xpansion candidate inside a given study
+        """
+        pass
+
+    @abstractmethod
+    def remove_links_profile_from_candidate(self, name: str, profiles: list["XpansionLinkProfile"]) -> None:
+        """
+        Edits a candidate by removing some reference he has to capacity files
         """
         pass
 

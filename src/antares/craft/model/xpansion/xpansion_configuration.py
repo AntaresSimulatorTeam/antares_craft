@@ -14,7 +14,7 @@ from typing import Optional
 
 import pandas as pd
 
-from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate
+from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
@@ -87,3 +87,6 @@ class XpansionConfiguration:
 
         self._candidates[cdt.name] = cdt
         return cdt
+
+    def remove_links_profile_from_candidate(self, name: str, profiles: list[XpansionLinkProfile]) -> None:
+        self._xpansion_service.remove_links_profile_from_candidate(name, profiles)

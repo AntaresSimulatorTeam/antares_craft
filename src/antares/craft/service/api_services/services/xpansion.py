@@ -28,7 +28,12 @@ from antares.craft.exceptions.exceptions import (
     XpansionMatrixEditionError,
     XpansionMatrixReadingError,
 )
-from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate, update_candidate
+from antares.craft.model.xpansion.candidate import (
+    XpansionCandidate,
+    XpansionCandidateUpdate,
+    XpansionLinkProfile,
+    update_candidate,
+)
 from antares.craft.model.xpansion.constraint import XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
@@ -157,6 +162,10 @@ class XpansionAPIService(BaseXpansionService):
             return parse_xpansion_candidate_api(response)
         except APIError as e:
             raise XpansionCandidateEditionError(self.study_id, name, e.message) from e
+
+    @override
+    def remove_links_profile_from_candidate(self, name: str, profiles: list[XpansionLinkProfile]) -> None:
+        raise NotImplementedError()
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()

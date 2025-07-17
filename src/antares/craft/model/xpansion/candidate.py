@@ -15,6 +15,14 @@ from dataclasses import asdict, dataclass
 from typing import Optional
 
 from antares.craft.exceptions.exceptions import BadCandidateFormatError
+from antares.craft.tools.contents_tool import EnumIgnoreCase
+
+
+class XpansionLinkProfile(EnumIgnoreCase):
+    DIRECT_LINK = "direct_link_profile"
+    INDIRECT_LINK = "indirect_link_profile"
+    ALREADY_INSTALLED_DIRECT_LINK = "already_installed_direct_link_profile"
+    ALREADY_INSTALLED_INDIRECT_LINK = "already_installed_indirect_link_profile"
 
 
 @dataclass(frozen=True)

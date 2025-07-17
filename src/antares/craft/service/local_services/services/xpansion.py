@@ -26,7 +26,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionMatrixDeletionError,
     XpansionMatrixReadingError,
 )
-from antares.craft.model.xpansion.candidate import update_candidate
+from antares.craft.model.xpansion.candidate import XpansionLinkProfile, update_candidate
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.base_services import BaseXpansionService
@@ -155,6 +155,10 @@ class XpansionLocalService(BaseXpansionService):
                 return user_class
 
         raise XpansionCandidateEditionError(self.study_name, name, "Candidate does not exist")
+
+    @override
+    def remove_links_profile_from_candidate(self, name: str, profiles: list[XpansionLinkProfile]) -> None:
+        raise NotImplementedError()
 
     def _read_settings(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "settings.ini")
