@@ -13,11 +13,14 @@ import shutil
 
 from typing import Any
 
+import pandas as pd
+
 from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.exceptions.exceptions import XpansionMatrixDeletionError, XpansionMatrixReadingError
 from antares.craft.model.xpansion.settings import XpansionSettings
-from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
+from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.base_services import BaseXpansionService
 from antares.craft.service.local_services.models.xpansion import (
     parse_xpansion_candidate_local,
@@ -26,8 +29,15 @@ from antares.craft.service.local_services.models.xpansion import (
     parse_xpansion_settings_local,
     serialize_xpansion_settings_local,
 )
+from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.json import from_json
+from antares.craft.tools.time_series_tool import TimeSeriesFileType
+
+FILE_MAPPING: dict[XpansionMatrix, tuple[str, TimeSeriesFileType]] = {
+    XpansionMatrix.WEIGHTS: ("weights", TimeSeriesFileType.XPANSION_WEIGHT),
+    XpansionMatrix.CAPACITIES: ("capa", TimeSeriesFileType.XPANSION_CAPACITY),
+}
 
 
 class XpansionLocalService(BaseXpansionService):
@@ -78,6 +88,24 @@ class XpansionLocalService(BaseXpansionService):
     @override
     def delete(self) -> None:
         shutil.rmtree(self._xpansion_path)
+
+    @override
+    def get_matrix(self, file_name: str, file_type: XpansionMatrix) -> pd.DataFrame:
+        try:
+            return read_timeseries(FILE_MAPPING[file_type][1], self.config.study_path, file_name=file_name)
+        except FileNotFoundError:
+            raise XpansionMatrixReadingError(self.study_name, file_name, "The file does not exist")
+
+    @override
+    def delete_matrix(self, file_name: str, file_type: XpansionMatrix) -> None:
+        file_path = self._xpansion_path / FILE_MAPPING[file_type][0] / file_name
+        if not file_path.exists():
+            raise XpansionMatrixDeletionError(self.study_name, file_name, "The file does not exist")
+        file_path.unlink()
+
+    @override
+    def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: XpansionMatrix) -> None:
+        write_timeseries(self.config.study_path, series, FILE_MAPPING[file_type][1], file_name=file_name)
 
     def _read_settings(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "settings.ini")

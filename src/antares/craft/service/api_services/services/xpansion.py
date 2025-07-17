@@ -9,6 +9,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import io
+
+import pandas as pd
+
 from typing_extensions import override
 
 from antares.craft import APIconf
@@ -18,18 +22,24 @@ from antares.craft.exceptions.exceptions import (
     XpansionConfigurationCreationError,
     XpansionConfigurationDeletionError,
     XpansionConfigurationReadingError,
+    XpansionMatrixDeletionError,
+    XpansionMatrixEditionError,
+    XpansionMatrixReadingError,
 )
 from antares.craft.model.xpansion.candidate import XpansionCandidate
 from antares.craft.model.xpansion.constraint import XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
-from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
+from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.api_services.models.xpansion import (
     parse_xpansion_candidate_api,
     parse_xpansion_constraints_api,
     parse_xpansion_settings_api,
 )
+from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseXpansionService
+
+FILE_MAPPING: dict[XpansionMatrix, str] = {XpansionMatrix.WEIGHTS: "weights", XpansionMatrix.CAPACITIES: "capa"}
 
 
 class XpansionAPIService(BaseXpansionService):
@@ -38,7 +48,8 @@ class XpansionAPIService(BaseXpansionService):
         self.config = config
         self.study_id = study_id
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
-        self._expansion_url = f"{self.config.get_host()}/api/v1/studies/{study_id}/extensions/xpansion"
+        self._base_url = f"{self.config.get_host()}/api/v1"
+        self._expansion_url = f"{self._base_url}/studies/{study_id}/extensions/xpansion"
 
     @override
     def read_xpansion_configuration(self) -> XpansionConfiguration | None:
@@ -79,6 +90,37 @@ class XpansionAPIService(BaseXpansionService):
             self._wrapper.delete(self._expansion_url)
         except APIError as e:
             raise XpansionConfigurationDeletionError(self.study_id, e.message) from e
+
+    @override
+    def get_matrix(self, file_name: str, file_type: XpansionMatrix) -> pd.DataFrame:
+        series_path = f"user/expansion/{FILE_MAPPING[file_type]}/{file_name}"
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, series_path)
+        except APIError as e:
+            raise XpansionMatrixReadingError(self.study_id, file_name, e.message) from e
+
+    @override
+    def delete_matrix(self, file_name: str, file_type: XpansionMatrix) -> None:
+        url = f"{self._expansion_url}/resources/{file_type.value}/{file_name}"
+        try:
+            self._wrapper.delete(url)
+        except APIError as e:
+            raise XpansionMatrixDeletionError(self.study_id, file_name, e.message) from e
+
+    @override
+    def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: XpansionMatrix) -> None:
+        series_path = f"user/expansion/{FILE_MAPPING[file_type]}/{file_name}"
+        try:
+            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+        except APIError:
+            # Perhaps the file didn't exist, we should try to create it.
+            url = f"{self._expansion_url}/resources/{file_type.value}"
+            try:
+                buffer = io.StringIO()
+                series.to_csv(buffer, sep="\t", header=False, index=False)
+                self._wrapper.post(url, files={"file": (file_name, buffer.getvalue())})
+            except APIError as e:
+                raise XpansionMatrixEditionError(self.study_id, file_name, e.message) from e
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()

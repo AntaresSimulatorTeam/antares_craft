@@ -12,11 +12,19 @@
 from types import MappingProxyType
 from typing import Optional
 
+import pandas as pd
+
 from antares.craft.model.xpansion.candidate import XpansionCandidate
 from antares.craft.model.xpansion.constraint import XpansionConstraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.service.base_services import BaseXpansionService
+from antares.craft.tools.contents_tool import EnumIgnoreCase
+
+
+class XpansionMatrix(EnumIgnoreCase):
+    CAPACITIES = "capacities"
+    WEIGHTS = "weights"
 
 
 class XpansionConfiguration:
@@ -47,3 +55,21 @@ class XpansionConfiguration:
 
     def get_constraints(self) -> MappingProxyType[str, XpansionConstraint]:
         return MappingProxyType(self._constraints)
+
+    def get_capacity(self, file_name: str) -> pd.DataFrame:
+        return self._xpansion_service.get_matrix(file_name, XpansionMatrix.CAPACITIES)
+
+    def get_weight(self, file_name: str) -> pd.DataFrame:
+        return self._xpansion_service.get_matrix(file_name, XpansionMatrix.WEIGHTS)
+
+    def delete_capacity(self, file_name: str) -> None:
+        return self._xpansion_service.delete_matrix(file_name, XpansionMatrix.CAPACITIES)
+
+    def delete_weight(self, file_name: str) -> None:
+        return self._xpansion_service.delete_matrix(file_name, XpansionMatrix.WEIGHTS)
+
+    def set_capacity(self, file_name: str, series: pd.DataFrame) -> None:
+        return self._xpansion_service.set_matrix(file_name, series, XpansionMatrix.CAPACITIES)
+
+    def set_weight(self, file_name: str, series: pd.DataFrame) -> None:
+        return self._xpansion_service.set_matrix(file_name, series, XpansionMatrix.WEIGHTS)

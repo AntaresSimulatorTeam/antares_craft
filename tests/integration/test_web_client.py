@@ -91,6 +91,8 @@ from antares.craft.exceptions.exceptions import (
     MatrixUploadError,
     ReferencedObjectDeletionNotAllowed,
     StudySettingsUpdateError,
+    XpansionMatrixDeletionError,
+    XpansionMatrixReadingError,
 )
 from antares.craft.model.hydro import InflowStructureUpdate
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
@@ -1081,6 +1083,73 @@ class TestWebClient:
             )
         }
         assert xpansion.sensitivity == XpansionSensitivity(epsilon=10000, projection=["battery", "pv"], capex=True)
+
+        ############# Weights ##############
+        # Asserts we can get a content
+        weight = xpansion.get_weight("weights.txt")
+        assert weight.equals(pd.DataFrame([0.2, 0.4, 0.4]))
+
+        # Asserts fetching a fake matrix raises an appropriate exception
+        study_id = imported_study.service.study_id
+        with pytest.raises(
+            XpansionMatrixReadingError,
+            match=f"Could not read the xpansion matrix fake_weight for study {study_id}",
+        ):
+            xpansion.get_weight("fake_weight")
+
+        # Asserts we can modify and create a matrix
+        new_weight_matrix = pd.DataFrame([0.1, 0.2, 0.7])
+        for file_name in ["weights.txt", "other_weights.ini"]:
+            xpansion.set_weight(file_name, new_weight_matrix)
+            weight = xpansion.get_weight(file_name)
+            assert weight.equals(new_weight_matrix)
+
+        # Asserts there's no default matrix for weights
+        empty_matrix = pd.DataFrame()
+        xpansion.set_weight("weights.txt", empty_matrix)
+        weight = xpansion.get_weight("weights.txt")
+        assert weight.equals(empty_matrix)
+
+        # Asserts we can delete a matrix
+        xpansion.delete_weight("weights.txt")
+
+        # Asserts deleting a fake matrix raises an appropriate exception
+        with pytest.raises(
+            XpansionMatrixDeletionError,
+            match=f"Could not delete the xpansion matrix fake_weight for study {study_id}",
+        ):
+            xpansion.delete_weight("fake_weight")
+
+        ############# Capacities ##############
+        # Asserts we can get a content
+        capacity = xpansion.get_capacity("direct_04_fr-05_fr.txt")
+        expected_capacity = pd.DataFrame(np.full((8760, 1), 0.95))
+        expected_capacity[2208:6576] = 1
+        assert capacity.equals(expected_capacity)
+
+        # Asserts fetching a fake matrix raises an appropriate exception
+        with pytest.raises(
+            XpansionMatrixReadingError,
+            match=f"Could not read the xpansion matrix fake_capacity for study {study_id}",
+        ):
+            xpansion.get_capacity("fake_capacity")
+
+        # Asserts we can modify and create a matrix
+        new_capacity_matrix = pd.DataFrame(np.full((8760, 1), 0.87))
+        for file_name in ["capa_pv.ini", "other_capa.txt"]:
+            xpansion.set_capacity(file_name, new_capacity_matrix)
+            capacity = xpansion.get_capacity(file_name)
+            assert capacity.equals(new_capacity_matrix)
+
+        # Asserts we can delete a matrix
+        xpansion.delete_capacity("04_fr-05_fr.txt")
+
+        # Asserts deleting a fake matrix raises an appropriate exception
+        with pytest.raises(
+            XpansionMatrixDeletionError,
+            match=f"Could not delete the xpansion matrix fake_capacity for study {study_id}",
+        ):
+            xpansion.delete_capacity("fake_capacity")
 
         # Deletes the configuration
         imported_study.delete_xpansion_configuration()
