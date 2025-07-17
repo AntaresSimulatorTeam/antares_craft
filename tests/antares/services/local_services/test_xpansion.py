@@ -286,5 +286,17 @@ class TestXpansion:
         assert cdt == my_cdt
 
         # Update several properties
+        new_properties = XpansionCandidateUpdate(area_from="pv", max_investment=3)
+        cdt = xpansion.update_candidate("my_cdt", new_properties)
+        assert cdt.name == "my_cdt"
+        assert cdt.area_from == "area2"  # Areas were re-ordrered by alphabetical name
+        assert cdt.area_to == "pv"
+        assert cdt.max_investment == 3
+        assert cdt.direct_link_profile == "capa_pv.ini"
 
         # Rename it
+        new_properties = XpansionCandidateUpdate(name="new_name")
+        cdt = xpansion.update_candidate("my_cdt", new_properties)
+        assert cdt.name == "new_name"
+        assert cdt.max_investment == 3
+        assert cdt.direct_link_profile == "capa_pv.ini"
