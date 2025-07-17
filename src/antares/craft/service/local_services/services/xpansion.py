@@ -158,7 +158,21 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def remove_links_profile_from_candidate(self, name: str, profiles: list[XpansionLinkProfile]) -> None:
-        raise NotImplementedError()
+        ini_content = self._read_candidates()
+        for key, value in ini_content.items():
+            if name == value["name"]:
+                # Update properties
+                for profile in profiles:
+                    if profile.value not in value:
+                        raise XpansionCandidateEditionError(
+                            self.study_name, name, f"The key {profile.value} does not exist"
+                        )
+                    del value[profile.value]
+
+                # Saves the content
+                self._save_candidates(ini_content)
+
+        raise XpansionCandidateEditionError(self.study_name, name, "Candidate does not exist")
 
     def _read_settings(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "settings.ini")
