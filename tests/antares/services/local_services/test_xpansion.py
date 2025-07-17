@@ -253,9 +253,25 @@ class TestXpansion:
         # Set up
         xpansion = self._set_up(local_study, xpansion_input_path)
         areas_to_create = ["area1", "area2", "flex", "peak", "pv", "semibase"]
-        links_to_create = [("area1", "area2"), ("area2", "flex"), ("area1", "peak"), ("area2", "pv"), ("area1", "semibase")]
+        links_to_create = [
+            ("area1", "area2"),
+            ("area2", "flex"),
+            ("area1", "peak"),
+            ("area2", "pv"),
+            ("area1", "semibase"),
+        ]
         for area in areas_to_create:
             local_study.create_area(area)
         for link in links_to_create:
-            local_study.create_link(area_from=link[0], area_to= link[1])
+            local_study.create_link(area_from=link[0], area_to=link[1])
 
+        # Create a candidate
+        my_cdt = XpansionCandidate(
+            name="my_cdt",
+            area_from="area1",
+            area_to="area2",
+            annual_cost_per_mw=3.17,
+            max_investment=2,
+            direct_link_profile="capa_pv.ini",
+        )
+        xpansion.create_candidate(my_cdt)

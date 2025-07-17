@@ -188,8 +188,9 @@ class XpansionLocalService(BaseXpansionService):
             "already_installed_direct_link_profile",
             "already_installed_indirect_link_profile",
         ]:
-            if getattr(candidate, attr) is not None:
-                files_to_check.append(attr)
+            capa_file = getattr(candidate, attr)
+            if capa_file is not None:
+                files_to_check.append(capa_file)
         for file in files_to_check:
             if not (self._xpansion_path / "capa" / file).exists():
                 raise XpansionCandidateCoherenceError(self.study_name, candidate.name, f"File {file} does not exist")
