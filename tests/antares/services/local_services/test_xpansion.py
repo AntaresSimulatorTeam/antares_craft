@@ -203,3 +203,11 @@ class TestXpansion:
             match="Could not delete the xpansion matrix fake_capacity for study studyTest: The file does not exist",
         ):
             xpansion.delete_capacity("fake_capacity")
+
+    def test_candidates(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+        # Set up
+        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+
+        # Asserts we can create a candidate
+        my_cdt = XpansionCandidate(name="my_cdt", area_from="Area1", area_to="Area2", annual_cost_per_mw=3.17)
+        xpansion.create_candidate(my_cdt)
