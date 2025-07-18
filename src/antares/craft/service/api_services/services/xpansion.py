@@ -25,6 +25,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionConfigurationDeletionError,
     XpansionConfigurationReadingError,
     XpansionConstraintCreationError,
+    XpansionConstraintsDeletionError,
     XpansionMatrixDeletionError,
     XpansionMatrixEditionError,
     XpansionMatrixReadingError,
@@ -209,7 +210,16 @@ class XpansionAPIService(BaseXpansionService):
 
     @override
     def delete_constraints(self, names: list[str], file_name: str) -> None:
-        raise NotImplementedError()
+        existing_constraints = self._read_constraints(file_name)
+        for name in names:
+            del existing_constraints[name]
+        url = f"{self._expansion_url}/resources/constraints"
+        try:
+            api_content = serialize_xpansion_constraints_api(existing_constraints)
+            self._wrapper.post(url, files={"file": (file_name, api_content)})
+
+        except APIError as e:
+            raise XpansionConstraintsDeletionError(self.study_id, names, file_name, e.message) from e
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()

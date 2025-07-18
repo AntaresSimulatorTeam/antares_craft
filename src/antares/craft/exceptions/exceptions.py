@@ -609,3 +609,12 @@ class XpansionConstraintCreationError(Exception):
             + message
         )
         super().__init__(self.message)
+
+
+class XpansionConstraintsDeletionError(Exception):
+    def __init__(self, study_name: str, names: list[str], file_name: str, message: str) -> None:
+        self.message = (
+            f"Could not create the xpansion constraints {names} inside the file {file_name} for study {study_name}: "
+            + message
+        )
+        super().__init__(self.message)
