@@ -411,3 +411,34 @@ class TestXpansion:
         new_properties = XpansionConstraintUpdate(name="new_name")
         modified_constraint = xpansion.update_constraint("new_constraint", new_properties, file_name)
         assert modified_constraint.name == "new_name"
+
+        # Checks ini content
+        ini_path = Path(local_study_w_links.path) / "user" / "expansion" / "constraints" / file_name
+        content = IniReader().read(ini_path)
+        assert len(content) == 2
+        assert content["2"] == {
+            "name": "new_name",
+            "sign": "equal",
+            "rhs": 1000.0,
+            "semibase": 0.5,
+            "test": 0.2,
+            "test2": 0.8,
+        }
+
+        # Deletes it
+        xpansion.delete_constraints(["new_name", "additional_c1"], file_name)
+        assert xpansion.get_constraints() == {}
+        content = IniReader().read(ini_path)
+        assert content == {}
+
+        # Create a constraint in a non-existing file
+        constraint = XpansionConstraint(
+            name="my_constraint", sign=ConstraintSign.GREATER_OR_EQUAL, right_hand_side=0.1, candidates_coefficients={}
+        )
+        xpansion.create_constraint(constraint, "new_file.ini")
+        ini_path = ini_path.parent / "new_file.ini"
+        assert ini_path.exists()
+
+        # Deletes the file
+        xpansion.delete_constraints_file("new_file.ini")
+        assert not ini_path.exists()
