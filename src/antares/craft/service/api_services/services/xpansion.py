@@ -238,9 +238,9 @@ class XpansionAPIService(BaseXpansionService):
             raise XpansionFileDeletionError(self.study_id, file_name, e.message) from e
 
     def _serialize_constraints(self, file_name: str, constraints: dict[str, XpansionConstraint]) -> None:
-        url = f"{self._expansion_url}/resources/constraints"
+        url = f"{self._base_url}/studies/{self.study_id}/raw?path=user/expansion/constraints/{file_name}"
         api_content = serialize_xpansion_constraints_api(constraints)
-        self._wrapper.post(url, files={"file": (file_name, api_content)})
+        self._wrapper.put(url, files={"file": (file_name, api_content)})
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()
