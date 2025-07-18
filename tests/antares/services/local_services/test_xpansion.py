@@ -23,6 +23,7 @@ from antares.craft import Study, XpansionCandidateUpdate, XpansionConstraintUpda
 from antares.craft.exceptions.exceptions import (
     BadCandidateFormatError,
     XpansionCandidateCoherenceError,
+    XpansionCandidateDeletionError,
     XpansionCandidateEditionError,
     XpansionConstraintsDeletionError,
     XpansionConstraintsEditionError,
@@ -260,6 +261,13 @@ class TestXpansion:
         ):
             xpansion.update_candidate("fake_candidate", XpansionCandidateUpdate(name="new_name"))
 
+        # Asserts we cannot remove a fake candidate
+        with pytest.raises(
+            XpansionCandidateDeletionError,
+            match="Could not delete candidates {'fake_candidate'} for study studyTest: They do not exist",
+        ):
+            xpansion.delete_candidates(["fake_candidate"])
+
     def test_candidates(self, local_study: Study, xpansion_input_path: Path) -> None:
         # Set up
         xpansion = self._set_up(local_study, xpansion_input_path)
@@ -329,6 +337,12 @@ class TestXpansion:
             "annual-cost-per-mw": 3.17,
             "max-investment": 3.0,
         }
+
+        # Removes several candidates
+        xpansion.delete_candidates(["peak", "battery"])
+        assert len(xpansion.get_candidates()) == 4
+        content = IniReader().read(ini_path)
+        assert len(content) == 4
 
     def test_constraints_error_cases(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Set up
