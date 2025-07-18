@@ -167,6 +167,10 @@ class XpansionAPIService(BaseXpansionService):
             raise XpansionCandidateEditionError(self.study_id, name, e.message) from e
 
     @override
+    def delete_candidates(self, names: set[str]) -> None:
+        raise NotImplementedError()
+
+    @override
     def remove_links_profile_from_candidate(
         self, candidate: XpansionCandidate, profiles: list[XpansionLinkProfile]
     ) -> XpansionCandidate:

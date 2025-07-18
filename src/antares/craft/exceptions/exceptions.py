@@ -596,6 +596,12 @@ class XpansionCandidateEditionError(Exception):
         super().__init__(self.message)
 
 
+class XpansionCandidateDeletionError(Exception):
+    def __init__(self, study_name: str, names: set[str], message: str) -> None:
+        self.message = f"Could not delete candidates {names} for study {study_name}: " + message
+        super().__init__(self.message)
+
+
 class XpansionCandidateCoherenceError(Exception):
     def __init__(self, study_name: str, candidate_name: str, message: str) -> None:
         self.message = f"The candidate {candidate_name} for study {study_name} has incoherence: " + message

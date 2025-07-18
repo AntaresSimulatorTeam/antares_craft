@@ -23,6 +23,7 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     XpansionCandidateCoherenceError,
     XpansionCandidateCreationError,
+    XpansionCandidateDeletionError,
     XpansionCandidateEditionError,
     XpansionConstraintCreationError,
     XpansionConstraintsDeletionError,
@@ -159,6 +160,23 @@ class XpansionLocalService(BaseXpansionService):
                 return user_class
 
         raise XpansionCandidateEditionError(self.study_name, name, "Candidate does not exist")
+
+    @override
+    def delete_candidates(self, names: set[str]) -> None:
+        ini_content = self._read_candidates()
+        keys_to_delete = []
+        for key, value in ini_content.items():
+            if value["name"] in names:
+                keys_to_delete.append(key)
+                names.remove(value["name"])
+
+        if names:
+            raise XpansionCandidateDeletionError(self.study_name, names, "They do not exist")
+
+        # Saves the content
+        for key in keys_to_delete:
+            del ini_content[key]
+        self._save_candidates(ini_content)
 
     @override
     def remove_links_profile_from_candidate(

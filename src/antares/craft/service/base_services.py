@@ -895,6 +895,13 @@ class BaseXpansionService(ABC):
         pass
 
     @abstractmethod
+    def delete_candidates(self, names: set[str]) -> None:
+        """
+        Removes several candidates from a given study
+        """
+        pass
+
+    @abstractmethod
     def remove_links_profile_from_candidate(
         self, candidate: "XpansionCandidate", profiles: list["XpansionLinkProfile"]
     ) -> "XpansionCandidate":
