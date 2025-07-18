@@ -1204,6 +1204,13 @@ class TestWebClient:
         imported_study = read_study_api(api_config, imported_study.service.study_id)
         assert imported_study.xpansion.get_candidates()["new_name"].direct_link_profile is None
 
+        # Removes several candidates
+        xpansion.delete_candidates(["peak", "battery"])
+        assert len(xpansion.get_candidates()) == 4
+        xpansion = read_study_api(api_config, imported_study.service.study_id).xpansion
+        assert len(xpansion.get_candidates()) == 4
+
+        ############# Constraints ##############
         file_name = "contraintes.txt"
 
         # Creates a constraint

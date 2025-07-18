@@ -20,6 +20,7 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
     XpansionCandidateCreationError,
+    XpansionCandidateDeletionError,
     XpansionCandidateEditionError,
     XpansionConfigurationCreationError,
     XpansionConfigurationDeletionError,
@@ -165,6 +166,16 @@ class XpansionAPIService(BaseXpansionService):
             return parse_xpansion_candidate_api(response)
         except APIError as e:
             raise XpansionCandidateEditionError(self.study_id, name, e.message) from e
+
+    @override
+    def delete_candidates(self, names: set[str]) -> None:
+        try:
+            for name in names:
+                url = f"{self._expansion_url}/candidates/{name}"
+                self._wrapper.delete(url)
+
+        except APIError as e:
+            raise XpansionCandidateDeletionError(self.study_id, names, e.message) from e
 
     @override
     def remove_links_profile_from_candidate(
