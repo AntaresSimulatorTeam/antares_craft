@@ -99,7 +99,12 @@ class XpansionConfiguration:
         return constraint
 
     def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
-        raise NotImplementedError()
+        new_constraint = self._xpansion_service.update_constraint(name, constraint, file_name)
+        if new_constraint.name != name:
+            # We're renaming a constraint
+            del self._constraints[name]
+        self._constraints[new_constraint.name] = new_constraint
+        return new_constraint
 
     def delete_constraints(self, names: list[str], file_name: str) -> None:
         self._xpansion_service.delete_constraints(names, file_name)
