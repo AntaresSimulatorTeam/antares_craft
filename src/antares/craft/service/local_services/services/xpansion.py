@@ -25,10 +25,12 @@ from antares.craft.exceptions.exceptions import (
     XpansionCandidateEditionError,
     XpansionConstraintCreationError,
     XpansionConstraintsDeletionError,
+    XpansionConstraintsEditionError,
     XpansionMatrixDeletionError,
     XpansionMatrixReadingError,
 )
 from antares.craft.model.xpansion.candidate import XpansionLinkProfile, update_candidate
+from antares.craft.model.xpansion.constraint import update_constraint
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.base_services import BaseXpansionService
@@ -196,7 +198,18 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
-        raise NotImplementedError()
+        existing_constraints = self._read_constraints(file_name)
+        if name not in existing_constraints:
+            raise XpansionConstraintsEditionError(self.study_name, name, file_name, "Constraint does not exist")
+        new_constraint = update_constraint(existing_constraints[name], constraint)
+        if new_constraint.name != name:
+            # We're renaming the constraint
+            del existing_constraints[name]
+        existing_constraints[new_constraint.name] = new_constraint
+        # Saves the content
+        self._write_constraints(file_name, existing_constraints)
+        # Round-trip to validate the data
+        return parse_xpansion_constraints_local(serialize_xpansion_constraints_local({"": new_constraint}))[""]
 
     @override
     def delete_constraints(self, names: list[str], file_name: str) -> None:
