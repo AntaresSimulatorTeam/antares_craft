@@ -372,3 +372,27 @@ class TestXpansion:
                 candidates_coefficients={"semibase": 1, "transmission_line": 1},
             )
         }
+
+        file_name = "contraintes.txt"
+
+        # Creates a constraint
+        new_constraint = XpansionConstraint(
+            name="new_constraint",
+            sign=ConstraintSign.GREATER_OR_EQUAL,
+            right_hand_side=100,
+            candidates_coefficients={"semibase": 0.5},
+        )
+        constraint = xpansion.create_constraint(new_constraint, file_name)
+        assert constraint == new_constraint
+
+        # Edits it
+        new_properties = XpansionConstraintUpdate(right_hand_side=1000, candidates_coefficients={"test": 0.3})
+        modified_constraint = xpansion.update_constraint("new_constraint", new_properties, file_name)
+        assert modified_constraint == XpansionConstraint(
+            name="new_constraint",
+            sign=ConstraintSign.GREATER_OR_EQUAL,
+            right_hand_side=1000,
+            candidates_coefficients={"semibase": 0.5, "test": 0.3},
+        )
+
+        # Rename it

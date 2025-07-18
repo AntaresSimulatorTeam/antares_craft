@@ -193,7 +193,7 @@ class XpansionLocalService(BaseXpansionService):
         # Saves the content
         self._write_constraints(file_name, existing_constraints)
         # Round-trip to validate the data
-        return parse_xpansion_constraints_local(serialize_xpansion_constraints_local({"": constraint}))[""]
+        return parse_xpansion_constraints_local(serialize_xpansion_constraints_local({"": constraint}))[constraint.name]
 
     @override
     def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
@@ -208,7 +208,9 @@ class XpansionLocalService(BaseXpansionService):
         # Saves the content
         self._write_constraints(file_name, existing_constraints)
         # Round-trip to validate the data
-        return parse_xpansion_constraints_local(serialize_xpansion_constraints_local({"": new_constraint}))[""]
+        return parse_xpansion_constraints_local(serialize_xpansion_constraints_local({"": new_constraint}))[
+            new_constraint.name
+        ]
 
     @override
     def delete_constraints(self, names: list[str], file_name: str) -> None:
