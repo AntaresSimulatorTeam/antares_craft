@@ -408,3 +408,6 @@ class TestXpansion:
         )
 
         # Rename it
+        new_properties = XpansionConstraintUpdate(name="new_name")
+        modified_constraint = xpansion.update_constraint("new_constraint", new_properties, file_name)
+        assert modified_constraint.name == "new_name"
