@@ -188,17 +188,27 @@ class XpansionAPIService(BaseXpansionService):
 
     @override
     def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
-        existing_constraints = self._read_constraints(file_name)
-        existing_constraints[constraint.name] = constraint
+        try:
+            existing_constraints = self._read_constraints(file_name)
+            existing_constraints[constraint.name] = constraint
+        except APIError:
+            # Happens if the file doesn't exist.
+            existing_constraints = {constraint.name: constraint}
+
         try:
             self._serialize_constraints(file_name, existing_constraints)
+        except APIError:
+            # Happens if the file doesn't exist. We should create it
+            try:
+                url = f"{self._expansion_url}/resources/constraints"
+                api_content = serialize_xpansion_constraints_api({"": constraint})
+                self._wrapper.post(url, files={"file": (file_name, api_content)})
+            except APIError as e:
+                raise XpansionConstraintCreationError(self.study_id, constraint.name, file_name, e.message) from e
 
-            # Round-trip to validate the data
-            user_class = parse_xpansion_constraint_api(serialize_xpansion_constraint_api(constraint))
-            return user_class
-
-        except APIError as e:
-            raise XpansionConstraintCreationError(self.study_id, constraint.name, file_name, e.message) from e
+        # Round-trip to validate the data
+        user_class = parse_xpansion_constraint_api(serialize_xpansion_constraint_api(constraint))
+        return user_class
 
     @override
     def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
