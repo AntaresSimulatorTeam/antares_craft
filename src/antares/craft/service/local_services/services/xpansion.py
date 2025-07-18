@@ -24,6 +24,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionCandidateCreationError,
     XpansionCandidateEditionError,
     XpansionConstraintCreationError,
+    XpansionConstraintsDeletionError,
     XpansionMatrixDeletionError,
     XpansionMatrixReadingError,
 )
@@ -199,7 +200,13 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def delete_constraints(self, names: list[str], file_name: str) -> None:
-        raise NotImplementedError()
+        existing_constraints = self._read_constraints(file_name)
+        for name in names:
+            if name not in existing_constraints:
+                raise XpansionConstraintsDeletionError(self.study_name, [name], file_name, "Constraint does not exist")
+            del existing_constraints[name]
+        # Saves the content
+        self._write_constraints(file_name, existing_constraints)
 
     def _read_settings(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "settings.ini")
