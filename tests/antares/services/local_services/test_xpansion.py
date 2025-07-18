@@ -174,6 +174,21 @@ class TestXpansion:
         ):
             xpansion.delete_weight("fake_weight")
 
+        # Asserts deleting a matrix referenced in the settings raises an appropriate exception
+        # For that, we need to manually modify the ini file
+        ini_path = study_path / "user" / "expansion" / "settings.ini"
+        content = IniReader().read(ini_path)
+        content["settings"]["yearly-weights"] = "other_weights.ini"
+        with open(ini_path, "w") as f:
+            f.writelines(f"{k}={v}\n" for k, v in content["settings"].items())
+        # Read the study to synchronize
+        study = read_study_local(study_path)
+        with pytest.raises(
+            XpansionResourceDeletionError,
+            match=re.escape("Could not delete the weight other_weights.ini: It is referenced in the settings"),
+        ):
+            study.xpansion.delete_weight("other_weights.ini")
+
     def test_capacities_matrices(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Set up
         xpansion = self._set_up(local_study_w_links, xpansion_input_path)
