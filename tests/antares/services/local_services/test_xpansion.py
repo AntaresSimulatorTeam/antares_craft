@@ -395,4 +395,14 @@ class TestXpansion:
             candidates_coefficients={"semibase": 0.5, "test": 0.3},
         )
 
+        # Ensures the edition for candidates coefficients is working correctly
+        new_properties = XpansionConstraintUpdate(candidates_coefficients={"test": 0.2, "test2": 0.8})
+        modified_constraint = xpansion.update_constraint("new_constraint", new_properties, file_name)
+        assert modified_constraint == XpansionConstraint(
+            name="new_constraint",
+            sign=ConstraintSign.GREATER_OR_EQUAL,
+            right_hand_side=1000,
+            candidates_coefficients={"semibase": 0.5, "test": 0.2, "test2": 0.8},
+        )
+
         # Rename it

@@ -43,5 +43,9 @@ def update_constraint(
     constraint: XpansionConstraint, constraint_update: XpansionConstraintUpdate
 ) -> XpansionConstraint:
     constraint_dict = asdict(constraint)
-    constraint_dict.update({k: v for k, v in asdict(constraint_update).items() if v is not None})
+    update_dict = {k: v for k, v in asdict(constraint_update).items() if v is not None}
+
+    constraint_dict["candidates_coefficients"].update(update_dict.pop("candidates_coefficients", {}))
+    constraint_dict.update(update_dict)
+
     return XpansionConstraint(**constraint_dict)
