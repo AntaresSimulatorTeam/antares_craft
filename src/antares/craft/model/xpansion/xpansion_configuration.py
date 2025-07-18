@@ -93,11 +93,11 @@ class XpansionConfiguration:
         new_candidate = self._xpansion_service.remove_links_profile_from_candidate(current_candidate, profiles)
         self._candidates[name] = new_candidate
 
-    def create_constraint(self, constraint: XpansionConstraint) -> XpansionConstraint:
+    def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
         raise NotImplementedError()
 
-    def update_constraint(self, name: str, constraint: XpansionConstraintUpdate) -> XpansionConstraint:
+    def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
         raise NotImplementedError()
 
-    def delete_constraints(self, names: list[str]) -> None:
+    def delete_constraints(self, names: list[str], file_name: str) -> None:
         raise NotImplementedError()

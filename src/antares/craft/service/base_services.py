@@ -904,21 +904,23 @@ class BaseXpansionService(ABC):
         pass
 
     @abstractmethod
-    def create_constraint(self, constraint: "XpansionConstraint") -> "XpansionConstraint":
+    def create_constraint(self, constraint: "XpansionConstraint", file_name: str) -> "XpansionConstraint":
         """
         Creates an xpansion additional-constraint for a given study
         """
         pass
 
     @abstractmethod
-    def update_constraint(self, name: str, constraint: "XpansionConstraintUpdate") -> "XpansionConstraint":
+    def update_constraint(
+        self, name: str, constraint: "XpansionConstraintUpdate", file_name: str
+    ) -> "XpansionConstraint":
         """
         Updates an xpansion additional-constraint for a given study
         """
         pass
 
     @abstractmethod
-    def delete_constraints(self, names: list[str]) -> None:
+    def delete_constraints(self, names: list[str], file_name: str) -> None:
         """
         Delete some xpansion additional-constraints for a given study
         """

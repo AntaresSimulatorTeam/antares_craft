@@ -184,15 +184,15 @@ class XpansionAPIService(BaseXpansionService):
             raise XpansionCandidateEditionError(self.study_id, candidate.name, e.message) from e
 
     @override
-    def create_constraint(self, constraint: XpansionConstraint) -> XpansionConstraint:
+    def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
         raise NotImplementedError()
 
     @override
-    def update_constraint(self, name: str, constraint: XpansionConstraintUpdate) -> XpansionConstraint:
+    def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
         raise NotImplementedError()
 
     @override
-    def delete_constraints(self, names: list[str]) -> None:
+    def delete_constraints(self, names: list[str], file_name: str) -> None:
         raise NotImplementedError()
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
