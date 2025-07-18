@@ -50,6 +50,32 @@ class Frequency(Enum):
     ANNUAL = "annual"
 
 
+@dataclass(frozen=True)
+class CandidateResult:
+    invest: float
+    max: float
+    min: float
+
+
+@dataclass(frozen=True)
+class XpansionResult:
+    iterations: list[dict[str, CandidateResult]]
+    investment_cost: float
+    nb_iteration: int
+    operational_cost: float
+    optimality_gap: float
+    overall_cost: float
+    problem_status: str
+    relative_gap: float
+    stopping_criterion: str
+    values: dict[str, float]
+
+
+@dataclass(frozen=True)
+class XpansionSensitivityResult:
+    pass
+
+
 @dataclass
 class AggregationEntry:
     """
@@ -277,3 +303,9 @@ class Output:
         )
 
         return self._output_service.aggregate_values(self.name, aggregation_entry, "links", "all")
+
+    def get_xpansion_result(self) -> XpansionResult:
+        return self._output_service.get_xpansion_result(self.name)
+
+    def get_xpansion_sensitivity_result(self) -> XpansionSensitivityResult:
+        return self._output_service.get_xpansion_sensitivity_result(self.name)
