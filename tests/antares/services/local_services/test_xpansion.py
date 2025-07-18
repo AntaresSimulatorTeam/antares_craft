@@ -358,3 +358,17 @@ class TestXpansion:
             ),
         ):
             xpansion.delete_constraints(["fake_constraint"], file_name)
+
+    def test_constraints(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+        # Set up
+        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+
+        # Checks current constraints
+        assert xpansion.get_constraints() == {
+            "additional_c1": XpansionConstraint(
+                name="additional_c1",
+                sign=ConstraintSign.LESS_OR_EQUAL,
+                right_hand_side=300,
+                candidates_coefficients={"semibase": 1, "transmission_line": 1},
+            )
+        }
