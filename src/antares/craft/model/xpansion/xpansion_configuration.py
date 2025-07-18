@@ -94,10 +94,14 @@ class XpansionConfiguration:
         self._candidates[name] = new_candidate
 
     def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
-        raise NotImplementedError()
+        constraint = self._xpansion_service.create_constraint(constraint, file_name)
+        self._constraints[constraint.name] = constraint
+        return constraint
 
     def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
         raise NotImplementedError()
 
     def delete_constraints(self, names: list[str], file_name: str) -> None:
-        raise NotImplementedError()
+        self._xpansion_service.delete_constraints(names, file_name)
+        for name in names:
+            del self._constraints[name]
