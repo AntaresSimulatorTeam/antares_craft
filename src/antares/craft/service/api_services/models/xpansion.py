@@ -242,9 +242,9 @@ def serialize_xpansion_constraint_api(constraint: XpansionConstraint) -> dict[st
 
 def serialize_xpansion_constraints_api(constraints: dict[str, XpansionConstraint]) -> str:
     api_content = ""
-    for constraint in constraints.values():
+    for k, constraint in enumerate(constraints.values()):
         api_constraint = XpansionConstraintAPI.from_user_model(constraint)
-        api_content += "\n".join(f"{key} = {value}" for key, value in api_constraint.model_fields.items())
-        if api_constraint.model_extra:
-            api_content += "\n".join(f"{key} = {value}" for key, value in api_constraint.model_extra.items())
+        api_content += f"[{k+1}]\n"
+        api_content += "\n".join(f"{key} = {value}" for key, value in api_constraint.model_dump(mode='json').items())
+        api_content += "\n"
     return api_content
