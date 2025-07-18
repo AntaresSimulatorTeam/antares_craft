@@ -77,6 +77,7 @@ from antares.craft import (
     XpansionCandidate,
     XpansionCandidateUpdate,
     XpansionConstraint,
+    XpansionConstraintUpdate,
     XpansionLinkProfile,
     XpansionSensitivity,
     XpansionSettings,
@@ -93,7 +94,7 @@ from antares.craft.exceptions.exceptions import (
     MatrixUploadError,
     ReferencedObjectDeletionNotAllowed,
     StudySettingsUpdateError,
-    XpansionMatrixDeletionError,
+    XpansionFileDeletionError,
     XpansionMatrixReadingError,
 )
 from antares.craft.model.hydro import InflowStructureUpdate
@@ -1117,8 +1118,8 @@ class TestWebClient:
 
         # Asserts deleting a fake matrix raises an appropriate exception
         with pytest.raises(
-            XpansionMatrixDeletionError,
-            match=f"Could not delete the xpansion matrix fake_weight for study {study_id}",
+            XpansionFileDeletionError,
+            match=f"Could not delete the xpansion file fake_weight for study {study_id}",
         ):
             xpansion.delete_weight("fake_weight")
 
@@ -1148,8 +1149,8 @@ class TestWebClient:
 
         # Asserts deleting a fake matrix raises an appropriate exception
         with pytest.raises(
-            XpansionMatrixDeletionError,
-            match=f"Could not delete the xpansion matrix fake_capacity for study {study_id}",
+            XpansionFileDeletionError,
+            match=f"Could not delete the xpansion file fake_capacity for study {study_id}",
         ):
             xpansion.delete_capacity("fake_capacity")
 
@@ -1202,6 +1203,75 @@ class TestWebClient:
         # Ensures that even when reading the candidate we still have `direct_link_profile` to None
         imported_study = read_study_api(api_config, imported_study.service.study_id)
         assert imported_study.xpansion.get_candidates()["new_name"].direct_link_profile is None
+
+        file_name = "contraintes.txt"
+
+        # Creates a constraint
+        new_constraint = XpansionConstraint(
+            name="new_constraint",
+            sign=ConstraintSign.GREATER_OR_EQUAL,
+            right_hand_side=100,
+            candidates_coefficients={"semibase": 0.5},
+        )
+        constraint = xpansion.create_constraint(new_constraint, file_name)
+        assert constraint == new_constraint
+
+        # Edits it
+        new_properties = XpansionConstraintUpdate(right_hand_side=1000, candidates_coefficients={"test": 0.3})
+        modified_constraint = xpansion.update_constraint("new_constraint", new_properties, file_name)
+        assert modified_constraint == XpansionConstraint(
+            name="new_constraint",
+            sign=ConstraintSign.GREATER_OR_EQUAL,
+            right_hand_side=1000,
+            candidates_coefficients={"semibase": 0.5, "test": 0.3},
+        )
+
+        # Ensures the edition for candidates coefficients is working correctly
+        new_properties = XpansionConstraintUpdate(
+            sign=ConstraintSign.EQUAL, candidates_coefficients={"test": 0.2, "test2": 0.8}
+        )
+        modified_constraint = xpansion.update_constraint("new_constraint", new_properties, file_name)
+        assert modified_constraint == XpansionConstraint(
+            name="new_constraint",
+            sign=ConstraintSign.EQUAL,
+            right_hand_side=1000,
+            candidates_coefficients={"semibase": 0.5, "test": 0.2, "test2": 0.8},
+        )
+
+        # Rename it
+        new_properties = XpansionConstraintUpdate(name="new_name")
+        modified_constraint = xpansion.update_constraint("new_constraint", new_properties, file_name)
+        assert modified_constraint.name == "new_name"
+
+        # Ensures reading works correctly
+        xpansion = read_study_api(api_config, imported_study.service.study_id).xpansion
+        assert xpansion.get_constraints() == {
+            "additional_c1": XpansionConstraint(
+                name="additional_c1",
+                sign=ConstraintSign.LESS_OR_EQUAL,
+                right_hand_side=300.0,
+                candidates_coefficients={"semibase": 1, "transmission_line": 1},
+            ),
+            "new_name": XpansionConstraint(
+                name="new_name",
+                sign=ConstraintSign.EQUAL,
+                right_hand_side=1000.0,
+                candidates_coefficients={"semibase": 0.5, "test": 0.2, "test2": 0.8},
+            ),
+        }
+
+        # Deletes all constraints
+        xpansion.delete_constraints(["new_name", "additional_c1"], file_name)
+        assert xpansion.get_constraints() == {}
+
+        # Create a constraint in a non-existing file
+        constraint = XpansionConstraint(
+            name="my_constraint", sign=ConstraintSign.GREATER_OR_EQUAL, right_hand_side=0.1, candidates_coefficients={}
+        )
+        xpansion.create_constraint(constraint, "new_file.ini")
+
+        # Deletes the file
+        xpansion.delete_constraints_file("new_file.ini")
 
         # Deletes the configuration
         imported_study.delete_xpansion_configuration()

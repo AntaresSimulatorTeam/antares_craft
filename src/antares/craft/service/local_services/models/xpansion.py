@@ -184,6 +184,14 @@ def parse_xpansion_constraints_local(data: dict[str, Any]) -> dict[str, Xpansion
     return parsed_content
 
 
+def serialize_xpansion_constraints_local(constraints: dict[str, XpansionConstraint]) -> dict[str, Any]:
+    serialized_content = {}
+    for k, constraint in enumerate(constraints.values()):
+        local_model = XpansionConstraintLocal.from_user_model(constraint)
+        serialized_content[str(k + 1)] = local_model.model_dump(mode="json", by_alias=True, exclude_none=True)
+    return serialized_content
+
+
 ######################
 # Sensitivity part
 ######################

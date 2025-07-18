@@ -19,12 +19,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.craft import Study, XpansionCandidateUpdate, read_study_local
+from antares.craft import Study, XpansionCandidateUpdate, XpansionConstraintUpdate, read_study_local
 from antares.craft.exceptions.exceptions import (
     BadCandidateFormatError,
     XpansionCandidateCoherenceError,
     XpansionCandidateEditionError,
-    XpansionMatrixDeletionError,
+    XpansionConstraintsDeletionError,
+    XpansionConstraintsEditionError,
+    XpansionFileDeletionError,
     XpansionMatrixReadingError,
 )
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionLinkProfile
@@ -165,8 +167,8 @@ class TestXpansion:
 
         # Asserts deleting a fake matrix raises an appropriate exception
         with pytest.raises(
-            XpansionMatrixDeletionError,
-            match="Could not delete the xpansion matrix fake_weight for study studyTest: The file does not exist",
+            XpansionFileDeletionError,
+            match="Could not delete the xpansion file fake_weight for study studyTest: The file does not exist",
         ):
             xpansion.delete_weight("fake_weight")
 
@@ -207,8 +209,8 @@ class TestXpansion:
 
         # Asserts deleting a fake matrix raises an appropriate exception
         with pytest.raises(
-            XpansionMatrixDeletionError,
-            match="Could not delete the xpansion matrix fake_capacity for study studyTest: The file does not exist",
+            XpansionFileDeletionError,
+            match="Could not delete the xpansion file fake_capacity for study studyTest: The file does not exist",
         ):
             xpansion.delete_capacity("fake_capacity")
 
@@ -327,3 +329,116 @@ class TestXpansion:
             "annual-cost-per-mw": 3.17,
             "max-investment": 3.0,
         }
+
+    def test_constraints_error_cases(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+        # Set up
+        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+
+        # Deletes a fake file
+        with pytest.raises(
+            XpansionFileDeletionError,
+            match="Could not delete the xpansion file fake_file for study studyTest: The file does not exist",
+        ):
+            xpansion.delete_constraints_file("fake_file")
+
+        # Edits a fake constraint
+        file_name = "contraintes.txt"
+        with pytest.raises(
+            XpansionConstraintsEditionError,
+            match="Could not edit the xpansion constraint fake_constraint inside the file contraintes.txt for study studyTest: Constraint does not exist",
+        ):
+            new_constraint = XpansionConstraintUpdate(right_hand_side=0.4)
+            xpansion.update_constraint("fake_constraint", new_constraint, file_name)
+
+        # Deletes a fake constraint
+        with pytest.raises(
+            XpansionConstraintsDeletionError,
+            match=re.escape(
+                "Could not create the xpansion constraints ['fake_constraint'] inside the file contraintes.txt for study studyTest: Constraint does not exist",
+            ),
+        ):
+            xpansion.delete_constraints(["fake_constraint"], file_name)
+
+    def test_constraints(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+        # Set up
+        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+
+        # Checks current constraints
+        assert xpansion.get_constraints() == {
+            "additional_c1": XpansionConstraint(
+                name="additional_c1",
+                sign=ConstraintSign.LESS_OR_EQUAL,
+                right_hand_side=300,
+                candidates_coefficients={"semibase": 1, "transmission_line": 1},
+            )
+        }
+
+        file_name = "contraintes.txt"
+
+        # Creates a constraint
+        new_constraint = XpansionConstraint(
+            name="new_constraint",
+            sign=ConstraintSign.GREATER_OR_EQUAL,
+            right_hand_side=100,
+            candidates_coefficients={"semibase": 0.5},
+        )
+        constraint = xpansion.create_constraint(new_constraint, file_name)
+        assert constraint == new_constraint
+
+        # Edits it
+        new_properties = XpansionConstraintUpdate(right_hand_side=1000, candidates_coefficients={"test": 0.3})
+        modified_constraint = xpansion.update_constraint("new_constraint", new_properties, file_name)
+        assert modified_constraint == XpansionConstraint(
+            name="new_constraint",
+            sign=ConstraintSign.GREATER_OR_EQUAL,
+            right_hand_side=1000,
+            candidates_coefficients={"semibase": 0.5, "test": 0.3},
+        )
+
+        # Ensures the edition for candidates coefficients is working correctly
+        new_properties = XpansionConstraintUpdate(
+            sign=ConstraintSign.EQUAL, candidates_coefficients={"test": 0.2, "test2": 0.8}
+        )
+        modified_constraint = xpansion.update_constraint("new_constraint", new_properties, file_name)
+        assert modified_constraint == XpansionConstraint(
+            name="new_constraint",
+            sign=ConstraintSign.EQUAL,
+            right_hand_side=1000,
+            candidates_coefficients={"semibase": 0.5, "test": 0.2, "test2": 0.8},
+        )
+
+        # Rename it
+        new_properties = XpansionConstraintUpdate(name="new_name")
+        modified_constraint = xpansion.update_constraint("new_constraint", new_properties, file_name)
+        assert modified_constraint.name == "new_name"
+
+        # Checks ini content
+        ini_path = Path(local_study_w_links.path) / "user" / "expansion" / "constraints" / file_name
+        content = IniReader().read(ini_path)
+        assert len(content) == 2
+        assert content["2"] == {
+            "name": "new_name",
+            "sign": "equal",
+            "rhs": 1000.0,
+            "semibase": 0.5,
+            "test": 0.2,
+            "test2": 0.8,
+        }
+
+        # Deletes it
+        xpansion.delete_constraints(["new_name", "additional_c1"], file_name)
+        assert xpansion.get_constraints() == {}
+        content = IniReader().read(ini_path)
+        assert content == {}
+
+        # Create a constraint in a non-existing file
+        constraint = XpansionConstraint(
+            name="my_constraint", sign=ConstraintSign.GREATER_OR_EQUAL, right_hand_side=0.1, candidates_coefficients={}
+        )
+        xpansion.create_constraint(constraint, "new_file.ini")
+        ini_path = ini_path.parent / "new_file.ini"
+        assert ini_path.exists()
+
+        # Deletes the file
+        xpansion.delete_constraints_file("new_file.ini")
+        assert not ini_path.exists()

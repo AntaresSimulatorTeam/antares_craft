@@ -11,22 +11,27 @@
 # This file is part of the Antares project.
 import shutil
 
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
 from typing_extensions import override
 
-from antares.craft import XpansionCandidate, XpansionCandidateUpdate
+from antares.craft import XpansionCandidate, XpansionCandidateUpdate, XpansionConstraint, XpansionConstraintUpdate
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     XpansionCandidateCoherenceError,
     XpansionCandidateCreationError,
     XpansionCandidateEditionError,
-    XpansionMatrixDeletionError,
+    XpansionConstraintCreationError,
+    XpansionConstraintsDeletionError,
+    XpansionConstraintsEditionError,
+    XpansionFileDeletionError,
     XpansionMatrixReadingError,
 )
 from antares.craft.model.xpansion.candidate import XpansionLinkProfile, update_candidate
+from antares.craft.model.xpansion.constraint import update_constraint
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.base_services import BaseXpansionService
@@ -36,6 +41,7 @@ from antares.craft.service.local_services.models.xpansion import (
     parse_xpansion_sensitivity_local,
     parse_xpansion_settings_local,
     serialize_xpansion_candidate_local,
+    serialize_xpansion_constraints_local,
     serialize_xpansion_settings_local,
 )
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
@@ -72,7 +78,7 @@ class XpansionLocalService(BaseXpansionService):
         constraints = {}
         file_name = settings.additional_constraints
         if file_name:
-            constraints = parse_xpansion_constraints_local(self._read_constraints(file_name))
+            constraints = self._read_constraints(file_name)
         # Sensitivity
         sensitivity = None
         sensitivity_content = self._read_sensitivity()
@@ -109,9 +115,7 @@ class XpansionLocalService(BaseXpansionService):
     @override
     def delete_matrix(self, file_name: str, file_type: XpansionMatrix) -> None:
         file_path = self._xpansion_path / FILE_MAPPING[file_type][0] / file_name
-        if not file_path.exists():
-            raise XpansionMatrixDeletionError(self.study_name, file_name, "The file does not exist")
-        file_path.unlink()
+        self._delete_matrix(file_name, file_path)
 
     @override
     def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: XpansionMatrix) -> None:
@@ -176,8 +180,52 @@ class XpansionLocalService(BaseXpansionService):
                 # Saves the content
                 self._save_candidates(ini_content)
                 return user_class
-
         raise XpansionCandidateEditionError(self.study_name, candidate.name, "Candidate does not exist")
+
+    @override
+    def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
+        existing_constraints = self._read_constraints(file_name)
+        if constraint.name in existing_constraints:
+            raise XpansionConstraintCreationError(
+                self.study_name, constraint.name, file_name, "Constraint already exists"
+            )
+        existing_constraints[constraint.name] = constraint
+        # Saves the content
+        self._write_constraints(file_name, existing_constraints)
+        # Round-trip to validate the data
+        return parse_xpansion_constraints_local(serialize_xpansion_constraints_local({"": constraint}))[constraint.name]
+
+    @override
+    def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
+        existing_constraints = self._read_constraints(file_name)
+        if name not in existing_constraints:
+            raise XpansionConstraintsEditionError(self.study_name, name, file_name, "Constraint does not exist")
+        new_constraint = update_constraint(existing_constraints[name], constraint)
+        if new_constraint.name != name:
+            # We're renaming the constraint
+            del existing_constraints[name]
+        existing_constraints[new_constraint.name] = new_constraint
+        # Saves the content
+        self._write_constraints(file_name, existing_constraints)
+        # Round-trip to validate the data
+        return parse_xpansion_constraints_local(serialize_xpansion_constraints_local({"": new_constraint}))[
+            new_constraint.name
+        ]
+
+    @override
+    def delete_constraints(self, names: list[str], file_name: str) -> None:
+        existing_constraints = self._read_constraints(file_name)
+        for name in names:
+            if name not in existing_constraints:
+                raise XpansionConstraintsDeletionError(self.study_name, [name], file_name, "Constraint does not exist")
+            del existing_constraints[name]
+        # Saves the content
+        self._write_constraints(file_name, existing_constraints)
+
+    @override
+    def delete_constraints_file(self, file_name: str) -> None:
+        file_path = self._xpansion_path / "constraints" / file_name
+        self._delete_matrix(file_name, file_path)
 
     def _read_settings(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "settings.ini")
@@ -188,8 +236,12 @@ class XpansionLocalService(BaseXpansionService):
     def _save_candidates(self, content: dict[str, Any]) -> None:
         IniWriter().write(content, self._xpansion_path / "candidates.ini")
 
-    def _read_constraints(self, file_name: str) -> dict[str, Any]:
-        return IniReader().read(self._xpansion_path / "constraints" / file_name)
+    def _read_constraints(self, file_name: str) -> dict[str, XpansionConstraint]:
+        return parse_xpansion_constraints_local(IniReader().read(self._xpansion_path / "constraints" / file_name))
+
+    def _write_constraints(self, file_name: str, constraints: dict[str, XpansionConstraint]) -> None:
+        ini_content = serialize_xpansion_constraints_local(constraints)
+        IniWriter().write(ini_content, self._xpansion_path / "constraints" / file_name)
 
     def _read_sensitivity(self) -> dict[str, Any]:
         file_path = self._xpansion_path / "sensitivity" / "sensitivity_in.json"
@@ -217,3 +269,8 @@ class XpansionLocalService(BaseXpansionService):
         for file in files_to_check:
             if not (self._xpansion_path / "capa" / file).exists():
                 raise XpansionCandidateCoherenceError(self.study_name, candidate.name, f"File {file} does not exist")
+
+    def _delete_matrix(self, file_name: str, file_path: Path) -> None:
+        if not file_path.exists():
+            raise XpansionFileDeletionError(self.study_name, file_name, "The file does not exist")
+        file_path.unlink()

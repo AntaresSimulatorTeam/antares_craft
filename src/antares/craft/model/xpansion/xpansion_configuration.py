@@ -15,7 +15,7 @@ from typing import Optional
 import pandas as pd
 
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate, XpansionLinkProfile
-from antares.craft.model.xpansion.constraint import XpansionConstraint
+from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.service.base_services import BaseXpansionService
@@ -92,3 +92,24 @@ class XpansionConfiguration:
         current_candidate = self._candidates[name]
         new_candidate = self._xpansion_service.remove_links_profile_from_candidate(current_candidate, profiles)
         self._candidates[name] = new_candidate
+
+    def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
+        constraint = self._xpansion_service.create_constraint(constraint, file_name)
+        self._constraints[constraint.name] = constraint
+        return constraint
+
+    def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
+        new_constraint = self._xpansion_service.update_constraint(name, constraint, file_name)
+        if new_constraint.name != name:
+            # We're renaming a constraint
+            del self._constraints[name]
+        self._constraints[new_constraint.name] = new_constraint
+        return new_constraint
+
+    def delete_constraints(self, names: list[str], file_name: str) -> None:
+        self._xpansion_service.delete_constraints(names, file_name)
+        for name in names:
+            del self._constraints[name]
+
+    def delete_constraints_file(self, file_name: str) -> None:
+        self._xpansion_service.delete_constraints_file(file_name)

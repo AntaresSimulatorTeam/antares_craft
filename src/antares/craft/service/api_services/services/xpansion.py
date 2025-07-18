@@ -24,7 +24,10 @@ from antares.craft.exceptions.exceptions import (
     XpansionConfigurationCreationError,
     XpansionConfigurationDeletionError,
     XpansionConfigurationReadingError,
-    XpansionMatrixDeletionError,
+    XpansionConstraintCreationError,
+    XpansionConstraintsDeletionError,
+    XpansionConstraintsEditionError,
+    XpansionFileDeletionError,
     XpansionMatrixEditionError,
     XpansionMatrixReadingError,
 )
@@ -34,15 +37,18 @@ from antares.craft.model.xpansion.candidate import (
     XpansionLinkProfile,
     update_candidate,
 )
-from antares.craft.model.xpansion.constraint import XpansionConstraint
+from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate, update_constraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.api_services.models.xpansion import (
     parse_xpansion_candidate_api,
+    parse_xpansion_constraint_api,
     parse_xpansion_constraints_api,
     parse_xpansion_settings_api,
     serialize_xpansion_candidate_api,
+    serialize_xpansion_constraint_api,
+    serialize_xpansion_constraints_api,
 )
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseXpansionService
@@ -110,10 +116,7 @@ class XpansionAPIService(BaseXpansionService):
     @override
     def delete_matrix(self, file_name: str, file_type: XpansionMatrix) -> None:
         url = f"{self._expansion_url}/resources/{file_type.value}/{file_name}"
-        try:
-            self._wrapper.delete(url)
-        except APIError as e:
-            raise XpansionMatrixDeletionError(self.study_id, file_name, e.message) from e
+        self._delete_matrix(file_name, url)
 
     @override
     def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: XpansionMatrix) -> None:
@@ -182,6 +185,72 @@ class XpansionAPIService(BaseXpansionService):
 
         except APIError as e:
             raise XpansionCandidateEditionError(self.study_id, candidate.name, e.message) from e
+
+    @override
+    def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
+        try:
+            existing_constraints = self._read_constraints(file_name)
+            existing_constraints[constraint.name] = constraint
+        except APIError:
+            # Happens if the file doesn't exist.
+            existing_constraints = {constraint.name: constraint}
+
+        try:
+            self._serialize_constraints(file_name, existing_constraints)
+        except APIError:
+            # Happens if the file doesn't exist. We should create it
+            try:
+                url = f"{self._expansion_url}/resources/constraints"
+                api_content = serialize_xpansion_constraints_api({"": constraint})
+                self._wrapper.post(url, files={"file": (file_name, api_content)})
+            except APIError as e:
+                raise XpansionConstraintCreationError(self.study_id, constraint.name, file_name, e.message) from e
+
+        # Round-trip to validate the data
+        user_class = parse_xpansion_constraint_api(serialize_xpansion_constraint_api(constraint))
+        return user_class
+
+    @override
+    def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
+        existing_constraints = self._read_constraints(file_name)
+        new_constraint = update_constraint(existing_constraints[name], constraint)
+        if new_constraint.name != name:
+            # We're renaming the constraint
+            del existing_constraints[name]
+        existing_constraints[new_constraint.name] = new_constraint
+        try:
+            self._serialize_constraints(file_name, existing_constraints)
+            return new_constraint
+
+        except APIError as e:
+            raise XpansionConstraintsEditionError(self.study_id, name, file_name, e.message) from e
+
+    @override
+    def delete_constraints(self, names: list[str], file_name: str) -> None:
+        existing_constraints = self._read_constraints(file_name)
+        for name in names:
+            del existing_constraints[name]
+        try:
+            self._serialize_constraints(file_name, existing_constraints)
+
+        except APIError as e:
+            raise XpansionConstraintsDeletionError(self.study_id, names, file_name, e.message) from e
+
+    @override
+    def delete_constraints_file(self, file_name: str) -> None:
+        url = f"{self._expansion_url}/resources/constraints/{file_name}"
+        self._delete_matrix(file_name, url)
+
+    def _delete_matrix(self, file_name: str, url: str) -> None:
+        try:
+            self._wrapper.delete(url)
+        except APIError as e:
+            raise XpansionFileDeletionError(self.study_id, file_name, e.message) from e
+
+    def _serialize_constraints(self, file_name: str, constraints: dict[str, XpansionConstraint]) -> None:
+        url = f"{self._base_url}/studies/{self.study_id}/raw?path=user/expansion/constraints/{file_name}"
+        api_content = serialize_xpansion_constraints_api(constraints)
+        self._wrapper.put(url, files={"file": (file_name, api_content)})
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()

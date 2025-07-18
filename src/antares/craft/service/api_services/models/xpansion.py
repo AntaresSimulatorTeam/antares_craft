@@ -195,10 +195,15 @@ class XpansionConstraintAPI(APIBaseModel):
 
     @staticmethod
     def from_user_model(user_class: XpansionConstraintType) -> "XpansionConstraintAPI":
-        user_dict = asdict(user_class)
-        user_dict["rhs"] = user_dict.pop("right_hand_side")
-        user_dict.update(user_dict.pop("candidates_coefficients"))
-        return XpansionConstraintAPI.model_validate(user_dict)
+        args = {
+            "name": user_class.name,
+            "sign": user_class.sign,
+            "rhs": user_class.right_hand_side,
+        }
+        if user_class.candidates_coefficients is not None:
+            for candidate, coefficient in user_class.candidates_coefficients.items():
+                args[candidate] = coefficient
+        return XpansionConstraintAPI.model_validate(args)
 
     def to_user_model(self) -> XpansionConstraint:
         return XpansionConstraint(
@@ -209,10 +214,37 @@ class XpansionConstraintAPI(APIBaseModel):
         )
 
 
+def parse_xpansion_constraint_api(data: dict[str, Any]) -> XpansionConstraint:
+    api_model = XpansionConstraintAPI.model_validate(data)
+    return api_model.to_user_model()
+
+
 def parse_xpansion_constraints_api(data: Any) -> dict[str, XpansionConstraint]:
     parsed_content = {}
     data_as_dict = IniReader().read(io.StringIO(data))
     for values in data_as_dict.values():
-        api_model = XpansionConstraintAPI.model_validate(values)
-        parsed_content[api_model.name] = api_model.to_user_model()
+        constraint = parse_xpansion_constraint_api(values)
+        parsed_content[constraint.name] = constraint
     return parsed_content
+
+
+def serialize_xpansion_constraint_api(constraint: XpansionConstraint) -> dict[str, Any]:
+    args = {
+        "name": constraint.name,
+        "sign": constraint.sign,
+        "rhs": constraint.right_hand_side,
+    }
+    if constraint.candidates_coefficients is not None:
+        for candidate, coefficient in constraint.candidates_coefficients.items():
+            args[candidate] = coefficient
+    return args
+
+
+def serialize_xpansion_constraints_api(constraints: dict[str, XpansionConstraint]) -> str:
+    api_content = ""
+    for k, constraint in enumerate(constraints.values()):
+        api_constraint = XpansionConstraintAPI.from_user_model(constraint)
+        api_content += f"[{k + 1}]\n"
+        api_content += "\n".join(f"{key} = {value}" for key, value in api_constraint.model_dump(mode="json").items())
+        api_content += "\n"
+    return api_content
