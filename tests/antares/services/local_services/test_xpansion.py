@@ -29,6 +29,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionConstraintsEditionError,
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
+    XpansionResourceDeletionError,
 )
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint
@@ -372,6 +373,15 @@ class TestXpansion:
             ),
         ):
             xpansion.delete_constraints(["fake_constraint"], file_name)
+
+        # Deletes a constraint referenced in the settings
+        with pytest.raises(
+            XpansionResourceDeletionError,
+            match=re.escape(
+                "Could not delete the constraints contraintes.txt: It is referenced in the settings",
+            ),
+        ):
+            xpansion.delete_constraints_file(file_name)
 
     def test_constraints(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Set up
