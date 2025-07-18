@@ -19,11 +19,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.craft import Study, XpansionCandidateUpdate, read_study_local
+from antares.craft import Study, XpansionCandidateUpdate, XpansionConstraintUpdate, read_study_local
 from antares.craft.exceptions.exceptions import (
     BadCandidateFormatError,
     XpansionCandidateCoherenceError,
     XpansionCandidateEditionError,
+    XpansionConstraintsDeletionError,
+    XpansionConstraintsEditionError,
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
 )
@@ -332,3 +334,27 @@ class TestXpansion:
         # Set up
         xpansion = self._set_up(local_study_w_links, xpansion_input_path)
 
+        # Deletes a fake file
+        with pytest.raises(
+            XpansionFileDeletionError,
+            match="Could not delete the xpansion file fake_file for study studyTest: The file does not exist",
+        ):
+            xpansion.delete_constraints_file("fake_file")
+
+        # Edits a fake constraint
+        file_name = "contraintes.txt"
+        with pytest.raises(
+            XpansionConstraintsEditionError,
+            match="Could not edit the xpansion constraint fake_constraint inside the file contraintes.txt for study studyTest: Constraint does not exist",
+        ):
+            new_constraint = XpansionConstraintUpdate(right_hand_side=0.4)
+            xpansion.update_constraint("fake_constraint", new_constraint, file_name)
+
+        # Deletes a fake constraint
+        with pytest.raises(
+            XpansionConstraintsDeletionError,
+            match=re.escape(
+                "Could not create the xpansion constraints ['fake_constraint'] inside the file contraintes.txt for study studyTest: Constraint does not exist",
+            ),
+        ):
+            xpansion.delete_constraints(["fake_constraint"], file_name)

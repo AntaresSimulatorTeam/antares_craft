@@ -113,4 +113,3 @@ class XpansionConfiguration:
 
     def delete_constraints_file(self, file_name: str) -> None:
         self._xpansion_service.delete_constraints_file(file_name)
-

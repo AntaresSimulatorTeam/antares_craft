@@ -237,7 +237,6 @@ class XpansionAPIService(BaseXpansionService):
         except APIError as e:
             raise XpansionFileDeletionError(self.study_id, file_name, e.message) from e
 
-
     def _serialize_constraints(self, file_name: str, constraints: dict[str, XpansionConstraint]) -> None:
         url = f"{self._expansion_url}/resources/constraints"
         api_content = serialize_xpansion_constraints_api(constraints)
