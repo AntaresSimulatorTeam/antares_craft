@@ -216,6 +216,13 @@ class TestXpansion:
         ):
             xpansion.delete_capacity("fake_capacity")
 
+        # Asserts deleting a matrix referenced in a candidate raises an appropriate exception
+        with pytest.raises(
+            XpansionResourceDeletionError,
+            match=re.escape("Could not delete the capacity direct_capa_pv.ini: It is referenced in the candidate pv"),
+        ):
+            xpansion.delete_capacity("direct_capa_pv.ini")
+
     def test_candidates_error_cases(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Set up
         xpansion = self._set_up(local_study_w_links, xpansion_input_path)
