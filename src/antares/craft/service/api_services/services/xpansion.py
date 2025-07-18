@@ -192,10 +192,8 @@ class XpansionAPIService(BaseXpansionService):
     def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
         existing_constraints = self._read_constraints(file_name)
         existing_constraints[constraint.name] = constraint
-        url = f"{self._expansion_url}/resources/constraints"
         try:
-            api_content = serialize_xpansion_constraints_api(existing_constraints)
-            self._wrapper.post(url, files={"file": (file_name, api_content)})
+            self._serialize_constraints(file_name, existing_constraints)
 
             # Round-trip to validate the data
             user_class = parse_xpansion_constraint_api(serialize_xpansion_constraint_api(constraint))
@@ -213,13 +211,16 @@ class XpansionAPIService(BaseXpansionService):
         existing_constraints = self._read_constraints(file_name)
         for name in names:
             del existing_constraints[name]
-        url = f"{self._expansion_url}/resources/constraints"
         try:
-            api_content = serialize_xpansion_constraints_api(existing_constraints)
-            self._wrapper.post(url, files={"file": (file_name, api_content)})
+            self._serialize_constraints(file_name, existing_constraints)
 
         except APIError as e:
             raise XpansionConstraintsDeletionError(self.study_id, names, file_name, e.message) from e
+
+    def _serialize_constraints(self, file_name: str, constraints: dict[str, XpansionConstraint]) -> None:
+        url = f"{self._expansion_url}/resources/constraints"
+        api_content = serialize_xpansion_constraints_api(constraints)
+        self._wrapper.post(url, files={"file": (file_name, api_content)})
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()
