@@ -29,6 +29,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionConstraintsEditionError,
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
+    XpansionResourceDeletionError,
 )
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint
@@ -173,6 +174,22 @@ class TestXpansion:
         ):
             xpansion.delete_weight("fake_weight")
 
+        # Asserts deleting a matrix referenced in the settings raises an appropriate exception
+        # For that, we need to manually modify the ini file
+        ini_path = study_path / "user" / "expansion" / "settings.ini"
+        content = IniReader().read(ini_path)
+        content["settings"]["yearly-weights"] = "other_weights.ini"
+        with open(ini_path, "w") as f:
+            f.writelines(f"{k}={v}\n" for k, v in content["settings"].items())
+        # Read the study to synchronize
+        xpansion_read = read_study_local(study_path).xpansion
+        assert xpansion_read is not None
+        with pytest.raises(
+            XpansionResourceDeletionError,
+            match=re.escape("Could not delete the weight other_weights.ini: It is referenced in the settings"),
+        ):
+            xpansion_read.delete_weight("other_weights.ini")
+
     def test_capacities_matrices(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Set up
         xpansion = self._set_up(local_study_w_links, xpansion_input_path)
@@ -214,6 +231,13 @@ class TestXpansion:
             match="Could not delete the xpansion file fake_capacity for study studyTest: The file does not exist",
         ):
             xpansion.delete_capacity("fake_capacity")
+
+        # Asserts deleting a matrix referenced in a candidate raises an appropriate exception
+        with pytest.raises(
+            XpansionResourceDeletionError,
+            match=re.escape("Could not delete the capacity direct_capa_pv.ini: It is referenced in the candidate pv"),
+        ):
+            xpansion.delete_capacity("direct_capa_pv.ini")
 
     def test_candidates_error_cases(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Set up
@@ -372,6 +396,15 @@ class TestXpansion:
             ),
         ):
             xpansion.delete_constraints(["fake_constraint"], file_name)
+
+        # Deletes a constraint referenced in the settings
+        with pytest.raises(
+            XpansionResourceDeletionError,
+            match=re.escape(
+                "Could not delete the constraints contraintes.txt: It is referenced in the settings",
+            ),
+        ):
+            xpansion.delete_constraints_file(file_name)
 
     def test_constraints(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Set up

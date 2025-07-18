@@ -633,3 +633,9 @@ class XpansionConstraintsEditionError(Exception):
             + message
         )
         super().__init__(self.message)
+
+
+class XpansionResourceDeletionError(Exception):
+    def __init__(self, resource_type: str, file_name: str, message: str) -> None:
+        self.message = f"Could not delete the {resource_type} {file_name}: " + message
+        super().__init__(self.message)

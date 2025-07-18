@@ -14,6 +14,7 @@ from typing import Optional
 
 import pandas as pd
 
+from antares.craft.exceptions.exceptions import XpansionResourceDeletionError
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
@@ -63,9 +64,26 @@ class XpansionConfiguration:
         return self._xpansion_service.get_matrix(file_name, XpansionMatrix.WEIGHTS)
 
     def delete_capacity(self, file_name: str) -> None:
+        # Checks the capacity file is not referenced in a candidate
+        for candidate in self._candidates.values():
+            for profile in [
+                "direct_link_profile",
+                "indirect_link_profile",
+                "already_installed_direct_link_profile",
+                "already_installed_indirect_link_profile",
+            ]:
+                if file_name == getattr(candidate, profile):
+                    raise XpansionResourceDeletionError(
+                        "capacity", file_name, f"It is referenced in the candidate {candidate.name}"
+                    )
+
         return self._xpansion_service.delete_matrix(file_name, XpansionMatrix.CAPACITIES)
 
     def delete_weight(self, file_name: str) -> None:
+        # Checks the weight file is not referenced in the settings
+        if self._settings.yearly_weights == file_name:
+            raise XpansionResourceDeletionError("weight", file_name, "It is referenced in the settings")
+
         return self._xpansion_service.delete_matrix(file_name, XpansionMatrix.WEIGHTS)
 
     def set_capacity(self, file_name: str, series: pd.DataFrame) -> None:
@@ -117,4 +135,7 @@ class XpansionConfiguration:
             del self._constraints[name]
 
     def delete_constraints_file(self, file_name: str) -> None:
+        # Checks the constraint file is not referenced in the settings
+        if self._settings.additional_constraints == file_name:
+            raise XpansionResourceDeletionError("constraints", file_name, "It is referenced in the settings")
         self._xpansion_service.delete_constraints_file(file_name)
