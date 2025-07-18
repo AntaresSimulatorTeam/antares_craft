@@ -30,6 +30,8 @@ if TYPE_CHECKING:
         ThematicTrimmingParameters,
         XpansionCandidate,
         XpansionCandidateUpdate,
+        XpansionConstraint,
+        XpansionConstraintUpdate,
     )
     from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
     from antares.craft.model.binding_constraint import (
@@ -898,6 +900,27 @@ class BaseXpansionService(ABC):
     ) -> "XpansionCandidate":
         """
         Edits a candidate by removing some reference he has to capacity files
+        """
+        pass
+
+    @abstractmethod
+    def create_constraint(self, constraint: "XpansionConstraint") -> "XpansionConstraint":
+        """
+        Creates an xpansion additional-constraint for a given study
+        """
+        pass
+
+    @abstractmethod
+    def update_constraint(self, name: str, constraint: "XpansionConstraintUpdate") -> "XpansionConstraint":
+        """
+        Updates an xpansion additional-constraint for a given study
+        """
+        pass
+
+    @abstractmethod
+    def delete_constraints(self, names: list[str]) -> None:
+        """
+        Delete some xpansion additional-constraints for a given study
         """
         pass
 

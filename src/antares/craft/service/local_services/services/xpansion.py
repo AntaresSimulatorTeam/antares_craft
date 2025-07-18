@@ -17,7 +17,7 @@ import pandas as pd
 
 from typing_extensions import override
 
-from antares.craft import XpansionCandidate, XpansionCandidateUpdate
+from antares.craft import XpansionCandidate, XpansionCandidateUpdate, XpansionConstraint, XpansionConstraintUpdate
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     XpansionCandidateCoherenceError,
@@ -176,8 +176,19 @@ class XpansionLocalService(BaseXpansionService):
                 # Saves the content
                 self._save_candidates(ini_content)
                 return user_class
-
         raise XpansionCandidateEditionError(self.study_name, candidate.name, "Candidate does not exist")
+
+    @override
+    def create_constraint(self, constraint: XpansionConstraint) -> XpansionConstraint:
+        raise NotImplementedError()
+
+    @override
+    def update_constraint(self, name: str, constraint: XpansionConstraintUpdate) -> XpansionConstraint:
+        raise NotImplementedError()
+
+    @override
+    def delete_constraints(self, names: list[str]) -> None:
+        raise NotImplementedError()
 
     def _read_settings(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "settings.ini")

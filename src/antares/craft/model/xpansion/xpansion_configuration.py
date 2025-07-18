@@ -15,7 +15,7 @@ from typing import Optional
 import pandas as pd
 
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate, XpansionLinkProfile
-from antares.craft.model.xpansion.constraint import XpansionConstraint
+from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.service.base_services import BaseXpansionService
@@ -92,3 +92,12 @@ class XpansionConfiguration:
         current_candidate = self._candidates[name]
         new_candidate = self._xpansion_service.remove_links_profile_from_candidate(current_candidate, profiles)
         self._candidates[name] = new_candidate
+
+    def create_constraint(self, constraint: XpansionConstraint) -> XpansionConstraint:
+        raise NotImplementedError()
+
+    def update_constraint(self, name: str, constraint: XpansionConstraintUpdate) -> XpansionConstraint:
+        raise NotImplementedError()
+
+    def delete_constraints(self, names: list[str]) -> None:
+        raise NotImplementedError()

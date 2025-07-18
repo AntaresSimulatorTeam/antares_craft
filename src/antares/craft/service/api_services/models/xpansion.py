@@ -195,10 +195,15 @@ class XpansionConstraintAPI(APIBaseModel):
 
     @staticmethod
     def from_user_model(user_class: XpansionConstraintType) -> "XpansionConstraintAPI":
-        user_dict = asdict(user_class)
-        user_dict["rhs"] = user_dict.pop("right_hand_side")
-        user_dict.update(user_dict.pop("candidates_coefficients"))
-        return XpansionConstraintAPI.model_validate(user_dict)
+        args = {
+            "name": user_class.name,
+            "sign": user_class.sign,
+            "rhs": user_class.right_hand_side,
+        }
+        if user_class.candidates_coefficients is not None:
+            for candidate, coefficient in user_class.candidates_coefficients.items():
+                args[candidate] = coefficient
+        return XpansionConstraintAPI.model_validate(args)
 
     def to_user_model(self) -> XpansionConstraint:
         return XpansionConstraint(

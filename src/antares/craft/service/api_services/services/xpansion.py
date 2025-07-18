@@ -34,7 +34,7 @@ from antares.craft.model.xpansion.candidate import (
     XpansionLinkProfile,
     update_candidate,
 )
-from antares.craft.model.xpansion.constraint import XpansionConstraint
+from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
@@ -182,6 +182,18 @@ class XpansionAPIService(BaseXpansionService):
 
         except APIError as e:
             raise XpansionCandidateEditionError(self.study_id, candidate.name, e.message) from e
+
+    @override
+    def create_constraint(self, constraint: XpansionConstraint) -> XpansionConstraint:
+        raise NotImplementedError()
+
+    @override
+    def update_constraint(self, name: str, constraint: XpansionConstraintUpdate) -> XpansionConstraint:
+        raise NotImplementedError()
+
+    @override
+    def delete_constraints(self, names: list[str]) -> None:
+        raise NotImplementedError()
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()
