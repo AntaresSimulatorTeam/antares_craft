@@ -110,3 +110,7 @@ class XpansionConfiguration:
         self._xpansion_service.delete_constraints(names, file_name)
         for name in names:
             del self._constraints[name]
+
+    def delete_constraints_file(self, file_name: str) -> None:
+        self._xpansion_service.delete_constraints_file(file_name)
+

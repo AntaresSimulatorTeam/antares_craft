@@ -566,9 +566,9 @@ class BadCandidateFormatError(Exception):
         super().__init__(self.message)
 
 
-class XpansionMatrixDeletionError(Exception):
+class XpansionFileDeletionError(Exception):
     def __init__(self, study_name: str, file_name: str, message: str) -> None:
-        self.message = f"Could not delete the xpansion matrix {file_name} for study {study_name}: " + message
+        self.message = f"Could not delete the xpansion file {file_name} for study {study_name}: " + message
         super().__init__(self.message)
 
 

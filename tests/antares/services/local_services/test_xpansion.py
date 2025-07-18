@@ -24,7 +24,7 @@ from antares.craft.exceptions.exceptions import (
     BadCandidateFormatError,
     XpansionCandidateCoherenceError,
     XpansionCandidateEditionError,
-    XpansionMatrixDeletionError,
+    XpansionFileDeletionError,
     XpansionMatrixReadingError,
 )
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionLinkProfile
@@ -165,8 +165,8 @@ class TestXpansion:
 
         # Asserts deleting a fake matrix raises an appropriate exception
         with pytest.raises(
-            XpansionMatrixDeletionError,
-            match="Could not delete the xpansion matrix fake_weight for study studyTest: The file does not exist",
+            XpansionFileDeletionError,
+            match="Could not delete the xpansion file fake_weight for study studyTest: The file does not exist",
         ):
             xpansion.delete_weight("fake_weight")
 
@@ -207,8 +207,8 @@ class TestXpansion:
 
         # Asserts deleting a fake matrix raises an appropriate exception
         with pytest.raises(
-            XpansionMatrixDeletionError,
-            match="Could not delete the xpansion matrix fake_capacity for study studyTest: The file does not exist",
+            XpansionFileDeletionError,
+            match="Could not delete the xpansion file fake_capacity for study studyTest: The file does not exist",
         ):
             xpansion.delete_capacity("fake_capacity")
 
@@ -327,3 +327,8 @@ class TestXpansion:
             "annual-cost-per-mw": 3.17,
             "max-investment": 3.0,
         }
+
+    def test_constraints_error_cases(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+        # Set up
+        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+

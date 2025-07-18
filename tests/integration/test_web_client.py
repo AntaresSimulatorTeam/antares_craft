@@ -93,7 +93,7 @@ from antares.craft.exceptions.exceptions import (
     MatrixUploadError,
     ReferencedObjectDeletionNotAllowed,
     StudySettingsUpdateError,
-    XpansionMatrixDeletionError,
+    XpansionFileDeletionError,
     XpansionMatrixReadingError,
 )
 from antares.craft.model.hydro import InflowStructureUpdate
@@ -1117,8 +1117,8 @@ class TestWebClient:
 
         # Asserts deleting a fake matrix raises an appropriate exception
         with pytest.raises(
-            XpansionMatrixDeletionError,
-            match=f"Could not delete the xpansion matrix fake_weight for study {study_id}",
+            XpansionFileDeletionError,
+            match=f"Could not delete the xpansion file fake_weight for study {study_id}",
         ):
             xpansion.delete_weight("fake_weight")
 
@@ -1148,8 +1148,8 @@ class TestWebClient:
 
         # Asserts deleting a fake matrix raises an appropriate exception
         with pytest.raises(
-            XpansionMatrixDeletionError,
-            match=f"Could not delete the xpansion matrix fake_capacity for study {study_id}",
+            XpansionFileDeletionError,
+            match=f"Could not delete the xpansion file fake_capacity for study {study_id}",
         ):
             xpansion.delete_capacity("fake_capacity")
 

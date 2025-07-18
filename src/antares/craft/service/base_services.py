@@ -926,6 +926,13 @@ class BaseXpansionService(ABC):
         """
         pass
 
+    @abstractmethod
+    def delete_constraints_file(self, file_name: str) -> None:
+        """
+        Delete a xpansion additional-constraints file for a given study
+        """
+        pass
+
 
 @dataclass(frozen=True)
 class StudyServices:

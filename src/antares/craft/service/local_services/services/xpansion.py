@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 import shutil
 
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -26,7 +27,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionConstraintCreationError,
     XpansionConstraintsDeletionError,
     XpansionConstraintsEditionError,
-    XpansionMatrixDeletionError,
+    XpansionFileDeletionError,
     XpansionMatrixReadingError,
 )
 from antares.craft.model.xpansion.candidate import XpansionLinkProfile, update_candidate
@@ -114,9 +115,7 @@ class XpansionLocalService(BaseXpansionService):
     @override
     def delete_matrix(self, file_name: str, file_type: XpansionMatrix) -> None:
         file_path = self._xpansion_path / FILE_MAPPING[file_type][0] / file_name
-        if not file_path.exists():
-            raise XpansionMatrixDeletionError(self.study_name, file_name, "The file does not exist")
-        file_path.unlink()
+        self._delete_matrix(file_name, file_path)
 
     @override
     def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: XpansionMatrix) -> None:
@@ -221,6 +220,11 @@ class XpansionLocalService(BaseXpansionService):
         # Saves the content
         self._write_constraints(file_name, existing_constraints)
 
+    @override
+    def delete_constraints_file(self, file_name: str) -> None:
+        file_path = self._xpansion_path / "constraints" / file_name
+        self._delete_matrix(file_name, file_path)
+
     def _read_settings(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "settings.ini")
 
@@ -263,3 +267,8 @@ class XpansionLocalService(BaseXpansionService):
         for file in files_to_check:
             if not (self._xpansion_path / "capa" / file).exists():
                 raise XpansionCandidateCoherenceError(self.study_name, candidate.name, f"File {file} does not exist")
+
+    def _delete_matrix(self, file_name: str, file_path: Path) -> None:
+        if not file_path.exists():
+            raise XpansionFileDeletionError(self.study_name, file_name, "The file does not exist")
+        file_path.unlink()

@@ -27,7 +27,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionConstraintCreationError,
     XpansionConstraintsDeletionError,
     XpansionConstraintsEditionError,
-    XpansionMatrixDeletionError,
+    XpansionFileDeletionError,
     XpansionMatrixEditionError,
     XpansionMatrixReadingError,
 )
@@ -116,10 +116,7 @@ class XpansionAPIService(BaseXpansionService):
     @override
     def delete_matrix(self, file_name: str, file_type: XpansionMatrix) -> None:
         url = f"{self._expansion_url}/resources/{file_type.value}/{file_name}"
-        try:
-            self._wrapper.delete(url)
-        except APIError as e:
-            raise XpansionMatrixDeletionError(self.study_id, file_name, e.message) from e
+        self._delete_matrix(file_name, url)
 
     @override
     def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: XpansionMatrix) -> None:
@@ -228,6 +225,18 @@ class XpansionAPIService(BaseXpansionService):
 
         except APIError as e:
             raise XpansionConstraintsDeletionError(self.study_id, names, file_name, e.message) from e
+
+    @override
+    def delete_constraints_file(self, file_name: str) -> None:
+        url = f"{self._expansion_url}/resources/constraints/{file_name}"
+        self._delete_matrix(file_name, url)
+
+    def _delete_matrix(self, file_name: str, url: str) -> None:
+        try:
+            self._wrapper.delete(url)
+        except APIError as e:
+            raise XpansionFileDeletionError(self.study_id, file_name, e.message) from e
+
 
     def _serialize_constraints(self, file_name: str, constraints: dict[str, XpansionConstraint]) -> None:
         url = f"{self._expansion_url}/resources/constraints"
