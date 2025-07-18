@@ -26,6 +26,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionConfigurationReadingError,
     XpansionConstraintCreationError,
     XpansionConstraintsDeletionError,
+    XpansionConstraintsEditionError,
     XpansionMatrixDeletionError,
     XpansionMatrixEditionError,
     XpansionMatrixReadingError,
@@ -36,7 +37,7 @@ from antares.craft.model.xpansion.candidate import (
     XpansionLinkProfile,
     update_candidate,
 )
-from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate
+from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate, update_constraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
@@ -204,7 +205,18 @@ class XpansionAPIService(BaseXpansionService):
 
     @override
     def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
-        raise NotImplementedError()
+        existing_constraints = self._read_constraints(file_name)
+        new_constraint = update_constraint(existing_constraints[name], constraint)
+        if new_constraint.name != name:
+            # We're renaming the constraint
+            del existing_constraints[name]
+        existing_constraints[new_constraint.name] = new_constraint
+        try:
+            self._serialize_constraints(file_name, existing_constraints)
+            return new_constraint
+
+        except APIError as e:
+            raise XpansionConstraintsEditionError(self.study_id, name, file_name, e.message) from e
 
     @override
     def delete_constraints(self, names: list[str], file_name: str) -> None:

@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Optional
 
 from antares.craft.tools.contents_tool import EnumIgnoreCase
@@ -37,3 +37,11 @@ class XpansionConstraintUpdate:
     sign: Optional[ConstraintSign] = None
     right_hand_side: Optional[float] = None
     candidates_coefficients: Optional[dict[str, float]] = None
+
+
+def update_constraint(
+    constraint: XpansionConstraint, constraint_update: XpansionConstraintUpdate
+) -> XpansionConstraint:
+    constraint_dict = asdict(constraint)
+    constraint_dict.update({k: v for k, v in asdict(constraint_update).items() if v is not None})
+    return XpansionConstraint(**constraint_dict)
