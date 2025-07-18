@@ -24,6 +24,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionConfigurationCreationError,
     XpansionConfigurationDeletionError,
     XpansionConfigurationReadingError,
+    XpansionConstraintCreationError,
     XpansionMatrixDeletionError,
     XpansionMatrixEditionError,
     XpansionMatrixReadingError,
@@ -40,9 +41,12 @@ from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.api_services.models.xpansion import (
     parse_xpansion_candidate_api,
+    parse_xpansion_constraint_api,
     parse_xpansion_constraints_api,
     parse_xpansion_settings_api,
     serialize_xpansion_candidate_api,
+    serialize_xpansion_constraint_api,
+    serialize_xpansion_constraints_api,
 )
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseXpansionService
@@ -185,7 +189,19 @@ class XpansionAPIService(BaseXpansionService):
 
     @override
     def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
-        raise NotImplementedError()
+        existing_constraints = self._read_constraints(file_name)
+        existing_constraints[constraint.name] = constraint
+        url = f"{self._expansion_url}/resources/constraints"
+        try:
+            api_content = serialize_xpansion_constraints_api(existing_constraints)
+            self._wrapper.post(url, files={"file": (file_name, api_content)})
+
+            # Round-trip to validate the data
+            user_class = parse_xpansion_constraint_api(serialize_xpansion_constraint_api(constraint))
+            return user_class
+
+        except APIError as e:
+            raise XpansionConstraintCreationError(self.study_id, constraint.name, file_name, e.message) from e
 
     @override
     def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:

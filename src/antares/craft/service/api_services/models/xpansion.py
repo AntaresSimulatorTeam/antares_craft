@@ -214,10 +214,31 @@ class XpansionConstraintAPI(APIBaseModel):
         )
 
 
+def parse_xpansion_constraint_api(data: dict[str, Any]) -> XpansionConstraint:
+    api_model = XpansionConstraintAPI.model_validate(data)
+    return api_model.to_user_model()
+
+
 def parse_xpansion_constraints_api(data: Any) -> dict[str, XpansionConstraint]:
     parsed_content = {}
     data_as_dict = IniReader().read(io.StringIO(data))
     for values in data_as_dict.values():
-        api_model = XpansionConstraintAPI.model_validate(values)
-        parsed_content[api_model.name] = api_model.to_user_model()
+        constraint = parse_xpansion_constraint_api(values)
+        parsed_content[constraint.name] = constraint
     return parsed_content
+
+
+def serialize_xpansion_constraint_api(constraint: XpansionConstraint) -> dict[str, Any]:
+    args = {
+        "name": constraint.name,
+        "sign": constraint.sign,
+        "rhs": constraint.right_hand_side,
+    }
+    if constraint.candidates_coefficients is not None:
+        for candidate, coefficient in constraint.candidates_coefficients.items():
+            args[candidate] = coefficient
+    return args
+
+
+def serialize_xpansion_constraints_api(constraints: dict[str, XpansionConstraint]) -> str:
+    raise NotImplementedError()

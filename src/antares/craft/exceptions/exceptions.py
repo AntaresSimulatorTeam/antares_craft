@@ -600,3 +600,12 @@ class XpansionCandidateCoherenceError(Exception):
     def __init__(self, study_name: str, candidate_name: str, message: str) -> None:
         self.message = f"The candidate {candidate_name} for study {study_name} has incoherence: " + message
         super().__init__(self.message)
+
+
+class XpansionConstraintCreationError(Exception):
+    def __init__(self, study_name: str, constraint_name: str, file_name: str, message: str) -> None:
+        self.message = (
+            f"Could not create the xpansion constraint {constraint_name} inside the file {file_name} for study {study_name}: "
+            + message
+        )
+        super().__init__(self.message)
