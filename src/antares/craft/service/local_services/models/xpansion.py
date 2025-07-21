@@ -210,3 +210,8 @@ class XpansionSensitivityLocal(LocalBaseModel):
 
 def parse_xpansion_sensitivity_local(data: dict[str, Any]) -> XpansionSensitivity:
     return XpansionSensitivityLocal.model_validate(data).to_user_model()
+
+
+def serialize_xpansion_sensitivity_local(user_class: XpansionSensitivity) -> dict[str, Any]:
+    local_model = XpansionSensitivityLocal.from_user_model(user_class)
+    return local_model.model_dump(mode="json", by_alias=True, exclude_none=True)
