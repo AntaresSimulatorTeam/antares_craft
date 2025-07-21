@@ -566,3 +566,14 @@ class TestXpansion:
                 match=f"Could not update the xpansion settings for study studyTest: The file {fake_file} does not exist",
             ):
                 xpansion.update_settings(settings)
+
+    def test_sensitivity(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+        # Set up
+        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+
+        expected_settings = XpansionSettings(
+            optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
+        )
+        # Checks values before update
+        assert xpansion.sensitivity == XpansionSensitivity(epsilon=10000, projection=["battery", "pv"], capex=True)
+        assert xpansion.settings == expected_settings
