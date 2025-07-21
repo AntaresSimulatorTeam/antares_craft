@@ -265,7 +265,7 @@ class XpansionAPIService(BaseXpansionService):
     def update_settings(self, settings: XpansionSettingsUpdate, current_settings: XpansionSettings) -> XpansionSettings:
         # We have to send `yearly-weights` and `additional-constraints` fields to the Web API otherwise it deletes them.
         new_settings = update_xpansion_settings(current_settings, settings)
-        return self._update_settings(new_settings)
+        return self._update_settings(new_settings, None)[0]
 
     @override
     def remove_constraints_and_or_weights_from_settings(
@@ -275,17 +275,22 @@ class XpansionAPIService(BaseXpansionService):
             settings = replace(settings, additional_constraints=None)
         if weight:
             settings = replace(settings, yearly_weights=None)
-        return self._update_settings(settings)
+        return self._update_settings(settings, None)[0]
 
     @override
-    def update_sensitivity(self, sensitivity: XpansionSensitivityUpdate) -> XpansionSensitivity:
-        raise NotImplementedError
+    def update_sensitivity(
+        self, sensitivity: XpansionSensitivityUpdate, current_settings: XpansionSettings
+    ) -> XpansionSensitivity:
+        # We have to send `yearly-weights` and `additional-constraints` fields to the Web API otherwise it deletes them.
+        return self._update_settings(current_settings, sensitivity)[1]
 
-    def _update_settings(self, settings: XpansionSettings) -> XpansionSettings:
+    def _update_settings(
+        self, settings: XpansionSettings, sensitivity: XpansionSensitivityUpdate | None
+    ) -> tuple[XpansionSettings, XpansionSensitivity]:
         try:
-            body = serialize_xpansion_settings_api(settings, None)
+            body = serialize_xpansion_settings_api(settings, sensitivity)
             response = self._wrapper.put(f"{self._expansion_url}/settings", json=body).json()
-            return parse_xpansion_settings_api(response)[0]
+            return parse_xpansion_settings_api(response)
         except APIError as e:
             raise XpansionSettingsEditionError(self._study_id, e.message) from e
 

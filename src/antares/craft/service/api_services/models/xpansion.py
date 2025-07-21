@@ -30,8 +30,6 @@ from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.serde_local.ini_reader import IniReader
 
-XpansionSensitivityType = XpansionSensitivity | XpansionSensitivityUpdate
-
 
 @all_optional_model
 class XpansionSensitivityAPI(APIBaseModel):
@@ -60,9 +58,9 @@ class XpansionSettingsAPI(APIBaseModel, alias_generator=None):
 
     @staticmethod
     def from_user_model(
-        settings_class: XpansionSettings | None, sensitivity_class: XpansionSensitivityType | None
+        settings_class: XpansionSettings, sensitivity_class: XpansionSensitivityUpdate | None
     ) -> "XpansionSettingsAPI":
-        settings_dict = asdict(settings_class) if settings_class else {}
+        settings_dict = asdict(settings_class)
         sensitivity_dict = {"sensitivity_config": asdict(sensitivity_class) if sensitivity_class else {}}
         settings_dict.update(sensitivity_dict)
         return XpansionSettingsAPI.model_validate(settings_dict)
@@ -99,7 +97,7 @@ def parse_xpansion_settings_api(data: dict[str, Any]) -> tuple[XpansionSettings,
 
 
 def serialize_xpansion_settings_api(
-    settings_class: XpansionSettings | None, sensitivity_class: XpansionSensitivityType | None
+    settings_class: XpansionSettings, sensitivity_class: XpansionSensitivityUpdate | None
 ) -> dict[str, Any]:
     api_model = XpansionSettingsAPI.from_user_model(settings_class, sensitivity_class)
     return api_model.model_dump(mode="json", by_alias=True, exclude_none=True)

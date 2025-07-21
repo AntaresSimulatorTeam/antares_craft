@@ -165,6 +165,6 @@ class XpansionConfiguration:
         self._settings = new_settings
 
     def update_sensitivity(self, sensitivity: XpansionSensitivityUpdate) -> XpansionSensitivity:
-        new_sensitivity = self._xpansion_service.update_sensitivity(sensitivity)
+        new_sensitivity = self._xpansion_service.update_sensitivity(sensitivity, self._settings)
         self._sensitivity = new_sensitivity
         return new_sensitivity

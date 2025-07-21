@@ -962,7 +962,9 @@ class BaseXpansionService(ABC):
         pass
 
     @abstractmethod
-    def update_sensitivity(self, sensitivity: "XpansionSensitivityUpdate") -> "XpansionSensitivity":
+    def update_sensitivity(
+        self, sensitivity: "XpansionSensitivityUpdate", current_settings: "XpansionSettings"
+    ) -> "XpansionSensitivity":
         """
         Removes the additional constraint and/or yearly-weights from the xpansion settings for a given study
         """
