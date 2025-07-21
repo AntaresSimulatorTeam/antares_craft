@@ -49,19 +49,14 @@ class StudyApiService(BaseStudyService):
         super().__init__()
         self._config = config
         self._study_id = study_id
-        self._base_url = f"{self.config.get_host()}/api/v1"
-        self._wrapper = RequestWrapper(self.config.set_up_api_conf())
+        self._base_url = f"{self._config.get_host()}/api/v1"
+        self._wrapper = RequestWrapper(self._config.set_up_api_conf())
         self._output_service: BaseOutputService = output_service
 
     @property
     @override
     def study_id(self) -> str:
         return self._study_id
-
-    @property
-    @override
-    def config(self) -> APIconf:
-        return self._config
 
     @property
     def output_service(self) -> BaseOutputService:
@@ -91,7 +86,7 @@ class StudyApiService(BaseStudyService):
         try:
             response = self._wrapper.post(url)
             variant_id = response.json()
-            return read_study_api(self.config, variant_id)
+            return read_study_api(self._config, variant_id)
         except APIError as e:
             raise StudyVariantCreationError(self.study_id, e.message) from e
 

@@ -65,10 +65,15 @@ class XpansionAPIService(BaseXpansionService):
     def __init__(self, config: APIconf, study_id: str):
         super().__init__()
         self.config = config
-        self.study_id = study_id
+        self._study_id = study_id
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
         self._base_url = f"{self.config.get_host()}/api/v1"
         self._expansion_url = f"{self._base_url}/studies/{study_id}/extensions/xpansion"
+
+    @property
+    @override
+    def study_id(self) -> str:
+        return self._study_id
 
     @override
     def read_xpansion_configuration(self) -> XpansionConfiguration | None:
@@ -92,7 +97,7 @@ class XpansionAPIService(BaseXpansionService):
                 constraints=constraints,
             )
         except APIError as e:
-            raise XpansionConfigurationReadingError(self.study_id, e.message) from e
+            raise XpansionConfigurationReadingError(self._study_id, e.message) from e
 
     @override
     def create_xpansion_configuration(self) -> XpansionConfiguration:
@@ -101,22 +106,22 @@ class XpansionAPIService(BaseXpansionService):
             settings, sensitivity = self._read_settings_and_sensitivity()
             return XpansionConfiguration(xpansion_service=self, settings=settings, sensitivity=sensitivity)
         except APIError as e:
-            raise XpansionConfigurationCreationError(self.study_id, e.message) from e
+            raise XpansionConfigurationCreationError(self._study_id, e.message) from e
 
     @override
     def delete(self) -> None:
         try:
             self._wrapper.delete(self._expansion_url)
         except APIError as e:
-            raise XpansionConfigurationDeletionError(self.study_id, e.message) from e
+            raise XpansionConfigurationDeletionError(self._study_id, e.message) from e
 
     @override
     def get_matrix(self, file_name: str, file_type: XpansionMatrix) -> pd.DataFrame:
         series_path = f"user/expansion/{FILE_MAPPING[file_type]}/{file_name}"
         try:
-            return get_matrix(self._base_url, self.study_id, self._wrapper, series_path)
+            return get_matrix(self._base_url, self._study_id, self._wrapper, series_path)
         except APIError as e:
-            raise XpansionMatrixReadingError(self.study_id, file_name, e.message) from e
+            raise XpansionMatrixReadingError(self._study_id, file_name, e.message) from e
 
     @override
     def delete_matrix(self, file_name: str, file_type: XpansionMatrix) -> None:
@@ -127,7 +132,7 @@ class XpansionAPIService(BaseXpansionService):
     def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: XpansionMatrix) -> None:
         series_path = f"user/expansion/{FILE_MAPPING[file_type]}/{file_name}"
         try:
-            update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
+            update_series(self._base_url, self._study_id, self._wrapper, series, series_path)
         except APIError:
             # Perhaps the file didn't exist, we should try to create it.
             url = f"{self._expansion_url}/resources/{file_type.value}"
@@ -136,7 +141,7 @@ class XpansionAPIService(BaseXpansionService):
                 series.to_csv(buffer, sep="\t", header=False, index=False)
                 self._wrapper.post(url, files={"file": (file_name, buffer.getvalue())})
             except APIError as e:
-                raise XpansionMatrixEditionError(self.study_id, file_name, e.message) from e
+                raise XpansionMatrixEditionError(self._study_id, file_name, e.message) from e
 
     @override
     def create_candidate(self, candidate: XpansionCandidate) -> XpansionCandidate:
@@ -146,7 +151,7 @@ class XpansionAPIService(BaseXpansionService):
             response = self._wrapper.post(url, json=body).json()
             return parse_xpansion_candidate_api(response)
         except APIError as e:
-            raise XpansionCandidateCreationError(self.study_id, candidate.name, e.message) from e
+            raise XpansionCandidateCreationError(self._study_id, candidate.name, e.message) from e
 
     @override
     def update_candidate(self, name: str, candidate: XpansionCandidateUpdate) -> XpansionCandidate:
@@ -169,7 +174,7 @@ class XpansionAPIService(BaseXpansionService):
             response = self._wrapper.get(url).json()
             return parse_xpansion_candidate_api(response)
         except APIError as e:
-            raise XpansionCandidateEditionError(self.study_id, name, e.message) from e
+            raise XpansionCandidateEditionError(self._study_id, name, e.message) from e
 
     @override
     def delete_candidates(self, names: set[str]) -> None:
@@ -179,7 +184,7 @@ class XpansionAPIService(BaseXpansionService):
                 self._wrapper.delete(url)
 
         except APIError as e:
-            raise XpansionCandidateDeletionError(self.study_id, names, e.message) from e
+            raise XpansionCandidateDeletionError(self._study_id, names, e.message) from e
 
     @override
     def remove_links_profile_from_candidate(
@@ -199,7 +204,7 @@ class XpansionAPIService(BaseXpansionService):
             return parse_xpansion_candidate_api(response)
 
         except APIError as e:
-            raise XpansionCandidateEditionError(self.study_id, candidate.name, e.message) from e
+            raise XpansionCandidateEditionError(self._study_id, candidate.name, e.message) from e
 
     @override
     def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
@@ -219,7 +224,7 @@ class XpansionAPIService(BaseXpansionService):
                 api_content = serialize_xpansion_constraints_api({"": constraint})
                 self._wrapper.post(url, files={"file": (file_name, api_content)})
             except APIError as e:
-                raise XpansionConstraintCreationError(self.study_id, constraint.name, file_name, e.message) from e
+                raise XpansionConstraintCreationError(self._study_id, constraint.name, file_name, e.message) from e
 
         # Round-trip to validate the data
         user_class = parse_xpansion_constraint_api(serialize_xpansion_constraint_api(constraint))
@@ -238,7 +243,7 @@ class XpansionAPIService(BaseXpansionService):
             return new_constraint
 
         except APIError as e:
-            raise XpansionConstraintsEditionError(self.study_id, name, file_name, e.message) from e
+            raise XpansionConstraintsEditionError(self._study_id, name, file_name, e.message) from e
 
     @override
     def delete_constraints(self, names: list[str], file_name: str) -> None:
@@ -249,7 +254,7 @@ class XpansionAPIService(BaseXpansionService):
             self._serialize_constraints(file_name, existing_constraints)
 
         except APIError as e:
-            raise XpansionConstraintsDeletionError(self.study_id, names, file_name, e.message) from e
+            raise XpansionConstraintsDeletionError(self._study_id, names, file_name, e.message) from e
 
     @override
     def delete_constraints_file(self, file_name: str) -> None:
@@ -278,16 +283,16 @@ class XpansionAPIService(BaseXpansionService):
             response = self._wrapper.put(f"{self._expansion_url}/settings", json=body).json()
             return parse_xpansion_settings_api(response)[0]
         except APIError as e:
-            raise XpansionSettingsEditionError(self.study_id, e.message) from e
+            raise XpansionSettingsEditionError(self._study_id, e.message) from e
 
     def _delete_matrix(self, file_name: str, url: str) -> None:
         try:
             self._wrapper.delete(url)
         except APIError as e:
-            raise XpansionFileDeletionError(self.study_id, file_name, e.message) from e
+            raise XpansionFileDeletionError(self._study_id, file_name, e.message) from e
 
     def _serialize_constraints(self, file_name: str, constraints: dict[str, XpansionConstraint]) -> None:
-        url = f"{self._base_url}/studies/{self.study_id}/raw?path=user/expansion/constraints/{file_name}"
+        url = f"{self._base_url}/studies/{self._study_id}/raw?path=user/expansion/constraints/{file_name}"
         api_content = serialize_xpansion_constraints_api(constraints)
         self._wrapper.put(url, files={"file": (file_name, api_content)})
 

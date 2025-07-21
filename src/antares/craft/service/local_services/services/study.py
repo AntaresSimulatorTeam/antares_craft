@@ -112,7 +112,7 @@ class StudyLocalService(BaseStudyService):
         self._config = config
         self._study_name = study_name
         self._output_service: BaseOutputService = output_service
-        self._output_path = self.config.study_path / "output"
+        self._output_path = self._config.study_path / "output"
 
     @property
     @override
@@ -120,17 +120,12 @@ class StudyLocalService(BaseStudyService):
         return self._study_name
 
     @property
-    @override
-    def config(self) -> LocalConfiguration:
-        return self._config
-
-    @property
     def output_service(self) -> BaseOutputService:
         return self._output_service
 
     @override
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
-        study_path = self.config.study_path
+        study_path = self._config.study_path
         ini_path = study_path / "input" / "bindingconstraints" / "bindingconstraints.ini"
         current_content = IniReader().read(ini_path)
         copied_content = copy.deepcopy(current_content)
@@ -144,7 +139,7 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def delete(self, children: bool) -> None:
-        shutil.rmtree(self.config.study_path, ignore_errors=True)
+        shutil.rmtree(self._config.study_path, ignore_errors=True)
 
     @override
     def create_variant(self, variant_name: str) -> "Study":
@@ -183,7 +178,7 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def generate_thermal_timeseries(self, number_of_years: int, areas: dict[str, Area], seed: int) -> None:
-        study_path = self.config.study_path
+        study_path = self._config.study_path
         with tempfile.TemporaryDirectory(suffix=".thermal_ts_gen.tmp", prefix="~", dir=study_path.parent) as path:
             tmp_dir = Path(path)
             shutil.copytree(study_path / "input" / "thermal" / "series", tmp_dir, dirs_exist_ok=True)
@@ -192,13 +187,13 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def get_scenario_builder(self, nb_years: int) -> ScenarioBuilder:
-        scenario_builder_path = self.config.study_path / "settings" / "scenariobuilder.dat"
+        scenario_builder_path = self._config.study_path / "settings" / "scenariobuilder.dat"
         content = IniReader().read(scenario_builder_path)
         sc_builder_local = ScenarioBuilderLocal.from_ini(content)
         return sc_builder_local.to_user_model(nb_years)
 
     @override
     def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
-        scenario_builder_path = self.config.study_path / "settings" / "scenariobuilder.dat"
+        scenario_builder_path = self._config.study_path / "settings" / "scenariobuilder.dat"
         sc_builder_local = ScenarioBuilderLocal.from_user_model(scenario_builder)
         IniWriter().write(sc_builder_local.to_ini(), scenario_builder_path)

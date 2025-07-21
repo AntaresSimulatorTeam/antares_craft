@@ -1140,7 +1140,7 @@ class TestWebClient:
         assert imported_study.xpansion.get_candidates()["new_name"].direct_link_profile is None
 
         # Removes several candidates
-        xpansion.delete_candidates(["peak", "battery"])
+        xpansion.delete_candidates(["peak", "transmission_line"])
         assert len(xpansion.get_candidates()) == 4
         xpansion = read_study_api(api_config, imported_study.service.study_id).xpansion
         assert len(xpansion.get_candidates()) == 4

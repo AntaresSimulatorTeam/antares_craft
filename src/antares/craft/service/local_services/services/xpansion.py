@@ -69,8 +69,13 @@ FILE_MAPPING: dict[XpansionMatrix, tuple[str, TimeSeriesFileType]] = {
 class XpansionLocalService(BaseXpansionService):
     def __init__(self, config: LocalConfiguration, study_name: str):
         self.config = config
-        self.study_name = study_name
+        self._study_name = study_name
         self._xpansion_path = self.config.study_path / "user" / "expansion"
+
+    @property
+    @override
+    def study_id(self) -> str:
+        return self._study_name
 
     @override
     def read_xpansion_configuration(self) -> XpansionConfiguration | None:
@@ -117,7 +122,7 @@ class XpansionLocalService(BaseXpansionService):
         try:
             return read_timeseries(FILE_MAPPING[file_type][1], self.config.study_path, file_name=file_name)
         except FileNotFoundError:
-            raise XpansionMatrixReadingError(self.study_name, file_name, "The file does not exist")
+            raise XpansionMatrixReadingError(self._study_name, file_name, "The file does not exist")
 
     @override
     def delete_matrix(self, file_name: str, file_type: XpansionMatrix) -> None:
@@ -134,7 +139,7 @@ class XpansionLocalService(BaseXpansionService):
         ini_content = self._read_candidates()
         for key, value in ini_content.items():
             if candidate.name == value["name"]:
-                raise XpansionCandidateCreationError(self.study_name, candidate.name, "Candidate already exists")
+                raise XpansionCandidateCreationError(self._study_name, candidate.name, "Candidate already exists")
 
         # Round-trip to validate data
         local_content = serialize_xpansion_candidate_local(candidate)
@@ -165,7 +170,7 @@ class XpansionLocalService(BaseXpansionService):
 
                 return user_class
 
-        raise XpansionCandidateEditionError(self.study_name, name, "Candidate does not exist")
+        raise XpansionCandidateEditionError(self._study_name, name, "Candidate does not exist")
 
     @override
     def delete_candidates(self, names: set[str]) -> None:
@@ -177,7 +182,7 @@ class XpansionLocalService(BaseXpansionService):
                 names.remove(value["name"])
 
         if names:
-            raise XpansionCandidateDeletionError(self.study_name, names, "They do not exist")
+            raise XpansionCandidateDeletionError(self._study_name, names, "They do not exist")
 
         # Saves the content
         for key in keys_to_delete:
@@ -195,7 +200,7 @@ class XpansionLocalService(BaseXpansionService):
                 for profile in profiles:
                     if profile.value not in value:
                         raise XpansionCandidateEditionError(
-                            self.study_name, candidate.name, f"The key {profile.value} does not exist"
+                            self._study_name, candidate.name, f"The key {profile.value} does not exist"
                         )
                     del value[profile.value]
 
@@ -204,14 +209,14 @@ class XpansionLocalService(BaseXpansionService):
                 # Saves the content
                 self._save_candidates(ini_content)
                 return user_class
-        raise XpansionCandidateEditionError(self.study_name, candidate.name, "Candidate does not exist")
+        raise XpansionCandidateEditionError(self._study_name, candidate.name, "Candidate does not exist")
 
     @override
     def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
         existing_constraints = self._read_constraints(file_name)
         if constraint.name in existing_constraints:
             raise XpansionConstraintCreationError(
-                self.study_name, constraint.name, file_name, "Constraint already exists"
+                self._study_name, constraint.name, file_name, "Constraint already exists"
             )
         existing_constraints[constraint.name] = constraint
         # Saves the content
@@ -223,7 +228,7 @@ class XpansionLocalService(BaseXpansionService):
     def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
         existing_constraints = self._read_constraints(file_name)
         if name not in existing_constraints:
-            raise XpansionConstraintsEditionError(self.study_name, name, file_name, "Constraint does not exist")
+            raise XpansionConstraintsEditionError(self._study_name, name, file_name, "Constraint does not exist")
         new_constraint = update_constraint(existing_constraints[name], constraint)
         if new_constraint.name != name:
             # We're renaming the constraint
@@ -241,7 +246,7 @@ class XpansionLocalService(BaseXpansionService):
         existing_constraints = self._read_constraints(file_name)
         for name in names:
             if name not in existing_constraints:
-                raise XpansionConstraintsDeletionError(self.study_name, [name], file_name, "Constraint does not exist")
+                raise XpansionConstraintsDeletionError(self._study_name, [name], file_name, "Constraint does not exist")
             del existing_constraints[name]
         # Saves the content
         self._write_constraints(file_name, existing_constraints)
@@ -296,7 +301,7 @@ class XpansionLocalService(BaseXpansionService):
         area_from, area_to = sorted([candidate.area_from, candidate.area_to])
         if not (self.config.study_path / "input" / "links" / area_from / f"{area_to}_parameters.txt").exists():
             raise XpansionCandidateCoherenceError(
-                self.study_name, candidate.name, f"Link between {area_from} and {area_to} does not exist"
+                self._study_name, candidate.name, f"Link between {area_from} and {area_to} does not exist"
             )
 
         files_to_check = []
@@ -311,11 +316,11 @@ class XpansionLocalService(BaseXpansionService):
                 files_to_check.append(capa_file)
         for file in files_to_check:
             if not (self._xpansion_path / "capa" / file).exists():
-                raise XpansionCandidateCoherenceError(self.study_name, candidate.name, f"File {file} does not exist")
+                raise XpansionCandidateCoherenceError(self._study_name, candidate.name, f"File {file} does not exist")
 
     def _delete_matrix(self, file_name: str, file_path: Path) -> None:
         if not file_path.exists():
-            raise XpansionFileDeletionError(self.study_name, file_name, "The file does not exist")
+            raise XpansionFileDeletionError(self._study_name, file_name, "The file does not exist")
         file_path.unlink()
 
     def _write_settings(self, settings: XpansionSettings) -> None:
@@ -326,10 +331,10 @@ class XpansionLocalService(BaseXpansionService):
     def _check_settings_coherence(self, settings: XpansionSettings) -> None:
         if constraint := settings.additional_constraints:
             if not (self._xpansion_path / "constraints" / constraint).exists():
-                raise XpansionSettingsEditionError(self.study_name, f"The file {constraint} does not exist")
+                raise XpansionSettingsEditionError(self._study_name, f"The file {constraint} does not exist")
         if weight := settings.yearly_weights:
             if not (self._xpansion_path / "weights" / weight).exists():
-                raise XpansionSettingsEditionError(self.study_name, f"The file {weight} does not exist")
+                raise XpansionSettingsEditionError(self._study_name, f"The file {weight} does not exist")
 
     def _write_sensitivity(self, sensitivity: XpansionSensitivity) -> None:
         content = serialize_xpansion_sensitivity_local(sensitivity)

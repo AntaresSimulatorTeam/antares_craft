@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING, Dict, Optional
 
 import pandas as pd
 
-from antares.craft.config.base_configuration import BaseConfiguration
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.model.xpansion.candidate import XpansionLinkProfile
@@ -609,12 +608,6 @@ class BaseStudyService(ABC):
         """The ID for the study"""
         pass
 
-    @property
-    @abstractmethod
-    def config(self) -> BaseConfiguration:
-        """The configuration of the study."""
-        pass
-
     @abstractmethod
     def delete_binding_constraint(self, constraint: "BindingConstraint") -> None:
         """
@@ -840,6 +833,12 @@ class BaseStudySettingsService(ABC):
 
 
 class BaseXpansionService(ABC):
+    @property
+    @abstractmethod
+    def study_id(self) -> str:
+        """The ID for the study"""
+        pass
+
     @abstractmethod
     def read_xpansion_configuration(self) -> Optional["XpansionConfiguration"]:
         """
