@@ -65,7 +65,7 @@ class XpansionSettingsUpdate:
     timelimit: Optional[int] = None
 
 
-def update_xpansion_settings(settings_update: XpansionSettingsUpdate, settings: XpansionSettings) -> XpansionSettings:
+def update_xpansion_settings(settings: XpansionSettings, settings_update: XpansionSettingsUpdate) -> XpansionSettings:
     settings_dict = asdict(settings)
     update_dict = {k: v for k, v in asdict(settings_update).items() if v is not None}
     settings_dict.update(update_dict)

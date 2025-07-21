@@ -264,7 +264,7 @@ class XpansionAPIService(BaseXpansionService):
     @override
     def update_settings(self, settings: XpansionSettingsUpdate, current_settings: XpansionSettings) -> XpansionSettings:
         # We have to send `yearly-weights` and `additional-constraints` fields to the Web API otherwise it deletes them.
-        new_settings = update_xpansion_settings(settings, current_settings)
+        new_settings = update_xpansion_settings(current_settings, settings)
         return self._update_settings(new_settings)
 
     @override
