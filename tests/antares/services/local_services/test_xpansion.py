@@ -37,6 +37,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
     XpansionResourceDeletionError,
+    XpansionSensitivityEditionError,
     XpansionSettingsEditionError,
 )
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionLinkProfile
@@ -571,13 +572,25 @@ class TestXpansion:
         # Set up
         xpansion = self._set_up(local_study_w_links, xpansion_input_path)
 
-        expected_settings = XpansionSettings(
-            optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
-        )
         # Checks values before update
         assert xpansion.sensitivity == XpansionSensitivity(epsilon=10000, projection=["battery", "pv"], capex=True)
-        assert xpansion.settings == expected_settings
 
-        # Update sensitivity
-        new_sensi = XpansionSensitivityUpdate(epsilon=10, projection=["pv", "gqigqgqiuguib"])
-        xpansion.update_sensitivity(new_sensi)
+        # Ensures we cannot give fake candidates as projection
+        with pytest.raises(
+            XpansionSensitivityEditionError,
+            match=re.escape(
+                "Could not update the xpansion sensitivity for study studyTest: The candidates {'fake_candidate'} do not exist"
+            ),
+        ):
+            new_sensi = XpansionSensitivityUpdate(projection=["pv", "fake_candidate"])
+            xpansion.update_sensitivity(new_sensi)
+
+        # Update the sensitivity
+        new_sensi = XpansionSensitivityUpdate(epsilon=2, projection=["pv", "semibase"])
+        sensi = xpansion.update_sensitivity(new_sensi)
+        assert sensi == XpansionSensitivity(epsilon=2, projection=["pv", "semibase"], capex=True)
+        assert xpansion.sensitivity == sensi
+
+        # Checks the ini content
+        file_path = Path(local_study_w_links.path) / "user" / "expansion" / "sensitivity" / "sensitivity_in.json"
+        assert file_path.read_text() == '{"epsilon":2.0,"projection":["pv","semibase"],"capex":true}'
