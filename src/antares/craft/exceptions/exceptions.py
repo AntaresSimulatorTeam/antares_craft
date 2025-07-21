@@ -651,3 +651,9 @@ class XpansionSensitivityEditionError(Exception):
     def __init__(self, study_name: str, message: str) -> None:
         self.message = f"Could not update the xpansion sensitivity for study {study_name}: " + message
         super().__init__(self.message)
+
+
+class XpansionConfigurationMissingError(Exception):
+    def __init__(self, study_name: str) -> None:
+        self.message = f"The study {study_name} does not have any xpansion configuration, you should add one first"
+        super().__init__(self.message)
