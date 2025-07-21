@@ -9,6 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+# ruff: noqa: F405
+
 import pytest
 
 import shutil
@@ -20,73 +22,7 @@ from typing import Generator
 import numpy as np
 import pandas as pd
 
-from antares.craft import (
-    AdequacyPatchMode,
-    AdvancedParametersUpdate,
-    AntaresSimulationParameters,
-    APIconf,
-    AreaProperties,
-    AreaPropertiesUpdate,
-    AreaUi,
-    AreaUiUpdate,
-    AssetType,
-    BindingConstraintFrequency,
-    BindingConstraintOperator,
-    BindingConstraintProperties,
-    BindingConstraintPropertiesUpdate,
-    ClusterData,
-    ConstraintSign,
-    ConstraintTerm,
-    ConstraintTermUpdate,
-    ExportMPS,
-    FilterOption,
-    Frequency,
-    GeneralParametersUpdate,
-    HydroPropertiesUpdate,
-    InitialReservoirLevel,
-    LawOption,
-    LinkData,
-    LinkProperties,
-    LinkPropertiesUpdate,
-    LinkStyle,
-    LinkUi,
-    LinkUiUpdate,
-    MCAllAreasDataType,
-    MCAllLinksDataType,
-    MCIndAreasDataType,
-    MCIndLinksDataType,
-    Mode,
-    OptimizationParametersUpdate,
-    PlaylistParameters,
-    RenewableClusterGroup,
-    RenewableClusterProperties,
-    RenewableClusterPropertiesUpdate,
-    RenewableGenerationModeling,
-    SheddingPolicy,
-    STStorageGroup,
-    STStorageProperties,
-    STStoragePropertiesUpdate,
-    StudySettingsUpdate,
-    ThematicTrimmingParameters,
-    ThermalClusterGroup,
-    ThermalClusterProperties,
-    ThermalClusterPropertiesUpdate,
-    TimeSeriesInterpretation,
-    TransmissionCapacities,
-    UnitCommitmentMode,
-    XpansionCandidate,
-    XpansionCandidateUpdate,
-    XpansionConstraint,
-    XpansionConstraintUpdate,
-    XpansionLinkProfile,
-    XpansionSensitivity,
-    XpansionSettings,
-    create_study_api,
-    create_study_local,
-    create_variant_api,
-    import_study_api,
-    read_study_api,
-)
+from antares.craft import *  # noqa: F403
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
     ConstraintMatrixUpdateError,
@@ -97,7 +33,6 @@ from antares.craft.exceptions.exceptions import (
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
 )
-from antares.craft.model.hydro import InflowStructureUpdate
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters
 from antares.craft.model.settings.study_settings import StudySettings
@@ -1277,7 +1212,21 @@ class TestWebClient:
         )
         xpansion.create_constraint(constraint, "new_file.ini")
 
-        # Deletes the file
+        ############# Settings ##############
+        # Updates the settings
+        settings_update = XpansionSettingsUpdate(
+            optimality_gap=40.5, solver=XpansionSolver.CBC, additional_constraints="new_file.ini"
+        )
+        new_settings = xpansion.update_settings(settings_update)
+        assert new_settings == XpansionSettings(
+            optimality_gap=40.5, solver=XpansionSolver.CBC, additional_constraints="new_file.ini", batch_size=0
+        )
+        # Removes the constraint from the settings to delete it afterwards.
+        xpansion.remove_constraints_and_or_weights_from_settings(constraint=True, weight=False)
+        assert xpansion.settings == XpansionSettings(optimality_gap=40.5, solver=XpansionSolver.CBC, batch_size=0)
+
+        ############# Deletion ##############
+        # Deletes a constraints file
         xpansion.delete_constraints_file("new_file.ini")
 
         # Deletes the configuration

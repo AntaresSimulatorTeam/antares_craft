@@ -19,7 +19,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.craft import Study, XpansionCandidateUpdate, XpansionConstraintUpdate, read_study_local
+from antares.craft import (
+    Study,
+    XpansionCandidateUpdate,
+    XpansionConstraintUpdate,
+    XpansionSettingsUpdate,
+    XpansionSolver,
+    read_study_local,
+)
 from antares.craft.exceptions.exceptions import (
     BadCandidateFormatError,
     XpansionCandidateCoherenceError,
@@ -30,6 +37,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
     XpansionResourceDeletionError,
+    XpansionSettingsEditionError,
 )
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint
@@ -489,3 +497,65 @@ class TestXpansion:
         # Deletes the file
         xpansion.delete_constraints_file("new_file.ini")
         assert not ini_path.exists()
+
+    def test_settings(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+        # Set up
+        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+
+        assert xpansion.settings == XpansionSettings(
+            optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
+        )
+
+        # Create another constraint file
+        constraint = XpansionConstraint(
+            name="my_constraint", sign=ConstraintSign.GREATER_OR_EQUAL, right_hand_side=0.1, candidates_coefficients={}
+        )
+        xpansion.create_constraint(constraint, "new_file.ini")
+
+        # Update settings
+        settings_update = XpansionSettingsUpdate(
+            optimality_gap=40.5, solver=XpansionSolver.CBC, additional_constraints="new_file.ini"
+        )
+        new_settings = xpansion.update_settings(settings_update)
+        assert new_settings == XpansionSettings(
+            optimality_gap=40.5, solver=XpansionSolver.CBC, additional_constraints="new_file.ini", batch_size=0
+        )
+
+        # Checks ini content
+        ini_path = Path(local_study_w_links.path) / "user" / "expansion" / "settings.ini"
+        content = IniReader().read(ini_path)
+        expected_content = {
+            "additional-constraints": "new_file.ini",
+            "batch_size": 0,
+            "log_level": 0,
+            "master": "integer",
+            "max_iteration": 1000,
+            "optimality_gap": 40.5,
+            "relative_gap": 1e-06,
+            "relaxed_optimality_gap": 1e-05,
+            "separation_parameter": 0.5,
+            "solver": "Cbc",
+            "timelimit": 1000000000000,
+            "uc_type": "expansion_fast",
+        }
+        assert content["settings"] == expected_content
+
+        # Removes `additional-constraints` from the settings
+        xpansion.remove_constraints_and_or_weights_from_settings(constraint=True, weight=False)
+        assert xpansion.settings.additional_constraints is None
+        # Checks ini content
+        content = IniReader().read(ini_path)
+        del expected_content["additional-constraints"]
+        assert content["settings"] == expected_content
+
+        # Assert we cannot update the constraint or weights with fake files
+        fake_file = "fake_file.ini"
+        for settings in [
+            XpansionSettingsUpdate(additional_constraints=fake_file),
+            XpansionSettingsUpdate(yearly_weights=fake_file),
+        ]:
+            with pytest.raises(
+                XpansionSettingsEditionError,
+                match=f"Could not update the xpansion settings for study studyTest: The file {fake_file} does not exist",
+            ):
+                xpansion.update_settings(settings)

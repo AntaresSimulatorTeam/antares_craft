@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 import shutil
 
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -30,10 +31,11 @@ from antares.craft.exceptions.exceptions import (
     XpansionConstraintsEditionError,
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
+    XpansionSettingsEditionError,
 )
 from antares.craft.model.xpansion.candidate import XpansionLinkProfile, update_candidate
 from antares.craft.model.xpansion.constraint import update_constraint
-from antares.craft.model.xpansion.settings import XpansionSettings
+from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate, update_xpansion_settings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.base_services import BaseXpansionService
 from antares.craft.service.local_services.models.xpansion import (
@@ -68,7 +70,7 @@ class XpansionLocalService(BaseXpansionService):
         if not self._xpansion_path.exists():
             return None
         # Settings
-        settings = parse_xpansion_settings_local(self._read_settings()["settings"])
+        settings = self._read_settings()
         # Candidates
         candidates = {}
         ini_candidates = self._read_candidates()
@@ -97,9 +99,7 @@ class XpansionLocalService(BaseXpansionService):
             f.write("{}")
         (self._xpansion_path / "candidates.ini").touch()
         settings = XpansionSettings()
-        ini_content = serialize_xpansion_settings_local(settings)
-        with open(self._xpansion_path / "settings.ini", "w") as f:
-            f.writelines(f"{k}={v}\n" for k, v in ini_content.items())
+        self._write_settings(settings)
         return XpansionConfiguration(self, settings)
 
     @override
@@ -245,8 +245,27 @@ class XpansionLocalService(BaseXpansionService):
         file_path = self._xpansion_path / "constraints" / file_name
         self._delete_matrix(file_name, file_path)
 
-    def _read_settings(self) -> dict[str, Any]:
-        return IniReader().read(self._xpansion_path / "settings.ini")
+    @override
+    def update_settings(self, settings: XpansionSettingsUpdate, current_settings: XpansionSettings) -> XpansionSettings:
+        new_settings = update_xpansion_settings(settings, current_settings)
+        self._check_settings_coherence(new_settings)
+        self._write_settings(new_settings)
+        return new_settings
+
+    @override
+    def remove_constraints_and_or_weights_from_settings(
+        self, constraint: bool, weight: bool, settings: XpansionSettings
+    ) -> XpansionSettings:
+        if constraint:
+            settings = replace(settings, additional_constraints=None)
+        if weight:
+            settings = replace(settings, yearly_weights=None)
+        self._write_settings(settings)
+        return settings
+
+    def _read_settings(self) -> XpansionSettings:
+        ini_content = IniReader().read(self._xpansion_path / "settings.ini")["settings"]
+        return parse_xpansion_settings_local(ini_content)
 
     def _read_candidates(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "candidates.ini")
@@ -292,3 +311,16 @@ class XpansionLocalService(BaseXpansionService):
         if not file_path.exists():
             raise XpansionFileDeletionError(self.study_name, file_name, "The file does not exist")
         file_path.unlink()
+
+    def _write_settings(self, settings: XpansionSettings) -> None:
+        ini_content = serialize_xpansion_settings_local(settings)
+        with open(self._xpansion_path / "settings.ini", "w") as f:
+            f.writelines(f"{k}={v}\n" for k, v in ini_content.items())
+
+    def _check_settings_coherence(self, settings: XpansionSettings) -> None:
+        if constraint := settings.additional_constraints:
+            if not (self._xpansion_path / "constraints" / constraint).exists():
+                raise XpansionSettingsEditionError(self.study_name, f"The file {constraint} does not exist")
+        if weight := settings.yearly_weights:
+            if not (self._xpansion_path / "weights" / weight).exists():
+                raise XpansionSettingsEditionError(self.study_name, f"The file {weight} does not exist")

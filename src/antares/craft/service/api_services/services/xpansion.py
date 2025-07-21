@@ -11,6 +11,8 @@
 # This file is part of the Antares project.
 import io
 
+from dataclasses import replace
+
 import pandas as pd
 
 from typing_extensions import override
@@ -31,6 +33,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionFileDeletionError,
     XpansionMatrixEditionError,
     XpansionMatrixReadingError,
+    XpansionSettingsEditionError,
 )
 from antares.craft.model.xpansion.candidate import (
     XpansionCandidate,
@@ -40,7 +43,7 @@ from antares.craft.model.xpansion.candidate import (
 )
 from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate, update_constraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
-from antares.craft.model.xpansion.settings import XpansionSettings
+from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate, update_xpansion_settings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.api_services.models.xpansion import (
     parse_xpansion_candidate_api,
@@ -50,6 +53,7 @@ from antares.craft.service.api_services.models.xpansion import (
     serialize_xpansion_candidate_api,
     serialize_xpansion_constraint_api,
     serialize_xpansion_constraints_api,
+    serialize_xpansion_settings_api,
 )
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseXpansionService
@@ -251,6 +255,30 @@ class XpansionAPIService(BaseXpansionService):
     def delete_constraints_file(self, file_name: str) -> None:
         url = f"{self._expansion_url}/resources/constraints/{file_name}"
         self._delete_matrix(file_name, url)
+
+    @override
+    def update_settings(self, settings: XpansionSettingsUpdate, current_settings: XpansionSettings) -> XpansionSettings:
+        # We have to send `yearly-weights` and `additional-constraints` fields to the Web API otherwise it deletes them.
+        new_settings = update_xpansion_settings(settings, current_settings)
+        return self._update_settings(new_settings)
+
+    @override
+    def remove_constraints_and_or_weights_from_settings(
+        self, constraint: bool, weight: bool, settings: XpansionSettings
+    ) -> XpansionSettings:
+        if constraint:
+            settings = replace(settings, additional_constraints=None)
+        if weight:
+            settings = replace(settings, yearly_weights=None)
+        return self._update_settings(settings)
+
+    def _update_settings(self, settings: XpansionSettings) -> XpansionSettings:
+        try:
+            body = serialize_xpansion_settings_api(settings, None)
+            response = self._wrapper.put(f"{self._expansion_url}/settings", json=body).json()
+            return parse_xpansion_settings_api(response)[0]
+        except APIError as e:
+            raise XpansionSettingsEditionError(self.study_id, e.message) from e
 
     def _delete_matrix(self, file_name: str, url: str) -> None:
         try:
