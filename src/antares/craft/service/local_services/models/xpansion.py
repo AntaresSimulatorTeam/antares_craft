@@ -21,7 +21,6 @@ from antares.craft.model.xpansion.settings import (
     Master,
     UcType,
     XpansionSettings,
-    XpansionSettingsUpdate,
     XpansionSolver,
 )
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
@@ -74,14 +73,6 @@ def parse_xpansion_settings_local(data: Any) -> XpansionSettings:
 def serialize_xpansion_settings_local(settings: XpansionSettings) -> dict[str, Any]:
     local_settings = XpansionSettingsLocal.from_user_model(settings)
     return local_settings.model_dump(mode="json", by_alias=True, exclude_none=True)
-
-
-def update_xpansion_settings(settings_update: XpansionSettingsUpdate, settings: XpansionSettings) -> XpansionSettings:
-    settings_dict = asdict(settings)
-    update_dict = {k: v for k, v in asdict(settings_update).items() if v is not None}
-    settings_dict.update(update_dict)
-
-    return XpansionSettings(**settings_dict)
 
 
 ######################

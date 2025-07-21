@@ -41,7 +41,7 @@ from antares.craft.model.xpansion.candidate import (
 )
 from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate, update_constraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
-from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate
+from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate, update_xpansion_settings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.api_services.models.xpansion import (
     parse_xpansion_candidate_api,
@@ -255,11 +255,12 @@ class XpansionAPIService(BaseXpansionService):
         self._delete_matrix(file_name, url)
 
     @override
-    def update_settings(self, settings: XpansionSettingsUpdate) -> XpansionSettings:
+    def update_settings(self, settings: XpansionSettingsUpdate, current_settings: XpansionSettings) -> XpansionSettings:
         url = f"{self._expansion_url}/settings"
         try:
-            body = serialize_xpansion_settings_api(settings, None)
-            # todo: we have to keep the weights and additional constraitns that existed ....
+            # We have to send `yearly-weights` and `additional-constraints` fields to the Web API otherwise it deletes them.
+            new_settings = update_xpansion_settings(settings, current_settings)
+            body = serialize_xpansion_settings_api(new_settings, None)
             response = self._wrapper.put(url, json=body).json()
             return parse_xpansion_settings_api(response)[0]
         except APIError as e:

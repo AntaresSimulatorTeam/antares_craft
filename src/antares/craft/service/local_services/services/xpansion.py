@@ -35,7 +35,7 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.xpansion.candidate import XpansionLinkProfile, update_candidate
 from antares.craft.model.xpansion.constraint import update_constraint
-from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate
+from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate, update_xpansion_settings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.base_services import BaseXpansionService
 from antares.craft.service.local_services.models.xpansion import (
@@ -46,7 +46,6 @@ from antares.craft.service.local_services.models.xpansion import (
     serialize_xpansion_candidate_local,
     serialize_xpansion_constraints_local,
     serialize_xpansion_settings_local,
-    update_xpansion_settings,
 )
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -247,8 +246,7 @@ class XpansionLocalService(BaseXpansionService):
         self._delete_matrix(file_name, file_path)
 
     @override
-    def update_settings(self, settings: XpansionSettingsUpdate) -> XpansionSettings:
-        current_settings = self._read_settings()
+    def update_settings(self, settings: XpansionSettingsUpdate, current_settings: XpansionSettings) -> XpansionSettings:
         new_settings = update_xpansion_settings(settings, current_settings)
         self._check_settings_coherence(new_settings)
         self._write_settings(new_settings)

@@ -943,7 +943,9 @@ class BaseXpansionService(ABC):
         pass
 
     @abstractmethod
-    def update_settings(self, settings: "XpansionSettingsUpdate") -> "XpansionSettings":
+    def update_settings(
+        self, settings: "XpansionSettingsUpdate", current_settings: "XpansionSettings"
+    ) -> "XpansionSettings":
         """
         Updates the xpansion settings for a given study
         """

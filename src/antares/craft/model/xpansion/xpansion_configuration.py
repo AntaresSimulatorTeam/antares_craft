@@ -141,7 +141,7 @@ class XpansionConfiguration:
         self._xpansion_service.delete_constraints_file(file_name)
 
     def update_settings(self, settings: XpansionSettingsUpdate) -> XpansionSettings:
-        new_settings = self._xpansion_service.update_settings(settings)
+        new_settings = self._xpansion_service.update_settings(settings, self._settings)
         self._settings = new_settings
         return new_settings
 
