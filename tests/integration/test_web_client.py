@@ -37,7 +37,6 @@ from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import Job, JobStatus
-from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
 ASSETS_DIR = Path(__file__).parent / "assets"
