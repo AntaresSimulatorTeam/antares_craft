@@ -19,7 +19,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.craft import Study, XpansionCandidateUpdate, XpansionConstraintUpdate, read_study_local
+from antares.craft import (
+    Study,
+    XpansionCandidateUpdate,
+    XpansionConstraintUpdate,
+    XpansionSettingsUpdate,
+    XpansionSolver,
+    read_study_local,
+)
 from antares.craft.exceptions.exceptions import (
     BadCandidateFormatError,
     XpansionCandidateCoherenceError,
@@ -497,3 +504,30 @@ class TestXpansion:
         assert xpansion.settings == XpansionSettings(
             optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
         )
+
+        # Update settings
+        settings_update = XpansionSettingsUpdate(
+            optimality_gap=40.5, solver=XpansionSolver.CBC, additional_constraints="new_file.ini"
+        )
+        new_settings = xpansion.update_settings(settings_update)
+        assert new_settings == XpansionSettings(
+            optimality_gap=40.5, solver=XpansionSolver.CBC, additional_constraints="new_file.ini", batch_size=0
+        )
+
+        # Checks ini content
+        ini_path = Path(local_study_w_links.path) / "user" / "expansion" / "settings.ini"
+        content = IniReader().read(ini_path)
+        assert content["settings"] == {
+            "additional-constraints": "new_file.ini",
+            "batch_size": 0,
+            "log_level": 0,
+            "master": "integer",
+            "max_iteration": 1000,
+            "optimality_gap": 40.5,
+            "relative_gap": 1e-06,
+            "relaxed_optimality_gap": 1e-05,
+            "separation_parameter": 0.5,
+            "solver": "Cbc",
+            "timelimit": 1000000000000,
+            "uc_type": "expansion_fast",
+        }
