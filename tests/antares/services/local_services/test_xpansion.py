@@ -497,6 +497,10 @@ class TestXpansion:
         xpansion.delete_constraints_file("new_file.ini")
         assert not ini_path.exists()
 
+    def test_settings_error_cases(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+        # Set up
+        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+
     def test_settings(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Set up
         xpansion = self._set_up(local_study_w_links, xpansion_input_path)
@@ -505,7 +509,7 @@ class TestXpansion:
             optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
         )
 
-        # Create other constraints file
+        # Create another constraint file
         constraint = XpansionConstraint(
             name="my_constraint", sign=ConstraintSign.GREATER_OR_EQUAL, right_hand_side=0.1, candidates_coefficients={}
         )
@@ -539,7 +543,7 @@ class TestXpansion:
         }
         assert content["settings"] == expected_content
 
-        # Removes additional-constraints from the settings
+        # Removes `additional-constraints` from the settings
         xpansion.remove_constraints_and_or_weights_from_settings(constraint=True, weight=False)
         assert xpansion.settings.additional_constraints is None
         # Checks ini content
