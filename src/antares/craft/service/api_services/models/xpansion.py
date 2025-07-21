@@ -41,7 +41,8 @@ class XpansionSensitivityAPI(APIBaseModel):
 
 
 @all_optional_model
-class XpansionSettingsAPI(APIBaseModel):
+class XpansionSettingsAPI(APIBaseModel, alias_generator=None):
+    # Due to AntaresWeb legacy Xpansion endpoints, we must not use camel case aliases.
     master: Master
     uc_type: UcType
     optimality_gap: float
