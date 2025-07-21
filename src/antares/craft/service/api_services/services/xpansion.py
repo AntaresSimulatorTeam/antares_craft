@@ -31,6 +31,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionFileDeletionError,
     XpansionMatrixEditionError,
     XpansionMatrixReadingError,
+    XpansionSettingsEditionError,
 )
 from antares.craft.model.xpansion.candidate import (
     XpansionCandidate,
@@ -50,6 +51,7 @@ from antares.craft.service.api_services.models.xpansion import (
     serialize_xpansion_candidate_api,
     serialize_xpansion_constraint_api,
     serialize_xpansion_constraints_api,
+    serialize_xpansion_settings_api,
 )
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseXpansionService
@@ -254,7 +256,13 @@ class XpansionAPIService(BaseXpansionService):
 
     @override
     def update_settings(self, settings: XpansionSettingsUpdate) -> XpansionSettings:
-        raise NotImplementedError
+        url = f"{self._expansion_url}/settings"
+        try:
+            body = serialize_xpansion_settings_api(settings, None)
+            response = self._wrapper.put(url, json=body).json()
+            return parse_xpansion_settings_api(response)[0]
+        except APIError as e:
+            raise XpansionSettingsEditionError(self.study_id, e.message) from e
 
     def _delete_matrix(self, file_name: str, url: str) -> None:
         try:
