@@ -81,6 +81,8 @@ from antares.craft import (
     XpansionLinkProfile,
     XpansionSensitivity,
     XpansionSettings,
+    XpansionSettingsUpdate,
+    XpansionSolver,
     create_study_api,
     create_study_local,
     create_variant_api,
@@ -1276,6 +1278,17 @@ class TestWebClient:
             name="my_constraint", sign=ConstraintSign.GREATER_OR_EQUAL, right_hand_side=0.1, candidates_coefficients={}
         )
         xpansion.create_constraint(constraint, "new_file.ini")
+
+        # Updates the settings
+        settings_update = XpansionSettingsUpdate(
+            optimality_gap=40.5, solver=XpansionSolver.CBC, additional_constraints="new_file"
+        )
+        new_settings = xpansion.update_settings(settings_update)
+        assert new_settings == XpansionSettings(
+            optimality_gap=40.5, solver=XpansionSolver.CBC, additional_constraints="new_file", batch_size=0
+        )
+        # Removes the constraint from the settings to delete it afterwards.
+        # todo
 
         # Deletes the file
         xpansion.delete_constraints_file("new_file.ini")
