@@ -255,13 +255,14 @@ class XpansionLocalService(BaseXpansionService):
         return new_settings
 
     @override
-    def remove_constraints_and_or_weights_from_settings(self, constraint: bool, weight: bool) -> None:
+    def remove_constraints_and_or_weights_from_settings(self, constraint: bool, weight: bool) -> XpansionSettings:
         settings = self._read_settings()
         if constraint:
             settings = replace(settings, additional_constraints=None)
         if weight:
             settings = replace(settings, yearly_weights=None)
         self._write_settings(settings)
+        return settings
 
     def _read_settings(self) -> XpansionSettings:
         ini_content = IniReader().read(self._xpansion_path / "settings.ini")["settings"]

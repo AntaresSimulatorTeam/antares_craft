@@ -146,4 +146,5 @@ class XpansionConfiguration:
         return new_settings
 
     def remove_constraints_and_or_weights_from_settings(self, constraint: bool, weight: bool) -> None:
-        pass
+        new_settings = self._xpansion_service.remove_constraints_and_or_weights_from_settings(constraint, weight)
+        self._settings = new_settings

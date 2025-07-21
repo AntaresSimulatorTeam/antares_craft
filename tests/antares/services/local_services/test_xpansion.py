@@ -505,6 +505,12 @@ class TestXpansion:
             optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
         )
 
+        # Create other constraints file
+        constraint = XpansionConstraint(
+            name="my_constraint", sign=ConstraintSign.GREATER_OR_EQUAL, right_hand_side=0.1, candidates_coefficients={}
+        )
+        xpansion.create_constraint(constraint, "new_file.ini")
+
         # Update settings
         settings_update = XpansionSettingsUpdate(
             optimality_gap=40.5, solver=XpansionSolver.CBC, additional_constraints="new_file.ini"
@@ -517,7 +523,7 @@ class TestXpansion:
         # Checks ini content
         ini_path = Path(local_study_w_links.path) / "user" / "expansion" / "settings.ini"
         content = IniReader().read(ini_path)
-        assert content["settings"] == {
+        expected_content = {
             "additional-constraints": "new_file.ini",
             "batch_size": 0,
             "log_level": 0,
@@ -531,3 +537,12 @@ class TestXpansion:
             "timelimit": 1000000000000,
             "uc_type": "expansion_fast",
         }
+        assert content["settings"] == expected_content
+
+        # Removes additional-constraints from the settings
+        xpansion.remove_constraints_and_or_weights_from_settings(constraint=True, weight=False)
+        assert xpansion.settings.additional_constraints is None
+        # Checks ini content
+        content = IniReader().read(ini_path)
+        del expected_content["additional-constraints"]
+        assert content["settings"] == expected_content
