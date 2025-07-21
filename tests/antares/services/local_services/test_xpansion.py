@@ -300,6 +300,13 @@ class TestXpansion:
         ):
             xpansion.delete_candidates(["fake_candidate"])
 
+        # Asserts we cannot remove a candidate referenced inside the sensitivity projections
+        with pytest.raises(
+            XpansionCandidateDeletionError,
+            match="Could not delete candidates {'battery'} for study studyTest: They are referenced in the sensitivity config",
+        ):
+            xpansion.delete_candidates(["battery"])
+
     def test_candidates(self, local_study: Study, xpansion_input_path: Path) -> None:
         # Set up
         xpansion = self._set_up(local_study, xpansion_input_path)
@@ -371,7 +378,7 @@ class TestXpansion:
         }
 
         # Removes several candidates
-        xpansion.delete_candidates(["peak", "battery"])
+        xpansion.delete_candidates(["peak", "new_name"])
         assert len(xpansion.get_candidates()) == 4
         content = IniReader().read(ini_path)
         assert len(content) == 4
