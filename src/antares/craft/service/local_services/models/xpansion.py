@@ -27,8 +27,6 @@ from antares.craft.model.xpansion.settings import (
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.tools.alias_generators import to_kebab
 
-XpansionSettingsType = XpansionSettings | XpansionSettingsUpdate
-
 
 class XpansionSettingsLocal(LocalBaseModel):
     master: Master = Master.INTEGER
@@ -46,7 +44,7 @@ class XpansionSettingsLocal(LocalBaseModel):
     timelimit: int = int(1e12)
 
     @staticmethod
-    def from_user_model(user_class: XpansionSettingsType) -> "XpansionSettingsLocal":
+    def from_user_model(user_class: XpansionSettings) -> "XpansionSettingsLocal":
         user_dict = asdict(user_class)
         return XpansionSettingsLocal.model_validate(user_dict)
 
@@ -73,7 +71,7 @@ def parse_xpansion_settings_local(data: Any) -> XpansionSettings:
     return local_settings.to_user_model()
 
 
-def serialize_xpansion_settings_local(settings: XpansionSettingsType) -> dict[str, Any]:
+def serialize_xpansion_settings_local(settings: XpansionSettings) -> dict[str, Any]:
     local_settings = XpansionSettingsLocal.from_user_model(settings)
     return local_settings.model_dump(mode="json", by_alias=True, exclude_none=True)
 

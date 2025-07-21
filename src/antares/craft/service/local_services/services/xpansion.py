@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 import shutil
 
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -250,6 +251,15 @@ class XpansionLocalService(BaseXpansionService):
         new_settings = update_xpansion_settings(settings, current_settings)
         self._write_settings(new_settings)
         return new_settings
+
+    @override
+    def remove_constraints_and_or_weights_from_settings(self, constraint: bool, weight: bool) -> None:
+        settings = self._read_settings()
+        if constraint:
+            settings = replace(settings, additional_constraints=None)
+        if weight:
+            settings = replace(settings, yearly_weights=None)
+        self._write_settings(settings)
 
     def _read_settings(self) -> XpansionSettings:
         ini_content = IniReader().read(self._xpansion_path / "settings.ini")["settings"]

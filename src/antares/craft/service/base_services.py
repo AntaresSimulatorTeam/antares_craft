@@ -949,6 +949,13 @@ class BaseXpansionService(ABC):
         """
         pass
 
+    @abstractmethod
+    def remove_constraints_and_or_weights_from_settings(self, constraint: bool, weight: bool) -> None:
+        """
+        Removes the additional constraint and/or yearly-weights from the xpansion settings for a given study
+        """
+        pass
+
 
 @dataclass(frozen=True)
 class StudyServices:
