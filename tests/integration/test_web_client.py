@@ -1228,7 +1228,8 @@ class TestWebClient:
             optimality_gap=40.5, solver=XpansionSolver.CBC, additional_constraints="new_file.ini", batch_size=0
         )
         # Removes the constraint from the settings to delete it afterwards.
-        # todo
+        xpansion.remove_constraints_and_or_weights_from_settings(constraint=True, weight=False)
+        assert xpansion.settings == XpansionSettings(optimality_gap=40.5, solver=XpansionSolver.CBC, batch_size=0)
 
         ############# Deletion ##############
         # Deletes a constraints file
