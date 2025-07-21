@@ -276,7 +276,10 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def update_sensitivity(
-        self, sensitivity: XpansionSensitivityUpdate, current_settings: XpansionSettings
+        self,
+        sensitivity: XpansionSensitivityUpdate,
+        current_settings: XpansionSettings,
+        current_sensitivity: XpansionSensitivity,
     ) -> XpansionSensitivity:
         current_sensitivity = self._read_sensitivity()
         new_sensitivity = update_xpansion_sensitivity(current_sensitivity, sensitivity)

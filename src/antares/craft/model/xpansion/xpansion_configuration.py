@@ -179,6 +179,6 @@ class XpansionConfiguration:
                     self._xpansion_service.study_id, f"The candidates {problematic_candidates} do not exist"
                 )
         # Performs the update
-        new_sensitivity = self._xpansion_service.update_sensitivity(sensitivity, self._settings)
+        new_sensitivity = self._xpansion_service.update_sensitivity(sensitivity, self._settings, self._sensitivity)
         self._sensitivity = new_sensitivity
         return new_sensitivity

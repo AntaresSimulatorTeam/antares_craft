@@ -18,7 +18,7 @@ from pydantic import BeforeValidator, Field, PlainSerializer
 
 from antares.craft.model.xpansion.candidate import XpansionCandidate
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint, XpansionConstraintUpdate
-from antares.craft.model.xpansion.sensitivity import XpansionSensitivity, XpansionSensitivityUpdate
+from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
 from antares.craft.model.xpansion.settings import (
     Master,
     UcType,
@@ -58,7 +58,7 @@ class XpansionSettingsAPI(APIBaseModel, alias_generator=None):
 
     @staticmethod
     def from_user_model(
-        settings_class: XpansionSettings, sensitivity_class: XpansionSensitivityUpdate | None
+        settings_class: XpansionSettings, sensitivity_class: XpansionSensitivity | None
     ) -> "XpansionSettingsAPI":
         settings_dict = asdict(settings_class)
         sensitivity_dict = {"sensitivity_config": asdict(sensitivity_class) if sensitivity_class else {}}
@@ -97,7 +97,7 @@ def parse_xpansion_settings_api(data: dict[str, Any]) -> tuple[XpansionSettings,
 
 
 def serialize_xpansion_settings_api(
-    settings_class: XpansionSettings, sensitivity_class: XpansionSensitivityUpdate | None
+    settings_class: XpansionSettings, sensitivity_class: XpansionSensitivity | None
 ) -> dict[str, Any]:
     api_model = XpansionSettingsAPI.from_user_model(settings_class, sensitivity_class)
     return api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
