@@ -97,9 +97,7 @@ class XpansionLocalService(BaseXpansionService):
             f.write("{}")
         (self._xpansion_path / "candidates.ini").touch()
         settings = XpansionSettings()
-        ini_content = serialize_xpansion_settings_local(settings)
-        with open(self._xpansion_path / "settings.ini", "w") as f:
-            f.writelines(f"{k}={v}\n" for k, v in ini_content.items())
+        self._write_settings(settings)
         return XpansionConfiguration(self, settings)
 
     @override
@@ -296,3 +294,8 @@ class XpansionLocalService(BaseXpansionService):
         if not file_path.exists():
             raise XpansionFileDeletionError(self.study_name, file_name, "The file does not exist")
         file_path.unlink()
+
+    def _write_settings(self, settings: XpansionSettings) -> None:
+        ini_content = serialize_xpansion_settings_local(settings)
+        with open(self._xpansion_path / "settings.ini", "w") as f:
+            f.writelines(f"{k}={v}\n" for k, v in ini_content.items())
