@@ -11,6 +11,8 @@
 # This file is part of the Antares project.
 import io
 
+from dataclasses import replace
+
 import pandas as pd
 
 from typing_extensions import override
@@ -267,9 +269,19 @@ class XpansionAPIService(BaseXpansionService):
             raise XpansionSettingsEditionError(self.study_id, e.message) from e
 
     @override
-    def remove_constraints_and_or_weights_from_settings(self, constraint: bool, weight: bool) -> XpansionSettings:
-        # todo
-        raise NotImplementedError
+    def remove_constraints_and_or_weights_from_settings(
+        self, constraint: bool, weight: bool, settings: XpansionSettings
+    ) -> XpansionSettings:
+        if constraint:
+            settings = replace(settings, additional_constraints=None)
+        if weight:
+            settings = replace(settings, yearly_weights=None)
+        try:
+            body = serialize_xpansion_settings_api(settings, None)
+            response = self._wrapper.put(f"{self._expansion_url}/settings", json=body).json()
+            return parse_xpansion_settings_api(response)[0]
+        except APIError as e:
+            raise XpansionSettingsEditionError(self.study_id, e.message) from e
 
     def _delete_matrix(self, file_name: str, url: str) -> None:
         try:
