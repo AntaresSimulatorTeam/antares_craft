@@ -78,6 +78,14 @@ def serialize_xpansion_settings_local(settings: XpansionSettingsType) -> dict[st
     return local_settings.model_dump(mode="json", by_alias=True, exclude_none=True)
 
 
+def update_xpansion_settings(settings_update: XpansionSettingsUpdate, settings: XpansionSettings) -> XpansionSettings:
+    settings_dict = asdict(settings)
+    update_dict = {k: v for k, v in asdict(settings_update).items() if v is not None}
+    settings_dict.update(update_dict)
+
+    return XpansionSettings(**settings_dict)
+
+
 ######################
 # Candidates part
 ######################

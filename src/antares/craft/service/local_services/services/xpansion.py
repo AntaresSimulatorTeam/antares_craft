@@ -44,6 +44,7 @@ from antares.craft.service.local_services.models.xpansion import (
     serialize_xpansion_candidate_local,
     serialize_xpansion_constraints_local,
     serialize_xpansion_settings_local,
+    update_xpansion_settings,
 )
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -68,7 +69,7 @@ class XpansionLocalService(BaseXpansionService):
         if not self._xpansion_path.exists():
             return None
         # Settings
-        settings = parse_xpansion_settings_local(self._read_settings()["settings"])
+        settings = self._read_settings()
         # Candidates
         candidates = {}
         ini_candidates = self._read_candidates()
@@ -245,10 +246,14 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def update_settings(self, settings: XpansionSettingsUpdate) -> XpansionSettings:
-        raise NotImplementedError
+        current_settings = self._read_settings()
+        new_settings = update_xpansion_settings(settings, current_settings)
+        self._write_settings(new_settings)
+        return new_settings
 
-    def _read_settings(self) -> dict[str, Any]:
-        return IniReader().read(self._xpansion_path / "settings.ini")
+    def _read_settings(self) -> XpansionSettings:
+        ini_content = IniReader().read(self._xpansion_path / "settings.ini")["settings"]
+        return parse_xpansion_settings_local(ini_content)
 
     def _read_candidates(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "candidates.ini")
