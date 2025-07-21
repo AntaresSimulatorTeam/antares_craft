@@ -42,7 +42,7 @@ from antares.craft.model.xpansion.candidate import (
     update_candidate,
 )
 from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate, update_constraint
-from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
+from antares.craft.model.xpansion.sensitivity import XpansionSensitivity, XpansionSensitivityUpdate
 from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate, update_xpansion_settings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.api_services.models.xpansion import (
@@ -276,6 +276,10 @@ class XpansionAPIService(BaseXpansionService):
         if weight:
             settings = replace(settings, yearly_weights=None)
         return self._update_settings(settings)
+
+    @override
+    def update_sensitivity(self, sensitivity: XpansionSensitivityUpdate) -> XpansionSensitivity:
+        raise NotImplementedError
 
     def _update_settings(self, settings: XpansionSettings) -> XpansionSettings:
         try:

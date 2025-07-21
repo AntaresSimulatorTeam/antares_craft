@@ -25,6 +25,7 @@ from antares.craft import (
     XpansionConstraint,
     XpansionConstraintUpdate,
     XpansionSensitivity,
+    XpansionSensitivityUpdate,
 )
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
@@ -273,6 +274,10 @@ class XpansionLocalService(BaseXpansionService):
             settings = replace(settings, yearly_weights=None)
         self._write_settings(settings)
         return settings
+
+    @override
+    def update_sensitivity(self, sensitivity: XpansionSensitivityUpdate) -> XpansionSensitivity:
+        raise NotImplementedError
 
     def _read_settings(self) -> XpansionSettings:
         ini_content = IniReader().read(self._xpansion_path / "settings.ini")["settings"]

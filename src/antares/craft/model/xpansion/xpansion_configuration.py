@@ -14,6 +14,7 @@ from typing import Optional
 
 import pandas as pd
 
+from antares.craft import XpansionSensitivityUpdate
 from antares.craft.exceptions.exceptions import XpansionCandidateDeletionError, XpansionResourceDeletionError
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate
@@ -162,3 +163,8 @@ class XpansionConfiguration:
             constraint, weight, self._settings
         )
         self._settings = new_settings
+
+    def update_sensitivity(self, sensitivity: XpansionSensitivityUpdate) -> XpansionSensitivity:
+        new_sensitivity = self._xpansion_service.update_sensitivity(sensitivity)
+        self._sensitivity = new_sensitivity
+        return new_sensitivity
