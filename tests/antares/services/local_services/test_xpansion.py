@@ -41,7 +41,7 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint
-from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
+from antares.craft.model.xpansion.sensitivity import XpansionSensitivity, XpansionSensitivityUpdate
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -577,3 +577,7 @@ class TestXpansion:
         # Checks values before update
         assert xpansion.sensitivity == XpansionSensitivity(epsilon=10000, projection=["battery", "pv"], capex=True)
         assert xpansion.settings == expected_settings
+
+        # Update sensitivity
+        new_sensi = XpansionSensitivityUpdate(epsilon=10, projection=["pv", "gqigqgqiuguib"])
+        xpansion.update_sensitivity(new_sensi)
