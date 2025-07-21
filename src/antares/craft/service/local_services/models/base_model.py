@@ -16,7 +16,7 @@ from pydantic_core import PydanticUseDefault
 
 
 class LocalBaseModel(BaseModel):
-    model_config = ConfigDict(populate_by_name=True, coerce_numbers_to_str=True)
+    model_config = ConfigDict(populate_by_name=True, coerce_numbers_to_str=True, extra="forbid")
 
     @field_validator("*", mode="before")
     @classmethod

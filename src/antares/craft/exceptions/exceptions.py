@@ -546,3 +546,120 @@ class ThematicTrimmingUpdateError(Exception):
     def __init__(self, study_name: str, message: str) -> None:
         self.message = f"Could not update thematic_trimming for study {study_name}: " + message
         super().__init__(self.message)
+
+
+class XpansionConfigurationCreationError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not create an xpansion configuration for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionConfigurationDeletionError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not delete the xpansion configuration for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionConfigurationReadingError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not read the xpansion configuration for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class BadCandidateFormatError(Exception):
+    def __init__(self, candidate_name: str) -> None:
+        self.message = f"The candidate {candidate_name} is not well formatted. It should either contain max-investment or (max-units and unit-size)."
+        super().__init__(self.message)
+
+
+class XpansionFileDeletionError(Exception):
+    def __init__(self, study_name: str, file_name: str, message: str) -> None:
+        self.message = f"Could not delete the xpansion file {file_name} for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionMatrixEditionError(Exception):
+    def __init__(self, study_name: str, file_name: str, message: str) -> None:
+        self.message = f"Could not edit the xpansion matrix {file_name} for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionMatrixReadingError(Exception):
+    def __init__(self, study_name: str, file_name: str, message: str) -> None:
+        self.message = f"Could not read the xpansion matrix {file_name} for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionCandidateCreationError(Exception):
+    def __init__(self, study_name: str, candidate_name: str, message: str) -> None:
+        self.message = f"Could not create the candidate {candidate_name} for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionCandidateEditionError(Exception):
+    def __init__(self, study_name: str, candidate_name: str, message: str) -> None:
+        self.message = f"Could not edit the candidate {candidate_name} for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionCandidateDeletionError(Exception):
+    def __init__(self, study_name: str, names: set[str], message: str) -> None:
+        self.message = f"Could not delete candidates {names} for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionCandidateCoherenceError(Exception):
+    def __init__(self, study_name: str, candidate_name: str, message: str) -> None:
+        self.message = f"The candidate {candidate_name} for study {study_name} has incoherence: " + message
+        super().__init__(self.message)
+
+
+class XpansionConstraintCreationError(Exception):
+    def __init__(self, study_name: str, constraint_name: str, file_name: str, message: str) -> None:
+        self.message = (
+            f"Could not create the xpansion constraint {constraint_name} inside the file {file_name} for study {study_name}: "
+            + message
+        )
+        super().__init__(self.message)
+
+
+class XpansionConstraintsDeletionError(Exception):
+    def __init__(self, study_name: str, names: list[str], file_name: str, message: str) -> None:
+        self.message = (
+            f"Could not create the xpansion constraints {names} inside the file {file_name} for study {study_name}: "
+            + message
+        )
+        super().__init__(self.message)
+
+
+class XpansionConstraintsEditionError(Exception):
+    def __init__(self, study_name: str, constraint_name: str, file_name: str, message: str) -> None:
+        self.message = (
+            f"Could not edit the xpansion constraint {constraint_name} inside the file {file_name} for study {study_name}: "
+            + message
+        )
+        super().__init__(self.message)
+
+
+class XpansionResourceDeletionError(Exception):
+    def __init__(self, resource_type: str, file_name: str, message: str) -> None:
+        self.message = f"Could not delete the {resource_type} {file_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionSettingsEditionError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not update the xpansion settings for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionSensitivityEditionError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not update the xpansion sensitivity for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionConfigurationMissingError(Exception):
+    def __init__(self, study_name: str) -> None:
+        self.message = f"The study {study_name} does not have any xpansion configuration, you should add one first"
+        super().__init__(self.message)

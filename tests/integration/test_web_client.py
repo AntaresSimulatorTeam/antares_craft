@@ -9,9 +9,12 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+# ruff: noqa: F405
+
 import pytest
 
 import shutil
+import zipfile
 
 from pathlib import Path, PurePath
 from typing import Generator
@@ -19,58 +22,7 @@ from typing import Generator
 import numpy as np
 import pandas as pd
 
-from antares.craft import (
-    AdequacyPatchMode,
-    AdvancedParametersUpdate,
-    AntaresSimulationParameters,
-    APIconf,
-    AreaProperties,
-    AreaPropertiesUpdate,
-    AreaUi,
-    AreaUiUpdate,
-    AssetType,
-    BindingConstraintFrequency,
-    BindingConstraintOperator,
-    BindingConstraintProperties,
-    BindingConstraintPropertiesUpdate,
-    ClusterData,
-    ConstraintTerm,
-    ConstraintTermUpdate,
-    ExportMPS,
-    FilterOption,
-    GeneralParametersUpdate,
-    HydroPropertiesUpdate,
-    LawOption,
-    LinkData,
-    LinkProperties,
-    LinkPropertiesUpdate,
-    LinkStyle,
-    LinkUi,
-    LinkUiUpdate,
-    Mode,
-    OptimizationParametersUpdate,
-    PlaylistParameters,
-    RenewableClusterGroup,
-    RenewableClusterProperties,
-    RenewableClusterPropertiesUpdate,
-    RenewableGenerationModeling,
-    SheddingPolicy,
-    STStorageGroup,
-    STStorageProperties,
-    STStoragePropertiesUpdate,
-    StudySettingsUpdate,
-    ThematicTrimmingParameters,
-    ThermalClusterGroup,
-    ThermalClusterProperties,
-    ThermalClusterPropertiesUpdate,
-    TimeSeriesInterpretation,
-    TransmissionCapacities,
-    UnitCommitmentMode,
-    create_study_api,
-    create_variant_api,
-    import_study_api,
-    read_study_api,
-)
+from antares.craft import *  # noqa: F403
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
     ConstraintMatrixUpdateError,
@@ -78,15 +30,11 @@ from antares.craft.exceptions.exceptions import (
     MatrixUploadError,
     ReferencedObjectDeletionNotAllowed,
     StudySettingsUpdateError,
+    XpansionFileDeletionError,
+    XpansionMatrixReadingError,
 )
-from antares.craft.model.hydro import InflowStructureUpdate
-from antares.craft.model.output import (
-    Frequency,
-    MCAllAreasDataType,
-    MCAllLinksDataType,
-    MCIndAreasDataType,
-    MCIndLinksDataType,
-)
+from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
+from antares.craft.model.settings.advanced_parameters import AdvancedParameters
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import Job, JobStatus
 from tests.integration.antares_web_desktop import AntaresWebDesktop
@@ -104,7 +52,11 @@ def antares_web() -> Generator[AntaresWebDesktop, None, None]:
 
 class TestWebClient:
     def test_lifecycle(
-        self, antares_web: AntaresWebDesktop, tmp_path: Path, default_thematic_trimming_88: ThematicTrimmingParameters
+        self,
+        antares_web: AntaresWebDesktop,
+        tmp_path: Path,
+        default_thematic_trimming_88: ThematicTrimmingParameters,
+        xpansion_input_path: Path,
     ) -> None:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
@@ -709,11 +661,16 @@ class TestWebClient:
         actual_settings = new_study.get_settings()
         default_settings = StudySettings()
         assert actual_settings.general_parameters == default_settings.general_parameters
-        assert actual_settings.advanced_parameters == default_settings.advanced_parameters
-        assert actual_settings.thematic_trimming_parameters == default_thematic_trimming_88
-        assert actual_settings.adequacy_patch_parameters == default_settings.adequacy_patch_parameters
         assert actual_settings.seed_parameters == default_settings.seed_parameters
         assert actual_settings.playlist_parameters == {1: PlaylistParameters(status=False, weight=1)}
+        # Checks default values for study 8.8 are filled even if put at None inside the user class
+        assert actual_settings.advanced_parameters == AdvancedParameters(
+            initial_reservoir_levels=InitialReservoirLevel.COLD_START
+        )
+        assert actual_settings.thematic_trimming_parameters == default_thematic_trimming_88
+        assert actual_settings.adequacy_patch_parameters == AdequacyPatchParameters(
+            set_to_null_ntc_between_physical_out_for_first_step=True
+        )
 
         # tests update settings
         study_settings = StudySettingsUpdate()
@@ -997,6 +954,298 @@ class TestWebClient:
             match=f"Could not update settings for study '{imported_study.service.study_id}': AntaresWeb doesn't support editing the parameter include_exportstructure",
         ):
             imported_study.update_settings(update_settings)
+
+        ######################
+        # Specific tests for Xpansion
+        ######################
+
+        # Asserts a random study doesn't contain any Xpansion configuration
+        assert not imported_study.has_an_xpansion_configuration
+
+        # Imports a study with a real case Xpansion configuration
+        study = create_study_local("Xpansion study", "8.8", tmp_path)
+        study_path = Path(study.path)
+        with zipfile.ZipFile(xpansion_input_path, "r") as zf:
+            zf.extractall(study_path / "user" / "expansion")
+        zip_study = Path(shutil.make_archive(base_name=str(study_path), base_dir=study_path, format="zip"))
+
+        # Ensures the reading succeeds.
+        imported_study = import_study_api(api_config, zip_study)
+        xpansion = imported_study.xpansion
+        assert xpansion.settings == XpansionSettings(
+            optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
+        )
+        assert xpansion.get_candidates() == {
+            "battery": XpansionCandidate(
+                name="battery", area_from="Area2", area_to="flex", annual_cost_per_mw=60000, max_investment=1000
+            ),
+            "peak": XpansionCandidate(
+                name="peak", area_from="area1", area_to="peak", annual_cost_per_mw=60000, unit_size=100, max_units=20
+            ),
+            "pv": XpansionCandidate(
+                name="pv",
+                area_from="area2",
+                area_to="pv",
+                annual_cost_per_mw=55400,
+                max_investment=1000,
+                direct_link_profile="direct_capa_pv.ini",
+                indirect_link_profile="direct_capa_pv.ini",
+            ),
+            "semibase": XpansionCandidate(
+                name="semibase",
+                area_from="area1",
+                area_to="semibase",
+                annual_cost_per_mw=126000,
+                unit_size=200,
+                max_units=10,
+            ),
+            "transmission_line": XpansionCandidate(
+                name="transmission_line",
+                area_from="area1",
+                area_to="area2",
+                annual_cost_per_mw=10000,
+                unit_size=400,
+                max_units=8,
+                direct_link_profile="direct_04_fr-05_fr.txt",
+                indirect_link_profile="indirect_04_fr-05_fr.txt",
+            ),
+        }
+        assert xpansion.get_constraints() == {
+            "additional_c1": XpansionConstraint(
+                name="additional_c1",
+                sign=ConstraintSign.LESS_OR_EQUAL,
+                right_hand_side=300,
+                candidates_coefficients={"semibase": 1, "transmission_line": 1},
+            )
+        }
+        assert xpansion.sensitivity == XpansionSensitivity(epsilon=10000, projection=["battery", "pv"], capex=True)
+
+        ############# Weights ##############
+        # Asserts we can get a content
+        weight = xpansion.get_weight("weights.txt")
+        assert weight.equals(pd.DataFrame([0.2, 0.4, 0.4]))
+
+        # Asserts fetching a fake matrix raises an appropriate exception
+        study_id = imported_study.service.study_id
+        with pytest.raises(
+            XpansionMatrixReadingError,
+            match=f"Could not read the xpansion matrix fake_weight for study {study_id}",
+        ):
+            xpansion.get_weight("fake_weight")
+
+        # Asserts we can modify and create a matrix
+        new_weight_matrix = pd.DataFrame([0.1, 0.2, 0.7])
+        for file_name in ["weights.txt", "other_weights.ini"]:
+            xpansion.set_weight(file_name, new_weight_matrix)
+            weight = xpansion.get_weight(file_name)
+            assert weight.equals(new_weight_matrix)
+
+        # Asserts there's no default matrix for weights
+        empty_matrix = pd.DataFrame()
+        xpansion.set_weight("weights.txt", empty_matrix)
+        weight = xpansion.get_weight("weights.txt")
+        assert weight.equals(empty_matrix)
+
+        # Asserts we can delete a matrix
+        xpansion.delete_weight("weights.txt")
+
+        # Asserts deleting a fake matrix raises an appropriate exception
+        with pytest.raises(
+            XpansionFileDeletionError,
+            match=f"Could not delete the xpansion file fake_weight for study {study_id}",
+        ):
+            xpansion.delete_weight("fake_weight")
+
+        ############# Capacities ##############
+        # Asserts we can get a content
+        capacity = xpansion.get_capacity("direct_04_fr-05_fr.txt")
+        expected_capacity = pd.DataFrame(np.full((8760, 1), 0.95))
+        expected_capacity[2208:6576] = 1
+        assert capacity.equals(expected_capacity)
+
+        # Asserts fetching a fake matrix raises an appropriate exception
+        with pytest.raises(
+            XpansionMatrixReadingError,
+            match=f"Could not read the xpansion matrix fake_capacity for study {study_id}",
+        ):
+            xpansion.get_capacity("fake_capacity")
+
+        # Asserts we can modify and create a matrix
+        new_capacity_matrix = pd.DataFrame(np.full((8760, 1), 0.87))
+        for file_name in ["capa_pv.ini", "other_capa.txt"]:
+            xpansion.set_capacity(file_name, new_capacity_matrix)
+            capacity = xpansion.get_capacity(file_name)
+            assert capacity.equals(new_capacity_matrix)
+
+        # Asserts we can delete a matrix
+        xpansion.delete_capacity("04_fr-05_fr.txt")
+
+        # Asserts deleting a fake matrix raises an appropriate exception
+        with pytest.raises(
+            XpansionFileDeletionError,
+            match=f"Could not delete the xpansion file fake_capacity for study {study_id}",
+        ):
+            xpansion.delete_capacity("fake_capacity")
+
+        ############# Candidates ##############
+        # Creates areas and links corresponding to Xpansion candidates
+        areas_to_create = ["area1", "area2", "flex", "peak", "pv", "semibase"]
+        links_to_create = [
+            ("area1", "area2"),
+            ("area2", "flex"),
+            ("area1", "peak"),
+            ("area2", "pv"),
+            ("area1", "semibase"),
+        ]
+        for area in areas_to_create:
+            imported_study.create_area(area)
+        for link in links_to_create:
+            imported_study.create_link(area_from=link[0], area_to=link[1])
+
+        # Creates a candidate
+        my_cdt = XpansionCandidate(
+            name="my_cdt",
+            area_from="area1",
+            area_to="area2",
+            annual_cost_per_mw=3.17,
+            max_investment=2,
+            direct_link_profile="capa_pv.ini",
+        )
+        cdt = xpansion.create_candidate(my_cdt)
+        assert cdt == my_cdt
+
+        # Update several properties
+        new_properties = XpansionCandidateUpdate(area_from="pv", max_investment=3)
+        cdt = xpansion.update_candidate("my_cdt", new_properties)
+        assert cdt.name == "my_cdt"
+        assert cdt.area_from == "area2"  # Areas were re-ordered by alphabetical name
+        assert cdt.area_to == "pv"
+        assert cdt.max_investment == 3
+        assert cdt.direct_link_profile == "capa_pv.ini"
+
+        # Rename it
+        new_properties = XpansionCandidateUpdate(name="new_name")
+        cdt = xpansion.update_candidate("my_cdt", new_properties)
+        assert cdt.name == "new_name"
+        assert cdt.max_investment == 3
+        assert cdt.direct_link_profile == "capa_pv.ini"
+
+        # Removes the direct link profile from the candidate
+        xpansion.remove_links_profile_from_candidate("new_name", [XpansionLinkProfile.DIRECT_LINK])
+        assert xpansion.get_candidates()["new_name"].direct_link_profile is None
+        # Ensures that even when reading the candidate we still have `direct_link_profile` to None
+        imported_study = read_study_api(api_config, imported_study.service.study_id)
+        assert imported_study.xpansion.get_candidates()["new_name"].direct_link_profile is None
+
+        # Removes several candidates
+        xpansion.delete_candidates(["peak", "transmission_line"])
+        assert len(xpansion.get_candidates()) == 4
+        xpansion = read_study_api(api_config, imported_study.service.study_id).xpansion
+        assert len(xpansion.get_candidates()) == 4
+
+        ############# Constraints ##############
+        file_name = "contraintes.txt"
+
+        # Creates a constraint
+        new_constraint = XpansionConstraint(
+            name="new_constraint",
+            sign=ConstraintSign.GREATER_OR_EQUAL,
+            right_hand_side=100,
+            candidates_coefficients={"semibase": 0.5},
+        )
+        constraint = xpansion.create_constraint(new_constraint, file_name)
+        assert constraint == new_constraint
+
+        # Edits it
+        new_properties = XpansionConstraintUpdate(right_hand_side=1000, candidates_coefficients={"test": 0.3})
+        modified_constraint = xpansion.update_constraint("new_constraint", new_properties, file_name)
+        assert modified_constraint == XpansionConstraint(
+            name="new_constraint",
+            sign=ConstraintSign.GREATER_OR_EQUAL,
+            right_hand_side=1000,
+            candidates_coefficients={"semibase": 0.5, "test": 0.3},
+        )
+
+        # Ensures the edition for candidates coefficients is working correctly
+        new_properties = XpansionConstraintUpdate(
+            sign=ConstraintSign.EQUAL, candidates_coefficients={"test": 0.2, "test2": 0.8}
+        )
+        modified_constraint = xpansion.update_constraint("new_constraint", new_properties, file_name)
+        assert modified_constraint == XpansionConstraint(
+            name="new_constraint",
+            sign=ConstraintSign.EQUAL,
+            right_hand_side=1000,
+            candidates_coefficients={"semibase": 0.5, "test": 0.2, "test2": 0.8},
+        )
+
+        # Rename it
+        new_properties = XpansionConstraintUpdate(name="new_name")
+        modified_constraint = xpansion.update_constraint("new_constraint", new_properties, file_name)
+        assert modified_constraint.name == "new_name"
+
+        # Ensures reading works correctly
+        xpansion = read_study_api(api_config, imported_study.service.study_id).xpansion
+        assert xpansion.get_constraints() == {
+            "additional_c1": XpansionConstraint(
+                name="additional_c1",
+                sign=ConstraintSign.LESS_OR_EQUAL,
+                right_hand_side=300.0,
+                candidates_coefficients={"semibase": 1, "transmission_line": 1},
+            ),
+            "new_name": XpansionConstraint(
+                name="new_name",
+                sign=ConstraintSign.EQUAL,
+                right_hand_side=1000.0,
+                candidates_coefficients={"semibase": 0.5, "test": 0.2, "test2": 0.8},
+            ),
+        }
+
+        # Deletes all constraints
+        xpansion.delete_constraints(["new_name", "additional_c1"], file_name)
+        assert xpansion.get_constraints() == {}
+
+        # Create a constraint in a non-existing file
+        constraint = XpansionConstraint(
+            name="my_constraint", sign=ConstraintSign.GREATER_OR_EQUAL, right_hand_side=0.1, candidates_coefficients={}
+        )
+        xpansion.create_constraint(constraint, "new_file.ini")
+
+        ############# Sensitivity ##############
+        assert xpansion.sensitivity == XpansionSensitivity(epsilon=10000, projection=["battery", "pv"], capex=True)
+        # Updates the sensitivity
+        sensitivity_update = XpansionSensitivityUpdate(epsilon=2, projection=["semibase", "pv"])
+        new_sensitivity = xpansion.update_sensitivity(sensitivity_update)
+        assert new_sensitivity == XpansionSensitivity(epsilon=2, projection=["semibase", "pv"], capex=True)
+
+        # Checks we didn't alter the settings
+        xpansion_read = read_study_api(api_config, imported_study.service.study_id).xpansion
+        assert xpansion_read.sensitivity == XpansionSensitivity(epsilon=2, projection=["semibase", "pv"], capex=True)
+        assert xpansion_read.settings == XpansionSettings(
+            optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
+        )
+
+        ############# Settings ##############
+        # Updates the settings
+        settings_update = XpansionSettingsUpdate(
+            optimality_gap=40.5, solver=XpansionSolver.CBC, additional_constraints="new_file.ini"
+        )
+        new_settings = xpansion.update_settings(settings_update)
+        assert new_settings == XpansionSettings(
+            optimality_gap=40.5, solver=XpansionSolver.CBC, additional_constraints="new_file.ini", batch_size=0
+        )
+        # Removes the constraint from the settings to delete it afterwards.
+        xpansion.remove_constraints_and_or_weights_from_settings(constraint=True, weight=False)
+        assert xpansion.settings == XpansionSettings(optimality_gap=40.5, solver=XpansionSolver.CBC, batch_size=0)
+
+        ############# Deletion ##############
+        # Deletes a constraints file
+        xpansion.delete_constraints_file("new_file.ini")
+
+        # Deletes the configuration
+        imported_study.delete_xpansion_configuration()
+        assert not imported_study.has_an_xpansion_configuration
+        study = read_study_api(api_config, imported_study.service.study_id)
+        assert not study.has_an_xpansion_configuration
 
         ######################
         # Specific tests for study version 9.2

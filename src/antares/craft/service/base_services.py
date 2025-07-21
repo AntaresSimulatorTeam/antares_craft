@@ -17,13 +17,25 @@ from typing import TYPE_CHECKING, Dict, Optional
 
 import pandas as pd
 
-from antares.craft.config.base_configuration import BaseConfiguration
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
+from antares.craft.model.xpansion.candidate import XpansionLinkProfile
 from antares.study.version import StudyVersion
 
 if TYPE_CHECKING:
-    from antares.craft import PlaylistParameters, ScenarioBuilder, ThematicTrimmingParameters
+    from antares.craft import (
+        PlaylistParameters,
+        ScenarioBuilder,
+        ThematicTrimmingParameters,
+        XpansionCandidate,
+        XpansionCandidateUpdate,
+        XpansionConstraint,
+        XpansionConstraintUpdate,
+        XpansionSensitivity,
+        XpansionSensitivityUpdate,
+        XpansionSettings,
+        XpansionSettingsUpdate,
+    )
     from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
     from antares.craft.model.binding_constraint import (
         BindingConstraint,
@@ -60,6 +72,7 @@ if TYPE_CHECKING:
         ThermalClusterProperties,
         ThermalClusterPropertiesUpdate,
     )
+    from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 
 
 class BaseAreaService(ABC):
@@ -603,12 +616,6 @@ class BaseStudyService(ABC):
         """The ID for the study"""
         pass
 
-    @property
-    @abstractmethod
-    def config(self) -> BaseConfiguration:
-        """The configuration of the study."""
-        pass
-
     @abstractmethod
     def delete_binding_constraint(self, constraint: "BindingConstraint") -> None:
         """
@@ -847,6 +854,146 @@ class BaseStudySettingsService(ABC):
         pass
 
 
+class BaseXpansionService(ABC):
+    @property
+    @abstractmethod
+    def study_id(self) -> str:
+        """The ID for the study"""
+        pass
+
+    @abstractmethod
+    def read_xpansion_configuration(self) -> Optional["XpansionConfiguration"]:
+        """
+        Reads the Xpansion configuration of a study
+        """
+        pass
+
+    @abstractmethod
+    def create_xpansion_configuration(self) -> "XpansionConfiguration":
+        """
+        Creates an Xpansion configuration for a given study
+        """
+        pass
+
+    @abstractmethod
+    def delete(self) -> None:
+        """
+        Deletes the Xpansion configuration for a given study
+        """
+        pass
+
+    @abstractmethod
+    def get_matrix(self, file_name: str, file_type: "XpansionMatrix") -> pd.DataFrame:
+        """
+        Returns an existing matrix (either capacity or weights) for a given study
+        """
+        pass
+
+    @abstractmethod
+    def delete_matrix(self, file_name: str, file_type: "XpansionMatrix") -> None:
+        """
+        Deletes an existing matrix (either capacity or weights) for a given study
+        """
+        pass
+
+    @abstractmethod
+    def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: "XpansionMatrix") -> None:
+        """
+        Modifies or creates a matrix (either capacity or weights) for a given study
+        """
+        pass
+
+    @abstractmethod
+    def create_candidate(self, candidate: "XpansionCandidate") -> "XpansionCandidate":
+        """
+        Creates an Xpansion candidate inside a given study
+        """
+        pass
+
+    @abstractmethod
+    def update_candidate(self, name: str, candidate: "XpansionCandidateUpdate") -> "XpansionCandidate":
+        """
+        Updates an existing Xpansion candidate inside a given study
+        """
+        pass
+
+    @abstractmethod
+    def delete_candidates(self, names: set[str]) -> None:
+        """
+        Removes several candidates from a given study
+        """
+        pass
+
+    @abstractmethod
+    def remove_links_profile_from_candidate(
+        self, candidate: "XpansionCandidate", profiles: list["XpansionLinkProfile"]
+    ) -> "XpansionCandidate":
+        """
+        Edits a candidate by removing some reference he has to capacity files
+        """
+        pass
+
+    @abstractmethod
+    def create_constraint(self, constraint: "XpansionConstraint", file_name: str) -> "XpansionConstraint":
+        """
+        Creates an xpansion additional-constraint for a given study
+        """
+        pass
+
+    @abstractmethod
+    def update_constraint(
+        self, name: str, constraint: "XpansionConstraintUpdate", file_name: str
+    ) -> "XpansionConstraint":
+        """
+        Updates an xpansion additional-constraint for a given study
+        """
+        pass
+
+    @abstractmethod
+    def delete_constraints(self, names: list[str], file_name: str) -> None:
+        """
+        Delete some xpansion additional-constraints for a given study
+        """
+        pass
+
+    @abstractmethod
+    def delete_constraints_file(self, file_name: str) -> None:
+        """
+        Delete a xpansion additional-constraints file for a given study
+        """
+        pass
+
+    @abstractmethod
+    def update_settings(
+        self, settings: "XpansionSettingsUpdate", current_settings: "XpansionSettings"
+    ) -> "XpansionSettings":
+        """
+        Updates the xpansion settings for a given study
+        """
+        pass
+
+    @abstractmethod
+    def remove_constraints_and_or_weights_from_settings(
+        self, constraint: bool, weight: bool, settings: "XpansionSettings"
+    ) -> "XpansionSettings":
+        """
+        Removes the additional constraint and/or yearly-weights from the xpansion settings for a given study
+        """
+        pass
+
+    @abstractmethod
+    def update_sensitivity(
+        self,
+        sensitivity: "XpansionSensitivityUpdate",
+        current_settings: "XpansionSettings",
+        current_sensitivity: "XpansionSensitivity",
+    ) -> "XpansionSensitivity":
+        """
+        Removes the additional constraint and/or yearly-weights from the xpansion settings for a given study
+        """
+        pass
+
+
 @dataclass(frozen=True)
 class StudyServices:
     settings_service: BaseStudySettingsService
@@ -860,3 +1007,4 @@ class StudyServices:
     short_term_storage_service: BaseShortTermStorageService
     run_service: BaseRunService
     output_service: BaseOutputService
+    xpansion_service: BaseXpansionService

@@ -76,3 +76,6 @@ class TimeSeriesFileType(Enum):
     WIND_DATA = "input/wind/prepro/{area_id}/data.txt"
     WIND_K = "input/wind/prepro/{area_id}/k.txt"
     WIND_TRANSLATION = "input/wind/prepro/{area_id}/translation.txt"
+    # Xpansion matrices
+    XPANSION_WEIGHT = "user/expansion/weights/{file_name}"
+    XPANSION_CAPACITY = "user/expansion/capa/{file_name}"

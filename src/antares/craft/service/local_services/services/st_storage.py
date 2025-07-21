@@ -99,7 +99,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
                     st_storage = STStorage(
                         storage_service=self,
                         area_id=area_id,
-                        name=storage_data["name"],
+                        name=storage_data.pop("name"),
                         properties=parse_st_storage_local(self.study_version, storage_data),
                     )
                     st_storages.setdefault(area_id, {})[st_storage.id] = st_storage

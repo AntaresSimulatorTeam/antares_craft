@@ -24,7 +24,7 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.commons import FilterOption
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
+from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructureUpdate
 from antares.craft.model.link import (
     AssetType,
     LinkProperties,
@@ -98,6 +98,16 @@ from antares.craft.model.thermal import (
     ThermalClusterPropertiesUpdate,
     ThermalCostGeneration,
 )
+from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate, XpansionLinkProfile
+from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint, XpansionConstraintUpdate
+from antares.craft.model.xpansion.sensitivity import XpansionSensitivity, XpansionSensitivityUpdate
+from antares.craft.model.xpansion.settings import (
+    Master,
+    UcType,
+    XpansionSettings,
+    XpansionSettingsUpdate,
+    XpansionSolver,
+)
 
 __all__ = [
     # Instantiation classes and methods
@@ -147,6 +157,11 @@ __all__ = [
     "MCAllAreasDataType",
     "MCIndLinksDataType",
     "MCAllLinksDataType",
+    "ConstraintSign",
+    "UcType",
+    "Master",
+    "XpansionSolver",
+    "XpansionLinkProfile",
     # Model classes
     "AdequacyPatchParametersUpdate",
     "AdvancedParametersUpdate",
@@ -182,4 +197,13 @@ __all__ = [
     "STStoragePropertiesUpdate",
     "ThermalClusterProperties",
     "ThermalClusterPropertiesUpdate",
+    "XpansionCandidate",
+    "XpansionCandidateUpdate",
+    "XpansionSettings",
+    "XpansionSettingsUpdate",
+    "XpansionConstraint",
+    "XpansionConstraintUpdate",
+    "XpansionSensitivity",
+    "XpansionSensitivityUpdate",
+    "InflowStructureUpdate",
 ]

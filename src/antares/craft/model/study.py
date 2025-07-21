@@ -28,6 +28,7 @@ from antares.craft.exceptions.exceptions import (
     ReadingMethodUsedOufOfScopeError,
     ReferencedObjectDeletionNotAllowed,
     UnsupportedStudyVersion,
+    XpansionConfigurationMissingError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -45,6 +46,7 @@ from antares.craft.model.settings.study_settings import StudySettings, StudySett
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.model.st_storage import STStorage
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterPropertiesUpdate
+from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import BaseLinkService, BaseStudyService, StudyServices
 from antares.study.version import StudyVersion
 
@@ -79,6 +81,8 @@ class Study:
         self._run_service = services.run_service
         self._binding_constraints_service = services.bc_service
         self._settings_service = services.settings_service
+        self._xpansion_service = services.xpansion_service
+        self._xpansion_configuration: XpansionConfiguration | None = None
         self._settings = StudySettings()
         self._areas: dict[str, Area] = {}
         self._links: dict[str, Link] = {}
@@ -398,6 +402,28 @@ class Study:
 
     def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
         self._study_service.set_scenario_builder(scenario_builder)
+
+    @property
+    def xpansion(self) -> XpansionConfiguration:
+        if self._xpansion_configuration is None:
+            raise XpansionConfigurationMissingError(self._study_service.study_id)
+        return self._xpansion_configuration
+
+    @property
+    def has_an_xpansion_configuration(self) -> bool:
+        return self._xpansion_configuration is not None
+
+    def _read_xpansion_configuration(self) -> None:
+        self._xpansion_configuration = self._xpansion_service.read_xpansion_configuration()
+
+    def create_xpansion_configuration(self) -> XpansionConfiguration:
+        configuration = self._xpansion_service.create_xpansion_configuration()
+        self._xpansion_configuration = configuration
+        return configuration
+
+    def delete_xpansion_configuration(self) -> None:
+        self._xpansion_service.delete()
+        self._xpansion_configuration = None
 
 
 # Design note:
