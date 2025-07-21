@@ -291,7 +291,7 @@ class XpansionAPIService(BaseXpansionService):
         api_content = serialize_xpansion_constraints_api(constraints)
         self._wrapper.put(url, files={"file": (file_name, api_content)})
 
-    def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity | None]:
+    def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()
         return parse_xpansion_settings_api(api_settings)
 

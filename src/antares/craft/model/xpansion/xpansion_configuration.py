@@ -33,9 +33,9 @@ class XpansionConfiguration:
         self,
         xpansion_service: BaseXpansionService,
         settings: XpansionSettings,
+        sensitivity: XpansionSensitivity,
         candidates: Optional[dict[str, XpansionCandidate]] = None,
         constraints: Optional[dict[str, XpansionConstraint]] = None,
-        sensitivity: Optional[XpansionSensitivity] = None,
     ):
         self._settings = settings
         self._candidates = candidates or {}
@@ -48,7 +48,7 @@ class XpansionConfiguration:
         return self._settings
 
     @property
-    def sensitivity(self) -> XpansionSensitivity | None:
+    def sensitivity(self) -> XpansionSensitivity:
         return self._sensitivity
 
     def get_candidates(self) -> MappingProxyType[str, XpansionCandidate]:

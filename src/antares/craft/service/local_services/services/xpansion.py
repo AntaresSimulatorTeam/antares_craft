@@ -19,7 +19,13 @@ import pandas as pd
 
 from typing_extensions import override
 
-from antares.craft import XpansionCandidate, XpansionCandidateUpdate, XpansionConstraint, XpansionConstraintUpdate
+from antares.craft import (
+    XpansionCandidate,
+    XpansionCandidateUpdate,
+    XpansionConstraint,
+    XpansionConstraintUpdate,
+    XpansionSensitivity,
+)
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     XpansionCandidateCoherenceError,
@@ -45,12 +51,13 @@ from antares.craft.service.local_services.models.xpansion import (
     parse_xpansion_settings_local,
     serialize_xpansion_candidate_local,
     serialize_xpansion_constraints_local,
+    serialize_xpansion_sensitivity_local,
     serialize_xpansion_settings_local,
 )
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
-from antares.craft.tools.serde_local.json import from_json
+from antares.craft.tools.serde_local.json import from_json, to_json_string
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
 FILE_MAPPING: dict[XpansionMatrix, tuple[str, TimeSeriesFileType]] = {
@@ -83,9 +90,8 @@ class XpansionLocalService(BaseXpansionService):
         if file_name:
             constraints = self._read_constraints(file_name)
         # Sensitivity
-        sensitivity = None
-        sensitivity_content = self._read_sensitivity()
-        if sensitivity_content:
+        sensitivity = XpansionSensitivity()
+        if sensitivity_content := self._read_sensitivity():
             sensitivity = parse_xpansion_sensitivity_local(sensitivity_content)
         return XpansionConfiguration(
             self, settings=settings, candidates=candidates, constraints=constraints, sensitivity=sensitivity
@@ -95,12 +101,12 @@ class XpansionLocalService(BaseXpansionService):
     def create_xpansion_configuration(self) -> XpansionConfiguration:
         for folder in ["capa", "constraints", "weights", "sensitivity"]:
             (self._xpansion_path / folder).mkdir(parents=True)
-        with open(self._xpansion_path / "sensitivity" / "sensitivity_in.json", "w") as f:
-            f.write("{}")
+        sensitivity = XpansionSensitivity()
+        self._write_sensitivity(sensitivity)
         (self._xpansion_path / "candidates.ini").touch()
         settings = XpansionSettings()
         self._write_settings(settings)
-        return XpansionConfiguration(self, settings)
+        return XpansionConfiguration(self, settings=settings, sensitivity=sensitivity)
 
     @override
     def delete(self) -> None:
@@ -324,3 +330,8 @@ class XpansionLocalService(BaseXpansionService):
         if weight := settings.yearly_weights:
             if not (self._xpansion_path / "weights" / weight).exists():
                 raise XpansionSettingsEditionError(self.study_name, f"The file {weight} does not exist")
+
+    def _write_sensitivity(self, sensitivity: XpansionSensitivity) -> None:
+        content = serialize_xpansion_sensitivity_local(sensitivity)
+        with open(self._xpansion_path / "sensitivity" / "sensitivity_in.json", "w") as f:
+            f.write(to_json_string(content))

@@ -72,7 +72,7 @@ class TestXpansion:
         assert xpansion.settings == XpansionSettings()
         assert xpansion.get_candidates() == {}
         assert xpansion.get_constraints() == {}
-        assert xpansion.sensitivity is None
+        assert xpansion.sensitivity == XpansionSensitivity()
 
         # Asserts the reading works.
         study = read_study_local(study_path)
@@ -81,7 +81,7 @@ class TestXpansion:
         assert xpansion_read.settings == XpansionSettings()
         assert xpansion_read.get_candidates() == {}
         assert xpansion_read.get_constraints() == {}
-        assert xpansion_read.sensitivity is None
+        assert xpansion_read.sensitivity == XpansionSensitivity()
 
         # Deletes the configuration.
         study.delete_xpansion_configuration()

@@ -67,9 +67,8 @@ class XpansionSettingsAPI(APIBaseModel, alias_generator=None):
         settings_dict.update(sensitivity_dict)
         return XpansionSettingsAPI.model_validate(settings_dict)
 
-    def to_sensitivity_model(self) -> XpansionSensitivity | None:
-        if self.sensitivity_config is None:
-            return None
+    def to_sensitivity_model(self) -> XpansionSensitivity:
+        assert self.sensitivity_config is not None
         return XpansionSensitivity(
             epsilon=self.sensitivity_config.epsilon,
             projection=self.sensitivity_config.projection,
@@ -94,7 +93,7 @@ class XpansionSettingsAPI(APIBaseModel, alias_generator=None):
         )
 
 
-def parse_xpansion_settings_api(data: dict[str, Any]) -> tuple[XpansionSettings, XpansionSensitivity | None]:
+def parse_xpansion_settings_api(data: dict[str, Any]) -> tuple[XpansionSettings, XpansionSensitivity]:
     api_model = XpansionSettingsAPI.model_validate(data)
     return api_model.to_settings_model(), api_model.to_sensitivity_model()
 
