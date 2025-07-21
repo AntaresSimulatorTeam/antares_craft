@@ -31,6 +31,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionConstraintsEditionError,
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
+    XpansionSettingsEditionError,
 )
 from antares.craft.model.xpansion.candidate import XpansionLinkProfile, update_candidate
 from antares.craft.model.xpansion.constraint import update_constraint
@@ -249,6 +250,7 @@ class XpansionLocalService(BaseXpansionService):
     def update_settings(self, settings: XpansionSettingsUpdate) -> XpansionSettings:
         current_settings = self._read_settings()
         new_settings = update_xpansion_settings(settings, current_settings)
+        self._check_settings_coherence(new_settings)
         self._write_settings(new_settings)
         return new_settings
 
@@ -314,3 +316,11 @@ class XpansionLocalService(BaseXpansionService):
         ini_content = serialize_xpansion_settings_local(settings)
         with open(self._xpansion_path / "settings.ini", "w") as f:
             f.writelines(f"{k}={v}\n" for k, v in ini_content.items())
+
+    def _check_settings_coherence(self, settings: XpansionSettings) -> None:
+        if constraint := settings.additional_constraints:
+            if not (self._xpansion_path / "constraints" / constraint).exists():
+                raise XpansionSettingsEditionError(self.study_name, f"The file {constraint} does not exist")
+        if weight := settings.yearly_weights:
+            if not (self._xpansion_path / "weights" / weight).exists():
+                raise XpansionSettingsEditionError(self.study_name, f"The file {weight} does not exist")
