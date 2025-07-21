@@ -14,6 +14,7 @@ from typing import Optional
 
 import pandas as pd
 
+from antares.craft import XpansionSettingsUpdate
 from antares.craft.exceptions.exceptions import XpansionResourceDeletionError
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate
@@ -139,3 +140,8 @@ class XpansionConfiguration:
         if self._settings.additional_constraints == file_name:
             raise XpansionResourceDeletionError("constraints", file_name, "It is referenced in the settings")
         self._xpansion_service.delete_constraints_file(file_name)
+
+    def update_settings(self, settings: XpansionSettingsUpdate) -> XpansionSettings:
+        new_settings = self._xpansion_service.update_settings(settings)
+        self._settings = new_settings
+        return new_settings

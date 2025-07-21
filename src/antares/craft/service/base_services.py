@@ -32,6 +32,8 @@ if TYPE_CHECKING:
         XpansionCandidateUpdate,
         XpansionConstraint,
         XpansionConstraintUpdate,
+        XpansionSettings,
+        XpansionSettingsUpdate,
     )
     from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
     from antares.craft.model.binding_constraint import (
@@ -937,6 +939,13 @@ class BaseXpansionService(ABC):
     def delete_constraints_file(self, file_name: str) -> None:
         """
         Delete a xpansion additional-constraints file for a given study
+        """
+        pass
+
+    @abstractmethod
+    def update_settings(self, settings: "XpansionSettingsUpdate") -> "XpansionSettings":
+        """
+        Updates the xpansion settings for a given study
         """
         pass
 

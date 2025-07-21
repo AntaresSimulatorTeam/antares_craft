@@ -33,7 +33,7 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.xpansion.candidate import XpansionLinkProfile, update_candidate
 from antares.craft.model.xpansion.constraint import update_constraint
-from antares.craft.model.xpansion.settings import XpansionSettings
+from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.base_services import BaseXpansionService
 from antares.craft.service.local_services.models.xpansion import (
@@ -244,6 +244,10 @@ class XpansionLocalService(BaseXpansionService):
     def delete_constraints_file(self, file_name: str) -> None:
         file_path = self._xpansion_path / "constraints" / file_name
         self._delete_matrix(file_name, file_path)
+
+    @override
+    def update_settings(self, settings: XpansionSettingsUpdate) -> XpansionSettings:
+        raise NotImplementedError
 
     def _read_settings(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "settings.ini")

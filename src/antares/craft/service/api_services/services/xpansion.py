@@ -40,7 +40,7 @@ from antares.craft.model.xpansion.candidate import (
 )
 from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate, update_constraint
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
-from antares.craft.model.xpansion.settings import XpansionSettings
+from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.api_services.models.xpansion import (
     parse_xpansion_candidate_api,
@@ -251,6 +251,10 @@ class XpansionAPIService(BaseXpansionService):
     def delete_constraints_file(self, file_name: str) -> None:
         url = f"{self._expansion_url}/resources/constraints/{file_name}"
         self._delete_matrix(file_name, url)
+
+    @override
+    def update_settings(self, settings: XpansionSettingsUpdate) -> XpansionSettings:
+        raise NotImplementedError
 
     def _delete_matrix(self, file_name: str, url: str) -> None:
         try:
