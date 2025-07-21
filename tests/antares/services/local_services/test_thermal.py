@@ -15,14 +15,13 @@ import copy
 import re
 
 from pathlib import Path
-from typing import cast
 
 import numpy as np
 import pandas as pd
 
 from checksumdir import dirhash
 
-from antares.craft import ClusterData, ConstraintTerm, LocalConfiguration, Study
+from antares.craft import ClusterData, ConstraintTerm, Study
 from antares.craft.exceptions.exceptions import (
     MatrixFormatError,
     ReferencedObjectDeletionNotAllowed,
@@ -71,7 +70,7 @@ class TestThermalCluster:
         assert thermal_cluster.properties == ThermalClusterProperties(group=ThermalClusterGroup.NUCLEAR, must_run=True)
 
     def test_required_ini_files_exist(self, tmp_path: Path, local_study_w_thermal: Study) -> None:
-        study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
+        study_path = Path(local_study_w_thermal.path)
         assert (study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini").exists()
         assert (study_path / "input" / "thermal" / "areas.ini").exists()
 
@@ -116,7 +115,7 @@ efficiency = 100.0
 variableomcost = 0.0
 
 """
-        study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
+        study_path = Path(local_study_w_thermal.path)
         assert (
             study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini"
         ).read_text() == expected_list_ini_contents
@@ -209,7 +208,7 @@ variableomcost = 5.0
     def test_list_ini_has_multiple_clusters(self, local_study_w_thermal: Study) -> None:
         # Asserts we can create 2 clusters
         local_study_w_thermal.get_areas()["fr"].create_thermal_cluster("test thermal cluster two")
-        study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
+        study_path = Path(local_study_w_thermal.path)
         ini_content = IniReader().read(study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini")
 
         assert len(ini_content.keys()) == 2
@@ -262,7 +261,7 @@ variableomcost = 5.0
         assert new_properties == expected_properties
         assert thermal.properties == expected_properties
         # Asserts the ini file is properly modified
-        study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
+        study_path = Path(local_study_w_thermal.path)
         ini_content = IniReader().read(study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini")
         assert ini_content == {
             "test thermal cluster": {
@@ -354,7 +353,7 @@ variableomcost = 5.0
         area_fr.delete_thermal_cluster(thermal_1)
         assert list(area_fr.get_thermals().keys()) == ["th_2", "th_3"]
         # Checks ini content
-        study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
+        study_path = Path(local_study_w_thermal.path)
         ini_content = IniReader().read(study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini")
         assert list(ini_content.keys()) == ["th_2", "th_3"]
 

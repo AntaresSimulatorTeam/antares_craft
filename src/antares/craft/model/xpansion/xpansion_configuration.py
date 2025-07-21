@@ -14,7 +14,7 @@ from typing import Optional
 
 import pandas as pd
 
-from antares.craft.exceptions.exceptions import XpansionResourceDeletionError
+from antares.craft.exceptions.exceptions import XpansionCandidateDeletionError, XpansionResourceDeletionError
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
@@ -107,6 +107,16 @@ class XpansionConfiguration:
         return cdt
 
     def delete_candidates(self, names: list[str]) -> None:
+        # Checks the candidates are not referenced inside the sensitivity config
+        problematic_candidates = set()
+        for name in names:
+            if name in set(self._sensitivity.projection):
+                problematic_candidates.add(name)
+        if problematic_candidates:
+            raise XpansionCandidateDeletionError(
+                self._xpansion_service.config, problematic_candidates, "They are referenced in the sensitivity config"
+            )
+        # Performs the deletion
         self._xpansion_service.delete_candidates(set(names))
         for name in names:
             del self._candidates[name]

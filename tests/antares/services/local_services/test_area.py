@@ -23,7 +23,6 @@ import numpy as np
 import pandas as pd
 
 from antares.craft import STStoragePropertiesUpdate, Study, read_study_local
-from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     InvalidFieldForVersionError,
     MatrixFormatError,
@@ -808,7 +807,7 @@ class TestReadReserves:
 
 class TestReadWind:
     def test_read_wind_local(self, local_study_w_areas: Study) -> None:
-        study_path = t.cast(LocalConfiguration, local_study_w_areas.service.config).study_path
+        study_path = Path(local_study_w_areas.path)
         areas = local_study_w_areas.get_areas()
 
         for area in areas.values():
@@ -829,7 +828,7 @@ class TestReadWind:
 
 class TestReadmisc_gen:
     def test_read_misc_gen_local(self, local_study_w_areas: Study) -> None:
-        study_path = t.cast(LocalConfiguration, local_study_w_areas.service.config).study_path
+        study_path = Path(local_study_w_areas.path)
         areas = local_study_w_areas.get_areas()
 
         for area in areas.values():

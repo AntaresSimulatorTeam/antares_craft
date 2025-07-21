@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING, Dict, Optional
 
 import pandas as pd
 
-from antares.craft.config.base_configuration import BaseConfiguration
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.model.xpansion.candidate import XpansionLinkProfile
@@ -607,12 +606,6 @@ class BaseStudyService(ABC):
     @abstractmethod
     def study_id(self) -> str:
         """The ID for the study"""
-        pass
-
-    @property
-    @abstractmethod
-    def config(self) -> BaseConfiguration:
-        """The configuration of the study."""
         pass
 
     @abstractmethod

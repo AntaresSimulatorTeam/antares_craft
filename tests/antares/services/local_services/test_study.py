@@ -13,7 +13,6 @@ import pytest
 
 import os
 import re
-import typing as t
 
 from configparser import ConfigParser
 from pathlib import Path
@@ -23,7 +22,6 @@ import numpy as np
 import pandas as pd
 
 from antares.craft import Study, create_study_local, read_study_local
-from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     BindingConstraintCreationError,
@@ -176,8 +174,7 @@ class TestCreateStudy:
 mode = annual
 
 """
-        local_config = t.cast(LocalConfiguration, local_study.service.config)
-        study_path = local_config.study_path
+        study_path = Path(local_study.path)
         for folder in ["hydro", "load", "solar", "wind"]:
             ini_path = study_path / "input" / folder / "prepro" / "correlation.ini"
             assert ini_path.exists()
@@ -1252,8 +1249,7 @@ at%fr = 1%1
         )
 
         # Then
-        local_config = t.cast(LocalConfiguration, local_study_with_constraint.service.config)
-        study_path = local_config.study_path
+        study_path = Path(local_study_with_constraint.path)
 
         actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / "test greater_gt.txt")
         assert not actual_file_path.read_text()
@@ -1282,8 +1278,7 @@ at%fr = 1%1
             greater_term_matrix=expected_time_series,
         )
 
-        local_config = t.cast(LocalConfiguration, local_study.service.config)
-        study_path = local_config.study_path
+        study_path = Path(local_study.path)
         actual_file_path = study_path.joinpath(Path("input") / "bindingconstraints" / f"{bc_name}_gt.txt")
         actual_time_series = pd.read_csv(actual_file_path, sep="\t", header=None, dtype=float)
 
