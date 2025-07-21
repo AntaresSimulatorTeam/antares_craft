@@ -37,7 +37,6 @@ from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import Job, JobStatus
-from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
 ASSETS_DIR = Path(__file__).parent / "assets"
@@ -961,7 +960,7 @@ class TestWebClient:
         ######################
 
         # Asserts a random study doesn't contain any Xpansion configuration
-        assert imported_study.xpansion is None
+        assert not imported_study.has_an_xpansion_configuration
 
         # Imports a study with a real case Xpansion configuration
         study = create_study_local("Xpansion study", "8.8", tmp_path)
@@ -973,7 +972,6 @@ class TestWebClient:
         # Ensures the reading succeeds.
         imported_study = import_study_api(api_config, zip_study)
         xpansion = imported_study.xpansion
-        assert isinstance(xpansion, XpansionConfiguration)
         assert xpansion.settings == XpansionSettings(
             optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
         )
@@ -1245,9 +1243,9 @@ class TestWebClient:
 
         # Deletes the configuration
         imported_study.delete_xpansion_configuration()
-        assert imported_study.xpansion is None
+        assert not imported_study.has_an_xpansion_configuration
         study = read_study_api(api_config, imported_study.service.study_id)
-        assert study.xpansion is None
+        assert not study.has_an_xpansion_configuration
 
         ######################
         # Specific tests for study version 9.2

@@ -337,7 +337,7 @@ class TestCreateAPI:
             assert actual_study.name == expected_study.name
             assert actual_study._version == expected_study._version
             assert actual_study.service.study_id == expected_study.service.study_id
-            assert actual_study.xpansion is None
+            assert not actual_study.has_an_xpansion_configuration
 
     def test_create_variant_success(self) -> None:
         variant_name = "variant_test"

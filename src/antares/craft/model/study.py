@@ -28,6 +28,7 @@ from antares.craft.exceptions.exceptions import (
     ReadingMethodUsedOufOfScopeError,
     ReferencedObjectDeletionNotAllowed,
     UnsupportedStudyVersion,
+    XpansionConfigurationMissingError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -403,8 +404,14 @@ class Study:
         self._study_service.set_scenario_builder(scenario_builder)
 
     @property
-    def xpansion(self) -> XpansionConfiguration | None:
+    def xpansion(self) -> XpansionConfiguration:
+        if self._xpansion_configuration is None:
+            raise XpansionConfigurationMissingError(self._study_service.study_id)
         return self._xpansion_configuration
+
+    @property
+    def has_an_xpansion_configuration(self) -> bool:
+        return self._xpansion_configuration is not None
 
     def _read_xpansion_configuration(self) -> None:
         self._xpansion_configuration = self._xpansion_service.read_xpansion_configuration()

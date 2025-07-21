@@ -55,21 +55,18 @@ class TestXpansion:
         with zipfile.ZipFile(resource, "r") as zf:
             zf.extractall(study_path / "user" / "expansion")
         # Read the study
-        xpansion = read_study_local(study_path).xpansion
-        assert isinstance(xpansion, XpansionConfiguration)
-        return xpansion
+        return read_study_local(study_path).xpansion
 
     def test_create_and_read_basic_configuration(self, local_study_w_links: Study) -> None:
         # Asserts at first Xpansion is None.
-        assert local_study_w_links.xpansion is None
+        assert not local_study_w_links.has_an_xpansion_configuration
         # Reading a study without an Xpansion configuration works. It returns None as an ` xpansion ` attribute.
         study_path = Path(local_study_w_links.path)
         study = read_study_local(study_path)
-        assert study.xpansion is None
+        assert not study.has_an_xpansion_configuration
 
         # Create Xpansion configuration.
         xpansion = local_study_w_links.create_xpansion_configuration()
-        assert isinstance(xpansion, XpansionConfiguration)
         assert xpansion.settings == XpansionSettings()
         assert xpansion.get_candidates() == {}
         assert xpansion.get_constraints() == {}
@@ -78,7 +75,6 @@ class TestXpansion:
         # Asserts the reading works.
         study = read_study_local(study_path)
         xpansion_read = study.xpansion
-        assert isinstance(xpansion_read, XpansionConfiguration)
         assert xpansion_read.settings == XpansionSettings()
         assert xpansion_read.get_candidates() == {}
         assert xpansion_read.get_constraints() == {}
@@ -86,12 +82,12 @@ class TestXpansion:
 
         # Deletes the configuration.
         study.delete_xpansion_configuration()
-        assert study.xpansion is None
+        assert not study.has_an_xpansion_configuration
         assert not (study_path / "user" / "expansion").exists()
 
     def test_fancy_configuration(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Asserts at first Xpansion is None.
-        assert local_study_w_links.xpansion is None
+        assert not local_study_w_links.has_an_xpansion_configuration
         # Set up
         xpansion = self._set_up(local_study_w_links, xpansion_input_path)
         # Checks
@@ -192,7 +188,6 @@ class TestXpansion:
             f.writelines(f"{k}={v}\n" for k, v in content["settings"].items())
         # Read the study to synchronize
         xpansion_read = read_study_local(study_path).xpansion
-        assert xpansion_read is not None
         with pytest.raises(
             XpansionResourceDeletionError,
             match=re.escape("Could not delete the weight other_weights.ini: It is referenced in the settings"),
