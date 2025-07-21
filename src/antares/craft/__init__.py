@@ -205,5 +205,5 @@ __all__ = [
     "XpansionConstraintUpdate",
     "XpansionSensitivity",
     "XpansionSensitivityUpdate",
-    "InflowStructureUpdate"
+    "InflowStructureUpdate",
 ]

@@ -9,6 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+# ruff: noqa: F405
+
 import pytest
 
 import shutil
@@ -20,7 +22,7 @@ from typing import Generator
 import numpy as np
 import pandas as pd
 
-from antares.craft import *
+from antares.craft import *  # noqa: F403
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
     ConstraintMatrixUpdateError,
