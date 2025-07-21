@@ -114,7 +114,7 @@ class XpansionConfiguration:
                 problematic_candidates.add(name)
         if problematic_candidates:
             raise XpansionCandidateDeletionError(
-                self._xpansion_service.config, problematic_candidates, "They are referenced in the sensitivity config"
+                self._xpansion_service.study_id, problematic_candidates, "They are referenced in the sensitivity config"
             )
         # Performs the deletion
         self._xpansion_service.delete_candidates(set(names))

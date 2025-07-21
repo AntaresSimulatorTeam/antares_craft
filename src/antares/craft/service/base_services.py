@@ -833,6 +833,12 @@ class BaseStudySettingsService(ABC):
 
 
 class BaseXpansionService(ABC):
+    @property
+    @abstractmethod
+    def study_id(self) -> str:
+        """The ID for the study"""
+        pass
+
     @abstractmethod
     def read_xpansion_configuration(self) -> Optional["XpansionConfiguration"]:
         """
