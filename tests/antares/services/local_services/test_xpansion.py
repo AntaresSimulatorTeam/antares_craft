@@ -489,3 +489,11 @@ class TestXpansion:
         # Deletes the file
         xpansion.delete_constraints_file("new_file.ini")
         assert not ini_path.exists()
+
+    def test_settings(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+        # Set up
+        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+
+        assert xpansion.settings == XpansionSettings(
+            optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
+        )

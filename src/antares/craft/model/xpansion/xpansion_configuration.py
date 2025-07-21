@@ -14,12 +14,11 @@ from typing import Optional
 
 import pandas as pd
 
-from antares.craft import XpansionSettingsUpdate
 from antares.craft.exceptions.exceptions import XpansionResourceDeletionError
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate
 from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
-from antares.craft.model.xpansion.settings import XpansionSettings
+from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate
 from antares.craft.service.base_services import BaseXpansionService
 from antares.craft.tools.contents_tool import EnumIgnoreCase
 
