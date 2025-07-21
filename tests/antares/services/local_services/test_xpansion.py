@@ -37,6 +37,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
     XpansionResourceDeletionError,
+    XpansionSettingsEditionError,
 )
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint
@@ -497,10 +498,6 @@ class TestXpansion:
         xpansion.delete_constraints_file("new_file.ini")
         assert not ini_path.exists()
 
-    def test_settings_error_cases(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
-        # Set up
-        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
-
     def test_settings(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Set up
         xpansion = self._set_up(local_study_w_links, xpansion_input_path)
@@ -550,3 +547,15 @@ class TestXpansion:
         content = IniReader().read(ini_path)
         del expected_content["additional-constraints"]
         assert content["settings"] == expected_content
+
+        # Assert we cannot update the constraint or weights with fake files
+        fake_file = "fake_file.ini"
+        for settings in [
+            XpansionSettingsUpdate(additional_constraints=fake_file),
+            XpansionSettingsUpdate(yearly_weights=fake_file),
+        ]:
+            with pytest.raises(
+                XpansionSettingsEditionError,
+                match=f"Could not update the xpansion settings for study studyTest: The file {fake_file} does not exist",
+            ):
+                xpansion.update_settings(settings)
