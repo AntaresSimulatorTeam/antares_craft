@@ -10,15 +10,15 @@
 #
 # This file is part of the Antares project.
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 
 @dataclass(frozen=True)
 class XpansionSensitivity:
-    epsilon: float
-    projection: list[str]
-    capex: bool
+    epsilon: float = 0
+    projection: list[str] = field(default_factory=list)
+    capex: bool = False
 
 
 @dataclass
