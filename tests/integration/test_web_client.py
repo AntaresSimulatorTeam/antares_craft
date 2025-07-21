@@ -31,7 +31,6 @@ from antares.craft.exceptions.exceptions import (
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
 )
-from antares.craft.model.hydro import InflowStructureUpdate
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters
 from antares.craft.model.settings.study_settings import StudySettings
