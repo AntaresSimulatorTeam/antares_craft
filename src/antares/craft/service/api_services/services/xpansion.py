@@ -42,7 +42,11 @@ from antares.craft.model.xpansion.candidate import (
     update_candidate,
 )
 from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate, update_constraint
-from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
+from antares.craft.model.xpansion.sensitivity import (
+    XpansionSensitivity,
+    XpansionSensitivityUpdate,
+    update_xpansion_sensitivity,
+)
 from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate, update_xpansion_settings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.api_services.models.xpansion import (
@@ -264,8 +268,8 @@ class XpansionAPIService(BaseXpansionService):
     @override
     def update_settings(self, settings: XpansionSettingsUpdate, current_settings: XpansionSettings) -> XpansionSettings:
         # We have to send `yearly-weights` and `additional-constraints` fields to the Web API otherwise it deletes them.
-        new_settings = update_xpansion_settings(settings, current_settings)
-        return self._update_settings(new_settings)
+        new_settings = update_xpansion_settings(current_settings, settings)
+        return self._update_settings(new_settings, None)[0]
 
     @override
     def remove_constraints_and_or_weights_from_settings(
@@ -275,13 +279,27 @@ class XpansionAPIService(BaseXpansionService):
             settings = replace(settings, additional_constraints=None)
         if weight:
             settings = replace(settings, yearly_weights=None)
-        return self._update_settings(settings)
+        return self._update_settings(settings, None)[0]
 
-    def _update_settings(self, settings: XpansionSettings) -> XpansionSettings:
+    @override
+    def update_sensitivity(
+        self,
+        sensitivity: XpansionSensitivityUpdate,
+        current_settings: XpansionSettings,
+        current_sensitivity: XpansionSensitivity,
+    ) -> XpansionSensitivity:
+        # We have to send `yearly-weights` and `additional-constraints` fields to the Web API otherwise it deletes them.
+        # We also have to re-send the sensitivity as a whole
+        new_sensitivity = update_xpansion_sensitivity(current_sensitivity, sensitivity)
+        return self._update_settings(current_settings, new_sensitivity)[1]
+
+    def _update_settings(
+        self, settings: XpansionSettings, sensitivity: XpansionSensitivity | None
+    ) -> tuple[XpansionSettings, XpansionSensitivity]:
         try:
-            body = serialize_xpansion_settings_api(settings, None)
+            body = serialize_xpansion_settings_api(settings, sensitivity)
             response = self._wrapper.put(f"{self._expansion_url}/settings", json=body).json()
-            return parse_xpansion_settings_api(response)[0]
+            return parse_xpansion_settings_api(response)
         except APIError as e:
             raise XpansionSettingsEditionError(self._study_id, e.message) from e
 

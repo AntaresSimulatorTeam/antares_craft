@@ -31,6 +31,8 @@ if TYPE_CHECKING:
         XpansionCandidateUpdate,
         XpansionConstraint,
         XpansionConstraintUpdate,
+        XpansionSensitivity,
+        XpansionSensitivityUpdate,
         XpansionSettings,
         XpansionSettingsUpdate,
     )
@@ -954,6 +956,18 @@ class BaseXpansionService(ABC):
     def remove_constraints_and_or_weights_from_settings(
         self, constraint: bool, weight: bool, settings: "XpansionSettings"
     ) -> "XpansionSettings":
+        """
+        Removes the additional constraint and/or yearly-weights from the xpansion settings for a given study
+        """
+        pass
+
+    @abstractmethod
+    def update_sensitivity(
+        self,
+        sensitivity: "XpansionSensitivityUpdate",
+        current_settings: "XpansionSettings",
+        current_sensitivity: "XpansionSensitivity",
+    ) -> "XpansionSensitivity":
         """
         Removes the additional constraint and/or yearly-weights from the xpansion settings for a given study
         """

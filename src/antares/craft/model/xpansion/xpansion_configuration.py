@@ -14,10 +14,14 @@ from typing import Optional
 
 import pandas as pd
 
-from antares.craft.exceptions.exceptions import XpansionCandidateDeletionError, XpansionResourceDeletionError
+from antares.craft.exceptions.exceptions import (
+    XpansionCandidateDeletionError,
+    XpansionResourceDeletionError,
+    XpansionSensitivityEditionError,
+)
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate
-from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
+from antares.craft.model.xpansion.sensitivity import XpansionSensitivity, XpansionSensitivityUpdate
 from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate
 from antares.craft.service.base_services import BaseXpansionService
 from antares.craft.tools.contents_tool import EnumIgnoreCase
@@ -162,3 +166,19 @@ class XpansionConfiguration:
             constraint, weight, self._settings
         )
         self._settings = new_settings
+
+    def update_sensitivity(self, sensitivity: XpansionSensitivityUpdate) -> XpansionSensitivity:
+        # Ensures projections correspond to existing candidates
+        if sensitivity.projection:
+            problematic_candidates = set()
+            for name in sensitivity.projection:
+                if name not in self._candidates:
+                    problematic_candidates.add(name)
+            if problematic_candidates:
+                raise XpansionSensitivityEditionError(
+                    self._xpansion_service.study_id, f"The candidates {problematic_candidates} do not exist"
+                )
+        # Performs the update
+        new_sensitivity = self._xpansion_service.update_sensitivity(sensitivity, self._settings, self._sensitivity)
+        self._sensitivity = new_sensitivity
+        return new_sensitivity

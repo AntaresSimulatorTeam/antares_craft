@@ -1212,6 +1212,20 @@ class TestWebClient:
         )
         xpansion.create_constraint(constraint, "new_file.ini")
 
+        ############# Sensitivity ##############
+        assert xpansion.sensitivity == XpansionSensitivity(epsilon=10000, projection=["battery", "pv"], capex=True)
+        # Updates the sensitivity
+        sensitivity_update = XpansionSensitivityUpdate(epsilon=2, projection=["semibase", "pv"])
+        new_sensitivity = xpansion.update_sensitivity(sensitivity_update)
+        assert new_sensitivity == XpansionSensitivity(epsilon=2, projection=["semibase", "pv"], capex=True)
+
+        # Checks we didn't alter the settings
+        xpansion_read = read_study_api(api_config, imported_study.service.study_id).xpansion
+        assert xpansion_read.sensitivity == XpansionSensitivity(epsilon=2, projection=["semibase", "pv"], capex=True)
+        assert xpansion_read.settings == XpansionSettings(
+            optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
+        )
+
         ############# Settings ##############
         # Updates the settings
         settings_update = XpansionSettingsUpdate(

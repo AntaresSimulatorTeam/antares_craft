@@ -37,11 +37,12 @@ from antares.craft.exceptions.exceptions import (
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
     XpansionResourceDeletionError,
+    XpansionSensitivityEditionError,
     XpansionSettingsEditionError,
 )
 from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionLinkProfile
 from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint
-from antares.craft.model.xpansion.sensitivity import XpansionSensitivity
+from antares.craft.model.xpansion.sensitivity import XpansionSensitivity, XpansionSensitivityUpdate
 from antares.craft.model.xpansion.settings import XpansionSettings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -566,3 +567,30 @@ class TestXpansion:
                 match=f"Could not update the xpansion settings for study studyTest: The file {fake_file} does not exist",
             ):
                 xpansion.update_settings(settings)
+
+    def test_sensitivity(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
+        # Set up
+        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+
+        # Checks values before update
+        assert xpansion.sensitivity == XpansionSensitivity(epsilon=10000, projection=["battery", "pv"], capex=True)
+
+        # Ensures we cannot give fake candidates as projection
+        with pytest.raises(
+            XpansionSensitivityEditionError,
+            match=re.escape(
+                "Could not update the xpansion sensitivity for study studyTest: The candidates {'fake_candidate'} do not exist"
+            ),
+        ):
+            new_sensi = XpansionSensitivityUpdate(projection=["pv", "fake_candidate"])
+            xpansion.update_sensitivity(new_sensi)
+
+        # Update the sensitivity
+        new_sensi = XpansionSensitivityUpdate(epsilon=2, projection=["pv", "semibase"])
+        sensi = xpansion.update_sensitivity(new_sensi)
+        assert sensi == XpansionSensitivity(epsilon=2, projection=["pv", "semibase"], capex=True)
+        assert xpansion.sensitivity == sensi
+
+        # Checks the ini content
+        file_path = Path(local_study_w_links.path) / "user" / "expansion" / "sensitivity" / "sensitivity_in.json"
+        assert file_path.read_text() == '{"epsilon":2.0,"projection":["pv","semibase"],"capex":true}'

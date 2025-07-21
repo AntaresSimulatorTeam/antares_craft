@@ -25,6 +25,7 @@ from antares.craft import (
     XpansionConstraint,
     XpansionConstraintUpdate,
     XpansionSensitivity,
+    XpansionSensitivityUpdate,
 )
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
@@ -41,6 +42,7 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.xpansion.candidate import XpansionLinkProfile, update_candidate
 from antares.craft.model.xpansion.constraint import update_constraint
+from antares.craft.model.xpansion.sensitivity import update_xpansion_sensitivity
 from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate, update_xpansion_settings
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.base_services import BaseXpansionService
@@ -95,9 +97,7 @@ class XpansionLocalService(BaseXpansionService):
         if file_name:
             constraints = self._read_constraints(file_name)
         # Sensitivity
-        sensitivity = XpansionSensitivity()
-        if sensitivity_content := self._read_sensitivity():
-            sensitivity = parse_xpansion_sensitivity_local(sensitivity_content)
+        sensitivity = self._read_sensitivity()
         return XpansionConfiguration(
             self, settings=settings, candidates=candidates, constraints=constraints, sensitivity=sensitivity
         )
@@ -258,7 +258,7 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def update_settings(self, settings: XpansionSettingsUpdate, current_settings: XpansionSettings) -> XpansionSettings:
-        new_settings = update_xpansion_settings(settings, current_settings)
+        new_settings = update_xpansion_settings(current_settings, settings)
         self._check_settings_coherence(new_settings)
         self._write_settings(new_settings)
         return new_settings
@@ -273,6 +273,17 @@ class XpansionLocalService(BaseXpansionService):
             settings = replace(settings, yearly_weights=None)
         self._write_settings(settings)
         return settings
+
+    @override
+    def update_sensitivity(
+        self,
+        sensitivity: XpansionSensitivityUpdate,
+        current_settings: XpansionSettings,
+        current_sensitivity: XpansionSensitivity,
+    ) -> XpansionSensitivity:
+        new_sensitivity = update_xpansion_sensitivity(current_sensitivity, sensitivity)
+        self._write_sensitivity(new_sensitivity)
+        return new_sensitivity
 
     def _read_settings(self) -> XpansionSettings:
         ini_content = IniReader().read(self._xpansion_path / "settings.ini")["settings"]
@@ -291,11 +302,11 @@ class XpansionLocalService(BaseXpansionService):
         ini_content = serialize_xpansion_constraints_local(constraints)
         IniWriter().write(ini_content, self._xpansion_path / "constraints" / file_name)
 
-    def _read_sensitivity(self) -> dict[str, Any]:
+    def _read_sensitivity(self) -> XpansionSensitivity:
         file_path = self._xpansion_path / "sensitivity" / "sensitivity_in.json"
         if file_path.exists():
-            return from_json(file_path.read_text())
-        return {}
+            return parse_xpansion_sensitivity_local(from_json(file_path.read_text()))
+        return XpansionSensitivity()
 
     def _checks_candidate_coherence(self, candidate: XpansionCandidate) -> None:
         area_from, area_to = sorted([candidate.area_from, candidate.area_to])
