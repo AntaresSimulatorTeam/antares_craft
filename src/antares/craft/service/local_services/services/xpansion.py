@@ -281,7 +281,6 @@ class XpansionLocalService(BaseXpansionService):
         current_settings: XpansionSettings,
         current_sensitivity: XpansionSensitivity,
     ) -> XpansionSensitivity:
-        current_sensitivity = self._read_sensitivity()
         new_sensitivity = update_xpansion_sensitivity(current_sensitivity, sensitivity)
         self._write_sensitivity(new_sensitivity)
         return new_sensitivity
