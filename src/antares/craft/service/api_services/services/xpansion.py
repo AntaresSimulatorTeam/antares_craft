@@ -259,10 +259,16 @@ class XpansionAPIService(BaseXpansionService):
         url = f"{self._expansion_url}/settings"
         try:
             body = serialize_xpansion_settings_api(settings, None)
+            # todo: we have to keep the weights and additional constraitns that existed ....
             response = self._wrapper.put(url, json=body).json()
             return parse_xpansion_settings_api(response)[0]
         except APIError as e:
             raise XpansionSettingsEditionError(self.study_id, e.message) from e
+
+    @override
+    def remove_constraints_and_or_weights_from_settings(self, constraint: bool, weight: bool) -> XpansionSettings:
+        # todo
+        raise NotImplementedError
 
     def _delete_matrix(self, file_name: str, url: str) -> None:
         try:
