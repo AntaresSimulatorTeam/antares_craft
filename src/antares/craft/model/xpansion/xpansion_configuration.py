@@ -16,6 +16,7 @@ import pandas as pd
 
 from antares.craft.exceptions.exceptions import (
     XpansionCandidateDeletionError,
+    XpansionCandidateEditionError,
     XpansionResourceDeletionError,
     XpansionSensitivityEditionError,
 )
@@ -102,6 +103,14 @@ class XpansionConfiguration:
         return cdt
 
     def update_candidate(self, candidate_name: str, candidate: XpansionCandidateUpdate) -> XpansionCandidate:
+        if candidate.name and candidate.name != candidate_name:
+            # Means we're renaming a candidate
+            # We have to check it wasn't referenced inside the sensitivity config
+            if candidate_name in self._sensitivity.projection:
+                raise XpansionCandidateEditionError(
+                    self._xpansion_service.study_id, candidate_name, "It is referenced in the sensitivity config"
+                )
+
         cdt = self._xpansion_service.update_candidate(candidate_name, candidate)
         if cdt.name not in self._candidates:
             # Means we're renaming a candidate (+ updating it)
