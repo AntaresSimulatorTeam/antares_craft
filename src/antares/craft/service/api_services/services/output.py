@@ -86,8 +86,7 @@ class OutputApiService(BaseOutputService):
         raw_url = f"{self._base_url}/studies/{self.study_id}/raw/original-file?path={full_path}"
         try:
             response = self._wrapper.get(raw_url)
-            data = StringIO(response.text)
-            return parse_xpansion_out_json(data)
+            return parse_xpansion_out_json(response.text)
         except APIError as e:
             raise XpansionOutputParsingError(self.study_id, output_id, "out.json", e.message)
 
@@ -97,7 +96,6 @@ class OutputApiService(BaseOutputService):
         raw_url = f"{self._base_url}/studies/{self.study_id}/raw/original-file?path={full_path}"
         try:
             response = self._wrapper.get(raw_url)
-            data = StringIO(response.text)
-            return parse_xpansion_sensitivity_out_json(data)
+            return parse_xpansion_sensitivity_out_json(response.text)
         except APIError as e:
             raise XpansionOutputParsingError(self.study_id, output_id, "sensitivity/out.json", e.message)

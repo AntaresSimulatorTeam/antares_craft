@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from io import StringIO
 
 import pandas as pd
 
@@ -58,8 +57,7 @@ class OutputLocalService(BaseOutputService):
     def get_xpansion_result(self, output_id: str) -> XpansionResult:
         file_path = self.config.study_path / "output" / output_id / "expansion" / "out.json"
         try:
-            data = StringIO(file_path.read_text())
-            return parse_xpansion_out_json(data)
+            return parse_xpansion_out_json(file_path.read_text())
         except Exception as e:
             raise XpansionOutputParsingError(self.study_name, output_id, "out.json", e.args[0])
 
@@ -67,7 +65,6 @@ class OutputLocalService(BaseOutputService):
     def get_xpansion_sensitivity_result(self, output_id: str) -> XpansionSensitivityResult:
         file_path = self.config.study_path / "output" / output_id / "sensitivity" / "out.json"
         try:
-            data = StringIO(file_path.read_text())
-            return parse_xpansion_sensitivity_out_json(data)
+            return parse_xpansion_sensitivity_out_json(file_path.read_text())
         except Exception as e:
             raise XpansionOutputParsingError(self.study_name, output_id, "sensitivity/out.json", e.args[0])

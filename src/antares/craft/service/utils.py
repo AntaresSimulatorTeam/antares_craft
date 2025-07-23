@@ -29,9 +29,9 @@ def read_output_matrix(data: Path | StringIO, frequency: Frequency) -> pd.DataFr
     return final_df
 
 
-def parse_xpansion_out_json(content: StringIO) -> XpansionResult:
+def parse_xpansion_out_json(content: str) -> XpansionResult:
     raise NotImplementedError
 
 
-def parse_xpansion_sensitivity_out_json(content: StringIO) -> XpansionSensitivityResult:
+def parse_xpansion_sensitivity_out_json(content: str) -> XpansionSensitivityResult:
     raise NotImplementedError
