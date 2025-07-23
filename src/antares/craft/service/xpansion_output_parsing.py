@@ -62,7 +62,7 @@ def parse_xpansion_out_json(content: str) -> XpansionResult:
             )
         iterations[int(key)] = XpansionOutputIteration(
             best_ub=value["best_ub"],
-            candidates=value["candidates"],
+            candidates=candidates,
             cumulative_number_of_subproblem_resolutions=value["cumulative_number_of_subproblem_resolutions"],
             investment_cost=value["investment_cost"],
             lb=value["lb"],
