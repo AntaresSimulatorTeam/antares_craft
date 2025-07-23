@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from typing import Optional
 
@@ -56,12 +57,42 @@ class CandidateResult:
     max: float
     min: float
 
+@dataclass(frozen=True)
+class XpansionOutputAntares:
+    version: str
 
 @dataclass(frozen=True)
-class XpansionResult:
-    iterations: list[dict[str, CandidateResult]]
+class XpansionOutputOptions:
+    log_level: int
+    master_name: str
+    problem_format: str
+    solver_name: str
+
+@dataclass(frozen=True)
+class XpansionOutputIterationCandidate:
+    invest: float
+    max: float
+    min: float
+
+@dataclass(frozen=True)
+class XpansionOutputIteration:
+    best_ub: float
+    candidates: dict[str, XpansionOutputIterationCandidate]
+    cumulative_number_of_subproblem_resolutions: int
     investment_cost: float
-    nb_iteration: int
+    lb: float
+    master_duration: float
+    operational_cost: float
+    optimality_gap: float
+    overall_cost: float
+    relative_gap: float
+    subproblem_duration: float
+    ub: float
+
+@dataclass(frozen=True)
+class XpansionOutputSolution:
+    investment_cost: float
+    iteration: int
     operational_cost: float
     optimality_gap: float
     overall_cost: float
@@ -69,6 +100,19 @@ class XpansionResult:
     relative_gap: float
     stopping_criterion: str
     values: dict[str, float]
+
+
+@dataclass(frozen=True)
+class XpansionResult:
+    antares: XpansionOutputAntares
+    antares_xpansion: XpansionOutputAntares
+    begin: datetime
+    end: datetime
+    iterations: dict[int, XpansionOutputIteration]
+    nb_weeks: int
+    options: XpansionOutputOptions
+    run_duration: float
+    solution: XpansionOutputSolution
 
 
 @dataclass(frozen=True)

@@ -11,73 +11,83 @@
 # This file is part of the Antares project.
 
 
-from antares.craft.model.output import XpansionResult, XpansionSensitivityResult
-from antares.craft.service.api_services.models.base_model import APIBaseModel
+from datetime import datetime
+
+from antares.craft.model.output import (
+    XpansionOutputAntares,
+    XpansionOutputIteration,
+    XpansionOutputIterationCandidate,
+    XpansionOutputOptions,
+    XpansionOutputSolution,
+    XpansionResult,
+    XpansionSensitivityResult,
+)
 from antares.craft.tools.serde_local.json import from_json
-
-
-def to_upper(x: str) -> str:
-    return x.upper()
-
-class XpansionOutputAntares(APIBaseModel):
-    version: str
-
-class XpansionOutputOptions(APIBaseModel, alias_generator=to_upper):
-    log_level: int
-    master_name: str
-    problem_format: str
-    solver_name: str
-
-class XpansionOutputSolutionValues(APIBaseModel):
-    pass
-
-class XpansionOutputIterationCandidate(APIBaseModel):
-    invest: float
-    max: float
-    min: float
-    name: str
-
-class XpansionOutputIteration(APIBaseModel):
-    best_ub: float
-    candidates: list[XpansionOutputIterationCandidate]
-    cumulative_number_of_subproblem_resolutions: int
-    investment_cost: float
-    lb: float
-    master_duration: float
-    operational_cost: float
-    optimality_gap: float
-    overall_cost: float
-    relative_gap: float
-    subproblem_duration: float
-    ub: float
-
-
-class XpansionOutputSolution(APIBaseModel):
-    investment_cost: float
-    iteration: int
-    operational_cost: float
-    optimality_gap: float
-    overall_cost: float
-    problem_status: str
-    relative_gap: float
-    stopping_criterion: str
-    values: XpansionOutputSolutionValues
-
-class XpansionOutput(APIBaseModel):
-    antares: XpansionOutputAntares
-    antares_xpansion: XpansionOutputAntares
-    begin: str
-    end: str
-    iterations: dict[str, XpansionOutputIteration]
-    nb_weeks: int
-    options: XpansionOutputOptions
-    run_duration: float
-    solution: XpansionOutputSolution
 
 
 def parse_xpansion_out_json(content: str) -> XpansionResult:
     json_content = from_json(content)
-    internal_model = XpansionOutput.model_validate(json_content)
+    antares = XpansionOutputAntares(version=json_content['antares']['version'])
+    antares_xpansion = XpansionOutputAntares(version=json_content['antares_xpansion']['version'])
+    options_json = json_content["options"]
+
+    options = XpansionOutputOptions(
+    log_level = options_json["LOG_LEVEL"],
+        master_name = options_json["MASTER_NAME"],
+        problem_format = options_json["PROBLEM_FORMAT"],
+        solver_name = options_json["SOLVER_NAME"]
+    )
+
+    solution_json = json_content["solution"]
+    solution = XpansionOutputSolution(
+        investment_cost = solution_json["investment_cost"],
+        iteration = solution_json["iteration"],
+        operational_cost = solution_json["operational_cost"],
+        optimality_gap = solution_json["optimality_gap"],
+        overall_cost = solution_json["overall_cost"],
+        problem_status = solution_json["problem_status"],
+        relative_gap = solution_json["relative_gap"],
+        stopping_criterion = solution_json["stopping_criterion"],
+        values = solution_json["values"]
+    )
+
+    iterations_json = json_content["iterations"]
+    iterations = {}
+    for key, value in iterations_json.items():
+        json_candidates = value["candidates"]
+        candidates = {}
+        for json_cdt in json_candidates:
+            candidates[json_cdt["name"]] = XpansionOutputIterationCandidate(
+                invest = json_cdt["invest"],
+                max = json_cdt["max"],
+                min = json_cdt["min"]
+            )
+        iterations[int(key)] = XpansionOutputIteration(
+            best_ub = value["best_ub"],
+            candidates = value["candidates"],
+            cumulative_number_of_subproblem_resolutions = value["cumulative_number_of_subproblem_resolutions"],
+            investment_cost = value["investment_cost"],
+            lb = value["lb"],
+            master_duration = value["master_duration"],
+            operational_cost = value["operational_cost"],
+            optimality_gap = value["optimality_gap"],
+            overall_cost = value["overall_cost"],
+            relative_gap = value["relative_gap"],
+            subproblem_duration = value["subproblem_duration"],
+            ub = value["ub"]
+        )
+
+    return XpansionResult(
+       antares=antares,
+       antares_xpansion=antares_xpansion,
+       begin=datetime.strptime(json_content['begin'], "%d-%m-%Y %H:%M:%S"),
+       end=datetime.strptime(json_content['end'], "%d-%m-%Y %H:%M:%S"),
+       iterations=iterations,
+       nb_weeks=json_content['nbWeeks'],
+       options=options,
+       run_duration=json_content['run_duration'],
+       solution=solution
+    )
 
 
 
