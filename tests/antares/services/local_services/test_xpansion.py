@@ -303,6 +303,14 @@ class TestXpansion:
         ):
             xpansion.delete_candidates(["battery"])
 
+        # Asserts we cannot rename a candidate referenced inside the sensitivity projections
+        with pytest.raises(
+            XpansionCandidateEditionError,
+            match="Could not edit the candidate battery for study studyTest: It is referenced in the sensitivity config",
+        ):
+            new_candidate = XpansionCandidateUpdate(name="new_name")
+            xpansion.update_candidate("battery", new_candidate)
+
     def test_candidates(self, local_study: Study, xpansion_input_path: Path) -> None:
         # Set up
         xpansion = self._set_up(local_study, xpansion_input_path)
