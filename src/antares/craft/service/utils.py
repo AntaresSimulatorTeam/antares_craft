@@ -16,6 +16,7 @@ import pandas as pd
 
 from antares.craft.model.output import Frequency, XpansionResult, XpansionSensitivityResult
 from antares.craft.service.local_services.services.output.date_serializer import FactoryDateSerializer, rename_unnamed
+from antares.craft.tools.serde_local.json import from_json
 
 
 def read_output_matrix(data: Path | StringIO, frequency: Frequency) -> pd.DataFrame:
@@ -30,8 +31,9 @@ def read_output_matrix(data: Path | StringIO, frequency: Frequency) -> pd.DataFr
 
 
 def parse_xpansion_out_json(content: str) -> XpansionResult:
-    raise NotImplementedError
+    json_content = from_json(content)
+
 
 
 def parse_xpansion_sensitivity_out_json(content: str) -> XpansionSensitivityResult:
-    raise NotImplementedError
+    json_content = from_json(content)
