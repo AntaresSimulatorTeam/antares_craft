@@ -22,7 +22,8 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import AggregateCreationError, APIError, XpansionOutputParsingError
 from antares.craft.model.output import AggregationEntry, Frequency, XpansionResult, XpansionSensitivityResult
 from antares.craft.service.base_services import BaseOutputService
-from antares.craft.service.utils import parse_xpansion_out_json, parse_xpansion_sensitivity_out_json, read_output_matrix
+from antares.craft.service.utils import read_output_matrix
+from antares.craft.service.xpansion_output_parsing import parse_xpansion_out_json, parse_xpansion_sensitivity_out_json
 
 
 class OutputApiService(BaseOutputService):

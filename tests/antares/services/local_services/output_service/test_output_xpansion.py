@@ -35,3 +35,5 @@ class TestXpansionOutputReading:
         output = self._set_up(local_study, xpansion_output_path)
         assert output.name == "xpansion_output"
         assert not output.archived
+
+        output.get_xpansion_result()
