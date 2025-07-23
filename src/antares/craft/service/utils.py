@@ -27,4 +27,3 @@ def read_output_matrix(data: Path | StringIO, frequency: Frequency) -> pd.DataFr
     final_df = rename_unnamed(body).astype(float)
 
     return final_df
-

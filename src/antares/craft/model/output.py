@@ -57,9 +57,11 @@ class CandidateResult:
     max: float
     min: float
 
+
 @dataclass(frozen=True)
 class XpansionOutputAntares:
     version: str
+
 
 @dataclass(frozen=True)
 class XpansionOutputOptions:
@@ -68,11 +70,13 @@ class XpansionOutputOptions:
     problem_format: str
     solver_name: str
 
+
 @dataclass(frozen=True)
 class XpansionOutputIterationCandidate:
     invest: float
     max: float
     min: float
+
 
 @dataclass(frozen=True)
 class XpansionOutputIteration:
@@ -88,6 +92,7 @@ class XpansionOutputIteration:
     relative_gap: float
     subproblem_duration: float
     ub: float
+
 
 @dataclass(frozen=True)
 class XpansionOutputSolution:

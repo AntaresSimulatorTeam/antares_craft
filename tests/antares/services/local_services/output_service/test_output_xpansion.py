@@ -30,7 +30,6 @@ class TestXpansionOutputReading:
         study._read_outputs()
         return study.get_outputs().values().__iter__().__next__()
 
-
     def test_nominal_case(self, local_study: Study, xpansion_output_path: Path) -> None:
         output = self._set_up(local_study, xpansion_output_path)
         assert output.name == "xpansion_output"
