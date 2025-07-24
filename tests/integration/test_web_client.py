@@ -32,7 +32,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
 )
-from antares.craft.model.output import XpansionResult
+from antares.craft.model.output import XpansionResult, XpansionSensitivityResult
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters
 from antares.craft.model.settings.study_settings import StudySettings
@@ -59,6 +59,7 @@ class TestWebClient:
         xpansion_input_path: Path,
         xpansion_output_path: Path,
         xpansion_expected_output: XpansionResult,
+        xpansion_sensitivity_expected_output: XpansionSensitivityResult,
     ) -> None:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
@@ -1260,6 +1261,9 @@ class TestWebClient:
 
         result = output.get_xpansion_result()
         assert result == xpansion_expected_output
+
+        sensitivity_result = output.get_xpansion_sensitivity_result()
+        assert sensitivity_result == xpansion_sensitivity_expected_output
 
         ######################
         # Specific tests for study version 9.2
