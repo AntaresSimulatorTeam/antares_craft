@@ -17,8 +17,10 @@ from antares.craft.model.output import (
     XpansionOutputAntares,
     XpansionOutputCandidate,
     XpansionOutputCandidateInvest,
+    XpansionOutputCandidateSensitivity,
     XpansionOutputIteration,
     XpansionOutputOptions,
+    XpansionOutputSensitivitySolution,
     XpansionOutputSolution,
     XpansionResult,
     XpansionSensitivityResult,
@@ -101,5 +103,40 @@ def parse_xpansion_out_json(content: str) -> XpansionResult:
 
 
 def parse_xpansion_sensitivity_out_json(content: str) -> XpansionSensitivityResult:
-    # json_content = from_json(content)
-    raise NotImplementedError
+    json_content = from_json(content)
+
+    antares = XpansionOutputAntares(version=json_content["antares"]["version"])
+    antares_xpansion = XpansionOutputAntares(version=json_content["antares_xpansion"]["version"])
+
+    candidates_minmax: dict[str, dict[str, XpansionOutputCandidateInvest]] = {}
+    sensi_solutions = {}
+    for json_solution in json_content["sensitivity solutions"]:
+        direction = json_solution["optimization direction"]
+        for cdt in json_solution["candidates"]:
+            candidates_minmax.setdefault(cdt["name"], {})[direction] = XpansionOutputCandidateInvest(cdt["invest"])
+        sensi_solutions[direction] = XpansionOutputSensitivitySolution(
+            objective=json_solution["objective"],
+            problem_type=json_solution["problem type"],
+            status=json_solution["status"],
+            system_cost=json_solution["system cost"],
+        )
+
+    candidates = {}
+    for bounds_json in json_content["candidates bounds"]:
+        cdt_name = bounds_json["name"]
+        candidates[cdt_name] = XpansionOutputCandidateSensitivity(
+            lb=bounds_json["lower bound"],
+            ub=bounds_json["upper bound"],
+            solution_max=candidates_minmax[cdt_name]["max"],
+            solution_min=candidates_minmax[cdt_name]["min"],
+        )
+
+    return XpansionSensitivityResult(
+        antares=antares,
+        antares_xpansion=antares_xpansion,
+        best_benders_cost=json_content["best benders cost"],
+        epsilon=json_content["epsilon"],
+        solution_max=sensi_solutions["max"],
+        solution_min=sensi_solutions["min"],
+        candidates=candidates,
+    )

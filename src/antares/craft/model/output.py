@@ -126,8 +126,30 @@ class XpansionResult:
 
 
 @dataclass(frozen=True)
+class XpansionOutputCandidateSensitivity:
+    lb: float
+    ub: float
+    solution_max: XpansionOutputCandidateInvest
+    solution_min: XpansionOutputCandidateInvest
+
+
+@dataclass(frozen=True)
+class XpansionOutputSensitivitySolution:
+    objective: float
+    problem_type: str
+    status: int
+    system_cost: float
+
+
+@dataclass(frozen=True)
 class XpansionSensitivityResult:
-    pass
+    antares: XpansionOutputAntares
+    antares_xpansion: XpansionOutputAntares
+    best_benders_cost: float
+    epsilon: float
+    candidates: dict[str, XpansionOutputCandidateSensitivity]
+    solution_max: XpansionOutputSensitivitySolution
+    solution_min: XpansionOutputSensitivitySolution
 
 
 @dataclass
