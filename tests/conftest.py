@@ -19,10 +19,13 @@ from antares.craft.model.output import (
     XpansionOutputAntares,
     XpansionOutputCandidate,
     XpansionOutputCandidateInvest,
+    XpansionOutputCandidateSensitivity,
     XpansionOutputIteration,
     XpansionOutputOptions,
+    XpansionOutputSensitivitySolution,
     XpansionOutputSolution,
     XpansionResult,
+    XpansionSensitivityResult,
 )
 
 
@@ -488,4 +491,58 @@ def xpansion_expected_output() -> XpansionResult:
                 ],
             ),
         },
+    )
+
+
+@pytest.fixture
+def xpansion_sensitivity_expected_output() -> XpansionSensitivityResult:
+    return XpansionSensitivityResult(
+        antares=XpansionOutputAntares(version="9.2.0-rc7"),
+        antares_xpansion=XpansionOutputAntares(version="1.4.0"),
+        best_benders_cost=132222947226.60637,
+        epsilon=100000.0,
+        candidates={
+            "102_fr_storage_energyconst": XpansionOutputCandidateSensitivity(
+                lb=0.0,
+                ub=2500.0,
+                solution_max=XpansionOutputCandidateInvest(invest=2.520208288663973),
+                solution_min=XpansionOutputCandidateInvest(invest=0.043657588539645076),
+            ),
+            "102_fr_storage_pump": XpansionOutputCandidateSensitivity(
+                lb=0.0,
+                ub=20000.0,
+                solution_max=XpansionOutputCandidateInvest(invest=20.161666309311784),
+                solution_min=XpansionOutputCandidateInvest(invest=0.3492607083171606),
+            ),
+            "102_fr_storage_turb": XpansionOutputCandidateSensitivity(
+                lb=0.0,
+                ub=20000.0,
+                solution_max=XpansionOutputCandidateInvest(invest=20.161666309311784),
+                solution_min=XpansionOutputCandidateInvest(invest=0.34926070825895295),
+            ),
+            "29_be_36_nl67_id_hyb_6": XpansionOutputCandidateSensitivity(
+                lb=0.0,
+                ub=2000.0,
+                solution_max=XpansionOutputCandidateInvest(invest=2000.0),
+                solution_min=XpansionOutputCandidateInvest(invest=-0.0),
+            ),
+            "30_be_33_nl_id_346": XpansionOutputCandidateSensitivity(
+                lb=0.0,
+                ub=1000.0,
+                solution_max=XpansionOutputCandidateInvest(invest=-0.0),
+                solution_min=XpansionOutputCandidateInvest(invest=-0.0),
+            ),
+            "30_be_storage_energyconst": XpansionOutputCandidateSensitivity(
+                lb=0.0,
+                ub=2500.0,
+                solution_max=XpansionOutputCandidateInvest(invest=0.0),
+                solution_min=XpansionOutputCandidateInvest(invest=0.0),
+            ),
+        },
+        solution_max=XpansionOutputSensitivitySolution(
+            objective=3982100703.915628, problem_type="capex", status=0, system_cost=132223047226.60637
+        ),
+        solution_min=XpansionOutputSensitivitySolution(
+            objective=3295281252.030145, problem_type="capex", status=0, system_cost=132223047226.6064
+        ),
     )
