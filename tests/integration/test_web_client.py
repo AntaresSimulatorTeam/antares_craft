@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 # ruff: noqa: F405
-
 import pytest
 
 import shutil
@@ -33,6 +32,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
 )
+from antares.craft.model.output import XpansionResult, XpansionSensitivityResult
 from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
 from antares.craft.model.settings.advanced_parameters import AdvancedParameters
 from antares.craft.model.settings.study_settings import StudySettings
@@ -57,6 +57,9 @@ class TestWebClient:
         tmp_path: Path,
         default_thematic_trimming_88: ThematicTrimmingParameters,
         xpansion_input_path: Path,
+        xpansion_output_path: Path,
+        xpansion_expected_output: XpansionResult,
+        xpansion_sensitivity_expected_output: XpansionSensitivityResult,
     ) -> None:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
@@ -926,7 +929,7 @@ class TestWebClient:
 
         # testing import study
         # creating a test path to not affect the internal studies created
-        test_path = Path(antares_web.desktop_path.joinpath("internal_studies").joinpath(study.service.study_id))
+        test_path = antares_web.desktop_path / "internal_studies" / study.service.study_id
         copy_dir = tmp_path / test_path.name
 
         tmp_path_zip = tmp_path / copy_dir.name
@@ -962,11 +965,13 @@ class TestWebClient:
         # Asserts a random study doesn't contain any Xpansion configuration
         assert not imported_study.has_an_xpansion_configuration
 
-        # Imports a study with a real case Xpansion configuration
+        # Imports a study with a real case Xpansion configuration and a real xpansion output
         study = create_study_local("Xpansion study", "8.8", tmp_path)
         study_path = Path(study.path)
         with zipfile.ZipFile(xpansion_input_path, "r") as zf:
             zf.extractall(study_path / "user" / "expansion")
+        with zipfile.ZipFile(xpansion_output_path, "r") as zf:
+            zf.extractall(study_path / "output" / "20250724-1040eco")
         zip_study = Path(shutil.make_archive(base_name=str(study_path), base_dir=study_path, format="zip"))
 
         # Ensures the reading succeeds.
@@ -1134,13 +1139,14 @@ class TestWebClient:
         xpansion.remove_links_profile_from_candidate("new_name", [XpansionLinkProfile.DIRECT_LINK])
         assert xpansion.get_candidates()["new_name"].direct_link_profile is None
         # Ensures that even when reading the candidate we still have `direct_link_profile` to None
-        imported_study = read_study_api(api_config, imported_study.service.study_id)
+        imported_study = read_study_api(api_config, study_id)
+        study_id = imported_study.service.study_id
         assert imported_study.xpansion.get_candidates()["new_name"].direct_link_profile is None
 
         # Removes several candidates
         xpansion.delete_candidates(["peak", "transmission_line"])
         assert len(xpansion.get_candidates()) == 4
-        xpansion = read_study_api(api_config, imported_study.service.study_id).xpansion
+        xpansion = read_study_api(api_config, study_id).xpansion
         assert len(xpansion.get_candidates()) == 4
 
         ############# Constraints ##############
@@ -1184,7 +1190,7 @@ class TestWebClient:
         assert modified_constraint.name == "new_name"
 
         # Ensures reading works correctly
-        xpansion = read_study_api(api_config, imported_study.service.study_id).xpansion
+        xpansion = read_study_api(api_config, study_id).xpansion
         assert xpansion.get_constraints() == {
             "additional_c1": XpansionConstraint(
                 name="additional_c1",
@@ -1218,7 +1224,7 @@ class TestWebClient:
         assert new_sensitivity == XpansionSensitivity(epsilon=2, projection=["semibase", "pv"], capex=True)
 
         # Checks we didn't alter the settings
-        xpansion_read = read_study_api(api_config, imported_study.service.study_id).xpansion
+        xpansion_read = read_study_api(api_config, study_id).xpansion
         assert xpansion_read.sensitivity == XpansionSensitivity(epsilon=2, projection=["semibase", "pv"], capex=True)
         assert xpansion_read.settings == XpansionSettings(
             optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
@@ -1244,8 +1250,20 @@ class TestWebClient:
         # Deletes the configuration
         imported_study.delete_xpansion_configuration()
         assert not imported_study.has_an_xpansion_configuration
-        study = read_study_api(api_config, imported_study.service.study_id)
+        study = read_study_api(api_config, study_id)
         assert not study.has_an_xpansion_configuration
+
+        ############# Outputs reading ##############
+        output = study.get_outputs().values().__iter__().__next__()
+
+        assert output.name == "20250724-1040eco"
+        assert not output.archived
+
+        result = output.get_xpansion_result()
+        assert result == xpansion_expected_output
+
+        sensitivity_result = output.get_xpansion_sensitivity_result()
+        assert sensitivity_result == xpansion_sensitivity_expected_output
 
         ######################
         # Specific tests for study version 9.2

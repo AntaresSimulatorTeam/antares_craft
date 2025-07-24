@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from typing import Optional
 
@@ -48,6 +49,100 @@ class Frequency(Enum):
     WEEKLY = "weekly"
     MONTHLY = "monthly"
     ANNUAL = "annual"
+
+
+@dataclass(frozen=True)
+class XpansionOutputAntares:
+    version: str
+
+
+@dataclass(frozen=True)
+class XpansionOutputOptions:
+    log_level: int
+    master_name: str
+    problem_format: str
+    solver_name: str
+
+
+@dataclass(frozen=True)
+class XpansionOutputIteration:
+    best_ub: float
+    cumulative_number_of_subproblem_resolutions: int
+    investment_cost: float
+    lb: float
+    master_duration: float
+    operational_cost: float
+    optimality_gap: float
+    overall_cost: float
+    relative_gap: float
+    subproblem_duration: float
+    ub: float
+
+
+@dataclass(frozen=True)
+class XpansionOutputSolution:
+    investment_cost: float
+    iteration: int
+    operational_cost: float
+    optimality_gap: float
+    overall_cost: float
+    problem_status: str
+    relative_gap: float
+    stopping_criterion: str
+
+
+@dataclass(frozen=True)
+class XpansionOutputCandidateInvest:
+    invest: float
+
+
+@dataclass(frozen=True)
+class XpansionOutputCandidate:
+    solution: float
+    max: float
+    min: float
+    iterations: list[XpansionOutputCandidateInvest]
+
+
+@dataclass(frozen=True)
+class XpansionResult:
+    antares: XpansionOutputAntares
+    antares_xpansion: XpansionOutputAntares
+    begin: datetime
+    end: datetime
+    iterations: dict[int, XpansionOutputIteration]
+    nb_weeks: int
+    options: XpansionOutputOptions
+    run_duration: float
+    solution: XpansionOutputSolution
+    candidates: dict[str, XpansionOutputCandidate]
+
+
+@dataclass(frozen=True)
+class XpansionOutputCandidateSensitivity:
+    lb: float
+    ub: float
+    solution_max: XpansionOutputCandidateInvest
+    solution_min: XpansionOutputCandidateInvest
+
+
+@dataclass(frozen=True)
+class XpansionOutputSensitivitySolution:
+    objective: float
+    problem_type: str
+    status: int
+    system_cost: float
+
+
+@dataclass(frozen=True)
+class XpansionSensitivityResult:
+    antares: XpansionOutputAntares
+    antares_xpansion: XpansionOutputAntares
+    best_benders_cost: float
+    epsilon: float
+    candidates: dict[str, XpansionOutputCandidateSensitivity]
+    solution_max: XpansionOutputSensitivitySolution
+    solution_min: XpansionOutputSensitivitySolution
 
 
 @dataclass
@@ -277,3 +372,9 @@ class Output:
         )
 
         return self._output_service.aggregate_values(self.name, aggregation_entry, "links", "all")
+
+    def get_xpansion_result(self) -> XpansionResult:
+        return self._output_service.get_xpansion_result(self.name)
+
+    def get_xpansion_sensitivity_result(self) -> XpansionSensitivityResult:
+        return self._output_service.get_xpansion_sensitivity_result(self.name)
