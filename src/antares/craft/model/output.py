@@ -52,13 +52,6 @@ class Frequency(Enum):
 
 
 @dataclass(frozen=True)
-class CandidateResult:
-    invest: float
-    max: float
-    min: float
-
-
-@dataclass(frozen=True)
 class XpansionOutputAntares:
     version: str
 
@@ -81,7 +74,6 @@ class XpansionOutputIterationCandidate:
 @dataclass(frozen=True)
 class XpansionOutputIteration:
     best_ub: float
-    candidates: dict[str, XpansionOutputIterationCandidate]
     cumulative_number_of_subproblem_resolutions: int
     investment_cost: float
     lb: float
@@ -104,7 +96,19 @@ class XpansionOutputSolution:
     problem_status: str
     relative_gap: float
     stopping_criterion: str
-    values: dict[str, float]
+
+
+@dataclass(frozen=True)
+class XpansionOutputCandidateInvest:
+    invest: float
+
+
+@dataclass(frozen=True)
+class XpansionOutputCandidate:
+    solution: float
+    max: float
+    min: float
+    iterations: list[XpansionOutputCandidateInvest]
 
 
 @dataclass(frozen=True)
@@ -118,6 +122,7 @@ class XpansionResult:
     options: XpansionOutputOptions
     run_duration: float
     solution: XpansionOutputSolution
+    candidates: dict[str, XpansionOutputCandidate]
 
 
 @dataclass(frozen=True)

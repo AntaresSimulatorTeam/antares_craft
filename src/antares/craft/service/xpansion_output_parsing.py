@@ -15,8 +15,9 @@ from datetime import datetime
 
 from antares.craft.model.output import (
     XpansionOutputAntares,
+    XpansionOutputCandidate,
+    XpansionOutputCandidateInvest,
     XpansionOutputIteration,
-    XpansionOutputIterationCandidate,
     XpansionOutputOptions,
     XpansionOutputSolution,
     XpansionResult,
@@ -27,10 +28,11 @@ from antares.craft.tools.serde_local.json import from_json
 
 def parse_xpansion_out_json(content: str) -> XpansionResult:
     json_content = from_json(content)
+
     antares = XpansionOutputAntares(version=json_content["antares"]["version"])
     antares_xpansion = XpansionOutputAntares(version=json_content["antares_xpansion"]["version"])
-    options_json = json_content["options"]
 
+    options_json = json_content["options"]
     options = XpansionOutputOptions(
         log_level=options_json["LOG_LEVEL"],
         master_name=options_json["MASTER_NAME"],
@@ -48,31 +50,40 @@ def parse_xpansion_out_json(content: str) -> XpansionResult:
         problem_status=solution_json["problem_status"],
         relative_gap=solution_json["relative_gap"],
         stopping_criterion=solution_json["stopping_criterion"],
-        values=solution_json["values"],
     )
 
     iterations_json = json_content["iterations"]
+    iterations_cdt: dict[str, dict[int, XpansionOutputCandidateInvest]] = {}
+    max_min = {}
     iterations = {}
     for key, value in iterations_json.items():
         json_candidates = value["candidates"]
-        candidates = {}
         for json_cdt in json_candidates:
-            candidates[json_cdt["name"]] = XpansionOutputIterationCandidate(
-                invest=json_cdt["invest"], max=json_cdt["max"], min=json_cdt["min"]
+            iterations_cdt.setdefault(json_cdt["name"], {})[int(key)] = XpansionOutputCandidateInvest(
+                invest=json_cdt["invest"]
             )
-        iterations[int(key)] = XpansionOutputIteration(
-            best_ub=value["best_ub"],
-            candidates=candidates,
-            cumulative_number_of_subproblem_resolutions=value["cumulative_number_of_subproblem_resolutions"],
-            investment_cost=value["investment_cost"],
-            lb=value["lb"],
-            master_duration=value["master_duration"],
-            operational_cost=value["operational_cost"],
-            optimality_gap=value["optimality_gap"],
-            overall_cost=value["overall_cost"],
-            relative_gap=value["relative_gap"],
-            subproblem_duration=value["subproblem_duration"],
-            ub=value["ub"],
+            max_min[json_cdt["name"]] = (json_cdt["max"], json_cdt["min"])
+
+            iterations[int(key)] = XpansionOutputIteration(
+                best_ub=value["best_ub"],
+                cumulative_number_of_subproblem_resolutions=value["cumulative_number_of_subproblem_resolutions"],
+                investment_cost=value["investment_cost"],
+                lb=value["lb"],
+                master_duration=value["master_duration"],
+                operational_cost=value["operational_cost"],
+                optimality_gap=value["optimality_gap"],
+                overall_cost=value["overall_cost"],
+                relative_gap=value["relative_gap"],
+                subproblem_duration=value["subproblem_duration"],
+                ub=value["ub"],
+            )
+
+    candidates = {}
+    for key, value in solution_json["values"].items():
+        iterations_not_sorted = iterations_cdt[key]
+        iterations_sorted = dict(sorted(iterations_not_sorted.items()))
+        candidates[key] = XpansionOutputCandidate(
+            solution=value, max=max_min[key][0], min=max_min[key][1], iterations=list(iterations_sorted.values())
         )
 
     return XpansionResult(
@@ -85,6 +96,7 @@ def parse_xpansion_out_json(content: str) -> XpansionResult:
         options=options,
         run_duration=json_content["run_duration"],
         solution=solution,
+        candidates=candidates,
     )
 
 
