@@ -64,8 +64,8 @@ class OutputLocalService(BaseOutputService):
 
     @override
     def get_xpansion_sensitivity_result(self, output_id: str) -> XpansionSensitivityResult:
-        file_path = self.config.study_path / "output" / output_id / "sensitivity" / "out.json"
+        file_path = self.config.study_path / "output" / output_id / "sensitivity" / "sensitivity_out.json"
         try:
             return parse_xpansion_sensitivity_out_json(file_path.read_text())
         except Exception as e:
-            raise XpansionOutputParsingError(self.study_name, output_id, "sensitivity/out.json", e.args[0])
+            raise XpansionOutputParsingError(self.study_name, output_id, "sensitivity_out.json", e.args[0])

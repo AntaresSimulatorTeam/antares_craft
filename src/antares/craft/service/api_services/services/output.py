@@ -99,4 +99,4 @@ class OutputApiService(BaseOutputService):
             response = self._wrapper.get(raw_url)
             return parse_xpansion_sensitivity_out_json(response.text)
         except APIError as e:
-            raise XpansionOutputParsingError(self.study_id, output_id, "sensitivity/out.json", e.message)
+            raise XpansionOutputParsingError(self.study_id, output_id, "sensitivity_out.json", e.message)
