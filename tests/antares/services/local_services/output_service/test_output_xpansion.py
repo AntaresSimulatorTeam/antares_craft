@@ -19,6 +19,7 @@ from antares.craft.model.output import (
     Output,
     XpansionResult,
 )
+from antares.craft.service.local_services.factory import read_study_local
 
 
 class TestXpansionOutputReading:
@@ -28,7 +29,7 @@ class TestXpansionOutputReading:
         with zipfile.ZipFile(resource, "r") as zf:
             zf.extractall(study_path / "output" / "xpansion_output")
         # Read the study
-        study._read_outputs()
+        study = read_study_local(study_path)
         return study.get_outputs().values().__iter__().__next__()
 
     def test_nominal_case(
