@@ -65,13 +65,6 @@ class XpansionOutputOptions:
 
 
 @dataclass(frozen=True)
-class XpansionOutputIterationCandidate:
-    invest: float
-    max: float
-    min: float
-
-
-@dataclass(frozen=True)
 class XpansionOutputIteration:
     best_ub: float
     cumulative_number_of_subproblem_resolutions: int
