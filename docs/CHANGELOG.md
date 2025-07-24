@@ -1,3 +1,11 @@
+v0.3.0 (2025-07-24)
+-------------------
+
+### Features
+* **xpansion**: implement matrices reading [231](https://github.com/AntaresSimulatorTeam/antares_craft/pull/231)
+* **xpansion**: implement inputs editing  [232](https://github.com/AntaresSimulatorTeam/antares_craft/pull/232), [233](https://github.com/AntaresSimulatorTeam/antares_craft/pull/233), [234](https://github.com/AntaresSimulatorTeam/antares_craft/pull/234), [235](https://github.com/AntaresSimulatorTeam/antares_craft/pull/235), [236](https://github.com/AntaresSimulatorTeam/antares_craft/pull/236), [237](https://github.com/AntaresSimulatorTeam/antares_craft/pull/237), [238](https://github.com/AntaresSimulatorTeam/antares_craft/pull/238), [239](https://github.com/AntaresSimulatorTeam/antares_craft/pull/239), [240](https://github.com/AntaresSimulatorTeam/antares_craft/pull/240), [241](https://github.com/AntaresSimulatorTeam/antares_craft/pull/241)
+* **xpansion**: implement outputs reading [206](https://github.com/AntaresSimulatorTeam/antares_craft/pull/206)
+
 v0.2.10 (2025-07-16)
 -------------------
 
