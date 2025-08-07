@@ -325,12 +325,17 @@ class AggregatorManager:
 
                 df = df.replace({np.nan: None})
 
-                append = False if k == 0 else True
-                df.to_parquet(df_path, compression=None, engine="fastparquet", append=append, index=False)
+                headers = False
+                append = True
+                if k == 0:
+                    headers = True
+                    append = False
+
+                df.to_csv(df_path, mode="a" if append else "w", decimal=".", index=False, header=headers)
 
             if not df_path.exists():
                 return pd.DataFrame()
-            return pd.read_parquet(df_path, index=False)
+            return pd.read_csv(df_path)
 
     def _check_mc_root_folder_exists(self) -> None:
         if self.mc_root == MCRoot.MC_IND:
