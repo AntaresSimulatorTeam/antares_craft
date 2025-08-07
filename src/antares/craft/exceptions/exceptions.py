@@ -678,3 +678,12 @@ class STStorageConstraintEditionError(Exception):
     def __init__(self, study_name: str, message: str) -> None:
         self.message = f"Could not update short-term storage constraints for study {study_name}" + message
         super().__init__(self.message)
+
+
+class STStorageConstraintDeletionError(Exception):
+    def __init__(self, study_name: str, area_id: str, storage_id: str, message: str) -> None:
+        self.message = (
+            f"Could not delete constraints for storage {storage_id} inside area {area_id} for study {study_name}"
+            + message
+        )
+        super().__init__(self.message)

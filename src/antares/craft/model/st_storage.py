@@ -233,7 +233,9 @@ class STStorage:
         return updated_constraint
 
     def delete_constraints(self, constraint_ids: list[str]) -> None:
-        raise NotImplementedError()
+        self._storage_service.delete_constraints(self._area_id, self._id, constraint_ids)
+        for ids in constraint_ids:
+            del self._constraints[ids]
 
     def get_constraint_term(self, constraint_id: str) -> pd.DataFrame:
         raise NotImplementedError()

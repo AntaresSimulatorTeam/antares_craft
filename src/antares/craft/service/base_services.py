@@ -757,7 +757,7 @@ class BaseShortTermStorageService(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def delete_constraints(self, constraint_ids: list[str]) -> None:
+    def delete_constraints(self, area_id: str, storage_id: str, constraint_ids: list[str]) -> None:
         raise NotImplementedError()
 
     @abstractmethod
