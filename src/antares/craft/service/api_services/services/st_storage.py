@@ -165,9 +165,17 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
             raise STStorageConstraintDeletionError(self.study_id, area_id, storage_id, e.message) from e
 
     @override
-    def get_constraint_term(self, constraint_id: str) -> pd.DataFrame:
-        raise NotImplementedError()
+    def get_constraint_term(self, area_id: str, storage_id: str, constraint_id: str) -> pd.DataFrame:
+        series_path = f"input/st-storage/constraints/{area_id}/{storage_id}/rhs_{constraint_id}"
+        try:
+            return get_matrix(self._base_url, self.study_id, self._wrapper, series_path)
+        except APIError as e:
+            raise STStorageMatrixDownloadError(area_id, storage_id, f"constraint {constraint_id}", e.message) from e
 
     @override
-    def set_constraint_term(self, constraint_id: str, matrix: pd.DataFrame) -> None:
-        raise NotImplementedError()
+    def set_constraint_term(self, area_id: str, storage_id: str, constraint_id: str, matrix: pd.DataFrame) -> None:
+        series_path = f"input/st-storage/constraints/{area_id}/{storage_id}/rhs_{constraint_id}"
+        try:
+            update_series(self._base_url, self.study_id, self._wrapper, matrix, series_path)
+        except APIError as e:
+            raise STStorageMatrixUploadError(area_id, storage_id, f"constraint {constraint_id}", e.message) from e

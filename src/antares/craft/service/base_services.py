@@ -761,11 +761,11 @@ class BaseShortTermStorageService(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_constraint_term(self, constraint_id: str) -> pd.DataFrame:
+    def get_constraint_term(self, area_id: str, storage_id: str, constraint_id: str) -> pd.DataFrame:
         raise NotImplementedError()
 
     @abstractmethod
-    def set_constraint_term(self, constraint_id: str, matrix: pd.DataFrame) -> None:
+    def set_constraint_term(self, area_id: str, storage_id: str, constraint_id: str, matrix: pd.DataFrame) -> None:
         raise NotImplementedError()
 
 

@@ -238,7 +238,7 @@ class STStorage:
             del self._constraints[ids]
 
     def get_constraint_term(self, constraint_id: str) -> pd.DataFrame:
-        raise NotImplementedError()
+        return self._storage_service.get_constraint_term(self._area_id, self._id, constraint_id)
 
     def set_constraint_term(self, constraint_id: str, matrix: pd.DataFrame) -> None:
-        raise NotImplementedError()
+        self._storage_service.set_constraint_term(self._area_id, self._id, constraint_id, matrix)
