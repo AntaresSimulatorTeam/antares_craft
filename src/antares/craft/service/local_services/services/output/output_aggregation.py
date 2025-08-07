@@ -287,7 +287,7 @@ class AggregatorManager:
         ]
 
         with tempfile.TemporaryDirectory(suffix=".output_aggregation.tmp", prefix="~") as tmp_dir:
-            df_path = Path(tmp_dir) / "df.hdf"
+            df_path = Path(tmp_dir) / "df.parquet"
 
             for k, file_path in enumerate(files):
                 df = self._process_df(file_path, is_details)
