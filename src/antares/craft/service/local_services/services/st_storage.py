@@ -24,6 +24,8 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.st_storage import (
     STStorage,
+    STStorageAdditionalConstraint,
+    STStorageAdditionalConstraintUpdate,
     STStorageMatrixName,
     STStorageProperties,
     STStoragePropertiesUpdate,
@@ -166,3 +168,27 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
             self.save_ini(ini_content, area_id)
 
         return new_properties_dict
+
+    @override
+    def create_constraints(
+        self, area_id: str, storage_id: str, constraints: list[STStorageAdditionalConstraint]
+    ) -> list[STStorageAdditionalConstraint]:
+        raise NotImplementedError()
+
+    @override
+    def update_constraint(
+        self, area_id: str, storage_id: str, constraint_id: str, constraint: STStorageAdditionalConstraintUpdate
+    ) -> STStorageAdditionalConstraint:
+        raise NotImplementedError()
+
+    @override
+    def delete_constraints(self, area_id: str, storage_id: str, constraint_ids: list[str]) -> None:
+        raise NotImplementedError()
+
+    @override
+    def get_constraint_term(self, area_id: str, storage_id: str, constraint_id: str) -> pd.DataFrame:
+        raise NotImplementedError()
+
+    @override
+    def set_constraint_term(self, area_id: str, storage_id: str, constraint_id: str, matrix: pd.DataFrame) -> None:
+        raise NotImplementedError()
