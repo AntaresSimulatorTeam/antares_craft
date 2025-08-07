@@ -390,6 +390,7 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
     other5_level: bool
     sts_cashflow_by_cluster: bool
     npcap_hours: bool
+    bc_marg_cost: bool
     # Since v9.2
     sts_by_group: bool
 
@@ -468,6 +469,7 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
             sts_lvl_by_plant=self.sts_lvl_by_plant,
             sts_cashflow_by_cluster=self.sts_cashflow_by_cluster,
             npcap_hours=self.npcap_hours,
+            bc_marg_cost=self.bc_marg_cost,
             sts_by_group=self.sts_by_group,
             psp_open_injection=self.psp_open_injection,
             psp_open_withdrawal=self.psp_open_withdrawal,

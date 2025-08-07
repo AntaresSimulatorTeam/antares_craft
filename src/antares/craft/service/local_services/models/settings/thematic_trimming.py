@@ -121,6 +121,7 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
     # Since v8.8
     sts_cashflow_by_cluster: bool | None = Field(default=None, alias="STS Cashflow By Cluster")
     npcap_hours: bool | None = Field(default=None, alias="NPCAP HOURS")
+    bc_marg_cost: bool | None = Field(default=None, alias="BC. MARG. COST")
     # Since v9.2
     sts_by_group: bool | None = Field(default=None, alias="STS by group")
 
