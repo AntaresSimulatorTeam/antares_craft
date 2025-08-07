@@ -36,7 +36,7 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
     withdrawal_nominal_capacity: Capacity
     reservoir_capacity: Capacity
     efficiency: float = Field(1, ge=0)
-    initial_level: float = 0.5
+    initial_level: float = Field(default=0.5, ge=0, le=1)
     initial_level_optim: bool = False
     enabled: bool = True
     # add new parameter 9.2
@@ -81,6 +81,16 @@ def validate_st_storage_against_version(properties: STStoragePropertiesLocal, ve
 
         for field in STStoragePropertiesLocal.get_9_2_fields_and_default_value():
             check_min_version(properties, field, version)
+
+        if properties.efficiency > 1:
+            raise ValueError(f"Prior to v9.2, efficiency must be lower than 1 and was {properties.efficiency}")
+
+    else:
+        efficiency_withdrawal = 1 if properties.efficiency_withdrawal is None else properties.efficiency_withdrawal
+        if properties.efficiency > efficiency_withdrawal:
+            raise ValueError(
+                f"efficiency must be lower than efficiency_withdrawal. Currently: {properties.efficiency} > {efficiency_withdrawal}"
+            )
 
 
 def initialize_with_version(properties: STStoragePropertiesLocal, version: StudyVersion) -> STStoragePropertiesLocal:
