@@ -95,7 +95,7 @@ def _filtered_files_listing(
     filtered_files: Dict[str, MutableSequence[str]] = {}
     for folder_path in folders_to_check:
         for file in folder_path.iterdir():
-            if file.stem == f"{query_file}-{frequency}":
+            if file.stem == f"{query_file}-{frequency.value}":
                 filtered_files.setdefault(folder_path.name, []).append(file.name)
     return filtered_files
 
