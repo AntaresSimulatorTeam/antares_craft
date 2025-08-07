@@ -24,12 +24,14 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.st_storage import (
     STStorage,
+    STStorageAdditionalConstraint,
     STStorageMatrixName,
     STStorageProperties,
     STStoragePropertiesUpdate,
 )
 from antares.craft.service.api_services.models.st_storage import (
     parse_st_storage_api,
+    parse_st_storage_constraint_api,
     serialize_st_storage_api,
 )
 from antares.craft.service.api_services.utils import get_matrix, update_series
@@ -62,15 +64,28 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
 
     @override
     def read_st_storages(self) -> dict[str, dict[str, STStorage]]:
-        url = f"{self._base_url}/studies/{self.study_id}/table-mode/st-storages"
-        json_storage = self._wrapper.get(url).json()
+        # Constraints
+        constraints_url = f"{self._base_url}/studies/{self.study_id}/table-mode/st-storages-additional-constraints"
+        json_constraints = self._wrapper.get(constraints_url).json()
+
+        constraints_dict: dict[str, dict[str, list[STStorageAdditionalConstraint]]] = {}
+        for key, constraint_api in json_constraints.items():
+            area_id, storage_id, constraint_id = key.split(" / ")
+            args = {"id": constraint_id, **constraint_api}
+            constraint = parse_st_storage_constraint_api(args)
+            constraints_dict.setdefault(area_id, {}).setdefault(storage_id, []).append(constraint)
+
+        # Storages
+        storage_url = f"{self._base_url}/studies/{self.study_id}/table-mode/st-storages"
+        json_storage = self._wrapper.get(storage_url).json()
 
         storages: dict[str, dict[str, STStorage]] = {}
 
         for key, storage in json_storage.items():
             area_id, storage_id = key.split(" / ")
             storage_props = parse_st_storage_api(storage)
-            st_storage = STStorage(self, area_id, storage_id, storage_props)
+            constraints = constraints_dict.get(area_id, {}).get(storage_id, [])
+            st_storage = STStorage(self, area_id, storage_id, storage_props, constraints)
 
             storages.setdefault(area_id, {})[st_storage.id] = st_storage
 

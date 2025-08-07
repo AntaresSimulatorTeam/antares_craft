@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
@@ -77,6 +77,44 @@ class STStorageProperties:
     penalize_variation_withdrawal: Optional[bool] = None  # default False
 
 
+class AdditionalConstraintVariable(EnumIgnoreCase):
+    WITHDRAWAL = "withdrawal"
+    INJECTION = "injection"
+    NETTING = "netting"
+
+
+class AdditionalConstraintOperator(EnumIgnoreCase):
+    LESS = "less"
+    GREATER = "greater"
+    EQUAL = "equal"
+
+
+@dataclass(frozen=True)
+class Occurrence:
+    hours: list[int]
+
+
+@dataclass(frozen=True)
+class STStorageAdditionalConstraint:
+    id: str = field(init=False)
+    name: str
+    variable: AdditionalConstraintVariable = AdditionalConstraintVariable.NETTING
+    operator: AdditionalConstraintOperator = AdditionalConstraintOperator.LESS
+    occurrences: list[Occurrence] = field(default_factory=list)
+    enabled: bool = True
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "id", transform_name_to_id(self.name))
+
+
+@dataclass(frozen=True)
+class STStorageAdditionalConstraintUpdate:
+    variable: Optional[AdditionalConstraintVariable] = None
+    operator: Optional[AdditionalConstraintOperator] = None
+    occurrences: Optional[list[Occurrence]] = None
+    enabled: Optional[bool] = None
+
+
 class STStorage:
     def __init__(
         self,
@@ -84,12 +122,14 @@ class STStorage:
         area_id: str,
         name: str,
         properties: Optional[STStorageProperties] = None,
+        constraints: Optional[list[STStorageAdditionalConstraint]] = None,
     ):
         self._area_id: str = area_id
         self._storage_service: BaseShortTermStorageService = storage_service
         self._name: str = name
         self._id: str = transform_name_to_id(name)
         self._properties: STStorageProperties = properties or STStorageProperties()
+        self._constraints = constraints or []
 
     @property
     def area_id(self) -> str:
