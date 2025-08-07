@@ -15,7 +15,7 @@ import tempfile
 
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, MutableSequence, Optional, Sequence, cast
+from typing import Any, Dict, List, MutableSequence, Optional, Sequence
 
 import numpy as np
 import pandas as pd
@@ -322,11 +322,11 @@ class AggregatorManager:
                 df = df.replace({np.nan: None})
 
                 append = False if k == 0 else True
-                df.to_hdf(df_path, key="data", append=append, index=False, format="table", mode="r+" if append else "w")
+                df.to_parquet(df_path, compression=None, engine="fastparquet", append=append)
 
             if not df_path.exists():
                 return pd.DataFrame()
-            return cast(pd.DataFrame, pd.read_hdf(df_path, key="data"))
+            return pd.read_parquet(df_path)
 
     def _check_mc_root_folder_exists(self) -> None:
         if self.mc_root == MCRoot.MC_IND:
