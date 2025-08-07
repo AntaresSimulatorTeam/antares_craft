@@ -234,13 +234,18 @@ class TestSTStorage:
             "reservoir_capacity",
             "efficiency",
             "efficiency_withdrawal",
+            "initial_level",
         ]:
             with pytest.raises(ValueError, match="Input should be greater than or equal to 0"):
                 area.create_st_storage("sts", properties=STStorageProperties(**{field: -2}))  # type: ignore
 
-        with pytest.raises(ValueError, match=re.escape("efficiency_withdrawal must be greater than efficiency")):
+        with pytest.raises(
+            ValueError, match=re.escape("efficiency must be lower than efficiency_withdrawal. Currently: 1.0 > 0.4")
+        ):
             area.create_st_storage("sts", properties=STStorageProperties(efficiency_withdrawal=0.4))
 
         storage = area.create_st_storage("sts")
-        with pytest.raises(ValueError, match=re.escape("efficiency_withdrawal must be greater than efficiency")):
+        with pytest.raises(
+            ValueError, match=re.escape("efficiency must be lower than efficiency_withdrawal. Currently: 4.0 > 1")
+        ):
             storage.update_properties(STStoragePropertiesUpdate(efficiency=4))
