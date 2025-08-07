@@ -224,15 +224,15 @@ class STStorage:
         raise NotImplementedError()
 
     def update_constraint(
-        self, id: str, constraint: STStorageAdditionalConstraintUpdate
+        self, constraint_id: str, constraint: STStorageAdditionalConstraintUpdate
     ) -> STStorageAdditionalConstraint:
         raise NotImplementedError()
 
-    def delete_constraints(self, ids: list[str]) -> None:
+    def delete_constraints(self, constraint_ids: list[str]) -> None:
         raise NotImplementedError()
 
-    def get_constraint_term(self, id: str) -> pd.DataFrame:
+    def get_constraint_term(self, constraint_id: str) -> pd.DataFrame:
         raise NotImplementedError()
 
-    def set_constraint_term(self, id: str, matrix: pd.DataFrame) -> None:
+    def set_constraint_term(self, constraint_id: str, matrix: pd.DataFrame) -> None:
         raise NotImplementedError()
