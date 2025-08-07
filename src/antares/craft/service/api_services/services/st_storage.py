@@ -20,6 +20,7 @@ from antares.craft.exceptions.exceptions import (
     APIError,
     ClustersPropertiesUpdateError,
     STStorageConstraintCreationError,
+    STStorageConstraintEditionError,
     STStorageMatrixDownloadError,
     STStorageMatrixUploadError,
 )
@@ -139,9 +140,18 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
 
     @override
     def update_constraint(
-        self, constraint_id: str, constraint: STStorageAdditionalConstraintUpdate
+        self, area_id: str, storage_id: str, constraint_id: str, constraint: STStorageAdditionalConstraintUpdate
     ) -> STStorageAdditionalConstraint:
-        raise NotImplementedError()
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages/{storage_id}/additional-constraints"
+
+        try:
+            body = {constraint_id: serialize_st_storage_constraint_api(constraint)}
+            json_response = self._wrapper.put(url, json=body).json()
+
+            return parse_st_storage_constraint_api(json_response[0])
+
+        except APIError as e:
+            raise STStorageConstraintEditionError(self.study_id, e.message) from e
 
     @override
     def delete_constraints(self, constraint_ids: list[str]) -> None:

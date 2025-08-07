@@ -228,7 +228,9 @@ class STStorage:
     def update_constraint(
         self, constraint_id: str, constraint: STStorageAdditionalConstraintUpdate
     ) -> STStorageAdditionalConstraint:
-        raise NotImplementedError()
+        updated_constraint = self._storage_service.update_constraint(self._area_id, self._id, constraint_id, constraint)
+        self._constraints[constraint_id] = updated_constraint
+        return updated_constraint
 
     def delete_constraints(self, constraint_ids: list[str]) -> None:
         raise NotImplementedError()

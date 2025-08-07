@@ -752,7 +752,7 @@ class BaseShortTermStorageService(ABC):
 
     @abstractmethod
     def update_constraint(
-        self, constraint_id: str, constraint: "STStorageAdditionalConstraintUpdate"
+        self, area_id: str, storage_id: str, constraint_id: str, constraint: "STStorageAdditionalConstraintUpdate"
     ) -> "STStorageAdditionalConstraint":
         raise NotImplementedError()
 

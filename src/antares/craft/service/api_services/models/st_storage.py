@@ -17,6 +17,7 @@ from antares.craft.model.st_storage import (
     AdditionalConstraintVariable,
     Occurrence,
     STStorageAdditionalConstraint,
+    STStorageAdditionalConstraintUpdate,
     STStorageProperties,
     STStoragePropertiesUpdate,
 )
@@ -76,6 +77,8 @@ def serialize_st_storage_api(storage: STStoragePropertiesType) -> dict[str, Any]
 # Additional constraints part
 ##########################
 
+STStorageConstraintType = STStorageAdditionalConstraint | STStorageAdditionalConstraintUpdate
+
 
 class OccurrenceAPI(APIBaseModel):
     hours: list[int]
@@ -91,7 +94,7 @@ class STStorageAdditinalConstraintAPI(APIBaseModel):
     enabled: bool
 
     @staticmethod
-    def from_user_model(user_class: STStorageAdditionalConstraint) -> "STStorageAdditinalConstraintAPI":
+    def from_user_model(user_class: STStorageConstraintType) -> "STStorageAdditinalConstraintAPI":
         user_dict = asdict(user_class)
         return STStorageAdditinalConstraintAPI.model_validate(user_dict)
 
@@ -110,7 +113,7 @@ def parse_st_storage_constraint_api(data: Any) -> STStorageAdditionalConstraint:
     return STStorageAdditinalConstraintAPI.model_validate(data).to_user_model()
 
 
-def serialize_st_storage_constraint_api(constraint: STStorageAdditionalConstraint) -> dict[str, Any]:
+def serialize_st_storage_constraint_api(constraint: STStorageConstraintType) -> dict[str, Any]:
     return STStorageAdditinalConstraintAPI.from_user_model(constraint).model_dump(
         mode="json", exclude_none=True, exclude={"id"}
     )

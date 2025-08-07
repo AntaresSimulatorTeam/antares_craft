@@ -672,3 +672,9 @@ class STStorageConstraintCreationError(Exception):
             + message
         )
         super().__init__(self.message)
+
+
+class STStorageConstraintEditionError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not update short-term storage constraints for study {study_name}" + message
+        super().__init__(self.message)
