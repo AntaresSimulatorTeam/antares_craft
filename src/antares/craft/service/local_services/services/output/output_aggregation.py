@@ -139,7 +139,11 @@ class AggregatorManager:
         new_cols = []
         for col in df.columns:
             if self.mc_root == MCRoot.MC_IND:
-                name_to_consider = col[0] if self.query_file == MCIndAreasDataType.VALUES else " ".join(col)
+                name_to_consider = (
+                    col[0]
+                    if self.query_file in {MCIndAreasDataType.VALUES, MCIndLinksDataType.VALUES}
+                    else " ".join(col)
+                )
             else:
                 name_to_consider = " ".join([col[0], col[2]])
             new_cols.append(name_to_consider.upper().strip())
