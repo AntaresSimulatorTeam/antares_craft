@@ -219,3 +219,20 @@ class STStorage:
         self._storage_service.set_storage_matrix(
             self, STStorageMatrixName.COST_VARIATION_WITHDRAWAL, cost_variation_withdrawal_matrix
         )
+
+    def create_constraints(self, constraints: list[STStorageAdditionalConstraint]) -> None:
+        raise NotImplementedError()
+
+    def update_constraint(
+        self, id: str, constraint: STStorageAdditionalConstraintUpdate
+    ) -> STStorageAdditionalConstraint:
+        raise NotImplementedError()
+
+    def delete_constraints(self, ids: list[str]) -> None:
+        raise NotImplementedError()
+
+    def get_constraint_term(self, id: str) -> pd.DataFrame:
+        raise NotImplementedError()
+
+    def set_constraint_term(self, id: str, matrix: pd.DataFrame) -> None:
+        raise NotImplementedError()
