@@ -13,7 +13,7 @@
 import logging
 import tempfile
 
-from enum import Enum, StrEnum
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, MutableSequence, Optional, Sequence, cast
 
@@ -60,30 +60,6 @@ ACTUAL_COLUMN_COMPONENT = 1
 DUMMY_COMPONENT = 2
 
 logger = logging.getLogger(__name__)
-
-
-class MCIndAreasQueryFile(StrEnum):
-    VALUES = "values"
-    DETAILS = "details"
-    DETAILS_ST_STORAGE = "details-STstorage"
-    DETAILS_RES = "details-res"
-
-
-class MCAllAreasQueryFile(StrEnum):
-    VALUES = "values"
-    DETAILS = "details"
-    DETAILS_ST_STORAGE = "details-STstorage"
-    DETAILS_RES = "details-res"
-    ID = "id"
-
-
-class MCIndLinksQueryFile(StrEnum):
-    VALUES = "values"
-
-
-class MCAllLinksQueryFile(StrEnum):
-    VALUES = "values"
-    ID = "id"
 
 
 def _columns_ordering(df_cols: List[str], column_name: str, is_details: bool, mc_root: MCRoot) -> Sequence[str]:
@@ -143,14 +119,14 @@ class AggregatorManager:
         self.ids_to_consider = ids_to_consider
         self.output_type = (
             "areas"
-            if (isinstance(query_file, MCIndAreasQueryFile) or isinstance(query_file, MCAllAreasQueryFile))
+            if (isinstance(query_file, MCIndAreasDataType) or isinstance(query_file, MCAllAreasDataType))
             else "links"
         )
         self.mc_ind_path = self.output_path / "economy" / MCRoot.MC_IND.value
         self.mc_all_path = self.output_path / "economy" / MCRoot.MC_ALL.value
         self.mc_root = (
             MCRoot.MC_IND
-            if (isinstance(query_file, MCIndAreasQueryFile) or isinstance(query_file, MCIndLinksQueryFile))
+            if (isinstance(query_file, MCIndAreasDataType) or isinstance(query_file, MCIndLinksDataType))
             else MCRoot.MC_ALL
         )
 
@@ -163,7 +139,7 @@ class AggregatorManager:
         new_cols = []
         for col in df.columns:
             if self.mc_root == MCRoot.MC_IND:
-                name_to_consider = col[0] if self.query_file.value == MCIndAreasQueryFile.VALUES else " ".join(col)
+                name_to_consider = col[0] if self.query_file.value == MCIndAreasDataType.VALUES else " ".join(col)
             else:
                 name_to_consider = " ".join([col[0], col[2]])
             new_cols.append(name_to_consider.upper().strip())
@@ -348,6 +324,8 @@ class AggregatorManager:
                 append = False if k == 0 else True
                 df.to_hdf(df_path, key="data", append=append, index=False, format="table", mode="r+" if append else "w")
 
+            if not df_path.exists():
+                return pd.DataFrame()
             return cast(pd.DataFrame, pd.read_hdf(df_path, key="data"))
 
     def _check_mc_root_folder_exists(self) -> None:
