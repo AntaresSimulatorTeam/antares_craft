@@ -68,12 +68,12 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
         constraints_url = f"{self._base_url}/studies/{self.study_id}/table-mode/st-storages-additional-constraints"
         json_constraints = self._wrapper.get(constraints_url).json()
 
-        constraints_dict: dict[str, dict[str, list[STStorageAdditionalConstraint]]] = {}
+        constraints_dict: dict[str, dict[str, dict[str, STStorageAdditionalConstraint]]] = {}
         for key, constraint_api in json_constraints.items():
             area_id, storage_id, constraint_id = key.split(" / ")
             args = {"id": constraint_id, **constraint_api}
             constraint = parse_st_storage_constraint_api(args)
-            constraints_dict.setdefault(area_id, {}).setdefault(storage_id, []).append(constraint)
+            constraints_dict.setdefault(area_id, {}).setdefault(storage_id, {})[constraint.id] = constraint
 
         # Storages
         storage_url = f"{self._base_url}/studies/{self.study_id}/table-mode/st-storages"
@@ -84,7 +84,7 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
         for key, storage in json_storage.items():
             area_id, storage_id = key.split(" / ")
             storage_props = parse_st_storage_api(storage)
-            constraints = constraints_dict.get(area_id, {}).get(storage_id, [])
+            constraints = constraints_dict.get(area_id, {}).get(storage_id, {})
             st_storage = STStorage(self, area_id, storage_id, storage_props, constraints)
 
             storages.setdefault(area_id, {})[st_storage.id] = st_storage

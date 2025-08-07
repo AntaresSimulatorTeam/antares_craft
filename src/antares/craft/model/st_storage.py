@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 from dataclasses import dataclass, field
 from enum import Enum
+from types import MappingProxyType
 from typing import Optional
 
 import pandas as pd
@@ -122,14 +123,14 @@ class STStorage:
         area_id: str,
         name: str,
         properties: Optional[STStorageProperties] = None,
-        constraints: Optional[list[STStorageAdditionalConstraint]] = None,
+        constraints: Optional[dict[str, STStorageAdditionalConstraint]] = None,
     ):
         self._area_id: str = area_id
         self._storage_service: BaseShortTermStorageService = storage_service
         self._name: str = name
         self._id: str = transform_name_to_id(name)
         self._properties: STStorageProperties = properties or STStorageProperties()
-        self._constraints = constraints or []
+        self._constraints = constraints or {}
 
     @property
     def area_id(self) -> str:
@@ -146,6 +147,9 @@ class STStorage:
     @property
     def properties(self) -> STStorageProperties:
         return self._properties
+
+    def get_constraints(self) -> MappingProxyType[str, STStorageAdditionalConstraint]:
+        return MappingProxyType(self._constraints)
 
     def update_properties(self, properties: STStoragePropertiesUpdate) -> STStorageProperties:
         new_properties = self._storage_service.update_st_storages_properties({self: properties})
