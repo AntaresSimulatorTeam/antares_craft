@@ -225,7 +225,7 @@ AREAS_REQUESTS__IND = [
             type_ids=[],
             columns_names=[],
         ),
-        "test-01-result.tsv",
+        "test-01.result.tsv",
     ),
     (
         TestParamsAreas(
@@ -236,7 +236,7 @@ AREAS_REQUESTS__IND = [
             type_ids=["de", "fr", "it"],
             columns_names=[],
         ),
-        "test-02-result.tsv",
+        "test-02.result.tsv",
     ),
     (
         TestParamsAreas(
@@ -247,7 +247,7 @@ AREAS_REQUESTS__IND = [
             type_ids=[],
             columns_names=["OP. COST", "MRG. PRICE"],
         ),
-        "test-03-result.tsv",
+        "test-03.result.tsv",
     ),
     (
         TestParamsAreas(
@@ -258,7 +258,7 @@ AREAS_REQUESTS__IND = [
             type_ids=["es", "fr", "de"],
             columns_names=[],
         ),
-        "test-04-result.tsv",
+        "test-04.result.tsv",
     ),
     (
         TestParamsAreas(
@@ -269,7 +269,7 @@ AREAS_REQUESTS__IND = [
             type_ids=[],
             columns_names=[],
         ),
-        "test-05-result.tsv",
+        "test-05.result.tsv",
     ),
     (
         TestParamsAreas(
@@ -280,7 +280,7 @@ AREAS_REQUESTS__IND = [
             type_ids=[],
             columns_names=["COSt", "NODu"],
         ),
-        "test-06-result.tsv",
+        "test-06.result.tsv",
     ),
     (
         TestParamsAreas(
@@ -291,7 +291,7 @@ AREAS_REQUESTS__IND = [
             type_ids=[],
             columns_names=["COSt", "NODu"],
         ),
-        "test-07-result.tsv",
+        "test-07.result.tsv",
     ),
 ]
 
