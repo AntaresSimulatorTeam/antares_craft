@@ -61,6 +61,8 @@ if TYPE_CHECKING:
     )
     from antares.craft.model.st_storage import (
         STStorage,
+        STStorageAdditionalConstraint,
+        STStorageAdditionalConstraintUpdate,
         STStorageMatrixName,
         STStorageProperties,
         STStoragePropertiesUpdate,
@@ -741,6 +743,30 @@ class BaseShortTermStorageService(ABC):
         self, new_properties: dict["STStorage", "STStoragePropertiesUpdate"]
     ) -> dict["STStorage", "STStorageProperties"]:
         pass
+
+    @abstractmethod
+    def create_constraints(
+        self, area_id: str, storage_id: str, constraints: list["STStorageAdditionalConstraint"]
+    ) -> list["STStorageAdditionalConstraint"]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def update_constraint(
+        self, constraint_id: str, constraint: "STStorageAdditionalConstraintUpdate"
+    ) -> "STStorageAdditionalConstraint":
+        raise NotImplementedError()
+
+    @abstractmethod
+    def delete_constraints(self, constraint_ids: list[str]) -> None:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_constraint_term(self, constraint_id: str) -> pd.DataFrame:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def set_constraint_term(self, constraint_id: str, matrix: pd.DataFrame) -> None:
+        raise NotImplementedError()
 
 
 class BaseRunService(ABC):

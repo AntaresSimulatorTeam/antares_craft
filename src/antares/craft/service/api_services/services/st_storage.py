@@ -19,12 +19,14 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
     ClustersPropertiesUpdateError,
+    STStorageConstraintCreationError,
     STStorageMatrixDownloadError,
     STStorageMatrixUploadError,
 )
 from antares.craft.model.st_storage import (
     STStorage,
     STStorageAdditionalConstraint,
+    STStorageAdditionalConstraintUpdate,
     STStorageMatrixName,
     STStorageProperties,
     STStoragePropertiesUpdate,
@@ -33,6 +35,7 @@ from antares.craft.service.api_services.models.st_storage import (
     parse_st_storage_api,
     parse_st_storage_constraint_api,
     serialize_st_storage_api,
+    serialize_st_storage_constraint_api,
 )
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseShortTermStorageService
@@ -118,3 +121,36 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
             raise ClustersPropertiesUpdateError(self.study_id, "short term storage", e.message) from e
 
         return updated_storages
+
+    @override
+    def create_constraints(
+        self, area_id: str, storage_id: str, constraints: list[STStorageAdditionalConstraint]
+    ) -> list[STStorageAdditionalConstraint]:
+        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages/{storage_id}/additional-constraints"
+
+        try:
+            body = [serialize_st_storage_constraint_api(constraint) for constraint in constraints]
+            json_response = self._wrapper.post(url, json=body).json()
+
+            return [parse_st_storage_constraint_api(constraint) for constraint in json_response]
+
+        except APIError as e:
+            raise STStorageConstraintCreationError(self.study_id, area_id, storage_id, e.message) from e
+
+    @override
+    def update_constraint(
+        self, constraint_id: str, constraint: STStorageAdditionalConstraintUpdate
+    ) -> STStorageAdditionalConstraint:
+        raise NotImplementedError()
+
+    @override
+    def delete_constraints(self, constraint_ids: list[str]) -> None:
+        raise NotImplementedError()
+
+    @override
+    def get_constraint_term(self, constraint_id: str) -> pd.DataFrame:
+        raise NotImplementedError()
+
+    @override
+    def set_constraint_term(self, constraint_id: str, matrix: pd.DataFrame) -> None:
+        raise NotImplementedError()

@@ -111,4 +111,6 @@ def parse_st_storage_constraint_api(data: Any) -> STStorageAdditionalConstraint:
 
 
 def serialize_st_storage_constraint_api(constraint: STStorageAdditionalConstraint) -> dict[str, Any]:
-    return STStorageAdditinalConstraintAPI.from_user_model(constraint).model_dump(mode="json", exclude_none=True)
+    return STStorageAdditinalConstraintAPI.from_user_model(constraint).model_dump(
+        mode="json", exclude_none=True, exclude={"id"}
+    )
