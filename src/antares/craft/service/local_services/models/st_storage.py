@@ -100,19 +100,10 @@ def initialize_with_version(properties: STStoragePropertiesLocal, version: Study
     return properties
 
 
-def validate_attributes_coherence(properties: STStoragePropertiesLocal, version: StudyVersion) -> None:
-    if version >= STUDY_VERSION_9_2:
-        assert isinstance(properties.efficiency, (float, int))
-        assert isinstance(properties.efficiency_withdrawal, (float, int))
-        if properties.efficiency > properties.efficiency_withdrawal:
-            raise ValueError("efficiency_withdrawal must be greater than efficiency")
-
-
 def parse_st_storage_local(study_version: StudyVersion, data: Any) -> STStorageProperties:
     local_properties = STStoragePropertiesLocal.model_validate(data)
     validate_st_storage_against_version(local_properties, study_version)
     initialize_with_version(local_properties, study_version)
-    validate_attributes_coherence(local_properties, study_version)
     return local_properties.to_user_model()
 
 
