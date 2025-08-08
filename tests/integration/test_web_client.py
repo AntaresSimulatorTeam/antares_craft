@@ -1403,6 +1403,12 @@ class TestWebClient:
             )
         }
 
+        # Removes a constraint
+        second_storage.delete_constraints(["constraint_1"])
+        constraints = second_storage.get_constraints()
+        assert len(constraints) == 1
+        assert "constraint1" not in constraints
+
         ########## Hydro ##########
 
         assert area_fr.hydro.properties.overflow_spilled_cost_difference == 1
