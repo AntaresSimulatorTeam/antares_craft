@@ -207,6 +207,8 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         constraints: dict[str, dict[str, dict[str, STStorageAdditionalConstraint]]] = {}
 
         folder_path = self.config.study_path / "input" / "st-storage" / "constraints"
+        if not folder_path.exists():
+            return {}
         for area_folder in folder_path.iterdir():
             area_id = area_folder.name
             for storage_folder in area_folder.iterdir():
