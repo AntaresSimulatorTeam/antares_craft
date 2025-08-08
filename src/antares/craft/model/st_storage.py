@@ -228,7 +228,8 @@ class STStorage:
     def update_constraint(
         self, constraint_id: str, constraint: STStorageAdditionalConstraintUpdate
     ) -> STStorageAdditionalConstraint:
-        updated_constraint = self._storage_service.update_constraint(self._area_id, self._id, constraint_id, constraint)
+        updated_constraints = self._storage_service.update_st_storages_constraints({self: {constraint_id: constraint}})
+        updated_constraint = updated_constraints[self.area_id][self.id][constraint_id]
         self._constraints[constraint_id] = updated_constraint
         return updated_constraint
 

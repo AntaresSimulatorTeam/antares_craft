@@ -169,21 +169,6 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
             raise STStorageConstraintCreationError(self.study_id, area_id, storage_id, e.message) from e
 
     @override
-    def update_constraint(
-        self, area_id: str, storage_id: str, constraint_id: str, constraint: STStorageAdditionalConstraintUpdate
-    ) -> STStorageAdditionalConstraint:
-        url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages/{storage_id}/additional-constraints"
-
-        try:
-            body = {constraint_id: serialize_st_storage_constraint_api(constraint)}
-            json_response = self._wrapper.put(url, json=body).json()
-
-            return parse_st_storage_constraint_api(json_response[0])
-
-        except APIError as e:
-            raise STStorageConstraintEditionError(self.study_id, e.message) from e
-
-    @override
     def delete_constraints(self, area_id: str, storage_id: str, constraint_ids: list[str]) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages/{storage_id}/additional-constraints"
 

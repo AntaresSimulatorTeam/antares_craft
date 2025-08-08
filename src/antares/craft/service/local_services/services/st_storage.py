@@ -176,12 +176,6 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         raise NotImplementedError()
 
     @override
-    def update_constraint(
-        self, area_id: str, storage_id: str, constraint_id: str, constraint: STStorageAdditionalConstraintUpdate
-    ) -> STStorageAdditionalConstraint:
-        raise NotImplementedError()
-
-    @override
     def delete_constraints(self, area_id: str, storage_id: str, constraint_ids: list[str]) -> None:
         raise NotImplementedError()
 
