@@ -211,13 +211,38 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
             area_id = area_folder.name
             for storage_folder in area_folder.iterdir():
                 storage_id = storage_folder.name
-                ini_content = self._read_ini_constraints(area_id, storage_id)
-                for constraint_name, data in ini_content.items():
-                    args = {"name": constraint_name, **data}
-                    constraint = parse_st_storage_constraint_local(args)
-                    constraints.setdefault(area_id, {}).setdefault(storage_id, {})[constraint.id] = constraint
+                sts_constraints = self._read_constraints_for_a_storage(area_id, storage_id)
+                constraints.setdefault(area_id, {})[storage_id] = sts_constraints
 
         return constraints
+
+    def _read_constraints_for_a_storage(
+        self, area_id: str, storage_id: str
+    ) -> dict[str, STStorageAdditionalConstraint]:
+        constraints = {}
+        ini_content = self._read_ini_constraints(area_id, storage_id)
+        for constraint_name, data in ini_content.items():
+            args = {"name": constraint_name, **data}
+            constraint = parse_st_storage_constraint_local(args)
+            constraints[constraint.id] = constraint
+
+        return constraints
+
+    def _save_constraints(
+        self, area_id: str, storage_id: str, constraints: dict[str, STStorageAdditionalConstraint]
+    ) -> dict[str, STStorageAdditionalConstraint]:
+        saved_constraints = {}
+        ini_content = {}
+        for constraint in constraints.values():
+            content = serialize_st_storage_constraint_local(constraint)
+            ini_content[constraint.name] = content
+            # Round trip for validation
+            saved_constraints[constraint.id] = parse_st_storage_constraint_local(content)
+
+        # Save the data in the ini file
+        self._save_ini_constraints(ini_content, area_id, storage_id)
+
+        return saved_constraints
 
     @override
     def create_constraints(
@@ -226,55 +251,35 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         if self.study_version < STUDY_VERSION_9_2:
             raise ValueError(CONSTRAINTS_ERROR_MSG)
 
-        ini_content = self._read_ini_constraints(area_id, storage_id)
-
+        existing_constraints = self._read_ini_constraints(area_id, storage_id)
         # Checks if the constraints don't already exist
-        given_ids = {c.id for c in constraints}
-        for constraint_name, data in ini_content.items():
-            args = {"name": constraint_name, **data}
-            constraint = parse_st_storage_constraint_local(args)
-            if constraint.id in given_ids:
+        for constraint in constraints:
+            if constraint.id in existing_constraints:
                 raise STStorageConstraintCreationError(
                     self.study_name, area_id, storage_id, f"{constraint.id} already exists"
                 )
 
-        created_constraints = []
-
-        # Performs the creation
         for constraint in constraints:
-            ini_content[constraint.name] = serialize_st_storage_constraint_local(constraint)
-            # Round trip to validate the data
-            args = {"name": constraint.name, **ini_content[constraint.name]}
-            created_constraints.append(parse_st_storage_constraint_local(args))
+            existing_constraints[constraint.name] = constraint
 
-        # Saves the ini file
-        self._save_ini_constraints(ini_content, area_id, storage_id)
-
-        # Return the created constraints
-        return created_constraints
+        created_constraints = self._save_constraints(area_id, storage_id, existing_constraints)
+        return list(created_constraints.values())
 
     @override
     def delete_constraints(self, area_id: str, storage_id: str, constraint_ids: list[str]) -> None:
         if self.study_version < STUDY_VERSION_9_2:
             raise ValueError(CONSTRAINTS_ERROR_MSG)
 
-        ini_content = self._read_ini_constraints(area_id, storage_id)
-        ini_content_after_deletion = copy.deepcopy(ini_content)
-        ids_to_remove = constraint_ids
-        for constraint_name, data in ini_content.items():
-            args = {"name": constraint_name, **data}
-            constraint = parse_st_storage_constraint_local(args)
-            if constraint.id in constraint_ids:
-                del ini_content_after_deletion[constraint_name]
-                ids_to_remove.remove(constraint.id)
+        existing_constraints = self._read_ini_constraints(area_id, storage_id)
+        for constraint_id in constraint_ids:
+            if constraint_id not in existing_constraints:
+                raise STStorageConstraintDeletionError(
+                    self.study_name, area_id, storage_id, f"The constraint {constraint_id} does not exist"
+                )
 
-        if ids_to_remove:
-            raise STStorageConstraintDeletionError(
-                self.study_name, area_id, storage_id, f"The constraint(s) {ids_to_remove} do not exist"
-            )
+            del existing_constraints[constraint_id]
 
-        # Saves the ini file
-        self._save_ini_constraints(ini_content_after_deletion, area_id, storage_id)
+        self._save_constraints(area_id, storage_id, existing_constraints)
 
     @override
     def get_constraint_term(self, area_id: str, storage_id: str, constraint_id: str) -> pd.DataFrame:
