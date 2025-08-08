@@ -1317,6 +1317,92 @@ class TestWebClient:
         # Asserts the reading method succeeds
         study = read_study_api(api_config, study.service.study_id)
 
+        fr_storages = study.get_areas()["fr"].get_st_storages()
+        assert len(fr_storages) == 2
+        assert fr_storages["sts_test"].get_constraints() == {}
+        second_storage = fr_storages["second_storage"]
+        assert second_storage.get_constraints() == {
+            "constraint_1": STStorageAdditionalConstraint(
+                name="constraint_1",
+                variable=AdditionalConstraintVariable.NETTING,
+                operator=AdditionalConstraintOperator.LESS,
+                occurrences=[Occurrence(hours=[1, 3])],
+                enabled=True,
+            ),
+            "constraint2": STStorageAdditionalConstraint(
+                name="constraint2",
+                variable=AdditionalConstraintVariable.WITHDRAWAL,
+                operator=AdditionalConstraintOperator.LESS,
+                occurrences=[Occurrence(hours=[167])],
+                enabled=True,
+            ),
+        }
+
+        storage_be = study.get_areas()["be"].get_st_storages()["storage_be"]
+        assert storage_be.get_constraints() == {
+            "constraint_be": STStorageAdditionalConstraint(
+                name="constraint_be",
+                variable=AdditionalConstraintVariable.NETTING,
+                operator=AdditionalConstraintOperator.GREATER,
+                occurrences=[Occurrence(hours=[1, 2]), Occurrence(hours=[4, 5, 6])],
+                enabled=False,
+            )
+        }
+
+        # Updates a constraint properties
+        new_properties = STStorageAdditionalConstraintUpdate(
+            enabled=False, variable=AdditionalConstraintVariable.INJECTION
+        )
+        new_constraint = second_storage.update_constraint("constraint_1", new_properties)
+        assert new_constraint == STStorageAdditionalConstraint(
+            name="constraint_1",
+            variable=AdditionalConstraintVariable.INJECTION,
+            operator=AdditionalConstraintOperator.LESS,
+            occurrences=[Occurrence(hours=[1, 3])],
+            enabled=False,
+        )
+
+        # Updates several constraint properties
+        new_constraints_properties = STStorageAdditionalConstraintUpdate(
+            occurrences=[Occurrence(hours=[1, 4]), Occurrence(hours=[6, 8, 9])],
+            operator=AdditionalConstraintOperator.EQUAL,
+        )
+        update_for_storages_constraints = {
+            second_storage: {"constraint2": new_constraints_properties},
+            storage_be: {"constraint_be": new_constraints_properties},
+        }
+
+        study.update_st_storages_constraints(update_for_storages_constraints)
+
+        # Ensures the updates were successful
+        study = read_study_api(api_config, study.service.study_id)
+        assert study.get_areas()["fr"].get_st_storages()["second_storage"].get_constraints() == {
+            "constraint_1": STStorageAdditionalConstraint(
+                name="constraint_1",
+                variable=AdditionalConstraintVariable.INJECTION,
+                operator=AdditionalConstraintOperator.LESS,
+                occurrences=[Occurrence(hours=[1, 3])],
+                enabled=False,
+            ),
+            "constraint2": STStorageAdditionalConstraint(
+                name="constraint2",
+                variable=AdditionalConstraintVariable.WITHDRAWAL,
+                operator=AdditionalConstraintOperator.EQUAL,
+                occurrences=[Occurrence(hours=[1, 4]), Occurrence(hours=[6, 8, 9])],
+                enabled=True,
+            ),
+        }
+
+        assert study.get_areas()["be"].get_st_storages()["storage_be"].get_constraints() == {
+            "constraint_be": STStorageAdditionalConstraint(
+                name="constraint_be",
+                variable=AdditionalConstraintVariable.NETTING,
+                operator=AdditionalConstraintOperator.EQUAL,
+                occurrences=[Occurrence(hours=[1, 4]), Occurrence(hours=[6, 8, 9])],
+                enabled=False,
+            )
+        }
+
         ########## Hydro ##########
 
         assert area_fr.hydro.properties.overflow_spilled_cost_difference == 1
