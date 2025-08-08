@@ -79,3 +79,5 @@ class TimeSeriesFileType(Enum):
     # Xpansion matrices
     XPANSION_WEIGHT = "user/expansion/weights/{file_name}"
     XPANSION_CAPACITY = "user/expansion/capa/{file_name}"
+    # Short-term storage additional constraint matrix
+    ST_STORAGE_CONSTRAINT_TERM = "input/st-storage/constraints/{area_id}/{cluster_id}/rhs_{constraint_id}.txt"

@@ -280,18 +280,28 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
     def get_constraint_term(self, area_id: str, storage_id: str, constraint_id: str) -> pd.DataFrame:
         if self.study_version < STUDY_VERSION_9_2:
             raise ValueError(CONSTRAINTS_ERROR_MSG)
-        raise NotImplementedError()
+
+        ts = TimeSeriesFileType.ST_STORAGE_CONSTRAINT_TERM
+        return read_timeseries(
+            ts, self.config.study_path, area_id=area_id, constraint_id=constraint_id, cluster_id=storage_id
+        )
 
     @override
     def set_constraint_term(self, area_id: str, storage_id: str, constraint_id: str, matrix: pd.DataFrame) -> None:
         if self.study_version < STUDY_VERSION_9_2:
             raise ValueError(CONSTRAINTS_ERROR_MSG)
-        raise NotImplementedError()
+
+        ts = TimeSeriesFileType.ST_STORAGE_CONSTRAINT_TERM
+        write_timeseries(self.config.study_path, matrix, ts, area_id, storage_id, constraint_id=constraint_id)
 
     @override
     def update_st_storages_constraints(
         self, new_constraints: dict[STStorage, dict[str, STStorageAdditionalConstraintUpdate]]
     ) -> dict[str, dict[str, dict[str, STStorageAdditionalConstraint]]]:
+        """
+        We validate ALL objects before saving them.
+        This way, if some data is invalid, we're not modifying the study partially only.
+        """
         if self.study_version < STUDY_VERSION_9_2:
             raise ValueError(CONSTRAINTS_ERROR_MSG)
         raise NotImplementedError()
