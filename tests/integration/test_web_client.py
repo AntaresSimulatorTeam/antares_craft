@@ -1293,6 +1293,25 @@ class TestWebClient:
         storage.set_cost_variation_withdrawal(new_matrix)
         assert storage.get_cost_variation_withdrawal().equals(new_matrix)
 
+        ########## STS constraints ##########
+        second_storage = area_fr.create_st_storage("second_storage")
+        area_be = study.create_area("be")
+        storage_be = area_be.create_st_storage("storage_be")
+
+        constraints_fr = [
+            STStorageAdditionalConstraint(name="constraint_1", occurrences=[Occurrence([1, 3])]),
+            STStorageAdditionalConstraint(name="Constraint2??", variable=AdditionalConstraintVariable.WITHDRAWAL),
+        ]
+        second_storage.create_constraints(constraints_fr)
+
+        constraints_be = STStorageAdditionalConstraint(
+            name="constraint_be", enabled=False, operator=AdditionalConstraintOperator.GREATER
+        )
+        storage_be.create_constraints([constraints_be])
+
+        # Asserts the reading method succeeds
+        study = read_study_api(api_config, study.service.study_id)
+
         ########## Hydro ##########
 
         assert area_fr.hydro.properties.overflow_spilled_cost_difference == 1

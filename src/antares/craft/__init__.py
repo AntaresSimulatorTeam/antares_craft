@@ -80,7 +80,16 @@ from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.model.simulation import AntaresSimulationParameters, Solver
-from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
+from antares.craft.model.st_storage import (
+    AdditionalConstraintOperator,
+    AdditionalConstraintVariable,
+    Occurrence,
+    STStorageAdditionalConstraint,
+    STStorageAdditionalConstraintUpdate,
+    STStorageGroup,
+    STStorageProperties,
+    STStoragePropertiesUpdate,
+)
 from antares.craft.model.study import (
     Study,
     create_study_api,
@@ -162,6 +171,8 @@ __all__ = [
     "Master",
     "XpansionSolver",
     "XpansionLinkProfile",
+    "AdditionalConstraintVariable",
+    "AdditionalConstraintOperator",
     # Model classes
     "AdequacyPatchParametersUpdate",
     "AdvancedParametersUpdate",
@@ -206,4 +217,7 @@ __all__ = [
     "XpansionSensitivity",
     "XpansionSensitivityUpdate",
     "InflowStructureUpdate",
+    "Occurrence",
+    "STStorageAdditionalConstraint",
+    "STStorageAdditionalConstraintUpdate",
 ]
