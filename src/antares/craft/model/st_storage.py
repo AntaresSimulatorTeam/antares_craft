@@ -9,8 +9,9 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
+from types import MappingProxyType
 from typing import Optional
 
 import pandas as pd
@@ -77,6 +78,44 @@ class STStorageProperties:
     penalize_variation_withdrawal: Optional[bool] = None  # default False
 
 
+class AdditionalConstraintVariable(EnumIgnoreCase):
+    WITHDRAWAL = "withdrawal"
+    INJECTION = "injection"
+    NETTING = "netting"
+
+
+class AdditionalConstraintOperator(EnumIgnoreCase):
+    LESS = "less"
+    GREATER = "greater"
+    EQUAL = "equal"
+
+
+@dataclass(frozen=True)
+class Occurrence:
+    hours: list[int]
+
+
+@dataclass(frozen=True)
+class STStorageAdditionalConstraint:
+    id: str = field(init=False)
+    name: str
+    variable: AdditionalConstraintVariable = AdditionalConstraintVariable.NETTING
+    operator: AdditionalConstraintOperator = AdditionalConstraintOperator.LESS
+    occurrences: list[Occurrence] = field(default_factory=list)
+    enabled: bool = True
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "id", transform_name_to_id(self.name))
+
+
+@dataclass(frozen=True)
+class STStorageAdditionalConstraintUpdate:
+    variable: Optional[AdditionalConstraintVariable] = None
+    operator: Optional[AdditionalConstraintOperator] = None
+    occurrences: Optional[list[Occurrence]] = None
+    enabled: Optional[bool] = None
+
+
 class STStorage:
     def __init__(
         self,
@@ -84,12 +123,14 @@ class STStorage:
         area_id: str,
         name: str,
         properties: Optional[STStorageProperties] = None,
+        constraints: Optional[dict[str, STStorageAdditionalConstraint]] = None,
     ):
         self._area_id: str = area_id
         self._storage_service: BaseShortTermStorageService = storage_service
         self._name: str = name
         self._id: str = transform_name_to_id(name)
         self._properties: STStorageProperties = properties or STStorageProperties()
+        self._constraints = constraints or {}
 
     @property
     def area_id(self) -> str:
@@ -106,6 +147,9 @@ class STStorage:
     @property
     def properties(self) -> STStorageProperties:
         return self._properties
+
+    def get_constraints(self) -> MappingProxyType[str, STStorageAdditionalConstraint]:
+        return MappingProxyType(self._constraints)
 
     def update_properties(self, properties: STStoragePropertiesUpdate) -> STStorageProperties:
         new_properties = self._storage_service.update_st_storages_properties({self: properties})
@@ -175,3 +219,27 @@ class STStorage:
         self._storage_service.set_storage_matrix(
             self, STStorageMatrixName.COST_VARIATION_WITHDRAWAL, cost_variation_withdrawal_matrix
         )
+
+    def create_constraints(self, constraints: list[STStorageAdditionalConstraint]) -> None:
+        new_constraints = self._storage_service.create_constraints(self._area_id, self._id, constraints)
+        for constraint in new_constraints:
+            self._constraints[constraint.id] = constraint
+
+    def update_constraint(
+        self, constraint_id: str, constraint: STStorageAdditionalConstraintUpdate
+    ) -> STStorageAdditionalConstraint:
+        updated_constraints = self._storage_service.update_st_storages_constraints({self: {constraint_id: constraint}})
+        updated_constraint = updated_constraints[self.area_id][self.id][constraint_id]
+        self._constraints[constraint_id] = updated_constraint
+        return updated_constraint
+
+    def delete_constraints(self, constraint_ids: list[str]) -> None:
+        self._storage_service.delete_constraints(self._area_id, self._id, constraint_ids)
+        for ids in constraint_ids:
+            del self._constraints[ids]
+
+    def get_constraint_term(self, constraint_id: str) -> pd.DataFrame:
+        return self._storage_service.get_constraint_term(self._area_id, self._id, constraint_id)
+
+    def set_constraint_term(self, constraint_id: str, matrix: pd.DataFrame) -> None:
+        self._storage_service.set_constraint_term(self._area_id, self._id, constraint_id, matrix)

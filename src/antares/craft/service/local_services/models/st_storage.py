@@ -9,12 +9,23 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import re
+
 from dataclasses import asdict
 from typing import Annotated, Any, Optional, TypeAlias
 
-from pydantic import Field
+from pydantic import BeforeValidator, Field, PlainSerializer
 
-from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
+from antares.craft.model.st_storage import (
+    AdditionalConstraintOperator,
+    AdditionalConstraintVariable,
+    Occurrence,
+    STStorageAdditionalConstraint,
+    STStorageAdditionalConstraintUpdate,
+    STStorageGroup,
+    STStorageProperties,
+    STStoragePropertiesUpdate,
+)
 from antares.craft.model.study import STUDY_VERSION_9_2
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.service.local_services.models.utils import check_min_version, initialize_field_default
@@ -111,3 +122,83 @@ def serialize_st_storage_local(study_version: StudyVersion, storage: STStoragePr
     local_properties = STStoragePropertiesLocal.from_user_model(storage)
     validate_st_storage_against_version(local_properties, study_version)
     return local_properties.model_dump(mode="json", by_alias=True, exclude_none=True, exclude_unset=True)
+
+
+##########################
+# Additional constraints part
+##########################
+
+STStorageConstraintType = STStorageAdditionalConstraint | STStorageAdditionalConstraintUpdate
+
+
+HoursType: TypeAlias = list[list[int]]
+
+
+def _check_hours_compliance(value: int) -> int:
+    if not isinstance(value, int) or not (1 <= value <= 168):
+        raise ValueError(f"Hours must be integers between 1 and 168, got {value}")
+    return value
+
+
+def _hours_parser(value: str | HoursType) -> HoursType:
+    def _string_to_list(s: str) -> HoursType:
+        to_return = []
+        numbers_as_list = re.findall(r"\[(.*?)\]", s)
+        if numbers_as_list == [""]:
+            # Happens if the given string is `[]`
+            return [[]]
+        for numbers in numbers_as_list:
+            to_return.append([int(v) for v in numbers.split(",")])
+        return to_return
+
+    if isinstance(value, str):
+        value = _string_to_list(value)
+    for item in value:
+        for subitem in item:
+            _check_hours_compliance(subitem)
+    return value
+
+
+def _hours_serializer(value: HoursType) -> str:
+    return ", ".join(str(v) for v in value)
+
+
+Hours: TypeAlias = Annotated[HoursType, BeforeValidator(_hours_parser), PlainSerializer(_hours_serializer)]
+
+
+class STStorageAdditionalConstraintLocal(LocalBaseModel):
+    name: str
+    variable: AdditionalConstraintVariable = AdditionalConstraintVariable.NETTING
+    operator: AdditionalConstraintOperator = AdditionalConstraintOperator.LESS
+    hours: Hours
+    enabled: bool = True
+
+    @staticmethod
+    def from_user_model(user_class: STStorageConstraintType) -> "STStorageAdditionalConstraintLocal":
+        user_dict = asdict(user_class)
+        del user_dict["occurrences"]
+        user_dict["hours"] = []
+        if user_class.occurrences:
+            for occ in user_class.occurrences:
+                user_dict["hours"].append(occ.hours)
+        return STStorageAdditionalConstraintLocal.model_validate(user_dict)
+
+    def to_user_model(self) -> STStorageAdditionalConstraint:
+        occurrences = [Occurrence(hours=hour) for hour in self.hours]
+        return STStorageAdditionalConstraint(
+            name=self.name,
+            variable=self.variable,
+            operator=self.operator,
+            occurrences=occurrences,
+            enabled=self.enabled,
+        )
+
+
+def parse_st_storage_constraint_local(data: Any) -> STStorageAdditionalConstraint:
+    return STStorageAdditionalConstraintLocal.model_validate(data).to_user_model()
+
+
+def serialize_st_storage_constraint_local(constraint: STStorageConstraintType) -> dict[str, Any]:
+    return STStorageAdditionalConstraintLocal.from_user_model(constraint).model_dump(
+        mode="json", exclude_none=True, exclude={"id"}
+    )

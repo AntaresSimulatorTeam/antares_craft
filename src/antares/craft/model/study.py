@@ -20,6 +20,7 @@ from antares.craft import (
     APIconf,
     PlaylistParameters,
     ScenarioBuilder,
+    STStorageAdditionalConstraintUpdate,
     STStoragePropertiesUpdate,
     ThematicTrimmingParameters,
 )
@@ -394,6 +395,15 @@ class Study:
 
         for storage in new_st_props:
             self._areas[storage.area_id]._st_storages[storage.id]._properties = new_st_props[storage]
+
+    def update_st_storages_constraints(
+        self, new_constraints: dict[STStorage, dict[str, STStorageAdditionalConstraintUpdate]]
+    ) -> None:
+        new_st_constraints = self._area_service.storage_service.update_st_storages_constraints(new_constraints)
+        for area_id, value in new_st_constraints.items():
+            for storage_id, values in value.items():
+                for constraint_id, constraint in values.items():
+                    self._areas[area_id]._st_storages[storage_id]._constraints[constraint_id] = constraint
 
     def get_scenario_builder(self) -> ScenarioBuilder:
         sc_builder = self._study_service.get_scenario_builder(self._settings.general_parameters.nb_years)

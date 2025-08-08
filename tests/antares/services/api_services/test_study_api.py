@@ -289,6 +289,7 @@ class TestCreateAPI:
         thermal_url = f"{url}/table-mode/thermals"
         renewable_url = f"{url}/table-mode/renewables"
         storage_url = f"{url}/table-mode/st-storages"
+        storage_constraints_url = f"{url}/table-mode/st-storages-additional-constraints"
         output_url = f"{url}/outputs"
         constraints_url = f"{base_url}/studies/{self.study_id}/bindingconstraints"
         hydro_url = f"{url}/hydro"
@@ -304,6 +305,7 @@ class TestCreateAPI:
             mocker.get(renewable_url, json={})
             mocker.get(thermal_url, json={})
             mocker.get(storage_url, json={})
+            mocker.get(storage_constraints_url, json={})
             mocker.get(
                 output_url,
                 json=[],
@@ -365,12 +367,14 @@ class TestCreateAPI:
             thermal_url = f"{variant_url}/table-mode/thermals"
             renewable_url = f"{variant_url}/table-mode/renewables"
             storage_url = f"{variant_url}/table-mode/st-storages"
+            storage_constraints_url = f"{variant_url}/table-mode/st-storages-additional-constraints"
             properties_url = f"{variant_url}/table-mode/areas"
             hydro_url = f"{variant_url}/hydro"
             xpansion_url = f"{variant_url}/extensions/xpansion/settings"
             mocker.get(renewable_url, json={})
             mocker.get(thermal_url, json={})
             mocker.get(storage_url, json={})
+            mocker.get(storage_constraints_url, json={})
             mocker.get(properties_url, json={})
             mocker.get(hydro_url, json={})
             mocker.get(xpansion_url, status_code=404)
@@ -903,6 +907,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
         thermal_url = f"{url}/table-mode/thermals"
         renewable_url = f"{url}/table-mode/renewables"
         storage_url = f"{url}/table-mode/st-storages"
+        storage_constraints_url = f"{url}/table-mode/st-storages-additional-constraints"
         properties_url = f"{url}/table-mode/areas"
         output_url = f"{url}/outputs"
         constraints_url = f"{base_url}/studies/{self.study_id}/bindingconstraints"
@@ -927,6 +932,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             mocker.get(renewable_url, json={})
             mocker.get(thermal_url, json={})
             mocker.get(storage_url, json={})
+            mocker.get(storage_constraints_url, json={})
             mocker.get(properties_url, json={})
             mocker.get(output_url, json=[])
             mocker.get(constraints_url, json=[])

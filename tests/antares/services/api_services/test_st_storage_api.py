@@ -12,8 +12,6 @@
 import pytest
 import requests_mock
 
-from unittest.mock import Mock
-
 import pandas as pd
 
 from antares.craft import Study
@@ -24,10 +22,16 @@ from antares.craft.exceptions.exceptions import (
     STStorageMatrixUploadError,
 )
 from antares.craft.model.area import Area
-from antares.craft.model.st_storage import STStorage, STStoragePropertiesUpdate
+from antares.craft.model.st_storage import (
+    AdditionalConstraintOperator,
+    AdditionalConstraintVariable,
+    Occurrence,
+    STStorage,
+    STStorageAdditionalConstraint,
+    STStorageProperties,
+    STStoragePropertiesUpdate,
+)
 from antares.craft.service.api_services.factory import create_api_services
-from antares.craft.service.api_services.models.st_storage import parse_st_storage_api
-from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.api_services.services.st_storage import ShortTermStorageApiService
 
 
@@ -118,32 +122,44 @@ class TestCreateAPI:
                 "enabled": "true",
             }
         }
+        json_constraints = {
+            "zone / test_storage / constraint_1": {
+                "id": "constraint_1",
+                "name": "CONSTRAINT_1",
+                "variable": "netting",
+                "operator": "greater",
+                "occurrences": [{"hours": [1, 2, 4]}, {"hours": [167, 168]}],
+                "enabled": False,
+            }
+        }
         study_id_test = "248bbb99-c909-47b7-b239-01f6f6ae7de7"
         url = f"https://antares.com/api/v1/studies/{study_id_test}/table-mode/st-storages"
+        url_constraints = (
+            f"https://antares.com/api/v1/studies/{study_id_test}/table-mode/st-storages-additional-constraints"
+        )
 
         with requests_mock.Mocker() as mocker:
             mocker.get(url, json=json_storage)
+            mocker.get(url_constraints, json=json_constraints)
 
             storage_api = ShortTermStorageApiService(self.api, study_id_test)
-            renewable_service = Mock()
-            thermal_service = Mock()
-            hydro_service = Mock()
-            area_api = AreaApiService(
-                self.api, study_id_test, storage_api, thermal_service, renewable_service, hydro_service
-            )
-
             actual_storages = storage_api.read_st_storages()
 
-            area_id, storage_id = list(json_storage.keys())[0].split(" / ")
-
-            storage_props = parse_st_storage_api(list(json_storage.values())[0])
-            expected_st_storage = STStorage(area_api.storage_service, area_id, storage_id, storage_props)
-
             assert len(actual_storages) == 1
-            actual_st_storage = actual_storages[area_id]["test_storage"]
+            actual_st_storage = actual_storages["zone"]["test_storage"]
 
-            assert expected_st_storage.id == actual_st_storage.id
-            assert expected_st_storage.name == actual_st_storage.name
+            assert actual_st_storage.id == "test_storage"
+            assert actual_st_storage.name == "test_storage"
+            assert actual_st_storage.properties == STStorageProperties(group="pondage")
+            constraints = actual_st_storage.get_constraints()
+            assert len(constraints) == 1
+            assert constraints["constraint_1"] == STStorageAdditionalConstraint(
+                name="CONSTRAINT_1",
+                variable=AdditionalConstraintVariable.NETTING,
+                operator=AdditionalConstraintOperator.GREATER,
+                occurrences=[Occurrence(hours=[1, 2, 4]), Occurrence(hours=[167, 168])],
+                enabled=False,
+            )
 
     def test_update_st_storages_properties_success(self) -> None:
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/st-storages"
