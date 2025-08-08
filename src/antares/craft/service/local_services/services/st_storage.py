@@ -21,6 +21,7 @@ from typing_extensions import override
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     STStorageConstraintCreationError,
+    STStorageConstraintDeletionError,
     STStoragePropertiesUpdateError,
 )
 from antares.craft.model.st_storage import (
@@ -256,7 +257,24 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
     def delete_constraints(self, area_id: str, storage_id: str, constraint_ids: list[str]) -> None:
         if self.study_version < STUDY_VERSION_9_2:
             raise ValueError(CONSTRAINTS_ERROR_MSG)
-        raise NotImplementedError()
+
+        ini_content = self._read_ini_constraints(area_id, storage_id)
+        ini_content_after_deletion = copy.deepcopy(ini_content)
+        ids_to_remove = constraint_ids
+        for constraint_name, data in ini_content.items():
+            args = {"name": constraint_name, **data}
+            constraint = parse_st_storage_constraint_local(args)
+            if constraint.id in constraint_ids:
+                del ini_content_after_deletion[constraint_name]
+                ids_to_remove.remove(constraint.id)
+
+        if ids_to_remove:
+            raise STStorageConstraintDeletionError(
+                self.study_name, area_id, storage_id, f"The constraint(s) {ids_to_remove} do not exist"
+            )
+
+        # Saves the ini file
+        self._save_ini_constraints(ini_content_after_deletion, area_id, storage_id)
 
     @override
     def get_constraint_term(self, area_id: str, storage_id: str, constraint_id: str) -> pd.DataFrame:
