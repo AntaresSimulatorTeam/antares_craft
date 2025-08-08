@@ -1300,12 +1300,17 @@ class TestWebClient:
 
         constraints_fr = [
             STStorageAdditionalConstraint(name="constraint_1", occurrences=[Occurrence([1, 3])]),
-            STStorageAdditionalConstraint(name="Constraint2??", variable=AdditionalConstraintVariable.WITHDRAWAL),
+            STStorageAdditionalConstraint(
+                name="Constraint2??", variable=AdditionalConstraintVariable.WITHDRAWAL, occurrences=[Occurrence([167])]
+            ),
         ]
         second_storage.create_constraints(constraints_fr)
 
         constraints_be = STStorageAdditionalConstraint(
-            name="constraint_be", enabled=False, operator=AdditionalConstraintOperator.GREATER
+            name="constraint_be",
+            enabled=False,
+            operator=AdditionalConstraintOperator.GREATER,
+            occurrences=[Occurrence([1, 2]), Occurrence([4, 5, 6])],
         )
         storage_be.create_constraints([constraints_be])
 
@@ -1381,6 +1386,6 @@ class TestWebClient:
             MCAllAreasDataType.VALUES, Frequency.ANNUAL, columns_names=["NODU EXP", "LOLD MAX"]
         )
         cols = ["area", "timeId", "LOLD MAX", "NODU EXP"]
-        data = [["fr", 1, 0.0, 0.0]]
+        data = [["be", 1, 0.0, 0.0], ["fr", 1, 0.0, 0.0]]
         expected_df = pd.DataFrame(data=data, columns=cols)
         assert expected_df.equals(aggregated_df)
