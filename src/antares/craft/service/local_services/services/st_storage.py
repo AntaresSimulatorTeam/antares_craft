@@ -20,6 +20,7 @@ from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
+    STStorageConstraintCreationError,
     STStoragePropertiesUpdateError,
 )
 from antares.craft.model.st_storage import (
@@ -35,6 +36,7 @@ from antares.craft.service.base_services import BaseShortTermStorageService
 from antares.craft.service.local_services.models.st_storage import (
     parse_st_storage_constraint_local,
     parse_st_storage_local,
+    serialize_st_storage_constraint_local,
     serialize_st_storage_local,
 )
 from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
@@ -88,6 +90,23 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
 
     def save_ini(self, content: dict[str, Any], area_id: str) -> None:
         IniWriter().write(content, self._get_ini_path(area_id))
+
+    def _get_ini_constraints_path(self, area_id: str, storage_id: str) -> Path:
+        return (
+            self.config.study_path
+            / "input"
+            / "st-storage"
+            / "constraints"
+            / area_id
+            / storage_id
+            / "additional-constraints.ini"
+        )
+
+    def _read_ini_constraints(self, area_id: str, storage_id: str) -> dict[str, Any]:
+        return IniReader().read(self._get_ini_constraints_path(area_id, storage_id))
+
+    def _save_ini_constraints(self, content: dict[str, Any], area_id: str, storage_id: str) -> None:
+        IniWriter().write(content, self._get_ini_constraints_path(area_id, storage_id))
 
     @override
     def read_st_storages(self) -> dict[str, dict[str, STStorage]]:
@@ -191,8 +210,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
             area_id = area_folder.name
             for storage_folder in area_folder.iterdir():
                 storage_id = storage_folder.name
-                ini_path = folder_path / area_id / storage_id / "additional-constraints.ini"
-                ini_content = IniReader().read(ini_path)
+                ini_content = self._read_ini_constraints(area_id, storage_id)
                 for constraint_name, data in ini_content.items():
                     args = {"name": constraint_name, **data}
                     constraint = parse_st_storage_constraint_local(args)
@@ -206,7 +224,33 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
     ) -> list[STStorageAdditionalConstraint]:
         if self.study_version < STUDY_VERSION_9_2:
             raise ValueError(CONSTRAINTS_ERROR_MSG)
-        raise NotImplementedError()
+
+        ini_content = self._read_ini_constraints(area_id, storage_id)
+
+        # Checks if the constraints don't already exist
+        given_ids = {c.id for c in constraints}
+        for constraint_name, data in ini_content.items():
+            args = {"name": constraint_name, **data}
+            constraint = parse_st_storage_constraint_local(args)
+            if constraint.id in given_ids:
+                raise STStorageConstraintCreationError(
+                    self.study_name, area_id, storage_id, f"{constraint.id} already exists"
+                )
+
+        created_constraints = []
+
+        # Performs the creation
+        for constraint in constraints:
+            ini_content[constraint.name] = serialize_st_storage_constraint_local(constraint)
+            # Round trip to validate the data
+            args = {"name": constraint.name, **ini_content[constraint.name]}
+            created_constraints.append(parse_st_storage_constraint_local(args))
+
+        # Saves the ini file
+        self._save_ini_constraints(ini_content, area_id, storage_id)
+
+        # Return the created constraints
+        return created_constraints
 
     @override
     def delete_constraints(self, area_id: str, storage_id: str, constraint_ids: list[str]) -> None:
