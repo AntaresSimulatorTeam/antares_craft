@@ -251,7 +251,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         if self.study_version < STUDY_VERSION_9_2:
             raise ValueError(CONSTRAINTS_ERROR_MSG)
 
-        existing_constraints = self._read_ini_constraints(area_id, storage_id)
+        existing_constraints = self._read_constraints_for_a_storage(area_id, storage_id)
         # Checks if the constraints don't already exist
         for constraint in constraints:
             if constraint.id in existing_constraints:
@@ -270,7 +270,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         if self.study_version < STUDY_VERSION_9_2:
             raise ValueError(CONSTRAINTS_ERROR_MSG)
 
-        existing_constraints = self._read_ini_constraints(area_id, storage_id)
+        existing_constraints = self._read_constraints_for_a_storage(area_id, storage_id)
         for constraint_id in constraint_ids:
             if constraint_id not in existing_constraints:
                 raise STStorageConstraintDeletionError(
