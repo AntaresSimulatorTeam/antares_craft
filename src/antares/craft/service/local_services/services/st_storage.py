@@ -30,7 +30,7 @@ from antares.craft.model.st_storage import (
     STStorageProperties,
     STStoragePropertiesUpdate,
 )
-from antares.craft.model.study import STUDY_VERSION_8_8
+from antares.craft.model.study import STUDY_VERSION_8_8, STUDY_VERSION_9_2
 from antares.craft.service.base_services import BaseShortTermStorageService
 from antares.craft.service.local_services.models.st_storage import (
     parse_st_storage_local,
@@ -63,6 +63,8 @@ FORBIDDEN_MATRICES_88 = {
     STStorageMatrixName.COST_VARIATION_INJECTION,
     STStorageMatrixName.COST_VARIATION_WITHDRAWAL,
 }
+
+CONSTRAINTS_ERROR_MSG = "The short-term storage constraints only exists in v9.2+ studies"
 
 
 class ShortTermStorageLocalService(BaseShortTermStorageService):
@@ -173,22 +175,32 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
     def create_constraints(
         self, area_id: str, storage_id: str, constraints: list[STStorageAdditionalConstraint]
     ) -> list[STStorageAdditionalConstraint]:
+        if self.study_version < STUDY_VERSION_9_2:
+            raise ValueError(CONSTRAINTS_ERROR_MSG)
         raise NotImplementedError()
 
     @override
     def delete_constraints(self, area_id: str, storage_id: str, constraint_ids: list[str]) -> None:
+        if self.study_version < STUDY_VERSION_9_2:
+            raise ValueError(CONSTRAINTS_ERROR_MSG)
         raise NotImplementedError()
 
     @override
     def get_constraint_term(self, area_id: str, storage_id: str, constraint_id: str) -> pd.DataFrame:
+        if self.study_version < STUDY_VERSION_9_2:
+            raise ValueError(CONSTRAINTS_ERROR_MSG)
         raise NotImplementedError()
 
     @override
     def set_constraint_term(self, area_id: str, storage_id: str, constraint_id: str, matrix: pd.DataFrame) -> None:
+        if self.study_version < STUDY_VERSION_9_2:
+            raise ValueError(CONSTRAINTS_ERROR_MSG)
         raise NotImplementedError()
 
     @override
     def update_st_storages_constraints(
         self, new_constraints: dict[STStorage, dict[str, STStorageAdditionalConstraintUpdate]]
     ) -> dict[str, dict[str, dict[str, STStorageAdditionalConstraint]]]:
+        if self.study_version < STUDY_VERSION_9_2:
+            raise ValueError(CONSTRAINTS_ERROR_MSG)
         raise NotImplementedError()
