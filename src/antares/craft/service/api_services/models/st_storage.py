@@ -85,7 +85,7 @@ class OccurrenceAPI(APIBaseModel):
 
 
 @all_optional_model
-class STStorageAdditinalConstraintAPI(APIBaseModel):
+class STStorageAdditionalConstraintAPI(APIBaseModel):
     id: str
     name: str
     variable: AdditionalConstraintVariable
@@ -94,9 +94,9 @@ class STStorageAdditinalConstraintAPI(APIBaseModel):
     enabled: bool
 
     @staticmethod
-    def from_user_model(user_class: STStorageConstraintType) -> "STStorageAdditinalConstraintAPI":
+    def from_user_model(user_class: STStorageConstraintType) -> "STStorageAdditionalConstraintAPI":
         user_dict = asdict(user_class)
-        return STStorageAdditinalConstraintAPI.model_validate(user_dict)
+        return STStorageAdditionalConstraintAPI.model_validate(user_dict)
 
     def to_user_model(self) -> STStorageAdditionalConstraint:
         occurences = [Occurrence(hours=occ.model_dump()["hours"]) for occ in self.occurrences]
@@ -110,10 +110,10 @@ class STStorageAdditinalConstraintAPI(APIBaseModel):
 
 
 def parse_st_storage_constraint_api(data: Any) -> STStorageAdditionalConstraint:
-    return STStorageAdditinalConstraintAPI.model_validate(data).to_user_model()
+    return STStorageAdditionalConstraintAPI.model_validate(data).to_user_model()
 
 
 def serialize_st_storage_constraint_api(constraint: STStorageConstraintType) -> dict[str, Any]:
-    return STStorageAdditinalConstraintAPI.from_user_model(constraint).model_dump(
+    return STStorageAdditionalConstraintAPI.from_user_model(constraint).model_dump(
         mode="json", exclude_none=True, exclude={"id"}
     )
