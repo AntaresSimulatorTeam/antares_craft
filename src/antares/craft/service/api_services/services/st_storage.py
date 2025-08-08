@@ -76,7 +76,7 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
         constraints_dict: dict[str, dict[str, dict[str, STStorageAdditionalConstraint]]] = {}
         for key, constraint_api in json_constraints.items():
             area_id, storage_id, constraint_id = key.split(" / ")
-            args = {"id": constraint_id, **constraint_api}
+            args = {"id": constraint_id, "name": constraint_id, **constraint_api}
             constraint = parse_st_storage_constraint_api(args)
             constraints_dict.setdefault(area_id, {}).setdefault(storage_id, {})[constraint.id] = constraint
 
