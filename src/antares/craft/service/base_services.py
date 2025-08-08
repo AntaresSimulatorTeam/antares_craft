@@ -745,6 +745,12 @@ class BaseShortTermStorageService(ABC):
         pass
 
     @abstractmethod
+    def update_st_storages_constraints(
+        self, new_constraints: dict["STStorage", dict[str, "STStorageAdditionalConstraintUpdate"]]
+    ) -> dict[str, dict[str, dict[str, "STStorageAdditionalConstraint"]]]:
+        pass
+
+    @abstractmethod
     def create_constraints(
         self, area_id: str, storage_id: str, constraints: list["STStorageAdditionalConstraint"]
     ) -> list["STStorageAdditionalConstraint"]:

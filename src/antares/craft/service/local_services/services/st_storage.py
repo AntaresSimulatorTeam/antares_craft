@@ -192,3 +192,9 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
     @override
     def set_constraint_term(self, area_id: str, storage_id: str, constraint_id: str, matrix: pd.DataFrame) -> None:
         raise NotImplementedError()
+
+    @override
+    def update_st_storages_constraints(
+        self, new_constraints: dict[STStorage, dict[str, STStorageAdditionalConstraintUpdate]]
+    ) -> dict[str, dict[str, dict[str, STStorageAdditionalConstraint]]]:
+        raise NotImplementedError()

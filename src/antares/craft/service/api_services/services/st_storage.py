@@ -125,6 +125,34 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
         return updated_storages
 
     @override
+    def update_st_storages_constraints(
+        self, new_constraints: dict[STStorage, dict[str, STStorageAdditionalConstraintUpdate]]
+    ) -> dict[str, dict[str, dict[str, STStorageAdditionalConstraint]]]:
+        url = f"{self._base_url}/studies/{self.study_id}/table-mode/st-storages-additional-constraints"
+        body = {}
+
+        constraints_dict: dict[str, dict[str, dict[str, STStorageAdditionalConstraint]]] = {}
+
+        for storage, props in new_constraints.items():
+            for constraint_id, constraint_update in props.items():
+                api_dict = serialize_st_storage_constraint_api(constraint_update)
+                key = f"{storage.area_id} / {storage.id} / {constraint_id}"
+                body[key] = api_dict
+
+        try:
+            json_response = self._wrapper.put(url, json=body).json()
+            for key, json_properties in json_response.items():
+                area_id, storage_id, constraint_id = key.split(" / ")
+                constraint = parse_st_storage_constraint_api(json_properties)
+
+                constraints_dict.setdefault(area_id, {}).setdefault(storage_id, {})[constraint.id] = constraint
+
+        except APIError as e:
+            raise STStorageConstraintEditionError(self.study_id, e.message) from e
+
+        return constraints_dict
+
+    @override
     def create_constraints(
         self, area_id: str, storage_id: str, constraints: list[STStorageAdditionalConstraint]
     ) -> list[STStorageAdditionalConstraint]:
