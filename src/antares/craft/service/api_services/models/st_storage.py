@@ -99,12 +99,12 @@ class STStorageAdditionalConstraintAPI(APIBaseModel):
         return STStorageAdditionalConstraintAPI.model_validate(user_dict)
 
     def to_user_model(self) -> STStorageAdditionalConstraint:
-        occurences = [Occurrence(hours=occ.model_dump()["hours"]) for occ in self.occurrences]
+        occurrences = [Occurrence(hours=occ.model_dump()["hours"]) for occ in self.occurrences]
         return STStorageAdditionalConstraint(
             name=self.name,
             variable=self.variable,
             operator=self.operator,
-            occurrences=occurences,
+            occurrences=occurrences,
             enabled=self.enabled,
         )
 
