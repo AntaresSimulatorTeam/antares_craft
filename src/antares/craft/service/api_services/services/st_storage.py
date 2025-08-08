@@ -143,7 +143,8 @@ class ShortTermStorageApiService(BaseShortTermStorageService):
             json_response = self._wrapper.put(url, json=body).json()
             for key, json_properties in json_response.items():
                 area_id, storage_id, constraint_id = key.split(" / ")
-                constraint = parse_st_storage_constraint_api(json_properties)
+                args = {"id": constraint_id, "name": constraint_id, **json_properties}
+                constraint = parse_st_storage_constraint_api(args)
 
                 constraints_dict.setdefault(area_id, {}).setdefault(storage_id, {})[constraint.id] = constraint
 
