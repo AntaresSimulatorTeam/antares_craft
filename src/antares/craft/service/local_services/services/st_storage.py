@@ -325,11 +325,9 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
             all_storage_ids = set(value)  # used to raise an Exception if a storage doesn't exist
 
             for storage_id, constraints in value.items():
-                ini_content = self._read_constraints_for_a_storage(area_id, storage_id)
+                existing_constraints = self._read_constraints_for_a_storage(area_id, storage_id)
 
-                for content in ini_content.values():
-                    constraint = parse_st_storage_constraint_local(content)
-
+                for constraint in existing_constraints.values():
                     c_id = constraint.id
                     if c_id in value:
                         all_storage_ids.remove(c_id)

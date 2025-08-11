@@ -20,7 +20,7 @@ import pandas as pd
 
 from checksumdir import dirhash
 
-from antares.craft import STStorageGroup, Study, read_study_local
+from antares.craft import STStorageAdditionalConstraintUpdate, STStorageGroup, Study, read_study_local
 from antares.craft.exceptions.exceptions import (
     InvalidFieldForVersionError,
     MatrixFormatError,
@@ -300,3 +300,19 @@ def test_nominal_case_additional_constraints(local_study_92: Study) -> None:
             enabled=True,
         ),
     }
+
+    # Update one constraint
+    new_constraint = sts.update_constraint(
+        "constraint2",
+        STStorageAdditionalConstraintUpdate(
+            variable=AdditionalConstraintVariable.NETTING,
+            operator=AdditionalConstraintOperator.GREATER,
+        ),
+    )
+    assert new_constraint == STStorageAdditionalConstraint(
+        name="Constraint2??",
+        variable=AdditionalConstraintVariable.NETTING,
+        operator=AdditionalConstraintOperator.GREATER,
+        occurrences=[Occurrence(hours=[167, 168])],
+        enabled=True,
+    )
