@@ -138,6 +138,10 @@ class TestBindingConstraints:
             }
         }
 
+        # Asserts the matrix doesn't exist anymore
+        matrix_path = study_path / "input" / "bindingconstraints" / f"{bc.id}_gt.txt"
+        assert not matrix_path.exists()
+
         with pytest.raises(
             ConstraintDoesNotExistError,
             match=re.escape("The binding constraint 'bc_1' doesn't exist inside study 'studyTest'."),

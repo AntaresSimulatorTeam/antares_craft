@@ -356,6 +356,8 @@ variableomcost = 5.0
         study_path = Path(local_study_w_thermal.path)
         ini_content = IniReader().read(study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini")
         assert list(ini_content.keys()) == ["th_2", "th_3"]
+        # Asserts the series do not exist anymore
+        assert not (study_path / "input" / "thermal" / "series" / "fr" / "test thermal cluster").exists()
 
         # Deletes the remaining clusters
         area_fr.delete_thermal_clusters([thermal_2, thermal_3])

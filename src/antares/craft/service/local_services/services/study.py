@@ -21,7 +21,7 @@ import pandas as pd
 
 from typing_extensions import override
 
-from antares.craft import ScenarioBuilder
+from antares.craft import BindingConstraintOperator, ScenarioBuilder
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import ConstraintDoesNotExistError
 from antares.craft.model.area import Area
@@ -134,7 +134,19 @@ class StudyLocalService(BaseStudyService):
                 copied_content.pop(index)
                 new_dict = {str(i): v for i, (k, v) in enumerate(copied_content.items())}
                 IniWriter().write(new_dict, ini_path)
+
+                # Remove the matrices
+                mapping = {
+                    BindingConstraintOperator.LESS: ["_lt"],
+                    BindingConstraintOperator.GREATER: ["_gt"],
+                    BindingConstraintOperator.EQUAL: ["_eq"],
+                    BindingConstraintOperator.BOTH: ["_lt", "_gt"],
+                }
+                for suffix in mapping[constraint.properties.operator]:
+                    (study_path / "input" / "bindingconstraints" / f"{constraint.id}{suffix}.txt").unlink()
+
                 return
+
         raise ConstraintDoesNotExistError(constraint.name, self._study_name)
 
     @override

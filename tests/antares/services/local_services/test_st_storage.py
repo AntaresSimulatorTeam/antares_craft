@@ -142,8 +142,11 @@ class TestSTStorage:
         # Asserts the area dict is empty
         assert area_fr.get_st_storages() == {}
         # Asserts the file is empty
-        ini_path = Path(local_study_w_storage.path / "input" / "st-storage" / "clusters" / "fr" / "list.ini")
-        assert not ini_path.read_text()
+        sts_folder = Path(local_study_w_storage.path) / "input" / "st-storage"
+        assert not (sts_folder / "clusters" / "fr" / "list.ini").read_text()
+        # Asserts the series do not exist anymore
+        assert not (sts_folder / "series" / "fr" / "sts_1").exists()
+        assert not (sts_folder / "series" / "fr" / "sts_2").exists()
 
     def test_st_storages_update_properties(self, local_study_w_storage: Study) -> None:
         area_fr = local_study_w_storage.get_areas()["fr"]

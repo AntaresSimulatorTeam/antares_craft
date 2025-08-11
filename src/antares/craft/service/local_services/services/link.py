@@ -107,6 +107,13 @@ class LinkLocalService(BaseLinkService):
             if area_to == link.area_to_id:
                 links_dict.pop(area_to)
                 self._save_ini(links_dict, link.area_from_id)
+
+                # Remove the matrices
+                folder_path = self.config.study_path / "input" / "links" / link.area_from_id
+                (folder_path / f"{link.area_to_id}_parameters.txt").unlink()
+                (folder_path / "capacities" / f"{link.area_to_id}_direct.txt").unlink()
+                (folder_path / "capacities" / f"{link.area_to_id}_indirect.txt").unlink()
+
                 return
 
         raise LinkDeletionError(link.id, "it doesn't exist")
