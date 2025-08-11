@@ -139,6 +139,17 @@ class TestLocalLauncher:
         assert len(outputs) == 0
         assert study.get_outputs() == {}
 
+    def test_version_92(self, tmp_path: Path) -> None:
+        solver_path = find_executable_path("9_2")
+        study = create_study_local("test study", "920", tmp_path, solver_path)
+
+        # Simulation succeeds
+        area_1 = study.create_area("area_1")
+        area_1.hydro.update_properties(HydroPropertiesUpdate(reservoir_capacity=1))  # make the simulation succeeds
+        job = study.run_antares_simulation()
+        study.wait_job_completion(job)
+        assert job.status == JobStatus.SUCCESS
+
     def test_simulation_succeeds_with_real_study(self, tmp_path: Path) -> None:
         solver_path = find_executable_path("8_8")
         study = create_study_local("test study", "880", tmp_path, solver_path)
