@@ -84,7 +84,7 @@ class TestMatrixAPI:
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 MatrixUploadError,
-                match=f"Error uploading load matrix for area '{self.area.id}': Expected 8760 rows and received 1.",
+                match=f"Error uploading load matrix for area '{self.area.id}': {self.antares_web_description_msg}",
             ):
                 self.area.set_load(self.matrix)
 
