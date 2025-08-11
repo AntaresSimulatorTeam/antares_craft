@@ -27,6 +27,7 @@ from antares.craft.exceptions.exceptions import (
     STStoragePropertiesUpdateError,
 )
 from antares.craft.model.st_storage import (
+    AdditionalConstraintOperator,
     AdditionalConstraintVariable,
     Occurrence,
     STStorageAdditionalConstraint,
@@ -274,7 +275,7 @@ def test_nominal_case_additional_constraints(local_study_92: Study) -> None:
     assert sts.get_constraints() == {}
     # Create several constraints
     constraints_fr = [
-        STStorageAdditionalConstraint(name="constraint_1"),
+        STStorageAdditionalConstraint(name="constraint_1", enabled=False),
         STStorageAdditionalConstraint(
             name="Constraint2??", variable=AdditionalConstraintVariable.WITHDRAWAL, occurrences=[Occurrence([167, 168])]
         ),
@@ -282,3 +283,20 @@ def test_nominal_case_additional_constraints(local_study_92: Study) -> None:
     sts.create_constraints(constraints_fr)
     # Ensures the reading method succeeds
     study = read_study_local(study_path)
+    sts = study.get_areas()["fr"].get_st_storages()["sts_1"]
+    assert sts.get_constraints() == {
+        "constraint_1": STStorageAdditionalConstraint(
+            name="constraint_1",
+            variable=AdditionalConstraintVariable.NETTING,
+            operator=AdditionalConstraintOperator.LESS,
+            occurrences=[Occurrence(hours=[])],
+            enabled=False,
+        ),
+        "constraint2": STStorageAdditionalConstraint(
+            name="Constraint2??",
+            variable=AdditionalConstraintVariable.WITHDRAWAL,
+            operator=AdditionalConstraintOperator.LESS,
+            occurrences=[Occurrence(hours=[167, 168])],
+            enabled=True,
+        ),
+    }
