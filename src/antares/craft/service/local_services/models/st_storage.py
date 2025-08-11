@@ -202,3 +202,12 @@ def serialize_st_storage_constraint_local(constraint: STStorageConstraintType) -
     return STStorageAdditionalConstraintLocal.from_user_model(constraint).model_dump(
         mode="json", exclude_none=True, exclude={"id"}
     )
+
+
+def update_st_storage_constraint_local(
+    constraint: STStorageAdditionalConstraint, data: STStorageAdditionalConstraintUpdate
+) -> STStorageAdditionalConstraint:
+    current_local_constraint = serialize_st_storage_constraint_local(constraint)
+    update_local_constraint = serialize_st_storage_constraint_local(data)
+    current_local_constraint.update(update_local_constraint)
+    return parse_st_storage_constraint_local(current_local_constraint)

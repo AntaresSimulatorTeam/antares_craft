@@ -22,6 +22,7 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     STStorageConstraintCreationError,
     STStorageConstraintDeletionError,
+    STStorageConstraintEditionError,
     STStoragePropertiesUpdateError,
 )
 from antares.craft.model.st_storage import (
@@ -39,6 +40,7 @@ from antares.craft.service.local_services.models.st_storage import (
     parse_st_storage_local,
     serialize_st_storage_constraint_local,
     serialize_st_storage_local,
+    update_st_storage_constraint_local,
 )
 from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
 from antares.craft.tools.contents_tool import transform_name_to_id
@@ -311,4 +313,41 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         """
         if self.study_version < STUDY_VERSION_9_2:
             raise ValueError(CONSTRAINTS_ERROR_MSG)
-        raise NotImplementedError()
+
+        memory_mapping: dict[str, dict[str, dict[str, STStorageAdditionalConstraint]]] = {}
+
+        constraints_by_area_and_storage: dict[str, dict[str, dict[str, STStorageAdditionalConstraintUpdate]]] = {}
+
+        for sts, constraints in new_constraints.items():
+            constraints_by_area_and_storage.setdefault(sts.area_id, {})[sts.id] = constraints
+
+        for area_id, value in constraints_by_area_and_storage.items():
+            all_storage_ids = set(value)  # used to raise an Exception if a storage doesn't exist
+
+            for storage_id, constraints in value.items():
+                ini_content = self._read_constraints_for_a_storage(area_id, storage_id)
+
+                for content in ini_content.values():
+                    constraint = parse_st_storage_constraint_local(content)
+
+                    c_id = constraint.id
+                    if c_id in value:
+                        all_storage_ids.remove(c_id)
+
+                        # Update the constraint
+                        new_constraint = update_st_storage_constraint_local(constraint, constraints[c_id])
+                        memory_mapping.setdefault(area_id, {}).setdefault(storage_id, {})[new_constraint.id] = (
+                            new_constraint
+                        )
+
+            if len(all_storage_ids) > 0:
+                raise STStorageConstraintEditionError(
+                    self.study_name, f"The constraint(s) {all_storage_ids} do not exist"
+                )
+
+        # Update ini files
+        for area_id, v in memory_mapping.items():
+            for storage_id, modified_constraints in v.items():
+                self._save_constraints(area_id, storage_id, modified_constraints)
+
+        return memory_mapping
