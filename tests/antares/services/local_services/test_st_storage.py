@@ -20,13 +20,19 @@ import pandas as pd
 
 from checksumdir import dirhash
 
-from antares.craft import STStorageGroup, Study
+from antares.craft import STStorageGroup, Study, read_study_local
 from antares.craft.exceptions.exceptions import (
     InvalidFieldForVersionError,
     MatrixFormatError,
     STStoragePropertiesUpdateError,
 )
-from antares.craft.model.st_storage import STStorageProperties, STStoragePropertiesUpdate
+from antares.craft.model.st_storage import (
+    AdditionalConstraintVariable,
+    Occurrence,
+    STStorageAdditionalConstraint,
+    STStorageProperties,
+    STStoragePropertiesUpdate,
+)
 from antares.craft.model.study import STUDY_VERSION_8_8, STUDY_VERSION_9_2
 from antares.craft.service.local_services.models.st_storage import (
     parse_st_storage_local,
@@ -249,3 +255,30 @@ class TestSTStorage:
             ValueError, match=re.escape("efficiency must be lower than efficiency_withdrawal. Currently: 4.0 > 1")
         ):
             storage.update_properties(STStoragePropertiesUpdate(efficiency=4))
+
+
+##########################
+# Additional constraints part
+##########################
+
+
+def test_nominal_case_additional_constraints(local_study_92: Study) -> None:
+    area_fr = local_study_92.get_areas()["fr"]
+    sts = area_fr.create_st_storage("sts_1")
+    # Ensures no constraint exists
+    assert sts.get_constraints() == {}
+    # Ensures we're able to read the study
+    study_path = Path(local_study_92.path)
+    study = read_study_local(study_path)
+    sts = study.get_areas()["fr"].get_st_storages()["sts_1"]
+    assert sts.get_constraints() == {}
+    # Create several constraints
+    constraints_fr = [
+        STStorageAdditionalConstraint(name="constraint_1"),
+        STStorageAdditionalConstraint(
+            name="Constraint2??", variable=AdditionalConstraintVariable.WITHDRAWAL, occurrences=[Occurrence([167, 168])]
+        ),
+    ]
+    sts.create_constraints(constraints_fr)
+    # Ensures the reading method succeeds
+    study = read_study_local(study_path)

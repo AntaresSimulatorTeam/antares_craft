@@ -176,6 +176,7 @@ class STStorageAdditionalConstraintLocal(LocalBaseModel):
     @staticmethod
     def from_user_model(user_class: STStorageConstraintType) -> "STStorageAdditionalConstraintLocal":
         user_dict = asdict(user_class)
+        del user_dict["id"]
         del user_dict["occurrences"]
         user_dict["hours"] = []
         if user_class.occurrences:
@@ -199,9 +200,7 @@ def parse_st_storage_constraint_local(data: Any) -> STStorageAdditionalConstrain
 
 
 def serialize_st_storage_constraint_local(constraint: STStorageConstraintType) -> dict[str, Any]:
-    return STStorageAdditionalConstraintLocal.from_user_model(constraint).model_dump(
-        mode="json", exclude_none=True, exclude={"id"}
-    )
+    return STStorageAdditionalConstraintLocal.from_user_model(constraint).model_dump(mode="json", exclude_none=True)
 
 
 def update_st_storage_constraint_local(
