@@ -754,19 +754,19 @@ class BaseShortTermStorageService(ABC):
     def create_constraints(
         self, area_id: str, storage_id: str, constraints: list["STStorageAdditionalConstraint"]
     ) -> list["STStorageAdditionalConstraint"]:
-        raise NotImplementedError()
+        pass
 
     @abstractmethod
     def delete_constraints(self, area_id: str, storage_id: str, constraint_ids: list[str]) -> None:
-        raise NotImplementedError()
+        pass
 
     @abstractmethod
     def get_constraint_term(self, area_id: str, storage_id: str, constraint_id: str) -> pd.DataFrame:
-        raise NotImplementedError()
+        pass
 
     @abstractmethod
     def set_constraint_term(self, area_id: str, storage_id: str, constraint_id: str, matrix: pd.DataFrame) -> None:
-        raise NotImplementedError()
+        pass
 
 
 class BaseRunService(ABC):
