@@ -178,8 +178,9 @@ class STStorageAdditionalConstraintLocal(LocalBaseModel):
         user_dict = asdict(user_class)
         del user_dict["id"]
         del user_dict["occurrences"]
-        user_dict["hours"] = []
+        user_dict["hours"] = [[]]
         if user_class.occurrences:
+            user_dict["hours"] = []
             for occ in user_class.occurrences:
                 user_dict["hours"].append(occ.hours)
         return STStorageAdditionalConstraintLocal.model_validate(user_dict)
