@@ -276,6 +276,8 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         if self.study_version < STUDY_VERSION_9_2:
             raise ValueError(CONSTRAINTS_ERROR_MSG)
 
+        matrix_ids_to_remove = set()
+
         existing_constraints = self._read_constraints_for_a_storage(area_id, storage_id)
         for constraint_id in constraint_ids:
             if constraint_id not in existing_constraints:
@@ -284,8 +286,22 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
                 )
 
             del existing_constraints[constraint_id]
+            matrix_ids_to_remove.add(constraint_id)
 
         self._save_constraints(area_id, storage_id, existing_constraints)
+
+        # Deletes the matrix
+        for matrix_id in matrix_ids_to_remove:
+            matrix_path = (
+                self.config.study_path
+                / "input"
+                / "st-storage"
+                / "constraints"
+                / area_id
+                / storage_id
+                / f"rhs_{matrix_id}.txt"
+            )
+            matrix_path.unlink(missing_ok=True)
 
     @override
     def get_constraint_term(self, area_id: str, storage_id: str, constraint_id: str) -> pd.DataFrame:

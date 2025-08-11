@@ -344,6 +344,7 @@ def test_nominal_case_additional_constraints(local_study_92: Study) -> None:
     constraints = sts.get_constraints()
     assert len(constraints) == 1
     assert "constraint_1" not in constraints
+    assert not (ini_path.parent / "rhs_constraint1.txt").exists()
 
     # Checks ini content
     content = IniReader().read(ini_path)
