@@ -127,16 +127,12 @@ def read_timeseries(
     second_area_id: Optional[str] = None,
     file_name: Optional[str] = None,
 ) -> pd.DataFrame:
-    file_path = study_path / (
-        ts_file_type.value
-        if not (area_id or constraint_id or cluster_id or second_area_id or file_name)
-        else ts_file_type.value.format(
-            area_id=area_id,
-            constraint_id=constraint_id,
-            cluster_id=cluster_id,
-            second_area_id=second_area_id,
-            file_name=file_name,
-        )
+    file_path = study_path / ts_file_type.value.format(
+        area_id=area_id,
+        constraint_id=constraint_id,
+        cluster_id=cluster_id,
+        second_area_id=second_area_id,
+        file_name=file_name,
     )
 
     if file_path.exists() and file_path.lstat().st_size != 0:
@@ -159,19 +155,14 @@ def write_timeseries(
     file_name: Optional[str] = None,
 ) -> None:
     series = pd.DataFrame() if series is None else series
-    format_kwargs = {}
-    if area_id:
-        format_kwargs["area_id"] = area_id
-    if cluster_id:
-        format_kwargs["cluster_id"] = cluster_id
-    if second_area_id:
-        format_kwargs["second_area_id"] = second_area_id
-    if constraint_id:
-        format_kwargs["constraint_id"] = constraint_id
-    if file_name:
-        format_kwargs["file_name"] = file_name
 
-    file_path = study_path / ts_file_type.value.format(**format_kwargs)
+    file_path = study_path / ts_file_type.value.format(
+        area_id=area_id,
+        constraint_id=constraint_id,
+        cluster_id=cluster_id,
+        second_area_id=second_area_id,
+        file_name=file_name,
+    )
 
     file_path.parent.mkdir(parents=True, exist_ok=True)
 
