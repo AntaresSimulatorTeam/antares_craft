@@ -68,8 +68,10 @@ class TestRenewable:
         # Asserts the area dict is empty
         assert area_fr.get_renewables() == {}
         # Asserts the file is empty
-        ini_path = Path(local_study_with_renewable.path / "input" / "renewables" / "clusters" / "fr" / "list.ini")
-        assert not ini_path.read_text()
+        renewable_folder = Path(local_study_with_renewable.path) / "input" / "renewables"
+        assert not (renewable_folder / "clusters" / "fr" / "list.ini").read_text()
+        # Asserts the series matrix does not exist anymore
+        assert not (renewable_folder / "series" / "fr" / "renewable cluster" / "series.txt").exists()
 
     def test_update_renewable_properties(self, local_study_with_renewable: Study) -> None:
         area_fr = local_study_with_renewable.get_areas()["fr"]
