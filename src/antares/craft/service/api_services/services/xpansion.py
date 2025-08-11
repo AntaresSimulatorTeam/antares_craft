@@ -168,15 +168,10 @@ class XpansionAPIService(BaseXpansionService):
             # Round-trip to validate data
             new_content = serialize_xpansion_candidate_api(updated_candidate)
 
-            # Saves the content
-            self._wrapper.put(url, json=new_content)
-
-            # Fetch the saved data to return it to the user
-            if candidate.name is not None and candidate.name != name:
-                # We're renaming the candidate, we should change the url
-                url = f"{self._expansion_url}/candidates/{candidate.name}"
-            response = self._wrapper.get(url).json()
+            # Saves the content and parse the endpoint response
+            response = self._wrapper.put(url, json=new_content).json()
             return parse_xpansion_candidate_api(response)
+
         except APIError as e:
             raise XpansionCandidateEditionError(self._study_id, name, e.message) from e
 
