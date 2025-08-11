@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 import copy
 import os
+import shutil
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional, cast
@@ -475,15 +476,33 @@ class AreaLocalService(BaseAreaService):
         # Delete the clusters
         self._delete_clusters("thermal", area_id, thermal_names_to_delete)
 
+        # Remove the matrices
+        for thermal in thermal_clusters:
+            shutil.rmtree(self.config.study_path / "input" / "thermal" / "series" / thermal.area_id / thermal.id)
+
     @override
     def delete_renewable_clusters(self, area_id: str, renewable_clusters: List[RenewableCluster]) -> None:
         renewable_names_to_delete = {renewable.name for renewable in renewable_clusters}
         self._delete_clusters("renewables", area_id, renewable_names_to_delete)
 
+        # Remove the matrices
+        for renewable in renewable_clusters:
+            shutil.rmtree(self.config.study_path / "input" / "renewables" / "series" / renewable.area_id / renewable.id)
+
     @override
     def delete_st_storages(self, area_id: str, storages: List[STStorage]) -> None:
         storage_names_to_delete = {st.name for st in storages}
         self._delete_clusters("st-storage", area_id, storage_names_to_delete)
+
+        for storage in storages:
+            area_id = storage.area_id
+            # Remove the matrices
+            shutil.rmtree(self.config.study_path / "input" / "st-storage" / "series" / area_id / storage.id)
+
+            # Remove the constraints
+            constraints_path = self.config.study_path / "input" / "st-storage" / "constraints" / area_id / storage.id
+            if constraints_path.exists():
+                shutil.rmtree(constraints_path)
 
     @override
     def get_load_matrix(self, area_id: str) -> pd.DataFrame:
