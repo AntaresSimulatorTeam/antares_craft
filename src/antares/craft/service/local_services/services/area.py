@@ -37,7 +37,6 @@ from antares.craft.model.area import (
 from antares.craft.model.hydro import Hydro, HydroProperties, InflowStructure
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
-from antares.craft.model.study import STUDY_VERSION_9_2
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.base_services import (
     BaseAreaService,
@@ -159,8 +158,6 @@ class AreaLocalService(BaseAreaService):
         write_timeseries(self.config.study_path, prepro, TimeSeriesFileType.THERMAL_DATA, area_id, cluster_id)
         write_timeseries(self.config.study_path, modulation, TimeSeriesFileType.THERMAL_MODULATION, area_id, cluster_id)
         write_timeseries(self.config.study_path, None, TimeSeriesFileType.THERMAL_SERIES, area_id, cluster_id)
-        write_timeseries(self.config.study_path, None, TimeSeriesFileType.THERMAL_CO2, area_id, cluster_id)
-        write_timeseries(self.config.study_path, None, TimeSeriesFileType.THERMAL_FUEL, area_id, cluster_id)
 
         return ThermalCluster(self.thermal_service, area_id, thermal_name, properties)
 
@@ -250,42 +247,6 @@ class AreaLocalService(BaseAreaService):
         write_timeseries(self.config.study_path, empty_matrix, TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE, area_id, cluster_id=cluster_id)
         # fmt: on
 
-        if self.study_version >= STUDY_VERSION_9_2:
-            write_timeseries(
-                self.config.study_path,
-                empty_matrix,
-                TimeSeriesFileType.ST_STORAGE_COST_INJECTION,
-                area_id,
-                cluster_id=cluster_id,
-            )
-            write_timeseries(
-                self.config.study_path,
-                empty_matrix,
-                TimeSeriesFileType.ST_STORAGE_COST_WITHDRAWAL,
-                area_id,
-                cluster_id=cluster_id,
-            )
-            write_timeseries(
-                self.config.study_path,
-                empty_matrix,
-                TimeSeriesFileType.ST_STORAGE_COST_LEVEL,
-                area_id,
-                cluster_id=cluster_id,
-            )
-            write_timeseries(
-                self.config.study_path,
-                empty_matrix,
-                TimeSeriesFileType.ST_STORAGE_COST_VARIATION_INJECTION,
-                area_id,
-                cluster_id=cluster_id,
-            )
-            write_timeseries(
-                self.config.study_path,
-                empty_matrix,
-                TimeSeriesFileType.ST_STORAGE_COST_VARIATION_WITHDRAWAL,
-                area_id,
-                cluster_id=cluster_id,
-            )
         return storage
 
     @override
