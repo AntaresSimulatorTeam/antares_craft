@@ -39,6 +39,7 @@ from antares.craft.service.local_services.models.st_storage import (
     parse_st_storage_local,
     serialize_st_storage_local,
 )
+from antares.craft.tools.serde_local.ini_reader import IniReader
 
 
 class TestSTStorage:
@@ -316,3 +317,23 @@ def test_nominal_case_additional_constraints(local_study_92: Study) -> None:
         occurrences=[Occurrence(hours=[167, 168])],
         enabled=True,
     )
+
+    # Checks ini content
+    ini_path = study_path / "input" / "st-storage" / "constraints" / "fr" / "sts_1" / "additional-constraints.ini"
+    content = IniReader().read(ini_path)
+    assert content == {
+        "Constraint2??": {
+            "enabled": True,
+            "hours": "[167, 168]",
+            "name": "Constraint2??",
+            "operator": "greater",
+            "variable": "netting",
+        },
+        "constraint_1": {
+            "enabled": False,
+            "hours": "[]",
+            "name": "constraint_1",
+            "operator": "less",
+            "variable": "netting",
+        },
+    }

@@ -322,24 +322,24 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
             constraints_by_area_and_storage.setdefault(sts.area_id, {})[sts.id] = constraints
 
         for area_id, value in constraints_by_area_and_storage.items():
+            memory_mapping[area_id] = {}
             for storage_id, constraints in value.items():
                 existing_constraints = self._read_constraints_for_a_storage(area_id, storage_id)
-                constraints_ids_update = set(constraints)  # used to raise an Exception if a constraint doesn't exist
+                memory_mapping[area_id][storage_id] = existing_constraints
+                constraints_ids_to_update = set(constraints)  # used to raise an Exception if a constraint doesn't exist
 
                 for constraint in existing_constraints.values():
                     c_id = constraint.id
-                    if c_id in constraints_ids_update:
-                        constraints_ids_update.remove(c_id)
+                    if c_id in constraints_ids_to_update:
+                        constraints_ids_to_update.remove(c_id)
 
                         # Update the constraint
                         new_constraint = update_st_storage_constraint_local(constraint, constraints[c_id])
-                        memory_mapping.setdefault(area_id, {}).setdefault(storage_id, {})[new_constraint.id] = (
-                            new_constraint
-                        )
+                        memory_mapping[area_id][storage_id][new_constraint.id] = new_constraint
 
-                if len(constraints_ids_update) > 0:
+                if len(constraints_ids_to_update) > 0:
                     raise STStorageConstraintEditionError(
-                        self.study_name, f"The constraint(s) {constraints_ids_update} do not exist"
+                        self.study_name, f"The constraint(s) {constraints_ids_to_update} do not exist"
                     )
 
         # Update ini files
