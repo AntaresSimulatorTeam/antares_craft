@@ -380,3 +380,25 @@ def test_nominal_case_additional_constraints(local_study_92: Study) -> None:
     sts.set_constraint_term("constraint3", new_term)
     term = sts.get_constraint_term("constraint3")
     pd.testing.assert_frame_equal(term, new_term)
+
+
+def test_error_cases(local_study_w_storage: Study) -> None:
+    sts = local_study_w_storage.get_areas()["fr"].get_st_storages()["sts_1"]
+    assert sts.get_constraints() == {}
+
+    error_msg = "The short-term storage constraints only exists in v9.2+ studies"
+
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
+        sts.create_constraints([STStorageAdditionalConstraint(name="Constraint1")])
+
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
+        sts.update_constraint("a", STStorageAdditionalConstraintUpdate())
+
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
+        sts.delete_constraints(["a"])
+
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
+        sts.get_constraint_term("a")
+
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
+        sts.set_constraint_term("a", pd.DataFrame())
