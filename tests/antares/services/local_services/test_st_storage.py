@@ -16,6 +16,7 @@ import re
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from checksumdir import dirhash
@@ -361,5 +362,20 @@ def test_nominal_case_additional_constraints(local_study_92: Study) -> None:
         [STStorageAdditionalConstraint(name="Constraint3", operator=AdditionalConstraintOperator.EQUAL)]
     )
     assert sts.get_constraints()["constraint3"] == STStorageAdditionalConstraint(
-        name="Constraint3", operator=AdditionalConstraintOperator.EQUAL
+        name="Constraint3",
+        operator=AdditionalConstraintOperator.EQUAL,
+        variable=AdditionalConstraintVariable.NETTING,
+        occurrences=[],
+        enabled=True,
     )
+
+    # Reads the constraint matrix
+    expected_term = pd.DataFrame(np.zeros((8760, 1)))
+    term = sts.get_constraint_term("constraint3")
+    pd.testing.assert_frame_equal(term, expected_term)
+
+    # Sets a new matrix
+    new_term = pd.DataFrame(np.ones((8760, 1)))
+    sts.set_constraint_term("constraint3", new_term)
+    term = sts.get_constraint_term("constraint3")
+    pd.testing.assert_frame_equal(term, new_term)

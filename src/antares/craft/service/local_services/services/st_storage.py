@@ -265,6 +265,8 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
 
         for constraint in constraints:
             existing_constraints[constraint.name] = constraint
+            # Create the term matrix
+            self.set_constraint_term(area_id, storage_id, constraint.id, pd.DataFrame())
 
         created_constraints = self._save_constraints(area_id, storage_id, existing_constraints)
         return list(created_constraints.values())
