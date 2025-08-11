@@ -128,9 +128,6 @@ def serialize_st_storage_local(study_version: StudyVersion, storage: STStoragePr
 # Additional constraints part
 ##########################
 
-STStorageConstraintType = STStorageAdditionalConstraint | STStorageAdditionalConstraintUpdate
-
-
 HoursType: TypeAlias = list[list[int]]
 
 
@@ -174,7 +171,7 @@ class STStorageAdditionalConstraintLocal(LocalBaseModel):
     enabled: bool = True
 
     @staticmethod
-    def from_user_model(user_class: STStorageConstraintType) -> "STStorageAdditionalConstraintLocal":
+    def from_user_model(user_class: STStorageAdditionalConstraint) -> "STStorageAdditionalConstraintLocal":
         user_dict = asdict(user_class)
         del user_dict["id"]
         del user_dict["occurrences"]
@@ -200,14 +197,17 @@ def parse_st_storage_constraint_local(data: Any) -> STStorageAdditionalConstrain
     return STStorageAdditionalConstraintLocal.model_validate(data).to_user_model()
 
 
-def serialize_st_storage_constraint_local(constraint: STStorageConstraintType) -> dict[str, Any]:
+def serialize_st_storage_constraint_local(constraint: STStorageAdditionalConstraint) -> dict[str, Any]:
     return STStorageAdditionalConstraintLocal.from_user_model(constraint).model_dump(mode="json", exclude_none=True)
 
 
 def update_st_storage_constraint_local(
     constraint: STStorageAdditionalConstraint, data: STStorageAdditionalConstraintUpdate
 ) -> STStorageAdditionalConstraint:
-    current_local_constraint = serialize_st_storage_constraint_local(constraint)
-    update_local_constraint = serialize_st_storage_constraint_local(data)
-    current_local_constraint.update(update_local_constraint)
-    return parse_st_storage_constraint_local(current_local_constraint)
+    return STStorageAdditionalConstraint(
+        name=constraint.name,
+        variable=data.variable or constraint.variable,
+        operator=data.operator or constraint.operator,
+        occurrences=data.occurrences or constraint.occurrences,
+        enabled=data.enabled or constraint.enabled,
+    )
