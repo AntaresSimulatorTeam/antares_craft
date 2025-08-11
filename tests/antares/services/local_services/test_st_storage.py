@@ -290,7 +290,7 @@ def test_nominal_case_additional_constraints(local_study_92: Study) -> None:
             name="constraint_1",
             variable=AdditionalConstraintVariable.NETTING,
             operator=AdditionalConstraintOperator.LESS,
-            occurrences=[Occurrence(hours=[])],
+            occurrences=[],
             enabled=False,
         ),
         "constraint2": STStorageAdditionalConstraint(
@@ -355,3 +355,11 @@ def test_nominal_case_additional_constraints(local_study_92: Study) -> None:
             "variable": "netting",
         }
     }
+
+    # Add another constraint
+    sts.create_constraints(
+        [STStorageAdditionalConstraint(name="Constraint3", operator=AdditionalConstraintOperator.EQUAL)]
+    )
+    assert sts.get_constraints()["constraint3"] == STStorageAdditionalConstraint(
+        name="Constraint3", operator=AdditionalConstraintOperator.EQUAL
+    )

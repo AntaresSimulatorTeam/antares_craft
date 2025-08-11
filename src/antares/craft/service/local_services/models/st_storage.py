@@ -183,7 +183,7 @@ class STStorageAdditionalConstraintLocal(LocalBaseModel):
         return STStorageAdditionalConstraintLocal.model_validate(user_dict)
 
     def to_user_model(self) -> STStorageAdditionalConstraint:
-        occurrences = [Occurrence(hours=hour) for hour in self.hours]
+        occurrences = [Occurrence(hours=hour) for hour in self.hours if hour]
         return STStorageAdditionalConstraint(
             name=self.name,
             variable=self.variable,
