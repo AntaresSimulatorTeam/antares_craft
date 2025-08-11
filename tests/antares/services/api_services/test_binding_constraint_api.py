@@ -9,10 +9,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
 import requests_mock
 
+import numpy as np
 import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
@@ -34,6 +34,7 @@ from antares.craft.model.binding_constraint import (
 from antares.craft.model.study import Study
 from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
+from tests.antares.services.api_services.utils import ARROW_CONTENT
 
 fixture_type = list[tuple[str, ConstraintMatrixName, str, list[list[int]]]]
 
@@ -62,7 +63,7 @@ class TestCreateAPI:
         services.hydro_service,
     )
     antares_web_description_msg = "Mocked Server KO"
-    matrix = pd.DataFrame(data=[[0]])
+    matrix = pd.DataFrame(np.zeros((8760, 1)))
     study_url = f"https://antares.com/api/v1/studies/{study_id}"
 
     def test_update_binding_constraint_properties_success(self) -> None:
@@ -127,7 +128,7 @@ class TestCreateAPI:
         for matrix_method, enum_value, path, expected_matrix in constraint_set:
             with requests_mock.Mocker() as mocker:
                 url = f"{self.study_url}/raw?path={path}"
-                mocker.get(url, json={"data": expected_matrix, "index": [0], "columns": [0]}, status_code=200)
+                mocker.get(url, content=ARROW_CONTENT, status_code=200)
                 constraint_matrix = getattr(constraint, matrix_method)()
             assert constraint_matrix.equals(self.matrix)
 

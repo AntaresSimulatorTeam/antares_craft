@@ -9,10 +9,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
 import requests_mock
 
+import numpy as np
 import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
@@ -29,6 +29,7 @@ from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate,
 from antares.craft.model.study import Study
 from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAPI
+from tests.antares.services.api_services.utils import ARROW_CONTENT
 
 
 @pytest.fixture()
@@ -67,7 +68,7 @@ class TestCreateAPI:
     )
     antares_web_description_msg = "Mocked Server KO"
     link = Link(area_from.id, area_to.id, services.link_service)
-    matrix = pd.DataFrame(data=[[0]])
+    matrix = pd.DataFrame(np.zeros((8760, 1)))
     study_url = f"https://antares.com/api/v1/studies/{study_id}"
 
     def test_update_links_properties_success(self) -> None:
@@ -186,7 +187,7 @@ class TestCreateAPI:
     def test_get_parameters_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/raw?path=input/links/{self.area_from.id}/{self.area_to.id}_parameters"
-            mocker.get(raw_url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            mocker.get(raw_url, content=ARROW_CONTENT, status_code=200)
 
             matrix = self.link.get_parameters()
             assert matrix.equals(self.matrix)
@@ -206,7 +207,7 @@ class TestCreateAPI:
     def test_get_indirect_capacity_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/raw?path=input/links/{self.area_from.id}/capacities/{self.area_to.id}_indirect"
-            mocker.get(raw_url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            mocker.get(raw_url, content=ARROW_CONTENT, status_code=200)
 
             matrix = self.link.get_capacity_indirect()
             assert matrix.equals(self.matrix)
@@ -226,7 +227,7 @@ class TestCreateAPI:
     def test_get_direct_capacity_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             raw_url = f"{self.study_url}/raw?path=input/links/{self.area_from.id}/capacities/{self.area_to.id}_direct"
-            mocker.get(raw_url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            mocker.get(raw_url, content=ARROW_CONTENT, status_code=200)
 
             matrix = self.link.get_capacity_direct()
             assert matrix.equals(self.matrix)

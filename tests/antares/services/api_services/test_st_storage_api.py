@@ -12,6 +12,7 @@
 import pytest
 import requests_mock
 
+import numpy as np
 import pandas as pd
 
 from antares.craft import Study
@@ -33,6 +34,7 @@ from antares.craft.model.st_storage import (
 )
 from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.services.st_storage import ShortTermStorageApiService
+from tests.antares.services.api_services.utils import ARROW_CONTENT
 
 
 class TestCreateAPI:
@@ -51,7 +53,7 @@ class TestCreateAPI:
     storage = STStorage(services.short_term_storage_service, area.id, "battery_fr")
     storage_1 = STStorage(services.short_term_storage_service, area.id, "duracell")
     antares_web_description_msg = "Mocked Server KO"
-    matrix = pd.DataFrame(data=[[0]])
+    matrix = pd.DataFrame(np.zeros((8760, 1)))
 
     def test_update_st_storage_properties_success(self) -> None:
         with requests_mock.Mocker() as mocker:
@@ -77,7 +79,7 @@ class TestCreateAPI:
     def test_get_storage_matrix_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/st-storage/series/{self.area.id}/{self.storage.id}/inflows"
-            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
+            mocker.get(url, content=ARROW_CONTENT, status_code=200)
             inflow_matrix = self.storage.get_storage_inflows()
             assert inflow_matrix.equals(self.matrix)
 
