@@ -16,22 +16,31 @@ import re
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from checksumdir import dirhash
 
-from antares.craft import STStorageGroup, Study
+from antares.craft import STStorageAdditionalConstraintUpdate, STStorageGroup, Study, read_study_local
 from antares.craft.exceptions.exceptions import (
     InvalidFieldForVersionError,
     MatrixFormatError,
     STStoragePropertiesUpdateError,
 )
-from antares.craft.model.st_storage import STStorageProperties, STStoragePropertiesUpdate
+from antares.craft.model.st_storage import (
+    AdditionalConstraintOperator,
+    AdditionalConstraintVariable,
+    Occurrence,
+    STStorageAdditionalConstraint,
+    STStorageProperties,
+    STStoragePropertiesUpdate,
+)
 from antares.craft.model.study import STUDY_VERSION_8_8, STUDY_VERSION_9_2
 from antares.craft.service.local_services.models.st_storage import (
     parse_st_storage_local,
     serialize_st_storage_local,
 )
+from antares.craft.tools.serde_local.ini_reader import IniReader
 
 
 class TestSTStorage:
@@ -249,3 +258,147 @@ class TestSTStorage:
             ValueError, match=re.escape("efficiency must be lower than efficiency_withdrawal. Currently: 4.0 > 1")
         ):
             storage.update_properties(STStoragePropertiesUpdate(efficiency=4))
+
+
+##########################
+# Additional constraints part
+##########################
+
+
+def test_nominal_case_additional_constraints(local_study_92: Study) -> None:
+    area_fr = local_study_92.get_areas()["fr"]
+    sts = area_fr.create_st_storage("sts_1")
+    # Ensures no constraint exists
+    assert sts.get_constraints() == {}
+    # Ensures we're able to read the study
+    study_path = Path(local_study_92.path)
+    study = read_study_local(study_path)
+    sts = study.get_areas()["fr"].get_st_storages()["sts_1"]
+    assert sts.get_constraints() == {}
+    # Create several constraints
+    constraints_fr = [
+        STStorageAdditionalConstraint(name="constraint_1", enabled=False),
+        STStorageAdditionalConstraint(
+            name="Constraint2??", variable=AdditionalConstraintVariable.WITHDRAWAL, occurrences=[Occurrence([167, 168])]
+        ),
+    ]
+    sts.create_constraints(constraints_fr)
+    # Ensures the reading method succeeds
+    study = read_study_local(study_path)
+    sts = study.get_areas()["fr"].get_st_storages()["sts_1"]
+    assert sts.get_constraints() == {
+        "constraint_1": STStorageAdditionalConstraint(
+            name="constraint_1",
+            variable=AdditionalConstraintVariable.NETTING,
+            operator=AdditionalConstraintOperator.LESS,
+            occurrences=[],
+            enabled=False,
+        ),
+        "constraint2": STStorageAdditionalConstraint(
+            name="Constraint2??",
+            variable=AdditionalConstraintVariable.WITHDRAWAL,
+            operator=AdditionalConstraintOperator.LESS,
+            occurrences=[Occurrence(hours=[167, 168])],
+            enabled=True,
+        ),
+    }
+
+    # Update one constraint
+    new_constraint = sts.update_constraint(
+        "constraint2",
+        STStorageAdditionalConstraintUpdate(
+            variable=AdditionalConstraintVariable.NETTING,
+            operator=AdditionalConstraintOperator.GREATER,
+        ),
+    )
+    assert new_constraint == STStorageAdditionalConstraint(
+        name="Constraint2??",
+        variable=AdditionalConstraintVariable.NETTING,
+        operator=AdditionalConstraintOperator.GREATER,
+        occurrences=[Occurrence(hours=[167, 168])],
+        enabled=True,
+    )
+
+    # Checks ini content
+    ini_path = study_path / "input" / "st-storage" / "constraints" / "fr" / "sts_1" / "additional-constraints.ini"
+    content = IniReader().read(ini_path)
+    assert content == {
+        "Constraint2??": {
+            "enabled": True,
+            "hours": "[167, 168]",
+            "name": "Constraint2??",
+            "operator": "greater",
+            "variable": "netting",
+        },
+        "constraint_1": {
+            "enabled": False,
+            "hours": "[]",
+            "name": "constraint_1",
+            "operator": "less",
+            "variable": "netting",
+        },
+    }
+
+    # Deletes a constraint
+    sts.delete_constraints(["constraint_1"])
+    constraints = sts.get_constraints()
+    assert len(constraints) == 1
+    assert "constraint_1" not in constraints
+    assert not (ini_path.parent / "rhs_constraint1.txt").exists()
+
+    # Checks ini content
+    content = IniReader().read(ini_path)
+    assert content == {
+        "Constraint2??": {
+            "enabled": True,
+            "hours": "[167, 168]",
+            "name": "Constraint2??",
+            "operator": "greater",
+            "variable": "netting",
+        }
+    }
+
+    # Add another constraint
+    sts.create_constraints(
+        [STStorageAdditionalConstraint(name="Constraint3", operator=AdditionalConstraintOperator.EQUAL)]
+    )
+    assert sts.get_constraints()["constraint3"] == STStorageAdditionalConstraint(
+        name="Constraint3",
+        operator=AdditionalConstraintOperator.EQUAL,
+        variable=AdditionalConstraintVariable.NETTING,
+        occurrences=[],
+        enabled=True,
+    )
+
+    # Reads the constraint matrix
+    expected_term = pd.DataFrame(np.zeros((8760, 1)))
+    term = sts.get_constraint_term("constraint3")
+    pd.testing.assert_frame_equal(term, expected_term)
+
+    # Sets a new matrix
+    new_term = pd.DataFrame(np.ones((8760, 1)))
+    sts.set_constraint_term("constraint3", new_term)
+    term = sts.get_constraint_term("constraint3")
+    pd.testing.assert_frame_equal(term, new_term)
+
+
+def test_error_cases(local_study_w_storage: Study) -> None:
+    sts = local_study_w_storage.get_areas()["fr"].get_st_storages()["sts_1"]
+    assert sts.get_constraints() == {}
+
+    error_msg = "The short-term storage constraints only exists in v9.2+ studies"
+
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
+        sts.create_constraints([STStorageAdditionalConstraint(name="Constraint1")])
+
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
+        sts.update_constraint("a", STStorageAdditionalConstraintUpdate())
+
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
+        sts.delete_constraints(["a"])
+
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
+        sts.get_constraint_term("a")
+
+    with pytest.raises(ValueError, match=re.escape(error_msg)):
+        sts.set_constraint_term("a", pd.DataFrame())

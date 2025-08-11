@@ -105,6 +105,7 @@ DEFAULT_MATRIX_MAPPING = {
     TimeSeriesFileType.WIND: pd.DataFrame(default_series),
     TimeSeriesFileType.XPANSION_WEIGHT: pd.DataFrame(),
     TimeSeriesFileType.XPANSION_CAPACITY: pd.DataFrame(default_series_with_ones),
+    TimeSeriesFileType.ST_STORAGE_CONSTRAINT_TERM: pd.DataFrame(default_series),
 }
 
 

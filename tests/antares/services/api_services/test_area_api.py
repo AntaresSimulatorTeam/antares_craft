@@ -233,6 +233,7 @@ class TestCreateAPI:
         url_thermal = f"{study_url}/table-mode/thermals"
         url_renewable = f"{study_url}/table-mode/renewables"
         url_st_storage = f"{study_url}/table-mode/st-storages"
+        url_st_storage_constraints = f"{study_url}/table-mode/st-storages-additional-constraints"
         url_properties_form = f"{study_url}/table-mode/areas"
         hydro_url = f"{study_url}/hydro"
 
@@ -296,6 +297,7 @@ class TestCreateAPI:
             mocker.get(url_thermal, json=json_thermal)
             mocker.get(url_renewable, json=json_renewable)
             mocker.get(url_st_storage, json=json_st_storage)
+            mocker.get(url_st_storage_constraints, json={})
             mocker.get(url_properties_form, json=json_properties)
             mocker.get(
                 hydro_url,
