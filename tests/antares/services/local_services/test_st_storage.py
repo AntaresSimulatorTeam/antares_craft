@@ -337,3 +337,21 @@ def test_nominal_case_additional_constraints(local_study_92: Study) -> None:
             "variable": "netting",
         },
     }
+
+    # Deletes a constraint
+    sts.delete_constraints(["constraint_1"])
+    constraints = sts.get_constraints()
+    assert len(constraints) == 1
+    assert "constraint_1" not in constraints
+
+    # Checks ini content
+    content = IniReader().read(ini_path)
+    assert content == {
+        "Constraint2??": {
+            "enabled": True,
+            "hours": "[167, 168]",
+            "name": "Constraint2??",
+            "operator": "greater",
+            "variable": "netting",
+        }
+    }
