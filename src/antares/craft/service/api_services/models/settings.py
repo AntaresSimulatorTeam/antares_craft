@@ -180,6 +180,23 @@ class AdvancedAndSeedParametersAPI(APIBaseModel):
         )
 
 
+def parse_advanced_and_seed_parameters_api(data: Any) -> tuple[AdvancedParameters, SeedParameters]:
+    advanced_parameters_api_model = AdvancedAndSeedParametersAPI.model_validate(data)
+    seed_parameters = advanced_parameters_api_model.to_user_seed_parameters_model()
+    advanced_parameters = advanced_parameters_api_model.to_user_advanced_parameters_model()
+    return advanced_parameters, seed_parameters
+
+
+def serialize_advanced_and_seed_parameters_api(
+    advanced_parameters: Optional[AdvancedParametersType] = None, seed_parameters: Optional[SeedParametersType] = None
+) -> dict[str, Any]:
+    advanced_api_model = AdvancedAndSeedParametersAPI.from_user_model(advanced_parameters, seed_parameters)
+    body = advanced_api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
+    if "accuracyOnCorrelation" in body:
+        body["accuracyOnCorrelation"] = ", ".join(corr for corr in body["accuracyOnCorrelation"])
+    return body
+
+
 GeneralParametersType = GeneralParameters | GeneralParametersUpdate
 
 

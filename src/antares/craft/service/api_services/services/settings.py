@@ -25,13 +25,14 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.service.api_services.models.settings import (
-    AdvancedAndSeedParametersAPI,
     OptimizationParametersAPI,
     parse_adequacy_patch_parameters_api,
+    parse_advanced_and_seed_parameters_api,
     parse_general_parameters_api,
     parse_optimization_parameters_api,
     parse_thematic_trimming_api,
     serialize_adequacy_patch_parameters_api,
+    serialize_advanced_and_seed_parameters_api,
     serialize_general_parameters_api,
     serialize_thematic_trimming_api,
 )
@@ -121,15 +122,12 @@ def edit_study_settings(
         general_parameters = parse_general_parameters_api(response, nb_ts_thermal)
 
     # advanced and seed parameters
+    advanced_parameters, seed_parameters = None, None
     if settings.advanced_parameters or settings.seed_parameters:
         advanced_parameters_url = f"{settings_base_url}/advancedparameters/form"
-        advanced_api_model = AdvancedAndSeedParametersAPI.from_user_model(
-            settings.advanced_parameters, settings.seed_parameters
-        )
-        body = advanced_api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
-        if "accuracyOnCorrelation" in body:
-            body["accuracyOnCorrelation"] = ", ".join(corr for corr in body["accuracyOnCorrelation"])
-        wrapper.put(advanced_parameters_url, json=body)
+        body = serialize_advanced_and_seed_parameters_api(settings.advanced_parameters, settings.seed_parameters)
+        response = wrapper.put(advanced_parameters_url, json=body)
+        advanced_parameters, seed_parameters = parse_advanced_and_seed_parameters_api(response.json())
 
     # adequacy patch
     adequacy_patch_parameters = None
@@ -142,8 +140,8 @@ def edit_study_settings(
     return StudySettings(
         general_parameters=general_parameters or current_settings.general_parameters,
         optimization_parameters=optimization_parameters or current_settings.optimization_parameters,
-        seed_parameters=current_settings.seed_parameters,  # todo: change
-        advanced_parameters=current_settings.advanced_parameters,  # todo: change
+        seed_parameters=seed_parameters or current_settings.seed_parameters,
+        advanced_parameters=advanced_parameters or current_settings.advanced_parameters,
         adequacy_patch_parameters=adequacy_patch_parameters or current_settings.adequacy_patch_parameters,
         playlist_parameters=current_settings.playlist_parameters,
         thematic_trimming_parameters=current_settings.thematic_trimming_parameters,
@@ -184,9 +182,7 @@ def read_study_settings_api(base_url: str, study_id: str, wrapper: RequestWrappe
     # advanced and seed parameters
     advanced_parameters_url = f"{settings_base_url}/advancedparameters/form"
     response = wrapper.get(advanced_parameters_url)
-    advanced_parameters_api_model = AdvancedAndSeedParametersAPI.model_validate(response.json())
-    seed_parameters = advanced_parameters_api_model.to_user_seed_parameters_model()
-    advanced_parameters = advanced_parameters_api_model.to_user_advanced_parameters_model()
+    advanced_parameters, seed_parameters = parse_advanced_and_seed_parameters_api(response.json())
 
     # adequacy patch
     adequacy_patch_url = f"{settings_base_url}/adequacypatch/form"
