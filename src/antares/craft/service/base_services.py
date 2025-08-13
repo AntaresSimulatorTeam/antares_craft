@@ -846,12 +846,15 @@ class BaseOutputService(ABC):
 
 class BaseStudySettingsService(ABC):
     @abstractmethod
-    def edit_study_settings(self, settings: StudySettingsUpdate, study_version: StudyVersion) -> None:
+    def edit_study_settings(
+        self, settings: StudySettingsUpdate, current_settings: StudySettings, study_version: StudyVersion
+    ) -> StudySettings:
         """
         Edit the settings for a given study
 
         Args:
             settings: the settings to update with their values
+            current_settings: the current settings of the study
             study_version: the version of the current study
         """
         pass

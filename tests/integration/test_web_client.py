@@ -81,14 +81,14 @@ class TestWebClient:
             area_fr.set_load(wrong_load_matrix)
 
         # Case that succeeds
-        load_matrix = pd.DataFrame(data=np.zeros((8760, 1)))
+        load_matrix = pd.DataFrame(data=np.zeros((8760, 1), dtype=np.int32))
         area_fr.set_load(load_matrix)
 
         # tests get load matrix
         assert area_fr.get_load_matrix().equals(load_matrix)
 
         # asserts solar and wind matrices can be created and read.
-        ts_matrix = pd.DataFrame(data=np.ones((8760, 4)))
+        ts_matrix = pd.DataFrame(data=np.ones((8760, 4), dtype=np.int32))
 
         area_fr.set_solar(ts_matrix)
         assert area_fr.get_solar_matrix().equals(ts_matrix)
@@ -165,11 +165,11 @@ class TestWebClient:
 
         # test thermal cluster creation with prepro_modulation matrices
         thermal_name = "matrices_be"
-        prepro_modulation_matrix = pd.DataFrame(data=np.ones((8760, 6)))
-        modulation_matrix = pd.DataFrame(data=np.ones((8760, 4)))
-        series_matrix = pd.DataFrame(data=np.ones((8760, 6)))
-        co2_cost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
-        fuel_cost_matrix = pd.DataFrame(data=np.ones((8760, 1)))
+        prepro_modulation_matrix = pd.DataFrame(data=np.ones((8760, 6), dtype=np.int32))
+        modulation_matrix = pd.DataFrame(data=np.ones((8760, 4), dtype=np.int32))
+        series_matrix = pd.DataFrame(data=np.ones((8760, 6), dtype=np.int32))
+        co2_cost_matrix = pd.DataFrame(data=np.ones((8760, 1), dtype=np.int32))
+        fuel_cost_matrix = pd.DataFrame(data=np.ones((8760, 1), dtype=np.int32))
 
         # creating parameters and capacities for this link and testing them
         link_be_fr.set_parameters(series_matrix)
@@ -321,7 +321,7 @@ class TestWebClient:
         assert area_be_props.dispatch_hydro_power
 
         # tests upload matrix for short term storage.
-        injection_matrix = pd.DataFrame(data=np.zeros((8760, 1)))
+        injection_matrix = pd.DataFrame(data=np.zeros((8760, 1), dtype=np.int32))
         battery_fr.update_pmax_injection(injection_matrix)
 
         # tests get pmax_injection matrix
@@ -420,12 +420,12 @@ class TestWebClient:
 
         # Case that succeeds
         properties = BindingConstraintProperties(operator=BindingConstraintOperator.LESS)
-        matrix = pd.DataFrame(data=(np.ones((8784, 1))))
+        matrix = pd.DataFrame(data=(np.ones((8784, 1), dtype=np.int32)))
         constraint_3 = study.create_binding_constraint(name="bc_3", less_term_matrix=matrix, properties=properties)
         assert constraint_3.get_less_term_matrix().equals(matrix)
 
         # test update constraint matrices
-        new_matrix = pd.DataFrame(data=(np.ones((8784, 1))))
+        new_matrix = pd.DataFrame(data=(np.ones((8784, 1), dtype=np.int32)))
         new_matrix.iloc[0, 0] = 72
         update_properties = BindingConstraintPropertiesUpdate(operator=BindingConstraintOperator.EQUAL)
         constraint_3.update_properties(update_properties)
@@ -576,9 +576,9 @@ class TestWebClient:
         assert link_de_fr.id not in study.get_links()
 
         # tests uploading thermal and renewable matrices
-        series_matrix = pd.DataFrame(data=np.zeros((8760, 3)))
-        prepro_data_matrix = pd.DataFrame(data=np.ones((365, 6)))
-        prepro_modulation_matrix = pd.DataFrame(data=np.ones((8760, 4)))
+        series_matrix = pd.DataFrame(data=np.zeros((8760, 3), dtype=np.int32))
+        prepro_data_matrix = pd.DataFrame(data=np.ones((365, 6), dtype=np.int32))
+        prepro_modulation_matrix = pd.DataFrame(data=np.ones((8760, 4), dtype=np.int32))
         thermal_fr.set_prepro_data(prepro_data_matrix)
         thermal_fr.set_prepro_modulation(prepro_modulation_matrix)
         thermal_fr.set_fuel_cost(series_matrix)
@@ -712,46 +712,46 @@ class TestWebClient:
         default_reservoir = pd.DataFrame(default_reservoir_matrix)
         assert area_fr.hydro.get_reservoir().equals(pd.DataFrame(default_reservoir))
 
-        default_credit_modulation = pd.DataFrame(np.ones((2, 101), dtype=np.float64))
+        default_credit_modulation = pd.DataFrame(np.ones((2, 101), dtype=np.int32))
         assert area_fr.hydro.get_credit_modulations().equals(default_credit_modulation)
 
-        default_water_values = pd.DataFrame(np.zeros((365, 101), dtype=np.float64))
+        default_water_values = pd.DataFrame(np.zeros((365, 101), dtype=np.int32))
         assert area_fr.hydro.get_water_values().equals(default_water_values)
 
-        default_maxpower_matrix = np.zeros((365, 4), dtype=np.float64)
+        default_maxpower_matrix = np.zeros((365, 4), dtype=np.int32)
         default_maxpower_matrix[:, 1] = 24
         default_maxpower_matrix[:, 3] = 24
         default_maxpower = pd.DataFrame(default_maxpower_matrix)
         assert area_fr.hydro.get_maxpower().equals(default_maxpower)
 
-        default_inflow_pattern = pd.DataFrame(np.ones((365, 1), dtype=np.float64))
+        default_inflow_pattern = pd.DataFrame(np.ones((365, 1), dtype=np.int32))
         assert area_fr.hydro.get_inflow_pattern().equals(default_inflow_pattern)
 
-        default_ror = pd.DataFrame(np.zeros((8760, 1), dtype=np.float64))
+        default_ror = pd.DataFrame(np.zeros((8760, 1), dtype=np.int32))
         assert area_fr.hydro.get_ror_series().equals(default_ror)
 
         default_mingen = default_ror
         assert area_fr.hydro.get_mingen().equals(default_mingen)
 
-        default_mod = pd.DataFrame(np.zeros((365, 1), dtype=np.float64))
+        default_mod = pd.DataFrame(np.zeros((365, 1), dtype=np.int32))
         assert area_fr.hydro.get_mod_series().equals(default_mod)
 
-        default_energy = pd.DataFrame(np.zeros((12, 5), dtype=np.float64))
+        default_energy = pd.DataFrame(np.zeros((12, 5), dtype=np.int32))
         assert area_fr.hydro.get_energy().equals(default_energy)
 
         # tests the update for hydro matrices
-        mod_series = pd.DataFrame(data=np.full((365, 1), 100, dtype=np.float64))
-        ror_series = pd.DataFrame(data=np.ones((8760, 1)))
-        mingen_series = pd.DataFrame(data=np.ones((8760, 1)))
-        energy_matrix = pd.DataFrame(data=np.ones((12, 5)))
-        max_power = np.full((365, 4), 1000, dtype=np.float64)
+        mod_series = pd.DataFrame(data=np.full((365, 1), 100, dtype=np.int32))
+        ror_series = pd.DataFrame(data=np.ones((8760, 1), dtype=np.int32))
+        mingen_series = pd.DataFrame(data=np.ones((8760, 1), dtype=np.int32))
+        energy_matrix = pd.DataFrame(data=np.ones((12, 5), dtype=np.int32))
+        max_power = np.full((365, 4), 1000, dtype=np.int32)
         max_power[:, 1] = 24
         max_power[:, 3] = 24
-        maxpower_matrix = pd.DataFrame(data=max_power)
-        reservoir_matrix = pd.DataFrame(data=np.ones((365, 3)))
-        inflow_pattern_matrix = pd.DataFrame(data=np.zeros((365, 1)))
-        credits_matrix = pd.DataFrame(data=np.zeros((2, 101)))
-        water_values_matrix = pd.DataFrame(data=np.ones((365, 101)))
+        maxpower_matrix = pd.DataFrame(data=max_power, dtype=np.int32)
+        reservoir_matrix = pd.DataFrame(data=np.ones((365, 3), dtype=np.int32))
+        inflow_pattern_matrix = pd.DataFrame(data=np.zeros((365, 1), dtype=np.int32))
+        credits_matrix = pd.DataFrame(data=np.zeros((2, 101), dtype=np.int32))
+        water_values_matrix = pd.DataFrame(data=np.ones((365, 101), dtype=np.int32))
 
         area_fr.hydro.set_maxpower(maxpower_matrix)
         area_fr.hydro.set_reservoir(reservoir_matrix)
@@ -1288,8 +1288,8 @@ class TestWebClient:
         assert storage.properties.group == "new group"
         assert storage.properties.penalize_variation_injection is True
 
-        assert storage.get_cost_variation_injection().equals(pd.DataFrame(np.zeros((8760, 1))))
-        new_matrix = pd.DataFrame(np.full((8760, 4), 10))
+        assert storage.get_cost_variation_injection().equals(pd.DataFrame(np.zeros((8760, 1), dtype=np.int32)))
+        new_matrix = pd.DataFrame(np.full((8760, 4), 10), dtype=np.int32)
         storage.set_cost_variation_withdrawal(new_matrix)
         assert storage.get_cost_variation_withdrawal().equals(new_matrix)
 
