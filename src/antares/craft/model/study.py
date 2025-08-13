@@ -117,14 +117,8 @@ class Study:
         self._settings = self._settings_service.read_study_settings()
 
     def update_settings(self, settings: StudySettingsUpdate) -> None:
-        self._settings_service.edit_study_settings(settings, self._version)
-        new_settings = self._settings_service.read_study_settings()
-        self._settings.general_parameters = new_settings.general_parameters
-        self._settings.optimization_parameters = new_settings.optimization_parameters
-        self._settings.advanced_parameters = new_settings.advanced_parameters
-        self._settings.seed_parameters = new_settings.seed_parameters
-        self._settings.adequacy_patch_parameters = new_settings.adequacy_patch_parameters
-        self._settings.thematic_trimming_parameters = new_settings.thematic_trimming_parameters
+        new_settings = self._settings_service.edit_study_settings(settings, self._settings, self._version)
+        self._settings = new_settings
 
     def set_playlist(self, playlist: dict[int, PlaylistParameters]) -> None:
         self._settings_service.set_playlist(playlist)

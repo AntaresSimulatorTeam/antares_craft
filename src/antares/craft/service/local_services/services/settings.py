@@ -61,8 +61,11 @@ class StudySettingsLocalService(BaseStudySettingsService):
         self.study_version = study_version
 
     @override
-    def edit_study_settings(self, settings: StudySettingsUpdate, study_version: StudyVersion) -> None:
+    def edit_study_settings(
+        self, settings: StudySettingsUpdate, current_settings: StudySettings, study_version: StudyVersion
+    ) -> StudySettings:
         edit_study_settings(self.config.study_path, settings, creation=False, study_version=study_version)
+        return self.read_study_settings()
 
     @override
     def read_study_settings(self) -> StudySettings:

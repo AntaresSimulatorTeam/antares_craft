@@ -16,6 +16,7 @@ from typing import Any, Optional, Sequence, cast
 
 from pydantic import Field, field_validator
 
+from antares.craft.exceptions.exceptions import APIError
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
     AdequacyPatchParametersUpdate,
@@ -97,6 +98,15 @@ class AdequacyPatchParametersAPI(APIBaseModel):
             threshold_display_local_matching_rule_violations=self.threshold_display_local_matching_rule_violations,
             threshold_csr_variable_bounds_relaxation=self.threshold_csr_variable_bounds_relaxation,
         )
+
+
+def parse_adequacy_patch_parameters_api(data: Any) -> AdequacyPatchParameters:
+    return AdequacyPatchParametersAPI.model_validate(data).to_user_model()
+
+
+def serialize_adequacy_patch_parameters_api(parameters: AdequacyPatchParametersType) -> dict[str, Any]:
+    adequacy_patch_api_model = AdequacyPatchParametersAPI.from_user_model(parameters)
+    return adequacy_patch_api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
 
 
 AdvancedParametersType = AdvancedParameters | AdvancedParametersUpdate
@@ -239,6 +249,15 @@ class GeneralParametersAPI(APIBaseModel):
         )
 
 
+def parse_general_parameters_api(data: Any, nb_ts_thermal: int) -> GeneralParameters:
+    return GeneralParametersAPI.model_validate(data).to_user_model(nb_ts_thermal)
+
+
+def serialize_general_parameters_api(parameters: GeneralParametersType) -> dict[str, Any]:
+    general_api_model = GeneralParametersAPI.from_user_model(parameters)
+    return general_api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
+
+
 OptimizationParametersType = OptimizationParameters | OptimizationParametersUpdate
 
 
@@ -291,6 +310,18 @@ class OptimizationParametersAPI(APIBaseModel):
             include_exportstructure=self.include_exportstructure,
             include_unfeasible_problem_behavior=self.unfeasible_problem_behavior,
         )
+
+
+def parse_optimization_parameters_api(data: Any) -> OptimizationParameters:
+    return OptimizationParametersAPI.model_validate(data).to_user_model()
+
+
+def serialize_optimization_parameters_api(parameters: OptimizationParameters) -> dict[str, Any]:
+    optimization_api_model = OptimizationParametersAPI.from_user_model(parameters)
+    body = optimization_api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
+    if "includeExportstructure" in body:
+        raise APIError("AntaresWeb doesn't support editing the parameter include_exportstructure")
+    return body
 
 
 @all_optional_model
