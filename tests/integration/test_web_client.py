@@ -715,7 +715,7 @@ class TestWebClient:
         default_credit_modulation = pd.DataFrame(np.ones((2, 101), dtype=np.int32))
         assert area_fr.hydro.get_credit_modulations().equals(default_credit_modulation)
 
-        default_water_values = pd.DataFrame(np.zeros((365, 101), dtype=np.float64))
+        default_water_values = pd.DataFrame(np.zeros((365, 101), dtype=np.int32))
         assert area_fr.hydro.get_water_values().equals(default_water_values)
 
         default_maxpower_matrix = np.zeros((365, 4), dtype=np.int32)
@@ -741,9 +741,9 @@ class TestWebClient:
 
         # tests the update for hydro matrices
         mod_series = pd.DataFrame(data=np.full((365, 1), 100, dtype=np.int32))
-        ror_series = pd.DataFrame(data=np.ones((8760, 1)))
-        mingen_series = pd.DataFrame(data=np.ones((8760, 1)))
-        energy_matrix = pd.DataFrame(data=np.ones((12, 5)))
+        ror_series = pd.DataFrame(data=np.ones((8760, 1), dtype=np.int32))
+        mingen_series = pd.DataFrame(data=np.ones((8760, 1), dtype=np.int32))
+        energy_matrix = pd.DataFrame(data=np.ones((12, 5), dtype=np.int32))
         max_power = np.full((365, 4), 1000, dtype=np.int32)
         max_power[:, 1] = 24
         max_power[:, 3] = 24
@@ -1288,8 +1288,8 @@ class TestWebClient:
         assert storage.properties.group == "new group"
         assert storage.properties.penalize_variation_injection is True
 
-        assert storage.get_cost_variation_injection().equals(pd.DataFrame(np.zeros((8760, 1))))
-        new_matrix = pd.DataFrame(np.full((8760, 4), 10))
+        assert storage.get_cost_variation_injection().equals(pd.DataFrame(np.zeros((8760, 1), dtype=np.int32)))
+        new_matrix = pd.DataFrame(np.full((8760, 4), 10), dtype=np.int32)
         storage.set_cost_variation_withdrawal(new_matrix)
         assert storage.get_cost_variation_withdrawal().equals(new_matrix)
 
