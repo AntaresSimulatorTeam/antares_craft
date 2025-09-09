@@ -143,3 +143,22 @@ class TestCreateAPI:
                     match=f"Could not download matrix {enum_value.value} for binding constraint '{constraint.name}':",
                 ):
                     getattr(constraint, matrix_method)()
+
+    def test_delete_binding_constraint_term_encodes_term_id_with_percent(self) -> None:
+        service = self.services.bc_service
+
+        captured = {}
+
+        class DummyWrapper:
+            def delete(self, url: str) -> None:
+                captured["url"] = url
+                return None
+
+        setattr(service, "_wrapper", DummyWrapper())
+
+        constraint_id = "electrolysis-de"
+        term_id = "_sink_00%de_el"
+
+        service.delete_binding_constraint_term(constraint_id, term_id)
+
+        assert captured["url"].endswith(f"bindingconstraints/{constraint_id}/term/_sink_00%25de_el")

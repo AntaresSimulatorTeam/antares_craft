@@ -12,6 +12,7 @@
 from dataclasses import asdict, replace
 from pathlib import PurePosixPath
 from typing import Any, Optional
+from urllib.parse import quote
 
 import pandas as pd
 
@@ -115,8 +116,16 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         return constraint
 
     @override
+    @override
     def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
-        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint_id}/term/{term_id}"
+        # TODO encodaage globale all URLs,
+        encoded_constraint_id = quote(constraint_id, safe="")
+        encoded_term_id = quote(term_id, safe="")
+
+        url = (
+            f"{self._base_url}/studies/{self.study_id}"
+            f"/bindingconstraints/{encoded_constraint_id}/term/{encoded_term_id}"
+        )
         try:
             self._wrapper.delete(url)
         except APIError as e:
