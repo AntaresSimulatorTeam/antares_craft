@@ -50,7 +50,8 @@ class RunApiService(BaseRunService):
                 response = self._wrapper.post(url, json=payload)
             else:
                 parameters = AntaresSimulationParameters()
-                response = self._wrapper.post(url)
+                payload = parameters.to_api()
+                response = self._wrapper.post(url, json=payload)
             job_id = response.json()["job_id"]
             return self._get_job_from_id(job_id, parameters)
         except APIError as e:
