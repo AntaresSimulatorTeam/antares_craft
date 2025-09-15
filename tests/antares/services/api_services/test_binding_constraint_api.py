@@ -145,20 +145,14 @@ class TestCreateAPI:
                     getattr(constraint, matrix_method)()
 
     def test_delete_binding_constraint_term_encodes_term_id_with_percent(self) -> None:
-        service = self.services.bc_service
-
-        captured = {}
-
-        class DummyWrapper:
-            def delete(self, url: str) -> None:
-                captured["url"] = url
-                return None
-
-        setattr(service, "_wrapper", DummyWrapper())
-
         constraint_id = "electrolysis-de"
         term_id = "_sink_00%de_el"
+        encoded_term_id = "_sink_00%25de_el"
 
-        service.delete_binding_constraint_term(constraint_id, term_id)
+        with requests_mock.Mocker() as mocker:
+            url = f"{self.study_url}/bindingconstraints/{constraint_id}/term/{encoded_term_id}"
+            mocker.delete(url, status_code=204)
 
-        assert captured["url"].endswith(f"bindingconstraints/{constraint_id}/term/_sink_00%25de_el")
+            self.services.bc_service.delete_binding_constraint_term(constraint_id, term_id)
+
+            assert mocker.request_history[0].url.endswith(encoded_term_id)

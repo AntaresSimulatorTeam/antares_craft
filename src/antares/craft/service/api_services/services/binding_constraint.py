@@ -116,16 +116,25 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         return constraint
 
     @override
-    @override
     def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
-        # TODO encodaage globale all URLs,
-        encoded_constraint_id = quote(constraint_id, safe="")
+        """
+        Deletes a specific term in a binding constraint for a study.
+
+        Parameters:
+            constraint_id: str
+                The unique identifier of the binding constraint.
+            term_id: str
+                The unique identifier of the term to be deleted, it will be UTF-8 encoded as
+                special characters as '%' can appear in the term name.
+
+        Raises:
+            ConstraintTermDeletionError: Raised if the term cannot be deleted due to an
+            API error.
+        """
+
         encoded_term_id = quote(term_id, safe="")
 
-        url = (
-            f"{self._base_url}/studies/{self.study_id}"
-            f"/bindingconstraints/{encoded_constraint_id}/term/{encoded_term_id}"
-        )
+        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint_id}/term/{encoded_term_id}"
         try:
             self._wrapper.delete(url)
         except APIError as e:

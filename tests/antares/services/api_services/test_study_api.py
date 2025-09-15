@@ -488,6 +488,15 @@ class TestCreateAPI:
         ):
             self.study.create_link(area_from=area, area_to=area)
 
+    def test_to_api_with_xpress_solver(self) -> None:
+        simulation_parameters = AntaresSimulationParameters(solver=Solver.XPRESS, nb_cpu=34)
+
+        payload = simulation_parameters.to_api()
+
+        assert payload["auto_unzip"] is True
+        assert payload["other_options"] == "xpress"
+        assert payload["nb_cpu"] == 34
+
     def test_run_and_wait_antares_simulation(self) -> None:
         parameters = AntaresSimulationParameters(solver=Solver.COIN, nb_cpu=2, unzip_output=True, presolve=False)
 
