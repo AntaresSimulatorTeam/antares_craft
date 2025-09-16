@@ -12,6 +12,7 @@
 from dataclasses import asdict, replace
 from pathlib import PurePosixPath
 from typing import Any, Optional
+from urllib.parse import quote
 
 import pandas as pd
 
@@ -116,7 +117,24 @@ class BindingConstraintApiService(BaseBindingConstraintService):
 
     @override
     def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
-        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint_id}/term/{term_id}"
+        """
+        Deletes a specific term in a binding constraint for a study.
+
+        Parameters:
+            constraint_id: str
+                The unique identifier of the binding constraint.
+            term_id: str
+                The unique identifier of the term to be deleted, it will be UTF-8 encoded as
+                special characters as '%' can appear in the term name.
+
+        Raises:
+            ConstraintTermDeletionError: Raised if the term cannot be deleted due to an
+            API error.
+        """
+
+        encoded_term_id = quote(term_id, safe="")
+
+        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint_id}/term/{encoded_term_id}"
         try:
             self._wrapper.delete(url)
         except APIError as e:
