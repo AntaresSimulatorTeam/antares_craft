@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import io
 import time
 
 import pandas as pd
@@ -27,9 +26,15 @@ def update_series(base_url: str, study_id: str, wrapper: RequestWrapper, series:
 
 
 def get_matrix(base_url: str, study_id: str, wrapper: RequestWrapper, series_path: str) -> pd.DataFrame:
-    raw_url = f"{base_url}/studies/{study_id}/raw?path={series_path}&matrix_format=arrow compressed"
+    raw_url = f"{base_url}/studies/{study_id}/raw?path={series_path}"
     response = wrapper.get(raw_url)
-    return pd.read_feather(io.BytesIO(response.content))
+    json_df = response.json()
+
+    if "index" in json_df:
+        dataframe = pd.DataFrame(data=json_df["data"], index=json_df["index"], columns=json_df["columns"])
+    else:
+        dataframe = pd.DataFrame(data=json_df["data"], columns=json_df["columns"])
+    return dataframe
 
 
 def wait_task_completion(

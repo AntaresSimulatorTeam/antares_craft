@@ -21,7 +21,6 @@ from antares.craft.exceptions.exceptions import MatrixDownloadError, MatrixUploa
 from antares.craft.model.area import Area
 from antares.craft.model.hydro import Hydro, HydroProperties, InflowStructure
 from antares.craft.service.api_services.factory import create_api_services
-from tests.antares.services.api_services.utils import ARROW_CONTENT
 
 
 class TestMatrixAPI:
@@ -38,7 +37,7 @@ class TestMatrixAPI:
     )
 
     antares_web_description_msg = "Mocked Server KO"
-    matrix = pd.DataFrame(np.zeros((8760, 1)))
+    matrix = pd.DataFrame(data=[[0]])
     hydro = Hydro(services.hydro_service, "area_test", properties=HydroProperties(), inflow_structure=InflowStructure())
 
     # =======================
@@ -48,7 +47,7 @@ class TestMatrixAPI:
     def test_get_load_matrix_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/load/series/load_{self.area.id}"
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             load_matrix = self.area.get_load_matrix()
             assert load_matrix.equals(self.matrix)
 
@@ -84,7 +83,7 @@ class TestMatrixAPI:
             mocker.post(url, json={"description": self.antares_web_description_msg}, status_code=404)
             with pytest.raises(
                 MatrixUploadError,
-                match=f"Error uploading load matrix for area '{self.area.id}': {self.antares_web_description_msg}",
+                match=f"Error uploading load matrix for area '{self.area.id}': Expected 8760 rows and received 1.",
             ):
                 self.area.set_load(self.matrix)
 
@@ -95,7 +94,7 @@ class TestMatrixAPI:
     def test_get_wind_matrix_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/wind/series/wind_{self.area.id}"
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             wind_matrix = self.area.get_wind_matrix()
             assert wind_matrix.equals(self.matrix)
 
@@ -132,7 +131,7 @@ class TestMatrixAPI:
     def test_get_reserves_matrix_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/reserves/{self.area.id}"
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             reserves_matrix = self.area.get_reserves_matrix()
             assert reserves_matrix.equals(self.matrix)
 
@@ -169,7 +168,7 @@ class TestMatrixAPI:
     def test_get_solar_matrix_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/solar/series/solar_{self.area.id}"
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             solar_matrix = self.area.get_solar_matrix()
             assert solar_matrix.equals(self.matrix)
 
@@ -206,7 +205,7 @@ class TestMatrixAPI:
     def test_get_misc_gen_matrix_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/misc-gen/miscgen-{self.area.id}"
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             misc_gen_matrix = self.area.get_misc_gen_matrix()
             assert misc_gen_matrix.equals(self.matrix)
 
@@ -243,7 +242,7 @@ class TestMatrixAPI:
     def test_get_maxpower_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/common/capacity/maxpower_{self.area.id}"
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             matrix_maxpower = self.hydro.get_maxpower()
             assert matrix_maxpower.equals(self.matrix)
 
@@ -280,7 +279,7 @@ class TestMatrixAPI:
     def test_get_reservoir_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/common/capacity/reservoir_{self.area.id}"
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             reservoir_matrix = self.hydro.get_reservoir()
             assert reservoir_matrix.equals(self.matrix)
 
@@ -317,7 +316,7 @@ class TestMatrixAPI:
     def test_get_inflow_pattern_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/common/capacity/inflowPattern_{self.area.id}"
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             inflow_matrix = self.hydro.get_inflow_pattern()
             assert inflow_matrix.equals(self.matrix)
 
@@ -354,7 +353,7 @@ class TestMatrixAPI:
     def test_get_water_values_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/common/capacity/waterValues_{self.area.id}"
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             water_values_matrix = self.hydro.get_water_values()
             assert water_values_matrix.equals(self.matrix)
 
@@ -391,7 +390,7 @@ class TestMatrixAPI:
     def test_get_credit_modulations_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/common/capacity/creditmodulations_{self.area.id}"
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             credit_matrix = self.hydro.get_credit_modulations()
             assert credit_matrix.equals(self.matrix)
 
@@ -450,7 +449,7 @@ class TestMatrixAPI:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/series/{self.area.id}/mingen"
             )
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             mingen_matrix = self.hydro.get_mingen()
             assert mingen_matrix.equals(self.matrix)
 
@@ -489,7 +488,7 @@ class TestMatrixAPI:
     def test_get_mod_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/series/{self.area.id}/mod"
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             mod_matrix = self.hydro.get_mod_series()
             assert mod_matrix.equals(self.matrix)
 
@@ -526,7 +525,7 @@ class TestMatrixAPI:
     def test_get_ror_success(self) -> None:
         with requests_mock.Mocker() as mocker:
             url = f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/series/{self.area.id}/ror"
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             ror_matrix = self.hydro.get_ror_series()
             assert ror_matrix.equals(self.matrix)
 
@@ -569,7 +568,7 @@ class TestMatrixAPI:
             url = (
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/hydro/prepro/{self.area.id}/energy"
             )
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             energy_matrix = self.hydro.get_energy()
             assert energy_matrix.equals(self.matrix)
 

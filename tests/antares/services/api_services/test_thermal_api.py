@@ -14,7 +14,6 @@ import requests_mock
 
 from unittest.mock import Mock
 
-import numpy as np
 import pandas as pd
 
 from antares.craft.api_conf.api_conf import APIconf
@@ -34,7 +33,6 @@ from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.api_services.services.thermal import ThermalApiService
-from tests.antares.services.api_services.utils import ARROW_CONTENT
 
 fixture_type = list[tuple[str, ThermalClusterMatrixName, str, str]]
 
@@ -75,7 +73,7 @@ class TestCreateAPI:
     thermal = ThermalCluster(services.thermal_service, area.id, "thermal-test")
     thermal_2 = ThermalCluster(services.thermal_service, area_2.id, "thermal-2")
     antares_web_description_msg = "Mocked Server KO"
-    matrix = pd.DataFrame(np.zeros((8760, 1)))
+    matrix = pd.DataFrame(data=[[0]])
     study_url = f"https://antares.com/api/v1/studies/{study_id}"
 
     def test_update_thermal_properties_success(self) -> None:
@@ -106,7 +104,7 @@ class TestCreateAPI:
                     f"/raw?path=input/thermal/{path_suffix}/"
                     f"{self.thermal.area_id}/{self.thermal.name}/{matrix_enum.value}"
                 )
-                mocker.get(url, content=ARROW_CONTENT, status_code=200)
+                mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
                 result_matrix = getattr(self.thermal, matrix_method)()
                 assert result_matrix.equals(self.matrix)
 
@@ -192,7 +190,7 @@ class TestCreateAPI:
                 f"/raw?path=input/thermal/prepro/"
                 f"{self.thermal.area_id}/{self.thermal.name}/data"
             )
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             result_matrix = self.thermal.get_prepro_data_matrix()
             result_matrix.equals(self.matrix)
 
@@ -241,7 +239,7 @@ class TestCreateAPI:
                 f"/raw?path=input/thermal/prepro/"
                 f"{self.thermal.area_id}/{self.thermal.name}/modulation"
             )
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             result_matrix = self.thermal.get_prepro_modulation_matrix()
             result_matrix.equals(self.matrix)
 
@@ -290,7 +288,7 @@ class TestCreateAPI:
                 f"/raw?path=input/thermal/series/"
                 f"{self.thermal.area_id}/{self.thermal.name}/series"
             )
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             result_matrix = self.thermal.get_series_matrix()
             result_matrix.equals(self.matrix)
 
@@ -339,7 +337,7 @@ class TestCreateAPI:
                 f"/raw?path=input/thermal/series/"
                 f"{self.thermal.area_id}/{self.thermal.name}/CO2Cost"
             )
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             result_matrix = self.thermal.get_co2_cost_matrix()
             result_matrix.equals(self.matrix)
 
