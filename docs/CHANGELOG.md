@@ -1,3 +1,28 @@
+v0.4.0 (2025-09-16)
+-------------------
+
+### Compatiblity
+* This version fully supports the Simulator v9.2
+
+### Features
+* **thematic-trimming**: add `BC. MARG. COST` [244](https://github.com/AntaresSimulatorTeam/antares_craft/pull/244)
+* **st-storages**: add attributes coherence check [245](https://github.com/AntaresSimulatorTeam/antares_craft/pull/245)
+* **st-storages**: support additional constraints [246](https://github.com/AntaresSimulatorTeam/antares_craft/pull/246)
+* **local**: support 9.2 launcher [249](https://github.com/AntaresSimulatorTeam/antares_craft/pull/249)
+
+### Bug fixes
+* **local**: support optional matrices [248](https://github.com/AntaresSimulatorTeam/antares_craft/pull/248)
+* **local**: delete matrices when deleting an object [250](https://github.com/AntaresSimulatorTeam/antares_craft/pull/250)
+* **api**: encode binding constraint term ID inside API call + use the right solver inside simulation [256](https://github.com/AntaresSimulatorTeam/antares_craft/pull/256)
+
+### Others
+* **output**: remove columns renaming inside local aggregation [243](https://github.com/AntaresSimulatorTeam/antares_craft/pull/243)
+* **tests**: fix desktop tests [261](https://github.com/AntaresSimulatorTeam/antares_craft/pull/261)
+
+### Perfs
+* **xpansion**: remove one API call [247](https://github.com/AntaresSimulatorTeam/antares_craft/pull/247)
+* **settings**: remove some API calls when updating study settings [253](https://github.com/AntaresSimulatorTeam/antares_craft/pull/253)
+
 v0.3.0 (2025-07-24)
 -------------------
 
