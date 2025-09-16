@@ -14,7 +14,6 @@ import requests_mock
 
 from unittest.mock import Mock
 
-import numpy as np
 import pandas as pd
 
 from antares.craft import Study
@@ -30,7 +29,6 @@ from antares.craft.service.api_services.factory import create_api_services
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.api_services.services.renewable import RenewableApiService
-from tests.antares.services.api_services.utils import ARROW_CONTENT
 
 
 class TestCreateAPI:
@@ -49,7 +47,7 @@ class TestCreateAPI:
     renewable = RenewableCluster(services.renewable_service, area.id, "onshore_fr")
     renewable_1 = RenewableCluster(services.renewable_service, area.id, "at_solar_pv")
     antares_web_description_msg = "Mocked Server KO"
-    matrix = pd.DataFrame(np.zeros((8760, 1)))
+    matrix = pd.DataFrame(data=[[0]])
 
     def test_update_renewable_properties_success(self) -> None:
         with requests_mock.Mocker() as mocker:
@@ -77,7 +75,7 @@ class TestCreateAPI:
                 f"https://antares.com/api/v1/studies/{self.study_id}/raw?path=input/renewables/series/"
                 f"{self.area.id}/{self.renewable.name}/series"
             )
-            mocker.get(url, content=ARROW_CONTENT, status_code=200)
+            mocker.get(url, json={"data": [[0]], "index": [0], "columns": [0]}, status_code=200)
             renewable_matrix = self.renewable.get_timeseries()
             assert renewable_matrix.equals(self.matrix)
 
