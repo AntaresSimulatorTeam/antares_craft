@@ -1,4 +1,4 @@
-antares-timeseries-generation==0.1.7
+antares-timeseries-generation==0.1.8
 antares-study-version==1.0.15
 
 configparser~=5.0.2
