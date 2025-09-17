@@ -136,7 +136,7 @@ class TestCreateStudy:
         expected_study_antares_path = tmp_path / study_name / "study.antares"
 
         # When
-        create_study_local(study_name, version, tmp_path.absolute())
+        create_study_local(study_name, version, tmp_path)
 
         # Then
         ini_content = IniReader().read(expected_study_antares_path)
@@ -147,6 +147,7 @@ class TestCreateStudy:
                 "created": ANY,
                 "lastsave": ANY,
                 "version": 9.2,
+                "editor": ANY,
             }
         }
 
