@@ -132,7 +132,7 @@ class TestCreateStudy:
     def test_study_antares_content(self, tmp_path: Path) -> None:
         # Given
         study_name = "studyTest"
-        version = "880"
+        version = "9.2"
         expected_study_antares_path = tmp_path / study_name / "study.antares"
 
         # When
@@ -146,7 +146,7 @@ class TestCreateStudy:
                 "caption": study_name,
                 "created": ANY,
                 "lastsave": ANY,
-                "version": int(version),
+                "version": 9.2,
             }
         }
 
