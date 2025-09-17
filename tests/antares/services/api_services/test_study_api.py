@@ -22,7 +22,13 @@ from unittest.mock import Mock, patch
 
 import pandas as pd
 
-from antares.craft import create_study_api, create_variant_api, import_study_api, read_study_api
+from antares.craft import (
+    AdequacyPatchParametersUpdate,
+    create_study_api,
+    create_variant_api,
+    import_study_api,
+    read_study_api,
+)
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
@@ -161,8 +167,7 @@ class TestCreateAPI:
             settings = StudySettingsUpdate()
             settings.general_parameters = GeneralParametersUpdate(mode=Mode.ADEQUACY)
             config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
-            mocker.put(config_urls, status_code=200)
-            mocker.get(config_urls, status_code=200, json={})
+            mocker.put(config_urls, status_code=200, json={})
             ts_settings_url = f"https://antares.com/api/v1/studies/{self.study_id}/timeseries/config"
             mocker.get(ts_settings_url, json={"thermal": {"number": 1}}, status_code=200)
             self.study.update_settings(settings)
@@ -170,7 +175,7 @@ class TestCreateAPI:
     def test_update_study_settings_fails(self) -> None:
         with requests_mock.Mocker() as mocker:
             settings = StudySettingsUpdate()
-            settings.general_parameters = GeneralParametersUpdate(mode=Mode.ADEQUACY)
+            settings.adequacy_patch_parameters = AdequacyPatchParametersUpdate(include_adq_patch=True)
             config_urls = re.compile(f"https://antares.com/api/v1/studies/{self.study_id}/config/.*")
             antares_web_description_msg = "Server KO"
             mocker.put(config_urls, json={"description": antares_web_description_msg}, status_code=404)
@@ -482,6 +487,15 @@ class TestCreateAPI:
             match=f"Could not create the link '{area} / {area}': A link cannot start and end at the same area",
         ):
             self.study.create_link(area_from=area, area_to=area)
+
+    def test_to_api_with_xpress_solver(self) -> None:
+        simulation_parameters = AntaresSimulationParameters(solver=Solver.XPRESS, nb_cpu=34)
+
+        payload = simulation_parameters.to_api()
+
+        assert payload["auto_unzip"] is True
+        assert payload["other_options"] == "xpress"
+        assert payload["nb_cpu"] == 34
 
     def test_run_and_wait_antares_simulation(self) -> None:
         parameters = AntaresSimulationParameters(solver=Solver.COIN, nb_cpu=2, unzip_output=True, presolve=False)

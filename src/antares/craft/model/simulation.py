@@ -36,7 +36,7 @@ class AntaresSimulationParameters:
         if self.presolve:
             options.append("presolve")
         if self.solver != Solver.SIRIUS:
-            options.append(self.solver.name)
+            options.append(self.solver.value)
         return " ".join(options)
 
     def to_api(self) -> dict[str, Any]:

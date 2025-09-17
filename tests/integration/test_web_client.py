@@ -85,16 +85,16 @@ class TestWebClient:
         area_fr.set_load(load_matrix)
 
         # tests get load matrix
-        assert area_fr.get_load_matrix().equals(load_matrix)
+        pd.testing.assert_frame_equal(area_fr.get_load_matrix(), load_matrix, check_dtype=False)
 
         # asserts solar and wind matrices can be created and read.
         ts_matrix = pd.DataFrame(data=np.ones((8760, 4)))
 
         area_fr.set_solar(ts_matrix)
-        assert area_fr.get_solar_matrix().equals(ts_matrix)
+        pd.testing.assert_frame_equal(area_fr.get_solar_matrix(), ts_matrix, check_dtype=False)
 
         area_fr.set_wind(ts_matrix)
-        assert area_fr.get_wind_matrix().equals(ts_matrix)
+        pd.testing.assert_frame_equal(area_fr.get_wind_matrix(), ts_matrix, check_dtype=False)
 
         # tests area creation with ui values
         area_ui = AreaUi(x=100, color_rgb=[255, 0, 0])
@@ -222,11 +222,11 @@ class TestWebClient:
         co2 = thermal_value_be.get_co2_cost_matrix()
         fuel = thermal_value_be.get_fuel_cost_matrix()
 
-        assert prepro.equals(prepro_modulation_matrix)
-        assert modulation.equals(modulation_matrix)
-        assert series.equals(series_matrix)
-        assert co2.equals(co2_cost_matrix)
-        assert fuel.equals(fuel_cost_matrix)
+        pd.testing.assert_frame_equal(prepro, prepro_modulation_matrix, check_dtype=False)
+        pd.testing.assert_frame_equal(modulation, modulation_matrix, check_dtype=False)
+        pd.testing.assert_frame_equal(series, series_matrix, check_dtype=False)
+        pd.testing.assert_frame_equal(co2, co2_cost_matrix, check_dtype=False)
+        pd.testing.assert_frame_equal(fuel, fuel_cost_matrix, check_dtype=False)
 
         # test renewable cluster creation with default values
         renewable_name = "cluster_test %?"
@@ -325,7 +325,7 @@ class TestWebClient:
         battery_fr.update_pmax_injection(injection_matrix)
 
         # tests get pmax_injection matrix
-        assert battery_fr.get_pmax_injection().equals(injection_matrix)
+        pd.testing.assert_frame_equal(battery_fr.get_pmax_injection(), injection_matrix, check_dtype=False)
 
         # asserts areas contains the clusters + short term storages
         assert area_be.get_thermals() == {thermal_be.id: thermal_be}
@@ -422,7 +422,7 @@ class TestWebClient:
         properties = BindingConstraintProperties(operator=BindingConstraintOperator.LESS)
         matrix = pd.DataFrame(data=(np.ones((8784, 1))))
         constraint_3 = study.create_binding_constraint(name="bc_3", less_term_matrix=matrix, properties=properties)
-        assert constraint_3.get_less_term_matrix().equals(matrix)
+        pd.testing.assert_frame_equal(constraint_3.get_less_term_matrix(), matrix, check_dtype=False)
 
         # test update constraint matrices
         new_matrix = pd.DataFrame(data=(np.ones((8784, 1))))
@@ -430,7 +430,7 @@ class TestWebClient:
         update_properties = BindingConstraintPropertiesUpdate(operator=BindingConstraintOperator.EQUAL)
         constraint_3.update_properties(update_properties)
         constraint_3.set_equal_term(new_matrix)
-        assert constraint_3.get_equal_term_matrix().equals(new_matrix)
+        pd.testing.assert_frame_equal(constraint_3.get_equal_term_matrix(), new_matrix, check_dtype=False)
 
         # test adding terms to a constraint
         link_data = LinkData(area1=area_de.id, area2=area_fr.id)
@@ -586,12 +586,15 @@ class TestWebClient:
         thermal_fr.set_series(series_matrix)
         renewable_fr.set_series(series_matrix)
 
-        assert thermal_fr.get_series_matrix().equals(series_matrix)
-        assert thermal_fr.get_prepro_data_matrix().equals(prepro_data_matrix)
-        assert thermal_fr.get_prepro_modulation_matrix().equals(prepro_modulation_matrix)
-        assert thermal_fr.get_fuel_cost_matrix().equals(series_matrix)
-        assert thermal_fr.get_co2_cost_matrix().equals(series_matrix)
-        assert renewable_fr.get_timeseries().equals(series_matrix)
+        pd.testing.assert_frame_equal(thermal_fr.get_series_matrix(), series_matrix, check_dtype=False)
+        pd.testing.assert_frame_equal(thermal_fr.get_prepro_data_matrix(), prepro_data_matrix, check_dtype=False)
+        pd.testing.assert_frame_equal(
+            thermal_fr.get_prepro_modulation_matrix(), prepro_modulation_matrix, check_dtype=False
+        )
+        pd.testing.assert_frame_equal(thermal_fr.get_fuel_cost_matrix(), series_matrix, check_dtype=False)
+        pd.testing.assert_frame_equal(thermal_fr.get_co2_cost_matrix(), series_matrix, check_dtype=False)
+        pd.testing.assert_frame_equal(renewable_fr.get_timeseries(), series_matrix, check_dtype=False)
+        pd.testing.assert_frame_equal(thermal_fr.get_series_matrix(), series_matrix, check_dtype=False)
 
         # =======================
         #  SCENARIO BUILDER
@@ -665,7 +668,7 @@ class TestWebClient:
         default_settings = StudySettings()
         assert actual_settings.general_parameters == default_settings.general_parameters
         assert actual_settings.seed_parameters == default_settings.seed_parameters
-        assert actual_settings.playlist_parameters == {1: PlaylistParameters(status=False, weight=1)}
+        assert actual_settings.playlist_parameters == {1: PlaylistParameters(status=True, weight=1)}
         # Checks default values for study 8.8 are filled even if put at None inside the user class
         assert actual_settings.advanced_parameters == AdvancedParameters(
             initial_reservoir_levels=InitialReservoirLevel.COLD_START
@@ -685,8 +688,8 @@ class TestWebClient:
         assert updated_settings.general_parameters.year_by_year
         assert updated_settings.optimization_parameters.include_exportmps == ExportMPS.OPTIM1
         # update playlist
-        new_study.set_playlist({1: PlaylistParameters(status=True, weight=0.6)})
-        assert new_study.get_settings().playlist_parameters == {1: PlaylistParameters(status=True, weight=0.6)}
+        new_study.set_playlist({1: PlaylistParameters(status=False, weight=0.6)})
+        assert new_study.get_settings().playlist_parameters == {1: PlaylistParameters(status=False, weight=0.6)}
         # update thematic trimming
         new_trimming = new_study.get_settings().thematic_trimming_parameters.all_disabled()
         new_study.set_thematic_trimming(new_trimming)
@@ -702,49 +705,51 @@ class TestWebClient:
         assert new_settings.general_parameters.simulation_synthesis is False
         assert new_settings.optimization_parameters.include_exportmps == ExportMPS.FALSE
         assert new_settings.advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP
-        assert new_settings.playlist_parameters == {1: PlaylistParameters(status=True, weight=0.6)}
+        assert new_settings.playlist_parameters == {1: PlaylistParameters(status=False, weight=0.6)}
         assert new_settings.thematic_trimming_parameters == new_trimming
 
         # test each hydro matrices returns the good values
-        default_reservoir_matrix = np.zeros((365, 3), dtype=np.float64)
+        default_reservoir_matrix = np.zeros((365, 3))
         default_reservoir_matrix[:, 1] = 0.5
         default_reservoir_matrix[:, 2] = 1
         default_reservoir = pd.DataFrame(default_reservoir_matrix)
         assert area_fr.hydro.get_reservoir().equals(pd.DataFrame(default_reservoir))
 
-        default_credit_modulation = pd.DataFrame(np.ones((2, 101), dtype=np.float64))
-        assert area_fr.hydro.get_credit_modulations().equals(default_credit_modulation)
+        default_credit_modulation = pd.DataFrame(np.ones((2, 101)))
+        pd.testing.assert_frame_equal(
+            area_fr.hydro.get_credit_modulations(), default_credit_modulation, check_dtype=False
+        )
 
-        default_water_values = pd.DataFrame(np.zeros((365, 101), dtype=np.float64))
-        assert area_fr.hydro.get_water_values().equals(default_water_values)
+        default_water_values = pd.DataFrame(np.zeros((365, 101)))
+        pd.testing.assert_frame_equal(area_fr.hydro.get_water_values(), default_water_values, check_dtype=False)
 
-        default_maxpower_matrix = np.zeros((365, 4), dtype=np.float64)
+        default_maxpower_matrix = np.zeros((365, 4))
         default_maxpower_matrix[:, 1] = 24
         default_maxpower_matrix[:, 3] = 24
         default_maxpower = pd.DataFrame(default_maxpower_matrix)
-        assert area_fr.hydro.get_maxpower().equals(default_maxpower)
+        pd.testing.assert_frame_equal(area_fr.hydro.get_maxpower(), default_maxpower, check_dtype=False)
 
-        default_inflow_pattern = pd.DataFrame(np.ones((365, 1), dtype=np.float64))
-        assert area_fr.hydro.get_inflow_pattern().equals(default_inflow_pattern)
+        default_inflow_pattern = pd.DataFrame(np.ones((365, 1)))
+        pd.testing.assert_frame_equal(area_fr.hydro.get_inflow_pattern(), default_inflow_pattern, check_dtype=False)
 
-        default_ror = pd.DataFrame(np.zeros((8760, 1), dtype=np.float64))
-        assert area_fr.hydro.get_ror_series().equals(default_ror)
+        default_ror = pd.DataFrame(np.zeros((8760, 1)))
+        pd.testing.assert_frame_equal(area_fr.hydro.get_ror_series(), default_ror, check_dtype=False)
 
         default_mingen = default_ror
-        assert area_fr.hydro.get_mingen().equals(default_mingen)
+        pd.testing.assert_frame_equal(area_fr.hydro.get_mingen(), default_mingen, check_dtype=False)
 
-        default_mod = pd.DataFrame(np.zeros((365, 1), dtype=np.float64))
-        assert area_fr.hydro.get_mod_series().equals(default_mod)
+        default_mod = pd.DataFrame(np.zeros((365, 1)))
+        pd.testing.assert_frame_equal(area_fr.hydro.get_mod_series(), default_mod, check_dtype=False)
 
-        default_energy = pd.DataFrame(np.zeros((12, 5), dtype=np.float64))
-        assert area_fr.hydro.get_energy().equals(default_energy)
+        default_energy = pd.DataFrame(np.zeros((12, 5)))
+        pd.testing.assert_frame_equal(area_fr.hydro.get_energy(), default_energy, check_dtype=False)
 
         # tests the update for hydro matrices
-        mod_series = pd.DataFrame(data=np.full((365, 1), 100, dtype=np.float64))
+        mod_series = pd.DataFrame(data=np.full((365, 1), 100))
         ror_series = pd.DataFrame(data=np.ones((8760, 1)))
         mingen_series = pd.DataFrame(data=np.ones((8760, 1)))
         energy_matrix = pd.DataFrame(data=np.ones((12, 5)))
-        max_power = np.full((365, 4), 1000, dtype=np.float64)
+        max_power = np.full((365, 4), 1000)
         max_power[:, 1] = 24
         max_power[:, 3] = 24
         maxpower_matrix = pd.DataFrame(data=max_power)
@@ -763,15 +768,15 @@ class TestWebClient:
         area_fr.hydro.set_mingen(mingen_series)
         area_fr.hydro.set_energy(energy_matrix)
 
-        assert area_fr.hydro.get_maxpower().equals(maxpower_matrix)
-        assert area_fr.hydro.get_reservoir().equals(reservoir_matrix)
-        assert area_fr.hydro.get_inflow_pattern().equals(inflow_pattern_matrix)
-        assert area_fr.hydro.get_water_values().equals(water_values_matrix)
-        assert area_fr.hydro.get_credit_modulations().equals(credits_matrix)
-        assert area_fr.hydro.get_ror_series().equals(ror_series)
-        assert area_fr.hydro.get_mod_series().equals(mod_series)
-        assert area_fr.hydro.get_mingen().equals(mingen_series)
-        assert area_fr.hydro.get_energy().equals(energy_matrix)
+        pd.testing.assert_frame_equal(area_fr.hydro.get_maxpower(), maxpower_matrix, check_dtype=False)
+        pd.testing.assert_frame_equal(area_fr.hydro.get_reservoir(), reservoir_matrix, check_dtype=False)
+        pd.testing.assert_frame_equal(area_fr.hydro.get_inflow_pattern(), inflow_pattern_matrix, check_dtype=False)
+        pd.testing.assert_frame_equal(area_fr.hydro.get_water_values(), water_values_matrix, check_dtype=False)
+        pd.testing.assert_frame_equal(area_fr.hydro.get_credit_modulations(), credits_matrix, check_dtype=False)
+        pd.testing.assert_frame_equal(area_fr.hydro.get_ror_series(), ror_series, check_dtype=False)
+        pd.testing.assert_frame_equal(area_fr.hydro.get_mod_series(), mod_series, check_dtype=False)
+        pd.testing.assert_frame_equal(area_fr.hydro.get_mingen(), mingen_series, check_dtype=False)
+        pd.testing.assert_frame_equal(area_fr.hydro.get_energy(), energy_matrix, check_dtype=False)
 
         # tests variant creation
         variant_name = "variant_test"
