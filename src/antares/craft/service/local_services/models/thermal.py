@@ -114,7 +114,7 @@ class ThermalClusterPropertiesLocal(LocalBaseModel):
 def validate_thermal_against_version(properties: ThermalClusterPropertiesLocal, version: StudyVersion) -> None:
     if version < STUDY_VERSION_9_3:
         try:
-            ThermalClusterGroup(properties.group)
+            properties.group = ThermalClusterGroup(properties.group).value
         except ValueError:
             valid_values = [e.value for e in ThermalClusterGroup]
             raise ValueError(f"Before v9.3, group has to be a valid value : {valid_values}")
@@ -129,4 +129,8 @@ def parse_thermal_cluster_local(study_version: StudyVersion, data: Any) -> Therm
 def serialize_thermal_cluster_local(study_version: StudyVersion, thermal: ThermalPropertiesType) -> dict[str, Any]:
     local_properties = ThermalClusterPropertiesLocal.from_user_model(thermal)
     validate_thermal_against_version(local_properties, study_version)
-    return local_properties.model_dump(mode="json", by_alias=True, exclude_none=True, exclude_unset=True)
+    # Because we're sometimes manually filling the group, we should exclude it if needed.
+    exclude = set() if thermal.group is not None else {"group"}
+    return local_properties.model_dump(
+        mode="json", by_alias=True, exclude_none=True, exclude_unset=True, exclude=exclude
+    )
