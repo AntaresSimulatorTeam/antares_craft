@@ -180,7 +180,7 @@ class TestLocalLauncher:
         area_fr.create_thermal_cluster("Nuclear_fr", th_properties)
 
         # Create renewable cluster
-        renewable_properties = RenewableClusterProperties(group="wind_on_shore", enabled=False)
+        renewable_properties = RenewableClusterProperties(group="wind onshore", enabled=False)
         area_fr.create_renewable_cluster("Wind onshore fr", renewable_properties)
 
         # Create short term storage

@@ -49,11 +49,17 @@ class TestWebClient:
 
         # Create a study with an area
         study = create_study_api("Study_9.3", "9.3", api_config)
-        study.create_area("FR")
+        area_fr = study.create_area("FR")
 
-        ####### Thermal clusters #######
+        ####### Clusters #######
 
-        ####### Renewable clusters #####
+        thermal_properties = ThermalClusterProperties(group="free group")
+        thermal = area_fr.create_thermal_cluster("thermal", thermal_properties)
+        assert thermal.properties.group == "free group"
+
+        renewable_properties = RenewableClusterProperties(group="free group")
+        renewable = area_fr.create_renewable_cluster("renewable", renewable_properties)
+        assert renewable.properties.group == "free group"
 
         """
         study = create_study_api("antares-craft-test", "880", api_config)
