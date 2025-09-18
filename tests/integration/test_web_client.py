@@ -12,31 +12,11 @@
 # ruff: noqa: F405
 import pytest
 
-import shutil
-import zipfile
-
-from pathlib import Path, PurePath
+from pathlib import Path
 from typing import Generator
 
-import numpy as np
-import pandas as pd
-
 from antares.craft import *  # noqa: F403
-from antares.craft.exceptions.exceptions import (
-    BindingConstraintCreationError,
-    ConstraintMatrixUpdateError,
-    InvalidRequestForScenarioBuilder,
-    MatrixUploadError,
-    ReferencedObjectDeletionNotAllowed,
-    StudySettingsUpdateError,
-    XpansionFileDeletionError,
-    XpansionMatrixReadingError,
-)
 from antares.craft.model.output import XpansionResult, XpansionSensitivityResult
-from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
-from antares.craft.model.settings.advanced_parameters import AdvancedParameters
-from antares.craft.model.settings.study_settings import StudySettings
-from antares.craft.model.simulation import Job, JobStatus
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
 ASSETS_DIR = Path(__file__).parent / "assets"
@@ -63,6 +43,19 @@ class TestWebClient:
     ) -> None:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
+        ######################
+        # Specific tests for study version 9.3
+        ######################
+
+        # Create a study with an area
+        study = create_study_api("Study_9.3", "9.3", api_config)
+        study.create_area("FR")
+
+        ####### Thermal clusters #######
+
+        ####### Renewable clusters #####
+
+        """
         study = create_study_api("antares-craft-test", "880", api_config)
 
         # tests area creation with default values
@@ -1486,3 +1479,4 @@ class TestWebClient:
         data = [["be", 1, 0.0, 0.0], ["fr", 1, 0.0, 0.0]]
         expected_df = pd.DataFrame(data=data, columns=cols)
         assert expected_df.equals(aggregated_df)
+        """

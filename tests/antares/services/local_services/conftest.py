@@ -78,7 +78,7 @@ def local_study_w_constraints(tmp_path: Path, local_study_w_links: Study) -> Stu
 @pytest.fixture
 def local_study_w_thermal(tmp_path: Path, local_study_w_links: Study) -> Study:
     thermal_name = "test thermal cluster"
-    thermal_properties = ThermalClusterProperties(must_run=True, group=ThermalClusterGroup.NUCLEAR)
+    thermal_properties = ThermalClusterProperties(must_run=True, group=ThermalClusterGroup.NUCLEAR.value)
     local_study_w_links.get_areas()["fr"].create_thermal_cluster(thermal_name, properties=thermal_properties)
     return local_study_w_links
 

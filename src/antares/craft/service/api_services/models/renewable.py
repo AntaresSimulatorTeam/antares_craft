@@ -12,7 +12,6 @@
 from dataclasses import asdict
 
 from antares.craft.model.renewable import (
-    RenewableClusterGroup,
     RenewableClusterProperties,
     RenewableClusterPropertiesUpdate,
     TimeSeriesInterpretation,
@@ -25,7 +24,7 @@ RenewablePropertiesType = RenewableClusterProperties | RenewableClusterPropertie
 
 @all_optional_model
 class RenewableClusterPropertiesAPI(APIBaseModel):
-    group: RenewableClusterGroup
+    group: str
     ts_interpretation: TimeSeriesInterpretation
     enabled: bool
     unit_count: int

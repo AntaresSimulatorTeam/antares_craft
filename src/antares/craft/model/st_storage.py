@@ -76,6 +76,8 @@ class STStorageProperties:
     efficiency_withdrawal: Optional[float] = None  # default 1.0
     penalize_variation_injection: Optional[bool] = None  # default False
     penalize_variation_withdrawal: Optional[bool] = None  # default False
+    # Introduced in v9.3
+    # todo: add allow-overflow field when the API will handle it
 
 
 class AdditionalConstraintVariable(EnumIgnoreCase):

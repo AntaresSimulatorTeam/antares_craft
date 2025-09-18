@@ -32,7 +32,6 @@ from antares.craft.model.area import AdequacyPatchMode, Area, AreaProperties, Ar
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.renewable import (
     RenewableCluster,
-    RenewableClusterGroup,
     RenewableClusterProperties,
     TimeSeriesInterpretation,
 )
@@ -79,7 +78,7 @@ ts-interpretation = power-generation
     def test_renewable_cluster_and_ini_have_custom_properties(self, local_study_w_thermal: Study) -> None:
         # Given
         renewable_properties = RenewableClusterProperties(
-            group=RenewableClusterGroup.WIND_OFF_SHORE, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
+            group="wind offshore", ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
         )
         renewable_name = "renewable cluster"
         expected_renewables_list_ini_content = """[renewable cluster]
@@ -740,7 +739,7 @@ class TestReadRenewable:
         assert renewable.properties.ts_interpretation.value == "power-generation"
         assert renewable.properties.nominal_capacity == 0.000000
         assert not renewable.properties.enabled
-        assert renewable.properties.group.value == "other res 1"
+        assert renewable.properties.group == "other res 1"
         renewable.get_timeseries()
 
     def test_read_renewable_from_path(self, local_study_with_renewable: Study) -> None:
@@ -757,7 +756,7 @@ class TestReadRenewable:
         assert renewable.properties.ts_interpretation.value == "power-generation"
         assert renewable.properties.nominal_capacity == 0.000000
         assert not renewable.properties.enabled
-        assert renewable.properties.group.value == "other res 1"
+        assert renewable.properties.group == "other res 1"
         renewable.get_timeseries()
 
 
@@ -854,7 +853,7 @@ class TestReadThermal:
 
         # Check properties
         assert thermal.name == "test thermal cluster"
-        assert thermal.properties.group.value == "nuclear"
+        assert thermal.properties.group == "nuclear"
         assert thermal.properties.unit_count == 1
         assert thermal.properties.efficiency == 100.000000
         assert thermal.properties.nominal_capacity == 0.000000
@@ -875,7 +874,7 @@ class TestReadThermal:
         thermal = areas["fr"].get_thermals()["test thermal cluster"]
 
         assert thermal.name == "test thermal cluster"
-        assert thermal.properties.group.value == "nuclear"
+        assert thermal.properties.group == "nuclear"
         assert thermal.properties.unit_count == 1
         assert thermal.properties.efficiency == 100.000000
         assert thermal.properties.nominal_capacity == 0.000000
