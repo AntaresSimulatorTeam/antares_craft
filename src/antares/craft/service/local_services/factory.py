@@ -43,7 +43,7 @@ from antares.study.version.create_app import CreateApp
 def create_local_services(config: LocalConfiguration, study_name: str, study_version: StudyVersion) -> StudyServices:
     short_term_storage_service = ShortTermStorageLocalService(config, study_name, study_version)
     thermal_service = ThermalLocalService(config, study_name, study_version)
-    renewable_service = RenewableLocalService(config, study_name)
+    renewable_service = RenewableLocalService(config, study_name, study_version)
     hydro_service = HydroLocalService(config, study_name, study_version)
     bc_service = BindingConstraintLocalService(config, study_name)
     area_service = AreaLocalService(

@@ -65,8 +65,8 @@ def parse_renewable_cluster_local(study_version: StudyVersion, data: Any) -> Ren
 
 
 def serialize_renewable_cluster_local(
-    study_version: StudyVersion, thermal: RenewableClusterProperties
+    study_version: StudyVersion, renewable: RenewablePropertiesType
 ) -> dict[str, Any]:
-    local_properties = RenewableClusterPropertiesLocal.from_user_model(thermal)
+    local_properties = RenewableClusterPropertiesLocal.from_user_model(renewable)
     validate_renewable_against_version(local_properties, study_version)
     return local_properties.model_dump(mode="json", by_alias=True, exclude_none=True, exclude_unset=True)

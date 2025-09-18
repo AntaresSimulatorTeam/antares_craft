@@ -49,7 +49,7 @@ from antares.craft.service.base_services import (
 )
 from antares.craft.service.local_services.models.area import AreaPropertiesLocal, AreaUiLocal
 from antares.craft.service.local_services.models.hydro import HydroInflowStructureLocal, parse_hydro_properties_local
-from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
+from antares.craft.service.local_services.models.renewable import serialize_renewable_cluster_local
 from antares.craft.service.local_services.models.st_storage import (
     parse_st_storage_local,
     serialize_st_storage_local,
@@ -184,15 +184,12 @@ class AreaLocalService(BaseAreaService):
     def create_renewable_cluster(
         self, area_id: str, renewable_name: str, properties: Optional[RenewableClusterProperties] = None
     ) -> RenewableCluster:
-        properties = properties or RenewableClusterProperties()
-        local_properties = RenewableClusterPropertiesLocal.from_user_model(properties)
-
         local_renewable_service = cast(RenewableLocalService, self.renewable_service)
         local_renewable_service.read_ini(area_id)
         ini_content = local_renewable_service.read_ini(area_id)
         ini_content[renewable_name] = {
             "name": renewable_name,
-            **local_properties.model_dump(mode="json", by_alias=True),
+            **serialize_renewable_cluster_local(self.study_version, properties or RenewableClusterProperties()),
         }
         local_renewable_service.save_ini(ini_content, area_id)
 
