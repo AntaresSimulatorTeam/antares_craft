@@ -16,7 +16,7 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "antares-timeseries-generation==0.1.7",
+    "antares-timeseries-generation==0.1.8",
     "antares-study-version==1.0.20",
     "numpy~=1.26.4",
     "pandas~=2.2.2",
