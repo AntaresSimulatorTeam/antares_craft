@@ -163,7 +163,7 @@ def local_study_92(tmp_path: Path) -> Study:
     study_name = "study_92"
     study_version = "9.2"
 
-    local_study = create_study_local(study_name, study_version, tmp_path.absolute())
+    local_study = create_study_local(study_name, study_version, tmp_path)
 
     areas_to_create = ["fr", "it"]
     for area in areas_to_create:
@@ -172,5 +172,19 @@ def local_study_92(tmp_path: Path) -> Study:
         )
         area_ui = AreaUi(x=56)
         local_study.create_area(area, properties=area_properties, ui=area_ui)
+
+    return local_study
+
+
+@pytest.fixture
+def local_study_93(tmp_path: Path) -> Study:
+    study_name = "study_93"
+    study_version = "9.3"
+
+    local_study = create_study_local(study_name, study_version, tmp_path)
+
+    areas_to_create = ["fr", "it"]
+    for area in areas_to_create:
+        local_study.create_area(area)
 
     return local_study
