@@ -56,13 +56,13 @@ class TimeSeriesInterpretation(Enum):
 
 @dataclass(frozen=True)
 class RenewableClusterProperties(ClusterProperties):
-    group: RenewableClusterGroup = RenewableClusterGroup.OTHER1
+    group: str = RenewableClusterGroup.OTHER1.value
     ts_interpretation: TimeSeriesInterpretation = TimeSeriesInterpretation.POWER_GENERATION
 
 
 @dataclass
 class RenewableClusterPropertiesUpdate(ClusterPropertiesUpdate):
-    group: Optional[RenewableClusterGroup] = None
+    group: Optional[str] = None
     ts_interpretation: Optional[TimeSeriesInterpretation] = None
 
 
