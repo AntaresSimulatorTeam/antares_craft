@@ -113,8 +113,10 @@ class ThermalClusterPropertiesLocal(LocalBaseModel):
 
 def validate_thermal_against_version(properties: ThermalClusterPropertiesLocal, version: StudyVersion) -> None:
     if version < STUDY_VERSION_9_3:
-        valid_values = [e.value for e in ThermalClusterGroup] + [None]
-        if properties.group not in valid_values:
+        try:
+            ThermalClusterGroup(properties.group)
+        except ValueError:
+            valid_values = [e.value for e in ThermalClusterGroup]
             raise ValueError(f"Before v9.3, group has to be a valid value : {valid_values}")
 
 
