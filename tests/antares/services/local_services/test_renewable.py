@@ -124,3 +124,22 @@ class TestRenewable:
         thermal = study.get_areas()["fr"].get_renewables()["renewable cluster"]
         # Ensure we consider the group as THERMAL SOLAR
         assert thermal.properties.group == RenewableClusterGroup.THERMAL_SOLAR.value
+
+    def test_version_93(self, tmp_path: Path, local_study_93: Study, local_study_92: Study) -> None:
+        renewable = local_study_93.get_areas()["fr"].create_renewable_cluster("renewable")
+        assert renewable.properties.group == "other res 1"
+
+        # Use a free group for the update
+        update_properties = RenewableClusterPropertiesUpdate(group="free_group")
+        new_properties = renewable.update_properties(update_properties)
+
+        assert new_properties.group == "free_group"
+
+        # Use a free group for creation
+        props = RenewableClusterProperties(group="my_group")
+        renewable = local_study_93.get_areas()["fr"].create_renewable_cluster("ren2", properties=props)
+        assert renewable.properties.group == "my_group"
+
+        # Ensures we can't use free groups before version 9.3
+        with pytest.raises(ValueError, match="Before v9.3, group has to be a valid value"):
+            local_study_92.get_areas()["fr"].create_renewable_cluster("ren2", properties=props)
