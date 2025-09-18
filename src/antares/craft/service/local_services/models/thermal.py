@@ -124,7 +124,7 @@ def parse_thermal_cluster_local(study_version: StudyVersion, data: Any) -> Therm
     return local_properties.to_user_model()
 
 
-def serialize_thermal_cluster_local(study_version: StudyVersion, thermal: ThermalClusterProperties) -> dict[str, Any]:
+def serialize_thermal_cluster_local(study_version: StudyVersion, thermal: ThermalPropertiesType) -> dict[str, Any]:
     local_properties = ThermalClusterPropertiesLocal.from_user_model(thermal)
     validate_thermal_against_version(local_properties, study_version)
     return local_properties.model_dump(mode="json", by_alias=True, exclude_none=True, exclude_unset=True)
