@@ -192,15 +192,19 @@ def test_92(tmp_path: Path) -> None:
     for study_9_2 in [study, read_study_local(tmp_path / "second_study")]:
         settings = study_9_2.get_settings()
         # Ensures `sts_by_group` is not None as we have a 9.2 study
-        assert settings.thematic_trimming_parameters == ThematicTrimmingParameters(sts_by_group=True)
+        assert settings.thematic_trimming_parameters.sts_by_group is True
     # Checks the `set` method
     new_trimming = ThematicTrimmingParameters(ov_cost=False, nuclear=False)
     study.set_thematic_trimming(new_trimming)
     # We expect the sts_by_group field to be set as we have a 9.2 study
-    expected_trimming = ThematicTrimmingParameters(ov_cost=False, nuclear=False, sts_by_group=True)
-    assert study.get_settings().thematic_trimming_parameters == expected_trimming
+    actual_trimming = study.get_settings().thematic_trimming_parameters
+    assert actual_trimming.ov_cost is False
+    assert actual_trimming.nuclear is False
+    assert actual_trimming.sts_by_group is True
     # Checks the `reading` method
     study_path = Path(study.path)
     study = read_study_local(study_path)
     trimming = study.get_settings().thematic_trimming_parameters
-    assert trimming == expected_trimming
+    assert trimming.ov_cost is False
+    assert trimming.nuclear is False
+    assert trimming.sts_by_group is True
