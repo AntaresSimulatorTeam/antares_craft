@@ -16,6 +16,7 @@ from dataclasses import asdict, replace
 from pathlib import Path
 
 from antares.craft import (
+    Study,
     ThematicTrimmingParameters,
     create_study_local,
     read_study_local,
@@ -208,3 +209,33 @@ def test_92(tmp_path: Path) -> None:
     assert trimming.ov_cost is False
     assert trimming.nuclear is False
     assert trimming.sts_by_group is True
+
+
+def test_93(local_study_93: Study) -> None:
+    for study_9_3 in [local_study_93, read_study_local(Path(local_study_93.path))]:
+        settings = study_9_3.get_settings()
+        # Ensures `dispatch_gen` and `renewable_gen` are not None as we have a 9.3 study
+        assert settings.thematic_trimming_parameters.dispatch_gen is True
+        assert settings.thematic_trimming_parameters.renewable_gen is True
+        assert settings.thematic_trimming_parameters.nuclear is None
+    # Checks the `set` method
+    new_trimming = ThematicTrimmingParameters(ov_cost=False, max_mrg=False)
+    local_study_93.set_thematic_trimming(new_trimming)
+    # We expect the `dispatch_gen` and `renewable_gen` fields to be set as we have a 9.3 study
+    actual_trimming = local_study_93.get_settings().thematic_trimming_parameters
+    assert actual_trimming.ov_cost is False
+    assert actual_trimming.max_mrg is False
+    assert actual_trimming.dispatch_gen is True
+    assert actual_trimming.renewable_gen is True
+    # Checks the `reading` method
+    study = read_study_local(Path(local_study_93.path))
+    trimming = study.get_settings().thematic_trimming_parameters
+    assert trimming.ov_cost is False
+    assert trimming.max_mrg is False
+    assert trimming.dispatch_gen is True
+    assert trimming.renewable_gen is True
+
+    # Ensures we can't set the `nuclear` field as it was removed in this version
+    new_trimming = ThematicTrimmingParameters(nuclear=False)
+    with pytest.raises(InvalidFieldForVersionError, match="Field nuclear is not a valid field for study version 9.3"):
+        local_study_93.set_thematic_trimming(new_trimming)
