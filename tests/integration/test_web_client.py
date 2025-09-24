@@ -61,6 +61,19 @@ class TestWebClient:
         renewable = area_fr.create_renewable_cluster("renewable", renewable_properties)
         assert renewable.properties.group == "free group"
 
+        ####### Thematic trimming #######
+
+        current_trimming = study.get_settings().thematic_trimming_parameters
+        assert current_trimming.renewable_gen is True
+        assert current_trimming.dispatch_gen is True
+        assert current_trimming.ov_cost is True
+
+        study.set_thematic_trimming(ThematicTrimmingParameters(renewable_gen=False, ov_cost=False))
+        new_trimming = study.get_settings().thematic_trimming_parameters
+        assert new_trimming.renewable_gen is False
+        assert new_trimming.dispatch_gen is True
+        assert new_trimming.ov_cost is False
+
         """
         study = create_study_api("antares-craft-test", "880", api_config)
 

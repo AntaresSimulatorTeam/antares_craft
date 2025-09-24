@@ -441,6 +441,9 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
     bc_marg_cost: bool
     # Since v9.2
     sts_by_group: bool
+    # Since v9.3
+    dispatch_gen: bool
+    renewable_gen: bool
 
     @staticmethod
     def from_user_model(user_class: ThematicTrimmingParameters) -> "ThematicTrimmingParametersAPI":
@@ -546,6 +549,8 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
             other5_injection=self.other5_injection,
             other5_withdrawal=self.other5_withdrawal,
             other5_level=self.other5_level,
+            renewable_gen=self.renewable_gen,
+            dispatch_gen=self.dispatch_gen,
         )
 
 
