@@ -75,7 +75,7 @@ class ThermalCostGeneration(Enum):
 
 @dataclass(frozen=True)
 class ThermalClusterProperties(ClusterProperties):
-    group: ThermalClusterGroup = ThermalClusterGroup.OTHER1
+    group: str = ThermalClusterGroup.OTHER1.value
     gen_ts: LocalTSGenerationBehavior = LocalTSGenerationBehavior.USE_GLOBAL
     min_stable_power: float = 0
     min_up_time: int = 1
@@ -111,7 +111,7 @@ class ThermalClusterProperties(ClusterProperties):
 
 @dataclass
 class ThermalClusterPropertiesUpdate(ClusterPropertiesUpdate):
-    group: Optional[ThermalClusterGroup] = None
+    group: Optional[str] = None
     gen_ts: Optional[LocalTSGenerationBehavior] = None
     min_stable_power: Optional[float] = None
     min_up_time: Optional[int] = None

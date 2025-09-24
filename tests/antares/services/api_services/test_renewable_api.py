@@ -212,11 +212,11 @@ class TestCreateAPI:
 
             assert renewable_1.properties.unit_count == json_renewables["study_test / onshore_fr"]["unitCount"]
             assert renewable_1.properties.enabled == json_renewables["study_test / onshore_fr"]["enabled"]
-            assert renewable_1.properties.group.value == json_renewables["study_test / onshore_fr"]["group"]
+            assert renewable_1.properties.group == json_renewables["study_test / onshore_fr"]["group"]
 
             assert renewable_2.properties.unit_count == json_renewables["study_test / at_solar_pv"]["unitCount"]
             assert renewable_2.properties.enabled == json_renewables["study_test / at_solar_pv"]["enabled"]
-            assert renewable_2.properties.group.value == json_renewables["study_test / at_solar_pv"]["group"]
+            assert renewable_2.properties.group == json_renewables["study_test / at_solar_pv"]["group"]
 
     def test_update_renewable_clusters_fail(self) -> None:
         url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/renewables"

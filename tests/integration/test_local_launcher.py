@@ -31,11 +31,9 @@ from antares.craft import (
     LinkProperties,
     LinkStyle,
     LinkUi,
-    RenewableClusterGroup,
     RenewableClusterProperties,
     STStorageGroup,
     STStorageProperties,
-    ThermalClusterGroup,
     ThermalClusterProperties,
     create_study_local,
     read_study_local,
@@ -178,11 +176,11 @@ class TestLocalLauncher:
         study.create_link(area_from=area_fr.id, area_to=area_be.id, properties=link_properties, ui=link_ui)
 
         # Create thermal cluster
-        th_properties = ThermalClusterProperties(group=ThermalClusterGroup.NUCLEAR, unit_count=12, nominal_capacity=43)
+        th_properties = ThermalClusterProperties(group="nuclear", unit_count=12, nominal_capacity=43)
         area_fr.create_thermal_cluster("Nuclear_fr", th_properties)
 
         # Create renewable cluster
-        renewable_properties = RenewableClusterProperties(group=RenewableClusterGroup.WIND_ON_SHORE, enabled=False)
+        renewable_properties = RenewableClusterProperties(group="wind onshore", enabled=False)
         area_fr.create_renewable_cluster("Wind onshore fr", renewable_properties)
 
         # Create short term storage
