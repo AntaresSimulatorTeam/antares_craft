@@ -176,20 +176,6 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
                 ini_content["select_var -"] = content_minus
         return ini_content
 
-    @staticmethod
-    def from_ini(content: dict[str, Any]) -> "ThematicTrimmingParametersLocal":
-        if content.get("selected_vars_reset", True):
-            # Means written fields are deactivated and others are activated
-            unselected_vars = content.get("select_var -", [])
-            args = dict.fromkeys(unselected_vars, False)
-            return ThematicTrimmingParametersLocal(**args)
-
-        # Means written fields are activated and others deactivated
-        selected_vars = content.get("select_var +", [])
-        args = dict.fromkeys(selected_vars, True)
-        file_data = ThematicTrimmingParametersLocal(**args)
-        return file_data
-
 
 def get_thematic_trimming_fields_according_to_version(version: StudyVersion) -> set[str]:
     fields = {
