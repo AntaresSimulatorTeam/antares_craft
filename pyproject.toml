@@ -18,11 +18,11 @@ requires-python = ">=3.10"
 dependencies = [
     "antares-timeseries-generation==0.1.7",
     "antares-study-version==1.0.15",
-    "numpy~=1.26.4",
-    "pandas~=2.2.2",
-    "pydantic~=2.11.7",
-    "requests~=2.32.0",
-    "psutil~=7.0.0"
+    "numpy>=1.0.0,<2.0.0",
+    "pandas>=2.0.0,<3.0.0",
+    "pydantic>=2.0.0,<3.0.0",
+    "requests>=2.0.0,<3.0.0",
+    "psutil>=7.0.0,<8.0.0"
 ]
 
 classifiers = [
