@@ -71,7 +71,7 @@ class RenewableLocalService(BaseRenewableService):
                     renewable_cluster = RenewableCluster(
                         renewable_service=self,
                         area_id=area_id,
-                        name=renewable_data.pop("name"),
+                        name=str(renewable_data.pop("name")),
                         properties=RenewableClusterPropertiesLocal.model_validate(renewable_data).to_user_model(),
                     )
 

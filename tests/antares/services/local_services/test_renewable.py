@@ -22,7 +22,7 @@ from checksumdir import dirhash
 
 from antares.craft import RenewableClusterGroup, Study, TimeSeriesInterpretation, read_study_local
 from antares.craft.exceptions.exceptions import MatrixFormatError, RenewablePropertiesUpdateError
-from antares.craft.model.renewable import RenewableClusterProperties, RenewableClusterPropertiesUpdate
+from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesUpdate
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 
@@ -40,6 +40,18 @@ class TestRenewable:
         )
         assert new_properties == expected_properties
         assert renewable.properties == expected_properties
+
+    def test_cluster_with_numeric_name(self, local_study_with_renewable: Study) -> None:
+        # Given
+        cluster_name = "123"
+
+        # When
+        created_thermal = local_study_with_renewable.get_areas()["fr"].create_renewable_cluster(cluster_name)
+        assert isinstance(created_thermal, RenewableCluster)
+
+        # Then this should not raise an exception
+        local_study_with_renewable.get_areas()["fr"]._renewable_service.read_renewables()
+
 
     def test_matrices(self, tmp_path: Path, local_study_with_renewable: Study) -> None:
         # Checks all matrices exist
