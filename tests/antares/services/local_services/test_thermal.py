@@ -53,6 +53,17 @@ class TestThermalCluster:
         created_thermal = local_study_w_areas.get_areas()["fr"].create_thermal_cluster(thermal_name)
         assert isinstance(created_thermal, ThermalCluster)
 
+    def test_cluster_with_numeric_name(self, local_study_w_areas: Study) -> None:
+        # Given
+        thermal_name = "123"
+
+        # When
+        created_thermal = local_study_w_areas.get_areas()["fr"].create_thermal_cluster(thermal_name)
+        assert isinstance(created_thermal, ThermalCluster)
+
+        # Then this should not raise an exception
+        local_study_w_areas.get_areas()["fr"]._thermal_service.read_thermal_clusters()
+
     def test_duplicate_name_errors(self, local_study_w_thermal: Study) -> None:
         # Given
         area_name = "fr"
