@@ -22,7 +22,7 @@ from checksumdir import dirhash
 
 from antares.craft import RenewableClusterGroup, Study, TimeSeriesInterpretation, read_study_local
 from antares.craft.exceptions.exceptions import MatrixFormatError, RenewablePropertiesUpdateError
-from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties, RenewableClusterPropertiesUpdate
+from antares.craft.model.renewable import RenewableClusterProperties, RenewableClusterPropertiesUpdate
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 
@@ -47,7 +47,7 @@ class TestRenewable:
 
         # When
         local_study_with_renewable.get_areas()["fr"].create_renewable_cluster(cluster_name)
-        
+
         # Reading the study should not fail
         read_study_local(Path(local_study_with_renewable.path))
 
