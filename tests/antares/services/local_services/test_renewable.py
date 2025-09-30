@@ -46,11 +46,10 @@ class TestRenewable:
         cluster_name = "123"
 
         # When
-        created_thermal = local_study_with_renewable.get_areas()["fr"].create_renewable_cluster(cluster_name)
-        assert isinstance(created_thermal, RenewableCluster)
-
-        # Then this should not raise an exception
-        local_study_with_renewable.get_areas()["fr"]._renewable_service.read_renewables()
+        local_study_with_renewable.get_areas()["fr"].create_renewable_cluster(cluster_name)
+        
+        # Reading the study should not fail
+        read_study_local(Path(local_study_with_renewable.path))
 
 
     def test_matrices(self, tmp_path: Path, local_study_with_renewable: Study) -> None:
