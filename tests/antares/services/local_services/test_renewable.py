@@ -51,7 +51,6 @@ class TestRenewable:
         # Reading the study should not fail
         read_study_local(Path(local_study_with_renewable.path))
 
-
     def test_matrices(self, tmp_path: Path, local_study_with_renewable: Study) -> None:
         # Checks all matrices exist
         renewable = local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"]
