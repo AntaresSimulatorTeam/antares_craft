@@ -41,6 +41,17 @@ class TestRenewable:
         assert new_properties == expected_properties
         assert renewable.properties == expected_properties
 
+    def test_cluster_with_numeric_name(self, local_study_with_renewable: Study) -> None:
+        # Given
+        cluster_name = "123"
+
+        # When
+        local_study_with_renewable.get_areas()["fr"].create_renewable_cluster(cluster_name)
+
+        # Reading the study should not fail
+        read_study_local(Path(local_study_with_renewable.path))
+
+
     def test_matrices(self, tmp_path: Path, local_study_with_renewable: Study) -> None:
         # Checks all matrices exist
         renewable = local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"]

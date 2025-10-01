@@ -129,7 +129,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
                 storage_dict = self.read_ini(area_id)
 
                 for storage_data in storage_dict.values():
-                    storage_name = storage_data.pop("name")
+                    storage_name = str(storage_data.pop("name"))
                     storage_properties = parse_st_storage_local(self.study_version, storage_data)
                     storage_id = transform_name_to_id(storage_name)
                     relative_constraints = constraints.get(area_id, {}).get(storage_id, {})
