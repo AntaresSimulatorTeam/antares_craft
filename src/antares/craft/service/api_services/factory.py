@@ -285,8 +285,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
 
     for key, thermal in json_api.pop("thermal").items():
         area_id, thermal_id = key.split(" / ")
-        api_props = ThermalClusterPropertiesAPI.model_validate(thermal)
-        thermal_props = api_props.to_user_model()
+        thermal_props = ThermalClusterPropertiesAPI.model_validate(thermal).to_user_model()
         thermal_cluster = ThermalCluster(services.thermal_service, area_id, thermal_id, thermal_props)
 
         thermals.setdefault(area_id, {})[thermal_cluster.id] = thermal_cluster
@@ -296,8 +295,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
 
     for key, renewable in json_api.pop("renewable").items():
         area_id, renewable_id = key.split(" / ")
-        api_props = RenewableClusterPropertiesAPI.model_validate(renewable)
-        renewable_props = api_props.to_user_model()
+        renewable_props = RenewableClusterPropertiesAPI.model_validate(renewable).to_user_model()
         renewable_cluster = RenewableCluster(services.renewable_service, area_id, renewable_id, renewable_props)
 
         renewables.setdefault(area_id, {})[renewable_cluster.id] = renewable_cluster
@@ -315,8 +313,8 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     for key, storage in json_api.pop("sts").items():
         area_id, storage_id = key.split(" / ")
         storage_props = parse_st_storage_api(storage)
-        constraints = constraints_dict.get(area_id, {}).get(storage_id, {})
-        st_storage = STStorage(services.short_term_storage_service, area_id, storage_id, storage_props, constraints)
+        sts_constraints = constraints_dict.get(area_id, {}).get(storage_id, {})
+        st_storage = STStorage(services.short_term_storage_service, area_id, storage_id, storage_props, sts_constraints)
 
         storages.setdefault(area_id, {})[st_storage.id] = st_storage
 
@@ -334,9 +332,8 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
 
     # Area properties
     area_properties: dict[str, AreaProperties] = {}
-    for area_id, props in json_api.pop("areas").items():
-        api_response = AreaPropertiesAPI.model_validate(props)
-        area_properties[area_id] = api_response.to_user_model()
+    for area_id, area_properties_api in json_api.pop("areas").items():
+        area_properties[area_id] = AreaPropertiesAPI.model_validate(area_properties_api).to_user_model()
 
     # Area ui
     area_ui: dict[str, AreaUi] = {}
