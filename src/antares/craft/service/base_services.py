@@ -291,13 +291,6 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def read_areas(self) -> dict[str, "Area"]:
-        """
-        Returns: Map from area id to Area object
-        """
-        pass
-
-    @abstractmethod
     def update_areas_properties(self, dict_areas: Dict["Area", "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
         pass
 
@@ -449,10 +442,6 @@ class BaseLinkService(ABC):
 
     @abstractmethod
     def set_parameters(self, series: pd.DataFrame, area_from: str, area_to: str) -> None:
-        pass
-
-    @abstractmethod
-    def read_links(self) -> dict[str, "Link"]:
         pass
 
     @abstractmethod
@@ -888,13 +877,6 @@ class BaseXpansionService(ABC):
     @abstractmethod
     def study_id(self) -> str:
         """The ID for the study"""
-        pass
-
-    @abstractmethod
-    def read_xpansion_configuration(self) -> Optional["XpansionConfiguration"]:
-        """
-        Reads the Xpansion configuration of a study
-        """
         pass
 
     @abstractmethod

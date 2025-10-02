@@ -100,19 +100,6 @@ class Study:
     def service(self) -> BaseStudyService:
         return self._study_service
 
-    def _read_areas(self) -> None:
-        """
-        Synchronize the internal study object with the actual object written in an antares study
-        """
-        if len(self._areas) > 0:
-            raise ReadingMethodUsedOufOfScopeError(self._study_service.study_id, "read_areas", "areas")
-        self._areas = self._area_service.read_areas()
-
-    def _read_links(self) -> None:
-        if len(self._links) > 0:
-            raise ReadingMethodUsedOufOfScopeError(self._study_service.study_id, "read_links", "links")
-        self._links = self._link_service.read_links()
-
     def _read_settings(self) -> None:
         self._settings = self._settings_service.read_study_settings()
 
@@ -416,9 +403,6 @@ class Study:
     @property
     def has_an_xpansion_configuration(self) -> bool:
         return self._xpansion_configuration is not None
-
-    def _read_xpansion_configuration(self) -> None:
-        self._xpansion_configuration = self._xpansion_service.read_xpansion_configuration()
 
     def create_xpansion_configuration(self) -> XpansionConfiguration:
         configuration = self._xpansion_service.create_xpansion_configuration()

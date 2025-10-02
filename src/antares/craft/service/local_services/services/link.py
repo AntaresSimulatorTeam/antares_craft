@@ -206,24 +206,6 @@ class LinkLocalService(BaseLinkService):
         )
 
     @override
-    def read_links(self) -> dict[str, Link]:
-        link_path = self.config.study_path / "input" / "links"
-
-        all_links: dict[str, Link] = {}
-
-        for element in link_path.iterdir():
-            area_from = element.name
-            links_dict = self.read_ini(area_from)
-            for area_to, values in links_dict.items():
-                local_model = LinkPropertiesAndUiLocal.model_validate(values)
-                properties = local_model.to_properties_user_model()
-                ui = local_model.to_ui_user_model()
-                link = Link(area_from=area_from, area_to=area_to, link_service=self, properties=properties, ui=ui)
-                all_links[link.id] = link
-
-        return all_links
-
-    @override
     def update_links_properties(self, new_properties: dict[str, LinkPropertiesUpdate]) -> dict[str, LinkProperties]:
         new_properties_dict: dict[str, LinkProperties] = {}
 

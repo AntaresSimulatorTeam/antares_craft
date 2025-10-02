@@ -84,29 +84,6 @@ class XpansionLocalService(BaseXpansionService):
         return self._xpansion_path
 
     @override
-    def read_xpansion_configuration(self) -> XpansionConfiguration | None:
-        if not self._xpansion_path.exists():
-            return None
-        # Settings
-        settings = self.read_settings()
-        # Candidates
-        candidates = {}
-        ini_candidates = self.read_candidates()
-        for values in ini_candidates.values():
-            cdt = parse_xpansion_candidate_local(values)
-            candidates[cdt.name] = cdt
-        # Constraints
-        constraints = {}
-        file_name = settings.additional_constraints
-        if file_name:
-            constraints = self.read_constraints(file_name)
-        # Sensitivity
-        sensitivity = self.read_sensitivity()
-        return XpansionConfiguration(
-            self, settings=settings, candidates=candidates, constraints=constraints, sensitivity=sensitivity
-        )
-
-    @override
     def create_xpansion_configuration(self) -> XpansionConfiguration:
         for folder in ["capa", "constraints", "weights", "sensitivity"]:
             (self._xpansion_path / folder).mkdir(parents=True)
