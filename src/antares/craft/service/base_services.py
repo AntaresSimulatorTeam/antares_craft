@@ -45,7 +45,7 @@ if TYPE_CHECKING:
         ConstraintTerm,
         ConstraintTermUpdate,
     )
-    from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
+    from antares.craft.model.hydro import HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
     from antares.craft.model.output import (
         AggregationEntry,
@@ -315,14 +315,6 @@ class BaseHydroService(ABC):
         pass
 
     @abstractmethod
-    def read_properties_and_inflow_structure(self) -> dict[str, tuple["HydroProperties", "InflowStructure"]]:
-        """
-        Returns:
-            The hydro properties and inflow structure for each area of the study
-        """
-        pass
-
-    @abstractmethod
     def get_maxpower(self, area_id: str) -> pd.DataFrame:
         pass
 
@@ -498,10 +490,6 @@ class BaseThermalService(ABC):
     ) -> dict["ThermalCluster", "ThermalClusterProperties"]:
         pass
 
-    @abstractmethod
-    def read_thermal_clusters(self) -> dict[str, dict[str, "ThermalCluster"]]:
-        pass
-
 
 class BaseBindingConstraintService(ABC):
     @abstractmethod
@@ -581,15 +569,6 @@ class BaseBindingConstraintService(ABC):
             constraint: the concerned binding constraint
             matrix_name: the matrix suffix.
             matrix: matrix to upload (in Dataframe format)
-        """
-        pass
-
-    @abstractmethod
-    def read_binding_constraints(self) -> dict[str, "BindingConstraint"]:
-        """
-        Loads binding constraints into study
-
-        Returns: A map from the binding constraint id to the binding constraint object
         """
         pass
 
@@ -704,10 +683,6 @@ class BaseRenewableService(ABC):
         pass
 
     @abstractmethod
-    def read_renewables(self) -> dict[str, dict[str, "RenewableCluster"]]:
-        pass
-
-    @abstractmethod
     def update_renewable_clusters_properties(
         self, new_props: dict["RenewableCluster", "RenewableClusterPropertiesUpdate"]
     ) -> dict["RenewableCluster", "RenewableClusterProperties"]:
@@ -721,10 +696,6 @@ class BaseShortTermStorageService(ABC):
 
     @abstractmethod
     def set_storage_matrix(self, storage: "STStorage", ts_name: "STStorageMatrixName", matrix: pd.DataFrame) -> None:
-        pass
-
-    @abstractmethod
-    def read_st_storages(self) -> dict[str, dict[str, "STStorage"]]:
         pass
 
     @abstractmethod
@@ -845,13 +816,6 @@ class BaseStudySettingsService(ABC):
             settings: the settings to update with their values
             current_settings: the current settings of the study
             study_version: the version of the current study
-        """
-        pass
-
-    @abstractmethod
-    def read_study_settings(self) -> StudySettings:
-        """
-        Reads the settings of a study
         """
         pass
 

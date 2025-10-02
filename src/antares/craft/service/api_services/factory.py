@@ -126,9 +126,7 @@ def create_study_api(
         url = f"{base_url}/studies?name={study_name}&version={version}"
         response = wrapper.post(url)
         study_id = response.json()
-        # Settings part
-        study = Study(study_name, version, create_api_services(api_config, study_id))
-        study._read_settings()
+        study = read_study_api(api_config, study_id)
         # Move part
         if parent_path:
             study.move(parent_path)

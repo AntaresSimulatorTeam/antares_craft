@@ -43,7 +43,6 @@ from antares.craft.service.local_services.models.st_storage import (
     update_st_storage_constraint_local,
 )
 from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
-from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
@@ -110,39 +109,6 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
 
     def _save_ini_constraints(self, content: dict[str, Any], area_id: str, storage_id: str) -> None:
         IniWriter().write(content, self._get_ini_constraints_path(area_id, storage_id))
-
-    @override
-    def read_st_storages(self) -> dict[str, dict[str, STStorage]]:
-        st_storages: dict[str, dict[str, STStorage]] = {}
-        cluster_path = self.config.study_path / "input" / "st-storage" / "clusters"
-        if not cluster_path.exists():
-            return {}
-
-        constraints = {}
-        if self.study_version >= STUDY_VERSION_9_2:
-            constraints = self.read_constraints()
-
-        for folder in cluster_path.iterdir():
-            if folder.is_dir():
-                area_id = folder.name
-
-                storage_dict = self.read_ini(area_id)
-
-                for storage_data in storage_dict.values():
-                    storage_name = str(storage_data.pop("name"))
-                    storage_properties = parse_st_storage_local(self.study_version, storage_data)
-                    storage_id = transform_name_to_id(storage_name)
-                    relative_constraints = constraints.get(area_id, {}).get(storage_id, {})
-                    st_storage = STStorage(
-                        storage_service=self,
-                        area_id=area_id,
-                        name=storage_name,
-                        properties=storage_properties,
-                        constraints=relative_constraints,
-                    )
-                    st_storages.setdefault(area_id, {})[storage_id] = st_storage
-
-        return st_storages
 
     @override
     def set_storage_matrix(self, storage: STStorage, ts_name: STStorageMatrixName, matrix: pd.DataFrame) -> None:

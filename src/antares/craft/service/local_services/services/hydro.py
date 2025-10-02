@@ -79,17 +79,6 @@ class HydroLocalService(BaseHydroService):
         prepro_dict = self._read_inflow_ini(area_id)
         return HydroInflowStructureLocal.model_validate(prepro_dict).to_user_model()
 
-    @override
-    def read_properties_and_inflow_structure(self) -> dict[str, tuple[HydroProperties, InflowStructure]]:
-        response: dict[str, tuple[HydroProperties, InflowStructure]] = {}
-
-        all_properties = self.read_properties()
-        for area_id, hydro_properties in all_properties.items():
-            inflow_structure = self.read_inflow_structure_for_one_area(area_id)
-            response[area_id] = (hydro_properties, inflow_structure)
-
-        return response
-
     def read_properties(self) -> dict[str, HydroProperties]:
         hydro_properties: dict[str, HydroProperties] = {}
 

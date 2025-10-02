@@ -26,7 +26,6 @@ from antares.craft import (
 )
 from antares.craft.exceptions.exceptions import (
     LinkCreationError,
-    ReadingMethodUsedOufOfScopeError,
     ReferencedObjectDeletionNotAllowed,
     UnsupportedStudyVersion,
     XpansionConfigurationMissingError,
@@ -99,9 +98,6 @@ class Study:
     @property
     def service(self) -> BaseStudyService:
         return self._study_service
-
-    def _read_settings(self) -> None:
-        self._settings = self._settings_service.read_study_settings()
 
     def update_settings(self, settings: StudySettingsUpdate) -> None:
         new_settings = self._settings_service.edit_study_settings(settings, self._settings, self._version)
@@ -224,13 +220,6 @@ class Study:
         )
         self._binding_constraints[binding_constraint.id] = binding_constraint
         return binding_constraint
-
-    def _read_binding_constraints(self) -> None:
-        if len(self._binding_constraints) > 0:
-            raise ReadingMethodUsedOufOfScopeError(
-                self._study_service.study_id, "read_binding_constraints", "constraints"
-            )
-        self._binding_constraints = self._binding_constraints_service.read_binding_constraints()
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         self._study_service.delete_binding_constraint(constraint)
