@@ -17,7 +17,9 @@ from typing import Optional
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import APIError, StudyCreationError, StudyImportError, StudyMoveError
+from antares.craft.model.link import Link
 from antares.craft.model.study import Study
+from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAPI
 from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.api_services.services.binding_constraint import BindingConstraintApiService
 from antares.craft.service.api_services.services.hydro import HydroApiService
@@ -102,6 +104,83 @@ def create_study_api(
         return study
     except (APIError, StudyMoveError) as e:
         raise StudyCreationError(study_name, e.message) from e
+
+
+def load_study_api(api_config: APIconf, study_id: str) -> "Study":
+    session = api_config.set_up_api_conf()
+    wrapper = RequestWrapper(session)
+    base_url = f"{api_config.get_host()}/api/v1"
+    json_api = wrapper.get(f"{base_url}/studies/{study_id}/load").json()
+
+    services = create_api_services(api_config, study_id)
+
+    ####### STUDY #######
+    study_name = json_api["name"]
+    study_version = json_api["version"]
+    path = json_api["path"]
+    pure_path = PurePath(path) if path else PurePath(".")
+
+    study = Study(study_name, study_version, services, pure_path)
+
+    ####### LINKS #######
+    links = {}
+    links_api = json_api["links"]
+    for props in links_api.values():
+        area_from = props.pop("area1")
+        area_to = props.pop("area2")
+
+        api_response = LinkPropertiesAndUiAPI.model_validate(props)
+        link_properties = api_response.to_properties_user_model()
+        link_ui = api_response.to_ui_user_model()
+
+        link = Link(area_from, area_to, services.link_service, link_properties, link_ui)
+        links[link.id] = link
+
+    study._links = links
+
+    ###### TODO ########
+
+    """
+    obj = {
+        "areas": self.table_mode_manager.get_table_data(interface, TableModeType.AREA, []),
+        "links": self.table_mode_manager.get_table_data(interface, TableModeType.LINK, []),
+        "bcs": self.table_mode_manager.get_table_data(interface, TableModeType.BINDING_CONSTRAINT, []),
+        "renewable": self.table_mode_manager.get_table_data(interface, TableModeType.RENEWABLE, []),
+        "thermal": self.table_mode_manager.get_table_data(interface, TableModeType.THERMAL, []),
+        "sts": self.table_mode_manager.get_table_data(interface, TableModeType.ST_STORAGE, []),
+        "sts_c": self.table_mode_manager.get_table_data(
+            interface, TableModeType.ST_STORAGE_ADDITIONAL_CONSTRAINTS, []
+        ),
+        "hydro": self.hydro_manager.get_all_hydro_properties(interface),
+        "xp_settings": xp_settings,
+        "ts_config": self.ts_config_manager.get_timeseries_configuration(interface),
+        "general_config": self.general_manager.get_general_config(interface),
+        "adv_config": self.advanced_parameters_manager.get_advanced_parameters(interface),
+        "playlist": self.playlist_manager.get_playlist(interface),
+        "thematic_config": self.thematic_trimming_manager.get_thematic_trimming(interface),
+        "opt_config": self.optimization_manager.get_optimization_preferences(interface),
+        "adequacy_config": self.adequacy_patch_manager.get_adequacy_patch_parameters(interface),
+        "version": study.version,
+        "name": study.name,
+        "path": study.path,
+        "outputs": interface.get_files().config.outputs,
+    }
+
+    if xp_settings:
+        obj["xp_cdt"] = self.xpansion_manager.get_candidates(interface)
+        if xp_settings.additional_constraints:
+            obj["xp_contraint"] = self.xpansion_manager.get_resource_content(
+                interface, XpansionResourceFileType.CONSTRAINTS, xp_settings.additional_constraints
+            )
+    """
+
+    study._read_settings()
+    study._read_areas()
+    study._read_outputs()
+    study._read_binding_constraints()
+    study._read_xpansion_configuration()
+
+    return study
 
 
 def import_study_api(api_config: APIconf, study_path: Path, destination_path: Optional[Path] = None) -> "Study":
