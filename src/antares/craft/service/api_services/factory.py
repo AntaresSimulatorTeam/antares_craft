@@ -14,17 +14,25 @@ import io
 from pathlib import Path, PurePath
 from typing import Optional
 
-from antares.craft import ConstraintTerm
+from antares.craft import ConstraintTerm, PlaylistParameters
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import APIError, StudyCreationError, StudyImportError, StudyMoveError
 from antares.craft.model.binding_constraint import BindingConstraint, ConstraintTermData
 from antares.craft.model.link import Link
 from antares.craft.model.output import Output
+from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.study import Study
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAPI
+from antares.craft.service.api_services.models.settings import (
+    parse_adequacy_patch_parameters_api,
+    parse_advanced_and_seed_parameters_api,
+    parse_general_parameters_api,
+    parse_optimization_parameters_api,
+    parse_thematic_trimming_api,
+)
 from antares.craft.service.api_services.models.xpansion import (
     parse_xpansion_candidate_api,
     parse_xpansion_constraints_api,
@@ -206,15 +214,36 @@ def load_study_api(api_config: APIconf, study_id: str) -> "Study":
             constraints=xp_constraints,
         )
 
-    ###### TODO ########
+    ###### SETTINGS ########
+    nb_ts_thermal = json_api.pop("ts_config")["thermal"]["number"]
+    general_parameters = parse_general_parameters_api(json_api.pop("general_config"), nb_ts_thermal)
+    thematic_trimming_parameters = parse_thematic_trimming_api(json_api.pop("thematic_config"))
+    optimization_parameters = parse_optimization_parameters_api(json_api.pop("opt_config"))
+    adequacy_patch_parameters = parse_adequacy_patch_parameters_api(json_api.pop("adequacy_config"))
+    advanced_parameters, seed_parameters = parse_advanced_and_seed_parameters_api(json_api.pop("adv_config"))
+
+    user_playlist = {}
+    api_playlist = json_api.pop("playlist").get("years", {})
+    for key, value in api_playlist.items():
+        user_playlist[int(key)] = PlaylistParameters(**value)
+
+    study._settings = StudySettings(
+        general_parameters=general_parameters,
+        optimization_parameters=optimization_parameters,
+        seed_parameters=seed_parameters,
+        advanced_parameters=advanced_parameters,
+        adequacy_patch_parameters=adequacy_patch_parameters,
+        playlist_parameters=user_playlist,
+        thematic_trimming_parameters=thematic_trimming_parameters,
+    )
+
+    ###### TODO: AREAS ########
 
     print(json_api)
 
     """
     obj = {
         "areas": self.table_mode_manager.get_table_data(interface, TableModeType.AREA, []),
-        "links": self.table_mode_manager.get_table_data(interface, TableModeType.LINK, []),
-        "bcs": self.table_mode_manager.get_table_data(interface, TableModeType.BINDING_CONSTRAINT, []),
         "renewable": self.table_mode_manager.get_table_data(interface, TableModeType.RENEWABLE, []),
         "thermal": self.table_mode_manager.get_table_data(interface, TableModeType.THERMAL, []),
         "sts": self.table_mode_manager.get_table_data(interface, TableModeType.ST_STORAGE, []),
@@ -222,29 +251,10 @@ def load_study_api(api_config: APIconf, study_id: str) -> "Study":
             interface, TableModeType.ST_STORAGE_ADDITIONAL_CONSTRAINTS, []
         ),
         "hydro": self.hydro_manager.get_all_hydro_properties(interface),
-        "xp_settings": xp_settings,
-        "ts_config": self.ts_config_manager.get_timeseries_configuration(interface),
-        "general_config": self.general_manager.get_general_config(interface),
-        "adv_config": self.advanced_parameters_manager.get_advanced_parameters(interface),
-        "playlist": self.playlist_manager.get_playlist(interface),
-        "thematic_config": self.thematic_trimming_manager.get_thematic_trimming(interface),
-        "opt_config": self.optimization_manager.get_optimization_preferences(interface),
-        "adequacy_config": self.adequacy_patch_manager.get_adequacy_patch_parameters(interface),
-        "version": study.version,
-        "name": study.name,
-        "path": study.path,
-        "outputs": interface.get_files().config.outputs,
     }
 
-    if xp_settings:
-        obj["xp_cdt"] = self.xpansion_manager.get_candidates(interface)
-        if xp_settings.additional_constraints:
-            obj["xp_contraint"] = self.xpansion_manager.get_resource_content(
-                interface, XpansionResourceFileType.CONSTRAINTS, xp_settings.additional_constraints
-            )
     """
 
-    study._read_settings()
     study._read_areas()
 
     return study
