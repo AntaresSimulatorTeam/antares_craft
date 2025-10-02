@@ -26,7 +26,6 @@ from antares.craft.exceptions.exceptions import (
     XpansionCandidateEditionError,
     XpansionConfigurationCreationError,
     XpansionConfigurationDeletionError,
-    XpansionConfigurationReadingError,
     XpansionConstraintCreationError,
     XpansionConstraintsDeletionError,
     XpansionConstraintsEditionError,
@@ -78,30 +77,6 @@ class XpansionAPIService(BaseXpansionService):
     @override
     def study_id(self) -> str:
         return self._study_id
-
-    @override
-    def read_xpansion_configuration(self) -> XpansionConfiguration | None:
-        # Checks the settings. If we have a 404 Exception, it means we don't have any Xpansion configuration
-        try:
-            settings, sensitivity = self._read_settings_and_sensitivity()
-        except APIError:
-            return None
-        try:
-            # Candidates
-            candidates = self._read_candidates()
-            # Constraints
-            constraints = {}
-            if settings.additional_constraints:
-                constraints = self._read_constraints(settings.additional_constraints)
-            return XpansionConfiguration(
-                xpansion_service=self,
-                settings=settings,
-                sensitivity=sensitivity,
-                candidates=candidates,
-                constraints=constraints,
-            )
-        except APIError as e:
-            raise XpansionConfigurationReadingError(self._study_id, e.message) from e
 
     @override
     def create_xpansion_configuration(self) -> XpansionConfiguration:

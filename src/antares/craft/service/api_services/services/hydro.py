@@ -39,26 +39,6 @@ class HydroApiService(BaseHydroService):
         self._wrapper = RequestWrapper(self.api_config.set_up_api_conf())
         self._base_url = f"{self.api_config.get_host()}/api/v1"
 
-    @override
-    def read_properties_and_inflow_structure(self) -> dict[str, tuple[HydroProperties, InflowStructure]]:
-        response: dict[str, tuple[HydroProperties, InflowStructure]] = {}
-        try:
-            json_response = self._wrapper.get(f"{self._base_url}/studies/{self.study_id}/hydro").json()
-            for area_id, api_content in json_response.items():
-                # Inflow
-                api_inflow = api_content["inflowStructure"]
-                inflow_structure = HydroInflowStructureAPI.model_validate(api_inflow).to_user_model()
-                # Properties
-                api_properties = api_content["managementOptions"]
-                hydro_properties = HydroPropertiesAPI.model_validate(api_properties).to_user_model()
-
-                response[area_id] = (hydro_properties, inflow_structure)
-
-        except APIError as e:
-            raise HydroPropertiesReadingError(self.study_id, e.message) from e
-
-        return response
-
     def read_properties_for_one_area(self, area_id: str) -> HydroProperties:
         try:
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/form"

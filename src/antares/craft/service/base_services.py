@@ -45,7 +45,7 @@ if TYPE_CHECKING:
         ConstraintTerm,
         ConstraintTermUpdate,
     )
-    from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
+    from antares.craft.model.hydro import HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
     from antares.craft.model.output import (
         AggregationEntry,
@@ -291,13 +291,6 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def read_areas(self) -> dict[str, "Area"]:
-        """
-        Returns: Map from area id to Area object
-        """
-        pass
-
-    @abstractmethod
     def update_areas_properties(self, dict_areas: Dict["Area", "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
         pass
 
@@ -319,14 +312,6 @@ class BaseHydroService(ABC):
     @abstractmethod
     def read_inflow_structure_for_one_area(self, area_id: str) -> "InflowStructure":
         """Reads the inflow structure for the given area"""
-        pass
-
-    @abstractmethod
-    def read_properties_and_inflow_structure(self) -> dict[str, tuple["HydroProperties", "InflowStructure"]]:
-        """
-        Returns:
-            The hydro properties and inflow structure for each area of the study
-        """
         pass
 
     @abstractmethod
@@ -452,10 +437,6 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def read_links(self) -> dict[str, "Link"]:
-        pass
-
-    @abstractmethod
     def get_capacity_direct(self, area_from: str, area_to: str) -> pd.DataFrame:
         """
         Returns: the direct capacity of a link
@@ -507,10 +488,6 @@ class BaseThermalService(ABC):
     def update_thermal_clusters_properties(
         self, new_properties: dict["ThermalCluster", "ThermalClusterPropertiesUpdate"]
     ) -> dict["ThermalCluster", "ThermalClusterProperties"]:
-        pass
-
-    @abstractmethod
-    def read_thermal_clusters(self) -> dict[str, dict[str, "ThermalCluster"]]:
         pass
 
 
@@ -592,15 +569,6 @@ class BaseBindingConstraintService(ABC):
             constraint: the concerned binding constraint
             matrix_name: the matrix suffix.
             matrix: matrix to upload (in Dataframe format)
-        """
-        pass
-
-    @abstractmethod
-    def read_binding_constraints(self) -> dict[str, "BindingConstraint"]:
-        """
-        Loads binding constraints into study
-
-        Returns: A map from the binding constraint id to the binding constraint object
         """
         pass
 
@@ -715,10 +683,6 @@ class BaseRenewableService(ABC):
         pass
 
     @abstractmethod
-    def read_renewables(self) -> dict[str, dict[str, "RenewableCluster"]]:
-        pass
-
-    @abstractmethod
     def update_renewable_clusters_properties(
         self, new_props: dict["RenewableCluster", "RenewableClusterPropertiesUpdate"]
     ) -> dict["RenewableCluster", "RenewableClusterProperties"]:
@@ -732,10 +696,6 @@ class BaseShortTermStorageService(ABC):
 
     @abstractmethod
     def set_storage_matrix(self, storage: "STStorage", ts_name: "STStorageMatrixName", matrix: pd.DataFrame) -> None:
-        pass
-
-    @abstractmethod
-    def read_st_storages(self) -> dict[str, dict[str, "STStorage"]]:
         pass
 
     @abstractmethod
@@ -860,13 +820,6 @@ class BaseStudySettingsService(ABC):
         pass
 
     @abstractmethod
-    def read_study_settings(self) -> StudySettings:
-        """
-        Reads the settings of a study
-        """
-        pass
-
-    @abstractmethod
     def set_playlist(self, new_playlist: dict[int, "PlaylistParameters"]) -> None:
         """
         Set a new playlist for the study
@@ -888,13 +841,6 @@ class BaseXpansionService(ABC):
     @abstractmethod
     def study_id(self) -> str:
         """The ID for the study"""
-        pass
-
-    @abstractmethod
-    def read_xpansion_configuration(self) -> Optional["XpansionConfiguration"]:
-        """
-        Reads the Xpansion configuration of a study
-        """
         pass
 
     @abstractmethod

@@ -63,23 +63,6 @@ class RenewableApiService(BaseRenewableService):
             raise RenewableMatrixDownloadError(area_id, cluster_id, e.message) from e
 
     @override
-    def read_renewables(self) -> dict[str, dict[str, RenewableCluster]]:
-        url = f"{self._base_url}/studies/{self.study_id}/table-mode/renewables"
-        json_renewable = self._wrapper.get(url).json()
-
-        renewables: dict[str, dict[str, RenewableCluster]] = {}
-
-        for key, renewable in json_renewable.items():
-            area_id, renewable_id = key.split(" / ")
-            api_props = RenewableClusterPropertiesAPI.model_validate(renewable)
-            renewable_props = api_props.to_user_model()
-            renewable_cluster = RenewableCluster(self, area_id, renewable_id, renewable_props)
-
-            renewables.setdefault(area_id, {})[renewable_cluster.id] = renewable_cluster
-
-        return renewables
-
-    @override
     def update_renewable_clusters_properties(
         self, new_props: dict[RenewableCluster, RenewableClusterPropertiesUpdate]
     ) -> dict[RenewableCluster, RenewableClusterProperties]:

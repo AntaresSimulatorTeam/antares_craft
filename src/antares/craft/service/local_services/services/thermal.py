@@ -68,29 +68,6 @@ class ThermalLocalService(BaseThermalService):
         )
 
     @override
-    def read_thermal_clusters(self) -> dict[str, dict[str, ThermalCluster]]:
-        thermals: dict[str, dict[str, ThermalCluster]] = {}
-        cluster_path = self.config.study_path / "input" / "thermal" / "clusters"
-        if not cluster_path.exists():
-            return {}
-        for folder in cluster_path.iterdir():
-            if folder.is_dir():
-                area_id = folder.name
-                thermal_dict = self.read_ini(area_id)
-
-                for thermal_data in thermal_dict.values():
-                    thermal_cluster = ThermalCluster(
-                        thermal_service=self,
-                        area_id=area_id,
-                        name=str(thermal_data.pop("name")),
-                        properties=ThermalClusterPropertiesLocal.model_validate(thermal_data).to_user_model(),
-                    )
-
-                    thermals.setdefault(area_id, {})[thermal_cluster.id] = thermal_cluster
-
-        return thermals
-
-    @override
     def set_thermal_matrix(
         self, thermal_cluster: ThermalCluster, matrix: pd.DataFrame, ts_name: ThermalClusterMatrixName
     ) -> None:

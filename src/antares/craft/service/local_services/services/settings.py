@@ -15,12 +15,12 @@ from typing import Any
 
 from typing_extensions import override
 
+from antares.craft import BuildingMode
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParametersUpdate,
     SeedParametersUpdate,
 )
-from antares.craft.model.settings.general import BuildingMode
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
@@ -65,15 +65,11 @@ class StudySettingsLocalService(BaseStudySettingsService):
         self, settings: StudySettingsUpdate, current_settings: StudySettings, study_version: StudyVersion
     ) -> StudySettings:
         edit_study_settings(self.config.study_path, settings, creation=False, study_version=study_version)
-        return self.read_study_settings()
-
-    @override
-    def read_study_settings(self) -> StudySettings:
-        return read_study_settings(self.config.study_path, self.study_version)
+        return read_study_settings(study_version, self.config.study_path)
 
     @override
     def set_playlist(self, new_playlist: dict[int, PlaylistParameters]) -> None:
-        ini_content = _read_ini(self.config.study_path)
+        ini_content = read_ini_settings(self.config.study_path)
         nb_years = ini_content["general"]["nbyears"]
         playlist_local_parameters = PlaylistParametersLocal.create(new_playlist, nb_years)
         ini_content["playlist"] = playlist_local_parameters.model_dump(mode="json", by_alias=True, exclude_none=True)
@@ -81,7 +77,7 @@ class StudySettingsLocalService(BaseStudySettingsService):
 
     @override
     def set_thematic_trimming(self, new_thematic_trimming: ThematicTrimmingParameters) -> ThematicTrimmingParameters:
-        ini_content = _read_ini(self.config.study_path)
+        ini_content = read_ini_settings(self.config.study_path)
         ini_content["variables selection"] = serialize_thematic_trimming_local(
             self.study_version, new_thematic_trimming
         )
@@ -90,7 +86,7 @@ class StudySettingsLocalService(BaseStudySettingsService):
         return parse_thematic_trimming_local(self.study_version, ini_content["variables selection"])
 
 
-def _read_ini(study_directory: Path) -> dict[str, Any]:
+def read_ini_settings(study_directory: Path) -> dict[str, Any]:
     return IniReader(DUPLICATE_KEYS).read(study_directory / "settings" / "generaldata.ini")
 
 
@@ -99,8 +95,45 @@ def _save_ini(study_directory: Path, content: dict[str, Any]) -> None:
     IniWriter(DUPLICATE_KEYS).write(content, ini_path)
 
 
-def read_study_settings(study_directory: Path, study_version: StudyVersion) -> StudySettings:
-    ini_content = _read_ini(study_directory)
+def edit_study_settings(
+    study_directory: Path, settings: StudySettingsUpdate, creation: bool, study_version: StudyVersion
+) -> None:
+    if creation:
+        _save_ini(study_directory, {})
+    update = not creation
+    ini_content = read_ini_settings(study_directory)
+
+    # general
+    if settings.general_parameters:
+        general_local_parameters = GeneralParametersLocal.from_user_model(settings.general_parameters)
+        ini_content = general_local_parameters.to_ini_file(update=update, current_content=ini_content)
+
+    # optimization
+    if settings.optimization_parameters:
+        optimization_local_parameters = OptimizationParametersLocal.from_user_model(settings.optimization_parameters)
+        ini_content = optimization_local_parameters.to_ini_file(update=update, current_content=ini_content)
+
+    # adequacy_patch
+    if settings.adequacy_patch_parameters:
+        adequacy_local_parameters = serialize_adequacy_parameters_local(
+            settings.adequacy_patch_parameters, study_version
+        )
+        ini_content = adequacy_local_parameters.to_ini_file(update=update, current_content=ini_content)
+
+    # seed and advanced
+    seed_parameters = settings.seed_parameters or SeedParametersUpdate()
+    advanced_parameters = settings.advanced_parameters or AdvancedParametersUpdate()
+    local_parameters = serialize_advanced_and_seed_parameters_local(
+        (advanced_parameters, seed_parameters), study_version
+    )
+    ini_content = local_parameters.to_ini_file(update=update, current_content=ini_content)
+
+    # writing
+    _save_ini(study_directory, ini_content)
+
+
+def read_study_settings(study_version: StudyVersion, study_directory: Path) -> StudySettings:
+    ini_content = read_ini_settings(study_directory)
 
     # general
     general_params_ini = {"general": ini_content["general"]}
@@ -152,40 +185,3 @@ def read_study_settings(study_directory: Path, study_version: StudyVersion) -> S
         playlist_parameters=playlist_parameters,
         thematic_trimming_parameters=thematic_trimming_parameters,
     )
-
-
-def edit_study_settings(
-    study_directory: Path, settings: StudySettingsUpdate, creation: bool, study_version: StudyVersion
-) -> None:
-    if creation:
-        _save_ini(study_directory, {})
-    update = not creation
-    ini_content = _read_ini(study_directory)
-
-    # general
-    if settings.general_parameters:
-        general_local_parameters = GeneralParametersLocal.from_user_model(settings.general_parameters)
-        ini_content = general_local_parameters.to_ini_file(update=update, current_content=ini_content)
-
-    # optimization
-    if settings.optimization_parameters:
-        optimization_local_parameters = OptimizationParametersLocal.from_user_model(settings.optimization_parameters)
-        ini_content = optimization_local_parameters.to_ini_file(update=update, current_content=ini_content)
-
-    # adequacy_patch
-    if settings.adequacy_patch_parameters:
-        adequacy_local_parameters = serialize_adequacy_parameters_local(
-            settings.adequacy_patch_parameters, study_version
-        )
-        ini_content = adequacy_local_parameters.to_ini_file(update=update, current_content=ini_content)
-
-    # seed and advanced
-    seed_parameters = settings.seed_parameters or SeedParametersUpdate()
-    advanced_parameters = settings.advanced_parameters or AdvancedParametersUpdate()
-    local_parameters = serialize_advanced_and_seed_parameters_local(
-        (advanced_parameters, seed_parameters), study_version
-    )
-    ini_content = local_parameters.to_ini_file(update=update, current_content=ini_content)
-
-    # writing
-    _save_ini(study_directory, ini_content)

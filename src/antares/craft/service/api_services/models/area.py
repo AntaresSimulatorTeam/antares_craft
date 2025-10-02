@@ -15,7 +15,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict
 
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
-from antares.craft.model.commons import FilterOption, filtering_option
+from antares.craft.model.commons import filtering_option
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 
@@ -29,8 +29,8 @@ class AreaPropertiesAPI(APIBaseModel):
     non_dispatch_power: bool
     dispatch_hydro_power: bool
     other_dispatch_power: bool
-    filter_synthesis: set[FilterOption]
-    filter_by_year: set[FilterOption]
+    filter_synthesis: filtering_option
+    filter_by_year: filtering_option
     adequacy_patch_mode: AdequacyPatchMode
     spread_unsupplied_energy_cost: float
     spread_spilled_energy_cost: float

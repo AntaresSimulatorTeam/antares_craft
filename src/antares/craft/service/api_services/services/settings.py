@@ -18,7 +18,6 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
-    StudySettingsReadError,
     StudySettingsUpdateError,
     ThematicTrimmingUpdateError,
 )
@@ -56,13 +55,6 @@ class StudySettingsAPIService(BaseStudySettingsService):
             return edit_study_settings(self._base_url, self.study_id, self._wrapper, settings, current_settings)
         except APIError as e:
             raise StudySettingsUpdateError(self.study_id, e.message) from e
-
-    @override
-    def read_study_settings(self) -> StudySettings:
-        try:
-            return read_study_settings_api(self._base_url, self.study_id, self._wrapper)
-        except APIError as e:
-            raise StudySettingsReadError(self.study_id, e.message) from e
 
     @override
     def set_playlist(self, new_playlist: dict[int, PlaylistParameters]) -> None:
@@ -145,56 +137,4 @@ def edit_study_settings(
         adequacy_patch_parameters=adequacy_patch_parameters or current_settings.adequacy_patch_parameters,
         playlist_parameters=current_settings.playlist_parameters,
         thematic_trimming_parameters=current_settings.thematic_trimming_parameters,
-    )
-
-
-def read_study_settings_api(base_url: str, study_id: str, wrapper: RequestWrapper) -> StudySettings:
-    settings_base_url = f"{base_url}/studies/{study_id}/config"
-
-    # thematic trimming
-    thematic_trimming_url = f"{settings_base_url}/thematictrimming/form"
-    response = wrapper.get(thematic_trimming_url)
-    thematic_trimming_parameters = parse_thematic_trimming_api(response.json())
-
-    # playlist
-    playlist_url = f"{settings_base_url}/playlist/form"
-    response = wrapper.get(playlist_url)
-    json_response = response.json()
-    user_playlist = {}
-    for key, value in json_response.items():
-        user_playlist[int(key)] = PlaylistParameters(**value)
-
-    # optimization
-    optimization_url = f"{settings_base_url}/optimization/form"
-    response = wrapper.get(optimization_url)
-    json_response = response.json()
-    optimization_parameters = parse_optimization_parameters_api(json_response)
-
-    # general and timeseries
-    timeseries_url = f"{base_url}/studies/{study_id}/timeseries/config"
-    response = wrapper.get(timeseries_url)
-    nb_ts_thermal = response.json()["thermal"]["number"]
-
-    general_url = f"{settings_base_url}/general/form"
-    response = wrapper.get(general_url).json()
-    general_parameters = parse_general_parameters_api(response, nb_ts_thermal)
-
-    # advanced and seed parameters
-    advanced_parameters_url = f"{settings_base_url}/advancedparameters/form"
-    response = wrapper.get(advanced_parameters_url)
-    advanced_parameters, seed_parameters = parse_advanced_and_seed_parameters_api(response.json())
-
-    # adequacy patch
-    adequacy_patch_url = f"{settings_base_url}/adequacypatch/form"
-    response = wrapper.get(adequacy_patch_url).json()
-    adequacy_patch_parameters = parse_adequacy_patch_parameters_api(response)
-
-    return StudySettings(
-        general_parameters=general_parameters,
-        optimization_parameters=optimization_parameters,
-        seed_parameters=seed_parameters,
-        advanced_parameters=advanced_parameters,
-        adequacy_patch_parameters=adequacy_patch_parameters,
-        playlist_parameters=user_playlist,
-        thematic_trimming_parameters=thematic_trimming_parameters,
     )

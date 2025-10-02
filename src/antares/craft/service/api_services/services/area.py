@@ -23,7 +23,6 @@ from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     AreaDeletionError,
     AreasPropertiesUpdateError,
-    AreasRetrievalError,
     AreaUiUpdateError,
     MatrixDownloadError,
     MatrixUploadError,
@@ -404,68 +403,6 @@ class AreaApiService(BaseAreaService):
             return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/misc-gen/miscgen-{area_id}")
         except APIError as e:
             raise MatrixDownloadError(area_id, "misc-gen", e.message)
-
-    @override
-    def read_areas(self) -> dict[str, Area]:
-        all_areas: dict[str, Area] = {}
-
-        try:
-            # Read all thermals
-            thermals = self.thermal_service.read_thermal_clusters()
-
-            # Read all renewables
-            renewables = self.renewable_service.read_renewables()
-
-            # Read all st_storages
-            st_storages = self.storage_service.read_st_storages()
-
-            # Read all area_properties
-            area_properties = self._read_area_properties()
-
-            # Read all hydro properties and inflow structure
-            hydro_properties_and_inflow_structure = self.hydro_service.read_properties_and_inflow_structure()
-
-            # Read all area_ui
-            ui_url = f"{self._base_url}/studies/{self.study_id}/areas?ui=true"
-            json_resp = self._wrapper.get(ui_url).json()
-            for area in json_resp:
-                ui_api = AreaUiAPI.model_validate(json_resp[area])
-                ui_properties = ui_api.to_user_model()
-
-                # Loop on Ui to create a basic area
-                area_obj = Area(
-                    area,
-                    self,
-                    self.storage_service,
-                    self.thermal_service,
-                    self.renewable_service,
-                    self.hydro_service,
-                    ui=ui_properties,
-                )
-                # Fill the created object with the right values
-                area_obj._properties = area_properties[area_obj.id]
-                area_obj._thermals = thermals.get(area_obj.id, {})
-                area_obj._renewables = renewables.get(area_obj.id, {})
-                area_obj._st_storages = st_storages.get(area_obj.id, {})
-                area_obj.hydro._properties = hydro_properties_and_inflow_structure[area_obj.id][0]
-                area_obj.hydro._inflow_structure = hydro_properties_and_inflow_structure[area_obj.id][1]
-
-                all_areas[area_obj.id] = area_obj
-
-        except APIError as e:
-            raise AreasRetrievalError(self.study_id, e.message) from e
-
-        return all_areas
-
-    def _read_area_properties(self) -> dict[str, AreaProperties]:
-        url = f"{self._base_url}/studies/{self.study_id}/table-mode/areas"
-        properties_json = self._wrapper.get(url).json()
-        properties: dict[str, AreaProperties] = {}
-        for area_id, props in properties_json.items():
-            api_response = AreaPropertiesAPITableMode.model_validate(props)
-            area_properties = api_response.to_user_model()
-            properties[area_id] = area_properties
-        return properties
 
     @override
     def update_areas_properties(self, dict_areas: Dict[Area, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:

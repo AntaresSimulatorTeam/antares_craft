@@ -97,7 +97,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
         return constraint
 
-    def _read_ini(self) -> dict[str, Any]:
+    def read_ini(self) -> dict[str, Any]:
         return IniReader().read(self._ini_path)
 
     def _save_ini(self, content: dict[str, Any]) -> None:
@@ -109,7 +109,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         properties: BindingConstraintPropertiesLocal,
         terms: list[ConstraintTerm],
     ) -> None:
-        current_ini_content = self._read_ini()
+        current_ini_content = self.read_ini()
         constraint_id = transform_name_to_id(constraint_name)
         # Ensures the constraint doesn't already exist
         for existing_constraint in current_ini_content.values():
@@ -149,7 +149,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
                 )
             new_terms[term.id] = term.weight_offset()
 
-        current_ini_content = self._read_ini()
+        current_ini_content = self.read_ini()
 
         # Look for the constraint
         existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint.id), None)
@@ -192,9 +192,47 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         )
 
     @override
+    def update_binding_constraints_properties(
+        self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
+    ) -> dict[str, BindingConstraintProperties]:
+        new_properties_dict: dict[str, BindingConstraintProperties] = {}
+        all_constraint_to_update = set(new_properties.keys())  # used to raise an Exception if a bc doesn't exist
+
+        current_ini_content = self.read_ini()
+        for key, constraint in current_ini_content.items():
+            constraint_id = constraint["id"]
+            if constraint_id in new_properties:
+                all_constraint_to_update.remove(constraint_id)
+
+                # Performs the update
+                local_properties = BindingConstraintPropertiesLocal.from_user_model(new_properties[constraint_id])
+                constraint.update(local_properties.model_dump(mode="json", by_alias=True, exclude_unset=True))
+
+                # Prepare the object to return
+                local_dict = copy.deepcopy(constraint)
+                del local_dict["name"]
+                del local_dict["id"]
+                local_properties = BindingConstraintPropertiesLocal.model_validate(local_dict)
+                new_properties_dict[constraint_id] = local_properties.to_user_model()
+
+        if len(all_constraint_to_update) > 0:
+            raise ConstraintPropertiesUpdateError(next(iter(all_constraint_to_update)), "The bc does not exist")
+
+        # Update ini file
+        self._save_ini(current_ini_content)
+
+        return new_properties_dict
+
+    def _get_constraint_inside_ini(self, ini_content: dict[str, Any], constraint: BindingConstraint) -> dict[str, Any]:
+        existing_key = next((key for key, bc in ini_content.items() if bc["id"] == constraint.id), None)
+        if not existing_key:
+            raise ConstraintDoesNotExistError(constraint.name, self.study_name)
+
+        return ini_content[existing_key]  # type: ignore
+
     def read_binding_constraints(self) -> dict[str, BindingConstraint]:
         constraints: dict[str, BindingConstraint] = {}
-        current_ini_content = self._read_ini()
+        current_ini_content = self.read_ini()
         for constraint in current_ini_content.values():
             name = constraint.pop("name")
             del constraint["id"]
@@ -229,42 +267,3 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             constraints[bc.id] = bc
 
         return constraints
-
-    @override
-    def update_binding_constraints_properties(
-        self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
-    ) -> dict[str, BindingConstraintProperties]:
-        new_properties_dict: dict[str, BindingConstraintProperties] = {}
-        all_constraint_to_update = set(new_properties.keys())  # used to raise an Exception if a bc doesn't exist
-
-        current_ini_content = self._read_ini()
-        for key, constraint in current_ini_content.items():
-            constraint_id = constraint["id"]
-            if constraint_id in new_properties:
-                all_constraint_to_update.remove(constraint_id)
-
-                # Performs the update
-                local_properties = BindingConstraintPropertiesLocal.from_user_model(new_properties[constraint_id])
-                constraint.update(local_properties.model_dump(mode="json", by_alias=True, exclude_unset=True))
-
-                # Prepare the object to return
-                local_dict = copy.deepcopy(constraint)
-                del local_dict["name"]
-                del local_dict["id"]
-                local_properties = BindingConstraintPropertiesLocal.model_validate(local_dict)
-                new_properties_dict[constraint_id] = local_properties.to_user_model()
-
-        if len(all_constraint_to_update) > 0:
-            raise ConstraintPropertiesUpdateError(next(iter(all_constraint_to_update)), "The bc does not exist")
-
-        # Update ini file
-        self._save_ini(current_ini_content)
-
-        return new_properties_dict
-
-    def _get_constraint_inside_ini(self, ini_content: dict[str, Any], constraint: BindingConstraint) -> dict[str, Any]:
-        existing_key = next((key for key, bc in ini_content.items() if bc["id"] == constraint.id), None)
-        if not existing_key:
-            raise ConstraintDoesNotExistError(constraint.name, self.study_name)
-
-        return ini_content[existing_key]  # type: ignore

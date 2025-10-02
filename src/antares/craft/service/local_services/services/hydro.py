@@ -45,7 +45,7 @@ class HydroLocalService(BaseHydroService):
                 content[key][transform_name_to_id(area_name)] = content[key].pop(area_name)
         return content
 
-    def _read_ini(self) -> dict[str, Any]:
+    def read_ini(self) -> dict[str, Any]:
         content = IniReader().read(self.config.study_path / "input" / "hydro" / "hydro.ini")
         return self._transform_areas_name_to_id(content)
 
@@ -79,21 +79,10 @@ class HydroLocalService(BaseHydroService):
         prepro_dict = self._read_inflow_ini(area_id)
         return HydroInflowStructureLocal.model_validate(prepro_dict).to_user_model()
 
-    @override
-    def read_properties_and_inflow_structure(self) -> dict[str, tuple[HydroProperties, InflowStructure]]:
-        response: dict[str, tuple[HydroProperties, InflowStructure]] = {}
-
-        all_properties = self.read_properties()
-        for area_id, hydro_properties in all_properties.items():
-            inflow_structure = self.read_inflow_structure_for_one_area(area_id)
-            response[area_id] = (hydro_properties, inflow_structure)
-
-        return response
-
     def read_properties(self) -> dict[str, HydroProperties]:
         hydro_properties: dict[str, HydroProperties] = {}
 
-        current_content = self._read_ini()
+        current_content = self.read_ini()
 
         body_by_area: dict[str, dict[str, Any]] = {}
         for key, value in current_content.items():
@@ -178,7 +167,7 @@ class HydroLocalService(BaseHydroService):
         write_timeseries(self.config.study_path, series, TimeSeriesFileType.HYDRO_ENERGY, area_id)
 
     def edit_hydro_properties(self, area_id: str, properties: HydroPropertiesUpdate, creation: bool) -> None:
-        current_content = self._read_ini()
+        current_content = self.read_ini()
 
         local_dict = serialize_hydro_properties_local(self.study_version, properties, exclude_unset=not creation)
 
