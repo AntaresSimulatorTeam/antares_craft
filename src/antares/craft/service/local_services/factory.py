@@ -14,7 +14,7 @@ import getpass
 from pathlib import Path
 from typing import Any, Optional, cast
 
-from antares.craft import BuildingMode, HydroProperties, PlaylistParameters
+from antares.craft import HydroProperties
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import BindingConstraint, ConstraintTerm, ConstraintTermData
@@ -35,9 +35,6 @@ from antares.craft.service.local_services.models.settings.adequacy_patch import 
 from antares.craft.service.local_services.models.settings.advanced_parameters import (
     parse_advanced_and_seed_parameters_local,
 )
-from antares.craft.service.local_services.models.settings.general import GeneralParametersLocal
-from antares.craft.service.local_services.models.settings.optimization import OptimizationParametersLocal
-from antares.craft.service.local_services.models.settings.playlist_parameters import PlaylistParametersLocal
 from antares.craft.service.local_services.models.settings.thematic_trimming import parse_thematic_trimming_local
 from antares.craft.service.local_services.models.st_storage import parse_st_storage_local
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
@@ -52,7 +49,7 @@ from antares.craft.service.local_services.services.run import RunLocalService
 from antares.craft.service.local_services.services.settings import (
     StudySettingsLocalService,
     edit_study_settings,
-    read_ini_settings,
+    read_study_settings,
 )
 from antares.craft.service.local_services.services.st_storage import ShortTermStorageLocalService
 from antares.craft.service.local_services.services.study import StudyLocalService
@@ -187,7 +184,7 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
         solver_path=solver_path,
     )
 
-    study._settings = _read_settings(version, study_directory)
+    study._settings = read_study_settings(version, study_directory)
     study._read_outputs()
 
     xp_service = cast(XpansionLocalService, local_services.xpansion_service)
@@ -203,61 +200,6 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
     study._binding_constraints = _read_binding_constraints(bc_service)
 
     return study
-
-
-def _read_settings(study_version: StudyVersion, study_directory: Path) -> StudySettings:
-    ini_content = read_ini_settings(study_directory)
-
-    # general
-    general_params_ini = {"general": ini_content["general"]}
-    if general_params_ini.pop("derated", None):
-        general_params_ini["building_mode"] = BuildingMode.DERATED.value
-    if general_params_ini.pop("custom-scenario", None):
-        general_params_ini["building_mode"] = BuildingMode.CUSTOM.value
-    else:
-        general_params_ini["building_mode"] = BuildingMode.AUTOMATIC.value
-
-    excluded_keys = GeneralParametersLocal.get_excluded_fields_for_user_class()
-    for key in excluded_keys:
-        general_params_ini["general"].pop(key, None)
-
-    output_parameters_ini = {"output": ini_content["output"]}
-    local_general_ini = general_params_ini | output_parameters_ini
-    general_parameters_local = GeneralParametersLocal.model_validate(local_general_ini)
-    general_parameters = general_parameters_local.to_user_model()
-
-    # optimization
-    optimization_ini = ini_content["optimization"]
-    optimization_ini.pop("link-type", None)
-    optimization_parameters_local = OptimizationParametersLocal.model_validate(optimization_ini)
-    optimization_parameters = optimization_parameters_local.to_user_model()
-
-    # adequacy_patch
-    adequacy_patch_parameters = parse_adequacy_parameters_local(study_version, ini_content)
-
-    # seed and advanced
-    advanced_parameters, seed_parameters = parse_advanced_and_seed_parameters_local(study_version, ini_content)
-
-    # playlist
-    playlist_parameters: dict[int, PlaylistParameters] = {}
-    if "playlist" in ini_content:
-        local_parameters = PlaylistParametersLocal.model_validate(ini_content["playlist"])
-        playlist_parameters = local_parameters.to_user_model(general_parameters.nb_years)
-
-    # thematic trimming
-    thematic_trimming_parameters = parse_thematic_trimming_local(
-        study_version, ini_content.get("variables selection", {})
-    )
-
-    return StudySettings(
-        general_parameters=general_parameters,
-        optimization_parameters=optimization_parameters,
-        seed_parameters=seed_parameters,
-        advanced_parameters=advanced_parameters,
-        adequacy_patch_parameters=adequacy_patch_parameters,
-        playlist_parameters=playlist_parameters,
-        thematic_trimming_parameters=thematic_trimming_parameters,
-    )
 
 
 def _read_xpansion_configuration(xpansion_service: XpansionLocalService) -> XpansionConfiguration | None:
