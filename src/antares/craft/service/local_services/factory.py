@@ -16,10 +16,12 @@ from typing import Optional, cast
 
 from antares.craft import BuildingMode, PlaylistParameters
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.model.binding_constraint import BindingConstraint, ConstraintTerm, ConstraintTermData
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.study import Study
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import StudyServices
+from antares.craft.service.local_services.models.binding_constraint import BindingConstraintPropertiesLocal
 from antares.craft.service.local_services.models.settings.adequacy_patch import parse_adequacy_parameters_local
 from antares.craft.service.local_services.models.settings.advanced_parameters import (
     parse_advanced_and_seed_parameters_local,
@@ -173,13 +175,14 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
         solver_path=solver_path,
     )
     study._settings = _read_settings(version, study_directory)
+    study._read_outputs()
+    xp_service = cast(XpansionLocalService, local_services.xpansion_service)
+    study._xpansion_configuration = _read_xpansion_configuration(xp_service)
+
     study._read_areas()
     study._read_links()
-    study._read_binding_constraints()
-    study._read_outputs()
-    study._xpansion_configuration = _read_xpansion_configuration(
-        cast(XpansionLocalService, local_services.xpansion_service)
-    )
+    bc_service = cast(BindingConstraintLocalService, local_services.bc_service)
+    study._binding_constraints = _read_binding_constraints(bc_service)
 
     return study
 
@@ -260,3 +263,42 @@ def _read_xpansion_configuration(xpansion_service: XpansionLocalService) -> Xpan
     return XpansionConfiguration(
         xpansion_service, settings=settings, candidates=candidates, constraints=constraints, sensitivity=sensitivity
     )
+
+
+def _read_binding_constraints(bc_service: BindingConstraintLocalService) -> dict[str, BindingConstraint]:
+    constraints: dict[str, BindingConstraint] = {}
+    current_ini_content = bc_service.read_ini()
+    for constraint in current_ini_content.values():
+        name = constraint.pop("name")
+        del constraint["id"]
+
+        # Separate properties from terms
+        properties_fields = BindingConstraintPropertiesLocal().model_dump(by_alias=True)  # type: ignore
+        terms_dict = {}
+        local_properties_dict = {}
+        for k, v in constraint.items():
+            if k in properties_fields:
+                local_properties_dict[k] = v
+            else:
+                terms_dict[k] = v
+
+        # Build properties
+        local_properties = BindingConstraintPropertiesLocal.model_validate(local_properties_dict)
+        properties = local_properties.to_user_model()
+
+        # Build terms
+        terms = []
+        for key, value in terms_dict.items():
+            term_data = ConstraintTermData.from_ini(key)
+            if "%" in str(value):
+                weight, offset = value.split("%")
+            else:
+                weight = value
+                offset = 0
+            term = ConstraintTerm(weight=float(weight), offset=int(offset), data=term_data)
+            terms.append(term)
+
+        bc = BindingConstraint(name=name, binding_constraint_service=bc_service, properties=properties, terms=terms)
+        constraints[bc.id] = bc
+
+    return constraints

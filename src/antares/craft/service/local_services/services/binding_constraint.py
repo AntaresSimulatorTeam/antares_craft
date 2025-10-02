@@ -97,7 +97,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
         return constraint
 
-    def _read_ini(self) -> dict[str, Any]:
+    def read_ini(self) -> dict[str, Any]:
         return IniReader().read(self._ini_path)
 
     def _save_ini(self, content: dict[str, Any]) -> None:
@@ -109,7 +109,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         properties: BindingConstraintPropertiesLocal,
         terms: list[ConstraintTerm],
     ) -> None:
-        current_ini_content = self._read_ini()
+        current_ini_content = self.read_ini()
         constraint_id = transform_name_to_id(constraint_name)
         # Ensures the constraint doesn't already exist
         for existing_constraint in current_ini_content.values():
@@ -149,7 +149,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
                 )
             new_terms[term.id] = term.weight_offset()
 
-        current_ini_content = self._read_ini()
+        current_ini_content = self.read_ini()
 
         # Look for the constraint
         existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint.id), None)
@@ -194,7 +194,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     @override
     def read_binding_constraints(self) -> dict[str, BindingConstraint]:
         constraints: dict[str, BindingConstraint] = {}
-        current_ini_content = self._read_ini()
+        current_ini_content = self.read_ini()
         for constraint in current_ini_content.values():
             name = constraint.pop("name")
             del constraint["id"]
@@ -237,7 +237,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         new_properties_dict: dict[str, BindingConstraintProperties] = {}
         all_constraint_to_update = set(new_properties.keys())  # used to raise an Exception if a bc doesn't exist
 
-        current_ini_content = self._read_ini()
+        current_ini_content = self.read_ini()
         for key, constraint in current_ini_content.items():
             constraint_id = constraint["id"]
             if constraint_id in new_properties:
