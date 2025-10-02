@@ -73,7 +73,7 @@ class StudySettingsLocalService(BaseStudySettingsService):
 
     @override
     def set_playlist(self, new_playlist: dict[int, PlaylistParameters]) -> None:
-        ini_content = _read_ini(self.config.study_path)
+        ini_content = read_ini_settings(self.config.study_path)
         nb_years = ini_content["general"]["nbyears"]
         playlist_local_parameters = PlaylistParametersLocal.create(new_playlist, nb_years)
         ini_content["playlist"] = playlist_local_parameters.model_dump(mode="json", by_alias=True, exclude_none=True)
@@ -81,7 +81,7 @@ class StudySettingsLocalService(BaseStudySettingsService):
 
     @override
     def set_thematic_trimming(self, new_thematic_trimming: ThematicTrimmingParameters) -> ThematicTrimmingParameters:
-        ini_content = _read_ini(self.config.study_path)
+        ini_content = read_ini_settings(self.config.study_path)
         ini_content["variables selection"] = serialize_thematic_trimming_local(
             self.study_version, new_thematic_trimming
         )
@@ -90,7 +90,7 @@ class StudySettingsLocalService(BaseStudySettingsService):
         return parse_thematic_trimming_local(self.study_version, ini_content["variables selection"])
 
 
-def _read_ini(study_directory: Path) -> dict[str, Any]:
+def read_ini_settings(study_directory: Path) -> dict[str, Any]:
     return IniReader(DUPLICATE_KEYS).read(study_directory / "settings" / "generaldata.ini")
 
 
@@ -100,7 +100,7 @@ def _save_ini(study_directory: Path, content: dict[str, Any]) -> None:
 
 
 def read_study_settings(study_directory: Path, study_version: StudyVersion) -> StudySettings:
-    ini_content = _read_ini(study_directory)
+    ini_content = read_ini_settings(study_directory)
 
     # general
     general_params_ini = {"general": ini_content["general"]}
@@ -160,7 +160,7 @@ def edit_study_settings(
     if creation:
         _save_ini(study_directory, {})
     update = not creation
-    ini_content = _read_ini(study_directory)
+    ini_content = read_ini_settings(study_directory)
 
     # general
     if settings.general_parameters:
