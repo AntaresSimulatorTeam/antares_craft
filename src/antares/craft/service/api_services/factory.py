@@ -14,12 +14,22 @@ import io
 from pathlib import Path, PurePath
 from typing import Optional
 
+from antares.craft import ConstraintTerm
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import APIError, StudyCreationError, StudyImportError, StudyMoveError
+from antares.craft.model.binding_constraint import BindingConstraint, ConstraintTermData
 from antares.craft.model.link import Link
+from antares.craft.model.output import Output
 from antares.craft.model.study import Study
+from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
+from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAPI
+from antares.craft.service.api_services.models.xpansion import (
+    parse_xpansion_candidate_api,
+    parse_xpansion_constraints_api,
+    parse_xpansion_settings_api,
+)
 from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.api_services.services.binding_constraint import BindingConstraintApiService
 from antares.craft.service.api_services.services.hydro import HydroApiService
@@ -115,16 +125,16 @@ def load_study_api(api_config: APIconf, study_id: str) -> "Study":
     services = create_api_services(api_config, study_id)
 
     ####### STUDY #######
-    study_name = json_api["name"]
-    study_version = json_api["version"]
-    path = json_api["path"]
+    study_name = json_api.pop("name")
+    study_version = json_api.pop("version")
+    path = json_api.pop("path")
     pure_path = PurePath(path) if path else PurePath(".")
 
     study = Study(study_name, study_version, services, pure_path)
 
     ####### LINKS #######
     links = {}
-    links_api = json_api["links"]
+    links_api = json_api.pop("links")
     for props in links_api.values():
         area_from = props.pop("area1")
         area_to = props.pop("area2")
@@ -138,7 +148,67 @@ def load_study_api(api_config: APIconf, study_id: str) -> "Study":
 
     study._links = links
 
+    ####### BINDING CONSTRAINTS #######
+    constraints = {}
+    bcs_api = json_api.pop("bcs")
+    for bc_api in bcs_api:
+        constraint_name = bc_api.pop("name")
+        del bc_api["id"]
+
+        api_terms = bc_api.pop("terms")
+        api_properties = BindingConstraintPropertiesAPI.model_validate(bc_api)
+        bc_properties = api_properties.to_user_model()
+
+        terms: list[ConstraintTerm] = []
+        for api_term in api_terms:
+            term_data = ConstraintTermData.from_dict(api_term["data"])
+            terms.append(ConstraintTerm(weight=api_term["weight"], offset=api_term["offset"], data=term_data))
+
+        bc = BindingConstraint(constraint_name, services.bc_service, bc_properties, terms)
+        constraints[bc.id] = bc
+
+    study._binding_constraints = constraints
+
+    ####### OUTPUTS #######
+    outputs = {}
+    api_outputs = json_api.pop("outputs")
+    for output_id, output_props in api_outputs.items():
+        output = Output(output_service=services.output_service, name=output_id, archived=output_props["archived"])
+        outputs[output.name] = output
+
+    study._outputs = outputs
+
+    ###### XPANSION ########
+    xp_config = json_api.pop("xp_settings")
+    if not xp_config:
+        study._xpansion_configuration = None
+    else:
+        # Settings
+        settings, sensitivity = parse_xpansion_settings_api(xp_config)
+
+        # Candidates
+        api_cdts = json_api.pop("xp_cdt")
+        candidates = {}
+        for cdt_api in api_cdts:
+            cdt = parse_xpansion_candidate_api(cdt_api)
+            candidates[cdt.name] = cdt
+
+        # Constraints
+        xp_constraints = {}
+        if settings.additional_constraints:
+            xp_constraints = parse_xpansion_constraints_api(json_api.pop("xp_contraint"))
+
+        study._xpansion_configuration = XpansionConfiguration(
+            xpansion_service=services.xpansion_service,
+            settings=settings,
+            sensitivity=sensitivity,
+            candidates=candidates,
+            constraints=xp_constraints,
+        )
+
     ###### TODO ########
+
+    print(json_api)
 
     """
     obj = {
@@ -176,9 +246,6 @@ def load_study_api(api_config: APIconf, study_id: str) -> "Study":
 
     study._read_settings()
     study._read_areas()
-    study._read_outputs()
-    study._read_binding_constraints()
-    study._read_xpansion_configuration()
 
     return study
 
