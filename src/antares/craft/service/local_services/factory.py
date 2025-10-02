@@ -17,11 +17,13 @@ from typing import Optional, cast
 from antares.craft import BuildingMode, PlaylistParameters
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.binding_constraint import BindingConstraint, ConstraintTerm, ConstraintTermData
+from antares.craft.model.link import Link
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.study import Study
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import StudyServices
 from antares.craft.service.local_services.models.binding_constraint import BindingConstraintPropertiesLocal
+from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
 from antares.craft.service.local_services.models.settings.adequacy_patch import parse_adequacy_parameters_local
 from antares.craft.service.local_services.models.settings.advanced_parameters import (
     parse_advanced_and_seed_parameters_local,
@@ -174,13 +176,18 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
         path=study_directory,
         solver_path=solver_path,
     )
+
     study._settings = _read_settings(version, study_directory)
     study._read_outputs()
+
     xp_service = cast(XpansionLocalService, local_services.xpansion_service)
     study._xpansion_configuration = _read_xpansion_configuration(xp_service)
 
     study._read_areas()
-    study._read_links()
+
+    link_service = cast(LinkLocalService, local_services.link_service)
+    study._links = _read_links(link_service)
+
     bc_service = cast(BindingConstraintLocalService, local_services.bc_service)
     study._binding_constraints = _read_binding_constraints(bc_service)
 
@@ -302,3 +309,21 @@ def _read_binding_constraints(bc_service: BindingConstraintLocalService) -> dict
         constraints[bc.id] = bc
 
     return constraints
+
+
+def _read_links(link_service: LinkLocalService) -> dict[str, Link]:
+    link_path = link_service.config.study_path / "input" / "links"
+
+    all_links: dict[str, Link] = {}
+
+    for element in link_path.iterdir():
+        area_from = element.name
+        links_dict = link_service.read_ini(area_from)
+        for area_to, values in links_dict.items():
+            local_model = LinkPropertiesAndUiLocal.model_validate(values)
+            properties = local_model.to_properties_user_model()
+            ui = local_model.to_ui_user_model()
+            link = Link(area_from=area_from, area_to=area_to, link_service=link_service, properties=properties, ui=ui)
+            all_links[link.id] = link
+
+    return all_links
