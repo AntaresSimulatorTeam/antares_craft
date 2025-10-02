@@ -91,19 +91,19 @@ class AreaLocalService(BaseAreaService):
         self._hydro_service: BaseHydroService = hydro_service
         self._binding_constraint_service: BaseBindingConstraintService = binding_constraint_service
 
-    def _read_adequacy_ini(self, area_id: str) -> dict[str, Any]:
+    def read_adequacy_ini(self, area_id: str) -> dict[str, Any]:
         return IniReader().read(self.config.study_path / "input" / "areas" / area_id / "adequacy_patch.ini")
 
     def _save_adequacy_ini(self, content: dict[str, Any], area_id: str) -> None:
         IniWriter().write(content, self.config.study_path / "input" / "areas" / area_id / "adequacy_patch.ini")
 
-    def _read_optimization_ini(self, area_id: str) -> dict[str, Any]:
+    def read_optimization_ini(self, area_id: str) -> dict[str, Any]:
         return IniReader().read(self.config.study_path / "input" / "areas" / area_id / "optimization.ini")
 
     def _save_optimization_ini(self, content: dict[str, Any], area_id: str) -> None:
         IniWriter().write(content, self.config.study_path / "input" / "areas" / area_id / "optimization.ini")
 
-    def _read_ui_ini(self, area_id: str) -> dict[str, Any]:
+    def read_ui_ini(self, area_id: str) -> dict[str, Any]:
         return IniReader().read(self.config.study_path / "input" / "areas" / area_id / "ui.ini")
 
     def _save_ui_ini(self, content: dict[str, Any], area_id: str) -> None:
@@ -112,7 +112,7 @@ class AreaLocalService(BaseAreaService):
     def _get_thermal_areas_ini_path(self) -> Path:
         return self.config.study_path / "input" / "thermal" / "areas.ini"
 
-    def _read_thermal_areas_ini(self) -> dict[str, Any]:
+    def read_thermal_areas_ini(self) -> dict[str, Any]:
         return IniReader().read(self._get_thermal_areas_ini_path())
 
     def _save_thermal_areas_ini(self, content: dict[str, Any]) -> None:
@@ -326,14 +326,14 @@ class AreaLocalService(BaseAreaService):
             properties = properties or AreaProperties()
             local_properties = AreaPropertiesLocal.from_user_model(properties)
 
-            adequacy_patch_ini = self._read_adequacy_ini(area_id)
+            adequacy_patch_ini = self.read_adequacy_ini(area_id)
             adequacy_patch_ini.update(local_properties.to_adequacy_ini())
             self._save_adequacy_ini(adequacy_patch_ini, area_id)
 
             self._save_optimization_ini(local_properties.to_optimization_ini(), area_id)
 
             self._get_thermal_areas_ini_path().touch(exist_ok=True)
-            areas_ini = self._read_thermal_areas_ini()
+            areas_ini = self.read_thermal_areas_ini()
             areas_ini.setdefault("unserverdenergycost", {})[area_id] = str(local_properties.energy_cost_unsupplied)
             areas_ini.setdefault("spilledenergycost", {})[area_id] = str(local_properties.energy_cost_spilled)
             self._save_thermal_areas_ini(areas_ini)
@@ -418,7 +418,7 @@ class AreaLocalService(BaseAreaService):
 
         # Thermal properties
         if properties.energy_cost_spilled is not None or properties.energy_cost_unsupplied is not None:
-            current_content = self._read_thermal_areas_ini()
+            current_content = self.read_thermal_areas_ini()
             if properties.energy_cost_spilled is not None:
                 current_content["spilledenergycost"][area_id] = properties.energy_cost_spilled
             if properties.energy_cost_unsupplied is not None:
@@ -545,14 +545,14 @@ class AreaLocalService(BaseAreaService):
         st_storages = self.storage_service.read_st_storages()
 
         # Perf: Read only once the thermal_areas_ini file as it's common to every area
-        thermal_area_dict = self._read_thermal_areas_ini()
+        thermal_area_dict = self.read_thermal_areas_ini()
 
         all_areas: dict[str, Area] = {}
         for element in areas_path.iterdir():
             if element.is_dir():
                 area_id = element.name
-                optimization_dict = self._read_optimization_ini(area_id)
-                area_adequacy_dict = self._read_adequacy_ini(area_id)
+                optimization_dict = self.read_optimization_ini(area_id)
+                area_adequacy_dict = self.read_adequacy_ini(area_id)
                 unserverd_energy_cost = thermal_area_dict.get("unserverdenergycost", {}).get(area_id, 0)
                 spilled_energy_cost = thermal_area_dict.get("spilledenergycost", {}).get(area_id, 0)
                 local_properties_dict = {
@@ -563,7 +563,7 @@ class AreaLocalService(BaseAreaService):
                 }
                 local_properties = AreaPropertiesLocal.model_validate(local_properties_dict)
                 area_properties = local_properties.to_user_model()
-                ui_dict = self._read_ui_ini(area_id)
+                ui_dict = self.read_ui_ini(area_id)
 
                 local_ui = AreaUiLocal.model_validate(ui_dict)
                 ui_properties = local_ui.to_user_model()

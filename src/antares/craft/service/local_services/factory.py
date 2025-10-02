@@ -12,17 +12,20 @@
 import getpass
 
 from pathlib import Path
-from typing import Optional, cast
+from typing import Any, Optional, cast
 
-from antares.craft import BuildingMode, PlaylistParameters
+from antares.craft import BuildingMode, HydroProperties, PlaylistParameters
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import BindingConstraint, ConstraintTerm, ConstraintTermData
 from antares.craft.model.link import Link
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.study import Study
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import StudyServices
+from antares.craft.service.local_services.models.area import AreaPropertiesLocal, AreaUiLocal
 from antares.craft.service.local_services.models.binding_constraint import BindingConstraintPropertiesLocal
+from antares.craft.service.local_services.models.hydro import parse_hydro_properties_local
 from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
 from antares.craft.service.local_services.models.settings.adequacy_patch import parse_adequacy_parameters_local
 from antares.craft.service.local_services.models.settings.advanced_parameters import (
@@ -327,3 +330,85 @@ def _read_links(link_service: LinkLocalService) -> dict[str, Link]:
             all_links[link.id] = link
 
     return all_links
+
+
+def _read_areas(area_service: AreaLocalService) -> dict[str, Area]:
+    areas_path = area_service.config.study_path / "input" / "areas"
+    if not areas_path.exists():
+        return {}
+
+    hydro_service = cast(HydroLocalService, area_service.hydro_service)
+
+    # Perf: Read only once the hydro_ini file as it's common to every area
+    all_hydro_properties = _read_hydro_properties(hydro_service)
+
+    # Read all thermals
+    thermals = area_service.thermal_service.read_thermal_clusters()
+
+    # Read all renewables
+    renewables = area_service.renewable_service.read_renewables()
+
+    # Read all st_storages
+    st_storages = area_service.storage_service.read_st_storages()
+
+    # Perf: Read only once the thermal_areas_ini file as it's common to every area
+    thermal_area_dict = area_service.read_thermal_areas_ini()
+
+    all_areas: dict[str, Area] = {}
+    for element in areas_path.iterdir():
+        if element.is_dir():
+            area_id = element.name
+            optimization_dict = area_service.read_optimization_ini(area_id)
+            area_adequacy_dict = area_service.read_adequacy_ini(area_id)
+            unserverd_energy_cost = thermal_area_dict.get("unserverdenergycost", {}).get(area_id, 0)
+            spilled_energy_cost = thermal_area_dict.get("spilledenergycost", {}).get(area_id, 0)
+            local_properties_dict = {
+                **optimization_dict,
+                **area_adequacy_dict,
+                "energy_cost_unsupplied": unserverd_energy_cost,
+                "energy_cost_spilled": spilled_energy_cost,
+            }
+            local_properties = AreaPropertiesLocal.model_validate(local_properties_dict)
+            area_properties = local_properties.to_user_model()
+            ui_dict = area_service.read_ui_ini(area_id)
+
+            local_ui = AreaUiLocal.model_validate(ui_dict)
+            ui_properties = local_ui.to_user_model()
+
+            # Hydro
+            inflow_structure = hydro_service.read_inflow_structure_for_one_area(area_id)
+
+            area = Area(
+                name=area_id,
+                area_service=area_service,
+                storage_service=area_service.storage_service,
+                thermal_service=area_service.thermal_service,
+                renewable_service=area_service.renewable_service,
+                hydro_service=area_service.hydro_service,
+                properties=area_properties,
+                ui=ui_properties,
+            )
+            area.hydro._properties = all_hydro_properties[area.id]
+            area.hydro._inflow_structure = inflow_structure
+            area._thermals = thermals.get(area.id, {})
+            area._renewables = renewables.get(area.id, {})
+            area._st_storages = st_storages.get(area.id, {})
+            all_areas[area.id] = area
+
+    return all_areas
+
+
+def _read_hydro_properties(hydro_service: HydroLocalService) -> dict[str, HydroProperties]:
+    hydro_properties: dict[str, HydroProperties] = {}
+
+    current_content = hydro_service.read_ini()
+
+    body_by_area: dict[str, dict[str, Any]] = {}
+    for key, value in current_content.items():
+        for area_id, data in value.items():
+            body_by_area.setdefault(area_id, {})[key] = data
+    for area_id, local_properties in body_by_area.items():
+        user_properties = parse_hydro_properties_local(hydro_service.study_version, local_properties)
+        hydro_properties[area_id] = user_properties
+
+    return hydro_properties
