@@ -473,12 +473,6 @@ def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     return read_study_api(api_config, study_id)
 
 
-def load_study_api(api_config: APIconf, study_id: str) -> "Study":
-    from antares.craft.service.api_services.factory import load_study_api
-
-    return load_study_api(api_config, study_id)
-
-
 def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) -> "Study":
     from antares.craft.service.api_services.factory import create_variant_api
 

@@ -14,18 +14,33 @@ import io
 from pathlib import Path, PurePath
 from typing import Optional
 
-from antares.craft import ConstraintTerm, PlaylistParameters
+from antares.craft import (
+    AreaProperties,
+    AreaUi,
+    ConstraintTerm,
+    HydroProperties,
+    PlaylistParameters,
+    STStorageAdditionalConstraint,
+)
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import APIError, StudyCreationError, StudyImportError, StudyMoveError
+from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import BindingConstraint, ConstraintTermData
+from antares.craft.model.hydro import InflowStructure
 from antares.craft.model.link import Link
 from antares.craft.model.output import Output
+from antares.craft.model.renewable import RenewableCluster
 from antares.craft.model.settings.study_settings import StudySettings
+from antares.craft.model.st_storage import STStorage
 from antares.craft.model.study import Study
+from antares.craft.model.thermal import ThermalCluster
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
+from antares.craft.service.api_services.models.area import AreaPropertiesAPI
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
+from antares.craft.service.api_services.models.hydro import HydroInflowStructureAPI, HydroPropertiesAPI
 from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAPI
+from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.settings import (
     parse_adequacy_patch_parameters_api,
     parse_advanced_and_seed_parameters_api,
@@ -33,6 +48,8 @@ from antares.craft.service.api_services.models.settings import (
     parse_optimization_parameters_api,
     parse_thematic_trimming_api,
 )
+from antares.craft.service.api_services.models.st_storage import parse_st_storage_api, parse_st_storage_constraint_api
+from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.models.xpansion import (
     parse_xpansion_candidate_api,
     parse_xpansion_constraints_api,
@@ -124,7 +141,31 @@ def create_study_api(
         raise StudyCreationError(study_name, e.message) from e
 
 
-def load_study_api(api_config: APIconf, study_id: str) -> "Study":
+def import_study_api(api_config: APIconf, study_path: Path, destination_path: Optional[Path] = None) -> "Study":
+    session = api_config.set_up_api_conf()
+    wrapper = RequestWrapper(session)
+    base_url = f"{api_config.get_host()}/api/v1"
+
+    if study_path.suffix not in {".zip", ".7z"}:
+        raise StudyImportError(
+            study_path.name, f"File doesn't have the right extensions (.zip/.7z): {study_path.suffix}"
+        )
+
+    try:
+        files = {"study": io.BytesIO(study_path.read_bytes())}
+        url = f"{base_url}/studies/_import"
+        study_id = wrapper.post(url, files=files).json()
+
+        study = read_study_api(api_config, study_id)
+        if destination_path is not None:
+            study.move(destination_path)
+
+        return study
+    except APIError as e:
+        raise StudyImportError(study_path.name, e.message) from e
+
+
+def read_study_api(api_config: APIconf, study_id: str) -> "Study":
     session = api_config.set_up_api_conf()
     wrapper = RequestWrapper(session)
     base_url = f"{api_config.get_host()}/api/v1"
@@ -237,72 +278,95 @@ def load_study_api(api_config: APIconf, study_id: str) -> "Study":
         thematic_trimming_parameters=thematic_trimming_parameters,
     )
 
-    ###### TODO: AREAS ########
+    ###### AREAS ########
 
-    print(json_api)
+    # Thermals
+    thermals: dict[str, dict[str, ThermalCluster]] = {}
 
-    """
-    obj = {
-        "areas": self.table_mode_manager.get_table_data(interface, TableModeType.AREA, []),
-        "renewable": self.table_mode_manager.get_table_data(interface, TableModeType.RENEWABLE, []),
-        "thermal": self.table_mode_manager.get_table_data(interface, TableModeType.THERMAL, []),
-        "sts": self.table_mode_manager.get_table_data(interface, TableModeType.ST_STORAGE, []),
-        "sts_c": self.table_mode_manager.get_table_data(
-            interface, TableModeType.ST_STORAGE_ADDITIONAL_CONSTRAINTS, []
-        ),
-        "hydro": self.hydro_manager.get_all_hydro_properties(interface),
-    }
+    for key, thermal in json_api.pop("thermal").items():
+        area_id, thermal_id = key.split(" / ")
+        api_props = ThermalClusterPropertiesAPI.model_validate(thermal)
+        thermal_props = api_props.to_user_model()
+        thermal_cluster = ThermalCluster(services.thermal_service, area_id, thermal_id, thermal_props)
 
-    """
+        thermals.setdefault(area_id, {})[thermal_cluster.id] = thermal_cluster
 
-    study._read_areas()
+    # Renewables
+    renewables: dict[str, dict[str, RenewableCluster]] = {}
 
-    return study
+    for key, renewable in json_api.pop("renewable").items():
+        area_id, renewable_id = key.split(" / ")
+        api_props = RenewableClusterPropertiesAPI.model_validate(renewable)
+        renewable_props = api_props.to_user_model()
+        renewable_cluster = RenewableCluster(services.renewable_service, area_id, renewable_id, renewable_props)
 
+        renewables.setdefault(area_id, {})[renewable_cluster.id] = renewable_cluster
 
-def import_study_api(api_config: APIconf, study_path: Path, destination_path: Optional[Path] = None) -> "Study":
-    session = api_config.set_up_api_conf()
-    wrapper = RequestWrapper(session)
-    base_url = f"{api_config.get_host()}/api/v1"
+    # STS
+    constraints_dict: dict[str, dict[str, dict[str, STStorageAdditionalConstraint]]] = {}
+    for key, constraint_api in json_api.pop("sts_c").items():
+        area_id, storage_id, constraint_id = key.split(" / ")
+        args = {"id": constraint_id, "name": constraint_id, **constraint_api}
+        constraint = parse_st_storage_constraint_api(args)
+        constraints_dict.setdefault(area_id, {}).setdefault(storage_id, {})[constraint.id] = constraint
 
-    if study_path.suffix not in {".zip", ".7z"}:
-        raise StudyImportError(
-            study_path.name, f"File doesn't have the right extensions (.zip/.7z): {study_path.suffix}"
+    storages: dict[str, dict[str, STStorage]] = {}
+
+    for key, storage in json_api.pop("sts").items():
+        area_id, storage_id = key.split(" / ")
+        storage_props = parse_st_storage_api(storage)
+        constraints = constraints_dict.get(area_id, {}).get(storage_id, {})
+        st_storage = STStorage(services.short_term_storage_service, area_id, storage_id, storage_props, constraints)
+
+        storages.setdefault(area_id, {})[st_storage.id] = st_storage
+
+    # Hydro
+    hydro_dict: dict[str, tuple[HydroProperties, InflowStructure]] = {}
+    for area_id, api_content in json_api.pop("hydro").items():
+        # Inflow
+        api_inflow = api_content["inflowStructure"]
+        inflow_structure = HydroInflowStructureAPI.model_validate(api_inflow).to_user_model()
+        # Properties
+        api_properties = api_content["managementOptions"]
+        hydro_properties = HydroPropertiesAPI.model_validate(api_properties).to_user_model()
+
+        hydro_dict[area_id] = (hydro_properties, inflow_structure)
+
+    # Area properties
+    area_properties: dict[str, AreaProperties] = {}
+    for area_id, props in json_api.pop("areas").items():
+        api_response = AreaPropertiesAPI.model_validate(props)
+        area_properties[area_id] = api_response.to_user_model()
+
+    # Area ui
+    area_ui: dict[str, AreaUi] = {}
+    for area_id, props in json_api.pop("areas_ui").items():
+        api_ui = props["ui"]
+        ui = AreaUi(x=api_ui["x"], y=api_ui["y"], color_rgb=[api_ui["color_r"], api_ui["color_g"], api_ui["color_b"]])
+        area_ui[area_id] = ui
+
+    all_areas = {}
+    for area_id, ui in area_ui.items():
+        area_obj = Area(
+            area_id,
+            services.area_service,
+            services.short_term_storage_service,
+            services.thermal_service,
+            services.renewable_service,
+            services.hydro_service,
+            ui=ui,
         )
+        # Fill the created object with the right values
+        area_obj._properties = area_properties[area_obj.id]
+        area_obj._thermals = thermals.get(area_obj.id, {})
+        area_obj._renewables = renewables.get(area_obj.id, {})
+        area_obj._st_storages = storages.get(area_obj.id, {})
+        area_obj.hydro._properties = hydro_dict[area_obj.id][0]
+        area_obj.hydro._inflow_structure = hydro_dict[area_obj.id][1]
 
-    try:
-        files = {"study": io.BytesIO(study_path.read_bytes())}
-        url = f"{base_url}/studies/_import"
-        study_id = wrapper.post(url, files=files).json()
+        all_areas[area_obj.id] = area_obj
 
-        study = read_study_api(api_config, study_id)
-        if destination_path is not None:
-            study.move(destination_path)
-
-        return study
-    except APIError as e:
-        raise StudyImportError(study_path.name, e.message) from e
-
-
-def read_study_api(api_config: APIconf, study_id: str) -> "Study":
-    session = api_config.set_up_api_conf()
-    wrapper = RequestWrapper(session)
-    base_url = f"{api_config.get_host()}/api/v1"
-    json_study = wrapper.get(f"{base_url}/studies/{study_id}").json()
-
-    study_name = json_study.pop("name")
-    study_version = str(json_study.pop("version"))
-    path = json_study.pop("folder")
-    pure_path = PurePath(path) if path else PurePath(".")
-
-    study = Study(study_name, study_version, create_api_services(api_config, study_id), pure_path)
-
-    study._read_settings()
-    study._read_areas()
-    study._read_links()
-    study._read_outputs()
-    study._read_binding_constraints()
-    study._read_xpansion_configuration()
+    study._areas = all_areas
 
     return study
 
