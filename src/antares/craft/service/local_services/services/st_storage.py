@@ -120,7 +120,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
 
         constraints = {}
         if self.study_version >= STUDY_VERSION_9_2:
-            constraints = self._read_constraints()
+            constraints = self.read_constraints()
 
         for folder in cluster_path.iterdir():
             if folder.is_dir():
@@ -205,7 +205,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
 
         return new_properties_dict
 
-    def _read_constraints(self) -> dict[str, dict[str, dict[str, STStorageAdditionalConstraint]]]:
+    def read_constraints(self) -> dict[str, dict[str, dict[str, STStorageAdditionalConstraint]]]:
         constraints: dict[str, dict[str, dict[str, STStorageAdditionalConstraint]]] = {}
 
         folder_path = self.config.study_path / "input" / "st-storage" / "constraints"

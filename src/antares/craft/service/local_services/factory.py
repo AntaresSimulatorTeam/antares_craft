@@ -19,14 +19,18 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import BindingConstraint, ConstraintTerm, ConstraintTermData
 from antares.craft.model.link import Link
+from antares.craft.model.renewable import RenewableCluster
 from antares.craft.model.settings.study_settings import StudySettings
-from antares.craft.model.study import Study
+from antares.craft.model.st_storage import STStorage
+from antares.craft.model.study import STUDY_VERSION_9_2, Study
+from antares.craft.model.thermal import ThermalCluster
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import StudyServices
 from antares.craft.service.local_services.models.area import AreaPropertiesLocal, AreaUiLocal
 from antares.craft.service.local_services.models.binding_constraint import BindingConstraintPropertiesLocal
 from antares.craft.service.local_services.models.hydro import parse_hydro_properties_local
 from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
+from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
 from antares.craft.service.local_services.models.settings.adequacy_patch import parse_adequacy_parameters_local
 from antares.craft.service.local_services.models.settings.advanced_parameters import (
     parse_advanced_and_seed_parameters_local,
@@ -35,6 +39,8 @@ from antares.craft.service.local_services.models.settings.general import General
 from antares.craft.service.local_services.models.settings.optimization import OptimizationParametersLocal
 from antares.craft.service.local_services.models.settings.playlist_parameters import PlaylistParametersLocal
 from antares.craft.service.local_services.models.settings.thematic_trimming import parse_thematic_trimming_local
+from antares.craft.service.local_services.models.st_storage import parse_st_storage_local
+from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
 from antares.craft.service.local_services.models.xpansion import parse_xpansion_candidate_local
 from antares.craft.service.local_services.services.area import AreaLocalService
 from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
@@ -52,6 +58,7 @@ from antares.craft.service.local_services.services.st_storage import ShortTermSt
 from antares.craft.service.local_services.services.study import StudyLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService
 from antares.craft.service.local_services.services.xpansion import XpansionLocalService
+from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.study.version import StudyVersion
 from antares.study.version.create_app import CreateApp
@@ -186,7 +193,8 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
     xp_service = cast(XpansionLocalService, local_services.xpansion_service)
     study._xpansion_configuration = _read_xpansion_configuration(xp_service)
 
-    study._read_areas()
+    area_service = cast(AreaLocalService, local_services.area_service)
+    study._areas = _read_areas(area_service)
 
     link_service = cast(LinkLocalService, local_services.link_service)
     study._links = _read_links(link_service)
@@ -337,19 +345,21 @@ def _read_areas(area_service: AreaLocalService) -> dict[str, Area]:
     if not areas_path.exists():
         return {}
 
-    hydro_service = cast(HydroLocalService, area_service.hydro_service)
-
     # Perf: Read only once the hydro_ini file as it's common to every area
+    hydro_service = cast(HydroLocalService, area_service.hydro_service)
     all_hydro_properties = _read_hydro_properties(hydro_service)
 
     # Read all thermals
-    thermals = area_service.thermal_service.read_thermal_clusters()
+    thermal_service = cast(ThermalLocalService, area_service.thermal_service)
+    thermals = _read_thermal_clusters(thermal_service)
 
     # Read all renewables
-    renewables = area_service.renewable_service.read_renewables()
+    renewable_service = cast(RenewableLocalService, area_service.renewable_service)
+    renewables = _read_renewables(renewable_service)
 
     # Read all st_storages
-    st_storages = area_service.storage_service.read_st_storages()
+    sts_service = cast(ShortTermStorageLocalService, area_service.storage_service)
+    st_storages = _read_st_storages(sts_service)
 
     # Perf: Read only once the thermal_areas_ini file as it's common to every area
     thermal_area_dict = area_service.read_thermal_areas_ini()
@@ -412,3 +422,83 @@ def _read_hydro_properties(hydro_service: HydroLocalService) -> dict[str, HydroP
         hydro_properties[area_id] = user_properties
 
     return hydro_properties
+
+
+def _read_thermal_clusters(thermal_service: ThermalLocalService) -> dict[str, dict[str, ThermalCluster]]:
+    thermals: dict[str, dict[str, ThermalCluster]] = {}
+    cluster_path = thermal_service.config.study_path / "input" / "thermal" / "clusters"
+    if not cluster_path.exists():
+        return {}
+    for folder in cluster_path.iterdir():
+        if folder.is_dir():
+            area_id = folder.name
+            thermal_dict = thermal_service.read_ini(area_id)
+
+            for thermal_data in thermal_dict.values():
+                thermal_cluster = ThermalCluster(
+                    thermal_service=thermal_service,
+                    area_id=area_id,
+                    name=str(thermal_data.pop("name")),
+                    properties=ThermalClusterPropertiesLocal.model_validate(thermal_data).to_user_model(),
+                )
+
+                thermals.setdefault(area_id, {})[thermal_cluster.id] = thermal_cluster
+
+    return thermals
+
+
+def _read_renewables(renewable_service: RenewableLocalService) -> dict[str, dict[str, RenewableCluster]]:
+    renewables: dict[str, dict[str, RenewableCluster]] = {}
+    cluster_path = renewable_service.config.study_path / "input" / "renewables" / "clusters"
+    if not cluster_path.exists():
+        return {}
+    for folder in cluster_path.iterdir():
+        if folder.is_dir():
+            area_id = folder.name
+
+            renewable_dict = renewable_service.read_ini(area_id)
+
+            for renewable_data in renewable_dict.values():
+                renewable_cluster = RenewableCluster(
+                    renewable_service=renewable_service,
+                    area_id=area_id,
+                    name=str(renewable_data.pop("name")),
+                    properties=RenewableClusterPropertiesLocal.model_validate(renewable_data).to_user_model(),
+                )
+
+                renewables.setdefault(area_id, {})[renewable_cluster.id] = renewable_cluster
+
+    return renewables
+
+
+def _read_st_storages(st_storage_service: ShortTermStorageLocalService) -> dict[str, dict[str, STStorage]]:
+    st_storages: dict[str, dict[str, STStorage]] = {}
+    cluster_path = st_storage_service.config.study_path / "input" / "st-storage" / "clusters"
+    if not cluster_path.exists():
+        return {}
+
+    constraints = {}
+    if st_storage_service.study_version >= STUDY_VERSION_9_2:
+        constraints = st_storage_service.read_constraints()
+
+    for folder in cluster_path.iterdir():
+        if folder.is_dir():
+            area_id = folder.name
+
+            storage_dict = st_storage_service.read_ini(area_id)
+
+            for storage_data in storage_dict.values():
+                storage_name = str(storage_data.pop("name"))
+                storage_properties = parse_st_storage_local(st_storage_service.study_version, storage_data)
+                storage_id = transform_name_to_id(storage_name)
+                relative_constraints = constraints.get(area_id, {}).get(storage_id, {})
+                st_storage = STStorage(
+                    storage_service=st_storage_service,
+                    area_id=area_id,
+                    name=storage_name,
+                    properties=storage_properties,
+                    constraints=relative_constraints,
+                )
+                st_storages.setdefault(area_id, {})[storage_id] = st_storage
+
+    return st_storages
