@@ -110,7 +110,7 @@ def load_study_api(api_config: APIconf, study_id: str) -> "Study":
     session = api_config.set_up_api_conf()
     wrapper = RequestWrapper(session)
     base_url = f"{api_config.get_host()}/api/v1"
-    json_api = wrapper.get(f"{base_url}/studies/{study_id}/load").json()
+    json_api = wrapper.get(f"{base_url}/studies/{study_id}/craft").json()
 
     services = create_api_services(api_config, study_id)
 
