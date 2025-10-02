@@ -17,7 +17,6 @@ from typing import Any, Optional, cast
 from antares.craft import HydroProperties
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.area import Area
-from antares.craft.model.binding_constraint import BindingConstraint, ConstraintTerm, ConstraintTermData
 from antares.craft.model.link import Link
 from antares.craft.model.renewable import RenewableCluster
 from antares.craft.model.settings.study_settings import StudySettings
@@ -27,7 +26,6 @@ from antares.craft.model.thermal import ThermalCluster
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import StudyServices
 from antares.craft.service.local_services.models.area import AreaPropertiesLocal, AreaUiLocal
-from antares.craft.service.local_services.models.binding_constraint import BindingConstraintPropertiesLocal
 from antares.craft.service.local_services.models.hydro import parse_hydro_properties_local
 from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
 from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
@@ -197,7 +195,7 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
     study._links = _read_links(link_service)
 
     bc_service = cast(BindingConstraintLocalService, local_services.bc_service)
-    study._binding_constraints = _read_binding_constraints(bc_service)
+    study._binding_constraints = bc_service.read_binding_constraints()
 
     return study
 
@@ -223,45 +221,6 @@ def _read_xpansion_configuration(xpansion_service: XpansionLocalService) -> Xpan
     return XpansionConfiguration(
         xpansion_service, settings=settings, candidates=candidates, constraints=constraints, sensitivity=sensitivity
     )
-
-
-def _read_binding_constraints(bc_service: BindingConstraintLocalService) -> dict[str, BindingConstraint]:
-    constraints: dict[str, BindingConstraint] = {}
-    current_ini_content = bc_service.read_ini()
-    for constraint in current_ini_content.values():
-        name = constraint.pop("name")
-        del constraint["id"]
-
-        # Separate properties from terms
-        properties_fields = BindingConstraintPropertiesLocal().model_dump(by_alias=True)  # type: ignore
-        terms_dict = {}
-        local_properties_dict = {}
-        for k, v in constraint.items():
-            if k in properties_fields:
-                local_properties_dict[k] = v
-            else:
-                terms_dict[k] = v
-
-        # Build properties
-        local_properties = BindingConstraintPropertiesLocal.model_validate(local_properties_dict)
-        properties = local_properties.to_user_model()
-
-        # Build terms
-        terms = []
-        for key, value in terms_dict.items():
-            term_data = ConstraintTermData.from_ini(key)
-            if "%" in str(value):
-                weight, offset = value.split("%")
-            else:
-                weight = value
-                offset = 0
-            term = ConstraintTerm(weight=float(weight), offset=int(offset), data=term_data)
-            terms.append(term)
-
-        bc = BindingConstraint(name=name, binding_constraint_service=bc_service, properties=properties, terms=terms)
-        constraints[bc.id] = bc
-
-    return constraints
 
 
 def _read_links(link_service: LinkLocalService) -> dict[str, Link]:

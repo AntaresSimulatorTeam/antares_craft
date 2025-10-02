@@ -55,6 +55,7 @@ from antares.craft.service.local_services.models.st_storage import (
     serialize_st_storage_local,
 )
 from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
+from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
 from antares.craft.service.local_services.services.hydro import HydroLocalService
 from antares.craft.service.local_services.services.renewable import RenewableLocalService
 from antares.craft.service.local_services.services.st_storage import ShortTermStorageLocalService
@@ -459,7 +460,8 @@ class AreaLocalService(BaseAreaService):
     def delete_thermal_clusters(self, area_id: str, thermal_clusters: List[ThermalCluster]) -> None:
         thermal_names_to_delete = {th.name for th in thermal_clusters}
         # Check thermal clusters are not referenced in any binding constraint
-        all_constraints = self._binding_constraint_service.read_binding_constraints()
+        bc_service = cast(BindingConstraintLocalService, self._binding_constraint_service)
+        all_constraints = bc_service.read_binding_constraints()
         for cluster in thermal_clusters:
             referencing_binding_constraints = []
             for bc in all_constraints.values():

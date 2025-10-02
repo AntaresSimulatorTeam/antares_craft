@@ -31,6 +31,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintPropertiesUpdate,
     ConstraintMatrixName,
     ConstraintTerm,
+    ConstraintTermData,
     ConstraintTermUpdate,
 )
 from antares.craft.service.base_services import BaseBindingConstraintService
@@ -228,3 +229,41 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             raise ConstraintDoesNotExistError(constraint.name, self.study_name)
 
         return ini_content[existing_key]  # type: ignore
+
+    def read_binding_constraints(self) -> dict[str, BindingConstraint]:
+        constraints: dict[str, BindingConstraint] = {}
+        current_ini_content = self.read_ini()
+        for constraint in current_ini_content.values():
+            name = constraint.pop("name")
+            del constraint["id"]
+
+            # Separate properties from terms
+            properties_fields = BindingConstraintPropertiesLocal().model_dump(by_alias=True)  # type: ignore
+            terms_dict = {}
+            local_properties_dict = {}
+            for k, v in constraint.items():
+                if k in properties_fields:
+                    local_properties_dict[k] = v
+                else:
+                    terms_dict[k] = v
+
+            # Build properties
+            local_properties = BindingConstraintPropertiesLocal.model_validate(local_properties_dict)
+            properties = local_properties.to_user_model()
+
+            # Build terms
+            terms = []
+            for key, value in terms_dict.items():
+                term_data = ConstraintTermData.from_ini(key)
+                if "%" in str(value):
+                    weight, offset = value.split("%")
+                else:
+                    weight = value
+                    offset = 0
+                term = ConstraintTerm(weight=float(weight), offset=int(offset), data=term_data)
+                terms.append(term)
+
+            bc = BindingConstraint(name=name, binding_constraint_service=self, properties=properties, terms=terms)
+            constraints[bc.id] = bc
+
+        return constraints
