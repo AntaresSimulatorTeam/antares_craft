@@ -79,15 +79,19 @@ class XpansionLocalService(BaseXpansionService):
     def study_id(self) -> str:
         return self._study_name
 
+    @property
+    def xpansion_path(self) -> Path:
+        return self._xpansion_path
+
     @override
     def read_xpansion_configuration(self) -> XpansionConfiguration | None:
         if not self._xpansion_path.exists():
             return None
         # Settings
-        settings = self._read_settings()
+        settings = self.read_settings()
         # Candidates
         candidates = {}
-        ini_candidates = self._read_candidates()
+        ini_candidates = self.read_candidates()
         for values in ini_candidates.values():
             cdt = parse_xpansion_candidate_local(values)
             candidates[cdt.name] = cdt
@@ -95,9 +99,9 @@ class XpansionLocalService(BaseXpansionService):
         constraints = {}
         file_name = settings.additional_constraints
         if file_name:
-            constraints = self._read_constraints(file_name)
+            constraints = self.read_constraints(file_name)
         # Sensitivity
-        sensitivity = self._read_sensitivity()
+        sensitivity = self.read_sensitivity()
         return XpansionConfiguration(
             self, settings=settings, candidates=candidates, constraints=constraints, sensitivity=sensitivity
         )
@@ -136,7 +140,7 @@ class XpansionLocalService(BaseXpansionService):
     @override
     def create_candidate(self, candidate: XpansionCandidate) -> XpansionCandidate:
         self._checks_candidate_coherence(candidate)
-        ini_content = self._read_candidates()
+        ini_content = self.read_candidates()
         for key, value in ini_content.items():
             if candidate.name == value["name"]:
                 raise XpansionCandidateCreationError(self._study_name, candidate.name, "Candidate already exists")
@@ -152,7 +156,7 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def update_candidate(self, name: str, candidate: XpansionCandidateUpdate) -> XpansionCandidate:
-        ini_content = self._read_candidates()
+        ini_content = self.read_candidates()
         for key, value in ini_content.items():
             if name == value["name"]:
                 # Update properties
@@ -174,7 +178,7 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def delete_candidates(self, names: set[str]) -> None:
-        ini_content = self._read_candidates()
+        ini_content = self.read_candidates()
         keys_to_delete = []
         for key, value in ini_content.items():
             if value["name"] in names:
@@ -193,7 +197,7 @@ class XpansionLocalService(BaseXpansionService):
     def remove_links_profile_from_candidate(
         self, candidate: XpansionCandidate, profiles: list[XpansionLinkProfile]
     ) -> XpansionCandidate:
-        ini_content = self._read_candidates()
+        ini_content = self.read_candidates()
         for key, value in ini_content.items():
             if candidate.name == value["name"]:
                 # Update properties
@@ -213,7 +217,7 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
-        existing_constraints = self._read_constraints(file_name)
+        existing_constraints = self.read_constraints(file_name)
         if constraint.name in existing_constraints:
             raise XpansionConstraintCreationError(
                 self._study_name, constraint.name, file_name, "Constraint already exists"
@@ -226,7 +230,7 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
-        existing_constraints = self._read_constraints(file_name)
+        existing_constraints = self.read_constraints(file_name)
         if name not in existing_constraints:
             raise XpansionConstraintsEditionError(self._study_name, name, file_name, "Constraint does not exist")
         new_constraint = update_constraint(existing_constraints[name], constraint)
@@ -243,7 +247,7 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def delete_constraints(self, names: list[str], file_name: str) -> None:
-        existing_constraints = self._read_constraints(file_name)
+        existing_constraints = self.read_constraints(file_name)
         for name in names:
             if name not in existing_constraints:
                 raise XpansionConstraintsDeletionError(self._study_name, [name], file_name, "Constraint does not exist")
@@ -285,24 +289,24 @@ class XpansionLocalService(BaseXpansionService):
         self._write_sensitivity(new_sensitivity)
         return new_sensitivity
 
-    def _read_settings(self) -> XpansionSettings:
+    def read_settings(self) -> XpansionSettings:
         ini_content = IniReader().read(self._xpansion_path / "settings.ini")["settings"]
         return parse_xpansion_settings_local(ini_content)
 
-    def _read_candidates(self) -> dict[str, Any]:
+    def read_candidates(self) -> dict[str, Any]:
         return IniReader().read(self._xpansion_path / "candidates.ini")
 
     def _save_candidates(self, content: dict[str, Any]) -> None:
         IniWriter().write(content, self._xpansion_path / "candidates.ini")
 
-    def _read_constraints(self, file_name: str) -> dict[str, XpansionConstraint]:
+    def read_constraints(self, file_name: str) -> dict[str, XpansionConstraint]:
         return parse_xpansion_constraints_local(IniReader().read(self._xpansion_path / "constraints" / file_name))
 
     def _write_constraints(self, file_name: str, constraints: dict[str, XpansionConstraint]) -> None:
         ini_content = serialize_xpansion_constraints_local(constraints)
         IniWriter().write(ini_content, self._xpansion_path / "constraints" / file_name)
 
-    def _read_sensitivity(self) -> XpansionSensitivity:
+    def read_sensitivity(self) -> XpansionSensitivity:
         file_path = self._xpansion_path / "sensitivity" / "sensitivity_in.json"
         if file_path.exists():
             return parse_xpansion_sensitivity_local(from_json(file_path.read_text()))

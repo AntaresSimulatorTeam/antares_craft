@@ -12,12 +12,13 @@
 import getpass
 
 from pathlib import Path
-from typing import Optional
+from typing import Optional, cast
 
 from antares.craft import BuildingMode, PlaylistParameters
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.study import Study
+from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import StudyServices
 from antares.craft.service.local_services.models.settings.adequacy_patch import parse_adequacy_parameters_local
 from antares.craft.service.local_services.models.settings.advanced_parameters import (
@@ -27,6 +28,7 @@ from antares.craft.service.local_services.models.settings.general import General
 from antares.craft.service.local_services.models.settings.optimization import OptimizationParametersLocal
 from antares.craft.service.local_services.models.settings.playlist_parameters import PlaylistParametersLocal
 from antares.craft.service.local_services.models.settings.thematic_trimming import parse_thematic_trimming_local
+from antares.craft.service.local_services.models.xpansion import parse_xpansion_candidate_local
 from antares.craft.service.local_services.services.area import AreaLocalService
 from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
 from antares.craft.service.local_services.services.hydro import HydroLocalService
@@ -156,16 +158,17 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
     study_params = IniReader().read(study_antares_path)["antares"]
 
     local_config = LocalConfiguration(study_directory.parent, study_directory.name)
-
     version = StudyVersion.parse(str(study_params["version"]))
+    local_services = create_local_services(
+        config=local_config,
+        study_name=study_params["caption"],
+        study_version=version,
+    )
+
     study = Study(
         name=study_params["caption"],
         version=f"{version:2d}",
-        services=create_local_services(
-            config=local_config,
-            study_name=study_params["caption"],
-            study_version=version,
-        ),
+        services=local_services,
         path=study_directory,
         solver_path=solver_path,
     )
@@ -174,7 +177,9 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
     study._read_links()
     study._read_binding_constraints()
     study._read_outputs()
-    study._read_xpansion_configuration()
+    study._xpansion_configuration = _read_xpansion_configuration(
+        cast(XpansionLocalService, local_services.xpansion_service)
+    )
 
     return study
 
@@ -231,4 +236,27 @@ def _read_settings(study_version: StudyVersion, study_directory: Path) -> StudyS
         adequacy_patch_parameters=adequacy_patch_parameters,
         playlist_parameters=playlist_parameters,
         thematic_trimming_parameters=thematic_trimming_parameters,
+    )
+
+
+def _read_xpansion_configuration(xpansion_service: XpansionLocalService) -> XpansionConfiguration | None:
+    if not xpansion_service.xpansion_path.exists():
+        return None
+    # Settings
+    settings = xpansion_service.read_settings()
+    # Candidates
+    candidates = {}
+    ini_candidates = xpansion_service.read_candidates()
+    for values in ini_candidates.values():
+        cdt = parse_xpansion_candidate_local(values)
+        candidates[cdt.name] = cdt
+    # Constraints
+    constraints = {}
+    file_name = settings.additional_constraints
+    if file_name:
+        constraints = xpansion_service.read_constraints(file_name)
+    # Sensitivity
+    sensitivity = xpansion_service.read_sensitivity()
+    return XpansionConfiguration(
+        xpansion_service, settings=settings, candidates=candidates, constraints=constraints, sensitivity=sensitivity
     )
