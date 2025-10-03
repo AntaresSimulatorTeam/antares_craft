@@ -15,7 +15,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict
 
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
-from antares.craft.model.commons import filtering_option
+from antares.craft.model.commons import FilterOption, filtering_option
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 
@@ -23,22 +23,51 @@ AreaPropertiesType = AreaProperties | AreaPropertiesUpdate
 
 
 @all_optional_model
-class AreaPropertiesAPI(APIBaseModel):
+class AreaPropertiesAPIBase(APIBaseModel):
     energy_cost_unsupplied: float
     energy_cost_spilled: float
     non_dispatch_power: bool
     dispatch_hydro_power: bool
     other_dispatch_power: bool
-    filter_synthesis: filtering_option
-    filter_by_year: filtering_option
     adequacy_patch_mode: AdequacyPatchMode
     spread_unsupplied_energy_cost: float
     spread_spilled_energy_cost: float
+
+
+@all_optional_model
+class AreaPropertiesAPI(AreaPropertiesAPIBase):
+    filter_synthesis: set[FilterOption]
+    filter_by_year: set[FilterOption]
 
     @staticmethod
     def from_user_model(user_class: AreaPropertiesType) -> "AreaPropertiesAPI":
         user_dict = asdict(user_class)
         return AreaPropertiesAPI.model_validate(user_dict)
+
+    def to_user_model(self) -> AreaProperties:
+        return AreaProperties(
+            energy_cost_unsupplied=self.energy_cost_spilled,
+            energy_cost_spilled=self.energy_cost_spilled,
+            non_dispatch_power=self.non_dispatch_power,
+            dispatch_hydro_power=self.dispatch_hydro_power,
+            other_dispatch_power=self.other_dispatch_power,
+            filter_synthesis=self.filter_synthesis,
+            filter_by_year=self.filter_by_year,
+            adequacy_patch_mode=self.adequacy_patch_mode,
+            spread_unsupplied_energy_cost=self.spread_unsupplied_energy_cost,
+            spread_spilled_energy_cost=self.spread_spilled_energy_cost,
+        )
+
+
+@all_optional_model
+class AreaPropertiesAPITableMode(AreaPropertiesAPIBase):
+    filter_synthesis: filtering_option
+    filter_by_year: filtering_option
+
+    @staticmethod
+    def from_user_model(user_class: AreaPropertiesType) -> "AreaPropertiesAPITableMode":
+        user_dict = asdict(user_class)
+        return AreaPropertiesAPITableMode.model_validate(user_dict)
 
     def to_user_model(self) -> AreaProperties:
         return AreaProperties(
