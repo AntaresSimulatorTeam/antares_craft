@@ -32,11 +32,11 @@ from antares.craft.model.output import (
     MCIndAreasDataType,
     MCIndLinksDataType,
 )
-from antares.craft.service.local_services.services.output.date_serializer import FactoryDateSerializer, rename_unnamed
 from antares.craft.service.local_services.services.output.parquet_writer import (
     write_dataframes_in_parquet_format_by_column_sets,
     yield_dataframes_from_parquet,
 )
+from antares.craft.service.utils import read_output_matrix
 
 
 class MCRoot(Enum):
@@ -135,26 +135,14 @@ class AggregatorManager:
         )
 
     def _parse_output_file(self, file_path: Path, normalize_column_name: bool = True) -> pd.DataFrame:
-        csv_file = pd.read_csv(
-            file_path,
-            sep="\t",
-            skiprows=4,
-            header=[0, 1, 2],
-            na_values="N/A",
-            float_precision="legacy",
-        )
-        date_serializer = FactoryDateSerializer.create(self.frequency.value, "")
-        date, body = date_serializer.extract_date(csv_file)
-        df = rename_unnamed(body).astype(float)
-
-        df.index = date
+        df = read_output_matrix(file_path, self.frequency)
 
         if not normalize_column_name:
             return df
 
         # normalize columns names
         new_cols = []
-        for col in body.columns:
+        for col in df.columns:
             if self.mc_root == MCRoot.MC_IND:
                 name_to_consider = col[0] if self.query_file.value == MCIndAreasDataType.VALUES else " ".join(col)
             else:
