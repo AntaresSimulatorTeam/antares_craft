@@ -21,6 +21,7 @@ coverage.xml
 .venv
 env/
 venv/
+uv.lock
 
 # Jupyter notebooks
 **.ipynb

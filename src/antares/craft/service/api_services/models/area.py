@@ -23,32 +23,25 @@ AreaPropertiesType = AreaProperties | AreaPropertiesUpdate
 
 
 @all_optional_model
-class AreaPropertiesAPI(APIBaseModel):
+class AreaPropertiesAPIBase(APIBaseModel):
     energy_cost_unsupplied: float
     energy_cost_spilled: float
     non_dispatch_power: bool
     dispatch_hydro_power: bool
     other_dispatch_power: bool
-    filter_synthesis: set[FilterOption]
-    filter_by_year: set[FilterOption]
     adequacy_patch_mode: AdequacyPatchMode
     spread_unsupplied_energy_cost: float
     spread_spilled_energy_cost: float
 
-    @staticmethod
-    def from_user_model(user_class: AreaPropertiesType) -> "AreaPropertiesAPI":
-        user_dict = asdict(user_class)
-        return AreaPropertiesAPI.model_validate(user_dict)
-
-    def to_user_model(self) -> AreaProperties:
+    def to_model(self, filter_synthesis: set[FilterOption], filter_by_year: set[FilterOption]) -> AreaProperties:
         return AreaProperties(
-            energy_cost_unsupplied=self.energy_cost_spilled,
+            energy_cost_unsupplied=self.energy_cost_unsupplied,
             energy_cost_spilled=self.energy_cost_spilled,
             non_dispatch_power=self.non_dispatch_power,
             dispatch_hydro_power=self.dispatch_hydro_power,
             other_dispatch_power=self.other_dispatch_power,
-            filter_synthesis=self.filter_synthesis,
-            filter_by_year=self.filter_by_year,
+            filter_synthesis=filter_synthesis,
+            filter_by_year=filter_by_year,
             adequacy_patch_mode=self.adequacy_patch_mode,
             spread_unsupplied_energy_cost=self.spread_unsupplied_energy_cost,
             spread_spilled_energy_cost=self.spread_spilled_energy_cost,
@@ -56,50 +49,31 @@ class AreaPropertiesAPI(APIBaseModel):
 
 
 @all_optional_model
-class AreaPropertiesAPITableMode(APIBaseModel):
-    spread_unsupplied_energy_cost: float
-    spread_spilled_energy_cost: float
-    non_dispatchable_power: bool
-    dispatchable_hydro_power: bool
-    other_dispatchable_power: bool
+class AreaPropertiesAPI(AreaPropertiesAPIBase):
+    filter_synthesis: set[FilterOption]
+    filter_by_year: set[FilterOption]
+
+    @staticmethod
+    def from_user_model(user_class: AreaPropertiesType) -> "AreaPropertiesAPI":
+        user_dict = asdict(user_class)
+        return AreaPropertiesAPI.model_validate(user_dict)
+
+    def to_user_model(self) -> AreaProperties:
+        return super().to_model(filter_synthesis=self.filter_synthesis, filter_by_year=self.filter_by_year)
+
+
+@all_optional_model
+class AreaPropertiesAPITableMode(AreaPropertiesAPIBase):
     filter_synthesis: filtering_option
-    filter_year_by_year: filtering_option
-    adequacy_patch_mode: AdequacyPatchMode
-    average_unsupplied_energy_cost: float
-    average_spilled_energy_cost: float
+    filter_by_year: filtering_option
 
     @staticmethod
     def from_user_model(user_class: AreaPropertiesType) -> "AreaPropertiesAPITableMode":
-        mapping = {
-            "spread_unsupplied_energy_cost": "spreadUnsuppliedEnergyCost",
-            "spread_spilled_energy_cost": "spreadSpilledEnergyCost",
-            "non_dispatch_power": "nonDispatchablePower",
-            "dispatch_hydro_power": "dispatchableHydroPower",
-            "other_dispatch_power": "otherDispatchablePower",
-            "filter_synthesis": "filterSynthesis",
-            "filter_by_year": "filterYearByYear",
-            "adequacy_patch_mode": "adequacyPatchMode",
-            "energy_cost_unsupplied": "averageUnsuppliedEnergyCost",
-            "energy_cost_spilled": "averageSpilledEnergyCost",
-        }
-
         user_dict = asdict(user_class)
-        remapped_user_dict = {mapping[k]: v for k, v in user_dict.items()}
-        return AreaPropertiesAPITableMode.model_validate(remapped_user_dict)
+        return AreaPropertiesAPITableMode.model_validate(user_dict)
 
     def to_user_model(self) -> AreaProperties:
-        return AreaProperties(
-            energy_cost_unsupplied=self.average_unsupplied_energy_cost,
-            energy_cost_spilled=self.average_spilled_energy_cost,
-            non_dispatch_power=self.non_dispatchable_power,
-            dispatch_hydro_power=self.dispatchable_hydro_power,
-            other_dispatch_power=self.other_dispatchable_power,
-            filter_synthesis=self.filter_synthesis,
-            filter_by_year=self.filter_year_by_year,
-            adequacy_patch_mode=self.adequacy_patch_mode,
-            spread_unsupplied_energy_cost=self.spread_unsupplied_energy_cost,
-            spread_spilled_energy_cost=self.spread_spilled_energy_cost,
-        )
+        return super().to_model(filter_synthesis=self.filter_synthesis, filter_by_year=self.filter_by_year)
 
 
 AreaUiType = AreaUi | AreaUiUpdate

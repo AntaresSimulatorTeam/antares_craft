@@ -15,13 +15,13 @@ import tempfile
 
 from enum import Enum
 from pathlib import Path
-from typing import Any, MutableSequence, Optional, Sequence
+from typing import Any, Iterator, MutableSequence, Optional, Sequence
 
-import numpy as np
 import pandas as pd
 
 from antares.craft.exceptions.exceptions import (
     MCRootNotHandled,
+    OutputAggregationError,
     OutputNotFound,
     OutputSubFolderNotFound,
 )
@@ -31,6 +31,10 @@ from antares.craft.model.output import (
     MCAllLinksDataType,
     MCIndAreasDataType,
     MCIndLinksDataType,
+)
+from antares.craft.service.local_services.services.output.parquet_writer import (
+    write_dataframes_in_parquet_format_by_column_sets,
+    yield_dataframes_from_parquet,
 )
 from antares.craft.service.utils import read_output_matrix
 
@@ -90,12 +94,12 @@ def _infer_time_id(df: pd.DataFrame, is_details: bool) -> list[int]:
 def _filtered_files_listing(
     folders_to_check: list[Path],
     query_file: str,
-    frequency: Frequency,
+    frequency: str,
 ) -> dict[str, MutableSequence[str]]:
     filtered_files: dict[str, MutableSequence[str]] = {}
     for folder_path in folders_to_check:
         for file in folder_path.iterdir():
-            if file.stem == f"{query_file}-{frequency.value}":
+            if file.stem == f"{query_file}-{frequency}":
                 filtered_files.setdefault(folder_path.name, []).append(file.name)
     return filtered_files
 
@@ -132,6 +136,7 @@ class AggregatorManager:
 
     def _parse_output_file(self, file_path: Path, normalize_column_name: bool = True) -> pd.DataFrame:
         df = read_output_matrix(file_path, self.frequency)
+
         if not normalize_column_name:
             return df
 
@@ -139,11 +144,7 @@ class AggregatorManager:
         new_cols = []
         for col in df.columns:
             if self.mc_root == MCRoot.MC_IND:
-                name_to_consider = (
-                    col[0]
-                    if self.query_file in {MCIndAreasDataType.VALUES, MCIndLinksDataType.VALUES}
-                    else " ".join(col)
-                )
+                name_to_consider = col[0] if self.query_file.value == "values" else " ".join(col)
             else:
                 name_to_consider = " ".join([col[0], col[2]])
             new_cols.append(name_to_consider.upper().strip())
@@ -183,7 +184,7 @@ class AggregatorManager:
 
             # Frequency and query file filtering
             folders_to_check = [self.mc_ind_path / first_mc_year / self.output_type / id for id in areas_or_links_ids]
-            filtered_files = _filtered_files_listing(folders_to_check, self.query_file.value, self.frequency)
+            filtered_files = _filtered_files_listing(folders_to_check, self.query_file.value, self.frequency.value)
 
             # Loop on MC years to return the whole list of files
             all_output_files = [
@@ -198,7 +199,7 @@ class AggregatorManager:
 
             # Frequency and query file filtering
             folders_to_check = [self.mc_all_path / self.output_type / id for id in areas_or_links_ids]
-            filtered_files = _filtered_files_listing(folders_to_check, self.query_file.value, self.frequency)
+            filtered_files = _filtered_files_listing(folders_to_check, self.query_file.value, self.frequency.value)
 
             # Loop to return the whole list of files
             all_output_files = [
@@ -278,64 +279,44 @@ class AggregatorManager:
             # just extract the data frame from the file by just merging the columns components
             return self._parse_output_file(file_path)
 
-    def _build_dataframes(self, files: Sequence[Path]) -> pd.DataFrame:
+    def _build_dataframes(self, files: Sequence[Path]) -> Iterator[pd.DataFrame]:
         if self.mc_root not in [MCRoot.MC_IND, MCRoot.MC_ALL]:
             raise MCRootNotHandled(f"Unknown Monte Carlo root: {self.mc_root}")
-        is_details = self.query_file.value in [
-            MCIndAreasDataType.DETAILS.value,
-            MCAllAreasDataType.DETAILS.value,
-            MCIndAreasDataType.DETAILS_ST_STORAGE.value,
-            MCAllAreasDataType.DETAILS_ST_STORAGE.value,
-            MCIndAreasDataType.DETAILS_RES.value,
-            MCAllAreasDataType.DETAILS_RES.value,
+        is_details = self.query_file in [
+            MCIndAreasDataType.DETAILS,
+            MCAllAreasDataType.DETAILS,
+            MCIndAreasDataType.DETAILS_ST_STORAGE,
+            MCAllAreasDataType.DETAILS_ST_STORAGE,
+            MCIndAreasDataType.DETAILS_RES,
+            MCAllAreasDataType.DETAILS_RES,
         ]
 
-        with tempfile.TemporaryDirectory(suffix=".output_aggregation.tmp", prefix="~") as tmp_dir:
-            df_path = Path(tmp_dir) / "df.parquet"
+        for k, file_path in enumerate(files):
+            df = self._process_df(file_path, is_details)
 
-            for k, file_path in enumerate(files):
-                df = self._process_df(file_path, is_details)
+            # columns filtering
+            df = self.columns_filtering(df, is_details)
 
-                # columns filtering
-                df = self.columns_filtering(df, is_details)
+            column_name = AREA_COL if self.output_type == "areas" else LINK_COL
+            new_column_order = _columns_ordering(df.columns.tolist(), column_name, is_details, self.mc_root)
 
-                # if no columns, no need to continue
-                list_of_df_columns = df.columns.tolist()
-                if not list_of_df_columns or set(list_of_df_columns) == {CLUSTER_ID_COL, TIME_ID_COL}:
-                    return pd.DataFrame()
+            if self.mc_root == MCRoot.MC_IND:
+                # add column for links/areas
+                relative_path_parts = file_path.relative_to(self.mc_ind_path).parts
+                df[column_name] = relative_path_parts[AREA_OR_LINK_INDEX__IND]
+                # add column to record the Monte Carlo year
+                df[MCYEAR_COL] = int(relative_path_parts[MC_YEAR_INDEX])
+            else:
+                # add column for links/areas
+                relative_path_parts = file_path.relative_to(self.mc_all_path).parts
+                df[column_name] = relative_path_parts[AREA_OR_LINK_INDEX__ALL]
 
-                column_name = AREA_COL if self.output_type == "areas" else LINK_COL
-                new_column_order = _columns_ordering(list_of_df_columns, column_name, is_details, self.mc_root)
+            # add a column for the time id
+            df[TIME_ID_COL] = _infer_time_id(df, is_details)
+            # Reorganize the columns
+            df = df.reindex(columns=pd.Index(new_column_order))
 
-                if self.mc_root == MCRoot.MC_IND:
-                    # add column for links/areas
-                    relative_path_parts = file_path.relative_to(self.mc_ind_path).parts
-                    df[column_name] = relative_path_parts[AREA_OR_LINK_INDEX__IND]
-                    # add column to record the Monte Carlo year
-                    df[MCYEAR_COL] = int(relative_path_parts[MC_YEAR_INDEX])
-                else:
-                    # add column for links/areas
-                    relative_path_parts = file_path.relative_to(self.mc_all_path).parts
-                    df[column_name] = relative_path_parts[AREA_OR_LINK_INDEX__ALL]
-
-                # add a column for the time id
-                df[TIME_ID_COL] = _infer_time_id(df, is_details)
-                # Reorganize the columns
-                df = df.reindex(columns=pd.Index(new_column_order))
-
-                df = df.replace({np.nan: None})
-
-                headers = False
-                append = True
-                if k == 0:
-                    headers = True
-                    append = False
-
-                df.to_csv(df_path, mode="a" if append else "w", decimal=".", index=False, header=headers)
-
-            if not df_path.exists():
-                return pd.DataFrame()
-            return pd.read_csv(df_path)
+            yield df
 
     def _check_mc_root_folder_exists(self) -> None:
         if self.mc_root == MCRoot.MC_IND:
@@ -347,7 +328,7 @@ class AggregatorManager:
         else:
             raise MCRootNotHandled(f"Unknown Monte Carlo root: {self.mc_root}")
 
-    def aggregate_output_data(self) -> pd.DataFrame:
+    def aggregate_output_data(self) -> Iterator[pd.DataFrame]:
         """
         Aggregates the output data of a study and returns it as a DataFrame
         """
@@ -364,9 +345,19 @@ class AggregatorManager:
         # filters files to consider
         all_output_files = sorted(self._gather_all_files_to_consider())
 
+        if not all_output_files:
+            raise OutputAggregationError(self.output_id, "No output files matching the criteria were found.")
+
         logger.info(
             f"Parsing {len(all_output_files)} {self.frequency.value} files"
             f"to build the aggregated output {self.output_id}"
         )
         # builds final dataframe
         return self._build_dataframes(all_output_files)
+
+
+def export_df_chunks(tmp_path: Path, df_chunks: Iterator[pd.DataFrame]) -> pd.DataFrame:
+    with tempfile.TemporaryDirectory(suffix=".thermal_ts_gen.tmp", prefix="~", dir=tmp_path) as working_dir_str:
+        working_dir = Path(working_dir_str)
+        files, all_cols = write_dataframes_in_parquet_format_by_column_sets(working_dir, df_chunks)
+        return yield_dataframes_from_parquet(files, all_cols)

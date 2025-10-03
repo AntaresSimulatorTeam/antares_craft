@@ -87,7 +87,7 @@ class ThermalLocalService(BaseThermalService):
                     thermal_cluster = ThermalCluster(
                         thermal_service=self,
                         area_id=area_id,
-                        name=thermal_data.pop("name"),
+                        name=str(thermal_data.pop("name")),
                         properties=parse_thermal_cluster_local(self.study_version, thermal_data),
                     )
 

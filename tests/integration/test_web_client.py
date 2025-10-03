@@ -1305,7 +1305,9 @@ class TestWebClient:
         assert storage.properties.group == "new group"
         assert storage.properties.penalize_variation_injection is True
 
-        assert storage.get_cost_variation_injection().equals(pd.DataFrame(np.zeros((8760, 1))))
+        pd.testing.assert_frame_equal(
+            storage.get_cost_variation_injection(), pd.DataFrame(np.zeros((8760, 1))), check_dtype=False
+        )
         new_matrix = pd.DataFrame(np.full((8760, 4), 10))
         storage.set_cost_variation_withdrawal(new_matrix)
         assert storage.get_cost_variation_withdrawal().equals(new_matrix)
