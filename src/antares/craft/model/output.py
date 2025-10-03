@@ -168,7 +168,7 @@ class AggregationEntry:
         type_ids = f"&{object_type}_ids={','.join(self.type_ids)}" if self.type_ids else ""
         columns_names = f"&columns_names={','.join(self.columns_names)}" if self.columns_names else ""
 
-        return f"query_file={self.data_type.value}&frequency={self.frequency.value}{mc_years}{type_ids}{columns_names}&format=csv"
+        return f"query_file={self.data_type.value}&frequency={self.frequency.value}{mc_years}{type_ids}{columns_names}&format=parquet"
 
 
 class Output:

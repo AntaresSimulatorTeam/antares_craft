@@ -687,3 +687,8 @@ class STStorageConstraintDeletionError(Exception):
             + message
         )
         super().__init__(self.message)
+
+
+class OutputAggregationError(Exception):
+    def __init__(self, output_id: str, message: str) -> None:
+        super().__init__(f"Could not aggregate output data for output '{output_id}' : {message}.")

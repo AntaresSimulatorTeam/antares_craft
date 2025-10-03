@@ -9,10 +9,10 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 import pytest
 import requests_mock
 
+import io
 import re
 
 from io import StringIO
@@ -763,12 +763,8 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             )
 
             # aggregate_values_areas_mc_ind
-            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/mc-ind/{output.name}?query_file=values&frequency=annual&format=csv"
-            aggregate_output = """
-            link,timeId,FLOW LIN. EXP,FLOW LIN. STD
-            be - fr,1,0.000000,0.000000
-            be - fr,2,0.000000,0.000000
-            """
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs/{output.name}/aggregate/areas/mc-ind?query_file=values&frequency=annual&format=parquet"
+            aggregate_output = b'PAR1\x15\x04\x15\x16\x15(L\x15\x02\x15\x00\x12\x00\x00(\xb5/\xfd \x0bY\x00\x00\x07\x00\x00\x00de - fr\x15\x06\x15\n\x15\n\\\x15\x02\x15\x00\x15\x02\x15\x10\x15\x04\x15\x00\x12\x1c6\x00(\x07de - fr\x18\x07de - fr\x00\x00\x00\x02\x01\x01\x02\x00\x15\x04\x15\x10\x15"L\x15\x02\x15\x00\x12\x00\x00(\xb5/\xfd \x08A\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x15\x06\x15\n\x15\n\\\x15\x02\x15\x00\x15\x02\x15\x10\x15\x04\x15\x00\x12\x1c\x18\x08\x01\x00\x00\x00\x00\x00\x00\x00\x18\x08\x01\x00\x00\x00\x00\x00\x00\x00\x16\x00(\x08\x01\x00\x00\x00\x00\x00\x00\x00\x18\x08\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x01\x01\x02\x00\x15\x04\x15\x10\x15"L\x15\x02\x15\x00\x12\x00\x00(\xb5/\xfd \x08A\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x15\x06\x15\n\x15\n\\\x15\x02\x15\x00\x15\x02\x15\x10\x15\x04\x15\x00\x12\x1c\x18\x08\x00\x00\x00\x00\x00\x00\x00\x00\x18\x08\x00\x00\x00\x00\x00\x00\x00\x80\x16\x00(\x08\x00\x00\x00\x00\x00\x00\x00\x00\x18\x08\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00\x02\x01\x01\x02\x00\x15\x04\x19L5\x00\x18\x06schema\x15\x06\x00\x15\x0c%\x02\x18\x04link%\x00L\x1c\x00\x00\x00\x15\x04%\x02\x18\x06timeId\x00\x15\n%\x02\x18\rFLOW LIN. EXP\x00\x16\x02\x19\x1c\x19<&\x00\x1c\x15\x0c\x195\x00\x06\x10\x19\x18\x04link\x15\x0c\x16\x02\x16\x94\x01\x16\xa6\x01&L&\x08\x1c6\x00(\x07de - fr\x18\x07de - fr\x00\x19,\x15\x04\x15\x00\x15\x02\x00\x15\x00\x15\x10\x15\x02\x00<\x16\x0e\x19\x06\x19&\x00\x02\x00\x00\x00&\x00\x1c\x15\x04\x195\x00\x06\x10\x19\x18\x06timeId\x15\x0c\x16\x02\x16\xba\x01\x16\xcc\x01&\xec\x01&\xae\x01\x1c\x18\x08\x01\x00\x00\x00\x00\x00\x00\x00\x18\x08\x01\x00\x00\x00\x00\x00\x00\x00\x16\x00(\x08\x01\x00\x00\x00\x00\x00\x00\x00\x18\x08\x01\x00\x00\x00\x00\x00\x00\x00\x00\x19,\x15\x04\x15\x00\x15\x02\x00\x15\x00\x15\x10\x15\x02\x00<)\x06\x19&\x00\x02\x00\x00\x00&\x00\x1c\x15\n\x195\x00\x06\x10\x19\x18\rFLOW LIN. EXP\x15\x0c\x16\x02\x16\xba\x01\x16\xcc\x01&\xb8\x03&\xfa\x02\x1c\x18\x08\x00\x00\x00\x00\x00\x00\x00\x00\x18\x08\x00\x00\x00\x00\x00\x00\x00\x80\x16\x00(\x08\x00\x00\x00\x00\x00\x00\x00\x00\x18\x08\x00\x00\x00\x00\x00\x00\x00\x80\x00\x19,\x15\x04\x15\x00\x15\x02\x00\x15\x00\x15\x10\x15\x02\x00<)\x06\x19&\x00\x02\x00\x00\x00\x16\x88\x04\x16\x02&\x08\x16\xbe\x04\x00\x19,\x18\x06pandas\x18\x9b\x05{"index_columns": [{"kind": "range", "name": null, "start": 0, "stop": 1, "step": 1}], "column_indexes": [{"name": null, "field_name": null, "pandas_type": "unicode", "numpy_type": "object", "metadata": {"encoding": "UTF-8"}}], "columns": [{"name": "link", "field_name": "link", "pandas_type": "unicode", "numpy_type": "object", "metadata": null}, {"name": "timeId", "field_name": "timeId", "pandas_type": "int64", "numpy_type": "int64", "metadata": null}, {"name": "FLOW LIN. EXP", "field_name": "FLOW LIN. EXP", "pandas_type": "float64", "numpy_type": "float64", "metadata": null}], "creator": {"library": "pyarrow", "version": "21.0.0"}, "pandas_version": "2.2.3"}\x00\x18\x0cARROW:schema\x18\x80\n/////7gDAAAQAAAAAAAKAA4ABgAFAAgACgAAAAABBAAQAAAAAAAKAAwAAAAEAAgACgAAANACAAAEAAAAAQAAAAwAAAAIAAwABAAIAAgAAACoAgAABAAAAJsCAAB7ImluZGV4X2NvbHVtbnMiOiBbeyJraW5kIjogInJhbmdlIiwgIm5hbWUiOiBudWxsLCAic3RhcnQiOiAwLCAic3RvcCI6IDEsICJzdGVwIjogMX1dLCAiY29sdW1uX2luZGV4ZXMiOiBbeyJuYW1lIjogbnVsbCwgImZpZWxkX25hbWUiOiBudWxsLCAicGFuZGFzX3R5cGUiOiAidW5pY29kZSIsICJudW1weV90eXBlIjogIm9iamVjdCIsICJtZXRhZGF0YSI6IHsiZW5jb2RpbmciOiAiVVRGLTgifX1dLCAiY29sdW1ucyI6IFt7Im5hbWUiOiAibGluayIsICJmaWVsZF9uYW1lIjogImxpbmsiLCAicGFuZGFzX3R5cGUiOiAidW5pY29kZSIsICJudW1weV90eXBlIjogIm9iamVjdCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAidGltZUlkIiwgImZpZWxkX25hbWUiOiAidGltZUlkIiwgInBhbmRhc190eXBlIjogImludDY0IiwgIm51bXB5X3R5cGUiOiAiaW50NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogIkZMT1cgTElOLiBFWFAiLCAiZmllbGRfbmFtZSI6ICJGTE9XIExJTi4gRVhQIiwgInBhbmRhc190eXBlIjogImZsb2F0NjQiLCAibnVtcHlfdHlwZSI6ICJmbG9hdDY0IiwgIm1ldGFkYXRhIjogbnVsbH1dLCAiY3JlYXRvciI6IHsibGlicmFyeSI6ICJweWFycm93IiwgInZlcnNpb24iOiAiMjEuMC4wIn0sICJwYW5kYXNfdmVyc2lvbiI6ICIyLjIuMyJ9AAYAAABwYW5kYXMAAAMAAACMAAAAQAAAAAQAAACQ////AAABAxAAAAAkAAAABAAAAAAAAAANAAAARkxPVyBMSU4uIEVYUAAGAAgABgAGAAAAAAACAMj///8AAAECEAAAACAAAAAEAAAAAAAAAAYAAAB0aW1lSWQAAAgADAAIAAcACAAAAAAAAAFAAAAAEAAUAAgABgAHAAwAAAAQABAAAAAAAAEFEAAAABwAAAAEAAAAAAAAAAQAAABsaW5rAAAAAAQABAAEAAAA\x00\x18 parquet-cpp-arrow version 21.0.0\x19<\x1c\x00\x00\x1c\x00\x00\x1c\x00\x00\x00g\t\x00\x00PAR1'
             download_id = "download-1"
             download_metadata_url = (
                 f"https://antares.com/api/v1/downloads/{download_id}/metadata?wait_for_availability=True"
@@ -776,35 +772,35 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             download_url = f"https://antares.com/api/v1/downloads/{download_id}"
             mocker.get(aggregate_url, json=download_id)
             mocker.get(download_metadata_url, json={})
-            mocker.get(download_url, text=aggregate_output)
+            mocker.get(download_url, content=aggregate_output)
             aggregated_matrix = output.aggregate_mc_ind_areas(MCIndAreasDataType.VALUES, Frequency.ANNUAL)
-            expected_matrix = pd.read_csv(StringIO(aggregate_output))
+            expected_matrix = pd.read_parquet(io.BytesIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)
 
             # aggregate_values_links_mc_ind
-            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-ind/{output.name}?query_file=values&frequency=annual&format=csv"
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs/{output.name}/aggregate/links/mc-ind?query_file=values&frequency=annual&format=parquet"
             mocker.get(aggregate_url, json=download_id)
             aggregated_matrix = output.aggregate_mc_ind_links(
                 MCIndLinksDataType.VALUES, Frequency.ANNUAL, columns_names=["fr"]
             )
-            expected_matrix = pd.read_csv(StringIO(aggregate_output))
+            expected_matrix = pd.read_parquet(io.BytesIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)
 
             # aggregate_values_areas_mc_all
-            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs/{output.name}/aggregate/areas/mc-all?query_file=values&frequency=annual&format=parquet"
             mocker.get(aggregate_url, json=download_id)
             aggregated_matrix = output.aggregate_mc_all_areas(MCAllAreasDataType.VALUES, Frequency.ANNUAL)
-            expected_matrix = pd.read_csv(StringIO(aggregate_output))
+            expected_matrix = pd.read_parquet(io.BytesIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)
 
             # aggregate_values_links_mc_all
-            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/links/aggregate/mc-all/{output.name}?query_file=values&frequency=annual&format=csv"
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs/{output.name}/aggregate/links/mc-all?query_file=values&frequency=annual&format=parquet"
             mocker.get(aggregate_url, json=download_id)
             aggregated_matrix = output.aggregate_mc_all_links(MCAllLinksDataType.VALUES, Frequency.ANNUAL)
-            expected_matrix = pd.read_csv(StringIO(aggregate_output))
+            expected_matrix = pd.read_parquet(io.BytesIO(aggregate_output))
             assert isinstance(aggregated_matrix, pd.DataFrame)
             assert aggregated_matrix.equals(expected_matrix)
 
