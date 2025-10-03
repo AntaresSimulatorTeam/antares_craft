@@ -33,10 +33,10 @@ class TestRenewable:
         renewable = local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"]
         assert renewable.properties == RenewableClusterProperties(enabled=False, unit_count=44)
         # Updates properties
-        update_properties = RenewableClusterPropertiesUpdate(group=RenewableClusterGroup.WIND_ON_SHORE, enabled=True)
+        update_properties = RenewableClusterPropertiesUpdate(group="wind onshore", enabled=True)
         new_properties = renewable.update_properties(update_properties)
         expected_properties = RenewableClusterProperties(
-            enabled=True, unit_count=44, group=RenewableClusterGroup.WIND_ON_SHORE
+            enabled=True, unit_count=44, group=RenewableClusterGroup.WIND_ON_SHORE.value
         )
         assert new_properties == expected_properties
         assert renewable.properties == expected_properties
@@ -98,7 +98,7 @@ class TestRenewable:
         assert renewable.properties.ts_interpretation == TimeSeriesInterpretation.PRODUCTION_FACTOR
 
         # testing the unmodified value
-        assert renewable.properties.group == RenewableClusterGroup.OTHER1
+        assert renewable.properties.group == RenewableClusterGroup.OTHER1.value
 
     def test_update_several_properties_fails(self, local_study_with_renewable: Study) -> None:
         """
@@ -133,4 +133,23 @@ class TestRenewable:
         study = read_study_local(study_path)
         thermal = study.get_areas()["fr"].get_renewables()["renewable cluster"]
         # Ensure we consider the group as THERMAL SOLAR
-        assert thermal.properties.group == RenewableClusterGroup.THERMAL_SOLAR
+        assert thermal.properties.group == RenewableClusterGroup.THERMAL_SOLAR.value
+
+    def test_version_93(self, tmp_path: Path, local_study_93: Study, local_study_92: Study) -> None:
+        renewable = local_study_93.get_areas()["fr"].create_renewable_cluster("renewable")
+        assert renewable.properties.group == "other res 1"
+
+        # Use a free group for the update
+        update_properties = RenewableClusterPropertiesUpdate(group="free_group")
+        new_properties = renewable.update_properties(update_properties)
+
+        assert new_properties.group == "free_group"
+
+        # Use a free group for creation
+        props = RenewableClusterProperties(group="my_group")
+        renewable = local_study_93.get_areas()["fr"].create_renewable_cluster("ren2", properties=props)
+        assert renewable.properties.group == "my_group"
+
+        # Ensures we can't use free groups before version 9.3
+        with pytest.raises(ValueError, match="Before v9.3, group has to be a valid value"):
+            local_study_92.get_areas()["fr"].create_renewable_cluster("ren2", properties=props)

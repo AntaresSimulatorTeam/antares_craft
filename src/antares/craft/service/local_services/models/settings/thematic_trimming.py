@@ -15,9 +15,9 @@ from typing import Any
 from pydantic import Field
 
 from antares.craft import ThematicTrimmingParameters
-from antares.craft.model.study import STUDY_VERSION_9_2
+from antares.craft.model.study import STUDY_VERSION_9_2, STUDY_VERSION_9_3
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
-from antares.craft.service.local_services.models.utils import check_min_version, initialize_field_default
+from antares.craft.service.local_services.models.utils import check_min_version
 from antares.study.version import StudyVersion
 
 
@@ -124,14 +124,162 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
     bc_marg_cost: bool | None = Field(default=None, alias="BC. MARG. COST")
     # Since v9.2
     sts_by_group: bool | None = Field(default=None, alias="STS by group")
+    # Since v9.3
+    dispatch_gen: bool | None = Field(default=None, alias="DISPATCH. GEN.")
+    renewable_gen: bool | None = Field(default=None, alias="RENEWABLE GEN.")
 
     @staticmethod
-    def get_9_2_fields() -> set[str]:
-        return {"sts_by_group"}
+    def from_user_model(user_class: ThematicTrimmingParameters) -> "ThematicTrimmingParametersLocal":
+        return ThematicTrimmingParametersLocal(**asdict(user_class))
 
-    @staticmethod
-    def get_sts_group_fields() -> set[str]:
-        return {
+    def to_user_model(self, default_bool: bool, version: StudyVersion) -> ThematicTrimmingParameters:
+        # We're initializing the default values here as the model class has default values
+        args = dict.fromkeys(get_thematic_trimming_fields_according_to_version(version), default_bool)
+        args.update(self.model_dump(exclude_none=True))
+        return ThematicTrimmingParameters(**args)
+
+    @classmethod
+    def parse_ini_file(cls, data: Any) -> tuple["ThematicTrimmingParametersLocal", bool]:
+        """Parse an ini content to return a ThematicTrimmingFileData object and a flag indicating if missing fields are activated or not."""
+        if data == {}:
+            return ThematicTrimmingParametersLocal(), True
+
+        if data.get("selected_vars_reset", True):
+            # Means written fields are deactivated and others are activated
+            unselected_vars = data.get("select_var -", [])
+            args = dict.fromkeys(unselected_vars, False)
+            return ThematicTrimmingParametersLocal(**args), True
+
+        # Means written fields are activated and others deactivated
+        selected_vars = data.get("select_var +", [])
+        args = dict.fromkeys(selected_vars, True)
+        file_data = ThematicTrimmingParametersLocal(**args)
+
+        return file_data, False
+
+    def to_ini(self) -> dict[str, Any]:
+        data = self.model_dump(by_alias=True, exclude_none=True)
+        content_plus = []
+        content_minus = []
+        for key, value in data.items():
+            if value:
+                content_plus.append(key)
+            else:
+                content_minus.append(key)
+        if len(content_minus) >= len(content_plus):
+            ini_content: dict[str, Any] = {"selected_vars_reset": False}
+            if content_plus:
+                ini_content["select_var +"] = content_plus
+        else:
+            ini_content = {"selected_vars_reset": True}
+            if content_minus:
+                ini_content["select_var -"] = content_minus
+        return ini_content
+
+
+def get_thematic_trimming_fields_according_to_version(version: StudyVersion) -> set[str]:
+    fields = {
+        "ov_cost",
+        "op_cost",
+        "mrg_price",
+        "co2_emis",
+        "dtg_by_plant",
+        "balance",
+        "row_bal",
+        "psp",
+        "misc_ndg",
+        "load",
+        "h_ror",
+        "wind",
+        "solar",
+        "nuclear",
+        "lignite",
+        "coal",
+        "gas",
+        "oil",
+        "mix_fuel",
+        "misc_dtg",
+        "h_stor",
+        "h_pump",
+        "h_lev",
+        "h_infl",
+        "h_ovfl",
+        "h_val",
+        "h_cost",
+        "unsp_enrg",
+        "spil_enrg",
+        "lold",
+        "lolp",
+        "avl_dtg",
+        "dtg_mrg",
+        "max_mrg",
+        "np_cost",
+        "np_cost_by_plant",
+        "nodu",
+        "nodu_by_plant",
+        "flow_lin",
+        "ucap_lin",
+        "loop_flow",
+        "flow_quad",
+        "cong_fee_alg",
+        "cong_fee_abs",
+        "marg_cost",
+        "cong_prob_plus",
+        "cong_prob_minus",
+        "hurdle_cost",
+        "res_generation_by_plant",
+        "misc_dtg_2",
+        "misc_dtg_3",
+        "misc_dtg_4",
+        "wind_offshore",
+        "wind_onshore",
+        "solar_concrt",
+        "solar_pv",
+        "solar_rooft",
+        "renw_1",
+        "renw_2",
+        "renw_3",
+        "renw_4",
+        "dens",
+        "profit_by_plant",
+        "bc_marg_cost",
+        "sts_inj_by_plant",
+        "sts_withdrawal_by_plant",
+        "sts_lvl_by_plant",
+        "psp_open_injection",
+        "psp_open_withdrawal",
+        "psp_open_level",
+        "psp_closed_injection",
+        "psp_closed_withdrawal",
+        "psp_closed_level",
+        "pondage_injection",
+        "pondage_withdrawal",
+        "pondage_level",
+        "battery_injection",
+        "battery_withdrawal",
+        "battery_level",
+        "other1_injection",
+        "other1_withdrawal",
+        "other1_level",
+        "other2_injection",
+        "other2_withdrawal",
+        "other2_level",
+        "other3_injection",
+        "other3_withdrawal",
+        "other3_level",
+        "other4_injection",
+        "other4_withdrawal",
+        "other4_level",
+        "other5_injection",
+        "other5_withdrawal",
+        "other5_level",
+        "sts_cashflow_by_cluster",
+        "npcap_hours",
+    }
+
+    if version >= STUDY_VERSION_9_2:
+        fields.add("sts_by_group")
+        for field in [
             "psp_open_injection",
             "psp_open_withdrawal",
             "psp_open_level",
@@ -159,80 +307,48 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
             "other5_injection",
             "other5_withdrawal",
             "other5_level",
-        }
+        ]:
+            fields.remove(field)
 
-    def to_user_model(self) -> ThematicTrimmingParameters:
-        return ThematicTrimmingParameters(**self.model_dump(exclude_none=True))
-
-    @staticmethod
-    def from_user_model(user_class: ThematicTrimmingParameters) -> "ThematicTrimmingParametersLocal":
-        return ThematicTrimmingParametersLocal(**asdict(user_class))
-
-    def to_ini(self) -> dict[str, Any]:
-        data = self.model_dump(by_alias=True, exclude_none=True)
-        content_plus = []
-        content_minus = []
-        for key, value in data.items():
-            if value:
-                content_plus.append(key)
-            else:
-                content_minus.append(key)
-        if len(content_minus) >= len(content_plus):
-            ini_content: dict[str, Any] = {"selected_vars_reset": False}
-            if content_plus:
-                ini_content["select_var +"] = content_plus
-        else:
-            ini_content = {"selected_vars_reset": True}
-            if content_minus:
-                ini_content["select_var -"] = content_minus
-        return ini_content
-
-    @staticmethod
-    def from_ini(content: dict[str, Any]) -> "ThematicTrimmingParametersLocal":
-        if content.get("selected_vars_reset", True):
-            # Means written fields are deactivated and others are activated
-            unselected_vars = content.get("select_var -", [])
-            args = dict.fromkeys(unselected_vars, False)
-            return ThematicTrimmingParametersLocal(**args)
-
-        # Means written fields are activated and others deactivated
-        selected_vars = content.get("select_var +", [])
-        args = dict.fromkeys(selected_vars, True)
-        file_data = ThematicTrimmingParametersLocal(**args)
-        return file_data
+    if version >= STUDY_VERSION_9_3:
+        fields.update(["dispatch_gen", "renewable_gen"])
+        for field in [
+            # replaces by dispatch_gen
+            "nuclear",
+            "lignite",
+            "coal",
+            "gas",
+            "oil",
+            "mix_fuel",
+            "misc_dtg",
+            "misc_dtg_2",
+            "misc_dtg_3",
+            "misc_dtg_4",
+            # replaced by renewable_gen
+            "wind_offshore",
+            "wind_onshore",
+            "solar_concrt",
+            "solar_pv",
+            "solar_rooft",
+            "renw_1",
+            "renw_2",
+            "renw_3",
+            "renw_4",
+        ]:
+            fields.remove(field)
+    return fields
 
 
 def validate_against_version(parameters: ThematicTrimmingParametersLocal, version: StudyVersion) -> None:
-    if version < STUDY_VERSION_9_2:
-        for field in ThematicTrimmingParametersLocal.get_9_2_fields():
-            check_min_version(parameters, field, version)
-    else:
-        for field in ThematicTrimmingParametersLocal.get_sts_group_fields():
-            check_min_version(parameters, field, version)
-
-
-def initialize_with_version(parameters: ThematicTrimmingParametersLocal, version: StudyVersion) -> None:
-    all_fields = set(ThematicTrimmingParametersLocal.model_fields)
-    if version < STUDY_VERSION_9_2:
-        for field in ThematicTrimmingParametersLocal.get_9_2_fields():
-            all_fields.remove(field)
-    else:
-        for field in ThematicTrimmingParametersLocal.get_sts_group_fields():
-            all_fields.remove(field)
-
-    # Find the right boolean to fill the user model
-    args = parameters.model_dump(exclude_none=True)
-    boolean = not next(iter(args.values()), False)
-
-    for field in all_fields:
-        initialize_field_default(parameters, field, boolean)
+    forbidden_fields = set(parameters.model_fields) - get_thematic_trimming_fields_according_to_version(version)
+    for field in forbidden_fields:
+        check_min_version(parameters, field, version)
 
 
 def parse_thematic_trimming_local(study_version: StudyVersion, data: Any) -> ThematicTrimmingParameters:
-    thematic_trimming_parameters_local = ThematicTrimmingParametersLocal.from_ini(data)
+    thematic_trimming_parameters_local, default_value = ThematicTrimmingParametersLocal.parse_ini_file(data)
     validate_against_version(thematic_trimming_parameters_local, study_version)
-    initialize_with_version(thematic_trimming_parameters_local, study_version)
-    return thematic_trimming_parameters_local.to_user_model()
+    return thematic_trimming_parameters_local.to_user_model(default_value, study_version)
 
 
 def serialize_thematic_trimming_local(

@@ -77,7 +77,7 @@ class TestThermalCluster:
 
     def test_has_correct_default_properties(self, local_study_w_thermal: Study) -> None:
         thermal_cluster = local_study_w_thermal.get_areas()["fr"].get_thermals()["test thermal cluster"]
-        assert thermal_cluster.properties == ThermalClusterProperties(group=ThermalClusterGroup.NUCLEAR, must_run=True)
+        assert thermal_cluster.properties == ThermalClusterProperties(group="nuclear", must_run=True)
 
     def test_required_ini_files_exist(self, tmp_path: Path, local_study_w_thermal: Study) -> None:
         study_path = Path(local_study_w_thermal.path)
@@ -172,7 +172,7 @@ variableomcost = 5.0
 
 """
         thermal_cluster_properties = ThermalClusterProperties(
-            group=ThermalClusterGroup.NUCLEAR,
+            group=ThermalClusterGroup.NUCLEAR.value,
             enabled=False,
             unit_count=12,
             nominal_capacity=3.9,
@@ -228,7 +228,7 @@ variableomcost = 5.0
             ini_content[key].pop("name")
             created_properties = ThermalClusterPropertiesLocal(**ini_content[key]).to_user_model()
             if key == "test thermal cluster":
-                assert created_properties == ThermalClusterProperties(group=ThermalClusterGroup.NUCLEAR, must_run=True)
+                assert created_properties == ThermalClusterProperties(group="nuclear", must_run=True)
             else:
                 assert created_properties == ThermalClusterProperties()
 
@@ -253,7 +253,7 @@ variableomcost = 5.0
         # Checks values before update
         thermal = local_study_w_thermal.get_areas()["fr"].get_thermals()["test thermal cluster"]
         current_properties = ThermalClusterProperties(
-            must_run=True, group=ThermalClusterGroup.NUCLEAR, law_forced=LawOption.UNIFORM, startup_cost=0
+            must_run=True, group="nuclear", law_forced=LawOption.UNIFORM, startup_cost=0
         )
         assert thermal.properties == current_properties
         # Updates properties
@@ -263,7 +263,7 @@ variableomcost = 5.0
         new_properties = thermal.update_properties(update_properties)
         expected_properties = ThermalClusterProperties(
             must_run=True,
-            group=ThermalClusterGroup.NUCLEAR,
+            group="nuclear",
             spinning=0.1,
             startup_cost=1.2,
             law_forced=LawOption.GEOMETRIC,
@@ -397,7 +397,7 @@ variableomcost = 5.0
         assert thermal.properties.unit_count == 13
 
         # testing the unmodified value
-        assert thermal.properties.group == ThermalClusterGroup.NUCLEAR
+        assert thermal.properties.group == ThermalClusterGroup.NUCLEAR.value
 
     def test_update_several_properties_fails(self, local_study_w_thermals: Study) -> None:
         """
@@ -432,7 +432,7 @@ variableomcost = 5.0
         study = read_study_local(study_path)
         thermal = study.get_areas()["fr"].get_thermals()["test thermal cluster"]
         # Ensure we consider the group as OTHER1
-        assert thermal.properties.group == ThermalClusterGroup.OTHER1
+        assert thermal.properties.group == ThermalClusterGroup.OTHER1.value
 
     def test_delete_referenced_cluster(self, local_study_w_thermal: Study) -> None:
         area_fr = local_study_w_thermal.get_areas()["fr"]
@@ -455,3 +455,22 @@ variableomcost = 5.0
             match="Thermal cluster 'test thermal cluster' is not allowed to be deleted, because it is referenced in the following binding constraints:\n1- 'bc 1'",
         ):
             area_fr.delete_thermal_cluster(area_fr.get_thermals()["test thermal cluster"])
+
+    def test_version_93(self, tmp_path: Path, local_study_93: Study, local_study_92: Study) -> None:
+        thermal = local_study_93.get_areas()["fr"].create_thermal_cluster("thermal")
+        assert thermal.properties.group == "other 1"
+
+        # Use a free group for the update
+        update_properties = ThermalClusterPropertiesUpdate(group="free_group")
+        new_properties = thermal.update_properties(update_properties)
+
+        assert new_properties.group == "free_group"
+
+        # Use a free group for creation
+        props = ThermalClusterProperties(group="my_group")
+        thermal = local_study_93.get_areas()["fr"].create_thermal_cluster("thermal2", properties=props)
+        assert thermal.properties.group == "my_group"
+
+        # Ensures we can't use free groups before version 9.3
+        with pytest.raises(ValueError, match="Before v9.3, group has to be a valid value"):
+            local_study_92.get_areas()["fr"].create_thermal_cluster("thermal2", properties=props)

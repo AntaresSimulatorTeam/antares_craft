@@ -26,19 +26,24 @@ from antares.craft.model.renewable import (
     RenewableClusterPropertiesUpdate,
 )
 from antares.craft.service.base_services import BaseRenewableService
-from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
+from antares.craft.service.local_services.models.renewable import (
+    parse_renewable_cluster_local,
+    serialize_renewable_cluster_local,
+)
 from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from antares.study.version import StudyVersion
 
 
 class RenewableLocalService(BaseRenewableService):
-    def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, config: LocalConfiguration, study_name: str, study_version: StudyVersion) -> None:
+        super().__init__()
         self.config = config
         self.study_name = study_name
+        self.study_version = study_version
 
     def _get_ini_path(self, area_id: str) -> Path:
         return self.config.study_path / "input" / "renewables" / "clusters" / area_id / "list.ini"
@@ -72,7 +77,7 @@ class RenewableLocalService(BaseRenewableService):
                         renewable_service=self,
                         area_id=area_id,
                         name=str(renewable_data.pop("name")),
-                        properties=RenewableClusterPropertiesLocal.model_validate(renewable_data).to_user_model(),
+                        properties=parse_renewable_cluster_local(self.study_version, renewable_data),
                     )
 
                     renewables.setdefault(area_id, {})[renewable_cluster.id] = renewable_cluster
@@ -118,15 +123,15 @@ class RenewableLocalService(BaseRenewableService):
                     all_renewable_names.remove(renewable_name)
 
                     # Update properties
-                    upd_properties = RenewableClusterPropertiesLocal.from_user_model(value[renewable_name])
-                    upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_unset=True)
+                    upd_props_as_dict = serialize_renewable_cluster_local(self.study_version, value[renewable_name])
                     renewable.update(upd_props_as_dict)
 
                     # Prepare the object to return
                     local_dict = copy.deepcopy(renewable)
                     del local_dict["name"]
-                    local_properties = RenewableClusterPropertiesLocal.model_validate(local_dict)
-                    new_properties_dict[cluster_name_to_object[renewable_name]] = local_properties.to_user_model()
+                    new_properties_dict[cluster_name_to_object[renewable_name]] = parse_renewable_cluster_local(
+                        self.study_version, local_dict
+                    )
 
             if len(all_renewable_names) > 0:
                 raise RenewablePropertiesUpdateError(

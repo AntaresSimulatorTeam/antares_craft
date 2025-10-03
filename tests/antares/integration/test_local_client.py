@@ -28,7 +28,7 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import LinkProperties, LinkUi
-from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties
+from antares.craft.model.renewable import RenewableClusterProperties
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
 from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -140,10 +140,10 @@ class TestLocalClient:
 
         # test thermal cluster creation with properties
         thermal_name = "gaz_be"
-        thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS)
+        thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS.value)
         thermal_be = area_be.create_thermal_cluster(thermal_name, thermal_properties)
         assert thermal_be.properties.efficiency == 55
-        assert thermal_be.properties.group == ThermalClusterGroup.GAS
+        assert thermal_be.properties.group == ThermalClusterGroup.GAS.value
 
         # test renewable cluster creation with default values
         renewable_name = "cluster_test"
@@ -153,10 +153,10 @@ class TestLocalClient:
 
         # test renewable cluster creation with properties
         renewable_name = "wind_onshore"
-        renewable_properties = RenewableClusterProperties(enabled=False, group=RenewableClusterGroup.WIND_ON_SHORE)
+        renewable_properties = RenewableClusterProperties(enabled=False, group="wind onshore")
         renewable_onshore = fr.create_renewable_cluster(renewable_name, renewable_properties)
         assert not renewable_onshore.properties.enabled
-        assert renewable_onshore.properties.group == RenewableClusterGroup.WIND_ON_SHORE
+        assert renewable_onshore.properties.group == "wind onshore"
 
         # test short term storage creation with default values
         st_storage_name = "cluster_test"

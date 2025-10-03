@@ -27,12 +27,16 @@ from antares.craft.model.thermal import (
     ThermalClusterPropertiesUpdate,
 )
 from antares.craft.service.base_services import BaseThermalService
-from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
+from antares.craft.service.local_services.models.thermal import (
+    parse_thermal_cluster_local,
+    serialize_thermal_cluster_local,
+)
 from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from antares.study.version import StudyVersion
 
 MAPPING = {
     ThermalClusterMatrixName.PREPRO_DATA: TimeSeriesFileType.THERMAL_DATA,
@@ -44,10 +48,11 @@ MAPPING = {
 
 
 class ThermalLocalService(BaseThermalService):
-    def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, config: LocalConfiguration, study_name: str, study_version: StudyVersion) -> None:
+        super().__init__()
         self.config = config
         self.study_name = study_name
+        self.study_version = study_version
 
     def _get_ini_path(self, area_id: str) -> Path:
         return self.config.study_path / "input" / "thermal" / "clusters" / area_id / "list.ini"
@@ -83,7 +88,7 @@ class ThermalLocalService(BaseThermalService):
                         thermal_service=self,
                         area_id=area_id,
                         name=str(thermal_data.pop("name")),
-                        properties=ThermalClusterPropertiesLocal.model_validate(thermal_data).to_user_model(),
+                        properties=parse_thermal_cluster_local(self.study_version, thermal_data),
                     )
 
                     thermals.setdefault(area_id, {})[thermal_cluster.id] = thermal_cluster
@@ -124,15 +129,15 @@ class ThermalLocalService(BaseThermalService):
                     all_thermal_names.remove(thermal_name)
 
                     # Update properties
-                    upd_properties = ThermalClusterPropertiesLocal.from_user_model(value[thermal_name])
-                    upd_props_as_dict = upd_properties.model_dump(mode="json", by_alias=True, exclude_unset=True)
+                    upd_props_as_dict = serialize_thermal_cluster_local(self.study_version, value[thermal_name])
                     thermal.update(upd_props_as_dict)
 
                     # Prepare the object to return
                     local_dict = copy.deepcopy(thermal)
                     del local_dict["name"]
-                    local_properties = ThermalClusterPropertiesLocal.model_validate(local_dict)
-                    new_properties_dict[cluster_name_to_object[thermal_name]] = local_properties.to_user_model()
+                    new_properties_dict[cluster_name_to_object[thermal_name]] = parse_thermal_cluster_local(
+                        self.study_version, local_dict
+                    )
 
             if len(all_thermal_names) > 0:
                 raise ThermalPropertiesUpdateError(next(iter(all_thermal_names)), area_id, "The cluster does not exist")
