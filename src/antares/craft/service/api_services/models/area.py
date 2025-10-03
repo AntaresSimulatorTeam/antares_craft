@@ -35,7 +35,7 @@ class AreaPropertiesAPIBase(APIBaseModel):
 
     def to_model(self, filter_synthesis: set[FilterOption], filter_by_year: set[FilterOption]) -> AreaProperties:
         return AreaProperties(
-            energy_cost_unsupplied=self.energy_cost_spilled,
+            energy_cost_unsupplied=self.energy_cost_unsupplied,
             energy_cost_spilled=self.energy_cost_spilled,
             non_dispatch_power=self.non_dispatch_power,
             dispatch_hydro_power=self.dispatch_hydro_power,
