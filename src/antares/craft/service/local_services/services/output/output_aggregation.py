@@ -15,7 +15,7 @@ import tempfile
 
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, MutableSequence, Optional, Sequence
+from typing import Any, Iterator, MutableSequence, Optional, Sequence
 
 import pandas as pd
 
@@ -66,7 +66,7 @@ DUMMY_COMPONENT = 2
 logger = logging.getLogger(__name__)
 
 
-def _columns_ordering(df_cols: List[str], column_name: str, is_details: bool, mc_root: MCRoot) -> Sequence[str]:
+def _columns_ordering(df_cols: list[str], column_name: str, is_details: bool, mc_root: MCRoot) -> Sequence[str]:
     # original columns
     org_cols = df_cols.copy()
     if is_details:
@@ -84,7 +84,7 @@ def _columns_ordering(df_cols: List[str], column_name: str, is_details: bool, mc
     return new_column_order
 
 
-def _infer_time_id(df: pd.DataFrame, is_details: bool) -> List[int]:
+def _infer_time_id(df: pd.DataFrame, is_details: bool) -> list[int]:
     if is_details:
         return df[TIME_ID_COL].tolist()
     else:
@@ -92,11 +92,11 @@ def _infer_time_id(df: pd.DataFrame, is_details: bool) -> List[int]:
 
 
 def _filtered_files_listing(
-    folders_to_check: List[Path],
+    folders_to_check: list[Path],
     query_file: str,
     frequency: str,
-) -> Dict[str, MutableSequence[str]]:
-    filtered_files: Dict[str, MutableSequence[str]] = {}
+) -> dict[str, MutableSequence[str]]:
+    filtered_files: dict[str, MutableSequence[str]] = {}
     for folder_path in folders_to_check:
         for file in folder_path.iterdir():
             if file.stem == f"{query_file}-{frequency}":
@@ -152,7 +152,7 @@ class AggregatorManager:
         df.columns = pd.Index(new_cols)
         return df
 
-    def _filter_ids(self, folder_path: Path) -> List[str]:
+    def _filter_ids(self, folder_path: Path) -> list[str]:
         if self.output_type == "areas":
             # Areas names filtering
             areas_ids = sorted([d.name for d in folder_path.iterdir()])
@@ -258,7 +258,7 @@ class AggregatorManager:
 
             # using a dictionary to build the new data frame with the base columns (NO2, production etc.)
             # and the cluster id and time id
-            new_obj: Dict[str, Any] = {k: [] for k in [CLUSTER_ID_COL, TIME_ID_COL] + actual_cols}
+            new_obj: dict[str, Any] = {k: [] for k in [CLUSTER_ID_COL, TIME_ID_COL] + actual_cols}
 
             # loop over the cluster id to extract the values of the actual columns
             for cluster_id, dummy_component in cluster_dummy_product_cols:
