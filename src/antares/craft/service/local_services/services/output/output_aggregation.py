@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 
 import logging
+import tempfile
 
 from enum import Enum
 from pathlib import Path
@@ -32,6 +33,10 @@ from antares.craft.model.output import (
     MCIndLinksDataType,
 )
 from antares.craft.service.local_services.services.output.date_serializer import FactoryDateSerializer, rename_unnamed
+from antares.craft.service.local_services.services.output.parquet_writer import (
+    write_dataframes_in_parquet_format_by_column_sets,
+    yield_dataframes_from_parquet,
+)
 
 
 class MCRoot(Enum):
@@ -361,3 +366,10 @@ class AggregatorManager:
         )
         # builds final dataframe
         return self._build_dataframes(all_output_files)
+
+
+def export_df_chunks(tmp_path: Path, df_chunks: Iterator[pd.DataFrame]) -> pd.DataFrame:
+    with tempfile.TemporaryDirectory(suffix=".thermal_ts_gen.tmp", prefix="~", dir=tmp_path) as working_dir_str:
+        working_dir = Path(working_dir_str)
+        files, all_cols = write_dataframes_in_parquet_format_by_column_sets(working_dir, df_chunks)
+        return yield_dataframes_from_parquet(files, all_cols)
