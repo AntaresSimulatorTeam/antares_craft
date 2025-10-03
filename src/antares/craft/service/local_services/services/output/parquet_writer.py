@@ -67,8 +67,6 @@ def write_dataframes_in_parquet_format_by_column_sets(
                         existing_columns.add(col)
                         new_index.append(col)
 
-                df.index = pd.RangeIndex(len(df))
-
                 if should_write_new_file:
                     current_writer.close()
 
@@ -104,5 +102,5 @@ def yield_dataframes_from_parquet(files: list[Path], new_index: list[str]) -> pd
             df = table.to_pandas()
             df = df.reindex(new_index, axis="columns")
 
-            final_df = pd.concat([final_df, df])
+            final_df = pd.concat([final_df, df], ignore_index=True)
     return final_df
