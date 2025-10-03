@@ -39,7 +39,7 @@ from antares.craft.model.hydro import Hydro
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
-from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaPropertiesAPITableMode, AreaUiAPI
+from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaUiAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import (
     parse_st_storage_api,
@@ -117,7 +117,7 @@ class AreaApiService(BaseAreaService):
         base_area_url = f"{self._base_url}/studies/{self.study_id}/areas"
 
         try:
-            response = self._wrapper.post(base_area_url, json={"name": area_name, "type": "AREA"})
+            response = self._wrapper.post(base_area_url, json={"name": area_name})
             area_id = response.json()["id"]
 
             if properties:
@@ -462,7 +462,7 @@ class AreaApiService(BaseAreaService):
         properties_json = self._wrapper.get(url).json()
         properties: dict[str, AreaProperties] = {}
         for area_id, props in properties_json.items():
-            api_response = AreaPropertiesAPITableMode.model_validate(props)
+            api_response = AreaPropertiesAPI.model_validate(props)
             area_properties = api_response.to_user_model()
             properties[area_id] = area_properties
         return properties
@@ -474,7 +474,7 @@ class AreaApiService(BaseAreaService):
         url = f"{self._base_url}/studies/{self.study_id}/table-mode/areas"
 
         for area, props in dict_areas.items():
-            api_properties = AreaPropertiesAPITableMode.from_user_model(props)
+            api_properties = AreaPropertiesAPI.from_user_model(props)
             api_dict = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
             body[area.id] = api_dict
 
@@ -482,7 +482,7 @@ class AreaApiService(BaseAreaService):
             areas = self._wrapper.put(url, json=body).json()
 
             for area_id in areas:
-                api_response = AreaPropertiesAPITableMode.model_validate(areas[area_id])
+                api_response = AreaPropertiesAPI.model_validate(areas[area_id])
                 area_properties = api_response.to_user_model()
                 updated_areas.update({area_id: area_properties})
 
