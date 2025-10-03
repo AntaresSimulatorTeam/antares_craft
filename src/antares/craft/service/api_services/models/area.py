@@ -33,6 +33,20 @@ class AreaPropertiesAPIBase(APIBaseModel):
     spread_unsupplied_energy_cost: float
     spread_spilled_energy_cost: float
 
+    def to_model(self, filter_synthesis: set[FilterOption], filter_by_year: set[FilterOption]) -> AreaProperties:
+        return AreaProperties(
+            energy_cost_unsupplied=self.energy_cost_spilled,
+            energy_cost_spilled=self.energy_cost_spilled,
+            non_dispatch_power=self.non_dispatch_power,
+            dispatch_hydro_power=self.dispatch_hydro_power,
+            other_dispatch_power=self.other_dispatch_power,
+            filter_synthesis=filter_synthesis,
+            filter_by_year=filter_by_year,
+            adequacy_patch_mode=self.adequacy_patch_mode,
+            spread_unsupplied_energy_cost=self.spread_unsupplied_energy_cost,
+            spread_spilled_energy_cost=self.spread_spilled_energy_cost,
+        )
+
 
 @all_optional_model
 class AreaPropertiesAPI(AreaPropertiesAPIBase):
@@ -45,18 +59,7 @@ class AreaPropertiesAPI(AreaPropertiesAPIBase):
         return AreaPropertiesAPI.model_validate(user_dict)
 
     def to_user_model(self) -> AreaProperties:
-        return AreaProperties(
-            energy_cost_unsupplied=self.energy_cost_spilled,
-            energy_cost_spilled=self.energy_cost_spilled,
-            non_dispatch_power=self.non_dispatch_power,
-            dispatch_hydro_power=self.dispatch_hydro_power,
-            other_dispatch_power=self.other_dispatch_power,
-            filter_synthesis=self.filter_synthesis,
-            filter_by_year=self.filter_by_year,
-            adequacy_patch_mode=self.adequacy_patch_mode,
-            spread_unsupplied_energy_cost=self.spread_unsupplied_energy_cost,
-            spread_spilled_energy_cost=self.spread_spilled_energy_cost,
-        )
+        return super().to_model(filter_synthesis=self.filter_synthesis, filter_by_year=self.filter_by_year)
 
 
 @all_optional_model
@@ -70,18 +73,7 @@ class AreaPropertiesAPITableMode(AreaPropertiesAPIBase):
         return AreaPropertiesAPITableMode.model_validate(user_dict)
 
     def to_user_model(self) -> AreaProperties:
-        return AreaProperties(
-            energy_cost_unsupplied=self.energy_cost_spilled,
-            energy_cost_spilled=self.energy_cost_spilled,
-            non_dispatch_power=self.non_dispatch_power,
-            dispatch_hydro_power=self.dispatch_hydro_power,
-            other_dispatch_power=self.other_dispatch_power,
-            filter_synthesis=self.filter_synthesis,
-            filter_by_year=self.filter_by_year,
-            adequacy_patch_mode=self.adequacy_patch_mode,
-            spread_unsupplied_energy_cost=self.spread_unsupplied_energy_cost,
-            spread_spilled_energy_cost=self.spread_spilled_energy_cost,
-        )
+        return super().to_model(filter_synthesis=self.filter_synthesis, filter_by_year=self.filter_by_year)
 
 
 AreaUiType = AreaUi | AreaUiUpdate
