@@ -12,7 +12,7 @@
 
 import logging
 
-from enum import Enum, StrEnum
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, MutableSequence, Optional, Sequence
 
@@ -26,6 +26,10 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.output import (
     Frequency,
+    MCAllAreasDataType,
+    MCAllLinksDataType,
+    MCIndAreasDataType,
+    MCIndLinksDataType,
 )
 from antares.craft.service.local_services.services.output.date_serializer import FactoryDateSerializer, rename_unnamed
 
@@ -55,30 +59,6 @@ ACTUAL_COLUMN_COMPONENT = 1
 DUMMY_COMPONENT = 2
 
 logger = logging.getLogger(__name__)
-
-
-class MCIndAreasQueryFile(StrEnum):
-    VALUES = "values"
-    DETAILS = "details"
-    DETAILS_ST_STORAGE = "details-STstorage"
-    DETAILS_RES = "details-res"
-
-
-class MCAllAreasQueryFile(StrEnum):
-    VALUES = "values"
-    DETAILS = "details"
-    DETAILS_ST_STORAGE = "details-STstorage"
-    DETAILS_RES = "details-res"
-    ID = "id"
-
-
-class MCIndLinksQueryFile(StrEnum):
-    VALUES = "values"
-
-
-class MCAllLinksQueryFile(StrEnum):
-    VALUES = "values"
-    ID = "id"
 
 
 def _columns_ordering(df_cols: List[str], column_name: str, is_details: bool, mc_root: MCRoot) -> Sequence[str]:
@@ -123,7 +103,7 @@ class AggregatorManager:
     def __init__(
         self,
         output_path: Path,
-        query_file: MCIndAreasQueryFile | MCAllAreasQueryFile | MCIndLinksQueryFile | MCAllLinksQueryFile,
+        query_file: MCAllAreasDataType | MCIndAreasDataType | MCAllLinksDataType | MCIndLinksDataType,
         frequency: Frequency,
         ids_to_consider: Sequence[str],
         columns_names: Sequence[str],
@@ -138,14 +118,14 @@ class AggregatorManager:
         self.ids_to_consider = ids_to_consider
         self.output_type = (
             "areas"
-            if (isinstance(query_file, MCIndAreasQueryFile) or isinstance(query_file, MCAllAreasQueryFile))
+            if (isinstance(query_file, MCIndAreasDataType) or isinstance(query_file, MCAllAreasDataType))
             else "links"
         )
         self.mc_ind_path = self.output_path / "economy" / MCRoot.MC_IND.value
         self.mc_all_path = self.output_path / "economy" / MCRoot.MC_ALL.value
         self.mc_root = (
             MCRoot.MC_IND
-            if (isinstance(query_file, MCIndAreasQueryFile) or isinstance(query_file, MCIndLinksQueryFile))
+            if (isinstance(query_file, MCIndAreasDataType) or isinstance(query_file, MCIndLinksDataType))
             else MCRoot.MC_ALL
         )
 
@@ -171,7 +151,7 @@ class AggregatorManager:
         new_cols = []
         for col in body.columns:
             if self.mc_root == MCRoot.MC_IND:
-                name_to_consider = col[0] if self.query_file.value == MCIndAreasQueryFile.VALUES else " ".join(col)
+                name_to_consider = col[0] if self.query_file.value == MCIndAreasDataType.VALUES else " ".join(col)
             else:
                 name_to_consider = " ".join([col[0], col[2]])
             new_cols.append(name_to_consider.upper().strip())
@@ -211,7 +191,7 @@ class AggregatorManager:
 
             # Frequency and query file filtering
             folders_to_check = [self.mc_ind_path / first_mc_year / self.output_type / id for id in areas_or_links_ids]
-            filtered_files = _filtered_files_listing(folders_to_check, self.query_file, self.frequency.value)
+            filtered_files = _filtered_files_listing(folders_to_check, self.query_file.value, self.frequency.value)
 
             # Loop on MC years to return the whole list of files
             all_output_files = [
@@ -226,7 +206,7 @@ class AggregatorManager:
 
             # Frequency and query file filtering
             folders_to_check = [self.mc_all_path / self.output_type / id for id in areas_or_links_ids]
-            filtered_files = _filtered_files_listing(folders_to_check, self.query_file, self.frequency.value)
+            filtered_files = _filtered_files_listing(folders_to_check, self.query_file.value, self.frequency.value)
 
             # Loop to return the whole list of files
             all_output_files = [
@@ -310,12 +290,12 @@ class AggregatorManager:
         if self.mc_root not in [MCRoot.MC_IND, MCRoot.MC_ALL]:
             raise MCRootNotHandled(f"Unknown Monte Carlo root: {self.mc_root}")
         is_details = self.query_file in [
-            MCIndAreasQueryFile.DETAILS,
-            MCAllAreasQueryFile.DETAILS,
-            MCIndAreasQueryFile.DETAILS_ST_STORAGE,
-            MCAllAreasQueryFile.DETAILS_ST_STORAGE,
-            MCIndAreasQueryFile.DETAILS_RES,
-            MCAllAreasQueryFile.DETAILS_RES,
+            MCIndAreasDataType.DETAILS,
+            MCAllAreasDataType.DETAILS,
+            MCIndAreasDataType.DETAILS_ST_STORAGE,
+            MCAllAreasDataType.DETAILS_ST_STORAGE,
+            MCIndAreasDataType.DETAILS_RES,
+            MCAllAreasDataType.DETAILS_RES,
         ]
 
         for k, file_path in enumerate(files):
