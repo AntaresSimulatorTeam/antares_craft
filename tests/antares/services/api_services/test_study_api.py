@@ -763,12 +763,8 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
             )
 
             # aggregate_values_areas_mc_ind
-            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/areas/aggregate/mc-ind/{output.name}?query_file=values&frequency=annual&format=csv"
-            aggregate_output = """
-            link,timeId,FLOW LIN. EXP,FLOW LIN. STD
-            be - fr,1,0.000000,0.000000
-            be - fr,2,0.000000,0.000000
-            """
+            aggregate_url = f"https://antares.com/api/v1/studies/{self.study_id}/outputs/{output.name}/aggregate/areas/mc-ind?query_file=values&frequency=annual&format=parquet"
+            aggregate_output = ""
             download_id = "download-1"
             download_metadata_url = (
                 f"https://antares.com/api/v1/downloads/{download_id}/metadata?wait_for_availability=True"
