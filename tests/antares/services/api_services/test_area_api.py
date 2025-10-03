@@ -40,7 +40,7 @@ from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.factory import create_api_services
-from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaUiAPI
+from antares.craft.service.api_services.models.area import AreaPropertiesAPITableMode, AreaUiAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.st_storage import (
     parse_st_storage_api,
@@ -78,7 +78,7 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             url = f"{self.study_url}/table-mode/areas"
             properties = AreaPropertiesUpdate(energy_cost_spilled=1)
-            api_properties = AreaPropertiesAPI.from_user_model(properties)
+            api_properties = AreaPropertiesAPITableMode.from_user_model(properties)
             mocker.put(url, json={self.area.id: api_properties.model_dump(mode="json", by_alias=True)}, status_code=200)
             self.area.update_properties(properties=properties)
             assert self.area.properties.energy_cost_spilled == 1
@@ -342,7 +342,7 @@ class TestCreateAPI:
                 renewables={renewable_id: renewable_cluster},
                 st_storages={storage_id: st_storage},
                 hydro=hydro,
-                properties=AreaPropertiesAPI.model_validate(json_properties[area_id]).to_user_model(),
+                properties=AreaPropertiesAPITableMode.model_validate(json_properties[area_id]).to_user_model(),
                 ui=None,
             )
 
