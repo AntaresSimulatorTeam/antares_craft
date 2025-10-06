@@ -26,7 +26,7 @@ from antares.craft.model.st_storage import (
     STStorageProperties,
     STStoragePropertiesUpdate,
 )
-from antares.craft.model.study import STUDY_VERSION_9_2
+from antares.craft.model.study import STUDY_VERSION_9_2, STUDY_VERSION_9_3
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.service.local_services.models.utils import check_min_version, initialize_field_default
 from antares.study.version import StudyVersion
@@ -50,10 +50,12 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
     initial_level: float = Field(default=0.5, ge=0, le=1)
     initial_level_optim: bool = False
     enabled: bool = True
-    # add new parameter 9.2
+    # Introduced in v9.2
     efficiency_withdrawal: Optional[float] = Field(None, ge=0)
     penalize_variation_injection: Optional[bool] = Field(None, alias="penalize-variation-injection")
     penalize_variation_withdrawal: Optional[bool] = Field(None, alias="penalize-variation-withdrawal")
+    # Introduced in v9.3
+    allow_overflow: Optional[bool] = Field(None, alias="allow-overflow")
 
     @staticmethod
     def get_9_2_fields_and_default_value() -> dict[str, Any]:
@@ -62,6 +64,10 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
             "penalize_variation_injection": False,
             "penalize_variation_withdrawal": False,
         }
+
+    @staticmethod
+    def get_9_3_fields_and_default_value() -> dict[str, Any]:
+        return {"allow_overflow": False}
 
     @staticmethod
     def from_user_model(user_class: STStoragePropertiesType) -> "STStoragePropertiesLocal":
@@ -81,6 +87,7 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
             efficiency_withdrawal=self.efficiency_withdrawal,
             penalize_variation_injection=self.penalize_variation_injection,
             penalize_variation_withdrawal=self.penalize_variation_withdrawal,
+            allow_overflow=self.allow_overflow,
         )
 
 
@@ -103,10 +110,17 @@ def validate_st_storage_against_version(properties: STStoragePropertiesLocal, ve
                 f"efficiency must be lower than efficiency_withdrawal. Currently: {properties.efficiency} > {efficiency_withdrawal}"
             )
 
+        if version < STUDY_VERSION_9_3:
+            for field in STStoragePropertiesLocal.get_9_3_fields_and_default_value():
+                check_min_version(properties, field, version)
+
 
 def initialize_with_version(properties: STStoragePropertiesLocal, version: StudyVersion) -> STStoragePropertiesLocal:
     if version >= STUDY_VERSION_9_2:
         for field, value in STStoragePropertiesLocal.get_9_2_fields_and_default_value().items():
+            initialize_field_default(properties, field, value)
+    if version >= STUDY_VERSION_9_3:
+        for field, value in STStoragePropertiesLocal.get_9_3_fields_and_default_value().items():
             initialize_field_default(properties, field, value)
     return properties
 

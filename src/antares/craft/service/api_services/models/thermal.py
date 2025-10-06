@@ -14,7 +14,6 @@ from dataclasses import asdict
 from antares.craft.model.thermal import (
     LawOption,
     LocalTSGenerationBehavior,
-    ThermalClusterGroup,
     ThermalClusterProperties,
     ThermalClusterPropertiesUpdate,
     ThermalCostGeneration,
@@ -30,7 +29,7 @@ class ThermalClusterPropertiesAPI(APIBaseModel):
     enabled: bool
     unit_count: int
     nominal_capacity: float
-    group: ThermalClusterGroup
+    group: str
     gen_ts: LocalTSGenerationBehavior
     min_stable_power: float
     min_up_time: int = 1

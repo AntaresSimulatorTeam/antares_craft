@@ -61,8 +61,9 @@ _study_path if stored in a disk
 
 STUDY_VERSION_8_8 = StudyVersion.parse("8.8")
 STUDY_VERSION_9_2 = StudyVersion.parse("9.2")
+STUDY_VERSION_9_3 = StudyVersion.parse("9.3")
 
-SUPPORTED_STUDY_VERSIONS: set[StudyVersion] = {STUDY_VERSION_8_8, STUDY_VERSION_9_2}
+SUPPORTED_STUDY_VERSIONS: set[StudyVersion] = {STUDY_VERSION_8_8, STUDY_VERSION_9_2, STUDY_VERSION_9_3}
 
 
 class Study:

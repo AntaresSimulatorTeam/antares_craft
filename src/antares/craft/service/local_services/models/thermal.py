@@ -10,9 +10,11 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
+from typing import Any
 
 from pydantic import Field
 
+from antares.craft.model.study import STUDY_VERSION_9_3
 from antares.craft.model.thermal import (
     LawOption,
     LocalTSGenerationBehavior,
@@ -22,6 +24,7 @@ from antares.craft.model.thermal import (
     ThermalCostGeneration,
 )
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
+from antares.study.version import StudyVersion
 
 ThermalPropertiesType = ThermalClusterProperties | ThermalClusterPropertiesUpdate
 
@@ -30,7 +33,7 @@ class ThermalClusterPropertiesLocal(LocalBaseModel):
     enabled: bool = True
     unit_count: int = Field(default=1, alias="unitcount")
     nominal_capacity: float = Field(default=0, alias="nominalcapacity")
-    group: ThermalClusterGroup = ThermalClusterGroup.OTHER1
+    group: str = ThermalClusterGroup.OTHER1.value
     gen_ts: LocalTSGenerationBehavior = Field(default=LocalTSGenerationBehavior.USE_GLOBAL, alias="gen-ts")
     min_stable_power: float = Field(default=0, alias="min-stable-power")
     min_up_time: int = Field(default=1, alias="min-up-time")
@@ -106,3 +109,28 @@ class ThermalClusterPropertiesLocal(LocalBaseModel):
             efficiency=self.efficiency,
             variable_o_m_cost=self.variable_o_m_cost,
         )
+
+
+def validate_thermal_against_version(properties: ThermalClusterPropertiesLocal, version: StudyVersion) -> None:
+    if version < STUDY_VERSION_9_3:
+        try:
+            properties.group = ThermalClusterGroup(properties.group).value
+        except ValueError:
+            valid_values = [e.value for e in ThermalClusterGroup]
+            raise ValueError(f"Before v9.3, group has to be a valid value : {valid_values}")
+
+
+def parse_thermal_cluster_local(study_version: StudyVersion, data: Any) -> ThermalClusterProperties:
+    local_properties = ThermalClusterPropertiesLocal.model_validate(data)
+    validate_thermal_against_version(local_properties, study_version)
+    return local_properties.to_user_model()
+
+
+def serialize_thermal_cluster_local(study_version: StudyVersion, thermal: ThermalPropertiesType) -> dict[str, Any]:
+    local_properties = ThermalClusterPropertiesLocal.from_user_model(thermal)
+    validate_thermal_against_version(local_properties, study_version)
+    # Because we're sometimes manually filling the group, we should exclude it if needed.
+    exclude = set() if thermal.group is not None else {"group"}
+    return local_properties.model_dump(
+        mode="json", by_alias=True, exclude_none=True, exclude_unset=True, exclude=exclude
+    )

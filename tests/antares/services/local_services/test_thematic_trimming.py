@@ -16,6 +16,7 @@ from dataclasses import asdict, replace
 from pathlib import Path
 
 from antares.craft import (
+    Study,
     ThematicTrimmingParameters,
     create_study_local,
     read_study_local,
@@ -53,6 +54,28 @@ def test_class_methods(tmp_path: Path) -> None:
         "other5_withdrawal",
         "other5_level",
         "sts_by_group",
+        "misc_dtg_2",
+        "misc_dtg_3",
+        "misc_dtg_4",
+        "wind_offshore",
+        "wind_onshore",
+        "solar_concrt",
+        "solar_pv",
+        "solar_rooft",
+        "renw_1",
+        "renw_2",
+        "renw_3",
+        "renw_4",
+        "solar",
+        "nuclear",
+        "lignite",
+        "coal",
+        "gas",
+        "oil",
+        "mix_fuel",
+        "misc_dtg",
+        "dispatch_gen",
+        "renewable_gen",
     }
 
     trimming = ThematicTrimmingParameters(spil_enrg=False)
@@ -170,15 +193,49 @@ def test_92(tmp_path: Path) -> None:
     for study_9_2 in [study, read_study_local(tmp_path / "second_study")]:
         settings = study_9_2.get_settings()
         # Ensures `sts_by_group` is not None as we have a 9.2 study
-        assert settings.thematic_trimming_parameters == ThematicTrimmingParameters(sts_by_group=True)
+        assert settings.thematic_trimming_parameters.sts_by_group is True
     # Checks the `set` method
     new_trimming = ThematicTrimmingParameters(ov_cost=False, nuclear=False)
     study.set_thematic_trimming(new_trimming)
     # We expect the sts_by_group field to be set as we have a 9.2 study
-    expected_trimming = ThematicTrimmingParameters(ov_cost=False, nuclear=False, sts_by_group=True)
-    assert study.get_settings().thematic_trimming_parameters == expected_trimming
+    actual_trimming = study.get_settings().thematic_trimming_parameters
+    assert actual_trimming.ov_cost is False
+    assert actual_trimming.nuclear is False
+    assert actual_trimming.sts_by_group is True
     # Checks the `reading` method
     study_path = Path(study.path)
     study = read_study_local(study_path)
     trimming = study.get_settings().thematic_trimming_parameters
-    assert trimming == expected_trimming
+    assert trimming.ov_cost is False
+    assert trimming.nuclear is False
+    assert trimming.sts_by_group is True
+
+
+def test_93(local_study_93: Study) -> None:
+    for study_9_3 in [local_study_93, read_study_local(Path(local_study_93.path))]:
+        settings = study_9_3.get_settings()
+        # Ensures `dispatch_gen` and `renewable_gen` are not None as we have a 9.3 study
+        assert settings.thematic_trimming_parameters.dispatch_gen is True
+        assert settings.thematic_trimming_parameters.renewable_gen is True
+        assert settings.thematic_trimming_parameters.nuclear is None
+    # Checks the `set` method
+    new_trimming = ThematicTrimmingParameters(ov_cost=False, max_mrg=False)
+    local_study_93.set_thematic_trimming(new_trimming)
+    # We expect the `dispatch_gen` and `renewable_gen` fields to be set as we have a 9.3 study
+    actual_trimming = local_study_93.get_settings().thematic_trimming_parameters
+    assert actual_trimming.ov_cost is False
+    assert actual_trimming.max_mrg is False
+    assert actual_trimming.dispatch_gen is True
+    assert actual_trimming.renewable_gen is True
+    # Checks the `reading` method
+    study = read_study_local(Path(local_study_93.path))
+    trimming = study.get_settings().thematic_trimming_parameters
+    assert trimming.ov_cost is False
+    assert trimming.max_mrg is False
+    assert trimming.dispatch_gen is True
+    assert trimming.renewable_gen is True
+
+    # Ensures we can't set the `nuclear` field as it was removed in this version
+    new_trimming = ThematicTrimmingParameters(nuclear=False)
+    with pytest.raises(InvalidFieldForVersionError, match="Field nuclear is not a valid field for study version 9.3"):
+        local_study_93.set_thematic_trimming(new_trimming)

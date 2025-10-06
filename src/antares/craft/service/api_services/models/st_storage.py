@@ -37,10 +37,12 @@ class STStoragePropertiesAPI(APIBaseModel):
     initial_level: float
     initial_level_optim: bool
     enabled: bool
-    # add new parameter 9.2
+    # Introduced in v9.2
     efficiency_withdrawal: float
     penalize_variation_injection: bool
     penalize_variation_withdrawal: bool
+    # Introduced in v9.3
+    allow_overflow: bool
 
     @staticmethod
     def from_user_model(user_class: STStoragePropertiesType) -> "STStoragePropertiesAPI":
@@ -60,6 +62,7 @@ class STStoragePropertiesAPI(APIBaseModel):
             efficiency_withdrawal=self.efficiency_withdrawal,
             penalize_variation_injection=self.penalize_variation_injection,
             penalize_variation_withdrawal=self.penalize_variation_withdrawal,
+            allow_overflow=self.allow_overflow,
         )
 
 
