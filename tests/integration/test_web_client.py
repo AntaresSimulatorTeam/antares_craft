@@ -12,11 +12,31 @@
 # ruff: noqa: F405
 import pytest
 
-from pathlib import Path
+import shutil
+import zipfile
+
+from pathlib import Path, PurePath
 from typing import Generator
 
+import numpy as np
+import pandas as pd
+
 from antares.craft import *  # noqa: F403
+from antares.craft.exceptions.exceptions import (
+    BindingConstraintCreationError,
+    ConstraintMatrixUpdateError,
+    InvalidRequestForScenarioBuilder,
+    MatrixUploadError,
+    ReferencedObjectDeletionNotAllowed,
+    StudySettingsUpdateError,
+    XpansionFileDeletionError,
+    XpansionMatrixReadingError,
+)
 from antares.craft.model.output import XpansionResult, XpansionSensitivityResult
+from antares.craft.model.settings.adequacy_patch import AdequacyPatchParameters
+from antares.craft.model.settings.advanced_parameters import AdvancedParameters
+from antares.craft.model.settings.study_settings import StudySettings
+from antares.craft.model.simulation import Job, JobStatus
 from tests.integration.antares_web_desktop import AntaresWebDesktop
 
 ASSETS_DIR = Path(__file__).parent / "assets"
@@ -43,38 +63,6 @@ class TestWebClient:
     ) -> None:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
 
-        ######################
-        # Specific tests for study version 9.3
-        ######################
-
-        # Create a study with an area
-        study = create_study_api("Study_9.3", "9.3", api_config)
-        area_fr = study.create_area("FR")
-
-        ####### Clusters #######
-
-        thermal_properties = ThermalClusterProperties(group="free group")
-        thermal = area_fr.create_thermal_cluster("thermal", thermal_properties)
-        assert thermal.properties.group == "free group"
-
-        renewable_properties = RenewableClusterProperties(group="free group")
-        renewable = area_fr.create_renewable_cluster("renewable", renewable_properties)
-        assert renewable.properties.group == "free group"
-
-        ####### Thematic trimming #######
-
-        current_trimming = study.get_settings().thematic_trimming_parameters
-        assert current_trimming.renewable_gen is True
-        assert current_trimming.dispatch_gen is True
-        assert current_trimming.ov_cost is True
-
-        study.set_thematic_trimming(ThematicTrimmingParameters(renewable_gen=False, ov_cost=False))
-        new_trimming = study.get_settings().thematic_trimming_parameters
-        assert new_trimming.renewable_gen is False
-        assert new_trimming.dispatch_gen is True
-        assert new_trimming.ov_cost is False
-
-        """
         study = create_study_api("antares-craft-test", "880", api_config)
 
         # tests area creation with default values
@@ -170,10 +158,10 @@ class TestWebClient:
 
         # test thermal cluster creation with properties
         thermal_name = "gaz_be"
-        thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS)
+        thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS.value)
         thermal_be = area_be.create_thermal_cluster(thermal_name, thermal_properties)
         assert thermal_be.properties.efficiency == 55
-        assert thermal_be.properties.group == ThermalClusterGroup.GAS
+        assert thermal_be.properties.group == "gas"
 
         # test thermal cluster creation with prepro_modulation matrices
         thermal_name = "matrices_be"
@@ -205,7 +193,7 @@ class TestWebClient:
 
         # Updating multiple thermal clusters properties at once
         thermal_update_1 = ThermalClusterPropertiesUpdate(marginal_cost=10.7, enabled=False, nominal_capacity=9.8)
-        thermal_update_2 = ThermalClusterPropertiesUpdate(op1=10.2, spread_cost=60.5, group=ThermalClusterGroup.NUCLEAR)
+        thermal_update_2 = ThermalClusterPropertiesUpdate(op1=10.2, spread_cost=60.5, group="nuclear")
         update_for_thermals = {thermal_fr: thermal_update_1, thermal_value_be: thermal_update_2}
 
         study.update_thermal_clusters(update_for_thermals)
@@ -222,7 +210,7 @@ class TestWebClient:
         be_value_properties = thermal_value_be.properties
         assert be_value_properties.op1 == 10.2
         assert be_value_properties.spread_cost == 60.5
-        assert be_value_properties.group == ThermalClusterGroup.NUCLEAR
+        assert be_value_properties.group == ThermalClusterGroup.NUCLEAR.value
         assert be_value_properties.op2 == 0.0
         assert be_value_properties.marginal_cost == 0.0
         assert be_value_properties.min_up_time == 1
@@ -248,15 +236,15 @@ class TestWebClient:
 
         # test renewable cluster creation with properties
         renewable_name = "wind_onshore"
-        renewable_properties = RenewableClusterProperties(enabled=False, group=RenewableClusterGroup.WIND_ON_SHORE)
+        renewable_properties = RenewableClusterProperties(enabled=False, group="wind onshore")
         renewable_onshore = area_fr.create_renewable_cluster(renewable_name, renewable_properties)
         assert not renewable_onshore.properties.enabled
-        assert renewable_onshore.properties.group == RenewableClusterGroup.WIND_ON_SHORE
+        assert renewable_onshore.properties.group == RenewableClusterGroup.WIND_ON_SHORE.value
 
         # Update multiple renewable clusters properties at once
-        renewable_update_1 = RenewableClusterPropertiesUpdate(group=RenewableClusterGroup.WIND_ON_SHORE, unit_count=10)
+        renewable_update_1 = RenewableClusterPropertiesUpdate(group="wind onshore", unit_count=10)
         renewable_update_2 = RenewableClusterPropertiesUpdate(
-            group=RenewableClusterGroup.THERMAL_SOLAR, enabled=False, nominal_capacity=1340
+            group=RenewableClusterGroup.THERMAL_SOLAR.value, enabled=False, nominal_capacity=1340
         )
         update_for_renewable = {renewable_fr: renewable_update_1, renewable_onshore: renewable_update_2}
 
@@ -266,12 +254,12 @@ class TestWebClient:
         onshore_properties = renewable_onshore.properties
 
         assert fr_renew_properties.unit_count == 10
-        assert fr_renew_properties.group == RenewableClusterGroup.WIND_ON_SHORE
+        assert fr_renew_properties.group == RenewableClusterGroup.WIND_ON_SHORE.value
         # checking the old values are not modified
         assert fr_renew_properties.nominal_capacity == 0
         assert fr_renew_properties.enabled
 
-        assert onshore_properties.group == RenewableClusterGroup.THERMAL_SOLAR
+        assert onshore_properties.group == RenewableClusterGroup.THERMAL_SOLAR.value
         assert not onshore_properties.enabled
         assert onshore_properties.nominal_capacity == 1340
 
@@ -492,9 +480,9 @@ class TestWebClient:
 
         # tests thermal properties update
         new_props = ThermalClusterPropertiesUpdate()
-        new_props.group = ThermalClusterGroup.NUCLEAR
+        new_props.group = "nuclear"
         thermal_fr.update_properties(new_props)
-        assert thermal_fr.properties.group == ThermalClusterGroup.NUCLEAR
+        assert thermal_fr.properties.group == ThermalClusterGroup.NUCLEAR.value
 
         # tests study reading method returns the same object that the one we created
         actual_study = read_study_api(api_config, study.service.study_id)
@@ -1500,4 +1488,44 @@ class TestWebClient:
         data = [["be", 1, 0.0, 0.0], ["fr", 1, 0.0, 0.0]]
         expected_df = pd.DataFrame(data=data, columns=cols)
         assert expected_df.equals(aggregated_df)
-        """
+
+        ######################
+        # Specific tests for study version 9.3
+        ######################
+
+        # Create a study with an area
+        study = create_study_api("Study_9.3", "9.3", api_config)
+        area_fr = study.create_area("FR")
+
+        ####### Clusters #######
+
+        thermal_properties = ThermalClusterProperties(group="free group")
+        thermal = area_fr.create_thermal_cluster("thermal", thermal_properties)
+        assert thermal.properties.group == "free group"
+
+        renewable_properties = RenewableClusterProperties(group="free group")
+        renewable = area_fr.create_renewable_cluster("renewable", renewable_properties)
+        assert renewable.properties.group == "free group"
+
+        ####### Short-term storages #######
+
+        sts_properties = STStorageProperties(allow_overflow=True)
+        storage = area_fr.create_st_storage("sts", sts_properties)
+        assert storage.properties.allow_overflow is True
+
+        sts_properties_upd = STStoragePropertiesUpdate(allow_overflow=False)
+        new_sts_properties = storage.update_properties(sts_properties_upd)
+        assert new_sts_properties.allow_overflow is False
+
+        ####### Thematic trimming #######
+
+        current_trimming = study.get_settings().thematic_trimming_parameters
+        assert current_trimming.renewable_gen is True
+        assert current_trimming.dispatch_gen is True
+        assert current_trimming.ov_cost is True
+
+        study.set_thematic_trimming(ThematicTrimmingParameters(renewable_gen=False, ov_cost=False))
+        new_trimming = study.get_settings().thematic_trimming_parameters
+        assert new_trimming.renewable_gen is False
+        assert new_trimming.dispatch_gen is True
+        assert new_trimming.ov_cost is False
