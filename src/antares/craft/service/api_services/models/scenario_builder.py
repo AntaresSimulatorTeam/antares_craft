@@ -40,7 +40,7 @@ class ScenarioBuilderAPI(APIBaseModel):
     binding_constraint: dict[str, dict[str, int]] = Field(alias="bc")
     hydro_initial_level: dict[str, dict[str, float]] = Field(alias="hl")
     hydro_generation_power: dict[str, dict[str, int]] = Field(alias="hgp")
-    hydro_final_level: dict[str, dict[str, int]] = Field(alias="hfl")
+    hydro_final_level: dict[str, dict[str, float]] = Field(alias="hfl")
 
     @staticmethod
     def from_api(data: dict[str, Any]) -> "ScenarioBuilderAPI":
