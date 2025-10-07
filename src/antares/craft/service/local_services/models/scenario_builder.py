@@ -14,7 +14,7 @@ from typing import Any
 from pydantic import Field
 
 from antares.craft import ScenarioBuilder
-from antares.craft.model.commons import STUDY_VERSION_9_2
+from antares.craft.model.commons import STUDY_VERSION_9_2, STUDY_VERSION_9_3
 from antares.craft.model.scenario_builder import (
     ScenarioArea,
     ScenarioCluster,
@@ -23,6 +23,8 @@ from antares.craft.model.scenario_builder import (
     ScenarioLink,
     ScenarioMatrix,
     ScenarioMatrixHydro,
+    ScenarioStorage,
+    ScenarioStorageConstraints,
     get_default_builder_matrix,
 )
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
@@ -57,6 +59,8 @@ class ScenarioBuilderLocal(LocalBaseModel):
     hydro_initial_level: dict[str, dict[str, float]] = Field(alias="hl")
     hydro_final_level: dict[str, dict[str, float]] = Field(alias="hfl")
     hydro_generation_power: dict[str, dict[str, int]] = Field(alias="hgp")
+    storage_inflows: dict[str, dict[str, dict[str, int]]] = Field(alias="sts")
+    storage_constraints: dict[str, dict[str, dict[str, dict[str, int]]]] = Field(alias="sta")
 
     @staticmethod
     def from_ini(data: dict[str, Any]) -> "ScenarioBuilderLocal":
@@ -67,7 +71,7 @@ class ScenarioBuilderLocal(LocalBaseModel):
             scenario_type = splitted_key[0]
             if scenario_type not in MAPPING:
                 raise ValueError(f"The scenario type {scenario_type} is not supported")
-            if scenario_type in ["t", "r"]:
+            if scenario_type in ["t", "r", "sts"]:
                 args.setdefault(MAPPING[scenario_type], {}).setdefault(splitted_key[1], {}).setdefault(
                     splitted_key[3], {}
                 )[splitted_key[2]] = value
@@ -75,6 +79,10 @@ class ScenarioBuilderLocal(LocalBaseModel):
                 args.setdefault(MAPPING[scenario_type], {}).setdefault(f"{splitted_key[1]} / {splitted_key[2]}", {})[
                     splitted_key[3]
                 ] = value
+            elif scenario_type == "sta":
+                args.setdefault(MAPPING[scenario_type], {}).setdefault(splitted_key[1], {}).setdefault(
+                    splitted_key[3], {}
+                ).setdefault(splitted_key[4], {})[splitted_key[2]] = value
             else:
                 if scenario_type == "hl":
                     value *= 100
@@ -116,11 +124,13 @@ class ScenarioBuilderLocal(LocalBaseModel):
             renewable=ScenarioCluster(_data={}, _years=nb_years),
             binding_constraint=ScenarioConstraint(_data={}, _years=nb_years),
             hydro_initial_level=ScenarioHydroLevel(_data={}, _years=nb_years),
-            hydro_final_level=ScenarioHydroLevel(_data={}, _years=nb_years),
             hydro_generation_power=ScenarioArea(_data={}, _years=nb_years),
         )
-        if study_version < STUDY_VERSION_9_2:
-            scenario_builder.hydro_final_level = None
+        if study_version >= STUDY_VERSION_9_2:
+            scenario_builder.hydro_final_level = ScenarioHydroLevel(_data={}, _years=nb_years)
+        if study_version < STUDY_VERSION_9_3:
+            scenario_builder.storage_inflows = ScenarioStorage(_data={}, _years=nb_years)
+            scenario_builder.storage_constraints = ScenarioStorageConstraints(_data={}, _years=nb_years)
 
         for keyword in [
             "load",
