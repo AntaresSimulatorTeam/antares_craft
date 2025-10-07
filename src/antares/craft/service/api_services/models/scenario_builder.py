@@ -14,6 +14,7 @@ from typing import Any
 from pydantic import Field
 
 from antares.craft import ScenarioBuilder
+from antares.craft.model.commons import STUDY_VERSION_9_2
 from antares.craft.model.scenario_builder import (
     ScenarioArea,
     ScenarioCluster,
@@ -24,7 +25,6 @@ from antares.craft.model.scenario_builder import (
     ScenarioMatrixHydro,
     get_default_builder_matrix,
 )
-from antares.craft.model.study import STUDY_VERSION_9_2
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.study.version import StudyVersion

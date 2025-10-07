@@ -16,6 +16,11 @@ from typing import Annotated, Any, Optional
 from pydantic import BeforeValidator, PlainSerializer
 
 from antares.craft.exceptions.exceptions import FilteringValueError
+from antares.study.version import StudyVersion
+
+STUDY_VERSION_8_8 = StudyVersion.parse("8.8")
+STUDY_VERSION_9_2 = StudyVersion.parse("9.2")
+STUDY_VERSION_9_3 = StudyVersion.parse("9.3")
 
 
 class FilterOption(Enum):

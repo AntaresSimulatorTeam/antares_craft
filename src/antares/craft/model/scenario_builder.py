@@ -13,10 +13,11 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from antares.craft.exceptions.exceptions import InvalidFieldForVersionError, InvalidRequestForScenarioBuilder
+from antares.craft.model.commons import STUDY_VERSION_9_2
 from antares.study.version import StudyVersion
 
 if TYPE_CHECKING:
-    from antares.craft.model.study import STUDY_VERSION_9_2, Study
+    from antares.craft.model.study import Study
 
 
 @dataclass

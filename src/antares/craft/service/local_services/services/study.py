@@ -203,7 +203,7 @@ class StudyLocalService(BaseStudyService):
         scenario_builder_path = self._config.study_path / "settings" / "scenariobuilder.dat"
         content = IniReader().read(scenario_builder_path)
         sc_builder_local = ScenarioBuilderLocal.from_ini(content)
-        return sc_builder_local.to_user_model(nb_years)
+        return sc_builder_local.to_user_model(nb_years, study_version)
 
     @override
     def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:

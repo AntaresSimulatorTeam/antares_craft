@@ -27,6 +27,7 @@ from antares.craft.exceptions.exceptions import (
     MatrixFormatError,
     STStoragePropertiesUpdateError,
 )
+from antares.craft.model.commons import STUDY_VERSION_8_8, STUDY_VERSION_9_2
 from antares.craft.model.st_storage import (
     AdditionalConstraintOperator,
     AdditionalConstraintVariable,
@@ -35,7 +36,6 @@ from antares.craft.model.st_storage import (
     STStorageProperties,
     STStoragePropertiesUpdate,
 )
-from antares.craft.model.study import STUDY_VERSION_8_8, STUDY_VERSION_9_2
 from antares.craft.service.local_services.models.st_storage import (
     parse_st_storage_local,
     serialize_st_storage_local,

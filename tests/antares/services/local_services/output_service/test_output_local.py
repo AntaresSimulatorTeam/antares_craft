@@ -21,6 +21,7 @@ import pandas as pd
 
 from antares.craft import LocalConfiguration, Study
 from antares.craft.exceptions.exceptions import OutputDataRetrievalError
+from antares.craft.model.commons import STUDY_VERSION_8_8
 from antares.craft.model.output import (
     Frequency,
     MCAllAreasDataType,
@@ -29,7 +30,6 @@ from antares.craft.model.output import (
     MCIndLinksDataType,
     Output,
 )
-from antares.craft.model.study import STUDY_VERSION_8_8
 from antares.craft.service.local_services.factory import create_local_services
 from antares.craft.service.utils import read_output_matrix
 

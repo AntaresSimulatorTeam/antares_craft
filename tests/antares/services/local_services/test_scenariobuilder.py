@@ -20,9 +20,12 @@ def test_empty_scenariobuilder(local_study: Study) -> None:
     sc_builder = local_study.get_scenario_builder()
     object_content = asdict(sc_builder)
     # Asserts the object is empty
-    for value in object_content.values():
-        assert value["_years"] == 1
-        assert value["_data"] == {}
+    for key, value in object_content.items():
+        if key == "hydro_final_level":
+            assert value is None
+        else:
+            assert value["_years"] == 1
+            assert value["_data"] == {}
 
 
 def test_scenario_builder_lifecycle(local_study_with_renewable: Study) -> None:

@@ -14,13 +14,13 @@ from typing import Any
 
 from pydantic import Field
 
+from antares.craft.model.commons import STUDY_VERSION_9_3
 from antares.craft.model.renewable import (
     RenewableClusterGroup,
     RenewableClusterProperties,
     RenewableClusterPropertiesUpdate,
     TimeSeriesInterpretation,
 )
-from antares.craft.model.study import STUDY_VERSION_9_3
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.study.version import StudyVersion
 

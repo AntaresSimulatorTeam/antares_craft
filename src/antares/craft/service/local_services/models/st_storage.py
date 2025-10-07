@@ -16,6 +16,7 @@ from typing import Annotated, Any, Optional, TypeAlias
 
 from pydantic import BeforeValidator, Field, PlainSerializer
 
+from antares.craft.model.commons import STUDY_VERSION_9_2, STUDY_VERSION_9_3
 from antares.craft.model.st_storage import (
     AdditionalConstraintOperator,
     AdditionalConstraintVariable,
@@ -26,7 +27,6 @@ from antares.craft.model.st_storage import (
     STStorageProperties,
     STStoragePropertiesUpdate,
 )
-from antares.craft.model.study import STUDY_VERSION_9_2, STUDY_VERSION_9_3
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.service.local_services.models.utils import check_min_version, initialize_field_default
 from antares.study.version import StudyVersion

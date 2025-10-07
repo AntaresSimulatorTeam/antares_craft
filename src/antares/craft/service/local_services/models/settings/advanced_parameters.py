@@ -15,7 +15,7 @@ from typing import Any, Optional
 from pydantic import Field, field_serializer, field_validator
 
 from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
-from antares.craft.model.commons import join_with_comma
+from antares.craft.model.commons import STUDY_VERSION_9_2, join_with_comma
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParameters,
     AdvancedParametersUpdate,
@@ -33,7 +33,6 @@ from antares.craft.model.settings.advanced_parameters import (
 from antares.craft.model.settings.general import (
     OutputChoices,
 )
-from antares.craft.model.study import STUDY_VERSION_9_2
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.service.local_services.models.utils import check_min_version, initialize_field_default
 from antares.craft.tools.alias_generators import to_kebab
