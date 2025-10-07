@@ -151,10 +151,21 @@ hfl,it,3 = 0.005"""
             sts.create_constraints(sts_constraint)
 
             # Crate a scenario builder with storage constraints
-            ini_content = """[Default Ruleset]
-                    sta,fr,0,battery,c1 = 1
-                    sta,fr,2,battery,c1 = 4"""
-            sc_builder_path.write_text(ini_content)
+            sc_builder = study.get_scenario_builder()
+            assert sc_builder.storage_constraints is not None
+            sc_builder.storage_constraints.get_constraint("fr", "battery", "c1").set_new_scenario([1, None, 4, None])
+
+            study.set_scenario_builder(sc_builder)
+
+            # Reads the ini content
+            expected_ini_content = """[Default Ruleset]
+sts,fr,1,battery = 2
+sts,fr,2,battery = 3
+sta,fr,0,battery,c1 = 1
+sta,fr,2,battery,c1 = 4
+
+"""
+            assert sc_builder_path.read_text() == expected_ini_content
 
             sc_builder = study.get_scenario_builder()
             assert sc_builder.storage_constraints is not None

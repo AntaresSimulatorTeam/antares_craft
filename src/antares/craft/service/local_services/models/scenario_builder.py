@@ -110,7 +110,7 @@ class ScenarioBuilderLocal(LocalBaseModel):
             elif scenario_type == "sta":
                 for area_id, sts_value in value.items():
                     for sts_id, values in sts_value.items():
-                        for constraint_id, year_values in sts_value.items():
+                        for constraint_id, year_values in values.items():
                             for mc_year, ts_year in year_values.items():
                                 key = f"{scenario_type},{area_id},{mc_year},{sts_id},{constraint_id}"
                                 ini_content[key] = ts_year
