@@ -151,9 +151,7 @@ class ScenarioBuilderAPI(APIBaseModel):
             for area_id, value in attribute._data.items():
                 cluster_api_data[area_id] = {}
                 for cluster_id, scenario_matrix in value.items():
-                    cluster_data = {
-                        str(index): value for index, value in enumerate(scenario_matrix._matrix) if value
-                    }
+                    cluster_data = {str(index): value for index, value in enumerate(scenario_matrix._matrix) if value}
                     cluster_api_data[area_id][cluster_id] = cluster_data
             args[keyword] = cluster_api_data
         return ScenarioBuilderAPI.model_validate(args)
