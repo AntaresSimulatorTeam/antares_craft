@@ -9,10 +9,16 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import pytest
+
+import re
+
 from dataclasses import asdict
 from pathlib import Path
 
 from antares.craft import Study, StudySettingsUpdate
+from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
+from antares.craft.model.commons import STUDY_VERSION_9_2
 from antares.craft.model.settings.general import GeneralParametersUpdate
 
 
@@ -92,3 +98,30 @@ hl,it,3 = 0.005
 
 """
     )
+
+
+def test_scenario_builder_version(local_study_with_renewable: Study, local_study_92: Study) -> None:
+    for study in (local_study_with_renewable, local_study_92):
+        # Set the nb_years to 4
+        study.update_settings(StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4)))
+
+        # Create a scenario builder with hydro_final_level
+        study_path = Path(study.path)
+        ini_content = """[Default Ruleset]
+hfl,it,0 = 0.001
+hfl,it,1 = 0.002
+hfl,it,3 = 0.005"""
+        sc_builder_path = study_path / "settings" / "scenariobuilder.dat"
+        sc_builder_path.write_text(ini_content)
+
+        if study._version < STUDY_VERSION_9_2:
+            with pytest.raises(
+                InvalidFieldForVersionError, match=re.escape("`hydro_final_level` only exists for v9.2+ studies")
+            ):
+                study.get_scenario_builder()
+
+        else:
+            sc_builder = study.get_scenario_builder()
+            assert sc_builder.hydro_final_level.get_area("it").get_scenario() == [0.001, 0.002, None, 0.005]
+
+        # Updates the sc_builder
