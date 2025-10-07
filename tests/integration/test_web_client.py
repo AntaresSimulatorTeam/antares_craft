@@ -1533,3 +1533,32 @@ class TestWebClient:
         assert new_trimming.renewable_gen is False
         assert new_trimming.dispatch_gen is True
         assert new_trimming.ov_cost is False
+
+        ####### Scenario Builder #######
+
+        # Set the nb_years to 4
+        study.update_settings(StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4)))
+
+        # Creates a short-term storage constraint
+        sts_constraint = [STStorageAdditionalConstraint(name="c1", occurrences=[Occurrence([1, 3])])]
+        sts = study.get_areas()["fr"].get_st_storages()["sts"]
+        sts.create_constraints(sts_constraint)
+
+        # Reads the scenario builder
+        sc_builder = study.get_scenario_builder()
+        assert sc_builder.storage_constraints is not None
+        assert sc_builder.storage_inflows is not None
+        assert sc_builder.storage_inflows.get_storage("fr", "sts").get_scenario() == [None, None, None, None]
+
+        # Sets a new scenario builder
+        sc_builder.storage_inflows.get_storage("fr", "sts").set_new_scenario([1, None, 3, None])
+        sc_builder.storage_constraints.get_constraint("fr", "sts", "c1").set_new_scenario([4, 3, 2, 1])
+        study.set_scenario_builder(sc_builder)
+
+        # Reads the new scenario builder
+        new_sc_builder = study.get_scenario_builder()
+        assert new_sc_builder.storage_constraints is not None
+        assert new_sc_builder.storage_inflows is not None
+
+        assert new_sc_builder.storage_inflows.get_storage("fr", "sts").get_scenario() == [1, None, 3, None]
+        assert new_sc_builder.storage_constraints.get_constraint("fr", "sts", "c1").get_scenario() == [4, 3, 2, 1]
