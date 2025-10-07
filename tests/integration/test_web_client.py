@@ -1458,6 +1458,7 @@ class TestWebClient:
         ########## Scenario Builder ##########
         sc_builder = study.get_scenario_builder()
         assert sc_builder.load.get_area("fr").get_scenario() == [None, None, None, None]
+        assert sc_builder.hydro_final_level is not None
         assert sc_builder.hydro_final_level.get_area("fr").get_scenario() == [None, None, None, None]
         assert sc_builder.hydro_initial_level.get_area("fr").get_scenario() == [None, None, None, None]
 
