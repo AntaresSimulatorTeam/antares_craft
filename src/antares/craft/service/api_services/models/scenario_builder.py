@@ -123,8 +123,8 @@ class ScenarioBuilderAPI(APIBaseModel):
                     cluster_dict[area_id][cluster_id] = get_default_builder_matrix(nb_years)
                     for mc_year, ts_year in values.items():
                         cluster_dict[area_id][cluster_id]._matrix[int(mc_year)] = ts_year
-            cls = ScenarioStorage if keyword == "storage_inflows" else ScenarioCluster
-            setattr(scenario_builder, keyword, cls(_data=cluster_dict, _years=nb_years))
+            scenario_class = ScenarioStorage if keyword == "storage_inflows" else ScenarioCluster
+            setattr(scenario_builder, keyword, scenario_class(_data=cluster_dict, _years=nb_years))
 
         return scenario_builder
 
