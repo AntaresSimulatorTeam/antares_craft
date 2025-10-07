@@ -43,6 +43,8 @@ MAPPING = {
     "hl": "hydro_initial_level",
     "hfl": "hydro_final_level",
     "hgp": "hydro_generation_power",
+    "sts": "storage_inflows",
+    "sta": "storage_constraints",
 }
 
 

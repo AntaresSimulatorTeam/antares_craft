@@ -203,9 +203,9 @@ class ScenarioBuilder:
             raise InvalidFieldForVersionError("`hydro_final_level` only exists for v9.2+ studies")
         if study_version < STUDY_VERSION_9_3:
             if self.storage_inflows is not None:
-                raise InvalidFieldForVersionError("`storage_inflows` only exists for v9.2+ studies")
+                raise InvalidFieldForVersionError("`storage_inflows` only exists for v9.3+ studies")
             if self.storage_constraints is not None:
-                raise InvalidFieldForVersionError("`storage_constraints` only exists for v9.2+ studies")
+                raise InvalidFieldForVersionError("`storage_constraints` only exists for v9.3+ studies")
 
     def _set_study(self, study: "Study") -> None:
         areas = study.get_areas()
