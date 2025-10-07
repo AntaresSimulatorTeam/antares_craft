@@ -113,18 +113,18 @@ class ScenarioBuilderAPI(APIBaseModel):
             setattr(scenario_builder, keyword, ScenarioHydroLevel(_data=user_dict_hydro, _years=nb_years))
 
         for keyword in ["renewable", "thermal", "storage_inflows"]:
-            cluster_dict: dict[str, dict[str, ScenarioMatrix]] = {}
+            data_dict: dict[str, dict[str, ScenarioMatrix]] = {}
             attribute = getattr(self, keyword)
             if not attribute:
                 continue
             for area_id, value in attribute.items():
-                cluster_dict[area_id] = {}
-                for cluster_id, values in value.items():
-                    cluster_dict[area_id][cluster_id] = get_default_builder_matrix(nb_years)
+                data_dict[area_id] = {}
+                for obj_id, values in value.items():
+                    data_dict[area_id][obj_id] = get_default_builder_matrix(nb_years)
                     for mc_year, ts_year in values.items():
-                        cluster_dict[area_id][cluster_id]._matrix[int(mc_year)] = ts_year
+                        data_dict[area_id][obj_id]._matrix[int(mc_year)] = ts_year
             scenario_class = ScenarioStorage if keyword == "storage_inflows" else ScenarioCluster
-            setattr(scenario_builder, keyword, scenario_class(_data=cluster_dict, _years=nb_years))
+            setattr(scenario_builder, keyword, scenario_class(_data=data_dict, _years=nb_years))
 
         return scenario_builder
 
