@@ -122,4 +122,5 @@ hfl,it,3 = 0.005"""
 
         else:
             sc_builder = study.get_scenario_builder()
+            assert sc_builder.hydro_final_level is not None
             assert sc_builder.hydro_final_level.get_area("it").get_scenario() == [0.001, 0.002, None, 0.005]
