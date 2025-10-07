@@ -165,15 +165,15 @@ class ScenarioBuilderAPI(APIBaseModel):
                 api_data[area_id] = {str(index): value for index, value in enumerate(values._matrix) if value}
             args[keyword] = api_data
 
-        for keyword in ["renewable", "thermal"]:
+        for keyword in ["renewable", "thermal", "storage_inflows"]:
             attribute = getattr(user_class, keyword)
             if not attribute:
                 continue
-            cluster_api_data: dict[str, dict[str, dict[str, int]]] = {}
+            api_data: dict[str, dict[str, dict[str, int]]] = {}
             for area_id, value in attribute._data.items():
-                cluster_api_data[area_id] = {}
-                for cluster_id, scenario_matrix in value.items():
+                api_data[area_id] = {}
+                for obj_id, scenario_matrix in value.items():
                     cluster_data = {str(index): value for index, value in enumerate(scenario_matrix._matrix) if value}
-                    cluster_api_data[area_id][cluster_id] = cluster_data
-            args[keyword] = cluster_api_data
+                    api_data[area_id][obj_id] = cluster_data
+            args[keyword] = api_data
         return ScenarioBuilderAPI.model_validate(args)
