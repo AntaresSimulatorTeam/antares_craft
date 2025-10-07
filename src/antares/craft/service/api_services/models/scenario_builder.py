@@ -97,11 +97,13 @@ class ScenarioBuilderAPI(APIBaseModel):
 
         for keyword in ["hydro_initial_level", "hydro_final_level"]:
             user_dict_hydro: dict[str, ScenarioMatrixHydro] = {}
-            if getattr(self, keyword):
-                for key, value in getattr(self, keyword).items():
-                    user_dict_hydro[key] = ScenarioMatrixHydro([None] * nb_years)
-                    for mc_year, level_value in value.items():
-                        user_dict_hydro[key]._matrix[int(mc_year)] = level_value
+            attribute = getattr(self, keyword)
+            if not attribute:
+                continue
+            for key, value in attribute.items():
+                user_dict_hydro[key] = ScenarioMatrixHydro([None] * nb_years)
+                for mc_year, level_value in value.items():
+                    user_dict_hydro[key]._matrix[int(mc_year)] = level_value
             setattr(scenario_builder, keyword, ScenarioHydroLevel(_data=user_dict_hydro, _years=nb_years))
 
         for keyword in ["renewable", "thermal"]:
