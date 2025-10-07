@@ -16,9 +16,9 @@ import re
 from dataclasses import asdict
 from pathlib import Path
 
-from antares.craft import Study, StudySettingsUpdate
+from antares.craft import Occurrence, STStorageAdditionalConstraint, Study, StudySettingsUpdate
 from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
-from antares.craft.model.commons import STUDY_VERSION_9_2
+from antares.craft.model.commons import STUDY_VERSION_9_2, STUDY_VERSION_9_3
 from antares.craft.model.settings.general import GeneralParametersUpdate
 
 
@@ -27,7 +27,7 @@ def test_empty_scenariobuilder(local_study: Study) -> None:
     object_content = asdict(sc_builder)
     # Asserts the object is empty
     for key, value in object_content.items():
-        if key == "hydro_final_level":
+        if key in ("hydro_final_level", "storage_inflows", "storage_constraints"):
             assert value is None
         else:
             assert value["_years"] == 1
@@ -100,8 +100,10 @@ hl,it,3 = 0.005
     )
 
 
-def test_scenario_builder_version(local_study_with_renewable: Study, local_study_92: Study) -> None:
-    for study in (local_study_with_renewable, local_study_92):
+def test_scenario_builder_version(
+    local_study_with_renewable: Study, local_study_92: Study, local_study_93: Study
+) -> None:
+    for study in (local_study_with_renewable, local_study_92, local_study_93):
         # Set the nb_years to 4
         study.update_settings(StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4)))
 
@@ -124,3 +126,52 @@ hfl,it,3 = 0.005"""
             sc_builder = study.get_scenario_builder()
             assert sc_builder.hydro_final_level is not None
             assert sc_builder.hydro_final_level.get_area("it").get_scenario() == [0.001, 0.002, None, 0.005]
+
+        # Create a scenario builder with storage inflows
+        sts = study.get_areas()["fr"].create_st_storage("battery")
+
+        ini_content = """[Default Ruleset]
+        sts,fr,1,battery = 2
+        sts,fr,2,battery = 3"""
+        sc_builder_path.write_text(ini_content)
+
+        if study._version < STUDY_VERSION_9_3:
+            with pytest.raises(
+                InvalidFieldForVersionError, match=re.escape("`storage_inflows` only exists for v9.3+ studies")
+            ):
+                study.get_scenario_builder()
+
+        else:
+            sc_builder = study.get_scenario_builder()
+            assert sc_builder.storage_inflows is not None
+            assert sc_builder.storage_inflows.get_storage("fr", "battery").get_scenario() == [None, 2, 3, None]
+
+            # Create constraint
+            sts_constraint = [STStorageAdditionalConstraint(name="c1", occurrences=[Occurrence([1, 3])])]
+            sts.create_constraints(sts_constraint)
+
+            # Crate a scenario builder with storage constraints
+            sc_builder = study.get_scenario_builder()
+            assert sc_builder.storage_constraints is not None
+            sc_builder.storage_constraints.get_constraint("fr", "battery", "c1").set_new_scenario([1, None, 4, None])
+
+            study.set_scenario_builder(sc_builder)
+
+            # Reads the ini content
+            expected_ini_content = """[Default Ruleset]
+sts,fr,1,battery = 2
+sts,fr,2,battery = 3
+sta,fr,0,battery,c1 = 1
+sta,fr,2,battery,c1 = 4
+
+"""
+            assert sc_builder_path.read_text() == expected_ini_content
+
+            sc_builder = study.get_scenario_builder()
+            assert sc_builder.storage_constraints is not None
+            assert sc_builder.storage_constraints.get_constraint("fr", "battery", "c1").get_scenario() == [
+                1,
+                None,
+                4,
+                None,
+            ]

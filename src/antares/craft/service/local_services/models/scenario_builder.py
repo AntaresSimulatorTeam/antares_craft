@@ -14,7 +14,7 @@ from typing import Any
 from pydantic import Field
 
 from antares.craft import ScenarioBuilder
-from antares.craft.model.commons import STUDY_VERSION_9_2
+from antares.craft.model.commons import STUDY_VERSION_9_2, STUDY_VERSION_9_3
 from antares.craft.model.scenario_builder import (
     ScenarioArea,
     ScenarioCluster,
@@ -23,6 +23,8 @@ from antares.craft.model.scenario_builder import (
     ScenarioLink,
     ScenarioMatrix,
     ScenarioMatrixHydro,
+    ScenarioStorage,
+    ScenarioStorageConstraints,
     get_default_builder_matrix,
 )
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
@@ -41,6 +43,8 @@ MAPPING = {
     "hl": "hydro_initial_level",
     "hfl": "hydro_final_level",
     "hgp": "hydro_generation_power",
+    "sts": "storage_inflows",
+    "sta": "storage_constraints",
 }
 
 
@@ -57,6 +61,8 @@ class ScenarioBuilderLocal(LocalBaseModel):
     hydro_initial_level: dict[str, dict[str, float]] = Field(alias="hl")
     hydro_final_level: dict[str, dict[str, float]] = Field(alias="hfl")
     hydro_generation_power: dict[str, dict[str, int]] = Field(alias="hgp")
+    storage_inflows: dict[str, dict[str, dict[str, int]]] = Field(alias="sts")
+    storage_constraints: dict[str, dict[str, dict[str, dict[str, int]]]] = Field(alias="sta")
 
     @staticmethod
     def from_ini(data: dict[str, Any]) -> "ScenarioBuilderLocal":
@@ -67,7 +73,7 @@ class ScenarioBuilderLocal(LocalBaseModel):
             scenario_type = splitted_key[0]
             if scenario_type not in MAPPING:
                 raise ValueError(f"The scenario type {scenario_type} is not supported")
-            if scenario_type in ["t", "r"]:
+            if scenario_type in ["t", "r", "sts"]:
                 args.setdefault(MAPPING[scenario_type], {}).setdefault(splitted_key[1], {}).setdefault(
                     splitted_key[3], {}
                 )[splitted_key[2]] = value
@@ -75,6 +81,10 @@ class ScenarioBuilderLocal(LocalBaseModel):
                 args.setdefault(MAPPING[scenario_type], {}).setdefault(f"{splitted_key[1]} / {splitted_key[2]}", {})[
                     splitted_key[3]
                 ] = value
+            elif scenario_type == "sta":
+                args.setdefault(MAPPING[scenario_type], {}).setdefault(splitted_key[1], {}).setdefault(
+                    splitted_key[3], {}
+                ).setdefault(splitted_key[4], {})[splitted_key[2]] = value
             else:
                 if scenario_type == "hl":
                     value *= 100
@@ -85,7 +95,7 @@ class ScenarioBuilderLocal(LocalBaseModel):
         json_content = self.model_dump(by_alias=True, exclude_none=True)
         ini_content = {}
         for scenario_type, value in json_content.items():
-            if scenario_type in ["t", "r"]:
+            if scenario_type in ["t", "r", "sts"]:
                 for area_id, cluster_value in value.items():
                     for cluster_id, year_values in cluster_value.items():
                         for mc_year, ts_year in year_values.items():
@@ -97,6 +107,13 @@ class ScenarioBuilderLocal(LocalBaseModel):
                     for mc_year, ts_year in values.items():
                         key = f"{scenario_type},{area_from},{area_to},{mc_year}"
                         ini_content[key] = ts_year
+            elif scenario_type == "sta":
+                for area_id, sts_value in value.items():
+                    for sts_id, values in sts_value.items():
+                        for constraint_id, year_values in values.items():
+                            for mc_year, ts_year in year_values.items():
+                                key = f"{scenario_type},{area_id},{mc_year},{sts_id},{constraint_id}"
+                                ini_content[key] = ts_year
             else:
                 for id, values in value.items():
                     for mc_year, ts_year in values.items():
@@ -116,11 +133,13 @@ class ScenarioBuilderLocal(LocalBaseModel):
             renewable=ScenarioCluster(_data={}, _years=nb_years),
             binding_constraint=ScenarioConstraint(_data={}, _years=nb_years),
             hydro_initial_level=ScenarioHydroLevel(_data={}, _years=nb_years),
-            hydro_final_level=ScenarioHydroLevel(_data={}, _years=nb_years),
             hydro_generation_power=ScenarioArea(_data={}, _years=nb_years),
         )
-        if study_version < STUDY_VERSION_9_2:
-            scenario_builder.hydro_final_level = None
+        if study_version >= STUDY_VERSION_9_2:
+            scenario_builder.hydro_final_level = ScenarioHydroLevel(_data={}, _years=nb_years)
+        if study_version >= STUDY_VERSION_9_3:
+            scenario_builder.storage_inflows = ScenarioStorage(_data={}, _years=nb_years)
+            scenario_builder.storage_constraints = ScenarioStorageConstraints(_data={}, _years=nb_years)
 
         for keyword in [
             "load",
@@ -159,7 +178,7 @@ class ScenarioBuilderLocal(LocalBaseModel):
                     user_dict_hydro[key]._matrix[int(mc_year)] = level_value
             setattr(scenario_builder, keyword, ScenarioHydroLevel(_data=user_dict_hydro, _years=nb_years))
 
-        for keyword in ["renewable", "thermal"]:
+        for keyword in ["renewable", "thermal", "storage_inflows"]:
             cluster_dict: dict[str, dict[str, ScenarioMatrix]] = {}
             attribute = getattr(self, keyword)
             if not attribute:
@@ -170,7 +189,23 @@ class ScenarioBuilderLocal(LocalBaseModel):
                     cluster_dict[area_id][cluster_id] = get_default_builder_matrix(nb_years)
                     for mc_year, ts_year in values.items():
                         cluster_dict[area_id][cluster_id]._matrix[int(mc_year)] = ts_year
-            setattr(scenario_builder, keyword, ScenarioCluster(_data=cluster_dict, _years=nb_years))
+            scenario_class = ScenarioStorage if keyword == "storage_inflows" else ScenarioCluster
+            setattr(scenario_builder, keyword, scenario_class(_data=cluster_dict, _years=nb_years))
+
+        if self.storage_constraints:
+            sts_constraints_dict: dict[str, dict[str, dict[str, ScenarioMatrix]]] = {}
+            for area_id, value in self.storage_constraints.items():
+                sts_constraints_dict[area_id] = {}
+                for sts_id, values in value.items():
+                    sts_constraints_dict[area_id][sts_id] = {}
+                    for constraint_id, inner_values in values.items():
+                        sts_constraints_dict[area_id][sts_id][constraint_id] = get_default_builder_matrix(nb_years)
+                        for mc_year, ts_year in inner_values.items():
+                            sts_constraints_dict[area_id][sts_id][constraint_id]._matrix[int(mc_year)] = ts_year
+
+            scenario_builder.storage_constraints = ScenarioStorageConstraints(
+                _data=sts_constraints_dict, _years=nb_years
+            )
 
         return scenario_builder
 
@@ -203,7 +238,7 @@ class ScenarioBuilderLocal(LocalBaseModel):
                 api_data[area_id] = {str(index): value / 100 for index, value in enumerate(values._matrix) if value}
             args[keyword] = api_data
 
-        for keyword in ["renewable", "thermal"]:
+        for keyword in ["renewable", "thermal", "storage_inflows"]:
             attribute = getattr(user_class, keyword)
             if not attribute:
                 continue
@@ -214,4 +249,16 @@ class ScenarioBuilderLocal(LocalBaseModel):
                     cluster_data = {str(index): value for index, value in enumerate(scenario_matrix._matrix) if value}
                     cluster_api_data[area_id][cluster_id] = cluster_data
             args[keyword] = cluster_api_data
+
+        if user_class.storage_constraints:
+            api_sts_data: dict[str, dict[str, dict[str, dict[str, int]]]] = {}
+            for area_id, value in user_class.storage_constraints._data.items():
+                api_sts_data[area_id] = {}
+                for sts_id, values in value.items():
+                    api_sts_data[area_id][sts_id] = {}
+                    for constraint_id, scenario_matrix in values.items():
+                        sts_data = {str(index): value for index, value in enumerate(scenario_matrix._matrix) if value}
+                        api_sts_data[area_id][sts_id][constraint_id] = sts_data
+            args["storage_constraints"] = api_sts_data
+
         return ScenarioBuilderLocal.model_validate(args)
