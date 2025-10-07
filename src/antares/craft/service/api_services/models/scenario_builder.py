@@ -126,6 +126,21 @@ class ScenarioBuilderAPI(APIBaseModel):
             scenario_class = ScenarioStorage if keyword == "storage_inflows" else ScenarioCluster
             setattr(scenario_builder, keyword, scenario_class(_data=data_dict, _years=nb_years))
 
+        sts_constraints_dict: dict[str, dict[str, dict[str, ScenarioMatrix]]] = {}
+        if self.storage_constraints:
+            for area_id, value in self.storage_constraints.items():
+                sts_constraints_dict[area_id] = {}
+                for sts_id, values in value.items():
+                    sts_constraints_dict[area_id][sts_id] = {}
+                    for constraint_id, inner_values in values.items():
+                        sts_constraints_dict[area_id][sts_id][constraint_id] = get_default_builder_matrix(nb_years)
+                        for mc_year, ts_year in inner_values.items():
+                            sts_constraints_dict[area_id][sts_id][constraint_id]._matrix[int(mc_year)] = ts_year
+
+            scenario_builder.storage_constraints = ScenarioStorageConstraints(
+                _data=sts_constraints_dict, _years=nb_years
+            )
+
         return scenario_builder
 
     @staticmethod
