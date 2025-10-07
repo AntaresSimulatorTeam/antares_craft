@@ -12,10 +12,11 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from antares.craft.exceptions.exceptions import InvalidRequestForScenarioBuilder
+from antares.craft.exceptions.exceptions import InvalidFieldForVersionError, InvalidRequestForScenarioBuilder
+from antares.study.version import StudyVersion
 
 if TYPE_CHECKING:
-    from antares.craft.model.study import Study
+    from antares.craft.model.study import STUDY_VERSION_9_2, Study
 
 
 @dataclass
@@ -146,7 +147,12 @@ class ScenarioBuilder:
     binding_constraint: ScenarioConstraint
     hydro_initial_level: ScenarioHydroLevel
     hydro_generation_power: ScenarioArea
-    hydro_final_level: ScenarioHydroLevel
+    # Introduced in v9.2
+    hydro_final_level: ScenarioHydroLevel | None = None
+
+    def validate_against_version(self, study_version: StudyVersion) -> None:
+        if study_version < STUDY_VERSION_9_2 and self.hydro_final_level is not None:
+            raise InvalidFieldForVersionError("`hydro_final_level` only exists for v9.2+ studies")
 
     def _set_study(self, study: "Study") -> None:
         areas = study.get_areas()
@@ -158,7 +164,8 @@ class ScenarioBuilder:
         self.hydro._areas = area_ids
         self.hydro_initial_level._areas = area_ids
         self.hydro_generation_power._areas = area_ids
-        self.hydro_final_level._areas = area_ids
+        if self.hydro_final_level:
+            self.hydro_final_level._areas = area_ids
 
         thermal_ids: dict[str, set[str]] = {}
         renewable_ids: dict[str, set[str]] = {}

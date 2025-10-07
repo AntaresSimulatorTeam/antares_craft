@@ -401,11 +401,13 @@ class Study:
                     self._areas[area_id]._st_storages[storage_id]._constraints[constraint_id] = constraint
 
     def get_scenario_builder(self) -> ScenarioBuilder:
-        sc_builder = self._study_service.get_scenario_builder(self._settings.general_parameters.nb_years)
+        sc_builder = self._study_service.get_scenario_builder(self._settings.general_parameters.nb_years, self._version)
+        sc_builder.validate_against_version(self._version)
         sc_builder._set_study(self)
         return sc_builder
 
     def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
+        scenario_builder.validate_against_version(self._version)
         self._study_service.set_scenario_builder(scenario_builder)
 
     @property

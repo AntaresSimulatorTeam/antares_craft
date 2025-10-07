@@ -24,8 +24,10 @@ from antares.craft.model.scenario_builder import (
     ScenarioMatrixHydro,
     get_default_builder_matrix,
 )
+from antares.craft.model.study import STUDY_VERSION_9_2
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
+from antares.study.version import StudyVersion
 
 
 @all_optional_model
@@ -50,7 +52,7 @@ class ScenarioBuilderAPI(APIBaseModel):
     def to_api(self) -> dict[str, Any]:
         return {"Default Ruleset": self.model_dump(by_alias=True, exclude_none=True)}
 
-    def to_user_model(self, nb_years: int) -> ScenarioBuilder:
+    def to_user_model(self, nb_years: int, study_version: StudyVersion) -> ScenarioBuilder:
         scenario_builder = ScenarioBuilder(
             load=ScenarioArea(_data={}, _years=nb_years),
             thermal=ScenarioCluster(_data={}, _years=nb_years),
@@ -64,6 +66,8 @@ class ScenarioBuilderAPI(APIBaseModel):
             hydro_generation_power=ScenarioArea(_data={}, _years=nb_years),
             hydro_final_level=ScenarioHydroLevel(_data={}, _years=nb_years),
         )
+        if study_version < STUDY_VERSION_9_2:
+            scenario_builder.hydro_final_level = None
 
         for keyword in [
             "load",
