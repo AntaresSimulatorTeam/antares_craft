@@ -71,7 +71,7 @@ class ScenarioBuilderAPI(APIBaseModel):
         )
         if study_version >= STUDY_VERSION_9_2:
             scenario_builder.hydro_final_level = ScenarioHydroLevel(_data={}, _years=nb_years)
-        if study_version < STUDY_VERSION_9_3:
+        if study_version >= STUDY_VERSION_9_3:
             scenario_builder.storage_inflows = ScenarioStorage(_data={}, _years=nb_years)
             scenario_builder.storage_constraints = ScenarioStorageConstraints(_data={}, _years=nb_years)
 

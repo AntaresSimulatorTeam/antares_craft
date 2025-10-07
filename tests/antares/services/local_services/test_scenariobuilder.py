@@ -27,7 +27,7 @@ def test_empty_scenariobuilder(local_study: Study) -> None:
     object_content = asdict(sc_builder)
     # Asserts the object is empty
     for key, value in object_content.items():
-        if key == "hydro_final_level":
+        if key in ("hydro_final_level", "storage_inflows", "storage_constraints"):
             assert value is None
         else:
             assert value["_years"] == 1
