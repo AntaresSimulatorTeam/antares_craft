@@ -14,7 +14,7 @@ from typing import Any
 from pydantic import Field
 
 from antares.craft import ScenarioBuilder
-from antares.craft.model.commons import STUDY_VERSION_9_2
+from antares.craft.model.commons import STUDY_VERSION_9_2, STUDY_VERSION_9_3
 from antares.craft.model.scenario_builder import (
     ScenarioArea,
     ScenarioCluster,
@@ -23,6 +23,8 @@ from antares.craft.model.scenario_builder import (
     ScenarioLink,
     ScenarioMatrix,
     ScenarioMatrixHydro,
+    ScenarioStorage,
+    ScenarioStorageConstraints,
     get_default_builder_matrix,
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
@@ -43,6 +45,8 @@ class ScenarioBuilderAPI(APIBaseModel):
     hydro_initial_level: dict[str, dict[str, float]] = Field(alias="hl")
     hydro_generation_power: dict[str, dict[str, int]] = Field(alias="hgp")
     hydro_final_level: dict[str, dict[str, float]] = Field(alias="hfl")
+    storage_inflows: dict[str, dict[str, dict[str, int]]] = Field(alias="sts")
+    storage_constraints: dict[str, dict[str, dict[str, dict[str, int]]]] = Field(alias="sta")
 
     @staticmethod
     def from_api(data: dict[str, Any]) -> "ScenarioBuilderAPI":
@@ -65,9 +69,14 @@ class ScenarioBuilderAPI(APIBaseModel):
             hydro_initial_level=ScenarioHydroLevel(_data={}, _years=nb_years),
             hydro_generation_power=ScenarioArea(_data={}, _years=nb_years),
             hydro_final_level=ScenarioHydroLevel(_data={}, _years=nb_years),
+            storage_inflows=ScenarioStorage(_data={}, _years=nb_years),
+            storage_constraints=ScenarioStorageConstraints(_data={}, _years=nb_years),
         )
         if study_version < STUDY_VERSION_9_2:
             scenario_builder.hydro_final_level = None
+        if study_version < STUDY_VERSION_9_3:
+            scenario_builder.storage_inflows = None
+            scenario_builder.storage_constraints = None
 
         for keyword in [
             "load",
