@@ -93,7 +93,7 @@ class ScenarioBuilderLocal(LocalBaseModel):
         json_content = self.model_dump(by_alias=True, exclude_none=True)
         ini_content = {}
         for scenario_type, value in json_content.items():
-            if scenario_type in ["t", "r"]:
+            if scenario_type in ["t", "r", "sts"]:
                 for area_id, cluster_value in value.items():
                     for cluster_id, year_values in cluster_value.items():
                         for mc_year, ts_year in year_values.items():
@@ -105,6 +105,13 @@ class ScenarioBuilderLocal(LocalBaseModel):
                     for mc_year, ts_year in values.items():
                         key = f"{scenario_type},{area_from},{area_to},{mc_year}"
                         ini_content[key] = ts_year
+            elif scenario_type == "sta":
+                for area_id, sts_value in value.items():
+                    for sts_id, values in sts_value.items():
+                        for constraint_id, year_values in sts_value.items():
+                            for mc_year, ts_year in year_values.items():
+                                key = f"{scenario_type},{area_id},{mc_year},{sts_id},{constraint_id}"
+                                ini_content[key] = ts_year
             else:
                 for id, values in value.items():
                     for mc_year, ts_year in values.items():
