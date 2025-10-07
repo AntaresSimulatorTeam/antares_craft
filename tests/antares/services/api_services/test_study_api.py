@@ -87,7 +87,7 @@ class TestCreateAPI:
     study_id = "22c52f44-4c2a-407b-862b-490887f93dd8"
     antares_web_description_msg = "Mocked Server KO"
     services = create_api_services(api, study_id)
-    study = Study("TestStudy", "880", services)
+    study = Study("TestStudy", "9.3", services)
     area = Area(
         "area_test",
         services.area_service,
@@ -1212,6 +1212,7 @@ area_1	annual	FLOW LIN.	UCAP LIN.	LOOP FLOW	FLOW QUAD.	CONG. FEE (ALG.)	CONG. FE
                     "s": {"west": {"0": 1}},
                     "t": {"west": {"b": {"0": 1}, "p": {"0": 1}, "sb": {"0": 1}}},
                     "w": {"west": {"0": 1}},
+                    "sta": {"west": {"sts": {"c2": {"0": 3}}}},
                 }
             }
             mocker.get(url, json=json_builder, status_code=201)
