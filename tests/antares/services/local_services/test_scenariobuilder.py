@@ -16,7 +16,7 @@ import re
 from dataclasses import asdict
 from pathlib import Path
 
-from antares.craft import Study, StudySettingsUpdate
+from antares.craft import Occurrence, STStorageAdditionalConstraint, Study, StudySettingsUpdate
 from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
 from antares.craft.model.commons import STUDY_VERSION_9_2, STUDY_VERSION_9_3
 from antares.craft.model.settings.general import GeneralParametersUpdate
@@ -100,7 +100,9 @@ hl,it,3 = 0.005
     )
 
 
-def test_scenario_builder_version(local_study_with_renewable: Study, local_study_92: Study, local_study_93: Study) -> None:
+def test_scenario_builder_version(
+    local_study_with_renewable: Study, local_study_92: Study, local_study_93: Study
+) -> None:
     for study in (local_study_with_renewable, local_study_92, local_study_93):
         # Set the nb_years to 4
         study.update_settings(StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4)))
@@ -125,11 +127,8 @@ hfl,it,3 = 0.005"""
             assert sc_builder.hydro_final_level is not None
             assert sc_builder.hydro_final_level.get_area("it").get_scenario() == [0.001, 0.002, None, 0.005]
 
-        # Create a scenario builder with storage inflows and storage constraints
-        # First create a storage with a constraint
+        # Create a scenario builder with storage inflows
         sts = study.get_areas()["fr"].create_st_storage("battery")
-        # sts_constraint = [STStorageAdditionalConstraint(name="c1", occurrences=[Occurrence([1, 3])])]
-        # sts.create_constraints(sts_constraint)
 
         ini_content = """[Default Ruleset]
         sts,fr,1,battery = 2
@@ -146,3 +145,22 @@ hfl,it,3 = 0.005"""
             sc_builder = study.get_scenario_builder()
             assert sc_builder.storage_inflows is not None
             assert sc_builder.storage_inflows.get_storage("fr", "battery").get_scenario() == [None, 2, 3, None]
+
+            # Create constraint
+            sts_constraint = [STStorageAdditionalConstraint(name="c1", occurrences=[Occurrence([1, 3])])]
+            sts.create_constraints(sts_constraint)
+
+            # Crate a scenario builder with storage constraints
+            ini_content = """[Default Ruleset]
+                    sta,fr,0,battery,c1 = 1
+                    sta,fr,2,battery,c1 = 4"""
+            sc_builder_path.write_text(ini_content)
+
+            sc_builder = study.get_scenario_builder()
+            assert sc_builder.storage_constraints is not None
+            assert sc_builder.storage_constraints.get_constraint("fr", "battery", "c1").get_scenario() == [
+                1,
+                None,
+                4,
+                None,
+            ]
