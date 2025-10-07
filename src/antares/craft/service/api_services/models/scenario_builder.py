@@ -169,11 +169,23 @@ class ScenarioBuilderAPI(APIBaseModel):
             attribute = getattr(user_class, keyword)
             if not attribute:
                 continue
-            api_data: dict[str, dict[str, dict[str, int]]] = {}
+            obj_api_data: dict[str, dict[str, dict[str, int]]] = {}
             for area_id, value in attribute._data.items():
-                api_data[area_id] = {}
+                obj_api_data[area_id] = {}
                 for obj_id, scenario_matrix in value.items():
-                    cluster_data = {str(index): value for index, value in enumerate(scenario_matrix._matrix) if value}
-                    api_data[area_id][obj_id] = cluster_data
-            args[keyword] = api_data
+                    obj_data = {str(index): value for index, value in enumerate(scenario_matrix._matrix) if value}
+                    obj_api_data[area_id][obj_id] = obj_data
+            args[keyword] = obj_api_data
+
+        if user_class.storage_constraints:
+            api_sts_data: dict[str, dict[str, dict[str, dict[str, int]]]] = {}
+            for area_id, value in user_class.storage_constraints._data.items():
+                api_sts_data[area_id] = {}
+                for sts_id, values in value.items():
+                    api_sts_data[area_id][sts_id] = {}
+                    for constraint_id, scenario_matrix in values.items():
+                        sts_data = {str(index): value for index, value in enumerate(scenario_matrix._matrix) if value}
+                        api_sts_data[area_id][sts_id][constraint_id] = sts_data
+            args["storage_constraints"] = api_sts_data
+
         return ScenarioBuilderAPI.model_validate(args)
