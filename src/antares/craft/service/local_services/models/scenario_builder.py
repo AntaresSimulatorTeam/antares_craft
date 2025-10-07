@@ -186,28 +186,32 @@ class ScenarioBuilderLocal(LocalBaseModel):
             "link",
             "binding_constraint",
         ]:
-            if user_data := getattr(user_class, keyword)._data:
-                api_data = {}
-                for area_id, values in user_data.items():
-                    api_data[area_id] = {str(index): value for index, value in enumerate(values._matrix) if value}
-                args[keyword] = api_data
+            attribute = getattr(user_class, keyword)
+            if not attribute:
+                continue
+            api_data = {}
+            for area_id, values in attribute._data.items():
+                api_data[area_id] = {str(index): value for index, value in enumerate(values._matrix) if value}
+            args[keyword] = api_data
 
         for keyword in ["hydro_initial_level", "hydro_final_level"]:
+            attribute = getattr(user_class, keyword)
+            if not attribute:
+                continue
             api_data = {}
-            if getattr(user_class, keyword):
-                for area_id, values in getattr(user_class, keyword)._data.items():
-                    api_data[area_id] = {str(index): value / 100 for index, value in enumerate(values._matrix) if value}
-                args[keyword] = api_data
+            for area_id, values in attribute._data.items():
+                api_data[area_id] = {str(index): value / 100 for index, value in enumerate(values._matrix) if value}
+            args[keyword] = api_data
 
         for keyword in ["renewable", "thermal"]:
-            if cluster_user_data := getattr(user_class, keyword)._data:
-                cluster_api_data: dict[str, dict[str, dict[str, int]]] = {}
-                for area_id, value in cluster_user_data.items():
-                    cluster_api_data[area_id] = {}
-                    for cluster_id, scenario_matrix in value.items():
-                        cluster_data = {
-                            str(index): value for index, value in enumerate(scenario_matrix._matrix) if value
-                        }
-                        cluster_api_data[area_id][cluster_id] = cluster_data
-                args[keyword] = cluster_api_data
+            attribute = getattr(user_class, keyword)
+            if not attribute:
+                continue
+            cluster_api_data: dict[str, dict[str, dict[str, int]]] = {}
+            for area_id, value in attribute._data.items():
+                cluster_api_data[area_id] = {}
+                for cluster_id, scenario_matrix in value.items():
+                    cluster_data = {str(index): value for index, value in enumerate(scenario_matrix._matrix) if value}
+                    cluster_api_data[area_id][cluster_id] = cluster_data
+            args[keyword] = cluster_api_data
         return ScenarioBuilderLocal.model_validate(args)
