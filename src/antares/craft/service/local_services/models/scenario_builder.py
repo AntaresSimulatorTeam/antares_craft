@@ -176,7 +176,7 @@ class ScenarioBuilderLocal(LocalBaseModel):
                     user_dict_hydro[key]._matrix[int(mc_year)] = level_value
             setattr(scenario_builder, keyword, ScenarioHydroLevel(_data=user_dict_hydro, _years=nb_years))
 
-        for keyword in ["renewable", "thermal"]:
+        for keyword in ["renewable", "thermal", "storage_inflows"]:
             cluster_dict: dict[str, dict[str, ScenarioMatrix]] = {}
             attribute = getattr(self, keyword)
             if not attribute:
@@ -187,7 +187,23 @@ class ScenarioBuilderLocal(LocalBaseModel):
                     cluster_dict[area_id][cluster_id] = get_default_builder_matrix(nb_years)
                     for mc_year, ts_year in values.items():
                         cluster_dict[area_id][cluster_id]._matrix[int(mc_year)] = ts_year
-            setattr(scenario_builder, keyword, ScenarioCluster(_data=cluster_dict, _years=nb_years))
+            scenario_class = ScenarioStorage if keyword == "storage_inflows" else ScenarioCluster
+            setattr(scenario_builder, keyword, scenario_class(_data=cluster_dict, _years=nb_years))
+
+        if self.storage_constraints:
+            sts_constraints_dict: dict[str, dict[str, dict[str, ScenarioMatrix]]] = {}
+            for area_id, value in self.storage_constraints.items():
+                sts_constraints_dict[area_id] = {}
+                for sts_id, values in value.items():
+                    sts_constraints_dict[area_id][sts_id] = {}
+                    for constraint_id, inner_values in values.items():
+                        sts_constraints_dict[area_id][sts_id][constraint_id] = get_default_builder_matrix(nb_years)
+                        for mc_year, ts_year in inner_values.items():
+                            sts_constraints_dict[area_id][sts_id][constraint_id]._matrix[int(mc_year)] = ts_year
+
+            scenario_builder.storage_constraints = ScenarioStorageConstraints(
+                _data=sts_constraints_dict, _years=nb_years
+            )
 
         return scenario_builder
 
@@ -220,7 +236,7 @@ class ScenarioBuilderLocal(LocalBaseModel):
                 api_data[area_id] = {str(index): value / 100 for index, value in enumerate(values._matrix) if value}
             args[keyword] = api_data
 
-        for keyword in ["renewable", "thermal"]:
+        for keyword in ["renewable", "thermal", "storage_inflows"]:
             attribute = getattr(user_class, keyword)
             if not attribute:
                 continue
@@ -231,4 +247,16 @@ class ScenarioBuilderLocal(LocalBaseModel):
                     cluster_data = {str(index): value for index, value in enumerate(scenario_matrix._matrix) if value}
                     cluster_api_data[area_id][cluster_id] = cluster_data
             args[keyword] = cluster_api_data
+
+        if user_class.storage_constraints:
+            api_sts_data: dict[str, dict[str, dict[str, dict[str, int]]]] = {}
+            for area_id, value in user_class.storage_constraints._data.items():
+                api_sts_data[area_id] = {}
+                for sts_id, values in value.items():
+                    api_sts_data[area_id][sts_id] = {}
+                    for constraint_id, scenario_matrix in values.items():
+                        sts_data = {str(index): value for index, value in enumerate(scenario_matrix._matrix) if value}
+                        api_sts_data[area_id][sts_id][constraint_id] = sts_data
+            args["storage_constraints"] = api_sts_data
+
         return ScenarioBuilderLocal.model_validate(args)
