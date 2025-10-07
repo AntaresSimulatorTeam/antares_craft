@@ -68,15 +68,12 @@ class ScenarioBuilderAPI(APIBaseModel):
             binding_constraint=ScenarioConstraint(_data={}, _years=nb_years),
             hydro_initial_level=ScenarioHydroLevel(_data={}, _years=nb_years),
             hydro_generation_power=ScenarioArea(_data={}, _years=nb_years),
-            hydro_final_level=ScenarioHydroLevel(_data={}, _years=nb_years),
-            storage_inflows=ScenarioStorage(_data={}, _years=nb_years),
-            storage_constraints=ScenarioStorageConstraints(_data={}, _years=nb_years),
         )
-        if study_version < STUDY_VERSION_9_2:
-            scenario_builder.hydro_final_level = None
+        if study_version >= STUDY_VERSION_9_2:
+            scenario_builder.hydro_final_level = ScenarioHydroLevel(_data={}, _years=nb_years)
         if study_version < STUDY_VERSION_9_3:
-            scenario_builder.storage_inflows = None
-            scenario_builder.storage_constraints = None
+            scenario_builder.storage_inflows = ScenarioStorage(_data={}, _years=nb_years)
+            scenario_builder.storage_constraints = ScenarioStorageConstraints(_data={}, _years=nb_years)
 
         for keyword in [
             "load",
