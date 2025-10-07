@@ -614,6 +614,9 @@ class TestWebClient:
         # Ensures every value is None as we didn't set anything inside this Study
         assert sc_builder.load.get_area("fr").get_scenario() == [None, None, None, None]
 
+        # Ensures the hydro_final_level is None as it only appeared in v9.2
+        assert sc_builder.hydro_final_level is None
+
         # Sets a new scenario builder
         sc_builder.load.get_area("fr").set_new_scenario([1, 2, 3, 4])
         sc_builder.hydro_initial_level.get_area("be").set_new_scenario([0.1, 0.2, None, 0.5])
@@ -1455,6 +1458,7 @@ class TestWebClient:
         ########## Scenario Builder ##########
         sc_builder = study.get_scenario_builder()
         assert sc_builder.load.get_area("fr").get_scenario() == [None, None, None, None]
+        assert sc_builder.hydro_final_level is not None
         assert sc_builder.hydro_final_level.get_area("fr").get_scenario() == [None, None, None, None]
         assert sc_builder.hydro_initial_level.get_area("fr").get_scenario() == [None, None, None, None]
 

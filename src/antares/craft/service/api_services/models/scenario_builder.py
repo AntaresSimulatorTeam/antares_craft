@@ -14,6 +14,7 @@ from typing import Any
 from pydantic import Field
 
 from antares.craft import ScenarioBuilder
+from antares.craft.model.commons import STUDY_VERSION_9_2
 from antares.craft.model.scenario_builder import (
     ScenarioArea,
     ScenarioCluster,
@@ -26,6 +27,7 @@ from antares.craft.model.scenario_builder import (
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.all_optional_meta import all_optional_model
+from antares.study.version import StudyVersion
 
 
 @all_optional_model
@@ -40,7 +42,7 @@ class ScenarioBuilderAPI(APIBaseModel):
     binding_constraint: dict[str, dict[str, int]] = Field(alias="bc")
     hydro_initial_level: dict[str, dict[str, float]] = Field(alias="hl")
     hydro_generation_power: dict[str, dict[str, int]] = Field(alias="hgp")
-    hydro_final_level: dict[str, dict[str, int]] = Field(alias="hfl")
+    hydro_final_level: dict[str, dict[str, float]] = Field(alias="hfl")
 
     @staticmethod
     def from_api(data: dict[str, Any]) -> "ScenarioBuilderAPI":
@@ -50,7 +52,7 @@ class ScenarioBuilderAPI(APIBaseModel):
     def to_api(self) -> dict[str, Any]:
         return {"Default Ruleset": self.model_dump(by_alias=True, exclude_none=True)}
 
-    def to_user_model(self, nb_years: int) -> ScenarioBuilder:
+    def to_user_model(self, nb_years: int, study_version: StudyVersion) -> ScenarioBuilder:
         scenario_builder = ScenarioBuilder(
             load=ScenarioArea(_data={}, _years=nb_years),
             thermal=ScenarioCluster(_data={}, _years=nb_years),
@@ -64,6 +66,8 @@ class ScenarioBuilderAPI(APIBaseModel):
             hydro_generation_power=ScenarioArea(_data={}, _years=nb_years),
             hydro_final_level=ScenarioHydroLevel(_data={}, _years=nb_years),
         )
+        if study_version < STUDY_VERSION_9_2:
+            scenario_builder.hydro_final_level = None
 
         for keyword in [
             "load",
@@ -93,11 +97,13 @@ class ScenarioBuilderAPI(APIBaseModel):
 
         for keyword in ["hydro_initial_level", "hydro_final_level"]:
             user_dict_hydro: dict[str, ScenarioMatrixHydro] = {}
-            if getattr(self, keyword):
-                for key, value in getattr(self, keyword).items():
-                    user_dict_hydro[key] = ScenarioMatrixHydro([None] * nb_years)
-                    for mc_year, level_value in value.items():
-                        user_dict_hydro[key]._matrix[int(mc_year)] = level_value
+            attribute = getattr(self, keyword)
+            if not attribute:
+                continue
+            for key, value in attribute.items():
+                user_dict_hydro[key] = ScenarioMatrixHydro([None] * nb_years)
+                for mc_year, level_value in value.items():
+                    user_dict_hydro[key]._matrix[int(mc_year)] = level_value
             setattr(scenario_builder, keyword, ScenarioHydroLevel(_data=user_dict_hydro, _years=nb_years))
 
         for keyword in ["renewable", "thermal"]:
@@ -129,21 +135,23 @@ class ScenarioBuilderAPI(APIBaseModel):
             "link",
             "binding_constraint",
         ]:
-            if user_data := getattr(user_class, keyword)._data:
-                api_data = {}
-                for area_id, values in user_data.items():
-                    api_data[area_id] = {str(index): value for index, value in enumerate(values._matrix) if value}
-                args[keyword] = api_data
+            attribute = getattr(user_class, keyword)
+            if not attribute:
+                continue
+            api_data = {}
+            for area_id, values in attribute._data.items():
+                api_data[area_id] = {str(index): value for index, value in enumerate(values._matrix) if value}
+            args[keyword] = api_data
 
         for keyword in ["renewable", "thermal"]:
-            if cluster_user_data := getattr(user_class, keyword)._data:
-                cluster_api_data: dict[str, dict[str, dict[str, int]]] = {}
-                for area_id, value in cluster_user_data.items():
-                    cluster_api_data[area_id] = {}
-                    for cluster_id, scenario_matrix in value.items():
-                        cluster_data = {
-                            str(index): value for index, value in enumerate(scenario_matrix._matrix) if value
-                        }
-                        cluster_api_data[area_id][cluster_id] = cluster_data
-                args[keyword] = cluster_api_data
+            attribute = getattr(user_class, keyword)
+            if not attribute:
+                continue
+            cluster_api_data: dict[str, dict[str, dict[str, int]]] = {}
+            for area_id, value in attribute._data.items():
+                cluster_api_data[area_id] = {}
+                for cluster_id, scenario_matrix in value.items():
+                    cluster_data = {str(index): value for index, value in enumerate(scenario_matrix._matrix) if value}
+                    cluster_api_data[area_id][cluster_id] = cluster_data
+            args[keyword] = cluster_api_data
         return ScenarioBuilderAPI.model_validate(args)

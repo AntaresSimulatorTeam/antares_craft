@@ -12,12 +12,12 @@
 from dataclasses import asdict
 from typing import Any, Optional
 
+from antares.craft.model.commons import STUDY_VERSION_9_2
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
     AdequacyPatchParametersUpdate,
     PriceTakingOrder,
 )
-from antares.craft.model.study import STUDY_VERSION_9_2
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.service.local_services.models.utils import check_min_version, initialize_field_default
 from antares.craft.tools.alias_generators import to_kebab

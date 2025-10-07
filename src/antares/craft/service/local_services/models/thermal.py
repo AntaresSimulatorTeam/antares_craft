@@ -14,7 +14,7 @@ from typing import Any
 
 from pydantic import Field
 
-from antares.craft.model.study import STUDY_VERSION_9_3
+from antares.craft.model.commons import STUDY_VERSION_9_3
 from antares.craft.model.thermal import (
     LawOption,
     LocalTSGenerationBehavior,
