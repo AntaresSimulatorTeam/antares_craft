@@ -552,6 +552,18 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
+    def set_constraint_terms(self, constraint: "BindingConstraint", terms: list["ConstraintTerm"]) -> None:
+        """
+        Args:
+            constraint: the constraint we want to set terms
+            terms: the terms to set to the constraint.
+
+        Returns:
+            None
+        """
+        pass
+
+    @abstractmethod
     def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
         """
         Args:

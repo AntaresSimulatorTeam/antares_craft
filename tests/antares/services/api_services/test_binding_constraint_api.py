@@ -20,6 +20,7 @@ from antares.craft.exceptions.exceptions import (
     ConstraintMatrixDownloadError,
     ConstraintsPropertiesUpdateError,
     ConstraintTermEditionError,
+    ConstraintTermsSettingError,
 )
 from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import (
@@ -155,3 +156,39 @@ class TestCreateAPI:
             self.services.bc_service.delete_binding_constraint_term(constraint_id, term_id)
 
             assert mocker.request_history[0].url.endswith(encoded_term_id)
+
+    def test_set_binding_constraint_terms_success(self) -> None:
+        existing_term_1 = ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=4, offset=3)
+        existing_term_2 = ConstraintTerm(data=LinkData(area1="be", area2="de"), weight=1, offset=8)
+        constraint = BindingConstraint("bc_1", self.services.bc_service, None, [existing_term_1, existing_term_2])
+        url = f"{self.study_url}/bindingconstraints/{constraint.id}"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.put(url, status_code=200)
+
+            constraint.set_terms([existing_term_1, existing_term_2])
+
+            terms = constraint.get_terms()
+            assert list(terms.values()) == [existing_term_1, existing_term_2]
+
+            mocker.put(url, status_code=200)
+            new_term_1 = ConstraintTerm(data=LinkData(area1="ita", area2="fr"), weight=9, offset=7)
+            new_term_2 = ConstraintTerm(data=LinkData(area1="be", area2="en"), weight=10, offset=4)
+            constraint.set_terms([new_term_1, new_term_2])
+
+            terms = constraint.get_terms()
+            assert list(terms.values()) == [new_term_1, new_term_2]
+
+    def test_set_binding_constraint_terms_fail_setting(self) -> None:
+        constraint = BindingConstraint("bc_1", self.services.bc_service, None, [])
+        url = f"{self.study_url}/bindingconstraints/{constraint.id}"
+
+        with requests_mock.Mocker() as mocker:
+            mocker.put(url, json={"description": self.antares_web_description_msg}, status_code=422)
+
+            with pytest.raises(
+                ConstraintTermsSettingError,
+                match=f"Could not set binding constraint {constraint.name} terms from the study {self.study_id} : "
+                f"{self.antares_web_description_msg}",
+            ):
+                constraint.set_terms([])

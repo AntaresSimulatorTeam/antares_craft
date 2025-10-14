@@ -432,6 +432,12 @@ class ConstraintRetrievalError(Exception):
         super().__init__(self.message)
 
 
+class ConstraintTermsSettingError(Exception):
+    def __init__(self, study_id: str, constraint_id: str, message: str) -> None:
+        self.message = f"Could not set binding constraint {constraint_id} terms from the study {study_id} : " + message
+        super().__init__(self.message)
+
+
 class AggregateCreationError(Exception):
     def __init__(self, study_id: str, output_id: str, mc_type: str, object_type: str, message: str) -> None:
         self.message = (

@@ -30,6 +30,7 @@ from antares.craft.exceptions.exceptions import (
     ConstraintTermAdditionError,
     ConstraintTermDeletionError,
     ConstraintTermEditionError,
+    ConstraintTermsSettingError,
 )
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -93,7 +94,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             ):
                 if matrix is not None:
                     body[matrix_name] = matrix.to_numpy().tolist()
-            response = self._wrapper.post(base_url, json=body)
+            response = self._wrapper.post(base_url, json=body)  # wrapper n°1
             created_properties = response.json()
             bc_id = created_properties["id"]
             for key in ["terms", "id", "name"]:
@@ -106,7 +107,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
                     {"weight": term.weight, "offset": term.offset, "data": asdict(term.data)} for term in terms
                 ]
                 url = f"{base_url}/{bc_id}/terms"
-                self._wrapper.post(url, json=json_terms)
+                self._wrapper.post(url, json=json_terms)  # wrapper n°2
 
         except APIError as e:
             raise BindingConstraintCreationError(name, e.message) from e
@@ -248,3 +249,13 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             raise ConstraintsPropertiesUpdateError(self.study_id, e.message) from e
 
         return updated_constraints
+
+    @override
+    def set_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> None:
+        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint.id}"
+
+        try:
+            json_terms = [{"weight": term.weight, "offset": term.offset, "data": asdict(term.data)} for term in terms]
+            self._wrapper.put(url, json=json_terms)
+        except APIError as e:
+            raise ConstraintTermsSettingError(self.study_id, constraint.id, e.message) from e
