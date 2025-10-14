@@ -260,6 +260,11 @@ class BindingConstraint:
         new_terms = {term.id: term for term in terms}
         self._terms = new_terms
 
+    def set_terms(self, terms: list[ConstraintTerm]) -> None:
+        self._binding_constraint_service.set_constraint_terms(self, terms)
+        new_terms = {term.id: term for term in terms}
+        self._terms = new_terms
+
     def update_properties(self, properties: BindingConstraintPropertiesUpdate) -> BindingConstraintProperties:
         """Update properties of the binding constraint."""
         new_properties = self._binding_constraint_service.update_binding_constraints_properties({self.id: properties})
