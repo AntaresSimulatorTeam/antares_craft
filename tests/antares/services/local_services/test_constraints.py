@@ -159,22 +159,25 @@ class TestBindingConstraints:
         assert list(bc.get_terms().values()) == [constraint_term_1, constraint_term_2]
 
         study_path = Path(local_study_w_constraints.path)
-        ini_content = list(
-            IniReader().read(study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").values()
-        )
-        actual_ini_terms = {
-            key: term[key]
-            for term in ini_content
-            for key in [constraint_term_1.id, constraint_term_2.id]
-            if key in term
-        }
-        sorted_actual_ini_terms = dict(sorted(actual_ini_terms.items()))
-        expected_ini_terms = {
-            f"{constraint_term_1.id}": f"{constraint_term_1.weight_offset()}",
-            f"{constraint_term_2.id}": f"{constraint_term_2.weight_offset()}",
+
+        ini_content = IniReader().read(study_path / "input" / "bindingconstraints" / "bindingconstraints.ini")
+        actual_ini_content = ini_content["0"]
+
+        expected_ini_content = {
+            "be%fr": "1%4",
+            "comments": "",
+            "enabled": False,
+            "filter-synthesis": "annual, daily, hourly, monthly, weekly",
+            "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
+            "fr%ita": "9%7",
+            "group": "default",
+            "id": "bc_1",
+            "name": "bc_1",
+            "operator": "greater",
+            "type": "hourly",
         }
 
-        assert sorted_actual_ini_terms == expected_ini_terms
+        assert actual_ini_content == expected_ini_content
         # end adding terms
 
         # replacing the old terms by new ones
@@ -183,6 +186,26 @@ class TestBindingConstraints:
 
         bc.set_terms([new_constraint_term_1, new_constraint_term_2])
         assert list(bc.get_terms().values()) == [new_constraint_term_1, new_constraint_term_2]
+
+        expected_new_first_ini_content = {
+            "comments": "",
+            "de%en": "0%3",
+            "enabled": False,
+            "filter-synthesis": "annual, daily, hourly, monthly, weekly",
+            "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
+            "group": "default",
+            "id": "bc_1",
+            "name": "bc_1",
+            "operator": "greater",
+            "po%tu": "5%10",
+            "type": "hourly",
+        }
+
+        ini_content = IniReader().read(study_path / "input" / "bindingconstraints" / "bindingconstraints.ini")
+        actual_first_ini_content = ini_content["0"]
+
+        assert actual_first_ini_content == expected_new_first_ini_content
+        # end replacing
 
     def test_set_constraint_terms_fail_existing_constraint(self, local_study_w_constraints: Study) -> None:
         bc = BindingConstraint("bc", local_study_w_constraints._binding_constraints_service)

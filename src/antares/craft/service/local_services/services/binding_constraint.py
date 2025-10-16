@@ -229,23 +229,26 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         return ini_content[existing_key]  # type: ignore
 
     @override
-    def set_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> None:
+    def set_constraint_terms(self, constraint_id: str, terms: list[ConstraintTerm]) -> None:
         new_terms = {}
         for term in terms:
             new_terms[term.id] = term.weight_offset()
 
         current_ini_content = self._read_ini()
 
-        # Look for the constraint
-        existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint.id), None)
-        if not existing_key:
-            raise ConstraintDoesNotExistError(constraint.name, self.study_name)
+        constraint_name = transform_name_to_id(constraint_id)
+        properties = self.read_binding_constraints()[constraint_id].properties
 
-        props = BindingConstraintPropertiesLocal.from_user_model(constraint.properties)
+        # Look for the constraint
+        existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint_id), None)
+        if not existing_key:
+            raise ConstraintDoesNotExistError(constraint_name, self.study_name)
+
+        props = BindingConstraintPropertiesLocal.from_user_model(properties)
 
         dict_props_terms = {
-            "id": constraint.id,
-            "name": constraint.name,
+            "id": constraint_id,
+            "name": constraint_name,
             **props.model_dump(mode="json", by_alias=True),
             **new_terms,
         }

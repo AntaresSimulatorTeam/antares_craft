@@ -97,21 +97,13 @@ class BindingConstraintApiService(BaseBindingConstraintService):
                 ]
                 body["terms"] = json_terms
 
-            response = self._wrapper.post(base_url, json=body)  # wrapper n°1
+            response = self._wrapper.post(base_url, json=body)
             created_properties = response.json()
-            # bc_id = created_properties["id"]
 
             for key in ["terms", "id", "name"]:
                 del created_properties[key]
             api_properties = BindingConstraintPropertiesAPI.model_validate(created_properties)
             bc_properties = api_properties.to_user_model()
-
-            # if terms:
-            #     json_terms = [
-            #         {"weight": term.weight, "offset": term.offset, "data": asdict(term.data)} for term in terms
-            #     ]
-            #     url = f"{base_url}/{bc_id}/terms"
-            #     self._wrapper.post(url, json=json_terms)  # wrapper n°2
 
         except APIError as e:
             raise BindingConstraintCreationError(name, e.message) from e
@@ -196,11 +188,11 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         return updated_constraints
 
     @override
-    def set_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> None:
-        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint.id}"
+    def set_constraint_terms(self, constraint_id: str, terms: list[ConstraintTerm]) -> None:
+        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint_id}"
 
         try:
             json_terms = [{"weight": term.weight, "offset": term.offset, "data": asdict(term.data)} for term in terms]
             self._wrapper.put(url, json={"terms": json_terms})
         except APIError as e:
-            raise ConstraintTermsSettingError(self.study_id, constraint.id, e.message) from e
+            raise ConstraintTermsSettingError(self.study_id, constraint_id, e.message) from e

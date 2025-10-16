@@ -569,12 +569,6 @@ class TestWebClient:
         study.delete_binding_constraint(constraint_1)
         assert constraint_1.id not in study.get_binding_constraints()
 
-        # # tests constraint term deletion
-        # constraint_2.delete_term(link_term_2)
-        # constraint_4.delete_term(constraint_term_2)
-        # constraint_4.delete_term(constraint_term_3)
-        # assert link_term_2.id not in constraint_2.get_terms()
-
         # tests link deletion
         study.delete_link(link_de_fr)
         assert link_de_fr.id not in study.get_links()
