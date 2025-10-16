@@ -195,7 +195,7 @@ class TestLocalClient:
         cluster_data = ClusterData(area=area_be.id, cluster=thermal_be.id)
         cluster_term = ConstraintTerm(data=cluster_data, weight=100)
         terms = [link_term_1, cluster_term]
-        constraint_1.add_terms(terms)
+        constraint_1.set_terms(terms)
         assert constraint_1.get_terms() == {link_term_1.id: link_term_1, cluster_term.id: cluster_term}
 
         # Case that succeeds

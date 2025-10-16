@@ -17,7 +17,6 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
     AreaDeletionError,
     BindingConstraintDeletionError,
-    ConstraintTermDeletionError,
     LinkDeletionError,
     RenewableDeletionError,
     STStorageDeletionError,
@@ -164,27 +163,3 @@ class TestDeleteAPI:
                 match=f"Could not delete the binding constraint '{constraint_id}': {self.antares_web_description_msg}",
             ):
                 self.study_service.delete_binding_constraint(constraint)
-
-    def test_delete_constraint_terms_success(self) -> None:
-        with requests_mock.Mocker() as mocker:
-            constraint_id = "bc_1"
-            term_id = "term_1"
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint_id}/term/{term_id}"
-            )
-            mocker.delete(url, status_code=200)
-            self.constraint_service.delete_binding_constraint_term(constraint_id, term_id)
-
-    def test_delete_constraint_terms_fails(self) -> None:
-        with requests_mock.Mocker() as mocker:
-            constraint_id = "bc_1"
-            term_id = "term_1"
-            url = (
-                f"https://antares.com/api/v1/studies/{self.study_id}/bindingconstraints/{constraint_id}/term/{term_id}"
-            )
-            mocker.delete(url, json={"description": self.antares_web_description_msg}, status_code=404)
-            with pytest.raises(
-                ConstraintTermDeletionError,
-                match=f"Could not delete the term '{term_id}' of the binding constraint '{constraint_id}': {self.antares_web_description_msg}",
-            ):
-                self.constraint_service.delete_binding_constraint_term(constraint_id, term_id)

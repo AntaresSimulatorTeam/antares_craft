@@ -159,16 +159,22 @@ class TestBindingConstraints:
         assert list(bc.get_terms().values()) == [constraint_term_1, constraint_term_2]
 
         study_path = Path(local_study_w_constraints.path)
-        ini_content = IniReader().read(study_path / "input" / "bindingconstraints" / "bindingconstraints.ini")["0"][
-            "terms"
-        ]
-        expected_ini_terms = str(
-            {
-                f"{constraint_term_1.id}": f"{constraint_term_1.weight_offset()}",
-                f"{constraint_term_2.id}": f"{constraint_term_2.weight_offset()}",
-            }
+        ini_content = list(
+            IniReader().read(study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").values()
         )
-        assert ini_content == expected_ini_terms
+        actual_ini_terms = {
+            key: term[key]
+            for term in ini_content
+            for key in [constraint_term_1.id, constraint_term_2.id]
+            if key in term
+        }
+        sorted_actual_ini_terms = dict(sorted(actual_ini_terms.items()))
+        expected_ini_terms = {
+            f"{constraint_term_1.id}": f"{constraint_term_1.weight_offset()}",
+            f"{constraint_term_2.id}": f"{constraint_term_2.weight_offset()}",
+        }
+
+        assert sorted_actual_ini_terms == expected_ini_terms
         # end adding terms
 
         # replacing the old terms by new ones

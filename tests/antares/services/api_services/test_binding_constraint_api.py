@@ -19,7 +19,6 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.exceptions.exceptions import (
     ConstraintMatrixDownloadError,
     ConstraintsPropertiesUpdateError,
-    ConstraintTermEditionError,
     ConstraintTermsSettingError,
 )
 from antares.craft.model.area import Area
@@ -29,7 +28,6 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintPropertiesUpdate,
     ConstraintMatrixName,
     ConstraintTerm,
-    ConstraintTermUpdate,
     LinkData,
 )
 from antares.craft.model.study import Study
@@ -95,34 +93,6 @@ class TestCreateAPI:
             ):
                 constraint.update_properties(properties=update_properties)
 
-    def test_update_binding_constraint_term_success(self) -> None:
-        with requests_mock.Mocker() as mocker:
-            existing_term = ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=4, offset=3)
-            constraint = BindingConstraint("bc_1", self.services.bc_service, None, [existing_term])
-
-            url = f"{self.study_url}/bindingconstraints/{constraint.id}/term"
-            mocker.put(url, status_code=200)
-
-            new_term = ConstraintTermUpdate(data=LinkData(area1="fr", area2="be"), weight=2)
-            constraint.update_term(new_term)
-            updated_term = constraint.get_terms()[existing_term.id]
-            assert updated_term == ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=2, offset=3)
-
-    def test_update_binding_constraint_term_fails(self) -> None:
-        with requests_mock.Mocker() as mocker:
-            existing_term = ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=4, offset=3)
-            constraint = BindingConstraint("bc_1", self.services.bc_service, None, [existing_term])
-
-            url = f"{self.study_url}/bindingconstraints/{constraint.id}/term"
-            mocker.put(url, json={"description": self.antares_web_description_msg}, status_code=422)
-
-            new_term = ConstraintTermUpdate(data=LinkData(area1="fr", area2="be"), weight=2)
-            with pytest.raises(
-                ConstraintTermEditionError,
-                match=f"Could not update the term '{new_term.id}' of the binding constraint '{constraint.id}': {self.antares_web_description_msg}",
-            ):
-                constraint.update_term(new_term)
-
     def test_get_constraint_matrix_success(self, constraint_set: fixture_type) -> None:
         constraint = BindingConstraint("bc_test", self.services.bc_service)
         for matrix_method, enum_value, path, expected_matrix in constraint_set:
@@ -143,19 +113,6 @@ class TestCreateAPI:
                     match=f"Could not download matrix {enum_value.value} for binding constraint '{constraint.name}':",
                 ):
                     getattr(constraint, matrix_method)()
-
-    def test_delete_binding_constraint_term_encodes_term_id_with_percent(self) -> None:
-        constraint_id = "electrolysis-de"
-        term_id = "_sink_00%de_el"
-        encoded_term_id = "_sink_00%25de_el"
-
-        with requests_mock.Mocker() as mocker:
-            url = f"{self.study_url}/bindingconstraints/{constraint_id}/term/{encoded_term_id}"
-            mocker.delete(url, status_code=204)
-
-            self.services.bc_service.delete_binding_constraint_term(constraint_id, term_id)
-
-            assert mocker.request_history[0].url.endswith(encoded_term_id)
 
     def test_set_binding_constraint_terms_success(self) -> None:
         existing_term_1 = ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=4, offset=3)
