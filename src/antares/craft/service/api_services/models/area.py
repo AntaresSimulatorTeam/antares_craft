@@ -17,21 +17,19 @@ from pydantic import BaseModel, ConfigDict
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FilterOption, filtering_option
 from antares.craft.service.api_services.models.base_model import APIBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
 
 AreaPropertiesType = AreaProperties | AreaPropertiesUpdate
 
 
-@all_optional_model
 class AreaPropertiesAPIBase(APIBaseModel):
-    energy_cost_unsupplied: float
-    energy_cost_spilled: float
-    non_dispatch_power: bool
-    dispatch_hydro_power: bool
-    other_dispatch_power: bool
-    adequacy_patch_mode: AdequacyPatchMode
-    spread_unsupplied_energy_cost: float
-    spread_spilled_energy_cost: float
+    energy_cost_unsupplied: float | None = None
+    energy_cost_spilled: float | None = None
+    non_dispatch_power: bool | None = None
+    dispatch_hydro_power: bool | None = None
+    other_dispatch_power: bool | None = None
+    adequacy_patch_mode: AdequacyPatchMode | None = None
+    spread_unsupplied_energy_cost: float | None = None
+    spread_spilled_energy_cost: float | None = None
 
     def to_model(self, filter_synthesis: set[FilterOption], filter_by_year: set[FilterOption]) -> AreaProperties:
         return AreaProperties(
@@ -48,10 +46,9 @@ class AreaPropertiesAPIBase(APIBaseModel):
         )
 
 
-@all_optional_model
 class AreaPropertiesAPI(AreaPropertiesAPIBase):
-    filter_synthesis: set[FilterOption]
-    filter_by_year: set[FilterOption]
+    filter_synthesis: set[FilterOption] | None = None
+    filter_by_year: set[FilterOption] | None = None
 
     @staticmethod
     def from_user_model(user_class: AreaPropertiesType) -> "AreaPropertiesAPI":
@@ -62,10 +59,9 @@ class AreaPropertiesAPI(AreaPropertiesAPIBase):
         return super().to_model(filter_synthesis=self.filter_synthesis, filter_by_year=self.filter_by_year)
 
 
-@all_optional_model
 class AreaPropertiesAPITableMode(AreaPropertiesAPIBase):
-    filter_synthesis: filtering_option
-    filter_by_year: filtering_option
+    filter_synthesis: filtering_option | None = None
+    filter_by_year: filtering_option | None = None
 
     @staticmethod
     def from_user_model(user_class: AreaPropertiesType) -> "AreaPropertiesAPITableMode":
@@ -79,24 +75,22 @@ class AreaPropertiesAPITableMode(AreaPropertiesAPIBase):
 AreaUiType = AreaUi | AreaUiUpdate
 
 
-@all_optional_model
 class Ui(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    x: int
-    y: int
-    color_r: int
-    color_g: int
-    color_b: int
-    layers: str
+    x: int | None = None
+    y: int | None = None
+    color_r: int | None = None
+    color_g: int | None = None
+    color_b: int | None = None
+    layers: str | None = None
 
 
-@all_optional_model
 class AreaUiAPI(APIBaseModel):
-    ui: Ui
-    layer_x: dict[int, int]
-    layer_y: dict[int, int]
-    layer_color: dict[int, str]
+    ui: Ui | None = None
+    layer_x: dict[int, int] | None = None
+    layer_y: dict[int, int] | None = None
+    layer_color: dict[int, str] | None = None
 
     @staticmethod
     def from_user_model(user_class: AreaUiType) -> "AreaUiAPI":

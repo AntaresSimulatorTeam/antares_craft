@@ -14,7 +14,7 @@ import ast
 from dataclasses import asdict
 from typing import Any, Optional, Sequence, cast
 
-from pydantic import Field, field_validator
+from pydantic import field_validator
 
 from antares.craft.exceptions.exceptions import APIError
 from antares.craft.model.settings.adequacy_patch import (
@@ -55,24 +55,22 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.service.api_services.models.base_model import APIBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.contents_tool import EnumIgnoreCase
 
 AdequacyPatchParametersType = AdequacyPatchParameters | AdequacyPatchParametersUpdate
 
 
-@all_optional_model
 class AdequacyPatchParametersAPI(APIBaseModel):
-    enable_adequacy_patch: bool
-    ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch: bool
-    ntc_between_physical_areas_out_adequacy_patch: bool
-    price_taking_order: PriceTakingOrder
-    include_hurdle_cost_csr: bool
-    check_csr_cost_function: bool
-    enable_first_step: bool
-    threshold_initiate_curtailment_sharing_rule: int
-    threshold_display_local_matching_rule_violations: int
-    threshold_csr_variable_bounds_relaxation: int
+    enable_adequacy_patch: bool | None = None
+    ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch: bool | None = None
+    ntc_between_physical_areas_out_adequacy_patch: bool | None = None
+    price_taking_order: PriceTakingOrder | None = None
+    include_hurdle_cost_csr: bool | None = None
+    check_csr_cost_function: bool | None = None
+    enable_first_step: bool | None = None
+    threshold_initiate_curtailment_sharing_rule: int | None = None
+    threshold_display_local_matching_rule_violations: int | None = None
+    threshold_csr_variable_bounds_relaxation: int | None = None
 
     @staticmethod
     def from_user_model(user_class: AdequacyPatchParametersType) -> "AdequacyPatchParametersAPI":
@@ -113,29 +111,28 @@ AdvancedParametersType = AdvancedParameters | AdvancedParametersUpdate
 SeedParametersType = SeedParameters | SeedParametersUpdate
 
 
-@all_optional_model
 class AdvancedAndSeedParametersAPI(APIBaseModel):
-    accuracy_on_correlation: set[OutputChoices]
-    initial_reservoir_levels: InitialReservoirLevel
-    hydro_heuristic_policy: HydroHeuristicPolicy
-    hydro_pricing_mode: HydroPricingMode
-    power_fluctuations: PowerFluctuation
-    shedding_policy: SheddingPolicy
-    unit_commitment_mode: UnitCommitmentMode
-    number_of_cores_mode: SimulationCore
-    renewable_generation_modelling: RenewableGenerationModeling
-    day_ahead_reserve_management: Any
-    seed_tsgen_wind: int
-    seed_tsgen_load: int
-    seed_tsgen_hydro: int
-    seed_tsgen_thermal: int
-    seed_tsgen_solar: int
-    seed_tsnumbers: int
-    seed_unsupplied_energy_costs: int
-    seed_spilled_energy_costs: int
-    seed_thermal_costs: int
-    seed_hydro_costs: int
-    seed_initial_reservoir_levels: int
+    accuracy_on_correlation: set[OutputChoices] | None = None
+    initial_reservoir_levels: InitialReservoirLevel | None = None
+    hydro_heuristic_policy: HydroHeuristicPolicy | None = None
+    hydro_pricing_mode: HydroPricingMode | None = None
+    power_fluctuations: PowerFluctuation | None = None
+    shedding_policy: SheddingPolicy | None = None
+    unit_commitment_mode: UnitCommitmentMode | None = None
+    number_of_cores_mode: SimulationCore | None = None
+    renewable_generation_modelling: RenewableGenerationModeling | None = None
+    day_ahead_reserve_management: Any | None = None
+    seed_tsgen_wind: int | None = None
+    seed_tsgen_load: int | None = None
+    seed_tsgen_hydro: int | None = None
+    seed_tsgen_thermal: int | None = None
+    seed_tsgen_solar: int | None = None
+    seed_tsnumbers: int | None = None
+    seed_unsupplied_energy_costs: int | None = None
+    seed_spilled_energy_costs: int | None = None
+    seed_thermal_costs: int | None = None
+    seed_hydro_costs: int | None = None
+    seed_initial_reservoir_levels: int | None = None
 
     @field_validator("accuracy_on_correlation", mode="before")
     def validate_accuracy_on_correlation(cls, v: Any) -> Sequence[str] | set[str]:
@@ -205,27 +202,26 @@ class OutputFormat(EnumIgnoreCase):
     ZIP = "zip-files"
 
 
-@all_optional_model
 class GeneralParametersAPI(APIBaseModel):
-    mode: Mode = Field(default=Mode.ECONOMY, validate_default=True)
-    horizon: str
-    nb_years: int
-    first_day: int
-    last_day: int
-    first_january: WeekDay
-    first_month: Month
-    first_week_day: WeekDay
-    leap_year: bool
-    year_by_year: bool
-    building_mode: BuildingMode
-    selection_mode: bool
-    thematic_trimming: bool
-    geographic_trimming: bool
-    active_rules_scenario: str
-    read_only: bool
-    simulation_synthesis: bool
-    mc_scenario: bool
-    result_format: OutputFormat
+    mode: Mode | None = None
+    horizon: str | None = None
+    nb_years: int | None = None
+    first_day: int | None = None
+    last_day: int | None = None
+    first_january: WeekDay | None = None
+    first_month: Month | None = None
+    first_week_day: WeekDay | None = None
+    leap_year: bool | None = None
+    year_by_year: bool | None = None
+    building_mode: BuildingMode | None = None
+    selection_mode: bool | None = None
+    thematic_trimming: bool | None = None
+    geographic_trimming: bool | None = None
+    active_rules_scenario: str | None = None
+    read_only: bool | None = None
+    simulation_synthesis: bool | None = None
+    mc_scenario: bool | None = None
+    result_format: OutputFormat | None = None
 
     @field_validator("horizon", mode="before")
     def transform_horizon_to_str(cls, val: str | int | None) -> Optional[str]:
@@ -278,21 +274,20 @@ def serialize_general_parameters_api(parameters: GeneralParametersType) -> dict[
 OptimizationParametersType = OptimizationParameters | OptimizationParametersUpdate
 
 
-@all_optional_model
 class OptimizationParametersAPI(APIBaseModel):
-    simplex_optimization_range: SimplexOptimizationRange
-    transmission_capacities: OptimizationTransmissionCapacities
-    binding_constraints: bool
-    hurdle_costs: bool
-    thermal_clusters_min_stable_power: bool
-    thermal_clusters_min_ud_time: bool
-    day_ahead_reserve: bool
-    strategic_reserve: bool
-    spinning_reserve: bool
-    primary_reserve: bool
-    export_mps: ExportMPS
-    include_exportstructure: bool
-    unfeasible_problem_behavior: UnfeasibleProblemBehavior
+    simplex_optimization_range: SimplexOptimizationRange | None = None
+    transmission_capacities: OptimizationTransmissionCapacities | None = None
+    binding_constraints: bool | None = None
+    hurdle_costs: bool | None = None
+    thermal_clusters_min_stable_power: bool | None = None
+    thermal_clusters_min_ud_time: bool | None = None
+    day_ahead_reserve: bool | None = None
+    strategic_reserve: bool | None = None
+    spinning_reserve: bool | None = None
+    primary_reserve: bool | None = None
+    export_mps: ExportMPS | None = None
+    include_exportstructure: bool | None = None
+    unfeasible_problem_behavior: UnfeasibleProblemBehavior | None = None
 
     @staticmethod
     def from_user_model(user_class: OptimizationParametersType) -> "OptimizationParametersAPI":
@@ -341,109 +336,108 @@ def serialize_optimization_parameters_api(parameters: OptimizationParameters) ->
     return body
 
 
-@all_optional_model
 class ThematicTrimmingParametersAPI(APIBaseModel):
-    ov_cost: bool
-    op_cost: bool
-    mrg_price: bool
-    co2_emis: bool
-    dtg_by_plant: bool
-    balance: bool
-    row_bal: bool
-    psp: bool
-    misc_ndg: bool
-    load: bool
-    h_ror: bool
-    wind: bool
-    solar: bool
-    nuclear: bool
-    lignite: bool
-    coal: bool
-    gas: bool
-    oil: bool
-    mix_fuel: bool
-    misc_dtg: bool
-    h_stor: bool
-    h_pump: bool
-    h_lev: bool
-    h_infl: bool
-    h_ovfl: bool
-    h_val: bool
-    h_cost: bool
-    unsp_enrg: bool
-    spil_enrg: bool
-    lold: bool
-    lolp: bool
-    avl_dtg: bool
-    dtg_mrg: bool
-    max_mrg: bool
-    np_cost: bool
-    np_cost_by_plant: bool
-    nodu: bool
-    nodu_by_plant: bool
-    flow_lin: bool
-    ucap_lin: bool
-    loop_flow: bool
-    flow_quad: bool
-    cong_fee_alg: bool
-    cong_fee_abs: bool
-    marg_cost: bool
-    cong_prob_plus: bool
-    cong_prob_minus: bool
-    hurdle_cost: bool
-    res_generation_by_plant: bool
-    misc_dtg_2: bool
-    misc_dtg_3: bool
-    misc_dtg_4: bool
-    wind_offshore: bool
-    wind_onshore: bool
-    solar_concrt: bool
-    solar_pv: bool
-    solar_rooft: bool
-    renw_1: bool
-    renw_2: bool
-    renw_3: bool
-    renw_4: bool
-    dens: bool
-    profit_by_plant: bool
-    sts_inj_by_plant: bool
-    sts_withdrawal_by_plant: bool
-    sts_lvl_by_plant: bool
-    psp_open_injection: bool
-    psp_open_withdrawal: bool
-    psp_open_level: bool
-    psp_closed_injection: bool
-    psp_closed_withdrawal: bool
-    psp_closed_level: bool
-    pondage_injection: bool
-    pondage_withdrawal: bool
-    pondage_level: bool
-    battery_injection: bool
-    battery_withdrawal: bool
-    battery_level: bool
-    other1_injection: bool
-    other1_withdrawal: bool
-    other1_level: bool
-    other2_injection: bool
-    other2_withdrawal: bool
-    other2_level: bool
-    other3_injection: bool
-    other3_withdrawal: bool
-    other3_level: bool
-    other4_injection: bool
-    other4_withdrawal: bool
-    other4_level: bool
-    other5_injection: bool
-    other5_withdrawal: bool
-    other5_level: bool
-    sts_cashflow_by_cluster: bool
-    npcap_hours: bool
-    bc_marg_cost: bool
+    ov_cost: bool | None = None
+    op_cost: bool | None = None
+    mrg_price: bool | None = None
+    co2_emis: bool | None = None
+    dtg_by_plant: bool | None = None
+    balance: bool | None = None
+    row_bal: bool | None = None
+    psp: bool | None = None
+    misc_ndg: bool | None = None
+    load: bool | None = None
+    h_ror: bool | None = None
+    wind: bool | None = None
+    solar: bool | None = None
+    nuclear: bool | None = None
+    lignite: bool | None = None
+    coal: bool | None = None
+    gas: bool | None = None
+    oil: bool | None = None
+    mix_fuel: bool | None = None
+    misc_dtg: bool | None = None
+    h_stor: bool | None = None
+    h_pump: bool | None = None
+    h_lev: bool | None = None
+    h_infl: bool | None = None
+    h_ovfl: bool | None = None
+    h_val: bool | None = None
+    h_cost: bool | None = None
+    unsp_enrg: bool | None = None
+    spil_enrg: bool | None = None
+    lold: bool | None = None
+    lolp: bool | None = None
+    avl_dtg: bool | None = None
+    dtg_mrg: bool | None = None
+    max_mrg: bool | None = None
+    np_cost: bool | None = None
+    np_cost_by_plant: bool | None = None
+    nodu: bool | None = None
+    nodu_by_plant: bool | None = None
+    flow_lin: bool | None = None
+    ucap_lin: bool | None = None
+    loop_flow: bool | None = None
+    flow_quad: bool | None = None
+    cong_fee_alg: bool | None = None
+    cong_fee_abs: bool | None = None
+    marg_cost: bool | None = None
+    cong_prob_plus: bool | None = None
+    cong_prob_minus: bool | None = None
+    hurdle_cost: bool | None = None
+    res_generation_by_plant: bool | None = None
+    misc_dtg_2: bool | None = None
+    misc_dtg_3: bool | None = None
+    misc_dtg_4: bool | None = None
+    wind_offshore: bool | None = None
+    wind_onshore: bool | None = None
+    solar_concrt: bool | None = None
+    solar_pv: bool | None = None
+    solar_rooft: bool | None = None
+    renw_1: bool | None = None
+    renw_2: bool | None = None
+    renw_3: bool | None = None
+    renw_4: bool | None = None
+    dens: bool | None = None
+    profit_by_plant: bool | None = None
+    sts_inj_by_plant: bool | None = None
+    sts_withdrawal_by_plant: bool | None = None
+    sts_lvl_by_plant: bool | None = None
+    psp_open_injection: bool | None = None
+    psp_open_withdrawal: bool | None = None
+    psp_open_level: bool | None = None
+    psp_closed_injection: bool | None = None
+    psp_closed_withdrawal: bool | None = None
+    psp_closed_level: bool | None = None
+    pondage_injection: bool | None = None
+    pondage_withdrawal: bool | None = None
+    pondage_level: bool | None = None
+    battery_injection: bool | None = None
+    battery_withdrawal: bool | None = None
+    battery_level: bool | None = None
+    other1_injection: bool | None = None
+    other1_withdrawal: bool | None = None
+    other1_level: bool | None = None
+    other2_injection: bool | None = None
+    other2_withdrawal: bool | None = None
+    other2_level: bool | None = None
+    other3_injection: bool | None = None
+    other3_withdrawal: bool | None = None
+    other3_level: bool | None = None
+    other4_injection: bool | None = None
+    other4_withdrawal: bool | None = None
+    other4_level: bool | None = None
+    other5_injection: bool | None = None
+    other5_withdrawal: bool | None = None
+    other5_level: bool | None = None
+    sts_cashflow_by_cluster: bool | None = None
+    npcap_hours: bool | None = None
+    bc_marg_cost: bool | None = None
     # Since v9.2
-    sts_by_group: bool
+    sts_by_group: bool | None = None
     # Since v9.3
-    dispatch_gen: bool
-    renewable_gen: bool
+    dispatch_gen: bool | None = None
+    renewable_gen: bool | None = None
 
     @staticmethod
     def from_user_model(user_class: ThematicTrimmingParameters) -> "ThematicTrimmingParametersAPI":

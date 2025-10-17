@@ -28,7 +28,6 @@ from antares.craft.model.scenario_builder import (
     get_default_builder_matrix,
 )
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.study.version import StudyVersion
 
 MAPPING = {
@@ -48,21 +47,20 @@ MAPPING = {
 }
 
 
-@all_optional_model
 class ScenarioBuilderLocal(LocalBaseModel):
-    load: dict[str, dict[str, int]] = Field(alias="l")
-    thermal: dict[str, dict[str, dict[str, int]]] = Field(alias="t")
-    hydro: dict[str, dict[str, int]] = Field(alias="h")
-    wind: dict[str, dict[str, int]] = Field(alias="w")
-    solar: dict[str, dict[str, int]] = Field(alias="s")
-    link: dict[str, dict[str, int]] = Field(alias="ntc")
-    renewable: dict[str, dict[str, dict[str, int]]] = Field(alias="r")
-    binding_constraint: dict[str, dict[str, int]] = Field(alias="bc")
-    hydro_initial_level: dict[str, dict[str, float]] = Field(alias="hl")
-    hydro_final_level: dict[str, dict[str, float]] = Field(alias="hfl")
-    hydro_generation_power: dict[str, dict[str, int]] = Field(alias="hgp")
-    storage_inflows: dict[str, dict[str, dict[str, int]]] = Field(alias="sts")
-    storage_constraints: dict[str, dict[str, dict[str, dict[str, int]]]] = Field(alias="sta")
+    load: dict[str, dict[str, int]] | None = Field(default=None, alias="l")
+    thermal: dict[str, dict[str, dict[str, int]]] | None = Field(default=None, alias="t")
+    hydro: dict[str, dict[str, int]] | None = Field(default=None, alias="h")
+    wind: dict[str, dict[str, int]] | None = Field(default=None, alias="w")
+    solar: dict[str, dict[str, int]] | None = Field(default=None, alias="s")
+    link: dict[str, dict[str, int]] | None = Field(default=None, alias="ntc")
+    renewable: dict[str, dict[str, dict[str, int]]] | None = Field(default=None, alias="r")
+    binding_constraint: dict[str, dict[str, int]] | None = Field(default=None, alias="bc")
+    hydro_initial_level: dict[str, dict[str, float]] | None = Field(default=None, alias="hl")
+    hydro_final_level: dict[str, dict[str, float]] | None = Field(default=None, alias="hfl")
+    hydro_generation_power: dict[str, dict[str, int]] | None = Field(default=None, alias="hgp")
+    storage_inflows: dict[str, dict[str, dict[str, int]]] | None = Field(default=None, alias="sts")
+    storage_constraints: dict[str, dict[str, dict[str, dict[str, int]]]] | None = Field(default=None, alias="sta")
 
     @staticmethod
     def from_ini(data: dict[str, Any]) -> "ScenarioBuilderLocal":

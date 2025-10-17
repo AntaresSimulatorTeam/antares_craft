@@ -19,48 +19,46 @@ from antares.craft.model.thermal import (
     ThermalCostGeneration,
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
 
 ThermalPropertiesType = ThermalClusterProperties | ThermalClusterPropertiesUpdate
 
 
-@all_optional_model
 class ThermalClusterPropertiesAPI(APIBaseModel):
-    enabled: bool
-    unit_count: int
-    nominal_capacity: float
-    group: str
-    gen_ts: LocalTSGenerationBehavior
-    min_stable_power: float
-    min_up_time: int = 1
-    min_down_time: int = 1
-    must_run: bool = False
-    spinning: float
-    volatility_forced: float
-    volatility_planned: float
-    law_forced: LawOption
-    law_planned: LawOption
-    marginal_cost: float
-    spread_cost: float
-    fixed_cost: float
-    startup_cost: float
-    market_bid_cost: float
-    co2: float
-    nh3: float
-    so2: float
-    nox: float
-    pm2_5: float
-    pm5: float
-    pm10: float
-    nmvoc: float
-    op1: float
-    op2: float
-    op3: float
-    op4: float
-    op5: float
-    cost_generation: ThermalCostGeneration
-    efficiency: float
-    variable_o_m_cost: float
+    enabled: bool | None = None
+    unit_count: int | None = None
+    nominal_capacity: float | None = None
+    group: str | None = None
+    gen_ts: LocalTSGenerationBehavior | None = None
+    min_stable_power: float | None = None
+    min_up_time: int | None = None
+    min_down_time: int | None = None
+    must_run: bool | None = None
+    spinning: float | None = None
+    volatility_forced: float | None = None
+    volatility_planned: float | None = None
+    law_forced: LawOption | None = None
+    law_planned: LawOption | None = None
+    marginal_cost: float | None = None
+    spread_cost: float | None = None
+    fixed_cost: float | None = None
+    startup_cost: float | None = None
+    market_bid_cost: float | None = None
+    co2: float | None = None
+    nh3: float | None = None
+    so2: float | None = None
+    nox: float | None = None
+    pm2_5: float | None = None
+    pm5: float | None = None
+    pm10: float | None = None
+    nmvoc: float | None = None
+    op1: float | None = None
+    op2: float | None = None
+    op3: float | None = None
+    op4: float | None = None
+    op5: float | None = None
+    cost_generation: ThermalCostGeneration | None = None
+    efficiency: float | None = None
+    variable_o_m_cost: float | None = None
 
     @staticmethod
     def from_user_model(user_class: ThermalPropertiesType) -> "ThermalClusterPropertiesAPI":

@@ -27,34 +27,33 @@ from antares.craft.model.xpansion.settings import (
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.tools.alias_generators import to_kebab
-from antares.craft.tools.all_optional_meta import all_optional_model
 from antares.craft.tools.serde_local.ini_reader import IniReader
 
 
-@all_optional_model
 class XpansionSensitivityAPI(APIBaseModel):
-    epsilon: float
-    projection: list[str]
-    capex: bool
+    epsilon: float | None = None
+    projection: list[str] | None = None
+    capex: bool | None = None
 
 
-@all_optional_model
 class XpansionSettingsAPI(APIBaseModel, alias_generator=None):
     # Due to AntaresWeb legacy Xpansion endpoints, we must not use camel case aliases.
-    master: Master
-    uc_type: UcType
-    optimality_gap: float
-    relative_gap: float
-    relaxed_optimality_gap: float
-    max_iteration: int
-    solver: XpansionSolver
-    log_level: int
-    separation_parameter: float
-    batch_size: int
-    yearly_weights: str = Field(alias="yearly-weights")  # Due to old AntaresWeb endpoint
-    additional_constraints: str = Field(alias="additional-constraints")  # Due to old AntaresWeb endpoint
-    timelimit: int
-    sensitivity_config: XpansionSensitivityAPI
+    master: Master | None = None
+    uc_type: UcType | None = None
+    optimality_gap: float | None = None
+    relative_gap: float | None = None
+    relaxed_optimality_gap: float | None = None
+    max_iteration: int | None = None
+    solver: XpansionSolver | None = None
+    log_level: int | None = None
+    separation_parameter: float | None = None
+    batch_size: int | None = None
+    yearly_weights: str | None = Field(default=None, alias="yearly-weights")  # Due to old AntaresWeb endpoint
+    additional_constraints: str | None = Field(
+        default=None, alias="additional-constraints"
+    )  # Due to old AntaresWeb endpoint
+    timelimit: int | None = None
+    sensitivity_config: XpansionSensitivityAPI | None = None
 
     @staticmethod
     def from_user_model(
@@ -129,19 +128,18 @@ XpansionLinkStr: TypeAlias = Annotated[
 ]
 
 
-@all_optional_model
 class XpansionCandidateAPI(APIBaseModel, alias_generator=to_kebab):  # Due to old AntaresWeb endpoint
-    name: str
-    link: XpansionLinkStr
-    annual_cost_per_mw: float
-    already_installed_capacity: int
-    unit_size: float
-    max_units: int
-    max_investment: float
-    direct_link_profile: str
-    indirect_link_profile: str
-    already_installed_direct_link_profile: str
-    already_installed_indirect_link_profile: str
+    name: str | None = None
+    link: XpansionLinkStr | None = None
+    annual_cost_per_mw: float | None = None
+    already_installed_capacity: int | None = None
+    unit_size: float | None = None
+    max_units: int | None = None
+    max_investment: float | None = None
+    direct_link_profile: str | None = None
+    indirect_link_profile: str | None = None
+    already_installed_direct_link_profile: str | None = None
+    already_installed_indirect_link_profile: str | None = None
 
     @staticmethod
     def from_user_model(user_class: XpansionCandidate) -> "XpansionCandidateAPI":
@@ -183,11 +181,10 @@ def serialize_xpansion_candidate_api(user_class: XpansionCandidate) -> dict[str,
 XpansionConstraintType = XpansionConstraint | XpansionConstraintUpdate
 
 
-@all_optional_model
 class XpansionConstraintAPI(APIBaseModel):
-    name: str
-    sign: ConstraintSign
-    rhs: float
+    name: str | None = None
+    sign: ConstraintSign | None = None
+    rhs: float | None = None
 
     @staticmethod
     def from_user_model(user_class: XpansionConstraintType) -> "XpansionConstraintAPI":

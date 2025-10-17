@@ -17,18 +17,16 @@ from antares.craft.model.renewable import (
     TimeSeriesInterpretation,
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
 
 RenewablePropertiesType = RenewableClusterProperties | RenewableClusterPropertiesUpdate
 
 
-@all_optional_model
 class RenewableClusterPropertiesAPI(APIBaseModel):
-    group: str
-    ts_interpretation: TimeSeriesInterpretation
-    enabled: bool
-    unit_count: int
-    nominal_capacity: float
+    group: str | None = None
+    ts_interpretation: TimeSeriesInterpretation | None = None
+    enabled: bool | None = None
+    unit_count: int | None = None
+    nominal_capacity: float | None = None
 
     @staticmethod
     def from_user_model(user_class: RenewablePropertiesType) -> "RenewableClusterPropertiesAPI":

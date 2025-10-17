@@ -24,28 +24,26 @@ from antares.craft.model.link import (
     TransmissionCapacities,
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
 
 LinkPropertiesType = LinkProperties | LinkPropertiesUpdate
 LinkUiType = LinkUi | LinkUiUpdate
 
 
-@all_optional_model
 class LinkPropertiesAndUiAPI(APIBaseModel):
-    hurdles_cost: bool
-    loop_flow: bool
-    use_phase_shifter: bool
-    transmission_capacities: TransmissionCapacities
-    asset_type: AssetType
-    display_comments: bool
-    comments: str
-    filter_synthesis: filtering_option
-    filter_year_by_year: filtering_option
-    link_style: LinkStyle
-    link_width: float
-    colorr: int
-    colorg: int
-    colorb: int
+    hurdles_cost: bool | None = None
+    loop_flow: bool | None = None
+    use_phase_shifter: bool | None = None
+    transmission_capacities: TransmissionCapacities | None = None
+    asset_type: AssetType | None = None
+    display_comments: bool | None = None
+    comments: str | None = None
+    filter_synthesis: filtering_option | None = None
+    filter_year_by_year: filtering_option | None = None
+    link_style: LinkStyle | None = None
+    link_width: float | None = None
+    colorr: int | None = None
+    colorg: int | None = None
+    colorb: int | None = None
 
     @staticmethod
     def from_user_model(

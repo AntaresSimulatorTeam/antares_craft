@@ -22,27 +22,25 @@ from antares.craft.model.st_storage import (
     STStoragePropertiesUpdate,
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
 
 STStoragePropertiesType = STStorageProperties | STStoragePropertiesUpdate
 
 
-@all_optional_model
 class STStoragePropertiesAPI(APIBaseModel):
-    group: str
-    injection_nominal_capacity: float
-    withdrawal_nominal_capacity: float
-    reservoir_capacity: float
-    efficiency: float
-    initial_level: float
-    initial_level_optim: bool
-    enabled: bool
+    group: str | None = None
+    injection_nominal_capacity: float | None = None
+    withdrawal_nominal_capacity: float | None = None
+    reservoir_capacity: float | None = None
+    efficiency: float | None = None
+    initial_level: float | None = None
+    initial_level_optim: bool | None = None
+    enabled: bool | None = None
     # Introduced in v9.2
-    efficiency_withdrawal: float
-    penalize_variation_injection: bool
-    penalize_variation_withdrawal: bool
+    efficiency_withdrawal: float | None = None
+    penalize_variation_injection: bool | None = None
+    penalize_variation_withdrawal: bool | None = None
     # Introduced in v9.3
-    allow_overflow: bool
+    allow_overflow: bool | None = None
 
     @staticmethod
     def from_user_model(user_class: STStoragePropertiesType) -> "STStoragePropertiesAPI":
@@ -87,14 +85,13 @@ class OccurrenceAPI(APIBaseModel):
     hours: list[int]
 
 
-@all_optional_model
 class STStorageAdditionalConstraintAPI(APIBaseModel):
-    id: str
-    name: str
-    variable: AdditionalConstraintVariable
-    operator: AdditionalConstraintOperator
-    occurrences: list[OccurrenceAPI]
-    enabled: bool
+    id: str | None = None
+    name: str | None = None
+    variable: AdditionalConstraintVariable | None = None
+    operator: AdditionalConstraintOperator | None = None
+    occurrences: list[OccurrenceAPI] | None = None
+    enabled: bool | None = None
 
     @staticmethod
     def from_user_model(user_class: STStorageConstraintType) -> "STStorageAdditionalConstraintAPI":

@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import typing
 
 from dataclasses import asdict
 
@@ -18,7 +19,7 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
 )
-from antares.craft.model.commons import FILTER_VALUES, filtering_option
+from antares.craft.model.commons import filtering_option
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 
 BindingConstraintPropertiesType = BindingConstraintProperties | BindingConstraintPropertiesUpdate
@@ -38,14 +39,14 @@ class BindingConstraintPropertiesAPI(APIBaseModel):
         user_dict = asdict(user_class)
         return BindingConstraintPropertiesAPI.model_validate(user_dict)
 
+    @typing.no_type_check
     def to_user_model(self) -> BindingConstraintProperties:
-        content = self.model_dump(exclude_none=True)
         return BindingConstraintProperties(
-            enabled=content.get("enabled", True),
-            time_step=content.get("time_step", BindingConstraintFrequency.HOURLY),
-            operator=content.get("operator", BindingConstraintOperator.LESS),
-            comments=content.get("comments", ""),
-            filter_year_by_year=content.get("filter_year_by_year", FILTER_VALUES),
-            filter_synthesis=content.get("filter_synthesis", FILTER_VALUES),
-            group=content.get("group", "default"),
+            enabled=self.enabled,
+            time_step=self.time_step,
+            operator=self.operator,
+            comments=self.comments,
+            filter_year_by_year=self.filter_year_by_year,
+            filter_synthesis=self.filter_synthesis,
+            group=self.group,
         )
