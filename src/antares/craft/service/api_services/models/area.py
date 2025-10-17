@@ -18,6 +18,7 @@ from pydantic import BaseModel, ConfigDict
 from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FilterOption, filtering_option
 from antares.craft.service.api_services.models.base_model import APIBaseModel
+from antares.craft.service.utils import check_field_is_not_null
 
 AreaPropertiesType = AreaProperties | AreaPropertiesUpdate
 
@@ -34,16 +35,16 @@ class AreaPropertiesAPIBase(APIBaseModel):
 
     def to_model(self, filter_synthesis: set[FilterOption], filter_by_year: set[FilterOption]) -> AreaProperties:
         return AreaProperties(
-            energy_cost_unsupplied=self.energy_cost_unsupplied,
-            energy_cost_spilled=self.energy_cost_spilled,
-            non_dispatch_power=self.non_dispatch_power,
-            dispatch_hydro_power=self.dispatch_hydro_power,
-            other_dispatch_power=self.other_dispatch_power,
+            energy_cost_unsupplied=check_field_is_not_null(self.energy_cost_unsupplied),
+            energy_cost_spilled=check_field_is_not_null(self.energy_cost_spilled),
+            non_dispatch_power=check_field_is_not_null(self.non_dispatch_power),
+            dispatch_hydro_power=check_field_is_not_null(self.dispatch_hydro_power),
+            other_dispatch_power=check_field_is_not_null(self.other_dispatch_power),
             filter_synthesis=filter_synthesis,
             filter_by_year=filter_by_year,
-            adequacy_patch_mode=self.adequacy_patch_mode,
-            spread_unsupplied_energy_cost=self.spread_unsupplied_energy_cost,
-            spread_spilled_energy_cost=self.spread_spilled_energy_cost,
+            adequacy_patch_mode=check_field_is_not_null(self.adequacy_patch_mode),
+            spread_unsupplied_energy_cost=check_field_is_not_null(self.spread_unsupplied_energy_cost),
+            spread_spilled_energy_cost=check_field_is_not_null(self.spread_spilled_energy_cost),
         )
 
 
@@ -57,7 +58,10 @@ class AreaPropertiesAPI(AreaPropertiesAPIBase):
         return AreaPropertiesAPI.model_validate(user_dict)
 
     def to_user_model(self) -> AreaProperties:
-        return super().to_model(filter_synthesis=self.filter_synthesis, filter_by_year=self.filter_by_year)
+        return super().to_model(
+            filter_synthesis=check_field_is_not_null(self.filter_synthesis),
+            filter_by_year=check_field_is_not_null(self.filter_by_year),
+        )
 
 
 class AreaPropertiesAPITableMode(AreaPropertiesAPIBase):
@@ -70,7 +74,10 @@ class AreaPropertiesAPITableMode(AreaPropertiesAPIBase):
         return AreaPropertiesAPITableMode.model_validate(user_dict)
 
     def to_user_model(self) -> AreaProperties:
-        return super().to_model(filter_synthesis=self.filter_synthesis, filter_by_year=self.filter_by_year)
+        return super().to_model(
+            filter_synthesis=check_field_is_not_null(self.filter_synthesis),
+            filter_by_year=check_field_is_not_null(self.filter_by_year),
+        )
 
 
 AreaUiType = AreaUi | AreaUiUpdate
@@ -108,6 +115,7 @@ class AreaUiAPI(APIBaseModel):
 
     def update_from_get(self, api_response: dict[str, Any]) -> None:
         current_ui = api_response["ui"]
+        assert self.ui is not None
         self.ui.x = self.ui.x or current_ui["x"]
         self.ui.y = self.ui.y or current_ui["y"]
         self.ui.color_r = self.ui.color_r or current_ui["color_r"]
@@ -115,13 +123,19 @@ class AreaUiAPI(APIBaseModel):
         self.ui.color_b = self.ui.color_b or current_ui["color_b"]
 
     def to_api_dict(self) -> dict[str, Any]:
+        assert self.ui is not None
         update_args = self.ui.model_dump(mode="json", by_alias=True, exclude={"layers"})
         update_args["color_rgb"] = [update_args.pop("color_r"), update_args.pop("color_g"), update_args.pop("color_b")]
         return update_args
 
     def to_user_model(self) -> AreaUi:
+        assert self.ui is not None
         return AreaUi(
-            x=self.ui.x,
-            y=self.ui.y,
-            color_rgb=[self.ui.color_r, self.ui.color_g, self.ui.color_b],
+            x=check_field_is_not_null(self.ui.x),
+            y=check_field_is_not_null(self.ui.y),
+            color_rgb=[
+                check_field_is_not_null(self.ui.color_r),
+                check_field_is_not_null(self.ui.color_g),
+                check_field_is_not_null(self.ui.color_b),
+            ],
         )
