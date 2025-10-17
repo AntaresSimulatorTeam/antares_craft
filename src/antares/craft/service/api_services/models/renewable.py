@@ -9,6 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import typing
+
 from dataclasses import asdict
 
 from antares.craft.model.renewable import (
@@ -33,6 +35,7 @@ class RenewableClusterPropertiesAPI(APIBaseModel):
         user_dict = asdict(user_class)
         return RenewableClusterPropertiesAPI.model_validate(user_dict)
 
+    @typing.no_type_check
     def to_user_model(self) -> RenewableClusterProperties:
         return RenewableClusterProperties(
             enabled=self.enabled,

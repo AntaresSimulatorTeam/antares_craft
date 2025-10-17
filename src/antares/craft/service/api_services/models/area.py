@@ -9,6 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import typing
+
 from dataclasses import asdict
 from typing import Any
 
@@ -31,6 +33,7 @@ class AreaPropertiesAPIBase(APIBaseModel):
     spread_unsupplied_energy_cost: float | None = None
     spread_spilled_energy_cost: float | None = None
 
+    @typing.no_type_check
     def to_model(self, filter_synthesis: set[FilterOption], filter_by_year: set[FilterOption]) -> AreaProperties:
         return AreaProperties(
             energy_cost_unsupplied=self.energy_cost_unsupplied,
@@ -55,6 +58,7 @@ class AreaPropertiesAPI(AreaPropertiesAPIBase):
         user_dict = asdict(user_class)
         return AreaPropertiesAPI.model_validate(user_dict)
 
+    @typing.no_type_check
     def to_user_model(self) -> AreaProperties:
         return super().to_model(filter_synthesis=self.filter_synthesis, filter_by_year=self.filter_by_year)
 
@@ -68,6 +72,7 @@ class AreaPropertiesAPITableMode(AreaPropertiesAPIBase):
         user_dict = asdict(user_class)
         return AreaPropertiesAPITableMode.model_validate(user_dict)
 
+    @typing.no_type_check
     def to_user_model(self) -> AreaProperties:
         return super().to_model(filter_synthesis=self.filter_synthesis, filter_by_year=self.filter_by_year)
 
@@ -105,6 +110,7 @@ class AreaUiAPI(APIBaseModel):
             )
         return AreaUiAPI.model_validate(args)
 
+    @typing.no_type_check
     def update_from_get(self, api_response: dict[str, Any]) -> None:
         current_ui = api_response["ui"]
         self.ui.x = self.ui.x or current_ui["x"]
@@ -113,11 +119,13 @@ class AreaUiAPI(APIBaseModel):
         self.ui.color_g = self.ui.color_g or current_ui["color_g"]
         self.ui.color_b = self.ui.color_b or current_ui["color_b"]
 
+    @typing.no_type_check
     def to_api_dict(self) -> dict[str, Any]:
         update_args = self.ui.model_dump(mode="json", by_alias=True, exclude={"layers"})
         update_args["color_rgb"] = [update_args.pop("color_r"), update_args.pop("color_g"), update_args.pop("color_b")]
         return update_args
 
+    @typing.no_type_check
     def to_user_model(self) -> AreaUi:
         return AreaUi(
             x=self.ui.x,

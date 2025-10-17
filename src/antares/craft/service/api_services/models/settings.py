@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 import ast
+import typing
 
 from dataclasses import asdict
 from typing import Any, Optional, Sequence, cast
@@ -84,6 +85,7 @@ class AdequacyPatchParametersAPI(APIBaseModel):
         )
         return AdequacyPatchParametersAPI.model_validate(user_dict)
 
+    @typing.no_type_check
     def to_user_model(self) -> AdequacyPatchParameters:
         return AdequacyPatchParameters(
             include_adq_patch=self.enable_adequacy_patch,
@@ -99,7 +101,7 @@ class AdequacyPatchParametersAPI(APIBaseModel):
 
 
 def parse_adequacy_patch_parameters_api(data: Any) -> AdequacyPatchParameters:
-    return AdequacyPatchParametersAPI.model_validate(data).to_user_model()
+    return cast(AdequacyPatchParameters, AdequacyPatchParametersAPI.model_validate(data).to_user_model())
 
 
 def serialize_adequacy_patch_parameters_api(parameters: AdequacyPatchParametersType) -> dict[str, Any]:
@@ -152,6 +154,7 @@ class AdvancedAndSeedParametersAPI(APIBaseModel):
         api_dict = advanced_parameters_dict | seed_parameters_dict
         return AdvancedAndSeedParametersAPI.model_validate(api_dict)
 
+    @typing.no_type_check
     def to_user_advanced_parameters_model(self) -> AdvancedParameters:
         return AdvancedParameters(
             initial_reservoir_levels=self.initial_reservoir_levels,
@@ -165,6 +168,7 @@ class AdvancedAndSeedParametersAPI(APIBaseModel):
             accuracy_on_correlation=self.accuracy_on_correlation,
         )
 
+    @typing.no_type_check
     def to_user_seed_parameters_model(self) -> SeedParameters:
         return SeedParameters(
             seed_tsgen_thermal=self.seed_tsgen_thermal,
@@ -240,6 +244,7 @@ class GeneralParametersAPI(APIBaseModel):
         user_dict.pop("nb_timeseries_thermal")
         return GeneralParametersAPI.model_validate(user_dict)
 
+    @typing.no_type_check
     def to_user_model(self, nb_ts_thermal: int) -> GeneralParameters:
         return GeneralParameters(
             mode=self.mode,
@@ -263,7 +268,7 @@ class GeneralParametersAPI(APIBaseModel):
 
 
 def parse_general_parameters_api(data: Any, nb_ts_thermal: int) -> GeneralParameters:
-    return GeneralParametersAPI.model_validate(data).to_user_model(nb_ts_thermal)
+    return cast(GeneralParameters, GeneralParametersAPI.model_validate(data).to_user_model(nb_ts_thermal))
 
 
 def serialize_general_parameters_api(parameters: GeneralParametersType) -> dict[str, Any]:
@@ -306,6 +311,7 @@ class OptimizationParametersAPI(APIBaseModel):
         user_dict["unfeasible_problem_behavior"] = user_dict.pop("include_unfeasible_problem_behavior")
         return OptimizationParametersAPI.model_validate(user_dict)
 
+    @typing.no_type_check
     def to_user_model(self) -> OptimizationParameters:
         return OptimizationParameters(
             simplex_range=self.simplex_optimization_range,
@@ -325,7 +331,7 @@ class OptimizationParametersAPI(APIBaseModel):
 
 
 def parse_optimization_parameters_api(data: Any) -> OptimizationParameters:
-    return OptimizationParametersAPI.model_validate(data).to_user_model()
+    return cast(OptimizationParameters, OptimizationParametersAPI.model_validate(data).to_user_model())
 
 
 def serialize_optimization_parameters_api(parameters: OptimizationParameters) -> dict[str, Any]:
@@ -444,6 +450,7 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
         user_dict = asdict(user_class)
         return ThematicTrimmingParametersAPI.model_validate(user_dict)
 
+    @typing.no_type_check
     def to_user_model(self) -> ThematicTrimmingParameters:
         return ThematicTrimmingParameters(
             ov_cost=self.ov_cost,
@@ -549,7 +556,7 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
 
 
 def parse_thematic_trimming_api(data: Any) -> ThematicTrimmingParameters:
-    return ThematicTrimmingParametersAPI.model_validate(data).to_user_model()
+    return cast(ThematicTrimmingParameters, ThematicTrimmingParametersAPI.model_validate(data).to_user_model())
 
 
 def serialize_thematic_trimming_api(thematic_trimming: ThematicTrimmingParameters) -> dict[str, Any]:

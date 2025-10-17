@@ -10,9 +10,10 @@
 #
 # This file is part of the Antares project.
 import io
+import typing
 
 from dataclasses import asdict
-from typing import Annotated, Any, TypeAlias
+from typing import Annotated, Any, TypeAlias, cast
 
 from pydantic import BeforeValidator, Field, PlainSerializer
 
@@ -64,6 +65,7 @@ class XpansionSettingsAPI(APIBaseModel, alias_generator=None):
         settings_dict.update(sensitivity_dict)
         return XpansionSettingsAPI.model_validate(settings_dict)
 
+    @typing.no_type_check
     def to_sensitivity_model(self) -> XpansionSensitivity:
         assert self.sensitivity_config is not None
         return XpansionSensitivity(
@@ -72,6 +74,7 @@ class XpansionSettingsAPI(APIBaseModel, alias_generator=None):
             capex=self.sensitivity_config.capex,
         )
 
+    @typing.no_type_check
     def to_settings_model(self) -> XpansionSettings:
         return XpansionSettings(
             master=self.master,
@@ -147,6 +150,7 @@ class XpansionCandidateAPI(APIBaseModel, alias_generator=to_kebab):  # Due to ol
         user_dict["link"] = user_dict.pop("area_from") + " - " + user_dict.pop("area_to")
         return XpansionCandidateAPI.model_validate(user_dict)
 
+    @typing.no_type_check
     def to_user_model(self) -> XpansionCandidate:
         assert isinstance(self.link, XpansionLink)
         return XpansionCandidate(
@@ -166,7 +170,7 @@ class XpansionCandidateAPI(APIBaseModel, alias_generator=to_kebab):  # Due to ol
 
 
 def parse_xpansion_candidate_api(data: dict[str, Any]) -> XpansionCandidate:
-    return XpansionCandidateAPI.model_validate(data).to_user_model()
+    return cast(XpansionCandidate, XpansionCandidateAPI.model_validate(data).to_user_model())
 
 
 def serialize_xpansion_candidate_api(user_class: XpansionCandidate) -> dict[str, Any]:
@@ -198,18 +202,16 @@ class XpansionConstraintAPI(APIBaseModel):
                 args[candidate] = coefficient
         return XpansionConstraintAPI.model_validate(args)
 
+    @typing.no_type_check
     def to_user_model(self) -> XpansionConstraint:
         return XpansionConstraint(
-            name=self.name,
-            sign=self.sign,
-            right_hand_side=self.rhs,
-            candidates_coefficients=self.model_extra,  # type: ignore
+            name=self.name, sign=self.sign, right_hand_side=self.rhs, candidates_coefficients=self.model_extra
         )
 
 
 def parse_xpansion_constraint_api(data: dict[str, Any]) -> XpansionConstraint:
     api_model = XpansionConstraintAPI.model_validate(data)
-    return api_model.to_user_model()
+    return cast(XpansionConstraint, api_model.to_user_model())
 
 
 def parse_xpansion_constraints_api(data: Any) -> dict[str, XpansionConstraint]:

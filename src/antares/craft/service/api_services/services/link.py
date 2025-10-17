@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Dict, Optional
+from typing import Dict, Optional, cast
 
 import pandas as pd
 
@@ -113,7 +113,7 @@ class LinkApiService(BaseLinkService):
         except APIError as e:
             raise LinkUiUpdateError(link.id, e.message) from e
 
-        return link_ui
+        return cast(LinkUi, link_ui)
 
     @override
     def get_parameters(self, area_from: str, area_to: str) -> pd.DataFrame:
