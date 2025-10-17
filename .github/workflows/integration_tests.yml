@@ -22,6 +22,9 @@ jobs:
         REPO: ${{ github.repository }}
       run: |
         echo "Finding draft release ID..."
+        curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/$REPO/releases > releases.json
+        cat releases.json
+
         release_id=$(curl -s \
           -H "Authorization: token $GITHUB_TOKEN" \
           https://api.github.com/repos/$REPO/releases | \
