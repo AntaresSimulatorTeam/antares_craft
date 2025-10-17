@@ -101,6 +101,7 @@ class STStorageAdditionalConstraintAPI(APIBaseModel):
         return STStorageAdditionalConstraintAPI.model_validate(user_dict)
 
     def to_user_model(self) -> STStorageAdditionalConstraint:
+        assert self.occurrences is not None
         occurrences = [Occurrence(hours=occ.model_dump()["hours"]) for occ in self.occurrences]
         return STStorageAdditionalConstraint(
             name=check_field_is_not_null(self.name),
