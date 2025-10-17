@@ -9,10 +9,9 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import typing
 
 from dataclasses import asdict
-from typing import Any, cast
+from typing import Any
 
 from antares.craft.model.st_storage import (
     AdditionalConstraintOperator,
@@ -49,7 +48,6 @@ class STStoragePropertiesAPI(APIBaseModel):
         user_dict = asdict(user_class)
         return STStoragePropertiesAPI.model_validate(user_dict)
 
-    @typing.no_type_check
     def to_user_model(self) -> STStorageProperties:
         return STStorageProperties(
             enabled=self.enabled,
@@ -68,7 +66,7 @@ class STStoragePropertiesAPI(APIBaseModel):
 
 
 def parse_st_storage_api(data: Any) -> STStorageProperties:
-    return cast(STStorageProperties, STStoragePropertiesAPI.model_validate(data).to_user_model())
+    return STStoragePropertiesAPI.model_validate(data).to_user_model()
 
 
 def serialize_st_storage_api(storage: STStoragePropertiesType) -> dict[str, Any]:
@@ -101,7 +99,6 @@ class STStorageAdditionalConstraintAPI(APIBaseModel):
         user_dict = asdict(user_class)
         return STStorageAdditionalConstraintAPI.model_validate(user_dict)
 
-    @typing.no_type_check
     def to_user_model(self) -> STStorageAdditionalConstraint:
         occurrences = [Occurrence(hours=occ.model_dump()["hours"]) for occ in self.occurrences]
         return STStorageAdditionalConstraint(
@@ -114,7 +111,7 @@ class STStorageAdditionalConstraintAPI(APIBaseModel):
 
 
 def parse_st_storage_constraint_api(data: Any) -> STStorageAdditionalConstraint:
-    return cast(STStorageAdditionalConstraint, STStorageAdditionalConstraintAPI.model_validate(data).to_user_model())
+    return STStorageAdditionalConstraint, STStorageAdditionalConstraintAPI.model_validate(data).to_user_model()
 
 
 def serialize_st_storage_constraint_api(constraint: STStorageConstraintType) -> dict[str, Any]:

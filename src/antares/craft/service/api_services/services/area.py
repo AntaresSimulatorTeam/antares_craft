@@ -333,7 +333,7 @@ class AreaApiService(BaseAreaService):
         except APIError as e:
             raise AreaUiUpdateError(area_id, e.message) from e
 
-        return cast(AreaUi, update_api_model.to_user_model())
+        return update_api_model.to_user_model()
 
     @override
     def delete_area(self, area_id: str) -> None:

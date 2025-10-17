@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import typing
 
 from dataclasses import asdict
 
@@ -67,7 +66,6 @@ class ThermalClusterPropertiesAPI(APIBaseModel):
         user_dict = asdict(user_class)
         return ThermalClusterPropertiesAPI.model_validate(user_dict)
 
-    @typing.no_type_check
     def to_user_model(self) -> ThermalClusterProperties:
         return ThermalClusterProperties(
             enabled=self.enabled,

@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import typing
 
 from dataclasses import asdict
 from typing import Optional
@@ -54,7 +53,6 @@ class LinkPropertiesAndUiAPI(APIBaseModel):
         properties_dict = asdict(properties_class) if properties_class else {}
         return LinkPropertiesAndUiAPI.model_validate({**ui_dict, **properties_dict})
 
-    @typing.no_type_check
     def to_ui_user_model(self) -> LinkUi:
         return LinkUi(
             link_style=self.link_style,
@@ -64,7 +62,6 @@ class LinkPropertiesAndUiAPI(APIBaseModel):
             colorb=self.colorb,
         )
 
-    @typing.no_type_check
     def to_properties_user_model(self) -> LinkProperties:
         return LinkProperties(
             hurdles_cost=self.hurdles_cost,
