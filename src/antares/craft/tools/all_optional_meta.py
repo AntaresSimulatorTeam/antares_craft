@@ -9,10 +9,9 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-
 from typing import Optional, Type, TypeVar
 
-from pydantic import BaseModel, Field, create_model
+from pydantic import BaseModel, create_model
 
 ModelClass = TypeVar("ModelClass", bound=BaseModel)
 
@@ -30,15 +29,8 @@ def all_optional_model(model: Type[ModelClass]) -> Type[ModelClass]:
     kwargs = {}
     for field_name, field_info in model.model_fields.items():
         # Create a new Field with default=None to make it optional
-        new_field = Field(
-            default=None,
-            alias=field_info.alias,
-            validation_alias=field_info.validation_alias,
-            serialization_alias=field_info.serialization_alias,
-            title=field_info.title,
-            description=field_info.description,
-        )
+        field_info.default = None
         new_annotation = Optional[field_info.annotation]  # type: ignore
-        kwargs[field_name] = (new_annotation, new_field)
+        kwargs[field_name] = (new_annotation, field_info)
 
     return create_model(f"Partial{model.__name__}", __base__=model, __module__=model.__module__, **kwargs)  # type: ignore
