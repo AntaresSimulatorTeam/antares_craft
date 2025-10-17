@@ -18,6 +18,7 @@ from antares.craft.model.renewable import (
     TimeSeriesInterpretation,
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
+from antares.craft.service.utils import check_field_is_not_null
 
 RenewablePropertiesType = RenewableClusterProperties | RenewableClusterPropertiesUpdate
 
@@ -36,9 +37,9 @@ class RenewableClusterPropertiesAPI(APIBaseModel):
 
     def to_user_model(self) -> RenewableClusterProperties:
         return RenewableClusterProperties(
-            enabled=self.enabled,
-            unit_count=self.unit_count,
-            nominal_capacity=self.nominal_capacity,
-            group=self.group,
-            ts_interpretation=self.ts_interpretation,
+            enabled=check_field_is_not_null(self.enabled),
+            unit_count=check_field_is_not_null(self.unit_count),
+            nominal_capacity=check_field_is_not_null(self.nominal_capacity),
+            group=check_field_is_not_null(self.group),
+            ts_interpretation=check_field_is_not_null(self.ts_interpretation),
         )

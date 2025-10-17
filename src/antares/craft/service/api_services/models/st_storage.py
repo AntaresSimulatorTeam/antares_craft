@@ -23,6 +23,7 @@ from antares.craft.model.st_storage import (
     STStoragePropertiesUpdate,
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
+from antares.craft.service.utils import check_field_is_not_null
 
 STStoragePropertiesType = STStorageProperties | STStoragePropertiesUpdate
 
@@ -50,18 +51,18 @@ class STStoragePropertiesAPI(APIBaseModel):
 
     def to_user_model(self) -> STStorageProperties:
         return STStorageProperties(
-            enabled=self.enabled,
-            group=self.group,
-            injection_nominal_capacity=self.injection_nominal_capacity,
-            withdrawal_nominal_capacity=self.withdrawal_nominal_capacity,
-            reservoir_capacity=self.reservoir_capacity,
-            efficiency=self.efficiency,
-            initial_level=self.initial_level,
-            initial_level_optim=self.initial_level_optim,
-            efficiency_withdrawal=self.efficiency_withdrawal,
-            penalize_variation_injection=self.penalize_variation_injection,
-            penalize_variation_withdrawal=self.penalize_variation_withdrawal,
-            allow_overflow=self.allow_overflow,
+            enabled=check_field_is_not_null(self.enabled),
+            group=check_field_is_not_null(self.group),
+            injection_nominal_capacity=check_field_is_not_null(self.injection_nominal_capacity),
+            withdrawal_nominal_capacity=check_field_is_not_null(self.withdrawal_nominal_capacity),
+            reservoir_capacity=check_field_is_not_null(self.reservoir_capacity),
+            efficiency=check_field_is_not_null(self.efficiency),
+            initial_level=check_field_is_not_null(self.initial_level),
+            initial_level_optim=check_field_is_not_null(self.initial_level_optim),
+            efficiency_withdrawal=check_field_is_not_null(self.efficiency_withdrawal),
+            penalize_variation_injection=check_field_is_not_null(self.penalize_variation_injection),
+            penalize_variation_withdrawal=check_field_is_not_null(self.penalize_variation_withdrawal),
+            allow_overflow=check_field_is_not_null(self.allow_overflow),
         )
 
 
@@ -102,16 +103,16 @@ class STStorageAdditionalConstraintAPI(APIBaseModel):
     def to_user_model(self) -> STStorageAdditionalConstraint:
         occurrences = [Occurrence(hours=occ.model_dump()["hours"]) for occ in self.occurrences]
         return STStorageAdditionalConstraint(
-            name=self.name,
-            variable=self.variable,
-            operator=self.operator,
-            occurrences=occurrences,
-            enabled=self.enabled,
+            name=check_field_is_not_null(self.name),
+            variable=check_field_is_not_null(self.variable),
+            operator=check_field_is_not_null(self.operator),
+            occurrences=check_field_is_not_null(occurrences),
+            enabled=check_field_is_not_null(self.enabled),
         )
 
 
 def parse_st_storage_constraint_api(data: Any) -> STStorageAdditionalConstraint:
-    return STStorageAdditionalConstraint, STStorageAdditionalConstraintAPI.model_validate(data).to_user_model()
+    return STStorageAdditionalConstraintAPI.model_validate(data).to_user_model()
 
 
 def serialize_st_storage_constraint_api(constraint: STStorageConstraintType) -> dict[str, Any]:
