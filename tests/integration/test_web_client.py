@@ -62,9 +62,7 @@ class TestWebClient:
         xpansion_sensitivity_expected_output: XpansionSensitivityResult,
     ) -> None:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
-
         study = create_study_api("antares-craft-test", "880", api_config)
-
         # tests area creation with default values
         area_name = "FR"
         area_fr = study.create_area(area_name)
@@ -438,8 +436,19 @@ class TestWebClient:
         cluster_data = ClusterData(area=area_be.id, cluster=thermal_be.id)
         cluster_term = ConstraintTerm(data=cluster_data, weight=100)
         terms = [link_term_1, cluster_term]
-        constraint_1.add_terms(terms)
+        constraint_1.set_terms(terms)
         assert constraint_1.get_terms() == {link_term_1.id: link_term_1, cluster_term.id: cluster_term}
+
+        # setting terms : replacing
+        # START REPLACING TERMS
+        constraint_term_2 = ConstraintTerm(data=LinkData(area1=area_de.id, area2=area_be.id), weight=3, offset=4)
+        constraint_term_3 = ConstraintTerm(data=LinkData(area1=area_fr.id, area2=area_be.id), weight=4, offset=10)
+        terms = [constraint_term_2, constraint_term_3]
+
+        constraint_1.set_terms(terms)
+
+        assert list(constraint_1.get_terms().values()) == [constraint_term_2, constraint_term_3]
+        # END REPLACING TERMS
 
         # asserts study contains the constraints
         assert study.get_binding_constraints() == {
@@ -447,13 +456,6 @@ class TestWebClient:
             constraint_2.id: constraint_2,
             constraint_3.id: constraint_3,
         }
-
-        # tests updating an existing term
-        new_term = ConstraintTermUpdate(data=cluster_data, offset=12)
-        constraint_1.update_term(new_term)
-        updated_term = constraint_1.get_terms()[new_term.id]
-        assert updated_term.weight == 100  # Checks the weight wasn't modified
-        assert updated_term.offset == 12
 
         # test area property edition
         new_props = AreaPropertiesUpdate(adequacy_patch_mode=AdequacyPatchMode.VIRTUAL)
@@ -566,10 +568,6 @@ class TestWebClient:
         # tests constraint deletion
         study.delete_binding_constraint(constraint_1)
         assert constraint_1.id not in study.get_binding_constraints()
-
-        # tests constraint term deletion
-        constraint_2.delete_term(link_term_2)
-        assert link_term_2.id not in constraint_2.get_terms()
 
         # tests link deletion
         study.delete_link(link_de_fr)

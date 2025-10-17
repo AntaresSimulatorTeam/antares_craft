@@ -43,7 +43,6 @@ if TYPE_CHECKING:
         BindingConstraintPropertiesUpdate,
         ConstraintMatrixName,
         ConstraintTerm,
-        ConstraintTermUpdate,
     )
     from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
@@ -540,35 +539,14 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def add_constraint_terms(self, constraint: "BindingConstraint", terms: list["ConstraintTerm"]) -> None:
+    def set_constraint_terms(self, constraint_id: str, terms: list["ConstraintTerm"]) -> None:
         """
         Args:
-            constraint: the concerned binding constraint
-            terms: the terms to add to the constraint.
+            constraint: the constraint we want to set terms
+            terms: the terms to set to the constraint.
 
         Returns:
-            The created terms
-        """
-        pass
-
-    @abstractmethod
-    def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
-        """
-        Args:
-            constraint_id: binding constraint's id containing the term
-            term_id: binding constraint term to be deleted
-        """
-        pass
-
-    @abstractmethod
-    def update_binding_constraint_term(
-        self, constraint_id: str, term: "ConstraintTermUpdate", existing_term: "ConstraintTerm"
-    ) -> "ConstraintTerm":
-        """
-        Args:
-            constraint_id: binding constraint's id containing the term
-            term: term with new values
-            existing_term: existing term with existing values
+            None
         """
         pass
 

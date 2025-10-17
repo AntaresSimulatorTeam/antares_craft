@@ -1173,7 +1173,7 @@ group = test group
 
     def test_constraint_can_add_term(self, test_constraint: BindingConstraint) -> None:
         new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]
-        test_constraint.add_terms(new_term)
+        test_constraint.set_terms(new_term)
         assert test_constraint.get_terms()
 
     def test_constraint_term_and_ini_have_correct_defaults(
@@ -1195,7 +1195,7 @@ at%fr = 1
 """
         # When
         new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]
-        test_constraint.add_terms(new_term)
+        test_constraint.set_terms(new_term)
         study_path = Path(local_study_with_constraint.path)
         ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
 
@@ -1220,7 +1220,7 @@ at%fr = 1%1
 """
         # When
         new_term = [ConstraintTerm(offset=1, data=LinkData(area1="fr", area2="at"))]
-        test_constraint.add_terms(new_term)
+        test_constraint.set_terms(new_term)
         study_path = Path(local_study_with_constraint.path)
         ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
 

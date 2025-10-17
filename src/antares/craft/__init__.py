@@ -20,7 +20,6 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintPropertiesUpdate,
     ClusterData,
     ConstraintTerm,
-    ConstraintTermUpdate,
     LinkData,
 )
 from antares.craft.model.commons import FilterOption
@@ -190,7 +189,6 @@ __all__ = [
     "LinkData",
     "ClusterData",
     "ConstraintTerm",
-    "ConstraintTermUpdate",
     "BindingConstraintProperties",
     "BindingConstraintPropertiesUpdate",
     "FilterOption",
