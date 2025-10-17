@@ -26,6 +26,7 @@ from antares.craft.model.xpansion.settings import (
     XpansionSolver,
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
+from antares.craft.service.utils import check_field_is_not_null
 from antares.craft.tools.alias_generators import to_kebab
 from antares.craft.tools.serde_local.ini_reader import IniReader
 
@@ -67,26 +68,26 @@ class XpansionSettingsAPI(APIBaseModel, alias_generator=None):
     def to_sensitivity_model(self) -> XpansionSensitivity:
         assert self.sensitivity_config is not None
         return XpansionSensitivity(
-            epsilon=self.sensitivity_config.epsilon,
-            projection=self.sensitivity_config.projection,
-            capex=self.sensitivity_config.capex,
+            epsilon=check_field_is_not_null(self.sensitivity_config.epsilon),
+            projection=check_field_is_not_null(self.sensitivity_config.projection),
+            capex=check_field_is_not_null(self.sensitivity_config.capex),
         )
 
     def to_settings_model(self) -> XpansionSettings:
         return XpansionSettings(
-            master=self.master,
-            uc_type=self.uc_type,
-            optimality_gap=self.optimality_gap,
-            relative_gap=self.relative_gap,
-            relaxed_optimality_gap=self.relaxed_optimality_gap,
-            max_iteration=self.max_iteration,
-            solver=self.solver,
-            log_level=self.log_level,
-            separation_parameter=self.separation_parameter,
-            batch_size=self.batch_size,
+            master=check_field_is_not_null(self.master),
+            uc_type=check_field_is_not_null(self.uc_type),
+            optimality_gap=check_field_is_not_null(self.optimality_gap),
+            relative_gap=check_field_is_not_null(self.relative_gap),
+            relaxed_optimality_gap=check_field_is_not_null(self.relaxed_optimality_gap),
+            max_iteration=check_field_is_not_null(self.max_iteration),
+            solver=check_field_is_not_null(self.solver),
+            log_level=check_field_is_not_null(self.log_level),
+            separation_parameter=check_field_is_not_null(self.separation_parameter),
+            batch_size=check_field_is_not_null(self.batch_size),
             yearly_weights=self.yearly_weights or None,  # AntaresWeb endpoint uses empty strings instead of None
             additional_constraints=self.additional_constraints or None,  # Same here
-            timelimit=self.timelimit,
+            timelimit=check_field_is_not_null(self.timelimit),
         )
 
 
@@ -150,10 +151,10 @@ class XpansionCandidateAPI(APIBaseModel, alias_generator=to_kebab):  # Due to ol
     def to_user_model(self) -> XpansionCandidate:
         assert isinstance(self.link, XpansionLink)
         return XpansionCandidate(
-            name=self.name,
+            name=check_field_is_not_null(self.name),
             area_from=self.link.area_from,
             area_to=self.link.area_to,
-            annual_cost_per_mw=self.annual_cost_per_mw,
+            annual_cost_per_mw=check_field_is_not_null(self.annual_cost_per_mw),
             already_installed_capacity=self.already_installed_capacity,
             unit_size=self.unit_size,
             max_units=self.max_units,
@@ -200,7 +201,10 @@ class XpansionConstraintAPI(APIBaseModel):
 
     def to_user_model(self) -> XpansionConstraint:
         return XpansionConstraint(
-            name=self.name, sign=self.sign, right_hand_side=self.rhs, candidates_coefficients=self.model_extra
+            name=check_field_is_not_null(self.name),
+            sign=check_field_is_not_null(self.sign),
+            right_hand_side=check_field_is_not_null(self.rhs),
+            candidates_coefficients=check_field_is_not_null(self.model_extra),
         )
 
 

@@ -24,6 +24,7 @@ from antares.craft.model.link import (
     TransmissionCapacities,
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
+from antares.craft.service.utils import check_field_is_not_null
 
 LinkPropertiesType = LinkProperties | LinkPropertiesUpdate
 LinkUiType = LinkUi | LinkUiUpdate
@@ -55,22 +56,22 @@ class LinkPropertiesAndUiAPI(APIBaseModel):
 
     def to_ui_user_model(self) -> LinkUi:
         return LinkUi(
-            link_style=self.link_style,
-            link_width=self.link_width,
-            colorr=self.colorr,
-            colorg=self.colorg,
-            colorb=self.colorb,
+            link_style=check_field_is_not_null(self.link_style),
+            link_width=check_field_is_not_null(self.link_width),
+            colorr=check_field_is_not_null(self.colorr),
+            colorg=check_field_is_not_null(self.colorg),
+            colorb=check_field_is_not_null(self.colorb),
         )
 
     def to_properties_user_model(self) -> LinkProperties:
         return LinkProperties(
-            hurdles_cost=self.hurdles_cost,
-            loop_flow=self.loop_flow,
-            use_phase_shifter=self.use_phase_shifter,
-            transmission_capacities=self.transmission_capacities,
-            asset_type=self.asset_type,
-            display_comments=self.display_comments,
-            comments=self.comments,
-            filter_synthesis=self.filter_synthesis,
-            filter_year_by_year=self.filter_year_by_year,
+            hurdles_cost=check_field_is_not_null(self.hurdles_cost),
+            loop_flow=check_field_is_not_null(self.loop_flow),
+            use_phase_shifter=check_field_is_not_null(self.use_phase_shifter),
+            transmission_capacities=check_field_is_not_null(self.transmission_capacities),
+            asset_type=check_field_is_not_null(self.asset_type),
+            display_comments=check_field_is_not_null(self.display_comments),
+            comments=check_field_is_not_null(self.comments),
+            filter_synthesis=check_field_is_not_null(self.filter_synthesis),
+            filter_year_by_year=check_field_is_not_null(self.filter_year_by_year),
         )
