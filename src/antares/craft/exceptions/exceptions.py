@@ -257,30 +257,9 @@ class ConstraintMatrixDownloadError(Exception):
         super().__init__(self.message)
 
 
-class ConstraintTermAdditionError(Exception):
-    def __init__(self, constraint_name: str, terms_ids: List[str], message: str) -> None:
-        self.message = (
-            f"Could not add the following constraint terms: '{', '.join(terms_ids)}' inside constraint '{constraint_name}': "
-            + message
-        )
-        super().__init__(self.message)
-
-
 class BindingConstraintDeletionError(Exception):
     def __init__(self, constraint_name: str, message: str) -> None:
         self.message = f"Could not delete the binding constraint '{constraint_name}': " + message
-        super().__init__(self.message)
-
-
-class ConstraintTermDeletionError(Exception):
-    def __init__(self, constraint_id: str, term_id: str, message: str) -> None:
-        self.message = f"Could not delete the term '{term_id}' of the binding constraint '{constraint_id}': " + message
-        super().__init__(self.message)
-
-
-class ConstraintTermEditionError(Exception):
-    def __init__(self, constraint_id: str, term_id: str, message: str) -> None:
-        self.message = f"Could not update the term '{term_id}' of the binding constraint '{constraint_id}': " + message
         super().__init__(self.message)
 
 

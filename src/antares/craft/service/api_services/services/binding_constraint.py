@@ -188,7 +188,8 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         return updated_constraints
 
     @override
-    def set_constraint_terms(self, constraint_id: str, terms: list[ConstraintTerm]) -> None:
+    def set_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> None:
+        constraint_id = constraint.id
         url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint_id}"
 
         try:
