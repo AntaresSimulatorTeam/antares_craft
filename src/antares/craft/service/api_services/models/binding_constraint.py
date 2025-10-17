@@ -18,22 +18,20 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
 )
-from antares.craft.model.commons import filtering_option
+from antares.craft.model.commons import FILTER_VALUES, filtering_option
 from antares.craft.service.api_services.models.base_model import APIBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
 
 BindingConstraintPropertiesType = BindingConstraintProperties | BindingConstraintPropertiesUpdate
 
 
-@all_optional_model
 class BindingConstraintPropertiesAPI(APIBaseModel):
-    enabled: bool
-    time_step: BindingConstraintFrequency
-    operator: BindingConstraintOperator
-    comments: str
-    filter_year_by_year: filtering_option
-    filter_synthesis: filtering_option
-    group: str
+    enabled: bool | None = None
+    time_step: BindingConstraintFrequency | None = None
+    operator: BindingConstraintOperator | None = None
+    comments: str | None = None
+    filter_year_by_year: filtering_option | None = None
+    filter_synthesis: filtering_option | None = None
+    group: str | None = None
 
     @staticmethod
     def from_user_model(user_class: BindingConstraintPropertiesType) -> "BindingConstraintPropertiesAPI":
@@ -41,12 +39,13 @@ class BindingConstraintPropertiesAPI(APIBaseModel):
         return BindingConstraintPropertiesAPI.model_validate(user_dict)
 
     def to_user_model(self) -> BindingConstraintProperties:
+        content = self.model_dump(exclude_none=True)
         return BindingConstraintProperties(
-            enabled=self.enabled,
-            time_step=self.time_step,
-            operator=self.operator,
-            comments=self.comments,
-            filter_year_by_year=self.filter_year_by_year,
-            filter_synthesis=self.filter_synthesis,
-            group=self.group,
+            enabled=content.get("enabled", True),
+            time_step=content.get("time_step", BindingConstraintFrequency.HOURLY),
+            operator=content.get("operator", BindingConstraintOperator.LESS),
+            comments=content.get("comments", ""),
+            filter_year_by_year=content.get("filter_year_by_year", FILTER_VALUES),
+            filter_synthesis=content.get("filter_synthesis", FILTER_VALUES),
+            group=content.get("group", "default"),
         )
