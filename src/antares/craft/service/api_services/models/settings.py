@@ -165,7 +165,6 @@ class AdvancedAndSeedParametersAPI(APIBaseModel):
 
     def to_user_advanced_parameters_model(self) -> AdvancedParameters:
         return AdvancedParameters(
-            initial_reservoir_levels=check_field_is_not_null(self.initial_reservoir_levels),
             hydro_heuristic_policy=check_field_is_not_null(self.hydro_heuristic_policy),
             hydro_pricing_mode=check_field_is_not_null(self.hydro_pricing_mode),
             power_fluctuations=check_field_is_not_null(self.power_fluctuations),
@@ -174,6 +173,7 @@ class AdvancedAndSeedParametersAPI(APIBaseModel):
             number_of_cores_mode=check_field_is_not_null(self.number_of_cores_mode),
             renewable_generation_modelling=check_field_is_not_null(self.renewable_generation_modelling),
             accuracy_on_correlation=check_field_is_not_null(self.accuracy_on_correlation),
+            initial_reservoir_levels=self.initial_reservoir_levels,
         )
 
     def to_user_seed_parameters_model(self) -> SeedParameters:
@@ -330,7 +330,7 @@ class OptimizationParametersAPI(APIBaseModel):
             include_spinningreserve=check_field_is_not_null(self.spinning_reserve),
             include_primaryreserve=check_field_is_not_null(self.primary_reserve),
             include_exportmps=check_field_is_not_null(self.export_mps),
-            include_exportstructure=check_field_is_not_null(self.include_exportstructure),
+            include_exportstructure=self.include_exportstructure,  # type: ignore # The API does not return the field
             include_unfeasible_problem_behavior=check_field_is_not_null(self.unfeasible_problem_behavior),
         )
 

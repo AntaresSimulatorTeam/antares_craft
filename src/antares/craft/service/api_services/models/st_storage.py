@@ -59,10 +59,10 @@ class STStoragePropertiesAPI(APIBaseModel):
             efficiency=check_field_is_not_null(self.efficiency),
             initial_level=check_field_is_not_null(self.initial_level),
             initial_level_optim=check_field_is_not_null(self.initial_level_optim),
-            efficiency_withdrawal=check_field_is_not_null(self.efficiency_withdrawal),
-            penalize_variation_injection=check_field_is_not_null(self.penalize_variation_injection),
-            penalize_variation_withdrawal=check_field_is_not_null(self.penalize_variation_withdrawal),
-            allow_overflow=check_field_is_not_null(self.allow_overflow),
+            efficiency_withdrawal=self.efficiency_withdrawal,
+            penalize_variation_injection=self.penalize_variation_injection,
+            penalize_variation_withdrawal=self.penalize_variation_withdrawal,
+            allow_overflow=self.allow_overflow,
         )
 
 
