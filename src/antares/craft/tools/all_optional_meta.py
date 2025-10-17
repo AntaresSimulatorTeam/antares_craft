@@ -10,15 +10,14 @@
 #
 # This file is part of the Antares project.
 
-import copy
-import typing as t
+from typing import Optional, Type, TypeVar
 
-from pydantic import BaseModel, create_model
+from pydantic import BaseModel, Field, create_model
 
-ModelClass = t.TypeVar("ModelClass", bound=BaseModel)
+ModelClass = TypeVar("ModelClass", bound=BaseModel)
 
 
-def all_optional_model(model: t.Type[ModelClass]) -> t.Type[ModelClass]:
+def all_optional_model(model: Type[ModelClass]) -> Type[ModelClass]:
     """
     This decorator can be used to make all fields of a pydantic model optionals.
 
@@ -30,9 +29,16 @@ def all_optional_model(model: t.Type[ModelClass]) -> t.Type[ModelClass]:
     """
     kwargs = {}
     for field_name, field_info in model.model_fields.items():
-        new = copy.deepcopy(field_info)
-        new.default = None
-        new.annotation = t.Optional[field_info.annotation]  # type: ignore
-        kwargs[field_name] = (new.annotation, new)
+        # Create a new Field with default=None to make it optional
+        new_field = Field(
+            default=None,
+            alias=field_info.alias,
+            validation_alias=field_info.validation_alias,
+            serialization_alias=field_info.serialization_alias,
+            title=field_info.title,
+            description=field_info.description,
+        )
+        new_annotation = Optional[field_info.annotation]  # type: ignore
+        kwargs[field_name] = (new_annotation, new_field)
 
     return create_model(f"Partial{model.__name__}", __base__=model, __module__=model.__module__, **kwargs)  # type: ignore
