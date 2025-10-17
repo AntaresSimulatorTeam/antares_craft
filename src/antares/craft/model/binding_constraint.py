@@ -149,7 +149,7 @@ class BindingConstraint:
         return self._terms
 
     def set_terms(self, terms: list[ConstraintTerm]) -> None:
-        self._binding_constraint_service.set_constraint_terms(self.id, terms)
+        self._binding_constraint_service.set_constraint_terms(self, terms)
         new_terms = {term.id: term for term in terms}
         self._terms = new_terms
 

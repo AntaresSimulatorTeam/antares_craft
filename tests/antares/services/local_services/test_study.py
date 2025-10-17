@@ -1172,9 +1172,9 @@ group = test group
         assert ini_content == expected_ini_content
 
     def test_constraint_can_add_term(self, test_constraint: BindingConstraint) -> None:
-        new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]
-        test_constraint.set_terms(new_term)
-        assert test_constraint.get_terms()
+        new_term = ConstraintTerm(data=LinkData(area1="fr", area2="at"))
+        test_constraint.set_terms([new_term])
+        assert test_constraint.get_terms() == {new_term.id: new_term}
 
     def test_constraint_term_and_ini_have_correct_defaults(
         self, local_study_with_constraint: Study, test_constraint: BindingConstraint
