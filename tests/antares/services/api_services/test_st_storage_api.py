@@ -174,6 +174,7 @@ class TestCreateAPI:
                 "efficiency": 1,
                 "initialLevel": 0.5,
                 "initialLevelOptim": False,
+                "enabled": False,
             },
             "study_test / duracell": {
                 "group": "battery",
@@ -183,6 +184,7 @@ class TestCreateAPI:
                 "efficiency": 0.8996,
                 "initialLevel": 0.54,
                 "initialLevelOptim": False,
+                "enabled": True,
             },
         }
         json_storages_1 = {
@@ -194,6 +196,7 @@ class TestCreateAPI:
                 "efficiency": 1,
                 "initial_level": 0.5,
                 "initial_level_optim": False,
+                "enabled": True,
             },
             "duracell": {
                 "group": "battery",
@@ -203,6 +206,7 @@ class TestCreateAPI:
                 "efficiency": 0.8996,
                 "initial_level": 0.54,
                 "initial_level_optim": False,
+                "enabled": True,
             },
         }
         self.study._areas["study_test"] = self.area
