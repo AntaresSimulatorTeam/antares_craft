@@ -73,6 +73,5 @@ class OptimizationParametersLocal(LocalBaseModel, alias_generator=to_kebab):
             include_spinningreserve=self.include_spinningreserve,
             include_primaryreserve=self.include_primaryreserve,
             include_exportmps=self.include_exportmps,
-            include_exportstructure=self.include_exportstructure,
             include_unfeasible_problem_behavior=self.include_unfeasible_problem_behavior,
         )

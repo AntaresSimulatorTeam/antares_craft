@@ -53,7 +53,18 @@ class TestCreateAPI:
         with requests_mock.Mocker() as mocker:
             properties = RenewableClusterPropertiesUpdate(enabled=False)
             url = f"https://antares.com/api/v1/studies/{self.study_id}/table-mode/renewables"
-            mocker.put(url, json={f"{self.renewable.area_id} / {self.renewable.id}": {"enabled": False}})
+            mocker.put(
+                url,
+                json={
+                    f"{self.renewable.area_id} / {self.renewable.id}": {
+                        "group": "solar thermal",
+                        "enabled": "true",
+                        "unitCount": 1,
+                        "nominalCapacity": 0,
+                        "tsInterpretation": "power-generation",
+                    }
+                },
+            )
             self.renewable.update_properties(properties=properties)
 
     def test_update_renewable_properties_fails(self) -> None:

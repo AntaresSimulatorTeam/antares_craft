@@ -98,8 +98,6 @@ def edit_study_settings(
         optimization_url = f"{settings_base_url}/optimization/form"
         optimization_api_model = OptimizationParametersAPI.from_user_model(settings.optimization_parameters)
         body = optimization_api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
-        if "includeExportstructure" in body:
-            raise APIError("AntaresWeb doesn't support editing the parameter include_exportstructure")
         json_response = wrapper.put(optimization_url, json=body).json()
         optimization_parameters = parse_optimization_parameters_api(json_response)
 

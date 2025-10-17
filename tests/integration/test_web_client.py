@@ -28,7 +28,6 @@ from antares.craft.exceptions.exceptions import (
     InvalidRequestForScenarioBuilder,
     MatrixUploadError,
     ReferencedObjectDeletionNotAllowed,
-    StudySettingsUpdateError,
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
 )
@@ -950,15 +949,6 @@ class TestWebClient:
 
         assert imported_study.path == path_test / f"{imported_study.service.study_id}"
         assert list(imported_study.get_areas()) == list(study.get_areas())
-
-        # Asserts updating include_exportstructure parameter raises a clear Exception
-        update_settings = StudySettingsUpdate()
-        update_settings.optimization_parameters = OptimizationParametersUpdate(include_exportstructure=True)
-        with pytest.raises(
-            StudySettingsUpdateError,
-            match=f"Could not update settings for study '{imported_study.service.study_id}': AntaresWeb doesn't support editing the parameter include_exportstructure",
-        ):
-            imported_study.update_settings(update_settings)
 
         ######################
         # Specific tests for Xpansion

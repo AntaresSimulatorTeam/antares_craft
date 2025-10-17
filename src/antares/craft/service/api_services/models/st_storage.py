@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+
 from dataclasses import asdict
 from typing import Any
 
@@ -22,27 +23,26 @@ from antares.craft.model.st_storage import (
     STStoragePropertiesUpdate,
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
+from antares.craft.service.utils import check_field_is_not_null
 
 STStoragePropertiesType = STStorageProperties | STStoragePropertiesUpdate
 
 
-@all_optional_model
 class STStoragePropertiesAPI(APIBaseModel):
-    group: str
-    injection_nominal_capacity: float
-    withdrawal_nominal_capacity: float
-    reservoir_capacity: float
-    efficiency: float
-    initial_level: float
-    initial_level_optim: bool
-    enabled: bool
+    group: str | None = None
+    injection_nominal_capacity: float | None = None
+    withdrawal_nominal_capacity: float | None = None
+    reservoir_capacity: float | None = None
+    efficiency: float | None = None
+    initial_level: float | None = None
+    initial_level_optim: bool | None = None
+    enabled: bool | None = None
     # Introduced in v9.2
-    efficiency_withdrawal: float
-    penalize_variation_injection: bool
-    penalize_variation_withdrawal: bool
+    efficiency_withdrawal: float | None = None
+    penalize_variation_injection: bool | None = None
+    penalize_variation_withdrawal: bool | None = None
     # Introduced in v9.3
-    allow_overflow: bool
+    allow_overflow: bool | None = None
 
     @staticmethod
     def from_user_model(user_class: STStoragePropertiesType) -> "STStoragePropertiesAPI":
@@ -51,14 +51,14 @@ class STStoragePropertiesAPI(APIBaseModel):
 
     def to_user_model(self) -> STStorageProperties:
         return STStorageProperties(
-            enabled=self.enabled,
-            group=self.group,
-            injection_nominal_capacity=self.injection_nominal_capacity,
-            withdrawal_nominal_capacity=self.withdrawal_nominal_capacity,
-            reservoir_capacity=self.reservoir_capacity,
-            efficiency=self.efficiency,
-            initial_level=self.initial_level,
-            initial_level_optim=self.initial_level_optim,
+            enabled=check_field_is_not_null(self.enabled),
+            group=check_field_is_not_null(self.group),
+            injection_nominal_capacity=check_field_is_not_null(self.injection_nominal_capacity),
+            withdrawal_nominal_capacity=check_field_is_not_null(self.withdrawal_nominal_capacity),
+            reservoir_capacity=check_field_is_not_null(self.reservoir_capacity),
+            efficiency=check_field_is_not_null(self.efficiency),
+            initial_level=check_field_is_not_null(self.initial_level),
+            initial_level_optim=check_field_is_not_null(self.initial_level_optim),
             efficiency_withdrawal=self.efficiency_withdrawal,
             penalize_variation_injection=self.penalize_variation_injection,
             penalize_variation_withdrawal=self.penalize_variation_withdrawal,
@@ -87,14 +87,13 @@ class OccurrenceAPI(APIBaseModel):
     hours: list[int]
 
 
-@all_optional_model
 class STStorageAdditionalConstraintAPI(APIBaseModel):
-    id: str
-    name: str
-    variable: AdditionalConstraintVariable
-    operator: AdditionalConstraintOperator
-    occurrences: list[OccurrenceAPI]
-    enabled: bool
+    id: str | None = None
+    name: str | None = None
+    variable: AdditionalConstraintVariable | None = None
+    operator: AdditionalConstraintOperator | None = None
+    occurrences: list[OccurrenceAPI] | None = None
+    enabled: bool | None = None
 
     @staticmethod
     def from_user_model(user_class: STStorageConstraintType) -> "STStorageAdditionalConstraintAPI":
@@ -102,13 +101,14 @@ class STStorageAdditionalConstraintAPI(APIBaseModel):
         return STStorageAdditionalConstraintAPI.model_validate(user_dict)
 
     def to_user_model(self) -> STStorageAdditionalConstraint:
+        assert self.occurrences is not None
         occurrences = [Occurrence(hours=occ.model_dump()["hours"]) for occ in self.occurrences]
         return STStorageAdditionalConstraint(
-            name=self.name,
-            variable=self.variable,
-            operator=self.operator,
-            occurrences=occurrences,
-            enabled=self.enabled,
+            name=check_field_is_not_null(self.name),
+            variable=check_field_is_not_null(self.variable),
+            operator=check_field_is_not_null(self.operator),
+            occurrences=check_field_is_not_null(occurrences),
+            enabled=check_field_is_not_null(self.enabled),
         )
 
 
