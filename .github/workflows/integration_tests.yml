@@ -1,0 +1,66 @@
+name: Run Integration Tests with AntaresWeb desktop instance
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Every day at midnight UTC
+  push:
+    branches:
+      - 'integration/**'
+      - 'create-cron-job'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+
+    - name: Download AntaresWeb asset from draft release
+      env:
+        GITHUB_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        REPO: ${{ github.repository }}
+      run: |
+        echo "Finding draft release ID..."
+        release_id=$(curl -s \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          https://api.github.com/repos/$REPO/releases | \
+          jq '.[] | select(.draft==true and .name=="AntaresWebDesktop Ubuntu 22 version for daily CI") | .id')
+        if [ -z "$release_id" ]; then
+          echo "Draft release not found!"
+          exit 1
+        fi
+        echo "Draft release ID: $release_id"
+
+        echo "Finding AntaresWeb asset ID..."
+        asset_id=$(curl -s \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          https://api.github.com/repos/$REPO/releases/$release_id/assets | \
+          jq '.[] | select(.name=="AntaresWeb.zip") | .id')
+        if [ -z "$asset_id" ]; then
+          echo "Asset AntaresWeb.zip not found!"
+          exit 1
+        fi
+        echo "Asset ID: $asset_id"
+
+        echo "Downloading asset..."
+        curl -L -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Accept: application/octet-stream" \
+          https://api.github.com/repos/$REPO/releases/assets/$asset_id \
+          -o AntaresWeb.zip
+
+    - name: Unzip AntaresWeb asset
+      run: unzip -o AntaresWeb.zip -d AntaresWeb
+
+    - name: Run tests
+      run: python -m pytest tests/integration/test_web_client.py
