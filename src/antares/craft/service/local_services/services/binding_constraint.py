@@ -237,13 +237,13 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         current_ini_content = self._read_ini()
 
         constraint_name = transform_name_to_id(constraint_id)
-        properties = self.read_binding_constraints()[constraint_id].properties
 
         # Look for the constraint
         existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint_id), None)
         if not existing_key:
             raise ConstraintDoesNotExistError(constraint_name, self.study_name)
 
+        properties = self.read_binding_constraints()[constraint_id].properties or BindingConstraintProperties()
         props = BindingConstraintPropertiesLocal.from_user_model(properties)
 
         dict_props_terms = {
