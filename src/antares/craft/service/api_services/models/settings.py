@@ -16,7 +16,6 @@ from typing import Any, Optional, Sequence, cast
 
 from pydantic import field_validator
 
-from antares.craft.exceptions.exceptions import APIError
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
     AdequacyPatchParametersUpdate,
@@ -295,7 +294,6 @@ class OptimizationParametersAPI(APIBaseModel):
     spinning_reserve: bool | None = None
     primary_reserve: bool | None = None
     export_mps: ExportMPS | None = None
-    include_exportstructure: bool | None = None
     unfeasible_problem_behavior: UnfeasibleProblemBehavior | None = None
 
     @staticmethod
@@ -311,7 +309,6 @@ class OptimizationParametersAPI(APIBaseModel):
         user_dict["spinning_reserve"] = user_dict.pop("include_spinningreserve")
         user_dict["primary_reserve"] = user_dict.pop("include_primaryreserve")
         user_dict["export_mps"] = user_dict.pop("include_exportmps")
-        user_dict["include_exportstructure"] = user_dict.pop("include_exportstructure")
         user_dict["unfeasible_problem_behavior"] = user_dict.pop("include_unfeasible_problem_behavior")
         return OptimizationParametersAPI.model_validate(user_dict)
 
@@ -328,7 +325,6 @@ class OptimizationParametersAPI(APIBaseModel):
             include_spinningreserve=check_field_is_not_null(self.spinning_reserve),
             include_primaryreserve=check_field_is_not_null(self.primary_reserve),
             include_exportmps=check_field_is_not_null(self.export_mps),
-            include_exportstructure=self.include_exportstructure,  # type: ignore # The API does not return the field
             include_unfeasible_problem_behavior=check_field_is_not_null(self.unfeasible_problem_behavior),
         )
 
@@ -340,8 +336,6 @@ def parse_optimization_parameters_api(data: Any) -> OptimizationParameters:
 def serialize_optimization_parameters_api(parameters: OptimizationParameters) -> dict[str, Any]:
     optimization_api_model = OptimizationParametersAPI.from_user_model(parameters)
     body = optimization_api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
-    if "includeExportstructure" in body:
-        raise APIError("AntaresWeb doesn't support editing the parameter include_exportstructure")
     return body
 
 
@@ -467,14 +461,6 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
             load=check_field_is_not_null(self.load),
             h_ror=check_field_is_not_null(self.h_ror),
             wind=check_field_is_not_null(self.wind),
-            solar=self.solar,
-            nuclear=self.nuclear,
-            lignite=self.lignite,
-            coal=self.coal,
-            gas=self.gas,
-            oil=self.oil,
-            mix_fuel=self.mix_fuel,
-            misc_dtg=self.misc_dtg,
             h_stor=check_field_is_not_null(self.h_stor),
             h_pump=check_field_is_not_null(self.h_pump),
             h_lev=check_field_is_not_null(self.h_lev),
@@ -504,6 +490,23 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
             cong_prob_minus=check_field_is_not_null(self.cong_prob_minus),
             hurdle_cost=check_field_is_not_null(self.hurdle_cost),
             res_generation_by_plant=check_field_is_not_null(self.res_generation_by_plant),
+            dens=check_field_is_not_null(self.dens),
+            profit_by_plant=check_field_is_not_null(self.profit_by_plant),
+            sts_inj_by_plant=check_field_is_not_null(self.sts_inj_by_plant),
+            sts_withdrawal_by_plant=check_field_is_not_null(self.sts_withdrawal_by_plant),
+            sts_lvl_by_plant=check_field_is_not_null(self.sts_lvl_by_plant),
+            sts_cashflow_by_cluster=check_field_is_not_null(self.sts_cashflow_by_cluster),
+            npcap_hours=check_field_is_not_null(self.npcap_hours),
+            bc_marg_cost=check_field_is_not_null(self.bc_marg_cost),
+            # Optional fields
+            solar=self.solar,
+            nuclear=self.nuclear,
+            lignite=self.lignite,
+            coal=self.coal,
+            gas=self.gas,
+            oil=self.oil,
+            mix_fuel=self.mix_fuel,
+            misc_dtg=self.misc_dtg,
             misc_dtg_2=self.misc_dtg_2,
             misc_dtg_3=self.misc_dtg_3,
             misc_dtg_4=self.misc_dtg_4,
@@ -516,14 +519,6 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
             renw_2=self.renw_2,
             renw_3=self.renw_3,
             renw_4=self.renw_4,
-            dens=check_field_is_not_null(self.dens),
-            profit_by_plant=check_field_is_not_null(self.profit_by_plant),
-            sts_inj_by_plant=check_field_is_not_null(self.sts_inj_by_plant),
-            sts_withdrawal_by_plant=check_field_is_not_null(self.sts_withdrawal_by_plant),
-            sts_lvl_by_plant=check_field_is_not_null(self.sts_lvl_by_plant),
-            sts_cashflow_by_cluster=check_field_is_not_null(self.sts_cashflow_by_cluster),
-            npcap_hours=check_field_is_not_null(self.npcap_hours),
-            bc_marg_cost=check_field_is_not_null(self.bc_marg_cost),
             sts_by_group=self.sts_by_group,
             psp_open_injection=self.psp_open_injection,
             psp_open_withdrawal=self.psp_open_withdrawal,

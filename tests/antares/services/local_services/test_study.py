@@ -282,7 +282,6 @@ class TestStudyProperties:
             include_spinningreserve=True,
             include_primaryreserve=True,
             include_exportmps=ExportMPS.FALSE,
-            include_exportstructure=False,
             include_unfeasible_problem_behavior=UnfeasibleProblemBehavior.ERROR_VERBOSE,
         )
 
