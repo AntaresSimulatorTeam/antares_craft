@@ -18,7 +18,7 @@ jobs:
 
     - name: Download AntaresWeb asset from draft release
       env:
-        GITHUB_TOKEN: ${{ secrets.DAILY_CI_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.DAILY_CI }}
         REPO: ${{ github.repository }}
       run: |
         echo "Finding draft release ID..."
