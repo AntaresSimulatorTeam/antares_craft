@@ -91,9 +91,6 @@ class AdequacyPatchParametersAPI(APIBaseModel):
             set_to_null_ntc_from_physical_out_to_physical_in_for_first_step=check_field_is_not_null(
                 self.ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch
             ),
-            set_to_null_ntc_between_physical_out_for_first_step=check_field_is_not_null(
-                self.ntc_between_physical_areas_out_adequacy_patch
-            ),
             price_taking_order=check_field_is_not_null(self.price_taking_order),
             include_hurdle_cost_csr=check_field_is_not_null(self.include_hurdle_cost_csr),
             check_csr_cost_function=check_field_is_not_null(self.check_csr_cost_function),
@@ -106,6 +103,7 @@ class AdequacyPatchParametersAPI(APIBaseModel):
             threshold_csr_variable_bounds_relaxation=check_field_is_not_null(
                 self.threshold_csr_variable_bounds_relaxation
             ),
+            set_to_null_ntc_between_physical_out_for_first_step=self.ntc_between_physical_areas_out_adequacy_patch,
         )
 
 
