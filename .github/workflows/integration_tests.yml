@@ -24,7 +24,6 @@ jobs:
         REPO: AntaresSimulatorTeam/antares_desktop
       run: |
         echo "Finding draft release ID..."
-        echo $REPO
         curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/$REPO/releases > releases.json
         cat releases.json
 
