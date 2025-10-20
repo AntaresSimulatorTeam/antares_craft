@@ -32,7 +32,7 @@ class AntaresWebDesktop:
             executable_path = antares_web_desktop_path / "AntaresWeb" / "AntaresWebServer"
         else:
             executable_path = antares_web_desktop_path / "AntaresWeb" / "AntaresWebServer.exe"
-        args = [str(executable_path), "-c", str(config_path), "--auto-upgrade-db", "--no-front"]
+        args = [str(executable_path), "-c", str(config_path), "--auto-upgrade-db", "--no-front", "--systray-app=False"]
         self.desktop_path = antares_web_desktop_path
         self.host = "127.0.0.1"
         self.port = 8080
