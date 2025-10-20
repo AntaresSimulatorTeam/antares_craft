@@ -1,4 +1,4 @@
-name: Run Integration Tests with AntaresWeb desktop instance
+name: API Integration tests
 
 on:
   schedule:
