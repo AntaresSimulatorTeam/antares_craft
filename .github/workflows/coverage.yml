@@ -5,12 +5,51 @@ on:
       - "**"
 
 jobs:
-  unit_test_coverage:
+  coverage_and_integration_test:
     runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download AntaresWeb asset from draft release
+        env:
+          GITHUB_TOKEN: ${{ secrets.DAILY_CI }}
+          REPO: AntaresSimulatorTeam/antares_desktop
+          VERSION: v2.25.0
+        run: |
+          echo "Finding draft release ID..."
+  
+          release_id=$(curl -s \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            https://api.github.com/repos/$REPO/releases | \
+            jq --arg ver "$VERSION" '.[] | select(.name == $ver) | .id')
+          
+          if [ -z "$release_id" ]; then
+            echo "Draft release not found!"
+            exit 1
+          fi
+          echo "Draft release ID: $release_id"
+  
+          echo "Finding AntaresWeb asset ID..."
+          asset_id=$(curl -s \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            https://api.github.com/repos/$REPO/releases/$release_id/assets | \
+            jq '.[] | select(.name=="AntaresWebDesktop.zip") | .id')
+          if [ -z "$asset_id" ]; then
+            echo "Asset AntaresWebDesktop.zip not found!"
+            exit 1
+          fi
+          echo "Asset ID: $asset_id"
+  
+          echo "Downloading asset..."
+          curl -L -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/octet-stream" \
+            https://api.github.com/repos/$REPO/releases/assets/$asset_id \
+            -o AntaresWebDesktop.zip
+
+      - name: Unzip AntaresWebDesktop asset
+        run: unzip -o AntaresWebDesktop.zip -d .
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -31,71 +70,10 @@ jobs:
           name: python-code-coverage-report
           path: coverage.xml
 
-  api_integration_test:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
-
-      #  and .name=="AntaresWebDesktop Ubuntu 22 version for daily CI"
-
-    - name: Download AntaresWeb asset from draft release
-      env:
-        GITHUB_TOKEN: ${{ secrets.DAILY_CI }}
-        REPO: AntaresSimulatorTeam/antares_desktop
-        VERSION: v2.25.0
-      run: |
-        echo "Finding draft release ID..."
-
-        release_id=$(curl -s \
-          -H "Authorization: token $GITHUB_TOKEN" \
-          https://api.github.com/repos/$REPO/releases | \
-          jq --arg ver "$VERSION" '.[] | select(.name == $ver) | .id')
-        
-        if [ -z "$release_id" ]; then
-          echo "Draft release not found!"
-          exit 1
-        fi
-        echo "Draft release ID: $release_id"
-
-        echo "Finding AntaresWeb asset ID..."
-        asset_id=$(curl -s \
-          -H "Authorization: token $GITHUB_TOKEN" \
-          https://api.github.com/repos/$REPO/releases/$release_id/assets | \
-          jq '.[] | select(.name=="AntaresWebDesktop.zip") | .id')
-        if [ -z "$asset_id" ]; then
-          echo "Asset AntaresWebDesktop.zip not found!"
-          exit 1
-        fi
-        echo "Asset ID: $asset_id"
-
-        echo "Downloading asset..."
-        curl -L -H "Authorization: token $GITHUB_TOKEN" \
-          -H "Accept: application/octet-stream" \
-          https://api.github.com/repos/$REPO/releases/assets/$asset_id \
-          -o AntaresWebDesktop.zip
-
-    - name: Unzip AntaresWebDesktop asset
-      run: unzip -o AntaresWebDesktop.zip -d .
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.11
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements-dev.txt
-
-    - name: Run tests
-      run: python -m pytest tests/integration/test_web_client.py
-
 
   sonarcloud:
     runs-on: ubuntu-22.04
-    needs: [unit_test_coverage, api_integration_test]
+    needs: [coverage_and_integration_test]
 
     steps:
       - uses: actions/checkout@v4
