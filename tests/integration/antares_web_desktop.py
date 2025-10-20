@@ -50,7 +50,7 @@ class AntaresWebDesktop:
             return False
 
     def wait_for_server_to_start(self) -> None:
-        timeout = 20
+        timeout = 10
         interval = 1
         elapsed_time = 0
         while elapsed_time < timeout:
