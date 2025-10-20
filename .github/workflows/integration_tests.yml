@@ -41,9 +41,9 @@ jobs:
         asset_id=$(curl -s \
           -H "Authorization: token $GITHUB_TOKEN" \
           https://api.github.com/repos/$REPO/releases/$release_id/assets | \
-          jq --arg name "$asset_name" '.[] | select(.name == $name) | .id')
+          jq '.[] | select(.name=="AntaresWebDesktop.zip") | .id')
         if [ -z "$asset_id" ]; then
-          echo "Asset AntaresWeb.zip not found!"
+          echo "Asset AntaresWebDesktop.zip not found!"
           exit 1
         fi
         echo "Asset ID: $asset_id"
@@ -52,10 +52,10 @@ jobs:
         curl -L -H "Authorization: token $GITHUB_TOKEN" \
           -H "Accept: application/octet-stream" \
           https://api.github.com/repos/$REPO/releases/assets/$asset_id \
-          -o AntaresWeb.zip
+          -o AntaresWebDesktop.zip
 
-    - name: Unzip AntaresWeb asset
-      run: unzip -o AntaresWeb.zip -d AntaresWeb
+    - name: Unzip AntaresWebDesktop asset
+      run: unzip -o AntaresWebDesktop.zip -d AntaresWebDesktop
 
     - name: Set up Python
       uses: actions/setup-python@v5
