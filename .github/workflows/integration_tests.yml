@@ -41,7 +41,7 @@ jobs:
         asset_id=$(curl -s \
           -H "Authorization: token $GITHUB_TOKEN" \
           https://api.github.com/repos/$REPO/releases/$release_id/assets | \
-          jq '.[] | select(.name=="$VERSION.zip") | .id')
+          jq --arg name "$asset_name" '.[] | select(.name == $name) | .id')
         if [ -z "$asset_id" ]; then
           echo "Asset AntaresWeb.zip not found!"
           exit 1
