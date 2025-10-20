@@ -31,7 +31,7 @@ jobs:
         release_id=$(curl -s \
           -H "Authorization: token $GITHUB_TOKEN" \
           https://api.github.com/repos/$REPO/releases | \
-          jq '.[]  |select(.name==VERSION) | .id')
+          jq '.[]  |select(.name==$VERSION) | .id')
         if [ -z "$release_id" ]; then
           echo "Draft release not found!"
           exit 1
