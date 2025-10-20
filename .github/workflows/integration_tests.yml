@@ -25,13 +25,12 @@ jobs:
         VERSION: v2.25.0
       run: |
         echo "Finding draft release ID..."
-        curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/$REPO/releases > releases.json
-        cat releases.json
 
         release_id=$(curl -s \
           -H "Authorization: token $GITHUB_TOKEN" \
           https://api.github.com/repos/$REPO/releases | \
           jq --arg ver "$VERSION" '.[] | select(.name == $ver) | .id')
+        
         if [ -z "$release_id" ]; then
           echo "Draft release not found!"
           exit 1
@@ -42,7 +41,7 @@ jobs:
         asset_id=$(curl -s \
           -H "Authorization: token $GITHUB_TOKEN" \
           https://api.github.com/repos/$REPO/releases/$release_id/assets | \
-          jq '.[] | select(.name=="AntaresWeb.zip") | .id')
+          jq '.[] | select(.name=="$VERSION.zip") | .id')
         if [ -z "$asset_id" ]; then
           echo "Asset AntaresWeb.zip not found!"
           exit 1
