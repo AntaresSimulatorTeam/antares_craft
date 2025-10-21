@@ -31,6 +31,7 @@ class AntaresWebDesktop:
         if os.name != "nt":
             executable_path = antares_web_desktop_path / "AntaresWeb" / "AntaresWebServer"
         else:
+
             executable_path = antares_web_desktop_path / "AntaresWeb" / "AntaresWebServer.exe"
         args = [str(executable_path), "-c", str(config_path), "--auto-upgrade-db", "--no-front", "--no-systray-app"]
         self.desktop_path = antares_web_desktop_path
