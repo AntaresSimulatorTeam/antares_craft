@@ -32,7 +32,6 @@ from antares.craft.model.binding_constraint import (
     ConstraintMatrixName,
     ConstraintTerm,
     ConstraintTermData,
-    ConstraintTermUpdate,
 )
 from antares.craft.service.base_services import BaseBindingConstraintService
 from antares.craft.service.local_services.models.binding_constraint import BindingConstraintPropertiesLocal
@@ -128,46 +127,6 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         whole_content = props_content | term_content
         current_ini_content[new_key] = whole_content
         self._save_ini(current_ini_content)
-
-    @override
-    def add_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> None:
-        """
-        Add terms to a binding constraint and update the INI file.
-
-        Args:
-            constraint (BindingConstraint): The binding constraint to update.
-            terms (list[ConstraintTerm]): A list of new terms to add.
-        """
-
-        # Checks the terms to add are not already defined
-        current_terms = constraint.get_terms()
-        new_terms = {}
-        for term in terms:
-            if term.id in current_terms:
-                raise BindingConstraintCreationError(
-                    constraint_name=constraint.name, message=f"Duplicate term found: {term.id}"
-                )
-            new_terms[term.id] = term.weight_offset()
-
-        current_ini_content = self.read_ini()
-
-        # Look for the constraint
-        existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint.id), None)
-        if not existing_key:
-            raise ConstraintDoesNotExistError(constraint.name, self.study_name)
-
-        current_ini_content[existing_key].update(new_terms)
-        self._save_ini(current_ini_content)
-
-    @override
-    def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
-        raise NotImplementedError
-
-    @override
-    def update_binding_constraint_term(
-        self, constraint_id: str, term: ConstraintTermUpdate, existing_term: ConstraintTerm
-    ) -> ConstraintTerm:
-        raise NotImplementedError
 
     @override
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
@@ -267,3 +226,29 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             constraints[bc.id] = bc
 
         return constraints
+
+    @override
+    def set_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> None:
+        constraint_id = constraint.id
+        constraint_name = constraint.name
+
+        new_terms = {}
+        for term in terms:
+            new_terms[term.id] = term.weight_offset()
+
+        current_ini_content = self._read_ini()
+        # Look for the constraint
+        existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint_id), None)
+        if not existing_key:
+            raise ConstraintDoesNotExistError(constraint_name, self.study_name)
+
+        props = BindingConstraintPropertiesLocal.from_user_model(constraint.properties)
+
+        dict_props_terms = {
+            "id": constraint_id,
+            "name": constraint_name,
+            **props.model_dump(mode="json", by_alias=True),
+            **new_terms,
+        }
+        current_ini_content[existing_key] = dict_props_terms
+        self._save_ini(current_ini_content)

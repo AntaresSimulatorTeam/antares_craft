@@ -60,6 +60,8 @@ class STStoragePropertiesUpdate:
     efficiency_withdrawal: Optional[float] = None
     penalize_variation_injection: Optional[bool] = None
     penalize_variation_withdrawal: Optional[bool] = None
+    # Introduced in v9.3
+    allow_overflow: Optional[bool] = None
 
 
 @dataclass(frozen=True)
@@ -76,6 +78,8 @@ class STStorageProperties:
     efficiency_withdrawal: Optional[float] = None  # default 1.0
     penalize_variation_injection: Optional[bool] = None  # default False
     penalize_variation_withdrawal: Optional[bool] = None  # default False
+    # Introduced in v9.3
+    allow_overflow: Optional[bool] = None  # default False
 
 
 class AdditionalConstraintVariable(EnumIgnoreCase):

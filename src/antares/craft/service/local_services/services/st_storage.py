@@ -25,6 +25,7 @@ from antares.craft.exceptions.exceptions import (
     STStorageConstraintEditionError,
     STStoragePropertiesUpdateError,
 )
+from antares.craft.model.commons import STUDY_VERSION_8_8, STUDY_VERSION_9_2
 from antares.craft.model.st_storage import (
     STStorage,
     STStorageAdditionalConstraint,
@@ -33,7 +34,6 @@ from antares.craft.model.st_storage import (
     STStorageProperties,
     STStoragePropertiesUpdate,
 )
-from antares.craft.model.study import STUDY_VERSION_8_8, STUDY_VERSION_9_2
 from antares.craft.service.base_services import BaseShortTermStorageService
 from antares.craft.service.local_services.models.st_storage import (
     parse_st_storage_constraint_local,

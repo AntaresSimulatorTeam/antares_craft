@@ -1,3 +1,29 @@
+v0.5.0 (2025-10-13)
+-------------------
+
+### Compatiblity
+* This version fully supports the Simulator v9.3 [251](https://github.com/AntaresSimulatorTeam/antares_craft/pull/251), [277](https://github.com/AntaresSimulatorTeam/antares_craft/pull/277)
+* This version is compatible with AntaresWeb v2.25.0. The previous is not.
+
+### Bug fixes
+* **ts-gen**: bump the `timeseries generation` package to fix an issue [263](https://github.com/AntaresSimulatorTeam/antares_craft/pull/263)
+* **local**: allow clusters with numeric names [268](https://github.com/AntaresSimulatorTeam/antares_craft/pull/268)
+* **api**: fix issue inside area properties reading and mass update [272](https://github.com/AntaresSimulatorTeam/antares_craft/pull/272)
+* **output**: raise when links are given in the wrong order [274](https://github.com/AntaresSimulatorTeam/antares_craft/pull/274)
+* **deps**: add pyarrow inside pyproject.toml [276](https://github.com/AntaresSimulatorTeam/antares_craft/pull/276)
+* **scenario-builder**: only use `hydro final level` for v9.2+ studies [275](https://github.com/AntaresSimulatorTeam/antares_craft/pull/275)
+
+### Perfs
+* **aggregation**: use parquet instead of csv inside output aggregation [273](https://github.com/AntaresSimulatorTeam/antares_craft/pull/273)
+
+### Others
+* **deps**: relax dependencies requirements in pyproject.toml [266](https://github.com/AntaresSimulatorTeam/antares_craft/pull/266)
+* **lint** fix linting [269](https://github.com/AntaresSimulatorTeam/antares_craft/pull/269)
+
+## New Contributors
+* @RobbieKiwi made their first contribution in [268](https://github.com/AntaresSimulatorTeam/antares_craft/pull/268)
+
+
 v0.4.0 (2025-09-16)
 -------------------
 

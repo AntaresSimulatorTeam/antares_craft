@@ -28,7 +28,6 @@ from antares.craft.exceptions.exceptions import (
     InvalidRequestForScenarioBuilder,
     MatrixUploadError,
     ReferencedObjectDeletionNotAllowed,
-    StudySettingsUpdateError,
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
 )
@@ -62,9 +61,7 @@ class TestWebClient:
         xpansion_sensitivity_expected_output: XpansionSensitivityResult,
     ) -> None:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
-
         study = create_study_api("antares-craft-test", "880", api_config)
-
         # tests area creation with default values
         area_name = "FR"
         area_fr = study.create_area(area_name)
@@ -158,10 +155,10 @@ class TestWebClient:
 
         # test thermal cluster creation with properties
         thermal_name = "gaz_be"
-        thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS)
+        thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS.value)
         thermal_be = area_be.create_thermal_cluster(thermal_name, thermal_properties)
         assert thermal_be.properties.efficiency == 55
-        assert thermal_be.properties.group == ThermalClusterGroup.GAS
+        assert thermal_be.properties.group == "gas"
 
         # test thermal cluster creation with prepro_modulation matrices
         thermal_name = "matrices_be"
@@ -193,7 +190,7 @@ class TestWebClient:
 
         # Updating multiple thermal clusters properties at once
         thermal_update_1 = ThermalClusterPropertiesUpdate(marginal_cost=10.7, enabled=False, nominal_capacity=9.8)
-        thermal_update_2 = ThermalClusterPropertiesUpdate(op1=10.2, spread_cost=60.5, group=ThermalClusterGroup.NUCLEAR)
+        thermal_update_2 = ThermalClusterPropertiesUpdate(op1=10.2, spread_cost=60.5, group="nuclear")
         update_for_thermals = {thermal_fr: thermal_update_1, thermal_value_be: thermal_update_2}
 
         study.update_thermal_clusters(update_for_thermals)
@@ -210,7 +207,7 @@ class TestWebClient:
         be_value_properties = thermal_value_be.properties
         assert be_value_properties.op1 == 10.2
         assert be_value_properties.spread_cost == 60.5
-        assert be_value_properties.group == ThermalClusterGroup.NUCLEAR
+        assert be_value_properties.group == ThermalClusterGroup.NUCLEAR.value
         assert be_value_properties.op2 == 0.0
         assert be_value_properties.marginal_cost == 0.0
         assert be_value_properties.min_up_time == 1
@@ -236,15 +233,15 @@ class TestWebClient:
 
         # test renewable cluster creation with properties
         renewable_name = "wind_onshore"
-        renewable_properties = RenewableClusterProperties(enabled=False, group=RenewableClusterGroup.WIND_ON_SHORE)
+        renewable_properties = RenewableClusterProperties(enabled=False, group="wind onshore")
         renewable_onshore = area_fr.create_renewable_cluster(renewable_name, renewable_properties)
         assert not renewable_onshore.properties.enabled
-        assert renewable_onshore.properties.group == RenewableClusterGroup.WIND_ON_SHORE
+        assert renewable_onshore.properties.group == RenewableClusterGroup.WIND_ON_SHORE.value
 
         # Update multiple renewable clusters properties at once
-        renewable_update_1 = RenewableClusterPropertiesUpdate(group=RenewableClusterGroup.WIND_ON_SHORE, unit_count=10)
+        renewable_update_1 = RenewableClusterPropertiesUpdate(group="wind onshore", unit_count=10)
         renewable_update_2 = RenewableClusterPropertiesUpdate(
-            group=RenewableClusterGroup.THERMAL_SOLAR, enabled=False, nominal_capacity=1340
+            group=RenewableClusterGroup.THERMAL_SOLAR.value, enabled=False, nominal_capacity=1340
         )
         update_for_renewable = {renewable_fr: renewable_update_1, renewable_onshore: renewable_update_2}
 
@@ -254,12 +251,12 @@ class TestWebClient:
         onshore_properties = renewable_onshore.properties
 
         assert fr_renew_properties.unit_count == 10
-        assert fr_renew_properties.group == RenewableClusterGroup.WIND_ON_SHORE
+        assert fr_renew_properties.group == RenewableClusterGroup.WIND_ON_SHORE.value
         # checking the old values are not modified
         assert fr_renew_properties.nominal_capacity == 0
         assert fr_renew_properties.enabled
 
-        assert onshore_properties.group == RenewableClusterGroup.THERMAL_SOLAR
+        assert onshore_properties.group == RenewableClusterGroup.THERMAL_SOLAR.value
         assert not onshore_properties.enabled
         assert onshore_properties.nominal_capacity == 1340
 
@@ -438,8 +435,15 @@ class TestWebClient:
         cluster_data = ClusterData(area=area_be.id, cluster=thermal_be.id)
         cluster_term = ConstraintTerm(data=cluster_data, weight=100)
         terms = [link_term_1, cluster_term]
-        constraint_1.add_terms(terms)
+        constraint_1.set_terms(terms)
         assert constraint_1.get_terms() == {link_term_1.id: link_term_1, cluster_term.id: cluster_term}
+
+        # test replacing terms
+        constraint_term_2 = ConstraintTerm(data=LinkData(area1=area_de.id, area2=area_be.id), weight=3, offset=4)
+        constraint_term_3 = ConstraintTerm(data=LinkData(area1=area_fr.id, area2=area_be.id), weight=4, offset=10)
+        terms = [constraint_term_2, constraint_term_3]
+        constraint_1.set_terms(terms)
+        assert list(constraint_1.get_terms().values()) == [constraint_term_2, constraint_term_3]
 
         # asserts study contains the constraints
         assert study.get_binding_constraints() == {
@@ -447,13 +451,6 @@ class TestWebClient:
             constraint_2.id: constraint_2,
             constraint_3.id: constraint_3,
         }
-
-        # tests updating an existing term
-        new_term = ConstraintTermUpdate(data=cluster_data, offset=12)
-        constraint_1.update_term(new_term)
-        updated_term = constraint_1.get_terms()[new_term.id]
-        assert updated_term.weight == 100  # Checks the weight wasn't modified
-        assert updated_term.offset == 12
 
         # test area property edition
         new_props = AreaPropertiesUpdate(adequacy_patch_mode=AdequacyPatchMode.VIRTUAL)
@@ -480,9 +477,9 @@ class TestWebClient:
 
         # tests thermal properties update
         new_props = ThermalClusterPropertiesUpdate()
-        new_props.group = ThermalClusterGroup.NUCLEAR
+        new_props.group = "nuclear"
         thermal_fr.update_properties(new_props)
-        assert thermal_fr.properties.group == ThermalClusterGroup.NUCLEAR
+        assert thermal_fr.properties.group == ThermalClusterGroup.NUCLEAR.value
 
         # tests study reading method returns the same object that the one we created
         actual_study = read_study_api(api_config, study.service.study_id)
@@ -567,10 +564,6 @@ class TestWebClient:
         study.delete_binding_constraint(constraint_1)
         assert constraint_1.id not in study.get_binding_constraints()
 
-        # tests constraint term deletion
-        constraint_2.delete_term(link_term_2)
-        assert link_term_2.id not in constraint_2.get_terms()
-
         # tests link deletion
         study.delete_link(link_de_fr)
         assert link_de_fr.id not in study.get_links()
@@ -613,6 +606,9 @@ class TestWebClient:
 
         # Ensures every value is None as we didn't set anything inside this Study
         assert sc_builder.load.get_area("fr").get_scenario() == [None, None, None, None]
+
+        # Ensures the hydro_final_level is None as it only appeared in v9.2
+        assert sc_builder.hydro_final_level is None
 
         # Sets a new scenario builder
         sc_builder.load.get_area("fr").set_new_scenario([1, 2, 3, 4])
@@ -954,15 +950,6 @@ class TestWebClient:
         assert imported_study.path == path_test / f"{imported_study.service.study_id}"
         assert list(imported_study.get_areas()) == list(study.get_areas())
 
-        # Asserts updating include_exportstructure parameter raises a clear Exception
-        update_settings = StudySettingsUpdate()
-        update_settings.optimization_parameters = OptimizationParametersUpdate(include_exportstructure=True)
-        with pytest.raises(
-            StudySettingsUpdateError,
-            match=f"Could not update settings for study '{imported_study.service.study_id}': AntaresWeb doesn't support editing the parameter include_exportstructure",
-        ):
-            imported_study.update_settings(update_settings)
-
         ######################
         # Specific tests for Xpansion
         ######################
@@ -1293,7 +1280,9 @@ class TestWebClient:
         assert storage.properties.group == "new group"
         assert storage.properties.penalize_variation_injection is True
 
-        assert storage.get_cost_variation_injection().equals(pd.DataFrame(np.zeros((8760, 1))))
+        pd.testing.assert_frame_equal(
+            storage.get_cost_variation_injection(), pd.DataFrame(np.zeros((8760, 1))), check_dtype=False
+        )
         new_matrix = pd.DataFrame(np.full((8760, 4), 10))
         storage.set_cost_variation_withdrawal(new_matrix)
         assert storage.get_cost_variation_withdrawal().equals(new_matrix)
@@ -1453,6 +1442,7 @@ class TestWebClient:
         ########## Scenario Builder ##########
         sc_builder = study.get_scenario_builder()
         assert sc_builder.load.get_area("fr").get_scenario() == [None, None, None, None]
+        assert sc_builder.hydro_final_level is not None
         assert sc_builder.hydro_final_level.get_area("fr").get_scenario() == [None, None, None, None]
         assert sc_builder.hydro_initial_level.get_area("fr").get_scenario() == [None, None, None, None]
 
@@ -1486,3 +1476,73 @@ class TestWebClient:
         data = [["be", 1, 0.0, 0.0], ["fr", 1, 0.0, 0.0]]
         expected_df = pd.DataFrame(data=data, columns=cols)
         assert expected_df.equals(aggregated_df)
+
+        ######################
+        # Specific tests for study version 9.3
+        ######################
+
+        # Create a study with an area
+        study = create_study_api("Study_9.3", "9.3", api_config)
+        area_fr = study.create_area("FR")
+
+        ####### Clusters #######
+
+        thermal_properties = ThermalClusterProperties(group="free group")
+        thermal = area_fr.create_thermal_cluster("thermal", thermal_properties)
+        assert thermal.properties.group == "free group"
+
+        renewable_properties = RenewableClusterProperties(group="free group")
+        renewable = area_fr.create_renewable_cluster("renewable", renewable_properties)
+        assert renewable.properties.group == "free group"
+
+        ####### Short-term storages #######
+
+        sts_properties = STStorageProperties(allow_overflow=True)
+        storage = area_fr.create_st_storage("sts", sts_properties)
+        assert storage.properties.allow_overflow is True
+
+        sts_properties_upd = STStoragePropertiesUpdate(allow_overflow=False)
+        new_sts_properties = storage.update_properties(sts_properties_upd)
+        assert new_sts_properties.allow_overflow is False
+
+        ####### Thematic trimming #######
+
+        current_trimming = study.get_settings().thematic_trimming_parameters
+        assert current_trimming.renewable_gen is True
+        assert current_trimming.dispatch_gen is True
+        assert current_trimming.ov_cost is True
+
+        study.set_thematic_trimming(ThematicTrimmingParameters(renewable_gen=False, ov_cost=False))
+        new_trimming = study.get_settings().thematic_trimming_parameters
+        assert new_trimming.renewable_gen is False
+        assert new_trimming.dispatch_gen is True
+        assert new_trimming.ov_cost is False
+
+        ####### Scenario Builder #######
+
+        # Set the nb_years to 4
+        study.update_settings(StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4)))
+
+        # Creates a short-term storage constraint
+        sts_constraint = [STStorageAdditionalConstraint(name="c1", occurrences=[Occurrence([1, 3])])]
+        sts = study.get_areas()["fr"].get_st_storages()["sts"]
+        sts.create_constraints(sts_constraint)
+
+        # Reads the scenario builder
+        sc_builder = study.get_scenario_builder()
+        assert sc_builder.storage_constraints is not None
+        assert sc_builder.storage_inflows is not None
+        assert sc_builder.storage_inflows.get_storage("fr", "sts").get_scenario() == [None, None, None, None]
+
+        # Sets a new scenario builder
+        sc_builder.storage_inflows.get_storage("fr", "sts").set_new_scenario([1, None, 3, None])
+        sc_builder.storage_constraints.get_constraint("fr", "sts", "c1").set_new_scenario([4, 3, 2, 1])
+        study.set_scenario_builder(sc_builder)
+
+        # Reads the new scenario builder
+        new_sc_builder = study.get_scenario_builder()
+        assert new_sc_builder.storage_constraints is not None
+        assert new_sc_builder.storage_inflows is not None
+
+        assert new_sc_builder.storage_inflows.get_storage("fr", "sts").get_scenario() == [1, None, 3, None]
+        assert new_sc_builder.storage_constraints.get_constraint("fr", "sts", "c1").get_scenario() == [4, 3, 2, 1]

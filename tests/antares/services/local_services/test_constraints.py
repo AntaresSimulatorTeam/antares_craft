@@ -24,6 +24,7 @@ from antares.craft.exceptions.exceptions import (
     ReadingMethodUsedOufOfScopeError,
 )
 from antares.craft.model.binding_constraint import (
+    BindingConstraint,
     BindingConstraintOperator,
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
@@ -147,3 +148,71 @@ class TestBindingConstraints:
             match=re.escape("The binding constraint 'bc_1' doesn't exist inside study 'studyTest'."),
         ):
             local_study_w_constraints.delete_binding_constraint(bc)
+
+    def test_set_constraint_terms_success_add_and_replace_terms(self, local_study_w_constraints: Study) -> None:
+        bc = local_study_w_constraints.get_binding_constraints()["bc_1"]
+        constraint_term_1 = ConstraintTerm(data=LinkData(area1="ita", area2="fr"), weight=9, offset=7)
+        constraint_term_2 = ConstraintTerm(data=LinkData(area1="fr", area2="be"), weight=1, offset=4)
+
+        # adding terms on the binding constraint with the set_up
+        bc.set_terms([constraint_term_1, constraint_term_2])
+        assert list(bc.get_terms().values()) == [constraint_term_1, constraint_term_2]
+
+        study_path = Path(local_study_w_constraints.path)
+
+        ini_content = IniReader().read(study_path / "input" / "bindingconstraints" / "bindingconstraints.ini")
+        actual_ini_content = ini_content["0"]
+
+        expected_ini_content = {
+            "be%fr": "1%4",
+            "comments": "",
+            "enabled": False,
+            "filter-synthesis": "annual, daily, hourly, monthly, weekly",
+            "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
+            "fr%ita": "9%7",
+            "group": "default",
+            "id": "bc_1",
+            "name": "bc_1",
+            "operator": "greater",
+            "type": "hourly",
+        }
+
+        assert actual_ini_content == expected_ini_content
+        # end adding terms
+
+        # replacing the old terms by new ones
+        new_constraint_term_1 = ConstraintTerm(data=LinkData(area1="de", area2="en"), weight=0, offset=3)
+        new_constraint_term_2 = ConstraintTerm(data=LinkData(area1="tu", area2="po"), weight=5, offset=10)
+
+        bc.set_terms([new_constraint_term_1, new_constraint_term_2])
+        assert list(bc.get_terms().values()) == [new_constraint_term_1, new_constraint_term_2]
+
+        expected_new_first_ini_content = {
+            "comments": "",
+            "de%en": "0%3",
+            "enabled": False,
+            "filter-synthesis": "annual, daily, hourly, monthly, weekly",
+            "filter-year-by-year": "annual, daily, hourly, monthly, weekly",
+            "group": "default",
+            "id": "bc_1",
+            "name": "bc_1",
+            "operator": "greater",
+            "po%tu": "5%10",
+            "type": "hourly",
+        }
+
+        ini_content = IniReader().read(study_path / "input" / "bindingconstraints" / "bindingconstraints.ini")
+        actual_first_ini_content = ini_content["0"]
+
+        assert actual_first_ini_content == expected_new_first_ini_content
+        # end replacing
+
+    def test_set_constraint_terms_fail_existing_constraint(self, local_study_w_constraints: Study) -> None:
+        bc = BindingConstraint("bc", local_study_w_constraints._binding_constraints_service)
+        study_name = local_study_w_constraints.name
+
+        with pytest.raises(
+            ConstraintDoesNotExistError,
+            match=f"The binding constraint '{bc.name}' doesn't exist inside study '{study_name}'.",
+        ):
+            bc.set_terms([])

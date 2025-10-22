@@ -20,6 +20,8 @@ from pathlib import Path
 import pandas as pd
 
 from antares.craft import LocalConfiguration, Study
+from antares.craft.exceptions.exceptions import OutputDataRetrievalError
+from antares.craft.model.commons import STUDY_VERSION_8_8
 from antares.craft.model.output import (
     Frequency,
     MCAllAreasDataType,
@@ -28,7 +30,6 @@ from antares.craft.model.output import (
     MCIndLinksDataType,
     Output,
 )
-from antares.craft.model.study import STUDY_VERSION_8_8
 from antares.craft.service.local_services.factory import create_local_services
 from antares.craft.service.utils import read_output_matrix
 
@@ -397,8 +398,15 @@ class TestOutput:
         file_path = Path("mc-ind/00001/links/de - fr/values-hourly.txt")
         matrix_path = tmp_path / "studyTest" / "output" / output_name / "economy" / file_path
         expected_dataframe = read_output_matrix(matrix_path, Frequency.HOURLY)
-        dataframe = output_2.get_mc_ind_link(1, Frequency.HOURLY, MCIndLinksDataType.VALUES, "fr", "de")
+        dataframe = output_2.get_mc_ind_link(1, Frequency.HOURLY, MCIndLinksDataType.VALUES, "de", "fr")
         assert dataframe.equals(expected_dataframe)
+
+        # Ensures we raise if the link is given in the wrong order
+        with pytest.raises(
+            OutputDataRetrievalError,
+            match="Could not retrieve data for output '20201014-1422eco-hello': Areas should be sorted alphabetically",
+        ):
+            output_2.get_mc_ind_link(1, Frequency.HOURLY, MCIndLinksDataType.VALUES, "fr", "de")
 
     @pytest.mark.parametrize("params,expected_result_filename", AREAS_REQUESTS__ALL)
     def test_area_aggregate_mc_all(

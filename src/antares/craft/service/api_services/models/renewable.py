@@ -9,27 +9,26 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+
 from dataclasses import asdict
 
 from antares.craft.model.renewable import (
-    RenewableClusterGroup,
     RenewableClusterProperties,
     RenewableClusterPropertiesUpdate,
     TimeSeriesInterpretation,
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
+from antares.craft.service.utils import check_field_is_not_null
 
 RenewablePropertiesType = RenewableClusterProperties | RenewableClusterPropertiesUpdate
 
 
-@all_optional_model
 class RenewableClusterPropertiesAPI(APIBaseModel):
-    group: RenewableClusterGroup
-    ts_interpretation: TimeSeriesInterpretation
-    enabled: bool
-    unit_count: int
-    nominal_capacity: float
+    group: str | None = None
+    ts_interpretation: TimeSeriesInterpretation | None = None
+    enabled: bool | None = None
+    unit_count: int | None = None
+    nominal_capacity: float | None = None
 
     @staticmethod
     def from_user_model(user_class: RenewablePropertiesType) -> "RenewableClusterPropertiesAPI":
@@ -38,9 +37,9 @@ class RenewableClusterPropertiesAPI(APIBaseModel):
 
     def to_user_model(self) -> RenewableClusterProperties:
         return RenewableClusterProperties(
-            enabled=self.enabled,
-            unit_count=self.unit_count,
-            nominal_capacity=self.nominal_capacity,
-            group=self.group,
-            ts_interpretation=self.ts_interpretation,
+            enabled=check_field_is_not_null(self.enabled),
+            unit_count=check_field_is_not_null(self.unit_count),
+            nominal_capacity=check_field_is_not_null(self.nominal_capacity),
+            group=check_field_is_not_null(self.group),
+            ts_interpretation=check_field_is_not_null(self.ts_interpretation),
         )

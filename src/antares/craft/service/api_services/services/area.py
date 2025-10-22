@@ -116,7 +116,7 @@ class AreaApiService(BaseAreaService):
         base_area_url = f"{self._base_url}/studies/{self.study_id}/areas"
 
         try:
-            response = self._wrapper.post(base_area_url, json={"name": area_name, "type": "AREA"})
+            response = self._wrapper.post(base_area_url, json={"name": area_name})
             area_id = response.json()["id"]
 
             if properties:

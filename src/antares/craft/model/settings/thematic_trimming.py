@@ -27,14 +27,6 @@ class ThematicTrimmingParameters:
     load: bool = True
     h_ror: bool = True
     wind: bool = True
-    solar: bool = True
-    nuclear: bool = True
-    lignite: bool = True
-    coal: bool = True
-    gas: bool = True
-    oil: bool = True
-    mix_fuel: bool = True
-    misc_dtg: bool = True
     h_stor: bool = True
     h_pump: bool = True
     h_lev: bool = True
@@ -64,18 +56,6 @@ class ThematicTrimmingParameters:
     cong_prob_minus: bool = True
     hurdle_cost: bool = True
     res_generation_by_plant: bool = True
-    misc_dtg_2: bool = True
-    misc_dtg_3: bool = True
-    misc_dtg_4: bool = True
-    wind_offshore: bool = True
-    wind_onshore: bool = True
-    solar_concrt: bool = True
-    solar_pv: bool = True
-    solar_rooft: bool = True
-    renw_1: bool = True
-    renw_2: bool = True
-    renw_3: bool = True
-    renw_4: bool = True
     dens: bool = True
     profit_by_plant: bool = True
     sts_inj_by_plant: bool = True
@@ -86,7 +66,10 @@ class ThematicTrimmingParameters:
     bc_marg_cost: bool = True
     # Simulator v9.1 parameters
     sts_by_group: Optional[bool] = None
-    # Parameters removed since v9.1
+    # Simulator v9.3 parameters
+    dispatch_gen: Optional[bool] = None
+    renewable_gen: Optional[bool] = None
+    # Parameters that existed in v8.8 and were removed in v9.1
     psp_open_injection: Optional[bool] = None
     psp_open_withdrawal: Optional[bool] = None
     psp_open_level: Optional[bool] = None
@@ -114,6 +97,27 @@ class ThematicTrimmingParameters:
     other5_injection: Optional[bool] = None
     other5_withdrawal: Optional[bool] = None
     other5_level: Optional[bool] = None
+    # Parameters that existed in v8.8 and were removed in v9.3
+    misc_dtg_2: Optional[bool] = None
+    misc_dtg_3: Optional[bool] = None
+    misc_dtg_4: Optional[bool] = None
+    wind_offshore: Optional[bool] = None
+    wind_onshore: Optional[bool] = None
+    solar_concrt: Optional[bool] = None
+    solar_pv: Optional[bool] = None
+    solar_rooft: Optional[bool] = None
+    renw_1: Optional[bool] = None
+    renw_2: Optional[bool] = None
+    renw_3: Optional[bool] = None
+    renw_4: Optional[bool] = None
+    solar: Optional[bool] = None
+    nuclear: Optional[bool] = None
+    lignite: Optional[bool] = None
+    coal: Optional[bool] = None
+    gas: Optional[bool] = None
+    oil: Optional[bool] = None
+    mix_fuel: Optional[bool] = None
+    misc_dtg: Optional[bool] = None
 
     def all_enabled(self) -> "ThematicTrimmingParameters":
         args = {k: v for k, v in asdict(self).items() if v is not None}

@@ -108,7 +108,7 @@ class TestCreateStudy:
 
     def test_creation_with_wrong_version(self, tmp_path: Path) -> None:
         with pytest.raises(
-            UnsupportedStudyVersion, match="Unsupported study version: '830', supported ones are '9.2, 8.8'"
+            UnsupportedStudyVersion, match="Unsupported study version: '830', supported ones are '9.3, 9.2, 8.8'"
         ):
             create_study_local("Study_Test", "830", tmp_path)
 
@@ -119,7 +119,7 @@ class TestCreateStudy:
         ini_content["antares"]["version"] = 820
         IniWriter().write(ini_content, ini_path)
         with pytest.raises(
-            UnsupportedStudyVersion, match="Unsupported study version: '8.2', supported ones are '9.2, 8.8'"
+            UnsupportedStudyVersion, match="Unsupported study version: '8.2', supported ones are '9.3, 9.2, 8.8'"
         ):
             read_study_local(tmp_path / "Study_Test")
 
@@ -132,11 +132,11 @@ class TestCreateStudy:
     def test_study_antares_content(self, tmp_path: Path) -> None:
         # Given
         study_name = "studyTest"
-        version = "880"
+        version = "9.2"
         expected_study_antares_path = tmp_path / study_name / "study.antares"
 
         # When
-        create_study_local(study_name, version, tmp_path.absolute())
+        create_study_local(study_name, version, tmp_path)
 
         # Then
         ini_content = IniReader().read(expected_study_antares_path)
@@ -146,7 +146,8 @@ class TestCreateStudy:
                 "caption": study_name,
                 "created": ANY,
                 "lastsave": ANY,
-                "version": int(version),
+                "version": 9.2,
+                "editor": ANY,
             }
         }
 
@@ -281,7 +282,6 @@ class TestStudyProperties:
             include_spinningreserve=True,
             include_primaryreserve=True,
             include_exportmps=ExportMPS.FALSE,
-            include_exportstructure=False,
             include_unfeasible_problem_behavior=UnfeasibleProblemBehavior.ERROR_VERBOSE,
         )
 
@@ -1171,9 +1171,9 @@ group = test group
         assert ini_content == expected_ini_content
 
     def test_constraint_can_add_term(self, test_constraint: BindingConstraint) -> None:
-        new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]
-        test_constraint.add_terms(new_term)
-        assert test_constraint.get_terms()
+        new_term = ConstraintTerm(data=LinkData(area1="fr", area2="at"))
+        test_constraint.set_terms([new_term])
+        assert test_constraint.get_terms() == {new_term.id: new_term}
 
     def test_constraint_term_and_ini_have_correct_defaults(
         self, local_study_with_constraint: Study, test_constraint: BindingConstraint
@@ -1194,7 +1194,7 @@ at%fr = 1
 """
         # When
         new_term = [ConstraintTerm(data=LinkData(area1="fr", area2="at"))]
-        test_constraint.add_terms(new_term)
+        test_constraint.set_terms(new_term)
         study_path = Path(local_study_with_constraint.path)
         ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
 
@@ -1219,7 +1219,7 @@ at%fr = 1%1
 """
         # When
         new_term = [ConstraintTerm(offset=1, data=LinkData(area1="fr", area2="at"))]
-        test_constraint.add_terms(new_term)
+        test_constraint.set_terms(new_term)
         study_path = Path(local_study_with_constraint.path)
         ini_content = (study_path / "input" / "bindingconstraints" / "bindingconstraints.ini").read_text()
 

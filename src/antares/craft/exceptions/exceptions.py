@@ -257,30 +257,9 @@ class ConstraintMatrixDownloadError(Exception):
         super().__init__(self.message)
 
 
-class ConstraintTermAdditionError(Exception):
-    def __init__(self, constraint_name: str, terms_ids: List[str], message: str) -> None:
-        self.message = (
-            f"Could not add the following constraint terms: '{', '.join(terms_ids)}' inside constraint '{constraint_name}': "
-            + message
-        )
-        super().__init__(self.message)
-
-
 class BindingConstraintDeletionError(Exception):
     def __init__(self, constraint_name: str, message: str) -> None:
         self.message = f"Could not delete the binding constraint '{constraint_name}': " + message
-        super().__init__(self.message)
-
-
-class ConstraintTermDeletionError(Exception):
-    def __init__(self, constraint_id: str, term_id: str, message: str) -> None:
-        self.message = f"Could not delete the term '{term_id}' of the binding constraint '{constraint_id}': " + message
-        super().__init__(self.message)
-
-
-class ConstraintTermEditionError(Exception):
-    def __init__(self, constraint_id: str, term_id: str, message: str) -> None:
-        self.message = f"Could not update the term '{term_id}' of the binding constraint '{constraint_id}': " + message
         super().__init__(self.message)
 
 
@@ -429,6 +408,12 @@ class OutputDeletionError(Exception):
 class ConstraintRetrievalError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
         self.message = f"Could not get binding constraints for '{study_id}': " + message
+        super().__init__(self.message)
+
+
+class ConstraintTermsSettingError(Exception):
+    def __init__(self, study_id: str, constraint_id: str, message: str) -> None:
+        self.message = f"Could not set binding constraint {constraint_id} terms from the study {study_id} : " + message
         super().__init__(self.message)
 
 
@@ -686,4 +671,15 @@ class STStorageConstraintDeletionError(Exception):
             f"Could not delete constraints for storage {storage_id} inside area {area_id} for study {study_name}"
             + message
         )
+        super().__init__(self.message)
+
+
+class OutputAggregationError(Exception):
+    def __init__(self, output_id: str, message: str) -> None:
+        super().__init__(f"Could not aggregate output data for output '{output_id}' : {message}.")
+
+
+class OutputDataRetrievalError(Exception):
+    def __init__(self, output_name: str, message: str) -> None:
+        self.message = f"Could not retrieve data for output '{output_name}': " + message
         super().__init__(self.message)

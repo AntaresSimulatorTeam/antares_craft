@@ -78,7 +78,7 @@ def local_study_w_constraints(tmp_path: Path, local_study_w_links: Study) -> Stu
 @pytest.fixture
 def local_study_w_thermal(tmp_path: Path, local_study_w_links: Study) -> Study:
     thermal_name = "test thermal cluster"
-    thermal_properties = ThermalClusterProperties(must_run=True, group=ThermalClusterGroup.NUCLEAR)
+    thermal_properties = ThermalClusterProperties(must_run=True, group=ThermalClusterGroup.NUCLEAR.value)
     local_study_w_links.get_areas()["fr"].create_thermal_cluster(thermal_name, properties=thermal_properties)
     return local_study_w_links
 
@@ -163,7 +163,7 @@ def local_study_92(tmp_path: Path) -> Study:
     study_name = "study_92"
     study_version = "9.2"
 
-    local_study = create_study_local(study_name, study_version, tmp_path.absolute())
+    local_study = create_study_local(study_name, study_version, tmp_path)
 
     areas_to_create = ["fr", "it"]
     for area in areas_to_create:
@@ -172,5 +172,19 @@ def local_study_92(tmp_path: Path) -> Study:
         )
         area_ui = AreaUi(x=56)
         local_study.create_area(area, properties=area_properties, ui=area_ui)
+
+    return local_study
+
+
+@pytest.fixture
+def local_study_93(tmp_path: Path) -> Study:
+    study_name = "study_93"
+    study_version = "9.3"
+
+    local_study = create_study_local(study_name, study_version, tmp_path)
+
+    areas_to_create = ["fr", "it"]
+    for area in areas_to_create:
+        local_study.create_area(area)
 
     return local_study

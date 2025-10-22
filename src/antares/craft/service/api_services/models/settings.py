@@ -14,9 +14,8 @@ import ast
 from dataclasses import asdict
 from typing import Any, Optional, Sequence, cast
 
-from pydantic import Field, field_validator
+from pydantic import field_validator
 
-from antares.craft.exceptions.exceptions import APIError
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
     AdequacyPatchParametersUpdate,
@@ -55,24 +54,23 @@ from antares.craft.model.settings.optimization import (
 )
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.service.api_services.models.base_model import APIBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
+from antares.craft.service.utils import check_field_is_not_null
 from antares.craft.tools.contents_tool import EnumIgnoreCase
 
 AdequacyPatchParametersType = AdequacyPatchParameters | AdequacyPatchParametersUpdate
 
 
-@all_optional_model
 class AdequacyPatchParametersAPI(APIBaseModel):
-    enable_adequacy_patch: bool
-    ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch: bool
-    ntc_between_physical_areas_out_adequacy_patch: bool
-    price_taking_order: PriceTakingOrder
-    include_hurdle_cost_csr: bool
-    check_csr_cost_function: bool
-    enable_first_step: bool
-    threshold_initiate_curtailment_sharing_rule: int
-    threshold_display_local_matching_rule_violations: int
-    threshold_csr_variable_bounds_relaxation: int
+    enable_adequacy_patch: bool | None = None
+    ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch: bool | None = None
+    ntc_between_physical_areas_out_adequacy_patch: bool | None = None
+    price_taking_order: PriceTakingOrder | None = None
+    include_hurdle_cost_csr: bool | None = None
+    check_csr_cost_function: bool | None = None
+    enable_first_step: bool | None = None
+    threshold_initiate_curtailment_sharing_rule: int | None = None
+    threshold_display_local_matching_rule_violations: int | None = None
+    threshold_csr_variable_bounds_relaxation: int | None = None
 
     @staticmethod
     def from_user_model(user_class: AdequacyPatchParametersType) -> "AdequacyPatchParametersAPI":
@@ -88,15 +86,23 @@ class AdequacyPatchParametersAPI(APIBaseModel):
 
     def to_user_model(self) -> AdequacyPatchParameters:
         return AdequacyPatchParameters(
-            include_adq_patch=self.enable_adequacy_patch,
-            set_to_null_ntc_from_physical_out_to_physical_in_for_first_step=self.ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch,
+            include_adq_patch=check_field_is_not_null(self.enable_adequacy_patch),
+            set_to_null_ntc_from_physical_out_to_physical_in_for_first_step=check_field_is_not_null(
+                self.ntc_from_physical_areas_out_to_physical_areas_in_adequacy_patch
+            ),
+            price_taking_order=check_field_is_not_null(self.price_taking_order),
+            include_hurdle_cost_csr=check_field_is_not_null(self.include_hurdle_cost_csr),
+            check_csr_cost_function=check_field_is_not_null(self.check_csr_cost_function),
+            threshold_initiate_curtailment_sharing_rule=check_field_is_not_null(
+                self.threshold_initiate_curtailment_sharing_rule
+            ),
+            threshold_display_local_matching_rule_violations=check_field_is_not_null(
+                self.threshold_display_local_matching_rule_violations
+            ),
+            threshold_csr_variable_bounds_relaxation=check_field_is_not_null(
+                self.threshold_csr_variable_bounds_relaxation
+            ),
             set_to_null_ntc_between_physical_out_for_first_step=self.ntc_between_physical_areas_out_adequacy_patch,
-            price_taking_order=self.price_taking_order,
-            include_hurdle_cost_csr=self.include_hurdle_cost_csr,
-            check_csr_cost_function=self.check_csr_cost_function,
-            threshold_initiate_curtailment_sharing_rule=self.threshold_initiate_curtailment_sharing_rule,
-            threshold_display_local_matching_rule_violations=self.threshold_display_local_matching_rule_violations,
-            threshold_csr_variable_bounds_relaxation=self.threshold_csr_variable_bounds_relaxation,
         )
 
 
@@ -113,29 +119,28 @@ AdvancedParametersType = AdvancedParameters | AdvancedParametersUpdate
 SeedParametersType = SeedParameters | SeedParametersUpdate
 
 
-@all_optional_model
 class AdvancedAndSeedParametersAPI(APIBaseModel):
-    accuracy_on_correlation: set[OutputChoices]
-    initial_reservoir_levels: InitialReservoirLevel
-    hydro_heuristic_policy: HydroHeuristicPolicy
-    hydro_pricing_mode: HydroPricingMode
-    power_fluctuations: PowerFluctuation
-    shedding_policy: SheddingPolicy
-    unit_commitment_mode: UnitCommitmentMode
-    number_of_cores_mode: SimulationCore
-    renewable_generation_modelling: RenewableGenerationModeling
-    day_ahead_reserve_management: Any
-    seed_tsgen_wind: int
-    seed_tsgen_load: int
-    seed_tsgen_hydro: int
-    seed_tsgen_thermal: int
-    seed_tsgen_solar: int
-    seed_tsnumbers: int
-    seed_unsupplied_energy_costs: int
-    seed_spilled_energy_costs: int
-    seed_thermal_costs: int
-    seed_hydro_costs: int
-    seed_initial_reservoir_levels: int
+    accuracy_on_correlation: set[OutputChoices] | None = None
+    initial_reservoir_levels: InitialReservoirLevel | None = None
+    hydro_heuristic_policy: HydroHeuristicPolicy | None = None
+    hydro_pricing_mode: HydroPricingMode | None = None
+    power_fluctuations: PowerFluctuation | None = None
+    shedding_policy: SheddingPolicy | None = None
+    unit_commitment_mode: UnitCommitmentMode | None = None
+    number_of_cores_mode: SimulationCore | None = None
+    renewable_generation_modelling: RenewableGenerationModeling | None = None
+    day_ahead_reserve_management: Any | None = None
+    seed_tsgen_wind: int | None = None
+    seed_tsgen_load: int | None = None
+    seed_tsgen_hydro: int | None = None
+    seed_tsgen_thermal: int | None = None
+    seed_tsgen_solar: int | None = None
+    seed_tsnumbers: int | None = None
+    seed_unsupplied_energy_costs: int | None = None
+    seed_spilled_energy_costs: int | None = None
+    seed_thermal_costs: int | None = None
+    seed_hydro_costs: int | None = None
+    seed_initial_reservoir_levels: int | None = None
 
     @field_validator("accuracy_on_correlation", mode="before")
     def validate_accuracy_on_correlation(cls, v: Any) -> Sequence[str] | set[str]:
@@ -157,26 +162,26 @@ class AdvancedAndSeedParametersAPI(APIBaseModel):
 
     def to_user_advanced_parameters_model(self) -> AdvancedParameters:
         return AdvancedParameters(
+            hydro_heuristic_policy=check_field_is_not_null(self.hydro_heuristic_policy),
+            hydro_pricing_mode=check_field_is_not_null(self.hydro_pricing_mode),
+            power_fluctuations=check_field_is_not_null(self.power_fluctuations),
+            shedding_policy=check_field_is_not_null(self.shedding_policy),
+            unit_commitment_mode=check_field_is_not_null(self.unit_commitment_mode),
+            number_of_cores_mode=check_field_is_not_null(self.number_of_cores_mode),
+            renewable_generation_modelling=check_field_is_not_null(self.renewable_generation_modelling),
+            accuracy_on_correlation=check_field_is_not_null(self.accuracy_on_correlation),
             initial_reservoir_levels=self.initial_reservoir_levels,
-            hydro_heuristic_policy=self.hydro_heuristic_policy,
-            hydro_pricing_mode=self.hydro_pricing_mode,
-            power_fluctuations=self.power_fluctuations,
-            shedding_policy=self.shedding_policy,
-            unit_commitment_mode=self.unit_commitment_mode,
-            number_of_cores_mode=self.number_of_cores_mode,
-            renewable_generation_modelling=self.renewable_generation_modelling,
-            accuracy_on_correlation=self.accuracy_on_correlation,
         )
 
     def to_user_seed_parameters_model(self) -> SeedParameters:
         return SeedParameters(
-            seed_tsgen_thermal=self.seed_tsgen_thermal,
-            seed_tsnumbers=self.seed_tsnumbers,
-            seed_unsupplied_energy_costs=self.seed_unsupplied_energy_costs,
-            seed_spilled_energy_costs=self.seed_spilled_energy_costs,
-            seed_thermal_costs=self.seed_thermal_costs,
-            seed_hydro_costs=self.seed_hydro_costs,
-            seed_initial_reservoir_levels=self.seed_initial_reservoir_levels,
+            seed_tsgen_thermal=check_field_is_not_null(self.seed_tsgen_thermal),
+            seed_tsnumbers=check_field_is_not_null(self.seed_tsnumbers),
+            seed_unsupplied_energy_costs=check_field_is_not_null(self.seed_unsupplied_energy_costs),
+            seed_spilled_energy_costs=check_field_is_not_null(self.seed_spilled_energy_costs),
+            seed_thermal_costs=check_field_is_not_null(self.seed_thermal_costs),
+            seed_hydro_costs=check_field_is_not_null(self.seed_hydro_costs),
+            seed_initial_reservoir_levels=check_field_is_not_null(self.seed_initial_reservoir_levels),
         )
 
 
@@ -205,27 +210,26 @@ class OutputFormat(EnumIgnoreCase):
     ZIP = "zip-files"
 
 
-@all_optional_model
 class GeneralParametersAPI(APIBaseModel):
-    mode: Mode = Field(default=Mode.ECONOMY, validate_default=True)
-    horizon: str
-    nb_years: int
-    first_day: int
-    last_day: int
-    first_january: WeekDay
-    first_month: Month
-    first_week_day: WeekDay
-    leap_year: bool
-    year_by_year: bool
-    building_mode: BuildingMode
-    selection_mode: bool
-    thematic_trimming: bool
-    geographic_trimming: bool
-    active_rules_scenario: str
-    read_only: bool
-    simulation_synthesis: bool
-    mc_scenario: bool
-    result_format: OutputFormat
+    mode: Mode | None = None
+    horizon: str | None = None
+    nb_years: int | None = None
+    first_day: int | None = None
+    last_day: int | None = None
+    first_january: WeekDay | None = None
+    first_month: Month | None = None
+    first_week_day: WeekDay | None = None
+    leap_year: bool | None = None
+    year_by_year: bool | None = None
+    building_mode: BuildingMode | None = None
+    selection_mode: bool | None = None
+    thematic_trimming: bool | None = None
+    geographic_trimming: bool | None = None
+    active_rules_scenario: str | None = None
+    read_only: bool | None = None
+    simulation_synthesis: bool | None = None
+    mc_scenario: bool | None = None
+    result_format: OutputFormat | None = None
 
     @field_validator("horizon", mode="before")
     def transform_horizon_to_str(cls, val: str | int | None) -> Optional[str]:
@@ -246,22 +250,22 @@ class GeneralParametersAPI(APIBaseModel):
 
     def to_user_model(self, nb_ts_thermal: int) -> GeneralParameters:
         return GeneralParameters(
-            mode=self.mode,
-            horizon=self.horizon,
-            nb_years=self.nb_years,
-            simulation_start=self.first_day,
-            simulation_end=self.last_day,
-            january_first=self.first_january,
-            first_month_in_year=self.first_month,
-            first_week_day=self.first_week_day,
-            leap_year=self.leap_year,
-            year_by_year=self.year_by_year,
-            simulation_synthesis=self.simulation_synthesis,
-            building_mode=self.building_mode,
-            user_playlist=self.selection_mode,
-            thematic_trimming=self.thematic_trimming,
-            geographic_trimming=self.geographic_trimming,
-            store_new_set=self.mc_scenario,
+            mode=check_field_is_not_null(self.mode),
+            horizon=check_field_is_not_null(self.horizon),
+            nb_years=check_field_is_not_null(self.nb_years),
+            simulation_start=check_field_is_not_null(self.first_day),
+            simulation_end=check_field_is_not_null(self.last_day),
+            january_first=check_field_is_not_null(self.first_january),
+            first_month_in_year=check_field_is_not_null(self.first_month),
+            first_week_day=check_field_is_not_null(self.first_week_day),
+            leap_year=check_field_is_not_null(self.leap_year),
+            year_by_year=check_field_is_not_null(self.year_by_year),
+            simulation_synthesis=check_field_is_not_null(self.simulation_synthesis),
+            building_mode=check_field_is_not_null(self.building_mode),
+            user_playlist=check_field_is_not_null(self.selection_mode),
+            thematic_trimming=check_field_is_not_null(self.thematic_trimming),
+            geographic_trimming=check_field_is_not_null(self.geographic_trimming),
+            store_new_set=check_field_is_not_null(self.mc_scenario),
             nb_timeseries_thermal=nb_ts_thermal,
         )
 
@@ -278,21 +282,19 @@ def serialize_general_parameters_api(parameters: GeneralParametersType) -> dict[
 OptimizationParametersType = OptimizationParameters | OptimizationParametersUpdate
 
 
-@all_optional_model
 class OptimizationParametersAPI(APIBaseModel):
-    simplex_optimization_range: SimplexOptimizationRange
-    transmission_capacities: OptimizationTransmissionCapacities
-    binding_constraints: bool
-    hurdle_costs: bool
-    thermal_clusters_min_stable_power: bool
-    thermal_clusters_min_ud_time: bool
-    day_ahead_reserve: bool
-    strategic_reserve: bool
-    spinning_reserve: bool
-    primary_reserve: bool
-    export_mps: ExportMPS
-    include_exportstructure: bool
-    unfeasible_problem_behavior: UnfeasibleProblemBehavior
+    simplex_optimization_range: SimplexOptimizationRange | None = None
+    transmission_capacities: OptimizationTransmissionCapacities | None = None
+    binding_constraints: bool | None = None
+    hurdle_costs: bool | None = None
+    thermal_clusters_min_stable_power: bool | None = None
+    thermal_clusters_min_ud_time: bool | None = None
+    day_ahead_reserve: bool | None = None
+    strategic_reserve: bool | None = None
+    spinning_reserve: bool | None = None
+    primary_reserve: bool | None = None
+    export_mps: ExportMPS | None = None
+    unfeasible_problem_behavior: UnfeasibleProblemBehavior | None = None
 
     @staticmethod
     def from_user_model(user_class: OptimizationParametersType) -> "OptimizationParametersAPI":
@@ -307,25 +309,23 @@ class OptimizationParametersAPI(APIBaseModel):
         user_dict["spinning_reserve"] = user_dict.pop("include_spinningreserve")
         user_dict["primary_reserve"] = user_dict.pop("include_primaryreserve")
         user_dict["export_mps"] = user_dict.pop("include_exportmps")
-        user_dict["include_exportstructure"] = user_dict.pop("include_exportstructure")
         user_dict["unfeasible_problem_behavior"] = user_dict.pop("include_unfeasible_problem_behavior")
         return OptimizationParametersAPI.model_validate(user_dict)
 
     def to_user_model(self) -> OptimizationParameters:
         return OptimizationParameters(
-            simplex_range=self.simplex_optimization_range,
-            transmission_capacities=self.transmission_capacities,
-            include_constraints=self.binding_constraints,
-            include_hurdlecosts=self.hurdle_costs,
-            include_tc_minstablepower=self.thermal_clusters_min_stable_power,
-            include_tc_min_ud_time=self.thermal_clusters_min_ud_time,
-            include_dayahead=self.day_ahead_reserve,
-            include_strategicreserve=self.strategic_reserve,
-            include_spinningreserve=self.spinning_reserve,
-            include_primaryreserve=self.primary_reserve,
-            include_exportmps=self.export_mps,
-            include_exportstructure=self.include_exportstructure,
-            include_unfeasible_problem_behavior=self.unfeasible_problem_behavior,
+            simplex_range=check_field_is_not_null(self.simplex_optimization_range),
+            transmission_capacities=check_field_is_not_null(self.transmission_capacities),
+            include_constraints=check_field_is_not_null(self.binding_constraints),
+            include_hurdlecosts=check_field_is_not_null(self.hurdle_costs),
+            include_tc_minstablepower=check_field_is_not_null(self.thermal_clusters_min_stable_power),
+            include_tc_min_ud_time=check_field_is_not_null(self.thermal_clusters_min_ud_time),
+            include_dayahead=check_field_is_not_null(self.day_ahead_reserve),
+            include_strategicreserve=check_field_is_not_null(self.strategic_reserve),
+            include_spinningreserve=check_field_is_not_null(self.spinning_reserve),
+            include_primaryreserve=check_field_is_not_null(self.primary_reserve),
+            include_exportmps=check_field_is_not_null(self.export_mps),
+            include_unfeasible_problem_behavior=check_field_is_not_null(self.unfeasible_problem_behavior),
         )
 
 
@@ -336,111 +336,111 @@ def parse_optimization_parameters_api(data: Any) -> OptimizationParameters:
 def serialize_optimization_parameters_api(parameters: OptimizationParameters) -> dict[str, Any]:
     optimization_api_model = OptimizationParametersAPI.from_user_model(parameters)
     body = optimization_api_model.model_dump(mode="json", exclude_none=True, by_alias=True)
-    if "includeExportstructure" in body:
-        raise APIError("AntaresWeb doesn't support editing the parameter include_exportstructure")
     return body
 
 
-@all_optional_model
 class ThematicTrimmingParametersAPI(APIBaseModel):
-    ov_cost: bool
-    op_cost: bool
-    mrg_price: bool
-    co2_emis: bool
-    dtg_by_plant: bool
-    balance: bool
-    row_bal: bool
-    psp: bool
-    misc_ndg: bool
-    load: bool
-    h_ror: bool
-    wind: bool
-    solar: bool
-    nuclear: bool
-    lignite: bool
-    coal: bool
-    gas: bool
-    oil: bool
-    mix_fuel: bool
-    misc_dtg: bool
-    h_stor: bool
-    h_pump: bool
-    h_lev: bool
-    h_infl: bool
-    h_ovfl: bool
-    h_val: bool
-    h_cost: bool
-    unsp_enrg: bool
-    spil_enrg: bool
-    lold: bool
-    lolp: bool
-    avl_dtg: bool
-    dtg_mrg: bool
-    max_mrg: bool
-    np_cost: bool
-    np_cost_by_plant: bool
-    nodu: bool
-    nodu_by_plant: bool
-    flow_lin: bool
-    ucap_lin: bool
-    loop_flow: bool
-    flow_quad: bool
-    cong_fee_alg: bool
-    cong_fee_abs: bool
-    marg_cost: bool
-    cong_prob_plus: bool
-    cong_prob_minus: bool
-    hurdle_cost: bool
-    res_generation_by_plant: bool
-    misc_dtg_2: bool
-    misc_dtg_3: bool
-    misc_dtg_4: bool
-    wind_offshore: bool
-    wind_onshore: bool
-    solar_concrt: bool
-    solar_pv: bool
-    solar_rooft: bool
-    renw_1: bool
-    renw_2: bool
-    renw_3: bool
-    renw_4: bool
-    dens: bool
-    profit_by_plant: bool
-    sts_inj_by_plant: bool
-    sts_withdrawal_by_plant: bool
-    sts_lvl_by_plant: bool
-    psp_open_injection: bool
-    psp_open_withdrawal: bool
-    psp_open_level: bool
-    psp_closed_injection: bool
-    psp_closed_withdrawal: bool
-    psp_closed_level: bool
-    pondage_injection: bool
-    pondage_withdrawal: bool
-    pondage_level: bool
-    battery_injection: bool
-    battery_withdrawal: bool
-    battery_level: bool
-    other1_injection: bool
-    other1_withdrawal: bool
-    other1_level: bool
-    other2_injection: bool
-    other2_withdrawal: bool
-    other2_level: bool
-    other3_injection: bool
-    other3_withdrawal: bool
-    other3_level: bool
-    other4_injection: bool
-    other4_withdrawal: bool
-    other4_level: bool
-    other5_injection: bool
-    other5_withdrawal: bool
-    other5_level: bool
-    sts_cashflow_by_cluster: bool
-    npcap_hours: bool
-    bc_marg_cost: bool
+    ov_cost: bool | None = None
+    op_cost: bool | None = None
+    mrg_price: bool | None = None
+    co2_emis: bool | None = None
+    dtg_by_plant: bool | None = None
+    balance: bool | None = None
+    row_bal: bool | None = None
+    psp: bool | None = None
+    misc_ndg: bool | None = None
+    load: bool | None = None
+    h_ror: bool | None = None
+    wind: bool | None = None
+    solar: bool | None = None
+    nuclear: bool | None = None
+    lignite: bool | None = None
+    coal: bool | None = None
+    gas: bool | None = None
+    oil: bool | None = None
+    mix_fuel: bool | None = None
+    misc_dtg: bool | None = None
+    h_stor: bool | None = None
+    h_pump: bool | None = None
+    h_lev: bool | None = None
+    h_infl: bool | None = None
+    h_ovfl: bool | None = None
+    h_val: bool | None = None
+    h_cost: bool | None = None
+    unsp_enrg: bool | None = None
+    spil_enrg: bool | None = None
+    lold: bool | None = None
+    lolp: bool | None = None
+    avl_dtg: bool | None = None
+    dtg_mrg: bool | None = None
+    max_mrg: bool | None = None
+    np_cost: bool | None = None
+    np_cost_by_plant: bool | None = None
+    nodu: bool | None = None
+    nodu_by_plant: bool | None = None
+    flow_lin: bool | None = None
+    ucap_lin: bool | None = None
+    loop_flow: bool | None = None
+    flow_quad: bool | None = None
+    cong_fee_alg: bool | None = None
+    cong_fee_abs: bool | None = None
+    marg_cost: bool | None = None
+    cong_prob_plus: bool | None = None
+    cong_prob_minus: bool | None = None
+    hurdle_cost: bool | None = None
+    res_generation_by_plant: bool | None = None
+    misc_dtg_2: bool | None = None
+    misc_dtg_3: bool | None = None
+    misc_dtg_4: bool | None = None
+    wind_offshore: bool | None = None
+    wind_onshore: bool | None = None
+    solar_concrt: bool | None = None
+    solar_pv: bool | None = None
+    solar_rooft: bool | None = None
+    renw_1: bool | None = None
+    renw_2: bool | None = None
+    renw_3: bool | None = None
+    renw_4: bool | None = None
+    dens: bool | None = None
+    profit_by_plant: bool | None = None
+    sts_inj_by_plant: bool | None = None
+    sts_withdrawal_by_plant: bool | None = None
+    sts_lvl_by_plant: bool | None = None
+    psp_open_injection: bool | None = None
+    psp_open_withdrawal: bool | None = None
+    psp_open_level: bool | None = None
+    psp_closed_injection: bool | None = None
+    psp_closed_withdrawal: bool | None = None
+    psp_closed_level: bool | None = None
+    pondage_injection: bool | None = None
+    pondage_withdrawal: bool | None = None
+    pondage_level: bool | None = None
+    battery_injection: bool | None = None
+    battery_withdrawal: bool | None = None
+    battery_level: bool | None = None
+    other1_injection: bool | None = None
+    other1_withdrawal: bool | None = None
+    other1_level: bool | None = None
+    other2_injection: bool | None = None
+    other2_withdrawal: bool | None = None
+    other2_level: bool | None = None
+    other3_injection: bool | None = None
+    other3_withdrawal: bool | None = None
+    other3_level: bool | None = None
+    other4_injection: bool | None = None
+    other4_withdrawal: bool | None = None
+    other4_level: bool | None = None
+    other5_injection: bool | None = None
+    other5_withdrawal: bool | None = None
+    other5_level: bool | None = None
+    sts_cashflow_by_cluster: bool | None = None
+    npcap_hours: bool | None = None
+    bc_marg_cost: bool | None = None
     # Since v9.2
-    sts_by_group: bool
+    sts_by_group: bool | None = None
+    # Since v9.3
+    dispatch_gen: bool | None = None
+    renewable_gen: bool | None = None
 
     @staticmethod
     def from_user_model(user_class: ThematicTrimmingParameters) -> "ThematicTrimmingParametersAPI":
@@ -449,18 +449,56 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
 
     def to_user_model(self) -> ThematicTrimmingParameters:
         return ThematicTrimmingParameters(
-            ov_cost=self.ov_cost,
-            op_cost=self.op_cost,
-            mrg_price=self.mrg_price,
-            co2_emis=self.co2_emis,
-            dtg_by_plant=self.dtg_by_plant,
-            balance=self.balance,
-            row_bal=self.row_bal,
-            psp=self.psp,
-            misc_ndg=self.misc_ndg,
-            load=self.load,
-            h_ror=self.h_ror,
-            wind=self.wind,
+            ov_cost=check_field_is_not_null(self.ov_cost),
+            op_cost=check_field_is_not_null(self.op_cost),
+            mrg_price=check_field_is_not_null(self.mrg_price),
+            co2_emis=check_field_is_not_null(self.co2_emis),
+            dtg_by_plant=check_field_is_not_null(self.dtg_by_plant),
+            balance=check_field_is_not_null(self.balance),
+            row_bal=check_field_is_not_null(self.row_bal),
+            psp=check_field_is_not_null(self.psp),
+            misc_ndg=check_field_is_not_null(self.misc_ndg),
+            load=check_field_is_not_null(self.load),
+            h_ror=check_field_is_not_null(self.h_ror),
+            wind=check_field_is_not_null(self.wind),
+            h_stor=check_field_is_not_null(self.h_stor),
+            h_pump=check_field_is_not_null(self.h_pump),
+            h_lev=check_field_is_not_null(self.h_lev),
+            h_infl=check_field_is_not_null(self.h_infl),
+            h_ovfl=check_field_is_not_null(self.h_ovfl),
+            h_val=check_field_is_not_null(self.h_val),
+            h_cost=check_field_is_not_null(self.h_cost),
+            unsp_enrg=check_field_is_not_null(self.unsp_enrg),
+            spil_enrg=check_field_is_not_null(self.spil_enrg),
+            lold=check_field_is_not_null(self.lold),
+            lolp=check_field_is_not_null(self.lolp),
+            avl_dtg=check_field_is_not_null(self.avl_dtg),
+            dtg_mrg=check_field_is_not_null(self.dtg_mrg),
+            max_mrg=check_field_is_not_null(self.max_mrg),
+            np_cost=check_field_is_not_null(self.np_cost),
+            np_cost_by_plant=check_field_is_not_null(self.np_cost_by_plant),
+            nodu=check_field_is_not_null(self.nodu),
+            nodu_by_plant=check_field_is_not_null(self.nodu_by_plant),
+            flow_lin=check_field_is_not_null(self.flow_lin),
+            ucap_lin=check_field_is_not_null(self.ucap_lin),
+            loop_flow=check_field_is_not_null(self.loop_flow),
+            flow_quad=check_field_is_not_null(self.flow_quad),
+            cong_fee_alg=check_field_is_not_null(self.cong_fee_alg),
+            cong_fee_abs=check_field_is_not_null(self.cong_fee_abs),
+            marg_cost=check_field_is_not_null(self.marg_cost),
+            cong_prob_plus=check_field_is_not_null(self.cong_prob_plus),
+            cong_prob_minus=check_field_is_not_null(self.cong_prob_minus),
+            hurdle_cost=check_field_is_not_null(self.hurdle_cost),
+            res_generation_by_plant=check_field_is_not_null(self.res_generation_by_plant),
+            dens=check_field_is_not_null(self.dens),
+            profit_by_plant=check_field_is_not_null(self.profit_by_plant),
+            sts_inj_by_plant=check_field_is_not_null(self.sts_inj_by_plant),
+            sts_withdrawal_by_plant=check_field_is_not_null(self.sts_withdrawal_by_plant),
+            sts_lvl_by_plant=check_field_is_not_null(self.sts_lvl_by_plant),
+            sts_cashflow_by_cluster=check_field_is_not_null(self.sts_cashflow_by_cluster),
+            npcap_hours=check_field_is_not_null(self.npcap_hours),
+            bc_marg_cost=check_field_is_not_null(self.bc_marg_cost),
+            # Optional fields
             solar=self.solar,
             nuclear=self.nuclear,
             lignite=self.lignite,
@@ -469,35 +507,6 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
             oil=self.oil,
             mix_fuel=self.mix_fuel,
             misc_dtg=self.misc_dtg,
-            h_stor=self.h_stor,
-            h_pump=self.h_pump,
-            h_lev=self.h_lev,
-            h_infl=self.h_infl,
-            h_ovfl=self.h_ovfl,
-            h_val=self.h_val,
-            h_cost=self.h_cost,
-            unsp_enrg=self.unsp_enrg,
-            spil_enrg=self.spil_enrg,
-            lold=self.lold,
-            lolp=self.lolp,
-            avl_dtg=self.avl_dtg,
-            dtg_mrg=self.dtg_mrg,
-            max_mrg=self.max_mrg,
-            np_cost=self.np_cost,
-            np_cost_by_plant=self.np_cost_by_plant,
-            nodu=self.nodu,
-            nodu_by_plant=self.nodu_by_plant,
-            flow_lin=self.flow_lin,
-            ucap_lin=self.ucap_lin,
-            loop_flow=self.loop_flow,
-            flow_quad=self.flow_quad,
-            cong_fee_alg=self.cong_fee_alg,
-            cong_fee_abs=self.cong_fee_abs,
-            marg_cost=self.marg_cost,
-            cong_prob_plus=self.cong_prob_plus,
-            cong_prob_minus=self.cong_prob_minus,
-            hurdle_cost=self.hurdle_cost,
-            res_generation_by_plant=self.res_generation_by_plant,
             misc_dtg_2=self.misc_dtg_2,
             misc_dtg_3=self.misc_dtg_3,
             misc_dtg_4=self.misc_dtg_4,
@@ -510,14 +519,6 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
             renw_2=self.renw_2,
             renw_3=self.renw_3,
             renw_4=self.renw_4,
-            dens=self.dens,
-            profit_by_plant=self.profit_by_plant,
-            sts_inj_by_plant=self.sts_inj_by_plant,
-            sts_withdrawal_by_plant=self.sts_withdrawal_by_plant,
-            sts_lvl_by_plant=self.sts_lvl_by_plant,
-            sts_cashflow_by_cluster=self.sts_cashflow_by_cluster,
-            npcap_hours=self.npcap_hours,
-            bc_marg_cost=self.bc_marg_cost,
             sts_by_group=self.sts_by_group,
             psp_open_injection=self.psp_open_injection,
             psp_open_withdrawal=self.psp_open_withdrawal,
@@ -546,6 +547,8 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
             other5_injection=self.other5_injection,
             other5_withdrawal=self.other5_withdrawal,
             other5_level=self.other5_level,
+            renewable_gen=self.renewable_gen,
+            dispatch_gen=self.dispatch_gen,
         )
 
 

@@ -69,7 +69,6 @@ class OptimizationParameters:
     include_spinningreserve: bool = True
     include_primaryreserve: bool = True
     include_exportmps: ExportMPS = ExportMPS.FALSE
-    include_exportstructure: bool = False
     include_unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
 
 
@@ -86,5 +85,4 @@ class OptimizationParametersUpdate:
     include_spinningreserve: Optional[bool] = None
     include_primaryreserve: Optional[bool] = None
     include_exportmps: Optional[ExportMPS] = None
-    include_exportstructure: Optional[bool] = None
     include_unfeasible_problem_behavior: Optional[UnfeasibleProblemBehavior] = None

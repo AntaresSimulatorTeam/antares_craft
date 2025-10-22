@@ -20,20 +20,19 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.commons import filtering_option
 from antares.craft.service.api_services.models.base_model import APIBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
+from antares.craft.service.utils import check_field_is_not_null
 
 BindingConstraintPropertiesType = BindingConstraintProperties | BindingConstraintPropertiesUpdate
 
 
-@all_optional_model
 class BindingConstraintPropertiesAPI(APIBaseModel):
-    enabled: bool
-    time_step: BindingConstraintFrequency
-    operator: BindingConstraintOperator
-    comments: str
-    filter_year_by_year: filtering_option
-    filter_synthesis: filtering_option
-    group: str
+    enabled: bool | None = None
+    time_step: BindingConstraintFrequency | None = None
+    operator: BindingConstraintOperator | None = None
+    comments: str | None = None
+    filter_year_by_year: filtering_option | None = None
+    filter_synthesis: filtering_option | None = None
+    group: str | None = None
 
     @staticmethod
     def from_user_model(user_class: BindingConstraintPropertiesType) -> "BindingConstraintPropertiesAPI":
@@ -42,11 +41,11 @@ class BindingConstraintPropertiesAPI(APIBaseModel):
 
     def to_user_model(self) -> BindingConstraintProperties:
         return BindingConstraintProperties(
-            enabled=self.enabled,
-            time_step=self.time_step,
-            operator=self.operator,
-            comments=self.comments,
-            filter_year_by_year=self.filter_year_by_year,
-            filter_synthesis=self.filter_synthesis,
-            group=self.group,
+            enabled=check_field_is_not_null(self.enabled),
+            time_step=check_field_is_not_null(self.time_step),
+            operator=check_field_is_not_null(self.operator),
+            comments=check_field_is_not_null(self.comments),
+            filter_year_by_year=check_field_is_not_null(self.filter_year_by_year),
+            filter_synthesis=check_field_is_not_null(self.filter_synthesis),
+            group=check_field_is_not_null(self.group),
         )

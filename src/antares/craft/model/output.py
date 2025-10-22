@@ -16,6 +16,7 @@ from typing import Optional
 
 import pandas as pd
 
+from antares.craft.exceptions.exceptions import OutputDataRetrievalError
 from antares.craft.service.base_services import BaseOutputService
 
 
@@ -168,7 +169,7 @@ class AggregationEntry:
         type_ids = f"&{object_type}_ids={','.join(self.type_ids)}" if self.type_ids else ""
         columns_names = f"&columns_names={','.join(self.columns_names)}" if self.columns_names else ""
 
-        return f"query_file={self.data_type.value}&frequency={self.frequency.value}{mc_years}{type_ids}{columns_names}&format=csv"
+        return f"query_file={self.data_type.value}&frequency={self.frequency.value}{mc_years}{type_ids}{columns_names}&format=parquet"
 
 
 class Output:
@@ -213,7 +214,8 @@ class Output:
         Returns:
 
         """
-        area_from, area_to = sorted([area_from, area_to])
+        if [area_from, area_to] != sorted([area_from, area_to]):
+            raise OutputDataRetrievalError(self.name, "Areas should be sorted alphabetically")
         file_path = f"mc-all/links/{area_from} - {area_to}/{data_type.value}-{frequency.value}"
         return self._output_service.get_matrix(self.name, file_path, frequency)
 
@@ -249,7 +251,8 @@ class Output:
         Returns:
 
         """
-        area_from, area_to = sorted([area_from, area_to])
+        if [area_from, area_to] != sorted([area_from, area_to]):
+            raise OutputDataRetrievalError(self.name, "Areas should be sorted alphabetically")
         file_path = f"mc-ind/{mc_year:05}/links/{area_from} - {area_to}/{data_type.value}-{frequency.value}"
         return self._output_service.get_matrix(self.name, file_path, frequency)
 

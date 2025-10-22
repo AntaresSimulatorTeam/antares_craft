@@ -17,11 +17,12 @@ from typing import Any, Optional, cast
 from antares.craft import HydroProperties
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.area import Area
+from antares.craft.model.commons import STUDY_VERSION_9_2
 from antares.craft.model.link import Link
 from antares.craft.model.renewable import RenewableCluster
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.st_storage import STStorage
-from antares.craft.model.study import STUDY_VERSION_9_2, Study
+from antares.craft.model.study import Study
 from antares.craft.model.thermal import ThermalCluster
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import StudyServices
@@ -61,8 +62,8 @@ from antares.study.version.create_app import CreateApp
 
 def create_local_services(config: LocalConfiguration, study_name: str, study_version: StudyVersion) -> StudyServices:
     short_term_storage_service = ShortTermStorageLocalService(config, study_name, study_version)
-    thermal_service = ThermalLocalService(config, study_name)
-    renewable_service = RenewableLocalService(config, study_name)
+    thermal_service = ThermalLocalService(config, study_name, study_version)
+    renewable_service = RenewableLocalService(config, study_name, study_version)
     hydro_service = HydroLocalService(config, study_name, study_version)
     bc_service = BindingConstraintLocalService(config, study_name)
     area_service = AreaLocalService(
@@ -80,7 +81,6 @@ def create_local_services(config: LocalConfiguration, study_name: str, study_ver
     study_service = StudyLocalService(config, study_name, output_service)
     run_service = RunLocalService(config, study_name)
     settings_service = StudySettingsLocalService(config, study_name, study_version)
-    short_term_storage_service = ShortTermStorageLocalService(config, study_name, study_version)
     xpansion_service = XpansionLocalService(config, study_name)
     return StudyServices(
         area_service=area_service,

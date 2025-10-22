@@ -27,6 +27,7 @@ from antares.craft.exceptions.exceptions import (
     MatrixFormatError,
     STStoragePropertiesUpdateError,
 )
+from antares.craft.model.commons import STUDY_VERSION_8_8, STUDY_VERSION_9_2
 from antares.craft.model.st_storage import (
     AdditionalConstraintOperator,
     AdditionalConstraintVariable,
@@ -35,7 +36,6 @@ from antares.craft.model.st_storage import (
     STStorageProperties,
     STStoragePropertiesUpdate,
 )
-from antares.craft.model.study import STUDY_VERSION_8_8, STUDY_VERSION_9_2
 from antares.craft.service.local_services.models.st_storage import (
     parse_st_storage_local,
     serialize_st_storage_local,
@@ -405,3 +405,32 @@ def test_error_cases(local_study_w_storage: Study) -> None:
 
     with pytest.raises(ValueError, match=re.escape(error_msg)):
         sts.set_constraint_term("a", pd.DataFrame())
+
+
+def test_version_93(local_study_92: Study, local_study_93: Study) -> None:
+    storage = local_study_93.get_areas()["fr"].create_st_storage("storage_local")
+    assert storage.properties.allow_overflow is False
+
+    # Update the overflow
+    new_properties = STStoragePropertiesUpdate(allow_overflow=True)
+    new_storage = storage.update_properties(new_properties)
+    assert new_storage.allow_overflow is True
+
+    # Ensures the reading also works
+    study = read_study_local(Path(local_study_93.path))
+    assert study.get_areas()["fr"].get_st_storages()["storage_local"].properties.allow_overflow is True
+
+    # Ensures we cannot give nor update the overflow for a 9.2 study
+    area = local_study_92.get_areas()["fr"]
+    with pytest.raises(
+        InvalidFieldForVersionError, match="Field allow_overflow is not a valid field for study version 9.2"
+    ):
+        props = STStorageProperties(allow_overflow=False)
+        area.create_st_storage("new_sts", properties=props)
+
+    sts = area.create_st_storage("new_sts")
+    assert sts.properties.allow_overflow is None
+    with pytest.raises(
+        InvalidFieldForVersionError, match="Field allow_overflow is not a valid field for study version 9.2"
+    ):
+        sts.update_properties(STStoragePropertiesUpdate(allow_overflow=False))
