@@ -15,10 +15,8 @@ from pathlib import Path, PurePath
 from typing import Any, Optional
 
 from antares.craft import (
-    AreaProperties,
     AreaUi,
     ConstraintTerm,
-    HydroProperties,
     PlaylistParameters,
     STStorageAdditionalConstraint,
 )
@@ -27,7 +25,7 @@ from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import APIError, StudyCreationError, StudyImportError, StudyMoveError
 from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import BindingConstraint, ConstraintTermData
-from antares.craft.model.hydro import InflowStructure
+from antares.craft.model.hydro import Hydro
 from antares.craft.model.link import Link
 from antares.craft.model.output import Output
 from antares.craft.model.renewable import RenewableCluster
@@ -68,6 +66,7 @@ from antares.craft.service.api_services.services.study import StudyApiService
 from antares.craft.service.api_services.services.thermal import ThermalApiService
 from antares.craft.service.api_services.services.xpansion import XpansionAPIService
 from antares.craft.service.base_services import (
+    BaseAreaService,
     BaseBindingConstraintService,
     BaseLinkService,
     BaseOutputService,
@@ -236,92 +235,8 @@ def read_study_api(api_config: APIconf, study_id: str) -> Study:
     # Settings
     study._settings = _read_settings(json_api)
 
-    ###### AREAS ########
-
-    # Thermals
-    thermals: dict[str, dict[str, ThermalCluster]] = {}
-
-    for key, thermal in json_api.pop("thermal").items():
-        area_id, thermal_id = key.split(" / ")
-        thermal_props = ThermalClusterPropertiesAPI.model_validate(thermal).to_user_model()
-        thermal_cluster = ThermalCluster(services.thermal_service, area_id, thermal_id, thermal_props)
-
-        thermals.setdefault(area_id, {})[thermal_cluster.id] = thermal_cluster
-
-    # Renewables
-    renewables: dict[str, dict[str, RenewableCluster]] = {}
-
-    for key, renewable in json_api.pop("renewable").items():
-        area_id, renewable_id = key.split(" / ")
-        renewable_props = RenewableClusterPropertiesAPI.model_validate(renewable).to_user_model()
-        renewable_cluster = RenewableCluster(services.renewable_service, area_id, renewable_id, renewable_props)
-
-        renewables.setdefault(area_id, {})[renewable_cluster.id] = renewable_cluster
-
-    # STS
-    constraints_dict: dict[str, dict[str, dict[str, STStorageAdditionalConstraint]]] = {}
-    for key, constraint_api in json_api.pop("sts_c").items():
-        area_id, storage_id, constraint_id = key.split(" / ")
-        args = {"id": constraint_id, "name": constraint_id, **constraint_api}
-        constraint = parse_st_storage_constraint_api(args)
-        constraints_dict.setdefault(area_id, {}).setdefault(storage_id, {})[constraint.id] = constraint
-
-    storages: dict[str, dict[str, STStorage]] = {}
-
-    for key, storage in json_api.pop("sts").items():
-        area_id, storage_id = key.split(" / ")
-        storage_props = parse_st_storage_api(storage)
-        sts_constraints = constraints_dict.get(area_id, {}).get(storage_id, {})
-        st_storage = STStorage(services.short_term_storage_service, area_id, storage_id, storage_props, sts_constraints)
-
-        storages.setdefault(area_id, {})[st_storage.id] = st_storage
-
-    # Hydro
-    hydro_dict: dict[str, tuple[HydroProperties, InflowStructure]] = {}
-    for area_id, api_content in json_api.pop("hydro").items():
-        # Inflow
-        api_inflow = api_content["inflowStructure"]
-        inflow_structure = HydroInflowStructureAPI.model_validate(api_inflow).to_user_model()
-        # Properties
-        api_properties = api_content["managementOptions"]
-        hydro_properties = HydroPropertiesAPI.model_validate(api_properties).to_user_model()
-
-        hydro_dict[area_id] = (hydro_properties, inflow_structure)
-
-    # Area properties
-    area_properties: dict[str, AreaProperties] = {}
-    for area_id, area_properties_api in json_api.pop("areas").items():
-        area_properties[area_id] = AreaPropertiesAPI.model_validate(area_properties_api).to_user_model()
-
-    # Area ui
-    area_ui: dict[str, AreaUi] = {}
-    for area_id, props in json_api.pop("areas_ui").items():
-        api_ui = props["ui"]
-        ui = AreaUi(x=api_ui["x"], y=api_ui["y"], color_rgb=[api_ui["color_r"], api_ui["color_g"], api_ui["color_b"]])
-        area_ui[area_id] = ui
-
-    all_areas = {}
-    for area_id, ui in area_ui.items():
-        area_obj = Area(
-            area_id,
-            services.area_service,
-            services.short_term_storage_service,
-            services.thermal_service,
-            services.renewable_service,
-            services.hydro_service,
-            ui=ui,
-        )
-        # Fill the created object with the right values
-        area_obj._properties = area_properties[area_obj.id]
-        area_obj._thermals = thermals.get(area_obj.id, {})
-        area_obj._renewables = renewables.get(area_obj.id, {})
-        area_obj._st_storages = storages.get(area_obj.id, {})
-        area_obj.hydro._properties = hydro_dict[area_obj.id][0]
-        area_obj.hydro._inflow_structure = hydro_dict[area_obj.id][1]
-
-        all_areas[area_obj.id] = area_obj
-
-    study._areas = all_areas
+    # Areas
+    study._areas = _read_areas(json_api, services.area_service)
 
     return study
 
@@ -404,3 +319,82 @@ def _read_outputs(body: dict[str, Any], output_service: BaseOutputService) -> di
         outputs[output.name] = output
 
     return outputs
+
+def _read_areas(body: dict[str, Any], area_service: BaseAreaService) -> dict[str, Area]:
+    all_areas = {}
+    areas_api = body["areas"]
+    for area_api in areas_api:
+        area_name, area_id = area_api["name"], area_api["id"]
+        area_properties = AreaPropertiesAPI.model_validate(area_api["properties"]).to_user_model()
+        ui_api = area_api["ui"]
+        area_ui = AreaUi(x=ui_api["x"], y=ui_api["y"], color_rgb=ui_api["colorRgb"])
+
+        area = Area(area_name,
+                    area_service,
+                    area_service.storage_service,
+                    area_service.thermal_service,
+                    area_service.renewable_service,
+                    area_service.hydro_service,
+                    properties=area_properties,
+                    ui=area_ui)
+
+        # Thermals
+        thermals: dict[str, ThermalCluster] = {}
+
+        for thermal in area_api["thermals"]:
+            thermal_name = thermal["name"]
+            del thermal["id"]
+
+            thermal_props = ThermalClusterPropertiesAPI.model_validate(thermal).to_user_model()
+            thermal_cluster = ThermalCluster(area_service.thermal_service, area_id, thermal_name, thermal_props)
+
+            thermals[thermal_cluster.id] = thermal_cluster
+
+        area._thermals = thermals
+
+        # Renewables
+        renewables: dict[str, RenewableCluster] = {}
+
+        for renewable in area_api["renewables"]:
+            renew_name = renewable["name"]
+            del renewable["id"]
+
+            renewable_props = RenewableClusterPropertiesAPI.model_validate(renewable).to_user_model()
+            renewable_cluster = RenewableCluster(area_service.renewable_service, area_id, renew_name, renewable_props)
+
+            renewables[renewable_cluster.id] = renewable_cluster
+
+        area._renewables = renewables
+
+        # Short-term storages
+        storages: dict[str, STStorage] = {}
+        for storage_api in area_api["st_storages"]:
+            # Constraints
+            constraints_dict: dict[str, STStorageAdditionalConstraint] = {}
+
+            sts_api_constraints = storage_api.pop("constraints")
+            for sts_api_constraint in sts_api_constraints:
+                sts_constraint = parse_st_storage_constraint_api(sts_api_constraint)
+                constraints_dict[sts_constraint.id] = sts_constraint
+
+            # Properties
+            sts_name = storage_api["name"]
+            del storage_api["id"]
+            sts_props = parse_st_storage_api(storage_api)
+
+            st_storage = STStorage(area_service.storage_service, area_id, sts_name, sts_props, constraints_dict)
+            storages[st_storage.id] = st_storage
+
+        area._st_storages = storages
+
+        # Hydro
+        hydro_api = area_api["hydro"]
+        del hydro_api["allocation"]
+        inflow_structure = HydroInflowStructureAPI.model_validate(hydro_api["inflowStructure"]).to_user_model()
+        hydro_properties = HydroPropertiesAPI.model_validate(hydro_api["managementOptions"]).to_user_model()
+
+        area._hydro = Hydro(area_service.hydro_service, area_id, hydro_properties, inflow_structure)
+
+        all_areas[area_id] = area
+
+    return all_areas
