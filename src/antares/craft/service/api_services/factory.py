@@ -70,6 +70,7 @@ from antares.craft.service.base_services import (
     BaseBindingConstraintService,
     BaseLinkService,
     BaseOutputService,
+    BaseXpansionService,
     StudyServices,
 )
 
@@ -178,7 +179,6 @@ def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) ->
     return services.study_service.create_variant(variant_name)
 
 
-
 def read_study_api(api_config: APIconf, study_id: str) -> Study:
     session = api_config.set_up_api_conf()
     wrapper = RequestWrapper(session)
@@ -199,38 +199,8 @@ def read_study_api(api_config: APIconf, study_id: str) -> Study:
     # Outputs
     study._outputs = _read_outputs(json_api, services.output_service)
 
-    ###### XPANSION ########
-    if "xpansion" not in json_api:
-        study._xpansion_configuration = None
-    else:
-        xpansion_api = json_api.pop("xpansion")
-
-    xp_config = json_api.pop("xp_settings")
-    if not xp_config:
-        study._xpansion_configuration = None
-    else:
-        # Settings
-        settings, sensitivity = parse_xpansion_settings_api(xp_config)
-
-        # Candidates
-        api_cdts = json_api.pop("xp_cdt")
-        candidates = {}
-        for cdt_api in api_cdts:
-            cdt = parse_xpansion_candidate_api(cdt_api)
-            candidates[cdt.name] = cdt
-
-        # Constraints
-        xp_constraints = {}
-        if settings.additional_constraints:
-            xp_constraints = parse_xpansion_constraints_api(json_api.pop("xp_contraint"))
-
-        study._xpansion_configuration = XpansionConfiguration(
-            xpansion_service=services.xpansion_service,
-            settings=settings,
-            sensitivity=sensitivity,
-            candidates=candidates,
-            constraints=xp_constraints,
-        )
+    # Xpansion
+    study._xpansion_configuration = _read_xpansion(json_api, services.xpansion_service)
 
     # Settings
     study._settings = _read_settings(json_api)
@@ -257,7 +227,10 @@ def _read_links(body: dict[str, Any], link_service: BaseLinkService) -> dict[str
 
     return links
 
-def _read_binding_constraints(body: dict[str, Any], bc_service: BaseBindingConstraintService) -> dict[str, BindingConstraint]:
+
+def _read_binding_constraints(
+    body: dict[str, Any], bc_service: BaseBindingConstraintService
+) -> dict[str, BindingConstraint]:
     constraints = {}
     bcs_api = body["binding_constraints"]
     for bc_api in bcs_api:
@@ -277,6 +250,7 @@ def _read_binding_constraints(body: dict[str, Any], bc_service: BaseBindingConst
         constraints[bc.id] = bc
 
     return constraints
+
 
 def _read_settings(body: dict[str, Any]) -> StudySettings:
     settings_api = body["settings"]
@@ -302,6 +276,7 @@ def _read_settings(body: dict[str, Any]) -> StudySettings:
         thematic_trimming_parameters=thematic_trimming_parameters,
     )
 
+
 def _read_study_metadata(body: dict[str, Any], services: StudyServices) -> Study:
     study_metadata = body["metadata"]
     study_name = study_metadata["name"]
@@ -310,6 +285,7 @@ def _read_study_metadata(body: dict[str, Any], services: StudyServices) -> Study
     pure_path = PurePath(folder) if folder else PurePath(".")
 
     return Study(study_name, study_version, services, pure_path)
+
 
 def _read_outputs(body: dict[str, Any], output_service: BaseOutputService) -> dict[str, Output]:
     outputs = {}
@@ -320,6 +296,7 @@ def _read_outputs(body: dict[str, Any], output_service: BaseOutputService) -> di
 
     return outputs
 
+
 def _read_areas(body: dict[str, Any], area_service: BaseAreaService) -> dict[str, Area]:
     all_areas = {}
     areas_api = body["areas"]
@@ -329,14 +306,16 @@ def _read_areas(body: dict[str, Any], area_service: BaseAreaService) -> dict[str
         ui_api = area_api["ui"]
         area_ui = AreaUi(x=ui_api["x"], y=ui_api["y"], color_rgb=ui_api["colorRgb"])
 
-        area = Area(area_name,
-                    area_service,
-                    area_service.storage_service,
-                    area_service.thermal_service,
-                    area_service.renewable_service,
-                    area_service.hydro_service,
-                    properties=area_properties,
-                    ui=area_ui)
+        area = Area(
+            area_name,
+            area_service,
+            area_service.storage_service,
+            area_service.thermal_service,
+            area_service.renewable_service,
+            area_service.hydro_service,
+            properties=area_properties,
+            ui=area_ui,
+        )
 
         # Thermals
         thermals: dict[str, ThermalCluster] = {}
@@ -398,3 +377,30 @@ def _read_areas(body: dict[str, Any], area_service: BaseAreaService) -> dict[str
         all_areas[area_id] = area
 
     return all_areas
+
+
+def _read_xpansion(body: dict[str, Any], xp_service: BaseXpansionService) -> XpansionConfiguration | None:
+    if "xpansion" not in body:
+        return None
+
+    xpansion_api = body["xpansion"]
+
+    settings, sensitivity = parse_xpansion_settings_api(xpansion_api["settings"])
+
+    candidates = {}
+    for candidate_api in body["xpansion_api"]:
+        cdt = parse_xpansion_candidate_api(candidate_api)
+        candidates[cdt.name] = cdt
+
+    xp_constraints = {}
+    if settings.additional_constraints:
+        # todo: thats' wrong
+        xp_constraints = parse_xpansion_constraints_api(body.pop("xp_contraint"))
+
+    return XpansionConfiguration(
+        xpansion_service=xp_service,
+        settings=settings,
+        sensitivity=sensitivity,
+        candidates=candidates,
+        constraints=xp_constraints,
+    )
