@@ -142,7 +142,7 @@ def create_study_api(
         raise StudyCreationError(study_name, e.message) from e
 
 
-def import_study_api(api_config: APIconf, study_path: Path, destination_path: Optional[Path] = None) -> "Study":
+def import_study_api(api_config: APIconf, study_path: Path, destination_path: Optional[Path] = None) -> Study:
     session = api_config.set_up_api_conf()
     wrapper = RequestWrapper(session)
     base_url = f"{api_config.get_host()}/api/v1"
@@ -166,7 +166,7 @@ def import_study_api(api_config: APIconf, study_path: Path, destination_path: Op
         raise StudyImportError(study_path.name, e.message) from e
 
 
-def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) -> "Study":
+def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) -> Study:
     """
     Creates a variant from a study_id
     Args:
@@ -180,7 +180,7 @@ def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) ->
 
 
 
-def read_study_api(api_config: APIconf, study_id: str) -> "Study":
+def read_study_api(api_config: APIconf, study_id: str) -> Study:
     session = api_config.set_up_api_conf()
     wrapper = RequestWrapper(session)
     base_url = f"{api_config.get_host()}/api/v1"
