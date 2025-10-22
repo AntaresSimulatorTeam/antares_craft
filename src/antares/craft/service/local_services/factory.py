@@ -29,14 +29,18 @@ from antares.craft.service.base_services import StudyServices
 from antares.craft.service.local_services.models.area import AreaPropertiesLocal, AreaUiLocal
 from antares.craft.service.local_services.models.hydro import parse_hydro_properties_local
 from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
-from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
+from antares.craft.service.local_services.models.renewable import (
+    parse_renewable_cluster_local,
+)
 from antares.craft.service.local_services.models.settings.adequacy_patch import parse_adequacy_parameters_local
 from antares.craft.service.local_services.models.settings.advanced_parameters import (
     parse_advanced_and_seed_parameters_local,
 )
 from antares.craft.service.local_services.models.settings.thematic_trimming import parse_thematic_trimming_local
 from antares.craft.service.local_services.models.st_storage import parse_st_storage_local
-from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
+from antares.craft.service.local_services.models.thermal import (
+    parse_thermal_cluster_local,
+)
 from antares.craft.service.local_services.models.xpansion import parse_xpansion_candidate_local
 from antares.craft.service.local_services.services.area import AreaLocalService
 from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
@@ -340,7 +344,7 @@ def _read_thermal_clusters(thermal_service: ThermalLocalService) -> dict[str, di
                     thermal_service=thermal_service,
                     area_id=area_id,
                     name=str(thermal_data.pop("name")),
-                    properties=ThermalClusterPropertiesLocal.model_validate(thermal_data).to_user_model(),
+                    properties=parse_thermal_cluster_local(thermal_service.study_version, thermal_data),
                 )
 
                 thermals.setdefault(area_id, {})[thermal_cluster.id] = thermal_cluster
@@ -364,7 +368,7 @@ def _read_renewables(renewable_service: RenewableLocalService) -> dict[str, dict
                     renewable_service=renewable_service,
                     area_id=area_id,
                     name=str(renewable_data.pop("name")),
-                    properties=RenewableClusterPropertiesLocal.model_validate(renewable_data).to_user_model(),
+                    properties=parse_renewable_cluster_local(renewable_service.study_version, renewable_data),
                 )
 
                 renewables.setdefault(area_id, {})[renewable_cluster.id] = renewable_cluster
