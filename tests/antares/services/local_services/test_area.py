@@ -669,8 +669,6 @@ class TestReadArea:
 
     def test_read_areas_thermal_file(self, local_study_w_areas: Study) -> None:
         study_path = Path(local_study_w_areas.path)
-
-        local_study_object = read_study_local(study_path)
         optimization_path = study_path / "input" / "thermal" / "areas.ini"
 
         antares_content = """[unserverdenergycost]
@@ -690,11 +688,10 @@ it = 10000.000000
                 "The method read_areas was used on study 'studyTest' which already contains some areas. This is prohibited."
             ),
         ):
-            local_study_object._read_areas()
+            read_study_local(study_path)
 
-        local_study_object._areas = {}
-        local_study_object._read_areas()
-        area_fr = local_study_object.get_areas()["fr"]
+        study = read_study_local(study_path)
+        area_fr = study.get_areas()["fr"]
         assert area_fr.properties.energy_cost_unsupplied == 10000
         assert area_fr.properties.energy_cost_spilled == 10
 

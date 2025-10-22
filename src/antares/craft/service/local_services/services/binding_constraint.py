@@ -236,7 +236,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         for term in terms:
             new_terms[term.id] = term.weight_offset()
 
-        current_ini_content = self._read_ini()
+        current_ini_content = self.read_ini()
         # Look for the constraint
         existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint_id), None)
         if not existing_key:
