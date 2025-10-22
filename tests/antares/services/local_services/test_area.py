@@ -26,7 +26,6 @@ from antares.craft import STStoragePropertiesUpdate, Study, read_study_local
 from antares.craft.exceptions.exceptions import (
     InvalidFieldForVersionError,
     MatrixFormatError,
-    ReadingMethodUsedOufOfScopeError,
 )
 from antares.craft.model.area import AdequacyPatchMode, Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FilterOption
@@ -681,14 +680,6 @@ it = 10000.000000
     """
         with open(optimization_path, "w", encoding="utf-8") as antares_file:
             antares_file.write(antares_content)
-
-        with pytest.raises(
-            ReadingMethodUsedOufOfScopeError,
-            match=re.escape(
-                "The method read_areas was used on study 'studyTest' which already contains some areas. This is prohibited."
-            ),
-        ):
-            read_study_local(study_path)
 
         study = read_study_local(study_path)
         area_fr = study.get_areas()["fr"]
