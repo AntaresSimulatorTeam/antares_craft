@@ -16,9 +16,11 @@ from typing import Any, Optional
 
 from antares.craft import (
     AreaUi,
+    ConstraintSign,
     ConstraintTerm,
     PlaylistParameters,
     STStorageAdditionalConstraint,
+    XpansionConstraint,
 )
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
@@ -50,7 +52,6 @@ from antares.craft.service.api_services.models.st_storage import parse_st_storag
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.models.xpansion import (
     parse_xpansion_candidate_api,
-    parse_xpansion_constraints_api,
     parse_xpansion_settings_api,
 )
 from antares.craft.service.api_services.services.area import AreaApiService
@@ -347,7 +348,7 @@ def _read_areas(body: dict[str, Any], area_service: BaseAreaService) -> dict[str
 
         # Short-term storages
         storages: dict[str, STStorage] = {}
-        for storage_api in area_api["st_storages"]:
+        for storage_api in area_api["stStorages"]:
             # Constraints
             constraints_dict: dict[str, STStorageAdditionalConstraint] = {}
 
@@ -388,14 +389,19 @@ def _read_xpansion(body: dict[str, Any], xp_service: BaseXpansionService) -> Xpa
     settings, sensitivity = parse_xpansion_settings_api(xpansion_api["settings"])
 
     candidates = {}
-    for candidate_api in body["xpansion_api"]:
+    for candidate_api in xpansion_api["candidates"]:
         cdt = parse_xpansion_candidate_api(candidate_api)
         candidates[cdt.name] = cdt
 
     xp_constraints = {}
-    if settings.additional_constraints:
-        # todo: thats' wrong
-        xp_constraints = parse_xpansion_constraints_api(body.pop("xp_contraint"))
+    for constraint_api in xpansion_api["constraints"]:
+        constraint = XpansionConstraint(
+            name=constraint_api["name"],
+            sign=ConstraintSign(constraint_api["sign"]),
+            right_hand_side=constraint_api["rightHandSide"],
+            candidates_coefficients=constraint_api["candidatesCoefficients"],
+        )
+        xp_constraints[constraint.name] = constraint
 
     return XpansionConfiguration(
         xpansion_service=xp_service,
