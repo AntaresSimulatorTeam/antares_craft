@@ -29,7 +29,6 @@ from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import BindingConstraint, ConstraintTermData
 from antares.craft.model.hydro import Hydro
 from antares.craft.model.link import Link
-from antares.craft.model.output import Output
 from antares.craft.model.renewable import RenewableCluster
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.st_storage import STStorage
@@ -70,7 +69,6 @@ from antares.craft.service.base_services import (
     BaseAreaService,
     BaseBindingConstraintService,
     BaseLinkService,
-    BaseOutputService,
     BaseXpansionService,
     StudyServices,
 )
@@ -197,9 +195,6 @@ def read_study_api(api_config: APIconf, study_id: str) -> Study:
     # Binding constraints
     study._binding_constraints = _read_binding_constraints(json_api, services.bc_service)
 
-    # Outputs
-    study._outputs = _read_outputs(json_api, services.output_service)
-
     # Xpansion
     study._xpansion_configuration = _read_xpansion(json_api, services.xpansion_service)
 
@@ -208,6 +203,9 @@ def read_study_api(api_config: APIconf, study_id: str) -> Study:
 
     # Areas
     study._areas = _read_areas(json_api, services.area_service)
+
+    # Outputs
+    study._read_outputs()
 
     return study
 
@@ -286,16 +284,6 @@ def _read_study_metadata(body: dict[str, Any], services: StudyServices) -> Study
     pure_path = PurePath(folder) if folder else PurePath(".")
 
     return Study(study_name, study_version, services, pure_path)
-
-
-def _read_outputs(body: dict[str, Any], output_service: BaseOutputService) -> dict[str, Output]:
-    outputs = {}
-    api_outputs = body["outputs"]
-    for api_otp in api_outputs:
-        output = Output(output_service=output_service, name=api_otp["name"], archived=api_otp["archived"])
-        outputs[output.name] = output
-
-    return outputs
 
 
 def _read_areas(body: dict[str, Any], area_service: BaseAreaService) -> dict[str, Area]:
