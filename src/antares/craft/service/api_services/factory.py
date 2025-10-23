@@ -231,7 +231,7 @@ def _read_binding_constraints(
     body: dict[str, Any], bc_service: BaseBindingConstraintService
 ) -> dict[str, BindingConstraint]:
     constraints = {}
-    bcs_api = body["binding_constraints"]
+    bcs_api = body["bindingConstraints"]
     for bc_api in bcs_api:
         constraint_name = bc_api.pop("name")
         del bc_api["id"]
@@ -253,12 +253,12 @@ def _read_binding_constraints(
 
 def _read_settings(body: dict[str, Any]) -> StudySettings:
     settings_api = body["settings"]
-    nb_ts_thermal = settings_api["time_series"]["thermal"]["number"]
+    nb_ts_thermal = settings_api["timeSeries"]["thermal"]["number"]
     general_parameters = parse_general_parameters_api(settings_api["general"], nb_ts_thermal)
-    thematic_trimming_parameters = parse_thematic_trimming_api(settings_api["thematic_trimming"])
+    thematic_trimming_parameters = parse_thematic_trimming_api(settings_api["thematicTrimming"])
     optimization_parameters = parse_optimization_parameters_api(settings_api["optimization"])
-    adequacy_patch_parameters = parse_adequacy_patch_parameters_api(settings_api["adequacy_patch"])
-    advanced_parameters, seed_parameters = parse_advanced_and_seed_parameters_api(settings_api["advanced_parameters"])
+    adequacy_patch_parameters = parse_adequacy_patch_parameters_api(settings_api["adequacyPatch"])
+    advanced_parameters, seed_parameters = parse_advanced_and_seed_parameters_api(settings_api["advancedParameters"])
 
     user_playlist = {}
     api_playlist = settings_api["playlist"].get("years", {})
@@ -336,7 +336,7 @@ def _read_areas(body: dict[str, Any], area_service: BaseAreaService) -> dict[str
 
         # Short-term storages
         storages: dict[str, STStorage] = {}
-        for storage_api in area_api["st_storages"]:
+        for storage_api in area_api["stStorages"]:
             # Constraints
             constraints_dict: dict[str, STStorageAdditionalConstraint] = {}
 
@@ -386,8 +386,8 @@ def _read_xpansion(body: dict[str, Any], xp_service: BaseXpansionService) -> Xpa
         constraint = XpansionConstraint(
             name=constraint_api["name"],
             sign=ConstraintSign(constraint_api["sign"]),
-            right_hand_side=constraint_api["right_hand_side"],
-            candidates_coefficients=constraint_api["candidates_coefficients"],
+            right_hand_side=constraint_api["rightHandSide"],
+            candidates_coefficients=constraint_api["candidatesCoefficients"],
         )
         xp_constraints[constraint.name] = constraint
 
