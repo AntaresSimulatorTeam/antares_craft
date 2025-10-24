@@ -274,6 +274,7 @@ class TestWebClient:
         assert actual_hydro.properties == area_fr.hydro.properties
         assert area_fr.hydro.properties.reservoir is False
         assert area_fr.hydro.properties.reservoir_capacity == 0
+        assert area_fr.hydro.allocation == [HydroAllocation(area_id=area_fr.id, coefficient=1)]
 
         # update hydro properties
         hydro_properties = HydroPropertiesUpdate(reservoir=True, reservoir_capacity=4.5)
@@ -285,6 +286,16 @@ class TestWebClient:
         # update hydro inflow structure
         area_fr.hydro.update_inflow_structure(InflowStructureUpdate(intermonthly_correlation=0.1))
         assert area_fr.hydro.inflow_structure.intermonthly_correlation == 0.1
+
+        # update hydro allocation
+        area_fr.hydro.set_allocation(
+            [HydroAllocation(area_id="be", coefficient=0.4), HydroAllocation(area_id="de", coefficient=1.6)]
+        )
+        assert area_fr.hydro.allocation == [
+            HydroAllocation(area_id="be", coefficient=0.4),
+            HydroAllocation(area_id="de", coefficient=1.6),
+            HydroAllocation(area_id="fr", coefficient=1.0),
+        ]
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"

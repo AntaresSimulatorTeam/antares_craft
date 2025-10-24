@@ -100,7 +100,9 @@ class HydroApiService(BaseHydroService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/allocation/form"
             body = serialize_hydro_allocation_api(allocation)
             allocation_api = self._wrapper.put(url, json=body).json()
-            return parse_hydro_allocation_api(allocation_api)
+            new_allocation = parse_hydro_allocation_api(allocation_api)
+            new_allocation.append(HydroAllocation(area_id=area_id))
+            return new_allocation
         except APIError as e:
             raise HydroAllocationUpdateError(area_id, e.message) from e
 
