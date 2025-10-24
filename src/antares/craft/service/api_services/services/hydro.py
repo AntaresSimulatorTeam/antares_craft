@@ -18,6 +18,7 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
+    HydroAllocationUpdateError,
     HydroInflowStructureReadingError,
     HydroInflowStructureUpdateError,
     HydroPropertiesReadingError,
@@ -32,7 +33,12 @@ from antares.craft.model.hydro import (
     InflowStructure,
     InflowStructureUpdate,
 )
-from antares.craft.service.api_services.models.hydro import HydroInflowStructureAPI, HydroPropertiesAPI
+from antares.craft.service.api_services.models.hydro import (
+    HydroInflowStructureAPI,
+    HydroPropertiesAPI,
+    parse_hydro_allocation_api,
+    serialize_hydro_allocation_api,
+)
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseHydroService
 
@@ -90,7 +96,13 @@ class HydroApiService(BaseHydroService):
 
     @override
     def set_allocation(self, area_id: str, allocation: list[HydroAllocation]) -> list[HydroAllocation]:
-        raise NotImplementedError
+        try:
+            url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/allocation/form"
+            body = serialize_hydro_allocation_api(allocation)
+            allocation_api = self._wrapper.put(url, json=body).json()
+            return parse_hydro_allocation_api(allocation_api)
+        except APIError as e:
+            raise HydroAllocationUpdateError(area_id, e.message) from e
 
     @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:
