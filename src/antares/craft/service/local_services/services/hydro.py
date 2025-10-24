@@ -167,3 +167,6 @@ class HydroLocalService(BaseHydroService):
         for key, value in local_dict.items():
             current_content.setdefault(key, {})[area_id] = value
         self._save_ini(current_content)
+
+    def read_allocation_for_area(self, area_id: str) -> list[HydroAllocation]:
+        raise NotImplementedError()

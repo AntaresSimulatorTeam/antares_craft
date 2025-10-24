@@ -304,7 +304,8 @@ def _read_areas(area_service: AreaLocalService) -> dict[str, Area]:
                 properties=area_properties,
                 ui=ui_properties,
             )
-            hydro = Hydro(area_service.hydro_service, area_id, all_hydro_properties[area.id], inflow_structure, [])
+            hydro_allocation = hydro_service.read_allocation_for_area(area_id)
+            hydro = Hydro(hydro_service, area_id, all_hydro_properties[area.id], inflow_structure, hydro_allocation)
             area._hydro = hydro
             area._thermals = thermals.get(area.id, {})
             area._renewables = renewables.get(area.id, {})
