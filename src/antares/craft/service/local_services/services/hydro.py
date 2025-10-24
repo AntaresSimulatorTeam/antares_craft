@@ -60,6 +60,9 @@ class HydroLocalService(BaseHydroService):
     def _get_inflow_path(self, area_id: str) -> Path:
         return self.config.study_path / "input" / "hydro" / "prepro" / area_id / "prepro.ini"
 
+    def _get_allocation_path(self, area_id: str) -> Path:
+        return self.config.study_path / "input" / "hydro" / "allocation" / f"{area_id}.ini"
+
     def _read_inflow_ini(self, area_id: str) -> dict[str, Any]:
         return IniReader().read(self._get_inflow_path(area_id))
 
@@ -67,7 +70,7 @@ class HydroLocalService(BaseHydroService):
         IniWriter().write(content, self._get_inflow_path(area_id))
 
     def save_allocation_ini(self, content: dict[str, Any], area_id: str) -> None:
-        IniWriter().write(content, self.config.study_path / "input" / "hydro" / "allocation" / f"{area_id}.ini")
+        IniWriter().write(content, self._get_allocation_path(area_id))
 
     @override
     def update_properties(self, area_id: str, properties: HydroPropertiesUpdate) -> None:
@@ -169,4 +172,11 @@ class HydroLocalService(BaseHydroService):
         self._save_ini(current_content)
 
     def read_allocation_for_area(self, area_id: str) -> list[HydroAllocation]:
-        raise NotImplementedError()
+        ini_content = IniReader().read(self._get_allocation_path(area_id))
+        # allocation format can differ from the number of '[' (i.e. [[allocation]] or [allocation])
+        allocation_data = ini_content.get("[allocation]", ini_content.get("allocation", {}))
+        allocations = []
+        for area_name, coefficient in allocation_data.items():
+            area_id = transform_name_to_id(area_name)
+            allocations.append(HydroAllocation(area_id=area_id, coefficient=coefficient))
+        return allocations
