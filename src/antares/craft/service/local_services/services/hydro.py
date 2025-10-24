@@ -83,7 +83,13 @@ class HydroLocalService(BaseHydroService):
 
     @override
     def set_allocation(self, area_id: str, allocation: list[HydroAllocation]) -> list[HydroAllocation]:
-        raise NotImplementedError
+        allocation_content = {}
+        for alloc in allocation:
+            if alloc.coefficient and area_id != alloc.area_id:
+                # Null values are not written nor are the diagonal ones
+                allocation_content[f"{area_id}%{alloc.area_id}"] = alloc.coefficient
+        self.save_allocation_ini({"[allocation]": allocation_content}, area_id)
+        return self.read_allocation_for_area(area_id)
 
     @override
     def read_inflow_structure_for_one_area(self, area_id: str) -> InflowStructure:
@@ -175,8 +181,9 @@ class HydroLocalService(BaseHydroService):
         ini_content = IniReader().read(self._get_allocation_path(area_id))
         # allocation format can differ from the number of '[' (i.e. [[allocation]] or [allocation])
         allocation_data = ini_content.get("[allocation]", ini_content.get("allocation", {}))
-        allocations = []
+        allocations = [HydroAllocation(area_id=area_id)]
         for area_name, coefficient in allocation_data.items():
-            area_id = transform_name_to_id(area_name)
-            allocations.append(HydroAllocation(area_id=area_id, coefficient=coefficient))
+            alloc_area_id = transform_name_to_id(area_name)
+            if alloc_area_id != area_id:  # Already initialized in case it was not written in the file
+                allocations.append(HydroAllocation(area_id=alloc_area_id, coefficient=coefficient))
         return allocations

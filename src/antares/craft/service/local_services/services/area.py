@@ -371,7 +371,7 @@ class AreaLocalService(BaseAreaService):
             hydro_local_service.save_inflow_ini(
                 HydroInflowStructureLocal.from_user_model(InflowStructure()).model_dump(by_alias=True), area_id
             )
-            hydro_local_service.save_allocation_ini({"[allocation]": {area_id: "1"}}, area_id)
+            hydro_local_service.save_allocation_ini({"[allocation]": {}}, area_id)
 
             for ts in [
                 TimeSeriesFileType.HYDRO_MAX_POWER,
