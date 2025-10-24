@@ -91,3 +91,8 @@ def parse_hydro_allocation_api(data: dict[str, Any]) -> list[HydroAllocation]:
     for allocation_api in allocations_api:
         allocations.append(HydroAllocation(area_id=allocation_api["areaId"], coefficient=allocation_api["coefficient"]))
     return allocations
+
+
+def serialize_hydro_allocation_api(data: list[HydroAllocation]) -> dict[str, Any]:
+    allocations = [{"areaId": allocation.area_id, "coefficient": allocation.coefficient} for allocation in data]
+    return {"allocation": allocations}
