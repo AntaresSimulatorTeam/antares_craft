@@ -18,6 +18,7 @@ from antares.craft import HydroProperties
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.area import Area
 from antares.craft.model.commons import STUDY_VERSION_9_2
+from antares.craft.model.hydro import Hydro
 from antares.craft.model.link import Link
 from antares.craft.model.renewable import RenewableCluster
 from antares.craft.model.settings.study_settings import StudySettings
@@ -303,8 +304,8 @@ def _read_areas(area_service: AreaLocalService) -> dict[str, Area]:
                 properties=area_properties,
                 ui=ui_properties,
             )
-            area.hydro._properties = all_hydro_properties[area.id]
-            area.hydro._inflow_structure = inflow_structure
+            hydro = Hydro(area_service.hydro_service, area_id, all_hydro_properties[area.id], inflow_structure, [])
+            area._hydro = hydro
             area._thermals = thermals.get(area.id, {})
             area._renewables = renewables.get(area.id, {})
             area._st_storages = st_storages.get(area.id, {})
