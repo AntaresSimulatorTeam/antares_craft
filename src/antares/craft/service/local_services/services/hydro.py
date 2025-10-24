@@ -87,7 +87,7 @@ class HydroLocalService(BaseHydroService):
         for alloc in allocation:
             if alloc.coefficient and area_id != alloc.area_id:
                 # Null values are not written nor are the diagonal ones
-                allocation_content[f"{area_id}%{alloc.area_id}"] = alloc.coefficient
+                allocation_content[alloc.area_id] = alloc.coefficient
         self.save_allocation_ini({"[allocation]": allocation_content}, area_id)
         return self.read_allocation_for_area(area_id)
 

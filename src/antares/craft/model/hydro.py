@@ -127,6 +127,10 @@ class Hydro:
     def inflow_structure(self) -> InflowStructure:
         return self._inflow_structure
 
+    @property
+    def allocation(self) -> list[HydroAllocation]:
+        return self._allocation
+
     def update_properties(self, properties: HydroPropertiesUpdate) -> None:
         self._service.update_properties(self.area_id, properties)
         self._properties = self._properties.from_update_properties(properties)
