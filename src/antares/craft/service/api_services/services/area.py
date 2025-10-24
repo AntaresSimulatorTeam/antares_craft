@@ -142,7 +142,7 @@ class AreaApiService(BaseAreaService):
             api_hydro_service = cast(HydroApiService, self.hydro_service)
             hydro_properties = api_hydro_service.read_properties_for_one_area(area_id)
             inflow_structure = api_hydro_service.read_inflow_structure_for_one_area(area_id)
-            hydro = Hydro(self.hydro_service, area_id, hydro_properties, inflow_structure)
+            hydro = Hydro(self.hydro_service, area_id, hydro_properties, inflow_structure, [])
 
         except APIError as e:
             raise AreaCreationError(area_name, e.message) from e

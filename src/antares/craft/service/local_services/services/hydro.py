@@ -17,7 +17,13 @@ import pandas as pd
 from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
+from antares.craft.model.hydro import (
+    HydroAllocation,
+    HydroProperties,
+    HydroPropertiesUpdate,
+    InflowStructure,
+    InflowStructureUpdate,
+)
 from antares.craft.service.base_services import BaseHydroService
 from antares.craft.service.local_services.models.hydro import (
     HydroInflowStructureLocal,
@@ -73,6 +79,10 @@ class HydroLocalService(BaseHydroService):
     def update_inflow_structure(self, area_id: str, inflow_structure: InflowStructureUpdate) -> None:
         new_content = HydroInflowStructureLocal.from_user_model(inflow_structure).model_dump(by_alias=True)
         self.save_inflow_ini(new_content, area_id)
+
+    @override
+    def set_allocation(self, area_id: str, allocation: list[HydroAllocation]) -> list[HydroAllocation]:
+        raise NotImplementedError
 
     @override
     def read_inflow_structure_for_one_area(self, area_id: str) -> InflowStructure:

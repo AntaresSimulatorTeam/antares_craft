@@ -23,7 +23,7 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.commons import FilterOption
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructureUpdate
+from antares.craft.model.hydro import HydroAllocation, HydroProperties, HydroPropertiesUpdate, InflowStructureUpdate
 from antares.craft.model.link import (
     AssetType,
     LinkProperties,
@@ -194,6 +194,7 @@ __all__ = [
     "FilterOption",
     "HydroProperties",
     "HydroPropertiesUpdate",
+    "HydroAllocation",
     "LinkProperties",
     "LinkPropertiesUpdate",
     "LinkUi",

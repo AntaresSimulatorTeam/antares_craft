@@ -25,7 +25,13 @@ from antares.craft.exceptions.exceptions import (
     MatrixDownloadError,
     MatrixUploadError,
 )
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
+from antares.craft.model.hydro import (
+    HydroAllocation,
+    HydroProperties,
+    HydroPropertiesUpdate,
+    InflowStructure,
+    InflowStructureUpdate,
+)
 from antares.craft.service.api_services.models.hydro import HydroInflowStructureAPI, HydroPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseHydroService
@@ -81,6 +87,10 @@ class HydroApiService(BaseHydroService):
             self._wrapper.put(url, json=body)
         except APIError as e:
             raise HydroInflowStructureUpdateError(area_id, e.message) from e
+
+    @override
+    def set_allocation(self, area_id: str, allocation: list[HydroAllocation]) -> list[HydroAllocation]:
+        raise NotImplementedError
 
     @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:

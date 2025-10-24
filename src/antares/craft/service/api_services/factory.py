@@ -361,7 +361,7 @@ def _read_areas(body: dict[str, Any], area_service: BaseAreaService) -> dict[str
         inflow_structure = HydroInflowStructureAPI.model_validate(hydro_api["inflowStructure"]).to_user_model()
         hydro_properties = HydroPropertiesAPI.model_validate(hydro_api["managementOptions"]).to_user_model()
 
-        area._hydro = Hydro(area_service.hydro_service, area_id, hydro_properties, inflow_structure)
+        area._hydro = Hydro(area_service.hydro_service, area_id, hydro_properties, inflow_structure, [])
 
         all_areas[area_id] = area
 

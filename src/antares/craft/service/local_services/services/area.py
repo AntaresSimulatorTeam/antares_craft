@@ -365,7 +365,7 @@ class AreaLocalService(BaseAreaService):
             hydro_local_service.edit_hydro_properties(area_id, update_properties, creation=True)
             # Use parsing method to fill default values according to version
             hydro_properties = parse_hydro_properties_local(self.study_version, {})
-            hydro = Hydro(self.hydro_service, area_id, hydro_properties, InflowStructure())
+            hydro = Hydro(self.hydro_service, area_id, hydro_properties, InflowStructure(), [])
             # Create files
             hydro_local_service.save_inflow_ini(
                 HydroInflowStructureLocal.from_user_model(InflowStructure()).model_dump(by_alias=True), area_id

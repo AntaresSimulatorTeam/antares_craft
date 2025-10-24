@@ -44,7 +44,7 @@ if TYPE_CHECKING:
         ConstraintMatrixName,
         ConstraintTerm,
     )
-    from antares.craft.model.hydro import HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
+    from antares.craft.model.hydro import HydroAllocation, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
     from antares.craft.model.output import (
         AggregationEntry,
@@ -306,6 +306,10 @@ class BaseHydroService(ABC):
 
     @abstractmethod
     def update_inflow_structure(self, area_id: str, inflow_structure: "InflowStructureUpdate") -> None:
+        pass
+
+    @abstractmethod
+    def set_allocation(self, area_id: str, allocation: list["HydroAllocation"]) -> list["HydroAllocation"]:
         pass
 
     @abstractmethod
