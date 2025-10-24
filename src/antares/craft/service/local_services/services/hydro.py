@@ -19,7 +19,6 @@ from typing_extensions import override
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.hydro import (
     HydroAllocation,
-    HydroProperties,
     HydroPropertiesUpdate,
     InflowStructure,
     InflowStructureUpdate,
@@ -27,7 +26,6 @@ from antares.craft.model.hydro import (
 from antares.craft.service.base_services import BaseHydroService
 from antares.craft.service.local_services.models.hydro import (
     HydroInflowStructureLocal,
-    parse_hydro_properties_local,
     serialize_hydro_properties_local,
 )
 from antares.craft.tools.contents_tool import transform_name_to_id
@@ -88,21 +86,6 @@ class HydroLocalService(BaseHydroService):
     def read_inflow_structure_for_one_area(self, area_id: str) -> InflowStructure:
         prepro_dict = self._read_inflow_ini(area_id)
         return HydroInflowStructureLocal.model_validate(prepro_dict).to_user_model()
-
-    def read_properties(self) -> dict[str, HydroProperties]:
-        hydro_properties: dict[str, HydroProperties] = {}
-
-        current_content = self.read_ini()
-
-        body_by_area: dict[str, dict[str, Any]] = {}
-        for key, value in current_content.items():
-            for area_id, data in value.items():
-                body_by_area.setdefault(area_id, {})[key] = data
-        for area_id, local_properties in body_by_area.items():
-            user_properties = parse_hydro_properties_local(self.study_version, local_properties)
-            hydro_properties[area_id] = user_properties
-
-        return hydro_properties
 
     @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:
