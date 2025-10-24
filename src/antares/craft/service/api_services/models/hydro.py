@@ -10,8 +10,15 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
+from typing import Any
 
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
+from antares.craft.model.hydro import (
+    HydroAllocation,
+    HydroProperties,
+    HydroPropertiesUpdate,
+    InflowStructure,
+    InflowStructureUpdate,
+)
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 
 HydroPropertiesType = HydroProperties | HydroPropertiesUpdate
@@ -76,3 +83,11 @@ class HydroInflowStructureAPI(APIBaseModel):
         return InflowStructure(
             intermonthly_correlation=self.inter_monthly_correlation or InflowStructure().intermonthly_correlation
         )
+
+
+def parse_hydro_allocation_api(data: dict[str, Any]) -> list[HydroAllocation]:
+    allocations = []
+    allocations_api = data["allocation"]
+    for allocation_api in allocations_api:
+        allocations.append(HydroAllocation(area_id=allocation_api["areaId"], coefficient=allocation_api["coefficient"]))
+    return allocations

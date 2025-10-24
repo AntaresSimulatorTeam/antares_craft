@@ -37,7 +37,11 @@ from antares.craft.model.thermal import ThermalCluster
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.api_services.models.area import AreaPropertiesAPI
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
-from antares.craft.service.api_services.models.hydro import HydroInflowStructureAPI, HydroPropertiesAPI
+from antares.craft.service.api_services.models.hydro import (
+    HydroInflowStructureAPI,
+    HydroPropertiesAPI,
+    parse_hydro_allocation_api,
+)
 from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
 from antares.craft.service.api_services.models.settings import (
@@ -357,11 +361,11 @@ def _read_areas(body: dict[str, Any], area_service: BaseAreaService) -> dict[str
 
         # Hydro
         hydro_api = area_api["hydro"]
-        del hydro_api["allocation"]
         inflow_structure = HydroInflowStructureAPI.model_validate(hydro_api["inflowStructure"]).to_user_model()
         hydro_properties = HydroPropertiesAPI.model_validate(hydro_api["managementOptions"]).to_user_model()
+        hydro_allocation = parse_hydro_allocation_api(hydro_api["allocation"])
 
-        area._hydro = Hydro(area_service.hydro_service, area_id, hydro_properties, inflow_structure, [])
+        area._hydro = Hydro(area_service.hydro_service, area_id, hydro_properties, inflow_structure, hydro_allocation)
 
         all_areas[area_id] = area
 
