@@ -1,25 +1,27 @@
-name: Coverage
+name: Non regression API tests
 on:
   push:
     branches:
-      - "**"
+      - "add-cron-job"
+  schedule:
+    - cron: '21 5 * * *'
 
 jobs:
-  coverage_and_integration_test:
+  ci:
     runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download AntaresWeb asset from draft release
+      - name: Download AntaresWeb daily asset
         env:
           GITHUB_TOKEN: ${{ secrets.DAILY_CI }}
           REPO: AntaresSimulatorTeam/antares_desktop
-          VERSION: v2.25.0
+          VERSION: AntaresWebDev
         run: |
           echo "Finding release ID..."
-  
+          
           release_id=$(curl -s \
             -H "Authorization: token $GITHUB_TOKEN" \
             https://api.github.com/repos/$REPO/releases | \
@@ -30,26 +32,27 @@ jobs:
             exit 1
           fi
           echo "Release ID: $release_id"
-  
+          
           echo "Finding AntaresWeb asset ID..."
           asset_id=$(curl -s \
             -H "Authorization: token $GITHUB_TOKEN" \
             https://api.github.com/repos/$REPO/releases/$release_id/assets | \
-            jq '.[] | select(.name=="AntaresWebDesktop.zip") | .id')
+            jq '.[] | select(.name=="AntaresWeb.zip") | .id')
           if [ -z "$asset_id" ]; then
-            echo "Asset AntaresWebDesktop.zip not found!"
+            echo "Asset AntaresWeb.zip not found!"
             exit 1
           fi
           echo "Asset ID: $asset_id"
-  
+          
           echo "Downloading asset..."
           curl -L -H "Authorization: token $GITHUB_TOKEN" \
             -H "Accept: application/octet-stream" \
             https://api.github.com/repos/$REPO/releases/assets/$asset_id \
-            -o AntaresWebDesktop.zip
+            -o AntaresWeb.zip
+      
 
       - name: Unzip AntaresWebDesktop asset
-        run: unzip -o AntaresWebDesktop.zip -d .
+        run: unzip -o AntaresWeb.zip -d .
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -58,31 +61,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install tox~=4.21.2
-          pip install tox-uv~=1.11.3
+          pip install tox~=4.25.0
+          pip install tox-uv~=1.25.0
 
-      - name: Performs coverage
-        run: tox -e coverage
-
-      - name: Archive code coverage results
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-code-coverage-report
-          path: coverage.xml
-
-
-  sonarcloud:
-    runs-on: ubuntu-22.04
-    needs: [coverage_and_integration_test]
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download python coverage report
-        uses: actions/download-artifact@v4
-        with:
-          name: python-code-coverage-report
-      - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@v2.3.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Performs API integration test
+        run: |
+          pytest tests/integration/test_web_client.py
