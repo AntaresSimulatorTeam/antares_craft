@@ -1,8 +1,5 @@
 name: Non regression API tests
 on:
-  push:
-    branches:
-      - "add-cron-job"
   schedule:
     - cron: '21 5 * * *'
 
