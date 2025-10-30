@@ -52,7 +52,7 @@ jobs:
       
 
       - name: Unzip AntaresWebDesktop asset
-        run: unzip -o AntaresWeb.zip -d .
+        run: unzip -o AntaresWeb.zip -d AntaresWebDesktop
 
       - name: Set up Python
         uses: actions/setup-python@v5
