@@ -1,3 +1,30 @@
+v0.6.0 (2025-11-07)
+-------------------
+
+## Compatibility
+* This version is compatible with AntaresWeb v2.26.0. The previous is not.
+* The following methods concerning binding constraint terms were removed due to this [`279`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/279):
+    * `add_terms`, `delete_term` and `update_term` were replaced by `set_terms` that takes the given terms and replace existing ones.
+
+### Features
+* **hydro**: support reading and editing allocation [`285`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/285)
+
+### Bug fixes
+* **dependencies**: fix issue with optional fields and pydantic 2.12 [`281`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/281)
+* **clusters**: stop writing cluster names in lowercase inside API [`288`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/288)
+
+### Perfs
+* **binding-constraints**: clean code and improve perfs for local [`280`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/280)
+* **api**: use new endpoint inside `read_study_api` [`271`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/271)
+
+### Others
+* **tests**: remove useless API UTs [`283`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/283)
+* **tests**: add integration API test inside the CI [`282`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/282)
+* **tests**: launch API integration test with new AWeb API[`284`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/284)
+* **docs**: change package presentation message on pypi [`286`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/286)
+* **tests**: add daily integration test with latest AntaresWeb code [`287`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/287)
+
+
 v0.5.0 (2025-10-13)
 -------------------
 
