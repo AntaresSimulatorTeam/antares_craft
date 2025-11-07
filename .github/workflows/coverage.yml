@@ -16,7 +16,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.DAILY_CI }}
           REPO: AntaresSimulatorTeam/antares_desktop
-          VERSION: v2.25.0
+          VERSION: v2.26.0
         run: |
           echo "Finding release ID..."
   
