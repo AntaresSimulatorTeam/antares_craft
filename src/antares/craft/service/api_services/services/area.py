@@ -180,7 +180,7 @@ class AreaApiService(BaseAreaService):
         """
         try:
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/thermal"
-            body = {"name": cluster_name.lower()}
+            body = {"name": cluster_name}
             if properties:
                 api_properties = ThermalClusterPropertiesAPI.from_user_model(properties)
                 camel_properties = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
@@ -216,7 +216,7 @@ class AreaApiService(BaseAreaService):
         """
         try:
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
-            body = {"name": renewable_name.lower()}
+            body = {"name": renewable_name}
             if properties:
                 api_model = RenewableClusterPropertiesAPI.from_user_model(properties)
                 camel_properties = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
