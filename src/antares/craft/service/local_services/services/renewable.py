@@ -61,30 +61,6 @@ class RenewableLocalService(BaseRenewableService):
         )
 
     @override
-    def read_renewables(self) -> dict[str, dict[str, RenewableCluster]]:
-        renewables: dict[str, dict[str, RenewableCluster]] = {}
-        cluster_path = self.config.study_path / "input" / "renewables" / "clusters"
-        if not cluster_path.exists():
-            return {}
-        for folder in cluster_path.iterdir():
-            if folder.is_dir():
-                area_id = folder.name
-
-                renewable_dict = self.read_ini(area_id)
-
-                for renewable_data in renewable_dict.values():
-                    renewable_cluster = RenewableCluster(
-                        renewable_service=self,
-                        area_id=area_id,
-                        name=str(renewable_data.pop("name")),
-                        properties=parse_renewable_cluster_local(self.study_version, renewable_data),
-                    )
-
-                    renewables.setdefault(area_id, {})[renewable_cluster.id] = renewable_cluster
-
-        return renewables
-
-    @override
     def set_series(self, renewable_cluster: RenewableCluster, matrix: pd.DataFrame) -> None:
         checks_matrix_dimensions(matrix, f"renewable/{renewable_cluster.area_id}/{renewable_cluster.id}", "series")
         write_timeseries(

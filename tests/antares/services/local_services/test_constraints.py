@@ -21,7 +21,6 @@ from antares.craft import Study
 from antares.craft.exceptions.exceptions import (
     ConstraintDoesNotExistError,
     MatrixFormatError,
-    ReadingMethodUsedOufOfScopeError,
 )
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -31,21 +30,15 @@ from antares.craft.model.binding_constraint import (
     ConstraintTerm,
     LinkData,
 )
+from antares.craft.service.local_services.factory import read_study_local
 from antares.craft.tools.serde_local.ini_reader import IniReader
 
 
 class TestBindingConstraints:
     def test_read_constraints(self, local_study_w_constraints: Study) -> None:
-        with pytest.raises(
-            ReadingMethodUsedOufOfScopeError,
-            match=re.escape(
-                "The method read_binding_constraints was used on study 'studyTest' which already contains some constraints. This is prohibited."
-            ),
-        ):
-            local_study_w_constraints._read_binding_constraints()
-        local_study_w_constraints._binding_constraints = {}
-        local_study_w_constraints._read_binding_constraints()
-        constraints = local_study_w_constraints.get_binding_constraints()
+        study_path = Path(local_study_w_constraints.path)
+        study = read_study_local(study_path)
+        constraints = study.get_binding_constraints()
         assert len(constraints) == 2
         bc_1 = constraints["bc_1"]
         assert bc_1.name == "bc_1"

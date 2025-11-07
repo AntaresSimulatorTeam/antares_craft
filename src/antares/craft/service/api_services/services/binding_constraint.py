@@ -25,7 +25,6 @@ from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
     ConstraintMatrixDownloadError,
     ConstraintMatrixUpdateError,
-    ConstraintRetrievalError,
     ConstraintsPropertiesUpdateError,
     ConstraintTermsSettingError,
 )
@@ -35,7 +34,6 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintPropertiesUpdate,
     ConstraintMatrixName,
     ConstraintTerm,
-    ConstraintTermData,
 )
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix
@@ -135,31 +133,6 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             self._wrapper.put(url, json=body)
         except APIError as e:
             raise ConstraintMatrixUpdateError(constraint.id, matrix_name.value, e.message) from e
-
-    @override
-    def read_binding_constraints(self) -> dict[str, BindingConstraint]:
-        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints"
-        try:
-            response = self._wrapper.get(url)
-            constraints_json = response.json()
-            constraints: dict[str, BindingConstraint] = {}
-
-            for constraint in constraints_json:
-                constraint_name = constraint.pop("name")
-                del constraint["id"]
-                api_terms = constraint.pop("terms")
-                api_properties = BindingConstraintPropertiesAPI.model_validate(constraint)
-                bc_properties = api_properties.to_user_model()
-                terms: list[ConstraintTerm] = []
-                for api_term in api_terms:
-                    term_data = ConstraintTermData.from_dict(api_term["data"])
-                    terms.append(ConstraintTerm(weight=api_term["weight"], offset=api_term["offset"], data=term_data))
-                bc = BindingConstraint(constraint_name, self, bc_properties, terms)
-                constraints[bc.id] = bc
-
-            return constraints
-        except APIError as e:
-            raise ConstraintRetrievalError(self.study_id, e.message) from e
 
     @override
     def update_binding_constraints_properties(

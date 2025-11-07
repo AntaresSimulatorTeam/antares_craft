@@ -444,12 +444,6 @@ class MatrixFormatError(Exception):
         super().__init__(self.message)
 
 
-class ReadingMethodUsedOufOfScopeError(Exception):
-    def __init__(self, study_id: str, method_name: str, objects: str) -> None:
-        self.message = f"The method {method_name} was used on study '{study_id}' which already contains some {objects}. This is prohibited."
-        super().__init__(self.message)
-
-
 class OutputNotFound(Exception):
     def __init__(self, output_id: str) -> None:
         self.message = f"Output '{output_id}' not found"

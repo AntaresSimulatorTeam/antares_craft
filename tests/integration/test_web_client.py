@@ -821,14 +821,15 @@ class TestWebClient:
         outputs = study.get_outputs()
         assert len(outputs) == 1
         output = list(outputs.values())[0]
-        assert not outputs.get(output.name).archived
+        assert not output.archived
+        output_name = output.name
+        # Ensures we have the same information when reading the study
         study_with_outputs = read_study_api(api_config, study._study_service.study_id)
         outputs_from_api = study_with_outputs.get_outputs()
-        assert all(
-            outputs_from_api[output].name == outputs[output].name
-            and outputs_from_api[output].archived == outputs[output].archived
-            for output in outputs_from_api
-        )
+        assert len(outputs_from_api) == 1
+        new_output = list(outputs.values())[0]
+        assert not new_output.archived
+        assert new_output.name == output_name
 
         frequency = Frequency.DAILY
 
@@ -1324,7 +1325,7 @@ class TestWebClient:
                 enabled=True,
             ),
             "constraint2": STStorageAdditionalConstraint(
-                name="constraint2",
+                name="Constraint2??",
                 variable=AdditionalConstraintVariable.WITHDRAWAL,
                 operator=AdditionalConstraintOperator.LESS,
                 occurrences=[Occurrence(hours=[167])],
@@ -1379,7 +1380,7 @@ class TestWebClient:
                 enabled=False,
             ),
             "constraint2": STStorageAdditionalConstraint(
-                name="constraint2",
+                name="Constraint2??",
                 variable=AdditionalConstraintVariable.WITHDRAWAL,
                 operator=AdditionalConstraintOperator.EQUAL,
                 occurrences=[Occurrence(hours=[1, 4]), Occurrence(hours=[6, 8, 9])],
