@@ -18,6 +18,7 @@ from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
+    HydroAllocationUpdateError,
     HydroInflowStructureReadingError,
     HydroInflowStructureUpdateError,
     HydroPropertiesReadingError,
@@ -25,8 +26,19 @@ from antares.craft.exceptions.exceptions import (
     MatrixDownloadError,
     MatrixUploadError,
 )
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
-from antares.craft.service.api_services.models.hydro import HydroInflowStructureAPI, HydroPropertiesAPI
+from antares.craft.model.hydro import (
+    HydroAllocation,
+    HydroProperties,
+    HydroPropertiesUpdate,
+    InflowStructure,
+    InflowStructureUpdate,
+)
+from antares.craft.service.api_services.models.hydro import (
+    HydroInflowStructureAPI,
+    HydroPropertiesAPI,
+    parse_hydro_allocation_api,
+    serialize_hydro_allocation_api,
+)
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseHydroService
 
@@ -81,6 +93,18 @@ class HydroApiService(BaseHydroService):
             self._wrapper.put(url, json=body)
         except APIError as e:
             raise HydroInflowStructureUpdateError(area_id, e.message) from e
+
+    @override
+    def set_allocation(self, area_id: str, allocation: list[HydroAllocation]) -> list[HydroAllocation]:
+        try:
+            url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/allocation/form"
+            body = serialize_hydro_allocation_api(allocation)
+            allocation_api = self._wrapper.put(url, json=body).json()
+            new_allocation = parse_hydro_allocation_api(allocation_api)
+            new_allocation.append(HydroAllocation(area_id=area_id))
+            return new_allocation
+        except APIError as e:
+            raise HydroAllocationUpdateError(area_id, e.message) from e
 
     @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:

@@ -34,7 +34,7 @@ from antares.craft.exceptions.exceptions import (
     ThermalDeletionError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
-from antares.craft.model.hydro import Hydro
+from antares.craft.model.hydro import Hydro, HydroAllocation
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
@@ -142,7 +142,8 @@ class AreaApiService(BaseAreaService):
             api_hydro_service = cast(HydroApiService, self.hydro_service)
             hydro_properties = api_hydro_service.read_properties_for_one_area(area_id)
             inflow_structure = api_hydro_service.read_inflow_structure_for_one_area(area_id)
-            hydro = Hydro(self.hydro_service, area_id, hydro_properties, inflow_structure)
+            hydro_allocation = [HydroAllocation(area_id=area_id)]
+            hydro = Hydro(self.hydro_service, area_id, hydro_properties, inflow_structure, hydro_allocation)
 
         except APIError as e:
             raise AreaCreationError(area_name, e.message) from e

@@ -35,7 +35,7 @@ from antares.craft.model.area import (
     AreaUi,
     AreaUiUpdate,
 )
-from antares.craft.model.hydro import Hydro, HydroProperties, InflowStructure
+from antares.craft.model.hydro import Hydro, HydroAllocation, HydroProperties, InflowStructure
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
@@ -365,12 +365,13 @@ class AreaLocalService(BaseAreaService):
             hydro_local_service.edit_hydro_properties(area_id, update_properties, creation=True)
             # Use parsing method to fill default values according to version
             hydro_properties = parse_hydro_properties_local(self.study_version, {})
-            hydro = Hydro(self.hydro_service, area_id, hydro_properties, InflowStructure())
+            hydro_allocation = [HydroAllocation(area_id=area_id)]
+            hydro = Hydro(self.hydro_service, area_id, hydro_properties, InflowStructure(), hydro_allocation)
             # Create files
             hydro_local_service.save_inflow_ini(
                 HydroInflowStructureLocal.from_user_model(InflowStructure()).model_dump(by_alias=True), area_id
             )
-            hydro_local_service.save_allocation_ini({"[allocation]": {area_id: "1"}}, area_id)
+            hydro_local_service.save_allocation_ini({"[allocation]": {}}, area_id)
 
             for ts in [
                 TimeSeriesFileType.HYDRO_MAX_POWER,

@@ -94,14 +94,26 @@ class InflowStructureUpdate:
     intermonthly_correlation: float
 
 
+@dataclass(frozen=True)
+class HydroAllocation:
+    area_id: str
+    coefficient: float = 1
+
+
 class Hydro:
     def __init__(
-        self, service: BaseHydroService, area_id: str, properties: HydroProperties, inflow_structure: InflowStructure
+        self,
+        service: BaseHydroService,
+        area_id: str,
+        properties: HydroProperties,
+        inflow_structure: InflowStructure,
+        allocation: list[HydroAllocation],
     ):
         self._area_id = area_id
         self._service = service
         self._properties = properties
         self._inflow_structure = inflow_structure
+        self._allocation = allocation
 
     @property
     def area_id(self) -> str:
@@ -115,6 +127,10 @@ class Hydro:
     def inflow_structure(self) -> InflowStructure:
         return self._inflow_structure
 
+    @property
+    def allocation(self) -> list[HydroAllocation]:
+        return self._allocation
+
     def update_properties(self, properties: HydroPropertiesUpdate) -> None:
         self._service.update_properties(self.area_id, properties)
         self._properties = self._properties.from_update_properties(properties)
@@ -124,6 +140,10 @@ class Hydro:
         self._inflow_structure = replace(
             self._inflow_structure, intermonthly_correlation=inflow_structure.intermonthly_correlation
         )
+
+    def set_allocation(self, allocation: list[HydroAllocation]) -> None:
+        new_allocation = self._service.set_allocation(self.area_id, allocation)
+        self._allocation = new_allocation
 
     def get_maxpower(self) -> pd.DataFrame:
         return self._service.get_maxpower(self.area_id)

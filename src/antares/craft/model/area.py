@@ -129,7 +129,7 @@ class Area:
         self._renewables = renewables or {}
         self._thermals = thermals or {}
         self._st_storages = st_storages or {}
-        self._hydro = hydro or Hydro(self._hydro_service, self._id, HydroProperties(), InflowStructure())
+        self._hydro = hydro or Hydro(self._hydro_service, self._id, HydroProperties(), InflowStructure(), [])
         self._properties = properties or AreaProperties()
         self._ui = ui or AreaUi()
 
