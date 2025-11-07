@@ -18,7 +18,6 @@ v0.6.0 (2025-11-07)
 * **api**: use new endpoint inside `read_study_api` [`271`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/271)
 
 ### Others
-* * Feat/reformate setting terms by @mehdiwahada in https://github.com/AntaresSimulatorTeam/antares_craft/pull/279
 * **tests**: remove useless API UTs [`283`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/283)
 * **tests**: add integration API test inside the CI [`282`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/282)
 * **tests**: launch API integration test with new AWeb API[`284`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/284)
