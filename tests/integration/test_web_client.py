@@ -136,7 +136,7 @@ class TestWebClient:
         # test thermal cluster creation with default values
         thermal_name = "Cluster_test %?"
         thermal_fr = area_fr.create_thermal_cluster(thermal_name, ThermalClusterProperties(nominal_capacity=1000))
-        assert thermal_fr.name == thermal_name.lower()
+        assert thermal_fr.name == thermal_name
         # AntaresWeb has id issues for thermal/renewable clusters,
         # so we force the name in lowercase to avoid issues.
         assert thermal_fr.id == "cluster_test"
