@@ -46,10 +46,10 @@ jobs:
           curl -L -H "Authorization: token $GITHUB_TOKEN" \
             -H "Accept: application/octet-stream" \
             https://api.github.com/repos/$REPO/releases/assets/$asset_id \
-            -o AntaresWeb-ubuntu-22.04-v2.26.0.zip
+            -o AntaresWeb-ubuntu-22.04-$VERSION.zip
 
       - name: Unzip AntaresWebDesktop asset
-        run: unzip -o AntaresWeb-ubuntu-22.04-v2.26.0.zip -d ./AntaresWebDesktop
+        run: unzip -o AntaresWeb-ubuntu-22.04-$VERSION.zip -d ./AntaresWebDesktop
 
       - name: Set up Python
         uses: actions/setup-python@v5
