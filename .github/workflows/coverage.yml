@@ -7,16 +7,16 @@ on:
 jobs:
   coverage_and_integration_test:
     runs-on: ubuntu-22.04
+    env:
+      GITHUB_TOKEN: ${{ secrets.DAILY_CI }}
+      REPO: AntaresSimulatorTeam/antares_desktop
+      VERSION: v2.26.0
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Download AntaresWeb asset from draft release
-        env:
-          GITHUB_TOKEN: ${{ secrets.DAILY_CI }}
-          REPO: AntaresSimulatorTeam/antares_desktop
-          VERSION: v2.26.0
         run: |
           echo "Finding release ID..."
   
@@ -35,7 +35,7 @@ jobs:
           asset_id=$(curl -s \
             -H "Authorization: token $GITHUB_TOKEN" \
             https://api.github.com/repos/$REPO/releases/$release_id/assets | \
-            jq '.[] | select(.name=="AntaresWebDesktop.zip") | .id')
+            jq --arg ver "$VERSION" '.[] | select(.name=="AntaresWeb-ubuntu-22.04-\($ver).zip") | .id')
           if [ -z "$asset_id" ]; then
             echo "Asset AntaresWebDesktop.zip not found!"
             exit 1
@@ -46,10 +46,10 @@ jobs:
           curl -L -H "Authorization: token $GITHUB_TOKEN" \
             -H "Accept: application/octet-stream" \
             https://api.github.com/repos/$REPO/releases/assets/$asset_id \
-            -o AntaresWebDesktop.zip
+            -o AntaresWeb-ubuntu-22.04-$VERSION.zip
 
       - name: Unzip AntaresWebDesktop asset
-        run: unzip -o AntaresWebDesktop.zip -d ./AntaresWebDesktop
+        run: unzip -o "AntaresWeb-ubuntu-22.04-$VERSION.zip" -d ./AntaresWebDesktop
 
       - name: Set up Python
         uses: actions/setup-python@v5
