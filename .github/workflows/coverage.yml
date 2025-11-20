@@ -49,7 +49,7 @@ jobs:
             -o AntaresWeb-ubuntu-22.04-$VERSION.zip
 
       - name: Unzip AntaresWebDesktop asset
-        run: unzip -o AntaresWeb-ubuntu-22.04-$VERSION.zip -d ./AntaresWebDesktop
+        run: unzip -o "AntaresWeb-ubuntu-22.04-$VERSION.zip" -d ./AntaresWebDesktop
 
       - name: Set up Python
         uses: actions/setup-python@v5
