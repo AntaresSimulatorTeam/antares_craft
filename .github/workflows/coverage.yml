@@ -47,7 +47,6 @@ jobs:
             -H "Accept: application/octet-stream" \
             https://api.github.com/repos/$REPO/releases/assets/$asset_id \
             -o AntaresWeb-ubuntu-22.04-$VERSION.zip
-          
           | unzip -o "AntaresWeb-ubuntu-22.04-$VERSION.zip" -d ./AntaresWebDesktop
 
       - name: Set up Python
