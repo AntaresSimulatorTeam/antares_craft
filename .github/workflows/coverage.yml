@@ -35,7 +35,7 @@ jobs:
           asset_id=$(curl -s \
             -H "Authorization: token $GITHUB_TOKEN" \
             https://api.github.com/repos/$REPO/releases/$release_id/assets | \
-            jq '.[] | select(.name=="AntaresWeb-ubuntu-22.04-v2.26.0.zip") | .id')
+            jq --arg ver "$VERSION" '.[] | select(.name=="AntaresWeb-ubuntu-22.04-\($ver).zip") | .id')
           if [ -z "$asset_id" ]; then
             echo "Asset AntaresWebDesktop.zip not found!"
             exit 1
