@@ -55,6 +55,7 @@ from antares.craft.service.local_services.models.st_storage import (
     serialize_st_storage_local,
 )
 from antares.craft.service.local_services.models.thermal import (
+    parse_thermal_cluster_local,
     serialize_thermal_cluster_local,
 )
 from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
@@ -139,10 +140,8 @@ class AreaLocalService(BaseAreaService):
             )
 
         # Writing properties
-        thermal_list_content[thermal_name] = {
-            "name": thermal_name,
-            **serialize_thermal_cluster_local(self.study_version, properties or ThermalClusterProperties()),
-        }
+        content = serialize_thermal_cluster_local(self.study_version, properties or ThermalClusterProperties())
+        thermal_list_content[thermal_name] = {"name": thermal_name, **content}
         local_thermal_service.save_ini(thermal_list_content, area_id)
 
         # Upload matrices
@@ -161,7 +160,9 @@ class AreaLocalService(BaseAreaService):
         write_timeseries(self.config.study_path, modulation, TimeSeriesFileType.THERMAL_MODULATION, area_id, cluster_id)
         write_timeseries(self.config.study_path, None, TimeSeriesFileType.THERMAL_SERIES, area_id, cluster_id)
 
-        return ThermalCluster(self.thermal_service, area_id, thermal_name, properties)
+        # Round trip around properties for the groups.
+        final_props = parse_thermal_cluster_local(self.study_version, content)
+        return ThermalCluster(self.thermal_service, area_id, thermal_name, final_props)
 
     @override
     @property

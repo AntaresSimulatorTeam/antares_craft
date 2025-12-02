@@ -47,8 +47,13 @@ class ThermalClusterGroup(EnumIgnoreCase):
     @classmethod
     @override
     def _missing_(cls, value: object) -> Optional["ThermalClusterGroup"]:
-        if isinstance(value, str) and value.upper() == "OTHER":
-            return ThermalClusterGroup.OTHER1
+        if isinstance(value, str):
+            # Check if any group value matches the input value ignoring case sensitivity.
+            if any(value.upper() == group.value.upper() for group in cls):
+                return cast(ThermalClusterGroup, super()._missing_(value))
+            # If a group is not found, return the default group ('OTHER1' by default).
+            # Note that 'OTHER' is an alias for 'OTHER1'.
+            return cls.OTHER1
         return cast(Optional["ThermalClusterGroup"], super()._missing_(value))
 
 

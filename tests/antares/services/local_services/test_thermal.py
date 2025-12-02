@@ -471,6 +471,6 @@ variableomcost = 5.0
         thermal = local_study_93.get_areas()["fr"].create_thermal_cluster("thermal2", properties=props)
         assert thermal.properties.group == "my_group"
 
-        # Ensures we can't use free groups before version 9.3
-        with pytest.raises(ValueError, match="Before v9.3, group has to be a valid value"):
-            local_study_92.get_areas()["fr"].create_thermal_cluster("thermal2", properties=props)
+        # Ensures before version 9.3, using a free group is possible but it will be considered as `OTHER 1`.
+        thermal = local_study_92.get_areas()["fr"].create_thermal_cluster("thermal2", properties=props)
+        assert thermal.properties.group == "other 1"
