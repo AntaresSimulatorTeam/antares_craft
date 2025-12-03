@@ -136,7 +136,7 @@ class TestCreateSTStorage:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                "Group for 8.8 has to be a valid value : ['psp_open', 'psp_closed', 'pondage', 'battery', 'other1', 'other2', 'other3', 'other4', 'other5', None]"
+                "Group 'custom group' for 8.8 has to be a valid value : ['psp_open', 'psp_closed', 'pondage', 'battery', 'other1', 'other2', 'other3', 'other4', 'other5']"
             ),
         ):
             st_storage.update_properties(STStoragePropertiesUpdate(group="custom group"))

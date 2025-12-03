@@ -53,10 +53,11 @@ class RenewableClusterPropertiesLocal(LocalBaseModel):
 
 def validate_renewable_against_version(properties: RenewableClusterPropertiesLocal, version: StudyVersion) -> None:
     if version < STUDY_VERSION_9_3:
-        valid_values = [e.value for e in RenewableClusterGroup] + [None]
-        if properties.group.lower() not in valid_values:
-            raise ValueError(f"Before v9.3, group has to be a valid value : {valid_values}")
-        properties.group = properties.group.lower()
+        try:
+            properties.group = RenewableClusterGroup(properties.group).value
+        except Exception:
+            valid_values = [e.value for e in RenewableClusterGroup]
+            raise ValueError(f"Before v9.3, group has to be a valid value : {valid_values}. It was {properties.group}")
 
 
 def parse_renewable_cluster_local(study_version: StudyVersion, data: Any) -> RenewableClusterProperties:
