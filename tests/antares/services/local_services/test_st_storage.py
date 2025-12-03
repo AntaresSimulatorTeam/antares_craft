@@ -434,3 +434,10 @@ def test_version_93(local_study_92: Study, local_study_93: Study) -> None:
         InvalidFieldForVersionError, match="Field allow_overflow is not a valid field for study version 9.2"
     ):
         sts.update_properties(STStoragePropertiesUpdate(allow_overflow=False))
+
+
+def test_group_with_different_case(local_study_w_areas: Study) -> None:
+    area = local_study_w_areas.get_areas()["fr"]
+    properties = STStorageProperties(group="Battery")
+    # Ensures it does not raise
+    area.create_st_storage("sts", properties=properties)
