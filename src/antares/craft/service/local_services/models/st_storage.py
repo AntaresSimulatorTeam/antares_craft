@@ -93,12 +93,11 @@ class STStoragePropertiesLocal(LocalBaseModel, alias_generator=_sts_alias_genera
 
 def validate_st_storage_against_version(properties: STStoragePropertiesLocal, version: StudyVersion) -> None:
     if version < STUDY_VERSION_9_2:
-        if properties.group:
-            try:
-                properties.group = STStorageGroup(properties.group).value
-            except Exception:
-                valid_values = [e.value for e in STStorageGroup]
-                raise ValueError(f"Group {properties.group} for 8.8 has to be a valid value : {valid_values}")
+        try:
+            properties.group = STStorageGroup(properties.group).value
+        except Exception:
+            valid_values = [e.value for e in STStorageGroup]
+            raise ValueError(f"Group {properties.group} for 8.8 has to be a valid value : {valid_values}")
 
         for field in STStoragePropertiesLocal.get_9_2_fields_and_default_value():
             check_min_version(properties, field, version)
