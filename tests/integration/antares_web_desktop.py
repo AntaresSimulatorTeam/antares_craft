@@ -23,7 +23,7 @@ class AntaresWebDesktop:
     Launches an AntaresWebDesktop instance for integration tests
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         antares_web_desktop_path = [p for p in Path(__file__).parents if p.name == "antares_craft"][
             0
         ] / "AntaresWebDesktop"
@@ -32,14 +32,14 @@ class AntaresWebDesktop:
             executable_path = antares_web_desktop_path / "AntaresWeb" / "AntaresWebServer"
         else:
             executable_path = antares_web_desktop_path / "AntaresWeb" / "AntaresWebServer.exe"
-        args = [str(executable_path), "-c", str(config_path), "--auto-upgrade-db", "--no-front"]
+        args = [str(executable_path), "-c", str(config_path), "--no-systray-app"]
         self.desktop_path = antares_web_desktop_path
         self.host = "127.0.0.1"
         self.port = 8080
         self.url = f"http://{self.host}:{self.port}"
-        self.process = subprocess.Popen(args, shell=True, cwd=str(antares_web_desktop_path))
+        self.process = subprocess.Popen(args, cwd=str(antares_web_desktop_path))
 
-    def _is_server_ready(self):
+    def _is_server_ready(self) -> bool:
         healthcheck_url = f"{self.url}/api/health"
         try:
             session = requests.Session()
@@ -49,7 +49,7 @@ class AntaresWebDesktop:
         except requests.RequestException:
             return False
 
-    def wait_for_server_to_start(self):
+    def wait_for_server_to_start(self) -> None:
         timeout = 10
         interval = 1
         elapsed_time = 0
@@ -60,7 +60,7 @@ class AntaresWebDesktop:
             elapsed_time += interval
         raise Exception("The app did not start inside the given delays.")
 
-    def kill(self):
+    def kill(self) -> None:
         """
         Removes every study to ensure tests reproductibility + it cleans the database.
         It also kills the AntaresWebDesktop instance.

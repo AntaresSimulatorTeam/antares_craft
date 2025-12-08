@@ -16,7 +16,7 @@ from pydantic_core import PydanticUseDefault
 
 
 class LocalBaseModel(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, coerce_numbers_to_str=True, extra="forbid")
 
     @field_validator("*", mode="before")
     @classmethod
@@ -24,6 +24,6 @@ class LocalBaseModel(BaseModel):
         """
         Will use the default value for the field if the value is None and the annotation doesn't allow for a None input.
         """
-        if value is None:
+        if value is None or value == "":
             raise PydanticUseDefault()
         return value

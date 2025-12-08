@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+from typing_extensions import override
+
 
 class OptimizationTransmissionCapacities(Enum):
     LOCAL_VALUES = "local-values"
@@ -20,6 +22,19 @@ class OptimizationTransmissionCapacities(Enum):
     INFINITE_FOR_ALL_LINKS = "infinite-for-all-links"
     NULL_FOR_PHYSICAL_LINKS = "null-for-physical-links"
     INFINITE_FOR_PHYSICAL_LINKS = "infinite-for-physical-links"
+
+    @classmethod
+    @override
+    def _missing_(cls, value: object) -> Optional["OptimizationTransmissionCapacities"]:
+        """Handle legacy transmission capacities"""
+        if isinstance(value, bool):
+            if value:
+                return OptimizationTransmissionCapacities.LOCAL_VALUES
+            else:
+                return OptimizationTransmissionCapacities.NULL_FOR_ALL_LINKS
+        elif value == "infinite":
+            return OptimizationTransmissionCapacities.INFINITE_FOR_ALL_LINKS
+        return None
 
 
 class UnfeasibleProblemBehavior(Enum):
@@ -35,8 +50,8 @@ class SimplexOptimizationRange(Enum):
 
 
 class ExportMPS(Enum):
-    TRUE = "True"
-    FALSE = "False"
+    TRUE = True
+    FALSE = False
     OPTIM1 = "optim1"
     OPTIM2 = "optim2"
 
@@ -54,7 +69,6 @@ class OptimizationParameters:
     include_spinningreserve: bool = True
     include_primaryreserve: bool = True
     include_exportmps: ExportMPS = ExportMPS.FALSE
-    include_exportstructure: bool = False
     include_unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
 
 
@@ -71,5 +85,4 @@ class OptimizationParametersUpdate:
     include_spinningreserve: Optional[bool] = None
     include_primaryreserve: Optional[bool] = None
     include_exportmps: Optional[ExportMPS] = None
-    include_exportstructure: Optional[bool] = None
     include_unfeasible_problem_behavior: Optional[UnfeasibleProblemBehavior] = None

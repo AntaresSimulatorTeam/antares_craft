@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import os
 
 from pathlib import Path
 from typing import Optional
@@ -20,11 +19,9 @@ import pandas as pd
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
 
 default_data_matrix = np.zeros((365, 6), dtype=np.float64)
-default_data_matrix[:, :2] = 1
 default_data_matrix.flags.writeable = False
 
-default_modulation_matrix = np.ones((8760, 4), dtype=np.float64)
-default_modulation_matrix[:, 3] = 0
+default_modulation_matrix = np.zeros((8760, 4), dtype=np.float64)
 default_modulation_matrix.flags.writeable = False
 
 default_series = np.zeros((8760, 1), dtype=np.float64)
@@ -67,6 +64,16 @@ default_water_values.flags.writeable = False
 default_inflow_pattern = np.ones((365, 1), dtype=np.float64)
 default_inflow_pattern.flags.writeable = False
 
+OPTIONAL_MATRICES = {
+    TimeSeriesFileType.ST_STORAGE_CONSTRAINT_TERM,
+    TimeSeriesFileType.THERMAL_CO2,
+    TimeSeriesFileType.THERMAL_FUEL,
+    TimeSeriesFileType.ST_STORAGE_COST_INJECTION,
+    TimeSeriesFileType.ST_STORAGE_COST_WITHDRAWAL,
+    TimeSeriesFileType.ST_STORAGE_COST_VARIATION_INJECTION,
+    TimeSeriesFileType.ST_STORAGE_COST_VARIATION_WITHDRAWAL,
+    TimeSeriesFileType.ST_STORAGE_COST_LEVEL,
+}
 
 DEFAULT_MATRIX_MAPPING = {
     TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL: pd.DataFrame(),
@@ -92,6 +99,11 @@ DEFAULT_MATRIX_MAPPING = {
     TimeSeriesFileType.ST_STORAGE_INFLOWS: pd.DataFrame(default_series),
     TimeSeriesFileType.ST_STORAGE_LOWER_RULE_CURVE: pd.DataFrame(default_series),
     TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE: pd.DataFrame(default_series_with_ones),
+    TimeSeriesFileType.ST_STORAGE_COST_INJECTION: pd.DataFrame(default_series),
+    TimeSeriesFileType.ST_STORAGE_COST_WITHDRAWAL: pd.DataFrame(default_series),
+    TimeSeriesFileType.ST_STORAGE_COST_VARIATION_INJECTION: pd.DataFrame(default_series),
+    TimeSeriesFileType.ST_STORAGE_COST_VARIATION_WITHDRAWAL: pd.DataFrame(default_series),
+    TimeSeriesFileType.ST_STORAGE_COST_LEVEL: pd.DataFrame(default_series),
     TimeSeriesFileType.RESERVES: pd.DataFrame(default_reserves),
     TimeSeriesFileType.SOLAR: pd.DataFrame(default_series),
     TimeSeriesFileType.THERMAL_SERIES: pd.DataFrame(default_series),
@@ -100,6 +112,9 @@ DEFAULT_MATRIX_MAPPING = {
     TimeSeriesFileType.THERMAL_CO2: pd.DataFrame(default_series),
     TimeSeriesFileType.THERMAL_FUEL: pd.DataFrame(default_series),
     TimeSeriesFileType.WIND: pd.DataFrame(default_series),
+    TimeSeriesFileType.XPANSION_WEIGHT: pd.DataFrame(),
+    TimeSeriesFileType.XPANSION_CAPACITY: pd.DataFrame(default_series_with_ones),
+    TimeSeriesFileType.ST_STORAGE_CONSTRAINT_TERM: pd.DataFrame(default_series),
 }
 
 
@@ -110,20 +125,23 @@ def read_timeseries(
     constraint_id: Optional[str] = None,
     cluster_id: Optional[str] = None,
     second_area_id: Optional[str] = None,
+    file_name: Optional[str] = None,
 ) -> pd.DataFrame:
-    file_path = study_path / (
-        ts_file_type.value
-        if not (area_id or constraint_id or cluster_id or second_area_id)
-        else ts_file_type.value.format(
-            area_id=area_id, constraint_id=constraint_id, cluster_id=cluster_id, second_area_id=second_area_id
-        )
+    file_path = study_path / ts_file_type.value.format(
+        area_id=area_id,
+        constraint_id=constraint_id,
+        cluster_id=cluster_id,
+        second_area_id=second_area_id,
+        file_name=file_name,
     )
-    if os.path.getsize(file_path) != 0:
-        _time_series = pd.read_csv(file_path, sep="\t", header=None)
-    else:
-        _time_series = DEFAULT_MATRIX_MAPPING[ts_file_type]
 
-    return _time_series
+    if file_path.exists() and file_path.lstat().st_size != 0:
+        return pd.read_csv(file_path, sep="\t", header=None)
+
+    if not file_path.exists() and ts_file_type not in OPTIONAL_MATRICES:
+        raise FileNotFoundError(f"File {file_path} not found")
+
+    return DEFAULT_MATRIX_MAPPING[ts_file_type]
 
 
 def write_timeseries(
@@ -134,19 +152,17 @@ def write_timeseries(
     cluster_id: Optional[str] = None,
     second_area_id: Optional[str] = None,
     constraint_id: Optional[str] = None,
+    file_name: Optional[str] = None,
 ) -> None:
     series = pd.DataFrame() if series is None else series
-    format_kwargs = {}
-    if area_id:
-        format_kwargs["area_id"] = area_id
-    if cluster_id:
-        format_kwargs["cluster_id"] = cluster_id
-    if second_area_id:
-        format_kwargs["second_area_id"] = second_area_id
-    if constraint_id:
-        format_kwargs["constraint_id"] = constraint_id
 
-    file_path = study_path / ts_file_type.value.format(**format_kwargs)
+    file_path = study_path / ts_file_type.value.format(
+        area_id=area_id,
+        constraint_id=constraint_id,
+        cluster_id=cluster_id,
+        second_area_id=second_area_id,
+        file_name=file_name,
+    )
 
     file_path.parent.mkdir(parents=True, exist_ok=True)
 

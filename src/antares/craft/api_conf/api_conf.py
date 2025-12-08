@@ -52,20 +52,20 @@ class APIconf(BaseConfiguration):
     def get_token(self) -> str:
         return self._token
 
-    def checks_token(self) -> None:
-        if not self.is_launched_locally() and self._token is None:
+    def _checks_token(self) -> None:
+        if not self._is_launched_locally() and self._token is None:
             raise MissingTokenError()
 
-    def is_launched_locally(self) -> bool:
+    def _is_launched_locally(self) -> bool:
         return self._api_host.startswith(("localhost", "http://127.0.0.1"))
 
     def set_up_api_conf(self) -> requests.Session:
-        self.checks_token()
+        self._checks_token()
         session = requests.Session()
         session.verify = self._verify
         if self._token:
             token_bearer = f"Bearer {self._token}"
             session.headers.update({"Authorization": token_bearer})
-        if self.is_launched_locally():
+        if self._is_launched_locally():
             session.trust_env = False  # disable proxy
         return session

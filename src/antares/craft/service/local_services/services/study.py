@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 import copy
-import logging
 import shutil
 import tempfile
 
@@ -20,6 +19,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 
+from typing_extensions import override
+
+from antares.craft import BindingConstraintOperator, ScenarioBuilder
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import ConstraintDoesNotExistError
 from antares.craft.model.area import Area
@@ -29,13 +31,13 @@ from antares.craft.model.binding_constraint import (
 from antares.craft.model.output import Output
 from antares.craft.model.thermal import LocalTSGenerationBehavior
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
+from antares.craft.service.local_services.models.scenario_builder import ScenarioBuilderLocal
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
+from antares.study.version import StudyVersion
 from antares.tsgen.duration_generator import ProbabilityLaw
 from antares.tsgen.random_generator import MersenneTwisterRNG
 from antares.tsgen.ts_generator import OutageGenerationParameters, ThermalCluster, TimeseriesGenerator
-from typing_extensions import override
-
-logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from antares.craft.model.study import Study
@@ -52,24 +54,20 @@ def _build_timeseries(number_of_years: int, areas_dict: dict[str, Area], seed: i
     # 2 - Build the generator
     rng = MersenneTwisterRNG(seed=seed)
     generator = TimeseriesGenerator(rng=rng, days=365)
-    # 3- Do a first loop to know how many operations will be performed
-    total_generations = sum(len(area.get_thermals()) for area in areas_dict.values())
-    # 4- Loop through areas in alphabetical order
-    generation_performed = 0
+    # 3- Loop through areas in alphabetical order
     areas = list(areas_dict.values())
     areas.sort(key=lambda area: area.id)
     for area in areas:
         area_id = area.id
-        # 5- Loop through thermal clusters in alphabetical order
+        # 4- Loop through thermal clusters in alphabetical order
         thermals = list(area.get_thermals().values())
         thermals.sort(key=lambda thermal: thermal.id)
         for thermal in thermals:
             try:
-                # 6 - Filters out clusters with no generation
+                # 5 - Filters out clusters with no generation
                 if thermal.properties.gen_ts == LocalTSGenerationBehavior.FORCE_NO_GENERATION:
-                    generation_performed += 1
                     continue
-                # 7- Build the cluster
+                # 6- Build the cluster
                 modulation_matrix = thermal.get_prepro_modulation_matrix()
                 modulation_capacity = modulation_matrix[2].to_numpy()
                 data_matrix = thermal.get_prepro_data_matrix()
@@ -97,19 +95,14 @@ def _build_timeseries(number_of_years: int, areas_dict: dict[str, Area], seed: i
                     nominal_power=thermal.properties.nominal_capacity,
                     modulation=modulation_capacity,
                 )
-                # 8- Generate the time-series
+                # 7- Generate the time-series
                 results = generator.generate_time_series_for_clusters(cluster, number_of_years)
                 generated_matrix = results.available_power
-                # 9- Write the matrix inside the input folder.
+                # 8- Write the matrix inside the input folder.
                 df = pd.DataFrame(data=generated_matrix)
                 df = df[list(df.columns)].astype(int)
                 target_path = tmp_path / area_id / thermal.id / "series.txt"
                 df.to_csv(target_path, sep="\t", header=False, index=False, float_format="%.6f")
-                # 10- Notify the progress
-                generation_performed += 1
-                logger.info(
-                    f"Thermal cluster ts-generation advancement {round(generation_performed * 100 / total_generations, 1)} %"
-                )
             except Exception as e:
                 e.args = tuple([f"Area {area_id}, cluster {thermal.id}: {e.args[0]}"])
                 raise
@@ -120,7 +113,7 @@ class StudyLocalService(BaseStudyService):
         self._config = config
         self._study_name = study_name
         self._output_service: BaseOutputService = output_service
-        self._output_path = self.config.study_path / "output"
+        self._output_path = self._config.study_path / "output"
 
     @property
     @override
@@ -128,32 +121,38 @@ class StudyLocalService(BaseStudyService):
         return self._study_name
 
     @property
-    @override
-    def config(self) -> LocalConfiguration:
-        return self._config
-
-    @property
     def output_service(self) -> BaseOutputService:
         return self._output_service
 
     @override
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
-        study_path = self.config.study_path
-        ini_file = IniFile(study_path, InitializationFilesTypes.BINDING_CONSTRAINTS_INI)
-        current_content = ini_file.ini_dict
+        study_path = self._config.study_path
+        ini_path = study_path / "input" / "bindingconstraints" / "bindingconstraints.ini"
+        current_content = IniReader().read(ini_path)
         copied_content = copy.deepcopy(current_content)
         for index, bc in current_content.items():
             if bc["id"] == constraint.id:
                 copied_content.pop(index)
                 new_dict = {str(i): v for i, (k, v) in enumerate(copied_content.items())}
-                ini_file.ini_dict = new_dict
-                ini_file.write_ini_file()
+                IniWriter().write(new_dict, ini_path)
+
+                # Remove the matrices
+                mapping = {
+                    BindingConstraintOperator.LESS: ["_lt"],
+                    BindingConstraintOperator.GREATER: ["_gt"],
+                    BindingConstraintOperator.EQUAL: ["_eq"],
+                    BindingConstraintOperator.BOTH: ["_lt", "_gt"],
+                }
+                for suffix in mapping[constraint.properties.operator]:
+                    (study_path / "input" / "bindingconstraints" / f"{constraint.id}{suffix}.txt").unlink()
+
                 return
+
         raise ConstraintDoesNotExistError(constraint.name, self._study_name)
 
     @override
     def delete(self, children: bool) -> None:
-        shutil.rmtree(self.config.study_path, ignore_errors=True)
+        shutil.rmtree(self._config.study_path, ignore_errors=True)
 
     @override
     def create_variant(self, variant_name: str) -> "Study":
@@ -162,11 +161,12 @@ class StudyLocalService(BaseStudyService):
     @override
     def read_outputs(self) -> dict[str, Output]:
         outputs: dict[str, Output] = {}
-        for folder in self._output_path.iterdir():
-            output_name = folder.name
-            archived = True if output_name.endswith(".zip") else False
-            output = Output(name=output_name, archived=archived, output_service=self.output_service)
-            outputs[output.name] = output
+        if self._output_path.exists():
+            for folder in self._output_path.iterdir():
+                output_name = folder.name
+                archived = True if output_name.endswith(".zip") else False
+                output = Output(name=output_name, archived=archived, output_service=self.output_service)
+                outputs[output.name] = output
         return outputs
 
     @override
@@ -191,14 +191,22 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def generate_thermal_timeseries(self, number_of_years: int, areas: dict[str, Area], seed: int) -> None:
-        study_path = self.config.study_path
+        study_path = self._config.study_path
         with tempfile.TemporaryDirectory(suffix=".thermal_ts_gen.tmp", prefix="~", dir=study_path.parent) as path:
             tmp_dir = Path(path)
-        try:
             shutil.copytree(study_path / "input" / "thermal" / "series", tmp_dir, dirs_exist_ok=True)
             _build_timeseries(number_of_years, areas, seed, tmp_dir)
-        except Exception as e:
-            logger.error(f"Unhandled exception when trying to generate thermal timeseries: {e}", exc_info=True)
-            raise
-        else:
             _replace_safely_original_files(study_path, tmp_dir)
+
+    @override
+    def get_scenario_builder(self, nb_years: int, study_version: StudyVersion) -> ScenarioBuilder:
+        scenario_builder_path = self._config.study_path / "settings" / "scenariobuilder.dat"
+        content = IniReader().read(scenario_builder_path)
+        sc_builder_local = ScenarioBuilderLocal.from_ini(content)
+        return sc_builder_local.to_user_model(nb_years, study_version)
+
+    @override
+    def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
+        scenario_builder_path = self._config.study_path / "settings" / "scenariobuilder.dat"
+        sc_builder_local = ScenarioBuilderLocal.from_user_model(scenario_builder)
+        IniWriter().write(sc_builder_local.to_ini(), scenario_builder_path)

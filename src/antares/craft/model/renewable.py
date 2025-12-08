@@ -17,10 +17,10 @@ import pandas as pd
 
 from antares.craft.model.cluster import ClusterProperties, ClusterPropertiesUpdate
 from antares.craft.service.base_services import BaseRenewableService
-from antares.craft.tools.contents_tool import transform_name_to_id
+from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 
 
-class RenewableClusterGroup(Enum):
+class RenewableClusterGroup(EnumIgnoreCase):
     """
     Renewable cluster groups.
 
@@ -56,13 +56,13 @@ class TimeSeriesInterpretation(Enum):
 
 @dataclass(frozen=True)
 class RenewableClusterProperties(ClusterProperties):
-    group: RenewableClusterGroup = RenewableClusterGroup.OTHER1
+    group: str = RenewableClusterGroup.OTHER1.value
     ts_interpretation: TimeSeriesInterpretation = TimeSeriesInterpretation.POWER_GENERATION
 
 
 @dataclass
 class RenewableClusterPropertiesUpdate(ClusterPropertiesUpdate):
-    group: Optional[RenewableClusterGroup] = None
+    group: Optional[str] = None
     ts_interpretation: Optional[TimeSeriesInterpretation] = None
 
 

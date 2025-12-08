@@ -36,7 +36,7 @@ class AntaresSimulationParameters:
         if self.presolve:
             options.append("presolve")
         if self.solver != Solver.SIRIUS:
-            options.append(self.solver.name)
+            options.append(self.solver.value)
         return " ".join(options)
 
     def to_api(self) -> dict[str, Any]:
@@ -70,7 +70,10 @@ class AntaresSimulationParameters:
         if self.output_suffix:
             args += ["-n", self.output_suffix]
 
-        if solver_version >= SolverVersion.parse("9.2") or self.solver != Solver.SIRIUS:
+        if solver_version >= SolverVersion.parse("9.2"):
+            args += [f"--solver={self.solver.value}"]
+
+        elif self.solver != Solver.SIRIUS:
             args += ["--use-ortools", " --ortools-solver", self.solver.value]
 
         if self.presolve:

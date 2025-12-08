@@ -12,17 +12,16 @@
 import numpy as np
 import pandas as pd
 
+from antares.craft import Study
 from antares.craft.model.binding_constraint import BindingConstraintFrequency, BindingConstraintPropertiesUpdate
 from antares.craft.tools.matrix_tool import (
     default_credit_modulation,
-    default_data_matrix,
     default_energy,
     default_inflow_pattern,
     default_link_parameters,
     default_maxpower,
     default_mingen,
     default_mod,
-    default_modulation_matrix,
     default_reserves,
     default_reservoir,
     default_series,
@@ -32,7 +31,7 @@ from antares.craft.tools.matrix_tool import (
 
 
 class TestDefaultMatrices:
-    def test_all_matrices(self, local_study_with_constraint):
+    def test_all_matrices(self, local_study_with_constraint: Study) -> None:
         area_fr = local_study_with_constraint.get_areas()["fr"]
         # Load
         assert area_fr.get_load_matrix().equals(pd.DataFrame(default_series))
@@ -83,7 +82,12 @@ class TestDefaultMatrices:
         # Thermal
         thermal = area_fr.get_thermals()["test thermal cluster"]
         assert thermal.get_series_matrix().equals(pd.DataFrame(default_series))
-        assert thermal.get_prepro_data_matrix().equals(pd.DataFrame(default_data_matrix))
-        assert thermal.get_prepro_modulation_matrix().equals(pd.DataFrame(default_modulation_matrix))
         assert thermal.get_fuel_cost_matrix().equals(pd.DataFrame(default_series))
         assert thermal.get_co2_cost_matrix().equals(pd.DataFrame(default_series))
+        # Ensures the thermal cluster was created with specific prepro matrices
+        default_data_matrix_creation = np.zeros((365, 6), dtype=np.float64)
+        default_data_matrix_creation[:, :2] = 1
+        assert thermal.get_prepro_data_matrix().equals(pd.DataFrame(default_data_matrix_creation))
+        default_modulation_matrix_creation = np.ones((8760, 4), dtype=np.float64)
+        default_modulation_matrix_creation[:, 3] = 0
+        assert thermal.get_prepro_modulation_matrix().equals(pd.DataFrame(default_modulation_matrix_creation))

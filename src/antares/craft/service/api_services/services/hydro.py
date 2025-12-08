@@ -12,10 +12,13 @@
 
 import pandas as pd
 
+from typing_extensions import override
+
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
     APIError,
+    HydroAllocationUpdateError,
     HydroInflowStructureReadingError,
     HydroInflowStructureUpdateError,
     HydroPropertiesReadingError,
@@ -23,11 +26,21 @@ from antares.craft.exceptions.exceptions import (
     MatrixDownloadError,
     MatrixUploadError,
 )
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
-from antares.craft.service.api_services.models.hydro import HydroInflowStructureAPI, HydroPropertiesAPI
+from antares.craft.model.hydro import (
+    HydroAllocation,
+    HydroProperties,
+    HydroPropertiesUpdate,
+    InflowStructure,
+    InflowStructureUpdate,
+)
+from antares.craft.service.api_services.models.hydro import (
+    HydroInflowStructureAPI,
+    HydroPropertiesAPI,
+    parse_hydro_allocation_api,
+    serialize_hydro_allocation_api,
+)
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseHydroService
-from typing_extensions import override
 
 
 class HydroApiService(BaseHydroService):
@@ -37,26 +50,6 @@ class HydroApiService(BaseHydroService):
         self.study_id = study_id
         self._wrapper = RequestWrapper(self.api_config.set_up_api_conf())
         self._base_url = f"{self.api_config.get_host()}/api/v1"
-
-    @override
-    def read_properties(self) -> dict[str, HydroProperties]:
-        # todo: this is really unefficient but we have to do this until AntaresWeb introduces a specific endpoint
-        hydro_properties: dict[str, HydroProperties] = {}
-
-        try:
-            # retrieve all areas
-            areas_url = f"{self._base_url}/studies/{self.study_id}/areas?ui=true"
-            json_response = self._wrapper.get(areas_url).json()
-            all_areas_ids = list(json_response.keys())
-
-            # for each area, retrieves its properties
-            for area_id in all_areas_ids:
-                hydro_properties[area_id] = self.read_properties_for_one_area(area_id)
-
-        except APIError as e:
-            raise HydroPropertiesReadingError(self.study_id, e.message) from e
-
-        return hydro_properties
 
     def read_properties_for_one_area(self, area_id: str) -> HydroProperties:
         try:
@@ -71,25 +64,6 @@ class HydroApiService(BaseHydroService):
         return hydro_props
 
     @override
-    def read_inflow_structure(self) -> dict[str, InflowStructure]:
-        # todo: this is really unefficient but we have to do this until AntaresWeb introduces a specific endpoint
-        all_inflow_structure: dict[str, InflowStructure] = {}
-
-        try:
-            # retrieve all areas
-            areas_url = f"{self._base_url}/studies/{self.study_id}/areas?ui=true"
-            json_response = self._wrapper.get(areas_url).json()
-            all_areas_ids = list(json_response.keys())
-
-            # for each area, retrieves its properties
-            for area_id in all_areas_ids:
-                all_inflow_structure[area_id] = self.read_inflow_structure_for_one_area(area_id)
-
-        except APIError as e:
-            raise HydroInflowStructureReadingError(self.study_id, e.message) from e
-
-        return all_inflow_structure
-
     def read_inflow_structure_for_one_area(self, area_id: str) -> InflowStructure:
         try:
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/inflow-structure"
@@ -119,6 +93,18 @@ class HydroApiService(BaseHydroService):
             self._wrapper.put(url, json=body)
         except APIError as e:
             raise HydroInflowStructureUpdateError(area_id, e.message) from e
+
+    @override
+    def set_allocation(self, area_id: str, allocation: list[HydroAllocation]) -> list[HydroAllocation]:
+        try:
+            url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/hydro/allocation/form"
+            body = serialize_hydro_allocation_api(allocation)
+            allocation_api = self._wrapper.put(url, json=body).json()
+            new_allocation = parse_hydro_allocation_api(allocation_api)
+            new_allocation.append(HydroAllocation(area_id=area_id))
+            return new_allocation
+        except APIError as e:
+            raise HydroAllocationUpdateError(area_id, e.message) from e
 
     @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:

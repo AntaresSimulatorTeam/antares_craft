@@ -13,10 +13,11 @@ from typing import Any
 
 import pandas as pd
 
+from typing_extensions import override
+
 from antares.craft.exceptions.exceptions import MatrixFormatError
 from antares.craft.model.st_storage import STStorageMatrixName
 from antares.craft.model.thermal import ThermalClusterMatrixName
-from typing_extensions import override
 
 
 class AlwaysEqual:
@@ -44,6 +45,11 @@ EXPECTED_SHAPE_MAPPING = {
     STStorageMatrixName.LOWER_CURVE_RULE.value: (8760, 1),
     STStorageMatrixName.UPPER_RULE_CURVE.value: (8760, 1),
     STStorageMatrixName.INFLOWS.value: (8760, 1),
+    STStorageMatrixName.COST_INJECTION.value: (8760, 1),
+    STStorageMatrixName.COST_WITHDRAWAL.value: (8760, 1),
+    STStorageMatrixName.COST_LEVEL.value: (8760, 1),
+    STStorageMatrixName.COST_VARIATION_INJECTION.value: (8760, 1),
+    STStorageMatrixName.COST_VARIATION_WITHDRAWAL.value: (8760, 1),
     "series": (8760, AlwaysEqual()),
     "links_parameters": (8760, 6),
     "bc_hourly": (8784, AlwaysEqual()),

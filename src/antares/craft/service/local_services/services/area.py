@@ -10,16 +10,24 @@
 #
 # This file is part of the Antares project.
 import copy
-import logging
 import os
+import shutil
 
-from configparser import ConfigParser, DuplicateSectionError
-from typing import Any, Dict, List, Optional
+from pathlib import Path
+from typing import Any, Dict, List, Optional, cast
 
+import numpy as np
 import pandas as pd
 
+from typing_extensions import override
+
+from antares.craft import ClusterData
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import AreaCreationError, ThermalCreationError
+from antares.craft.exceptions.exceptions import (
+    AreaCreationError,
+    ReferencedObjectDeletionNotAllowed,
+    ThermalCreationError,
+)
 from antares.craft.model.area import (
     Area,
     AreaProperties,
@@ -27,46 +35,41 @@ from antares.craft.model.area import (
     AreaUi,
     AreaUiUpdate,
 )
-from antares.craft.model.hydro import Hydro, HydroProperties, InflowStructure
+from antares.craft.model.hydro import Hydro, HydroAllocation, HydroProperties, InflowStructure
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.base_services import (
     BaseAreaService,
+    BaseBindingConstraintService,
     BaseHydroService,
     BaseRenewableService,
     BaseShortTermStorageService,
     BaseThermalService,
 )
 from antares.craft.service.local_services.models.area import AreaPropertiesLocal, AreaUiLocal
-from antares.craft.service.local_services.models.hydro import HydroInflowStructureLocal
-from antares.craft.service.local_services.models.renewable import RenewableClusterPropertiesLocal
-from antares.craft.service.local_services.models.st_storage import STStoragePropertiesLocal
-from antares.craft.service.local_services.models.thermal import ThermalClusterPropertiesLocal
-from antares.craft.service.local_services.services.hydro import edit_hydro_properties
+from antares.craft.service.local_services.models.hydro import HydroInflowStructureLocal, parse_hydro_properties_local
+from antares.craft.service.local_services.models.renewable import serialize_renewable_cluster_local
+from antares.craft.service.local_services.models.st_storage import (
+    parse_st_storage_local,
+    serialize_st_storage_local,
+)
+from antares.craft.service.local_services.models.thermal import (
+    parse_thermal_cluster_local,
+    serialize_thermal_cluster_local,
+)
+from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
+from antares.craft.service.local_services.services.hydro import HydroLocalService
+from antares.craft.service.local_services.services.renewable import RenewableLocalService
+from antares.craft.service.local_services.services.st_storage import ShortTermStorageLocalService
+from antares.craft.service.local_services.services.thermal import ThermalLocalService
 from antares.craft.tools.contents_tool import transform_name_to_id
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
-from antares.craft.tools.matrix_tool import default_series, default_series_with_ones, read_timeseries, write_timeseries
+from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.prepro_folder import PreproFolder
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
-from typing_extensions import override
-
-
-def _sets_ini_content() -> ConfigParser:
-    """
-    Returns: sets.ini contents with default values
-    """
-    sets_ini = ConfigParser()
-    sets_ini_dict = {
-        "all areas": {
-            "caption": "All areas",
-            "comments": "Spatial aggregates on all areas",
-            "output": "false",
-            "apply-filter": "add-all",
-        }
-    }
-    sets_ini.read_dict(sets_ini_dict)
-    return sets_ini
+from antares.study.version import StudyVersion
 
 
 class AreaLocalService(BaseAreaService):
@@ -74,69 +77,92 @@ class AreaLocalService(BaseAreaService):
         self,
         config: LocalConfiguration,
         study_name: str,
+        study_version: StudyVersion,
         storage_service: BaseShortTermStorageService,
         thermal_service: BaseThermalService,
         renewable_service: BaseRenewableService,
         hydro_service: BaseHydroService,
+        binding_constraint_service: BaseBindingConstraintService,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self.config = config
         self.study_name = study_name
+        self.study_version = study_version
         self._storage_service: BaseShortTermStorageService = storage_service
         self._thermal_service: BaseThermalService = thermal_service
         self._renewable_service: BaseRenewableService = renewable_service
         self._hydro_service: BaseHydroService = hydro_service
+        self._binding_constraint_service: BaseBindingConstraintService = binding_constraint_service
+
+    def read_adequacy_ini(self, area_id: str) -> dict[str, Any]:
+        return IniReader().read(self.config.study_path / "input" / "areas" / area_id / "adequacy_patch.ini")
+
+    def _save_adequacy_ini(self, content: dict[str, Any], area_id: str) -> None:
+        IniWriter().write(content, self.config.study_path / "input" / "areas" / area_id / "adequacy_patch.ini")
+
+    def read_optimization_ini(self, area_id: str) -> dict[str, Any]:
+        return IniReader().read(self.config.study_path / "input" / "areas" / area_id / "optimization.ini")
+
+    def _save_optimization_ini(self, content: dict[str, Any], area_id: str) -> None:
+        IniWriter().write(content, self.config.study_path / "input" / "areas" / area_id / "optimization.ini")
+
+    def read_ui_ini(self, area_id: str) -> dict[str, Any]:
+        return IniReader().read(self.config.study_path / "input" / "areas" / area_id / "ui.ini")
+
+    def _save_ui_ini(self, content: dict[str, Any], area_id: str) -> None:
+        IniWriter().write(content, self.config.study_path / "input" / "areas" / area_id / "ui.ini")
+
+    def _get_thermal_areas_ini_path(self) -> Path:
+        return self.config.study_path / "input" / "thermal" / "areas.ini"
+
+    def read_thermal_areas_ini(self) -> dict[str, Any]:
+        return IniReader().read(self._get_thermal_areas_ini_path())
+
+    def _save_thermal_areas_ini(self, content: dict[str, Any]) -> None:
+        IniWriter().write(content, self._get_thermal_areas_ini_path())
 
     @override
     def create_thermal_cluster(
-        self,
-        area_id: str,
-        thermal_name: str,
-        properties: Optional[ThermalClusterProperties] = None,
-        prepro: Optional[pd.DataFrame] = None,
-        modulation: Optional[pd.DataFrame] = None,
-        series: Optional[pd.DataFrame] = None,
-        co2_cost: Optional[pd.DataFrame] = None,
-        fuel_cost: Optional[pd.DataFrame] = None,
+        self, area_id: str, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
     ) -> ThermalCluster:
-        # Creating files
-        list_ini = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id)
-        IniFile(
-            self.config.study_path,
-            InitializationFilesTypes.THERMAL_MODULATION,
-            area_id=area_id,
-            cluster_id=thermal_name,
-        )
-        IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_DATA, area_id=area_id, cluster_id=thermal_name)
-        IniFile(
-            self.config.study_path, InitializationFilesTypes.THERMAL_SERIES, area_id=area_id, cluster_id=thermal_name
-        )
+        local_thermal_service = cast(ThermalLocalService, self.thermal_service)
+        thermal_list_content = local_thermal_service.read_ini(area_id)
 
-        # Writing properties
-        try:
-            properties = properties or ThermalClusterProperties()
-            local_properties = ThermalClusterPropertiesLocal.from_user_model(properties)
-            new_section_content = {"name": thermal_name, **local_properties.model_dump(mode="json", by_alias=True)}
-            list_ini.add_section({thermal_name: new_section_content})
-        except DuplicateSectionError:
+        # Checks for duplication
+        thermal_id = transform_name_to_id(thermal_name)
+        existing_ids = {transform_name_to_id(key) for key in thermal_list_content}
+        if thermal_id in existing_ids:
             raise ThermalCreationError(
                 thermal_name,
                 area_id,
                 f"A thermal cluster called '{thermal_name}' already exists in area '{area_id}'.",
             )
-        list_ini.write_ini_file(sort_sections=True)
+
+        # Writing properties
+        content = serialize_thermal_cluster_local(self.study_version, properties or ThermalClusterProperties())
+        thermal_list_content[thermal_name] = {"name": thermal_name, **content}
+        local_thermal_service.save_ini(thermal_list_content, area_id)
 
         # Upload matrices
         cluster_id = transform_name_to_id(thermal_name)
 
+        # Use default matrices for prepro and modulation as in AntaresWeb.
+        # We do so because the default Simulator matrices don't make sense
+        default_data_matrix = np.zeros((365, 6), dtype=np.float64)
+        default_data_matrix[:, :2] = 1
+        prepro = pd.DataFrame(default_data_matrix)
+        default_modulation_matrix = np.ones((8760, 4), dtype=np.float64)
+        default_modulation_matrix[:, 3] = 0
+        modulation = pd.DataFrame(default_modulation_matrix)
+
         write_timeseries(self.config.study_path, prepro, TimeSeriesFileType.THERMAL_DATA, area_id, cluster_id)
         write_timeseries(self.config.study_path, modulation, TimeSeriesFileType.THERMAL_MODULATION, area_id, cluster_id)
-        write_timeseries(self.config.study_path, series, TimeSeriesFileType.THERMAL_SERIES, area_id, cluster_id)
-        write_timeseries(self.config.study_path, co2_cost, TimeSeriesFileType.THERMAL_CO2, area_id, cluster_id)
-        write_timeseries(self.config.study_path, fuel_cost, TimeSeriesFileType.THERMAL_FUEL, area_id, cluster_id)
+        write_timeseries(self.config.study_path, None, TimeSeriesFileType.THERMAL_SERIES, area_id, cluster_id)
 
-        return ThermalCluster(self.thermal_service, area_id, thermal_name, properties)
+        # Round trip around properties for the groups.
+        final_props = parse_thermal_cluster_local(self.study_version, content)
+        return ThermalCluster(self.thermal_service, area_id, thermal_name, final_props)
 
     @override
     @property
@@ -160,22 +186,20 @@ class AreaLocalService(BaseAreaService):
 
     @override
     def create_renewable_cluster(
-        self,
-        area_id: str,
-        renewable_name: str,
-        properties: Optional[RenewableClusterProperties] = None,
-        series: Optional[pd.DataFrame] = None,
+        self, area_id: str, renewable_name: str, properties: Optional[RenewableClusterProperties] = None
     ) -> RenewableCluster:
-        properties = properties or RenewableClusterProperties()
-        local_properties = RenewableClusterPropertiesLocal.from_user_model(properties)
-        new_section_content = {"name": renewable_name, **local_properties.model_dump(mode="json", by_alias=True)}
+        local_renewable_service = cast(RenewableLocalService, self.renewable_service)
+        local_renewable_service.read_ini(area_id)
+        ini_content = local_renewable_service.read_ini(area_id)
+        ini_content[renewable_name] = {
+            "name": renewable_name,
+            **serialize_renewable_cluster_local(self.study_version, properties or RenewableClusterProperties()),
+        }
+        local_renewable_service.save_ini(ini_content, area_id)
 
-        list_ini = IniFile(self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id)
-        list_ini.add_section({renewable_name: new_section_content})
-        list_ini.write_ini_file()
         write_timeseries(
             self.config.study_path,
-            series,
+            None,
             TimeSeriesFileType.RENEWABLE_SERIES,
             area_id,
             cluster_id=transform_name_to_id(renewable_name),
@@ -192,31 +216,35 @@ class AreaLocalService(BaseAreaService):
         self, area_id: str, st_storage_name: str, properties: Optional[STStorageProperties] = None
     ) -> STStorage:
         properties = properties or STStorageProperties()
-        local_properties = STStoragePropertiesLocal.from_user_model(properties)
-        new_section_content = {"name": st_storage_name, **local_properties.model_dump(mode="json", by_alias=True)}
+        local_properties = serialize_st_storage_local(self.study_version, properties)
+        user_properties = parse_st_storage_local(self.study_version, local_properties)
 
-        list_ini = IniFile(self.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area_id)
-        list_ini.add_section({st_storage_name: new_section_content})
-        list_ini.write_ini_file(sort_sections=True)
+        local_storage_service = cast(ShortTermStorageLocalService, self.storage_service)
+        ini_content = local_storage_service.read_ini(area_id)
+
+        ini_content[st_storage_name] = {
+            "name": st_storage_name,
+            **local_properties,
+        }
+
+        local_storage_service.save_ini(ini_content, area_id)
 
         storage = STStorage(
             self.storage_service,
             area_id,
             st_storage_name,
-            properties,
+            user_properties,
         )
 
         # Create matrices
-        # todo: The Simulator expects non-empty matrices. It will change but for now we need to create non-empty matrices.
         cluster_id = storage.id
-        default_matrix_ones = pd.DataFrame(default_series_with_ones)
-        default_matrix_zeros = pd.DataFrame(default_series)
+        empty_matrix = pd.DataFrame()
         # fmt: off
-        write_timeseries(self.config.study_path, default_matrix_ones, TimeSeriesFileType.ST_STORAGE_PMAX_INJECTION, area_id, cluster_id=cluster_id)
-        write_timeseries(self.config.study_path, default_matrix_ones, TimeSeriesFileType.ST_STORAGE_PMAX_WITHDRAWAL, area_id, cluster_id=cluster_id)
-        write_timeseries(self.config.study_path, default_matrix_zeros, TimeSeriesFileType.ST_STORAGE_INFLOWS, area_id, cluster_id=cluster_id)
-        write_timeseries(self.config.study_path, default_matrix_zeros, TimeSeriesFileType.ST_STORAGE_LOWER_RULE_CURVE, area_id, cluster_id=cluster_id)
-        write_timeseries(self.config.study_path, default_matrix_ones, TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE, area_id, cluster_id=cluster_id)
+        write_timeseries(self.config.study_path, empty_matrix, TimeSeriesFileType.ST_STORAGE_PMAX_INJECTION, area_id, cluster_id=cluster_id)
+        write_timeseries(self.config.study_path, empty_matrix, TimeSeriesFileType.ST_STORAGE_PMAX_WITHDRAWAL, area_id, cluster_id=cluster_id)
+        write_timeseries(self.config.study_path, empty_matrix, TimeSeriesFileType.ST_STORAGE_INFLOWS, area_id, cluster_id=cluster_id)
+        write_timeseries(self.config.study_path, empty_matrix, TimeSeriesFileType.ST_STORAGE_LOWER_RULE_CURVE, area_id, cluster_id=cluster_id)
+        write_timeseries(self.config.study_path, empty_matrix, TimeSeriesFileType.ST_STORAGE_UPPER_RULE_CURVE, area_id, cluster_id=cluster_id)
         # fmt: on
 
         return storage
@@ -282,40 +310,37 @@ class AreaLocalService(BaseAreaService):
                 list_txt.write("".join(map(str, updated_list)))
 
             # TODO: Handle districts in sets.ini later
-            sets_ini_content = _sets_ini_content()
-
-            with (study_path / InitializationFilesTypes.AREAS_SETS_INI.value).open("w") as sets_ini:
-                sets_ini_content.write(sets_ini)
+            sets_ini_path = study_path / "input" / "areas" / "sets.ini"
+            if not sets_ini_path.exists():
+                sets_ini_content = {
+                    "all areas": {
+                        "caption": "All areas",
+                        "comments": "Spatial aggregates on all areas",
+                        "output": "false",
+                        "apply-filter": "add-all",
+                    }
+                }
+                IniWriter().write(sets_ini_content, study_path / "input" / "areas" / "sets.ini")
 
             properties = properties or AreaProperties()
             local_properties = AreaPropertiesLocal.from_user_model(properties)
 
-            adequacy_patch_ini = IniFile(study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_id)
-            adequacy_patch_ini.add_section(local_properties.to_adequacy_ini())
-            adequacy_patch_ini.write_ini_file()
+            adequacy_patch_ini = self.read_adequacy_ini(area_id)
+            adequacy_patch_ini.update(local_properties.to_adequacy_ini())
+            self._save_adequacy_ini(adequacy_patch_ini, area_id)
 
-            optimization_ini = ConfigParser()
-            optimization_ini.read_dict(local_properties.to_optimization_ini())
+            self._save_optimization_ini(local_properties.to_optimization_ini(), area_id)
 
-            with open(new_area_directory / "optimization.ini", "w") as optimization_ini_file:
-                optimization_ini.write(optimization_ini_file)
-
-            areas_ini = IniFile(study_path, InitializationFilesTypes.THERMAL_AREAS_INI)
-            if not areas_ini.ini_dict:
-                areas_ini.add_section({"unserverdenergycost": {}})
-                areas_ini.add_section({"spilledenergycost": {}})
-                areas_ini.write_ini_file()
-
-            areas_ini.parsed_ini["unserverdenergycost"][area_id] = str(local_properties.energy_cost_unsupplied)
-            areas_ini.parsed_ini["spilledenergycost"][area_id] = str(local_properties.energy_cost_spilled)
-            areas_ini.write_ini_file()
+            self._get_thermal_areas_ini_path().touch(exist_ok=True)
+            areas_ini = self.read_thermal_areas_ini()
+            areas_ini.setdefault("unserverdenergycost", {})[area_id] = str(local_properties.energy_cost_unsupplied)
+            areas_ini.setdefault("spilledenergycost", {})[area_id] = str(local_properties.energy_cost_spilled)
+            self._save_thermal_areas_ini(areas_ini)
 
             ui = ui or AreaUi()
             local_ui = AreaUiLocal.from_user_model(ui)
-            ui_ini = ConfigParser()
-            ui_ini.read_dict(local_ui.model_dump(mode="json", by_alias=True))
-            with open(new_area_directory / "ui.ini", "w") as ui_ini_file:
-                ui_ini.write(ui_ini_file)
+            local_ui_content = local_ui.model_dump(mode="json", by_alias=True)
+            self._save_ui_ini(local_ui_content, area_id)
 
             empty_df = pd.DataFrame()
             self.set_reserves(area_id, empty_df)
@@ -323,28 +348,32 @@ class AreaLocalService(BaseAreaService):
             self.set_load(area_id, empty_df)
             self.set_solar(area_id, empty_df)
             self.set_wind(area_id, empty_df)
-            IniFile.create_link_ini_for_area(study_path, area_id)
-            IniFile.create_list_ini_for_area(study_path, area_id)
+
+            # Links
+            link_path = study_path / "input" / "links" / area_id
+            (link_path / "capacities").mkdir(parents=True)
+            (link_path / "properties.ini").touch()
+
+            # Clusters
+            for cluster_type in ["thermal", "renewables", "st-storage"]:
+                ini_path = self.config.study_path / "input" / cluster_type / "clusters" / area_id / "list.ini"
+                IniWriter().write({}, ini_path)
 
             # Hydro
             default_hydro_properties = HydroProperties()
             update_properties = default_hydro_properties.to_update_properties()
-            edit_hydro_properties(study_path, area_id, update_properties, creation=True)
-            hydro = Hydro(self.hydro_service, area_id, default_hydro_properties, InflowStructure())
+            hydro_local_service = cast(HydroLocalService, self.hydro_service)
+            hydro_local_service.edit_hydro_properties(area_id, update_properties, creation=True)
+            # Use parsing method to fill default values according to version
+            hydro_properties = parse_hydro_properties_local(self.study_version, {})
+            hydro_allocation = [HydroAllocation(area_id=area_id)]
+            hydro = Hydro(self.hydro_service, area_id, hydro_properties, InflowStructure(), hydro_allocation)
             # Create files
-            IniFile(
-                study_path=study_path,
-                ini_file_type=InitializationFilesTypes.HYDRO_PREPRO_INI,
-                area_id=area_id,
-                ini_contents=HydroInflowStructureLocal.from_user_model(InflowStructure()).model_dump(by_alias=True),
+            hydro_local_service.save_inflow_ini(
+                HydroInflowStructureLocal.from_user_model(InflowStructure()).model_dump(by_alias=True), area_id
             )
-            IniFile(
-                study_path=study_path,
-                ini_file_type=InitializationFilesTypes.HYDRO_ALLOCATION_INI,
-                area_id=area_id,
-                ini_contents={"[allocation]": {area_id: "1"}},
-            )
-            IniFile.create_hydro_initialization_files_for_area(study_path, area_id)
+            hydro_local_service.save_allocation_ini({"[allocation]": {}}, area_id)
+
             for ts in [
                 TimeSeriesFileType.HYDRO_MAX_POWER,
                 TimeSeriesFileType.HYDRO_RESERVOIR,
@@ -361,7 +390,6 @@ class AreaLocalService(BaseAreaService):
         except Exception as e:
             raise AreaCreationError(area_name, f"{e}") from e
 
-        logging.info(f"Area {area_name} created successfully!")
         created_area = Area(
             name=area_name,
             area_service=self,
@@ -379,96 +407,103 @@ class AreaLocalService(BaseAreaService):
     def delete_area(self, area_id: str) -> None:
         raise NotImplementedError
 
-    def update_area_properties(self, area_id: str, properties: AreaPropertiesUpdate) -> AreaProperties:
-        study_path = self.config.study_path
-        local_properties = AreaPropertiesLocal.from_user_model(properties)
+    def update_area_properties(self, area: Area, properties: AreaPropertiesUpdate) -> AreaProperties:
+        area_id = area.id
+        new_local_properties = AreaPropertiesLocal.build_for_update(properties, area.properties)
 
         # Adequacy patch
-        adequacy_patch_ini = IniFile(study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_id)
-        updated_properties_dict: dict[str, Any] = adequacy_patch_ini.ini_dict
         if properties.adequacy_patch_mode:
-            updated_properties_dict = local_properties.to_adequacy_ini()
-            adequacy_patch_ini.ini_dict = updated_properties_dict
-            adequacy_patch_ini.write_ini_file()
+            adequacy_patch_ini = new_local_properties.to_adequacy_ini()
+            self._save_adequacy_ini(adequacy_patch_ini, area_id)
 
         # Thermal properties
-        thermal_ini = IniFile(study_path, InitializationFilesTypes.THERMAL_AREAS_INI)
-        current_content = thermal_ini.ini_dict
-        updated_properties_dict["energy_cost_unsupplied"] = current_content["unserverdenergycost"][area_id]
-        updated_properties_dict["energy_cost_spilled"] = current_content["spilledenergycost"][area_id]
-        if properties.energy_cost_spilled or properties.energy_cost_unsupplied:
-            if properties.energy_cost_spilled:
+        if properties.energy_cost_spilled is not None or properties.energy_cost_unsupplied is not None:
+            current_content = self.read_thermal_areas_ini()
+            if properties.energy_cost_spilled is not None:
                 current_content["spilledenergycost"][area_id] = properties.energy_cost_spilled
-                updated_properties_dict["energy_cost_spilled"] = properties.energy_cost_spilled
-            if properties.energy_cost_unsupplied:
+            if properties.energy_cost_unsupplied is not None:
                 current_content["unserverdenergycost"][area_id] = properties.energy_cost_unsupplied
-                updated_properties_dict["energy_cost_unsupplied"] = properties.energy_cost_unsupplied
-            thermal_ini.ini_dict = current_content
-            thermal_ini.write_ini_file()
+            self._save_thermal_areas_ini(current_content)
 
         # Optimization properties
-        optimization_ini = IniFile(study_path, InitializationFilesTypes.AREA_OPTIMIZATION_INI, area_id=area_id)
-        current_content = optimization_ini.ini_dict
-        updated_properties_dict.update(current_content)
         if (
-            properties.filter_synthesis
-            or properties.filter_by_year
-            or properties.non_dispatch_power
-            or properties.dispatch_hydro_power
-            or properties.other_dispatch_power
-            or properties.spread_spilled_energy_cost
-            or properties.spread_unsupplied_energy_cost
+            properties.filter_synthesis is not None
+            or properties.filter_by_year is not None
+            or properties.non_dispatch_power is not None
+            or properties.dispatch_hydro_power is not None
+            or properties.other_dispatch_power is not None
+            or properties.spread_spilled_energy_cost is not None
+            or properties.spread_unsupplied_energy_cost is not None
         ):
-            new_content = local_properties.to_optimization_ini()
-            current_content.update(new_content)
-            updated_properties_dict.update(new_content)
-            optimization_ini.ini_dict = current_content
-            optimization_ini.write_ini_file()
+            new_content = new_local_properties.to_optimization_ini()
+            self._save_optimization_ini(new_content, area_id)
 
-        new_properties = AreaPropertiesLocal.model_validate(updated_properties_dict)
-        return new_properties.to_user_model()
+        return new_local_properties.to_user_model()
 
     @override
-    def update_area_ui(self, area_id: str, ui: AreaUiUpdate) -> AreaUi:
-        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.AREA_UI_INI, area_id=area_id)
-        current_content = ini_file.ini_dict
-        # Update ui
-        local_ui = AreaUiLocal.from_user_model(ui).model_dump(mode="json", exclude_unset=True, by_alias=True)
-        current_content.update(local_ui)
-        # Update ini file
-        ini_file.ini_dict = current_content
-        ini_file.write_ini_file()
-        # Prepare object to return
-        updated_ui = AreaUiLocal.model_validate(current_content)
-        return updated_ui.to_user_model()
+    def update_area_ui(self, area: Area, ui: AreaUiUpdate) -> AreaUi:
+        new_local_ui = AreaUiLocal.build_for_update(ui, area.ui)
+        self._save_ui_ini(new_local_ui.model_dump(mode="json", by_alias=True, exclude_unset=True), area.id)
+        return new_local_ui.to_user_model()
 
-    @staticmethod
-    def _delete_clusters(ini_file: IniFile, names_to_delete: set[str]) -> None:
-        clusters_dict = ini_file.ini_dict
+    def _delete_clusters(self, cluster_type: str, area_id: str, names_to_delete: set[str]) -> None:
+        ini_path = self.config.study_path / "input" / cluster_type / "clusters" / area_id / "list.ini"
+        clusters_dict = IniReader().read(ini_path)
         clusters_dict_after_deletion = copy.deepcopy(clusters_dict)
         for cluster_id, cluster in clusters_dict.items():
             if cluster["name"] in names_to_delete:
                 del clusters_dict_after_deletion[cluster_id]
-        ini_file.ini_dict = clusters_dict_after_deletion
-        ini_file.write_ini_file()
+        IniWriter().write(clusters_dict_after_deletion, ini_path)
 
     @override
     def delete_thermal_clusters(self, area_id: str, thermal_clusters: List[ThermalCluster]) -> None:
         thermal_names_to_delete = {th.name for th in thermal_clusters}
-        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_LIST_INI, area_id=area_id)
-        self._delete_clusters(ini_file, thermal_names_to_delete)
+        # Check thermal clusters are not referenced in any binding constraint
+        bc_service = cast(BindingConstraintLocalService, self._binding_constraint_service)
+        all_constraints = bc_service.read_binding_constraints()
+        for cluster in thermal_clusters:
+            referencing_binding_constraints = []
+            for bc in all_constraints.values():
+                for term in bc._terms.values():
+                    data = term.data
+                    if isinstance(data, ClusterData) and data.area == cluster.area_id and data.cluster == cluster.id:
+                        referencing_binding_constraints.append(bc.name)
+                        break
+            if referencing_binding_constraints:
+                raise ReferencedObjectDeletionNotAllowed(
+                    cluster.id, referencing_binding_constraints, object_type="Thermal cluster"
+                )
+
+        # Delete the clusters
+        self._delete_clusters("thermal", area_id, thermal_names_to_delete)
+
+        # Remove the matrices
+        for thermal in thermal_clusters:
+            shutil.rmtree(self.config.study_path / "input" / "thermal" / "series" / thermal.area_id / thermal.id)
 
     @override
     def delete_renewable_clusters(self, area_id: str, renewable_clusters: List[RenewableCluster]) -> None:
         renewable_names_to_delete = {renewable.name for renewable in renewable_clusters}
-        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.RENEWABLES_LIST_INI, area_id=area_id)
-        self._delete_clusters(ini_file, renewable_names_to_delete)
+        self._delete_clusters("renewables", area_id, renewable_names_to_delete)
+
+        # Remove the matrices
+        for renewable in renewable_clusters:
+            shutil.rmtree(self.config.study_path / "input" / "renewables" / "series" / renewable.area_id / renewable.id)
 
     @override
     def delete_st_storages(self, area_id: str, storages: List[STStorage]) -> None:
         storage_names_to_delete = {st.name for st in storages}
-        ini_file = IniFile(self.config.study_path, InitializationFilesTypes.ST_STORAGE_LIST_INI, area_id=area_id)
-        self._delete_clusters(ini_file, storage_names_to_delete)
+        self._delete_clusters("st-storage", area_id, storage_names_to_delete)
+
+        for storage in storages:
+            area_id = storage.area_id
+            # Remove the matrices
+            shutil.rmtree(self.config.study_path / "input" / "st-storage" / "series" / area_id / storage.id)
+
+            # Remove the constraints
+            constraints_path = self.config.study_path / "input" / "st-storage" / "constraints" / area_id / storage.id
+            if constraints_path.exists():
+                shutil.rmtree(constraints_path)
 
     @override
     def get_load_matrix(self, area_id: str) -> pd.DataFrame:
@@ -491,70 +526,9 @@ class AreaLocalService(BaseAreaService):
         return read_timeseries(TimeSeriesFileType.MISC_GEN, self.config.study_path, area_id=area_id)
 
     @override
-    def read_areas(self) -> dict[str, Area]:
-        local_path = self.config.local_path
-        areas_path = local_path / self.study_name / "input" / "areas"
-        if not areas_path.exists():
-            return {}
-
-        # Perf: Read only once the hydro_ini file as it's common to every area
-        all_hydro_properties = self.hydro_service.read_properties()
-
-        # Perf: Read only once the thermal_areas_ini file as it's common to every area
-        thermal_area_dict = IniFile(self.config.study_path, InitializationFilesTypes.THERMAL_AREAS_INI).ini_dict
-
-        all_areas: dict[str, Area] = {}
-        for element in areas_path.iterdir():
-            if element.is_dir():
-                optimization_dict = IniFile(
-                    self.config.study_path, InitializationFilesTypes.AREA_OPTIMIZATION_INI, area_id=element.name
-                ).ini_dict
-                area_adequacy_dict = IniFile(
-                    self.config.study_path, InitializationFilesTypes.AREA_ADEQUACY_PATCH_INI, area_id=element.name
-                ).ini_dict
-                unserverd_energy_cost = thermal_area_dict.get("unserverdenergycost", {}).get(element.name, 0)
-                spilled_energy_cost = thermal_area_dict.get("spilledenergycost", {}).get(element.name, 0)
-                local_properties_dict = {
-                    **optimization_dict,
-                    **area_adequacy_dict,
-                    "energy_cost_unsupplied": unserverd_energy_cost,
-                    "energy_cost_spilled": spilled_energy_cost,
-                }
-                local_properties = AreaPropertiesLocal.model_validate(local_properties_dict)
-                area_properties = local_properties.to_user_model()
-                ui_dict = IniFile(
-                    self.config.study_path, InitializationFilesTypes.AREA_UI_INI, area_id=element.name
-                ).ini_dict
-
-                local_ui = AreaUiLocal.model_validate(ui_dict)
-                ui_properties = local_ui.to_user_model()
-
-                # Hydro
-                prepro_dict = IniFile(
-                    self.config.study_path, InitializationFilesTypes.HYDRO_PREPRO_INI, area_id=element.name
-                ).ini_dict
-                inflow_structure = HydroInflowStructureLocal.model_validate(prepro_dict).to_user_model()
-
-                area = Area(
-                    name=element.name,
-                    area_service=self,
-                    storage_service=self.storage_service,
-                    thermal_service=self.thermal_service,
-                    renewable_service=self.renewable_service,
-                    hydro_service=self.hydro_service,
-                    properties=area_properties,
-                    ui=ui_properties,
-                )
-                area.hydro._properties = all_hydro_properties[area.id]
-                area.hydro._inflow_structure = inflow_structure
-                all_areas[area.id] = area
-
-        return all_areas
-
-    @override
-    def update_areas_properties(self, dict_areas: Dict[str, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
+    def update_areas_properties(self, dict_areas: Dict[Area, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:
         new_properties_dict = {}
-        for area_id, update_properties in dict_areas.items():
-            new_properties = self.update_area_properties(area_id, update_properties)
-            new_properties_dict[area_id] = new_properties
+        for area, update_properties in dict_areas.items():
+            new_properties = self.update_area_properties(area, update_properties)
+            new_properties_dict[area.id] = new_properties
         return new_properties_dict

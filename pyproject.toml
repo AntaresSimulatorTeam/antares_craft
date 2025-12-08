@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "antares_craft"
-version = "0.2.3"
-description = """Antares Craft python library under construction. It will allow to create, update and read antares studies."""
+version = "0.6.0"
+description = """Python library to read, edit and launch antares-simulator studies"""
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
@@ -14,26 +14,26 @@ authors = [
     { name = "Martin Belthle" },
     { name = "Sigurd Borge" }
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
-    "antares-timeseries-generation==0.1.7",
-    "antares-study-version==1.0.9",
-    "configparser~=5.0.2",
-    "numpy~=1.26.4",
-    "pandas~=2.2.2",
-    "pydantic~=2.7.1",
-    "requests~=2.32.0",
-    "psutil~=7.0.0"
+    "antares-timeseries-generation==0.1.8",
+    "antares-study-version==1.0.20",
+    "numpy>=1.0.0,<2.0.0",
+    "pandas>=2.0.0,<3.0.0",
+    "pyarrow>=20.0.0,<30.0.0",
+    "pydantic>=2.0.0,<3.0.0",
+    "requests>=2.0.0,<3.0.0",
+    "psutil>=7.0.0,<8.0.0"
 ]
 
 classifiers = [
     #    Classifiers here: https://pypi.org/classifiers/
     "Development Status :: 2 - Pre-Alpha",
     "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 
 [project.urls]

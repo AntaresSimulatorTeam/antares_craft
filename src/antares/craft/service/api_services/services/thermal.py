@@ -14,6 +14,8 @@ from pathlib import PurePosixPath
 
 import pandas as pd
 
+from typing_extensions import override
+
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
@@ -31,7 +33,6 @@ from antares.craft.model.thermal import (
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseThermalService
-from typing_extensions import override
 
 
 class ThermalApiService(BaseThermalService):
@@ -79,23 +80,6 @@ class ThermalApiService(BaseThermalService):
             raise ThermalMatrixDownloadError(
                 thermal_cluster.area_id, thermal_cluster.name, ts_name.value, e.message
             ) from e
-
-    @override
-    def read_thermal_clusters(self) -> dict[str, dict[str, ThermalCluster]]:
-        url = f"{self._base_url}/studies/{self.study_id}/table-mode/thermals"
-        json_thermal = self._wrapper.get(url).json()
-
-        thermals: dict[str, dict[str, ThermalCluster]] = {}
-
-        for key, thermal in json_thermal.items():
-            area_id, thermal_id = key.split(" / ")
-            api_props = ThermalClusterPropertiesAPI.model_validate(thermal)
-            thermal_props = api_props.to_user_model()
-            thermal_cluster = ThermalCluster(self, area_id, thermal_id, thermal_props)
-
-            thermals.setdefault(area_id, {})[thermal_cluster.id] = thermal_cluster
-
-        return thermals
 
     @override
     def update_thermal_clusters_properties(

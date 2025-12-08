@@ -11,13 +11,15 @@
 # This file is part of the Antares project.
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from typing import Optional, cast
 
 import pandas as pd
 
+from typing_extensions import override
+
 from antares.craft.model.cluster import ClusterProperties, ClusterPropertiesUpdate
 from antares.craft.service.base_services import BaseThermalService
-from antares.craft.tools.contents_tool import transform_name_to_id
+from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
 
 
 class LawOption(Enum):
@@ -30,7 +32,7 @@ class LawOption(Enum):
     GEOMETRIC = "geometric"
 
 
-class ThermalClusterGroup(Enum):
+class ThermalClusterGroup(EnumIgnoreCase):
     NUCLEAR = "nuclear"
     LIGNITE = "lignite"
     HARD_COAL = "hard coal"
@@ -41,6 +43,18 @@ class ThermalClusterGroup(Enum):
     OTHER2 = "other 2"
     OTHER3 = "other 3"
     OTHER4 = "other 4"
+
+    @classmethod
+    @override
+    def _missing_(cls, value: object) -> Optional["ThermalClusterGroup"]:
+        if isinstance(value, str):
+            # Check if any group value matches the input value ignoring case sensitivity.
+            if any(value.upper() == group.value.upper() for group in cls):
+                return cast(ThermalClusterGroup, super()._missing_(value))
+            # If a group is not found, return the default group ('OTHER1' by default).
+            # Note that 'OTHER' is an alias for 'OTHER1'.
+            return cls.OTHER1
+        return cast(Optional["ThermalClusterGroup"], super()._missing_(value))
 
 
 class LocalTSGenerationBehavior(Enum):
@@ -66,7 +80,7 @@ class ThermalCostGeneration(Enum):
 
 @dataclass(frozen=True)
 class ThermalClusterProperties(ClusterProperties):
-    group: ThermalClusterGroup = ThermalClusterGroup.OTHER1
+    group: str = ThermalClusterGroup.OTHER1.value
     gen_ts: LocalTSGenerationBehavior = LocalTSGenerationBehavior.USE_GLOBAL
     min_stable_power: float = 0
     min_up_time: int = 1
@@ -102,7 +116,7 @@ class ThermalClusterProperties(ClusterProperties):
 
 @dataclass
 class ThermalClusterPropertiesUpdate(ClusterPropertiesUpdate):
-    group: Optional[ThermalClusterGroup] = None
+    group: Optional[str] = None
     gen_ts: Optional[LocalTSGenerationBehavior] = None
     min_stable_power: Optional[float] = None
     min_up_time: Optional[int] = None

@@ -24,8 +24,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install tox~=4.21.2
-          pip install tox-uv~=1.11.3
+          pip install tox~=4.25.0
+          pip install tox-uv~=1.25.0
 
       - name: Performs Ubuntu tests
         if: matrix.os != 'windows-latest'
@@ -35,4 +35,4 @@ jobs:
 
       - name: Performs Windows tests
         if: matrix.os == 'windows-latest'
-        run: tox -e 3.9-test
+        run: tox -e py3.10-test

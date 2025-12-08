@@ -14,6 +14,8 @@ from typing import Dict, Optional
 
 import pandas as pd
 
+from typing_extensions import override
+
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import (
@@ -22,7 +24,6 @@ from antares.craft.exceptions.exceptions import (
     LinkDeletionError,
     LinkDownloadError,
     LinksPropertiesUpdateError,
-    LinksRetrievalError,
     LinkUiUpdateError,
     LinkUploadError,
 )
@@ -30,7 +31,6 @@ from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate,
 from antares.craft.service.api_services.models.link import LinkPropertiesAndUiAPI
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseLinkService
-from typing_extensions import override
 
 
 class LinkApiService(BaseLinkService):
@@ -165,25 +165,6 @@ class LinkApiService(BaseLinkService):
             update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
         except APIError as e:
             raise LinkUploadError(area_from, area_to, "indirectcapacity", e.message) from e
-
-    @override
-    def read_links(self) -> dict[str, Link]:
-        try:
-            url = f"{self._base_url}/studies/{self.study_id}/links"
-            json_links = self._wrapper.get(url).json()
-            links = {}
-            for link in json_links:
-                area_from = link.pop("area1")
-                area_to = link.pop("area2")
-                api_response = LinkPropertiesAndUiAPI.model_validate(link)
-                link_properties = api_response.to_properties_user_model()
-                link_ui = api_response.to_ui_user_model()
-                link = Link(area_from, area_to, self, link_properties, link_ui)
-                links[link.id] = link
-
-        except APIError as e:
-            raise LinksRetrievalError(self.study_id, e.message) from e
-        return links
 
     @override
     def update_links_properties(self, new_properties: Dict[str, LinkPropertiesUpdate]) -> Dict[str, LinkProperties]:

@@ -18,18 +18,24 @@ from typing import Any, Optional
 
 import psutil
 
+from typing_extensions import override
+
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import AntaresSimulationRunningError, SimulationTimeOutError
 from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
 from antares.craft.service.base_services import BaseRunService
 from antares.study.version import SolverVersion
-from typing_extensions import override
 
 
 def _get_solver_version(solver_path: Path) -> SolverVersion:
-    solver_name = solver_path.name
-    solver_version_str = solver_name.removeprefix("antares-").removesuffix("-solver")
-    return SolverVersion.parse(solver_version_str)
+    process = subprocess.Popen(args=[str(solver_path) + " -v"], shell=True, stdout=subprocess.PIPE)
+    process.wait(timeout=5)
+    out, _ = process.communicate()
+    version_str = out.decode("utf-8").splitlines()[-1]
+    if "revision" in version_str:
+        # Means the solver version is a release candidate, we ignore the revision
+        version_str = version_str.split(" (revision")[0]
+    return SolverVersion.parse(version_str)
 
 
 class RunLocalService(BaseRunService):

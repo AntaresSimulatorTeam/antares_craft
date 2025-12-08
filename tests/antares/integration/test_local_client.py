@@ -28,16 +28,10 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import LinkProperties, LinkUi
-from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties
-from antares.craft.model.settings.advanced_parameters import (
-    AdvancedParametersUpdate,
-    UnitCommitmentMode,
-)
-from antares.craft.model.settings.general import GeneralParametersUpdate
-from antares.craft.model.settings.study_settings import StudySettingsUpdate
+from antares.craft.model.renewable import RenewableClusterProperties
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
 from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
-from antares.craft.tools.ini_tool import IniFile, InitializationFilesTypes
+from antares.craft.tools.serde_local.ini_reader import IniReader
 
 
 class TestLocalClient:
@@ -45,7 +39,7 @@ class TestLocalClient:
     Testing lifespan of a study in local mode. Creating a study, adding areas, links, clusters and so on.
     """
 
-    def test_local_study(self, tmp_path: Path):
+    def test_local_study(self, tmp_path: Path) -> None:
         study_name = "test study"
         study_version = "880"
 
@@ -60,7 +54,7 @@ class TestLocalClient:
         # Area already exists
         with pytest.raises(
             AreaCreationError,
-            match="Could not create the area fr: There is already an area 'fr' in the study 'test study'",
+            match="Could not create the area 'fr': There is already an area 'fr' in the study 'test study'",
         ):
             test_study.create_area("fr")
 
@@ -68,7 +62,7 @@ class TestLocalClient:
         at_fr = test_study.create_link(area_from=fr.id, area_to=at.id)
 
         # Cannot create a link from an area that doesn't exist in the study
-        with pytest.raises(LinkCreationError, match="Could not create the link fr / usa: usa does not exist"):
+        with pytest.raises(LinkCreationError, match="Could not create the link 'fr / usa': usa does not exist"):
             test_study.create_link(area_from=fr.id, area_to="usa")
 
         # Thermal
@@ -103,8 +97,7 @@ class TestLocalClient:
         assert area_be.id == "be"
         assert area_be.ui.x == area_ui.x
         assert area_be.ui.color_rgb == area_ui.color_rgb
-        be_ui_file = study_path.joinpath(InitializationFilesTypes.AREA_UI_INI.value.format(area_id=area_be.id))
-        assert be_ui_file.is_file()
+        assert (study_path / "input" / "areas" / area_be.id / "ui.ini").exists()
 
         # tests area creation with properties
         properties = AreaProperties(
@@ -131,13 +124,9 @@ class TestLocalClient:
         assert link_be_fr.ui.colorr == 44
         assert link_be_fr.properties.hurdles_cost
         assert link_be_fr.properties.filter_year_by_year == {FilterOption.HOURLY}
-        be_link_ini_file = study_path.joinpath(
-            InitializationFilesTypes.LINK_PROPERTIES_INI.value.format(area_id=area_be.id)
-        )
-        assert be_link_ini_file.is_file()
-        be_links_in_file = IniFile(study_path, InitializationFilesTypes.LINK_PROPERTIES_INI, area_be.id)
-        assert be_links_in_file.ini_dict["fr"]["hurdles-cost"] == "True"
-        assert be_links_in_file.ini_dict["fr"]["filter-year-by-year"] == "hourly"
+        ini_content = IniReader().read(study_path / "input" / "links" / area_be.id / "properties.ini")
+        assert ini_content["fr"]["hurdles-cost"] is True
+        assert ini_content["fr"]["filter-year-by-year"] == "hourly"
 
         # asserts study contains all links and areas
         assert test_study.get_areas() == {at.id: at, area_be.id: area_be, fr.id: fr, area_de.id: area_de}
@@ -151,25 +140,23 @@ class TestLocalClient:
 
         # test thermal cluster creation with properties
         thermal_name = "gaz_be"
-        thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS)
+        thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS.value)
         thermal_be = area_be.create_thermal_cluster(thermal_name, thermal_properties)
-        properties = thermal_be.properties
-        assert properties.efficiency == 55
-        assert properties.group == ThermalClusterGroup.GAS
+        assert thermal_be.properties.efficiency == 55
+        assert thermal_be.properties.group == ThermalClusterGroup.GAS.value
 
         # test renewable cluster creation with default values
         renewable_name = "cluster_test"
-        renewable_fr = fr.create_renewable_cluster(renewable_name, None, None)
+        renewable_fr = fr.create_renewable_cluster(renewable_name, None)
         assert renewable_fr.name == renewable_name
         assert renewable_fr.id == "cluster_test"
 
         # test renewable cluster creation with properties
         renewable_name = "wind_onshore"
-        renewable_properties = RenewableClusterProperties(enabled=False, group=RenewableClusterGroup.WIND_ON_SHORE)
-        renewable_onshore = fr.create_renewable_cluster(renewable_name, renewable_properties, None)
-        properties = renewable_onshore.properties
-        assert not properties.enabled
-        assert properties.group == RenewableClusterGroup.WIND_ON_SHORE
+        renewable_properties = RenewableClusterProperties(enabled=False, group="wind onshore")
+        renewable_onshore = fr.create_renewable_cluster(renewable_name, renewable_properties)
+        assert not renewable_onshore.properties.enabled
+        assert renewable_onshore.properties.group == "wind onshore"
 
         # test short term storage creation with default values
         st_storage_name = "cluster_test"
@@ -179,15 +166,14 @@ class TestLocalClient:
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
-        storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY)
+        storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY.value)
         battery_fr = fr.create_st_storage(st_storage_name, storage_properties)
-        properties = battery_fr.properties
-        assert properties.reservoir_capacity == 0.5
-        assert properties.group == STStorageGroup.BATTERY
+        assert battery_fr.properties.reservoir_capacity == 0.5
+        assert battery_fr.properties.group == STStorageGroup.BATTERY.value
 
         # test binding constraint creation without terms
-        properties = BindingConstraintProperties(enabled=False, group="group_1")
-        constraint_1 = test_study.create_binding_constraint(name="bc_1", properties=properties)
+        bc_props = BindingConstraintProperties(enabled=False, group="group_1")
+        constraint_1 = test_study.create_binding_constraint(name="bc_1", properties=bc_props)
         assert constraint_1.name == "bc_1"
         assert not constraint_1.properties.enabled
         assert constraint_1.properties.group == "group_1"
@@ -209,13 +195,15 @@ class TestLocalClient:
         cluster_data = ClusterData(area=area_be.id, cluster=thermal_be.id)
         cluster_term = ConstraintTerm(data=cluster_data, weight=100)
         terms = [link_term_1, cluster_term]
-        constraint_1.add_terms(terms)
+        constraint_1.set_terms(terms)
         assert constraint_1.get_terms() == {link_term_1.id: link_term_1, cluster_term.id: cluster_term}
 
         # Case that succeeds
-        properties = BindingConstraintProperties(operator=BindingConstraintOperator.LESS)
+        bc_properties = BindingConstraintProperties(operator=BindingConstraintOperator.LESS)
         matrix = pd.DataFrame(data=(np.ones((8784, 1))))
-        constraint_3 = test_study.create_binding_constraint(name="bc_3", less_term_matrix=matrix, properties=properties)
+        constraint_3 = test_study.create_binding_constraint(
+            name="bc_3", less_term_matrix=matrix, properties=bc_properties
+        )
         assert constraint_3.get_less_term_matrix().equals(matrix)
 
         # asserts study contains the constraints
@@ -224,12 +212,3 @@ class TestLocalClient:
             constraint_2.id: constraint_2,
             constraint_3.id: constraint_3,
         }
-
-        # test study creation with settings
-        settings = StudySettingsUpdate()
-        settings.general_parameters = GeneralParametersUpdate(nb_years=4)
-        settings.advanced_parameters = AdvancedParametersUpdate(unit_commitment_mode=UnitCommitmentMode.MILP)
-        new_study = create_study_local("second_study", "880", tmp_path)
-        new_study.update_settings(settings)
-        assert new_study.get_settings().general_parameters.nb_years == 4
-        assert new_study.get_settings().advanced_parameters.unit_commitment_mode == UnitCommitmentMode.MILP

@@ -16,25 +16,40 @@ from typing import Dict, List, Optional, cast
 
 import pandas as pd
 
-from antares.craft import APIconf
+from antares.craft import (
+    APIconf,
+    PlaylistParameters,
+    ScenarioBuilder,
+    STStorageAdditionalConstraintUpdate,
+    STStoragePropertiesUpdate,
+    ThematicTrimmingParameters,
+)
 from antares.craft.exceptions.exceptions import (
     LinkCreationError,
-    ReadingMethodUsedOufOfScopeError,
+    ReferencedObjectDeletionNotAllowed,
+    UnsupportedStudyVersion,
+    XpansionConfigurationMissingError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
+    ClusterData,
     ConstraintTerm,
+    LinkData,
 )
+from antares.craft.model.commons import STUDY_VERSION_8_8, STUDY_VERSION_9_2, STUDY_VERSION_9_3
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterPropertiesUpdate
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
+from antares.craft.model.st_storage import STStorage
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterPropertiesUpdate
+from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import BaseLinkService, BaseStudyService, StudyServices
+from antares.study.version import StudyVersion
 
 """
 The study module defines the data model for antares study.
@@ -43,6 +58,8 @@ between these areas.
 Optional attribute _api_id defined for studies being stored in web
 _study_path if stored in a disk
 """
+
+SUPPORTED_STUDY_VERSIONS: set[StudyVersion] = {STUDY_VERSION_8_8, STUDY_VERSION_9_2, STUDY_VERSION_9_3}
 
 
 class Study:
@@ -66,15 +83,14 @@ class Study:
     """
 
     def __init__(
-            self,
-            name: str,
-            version: str,
-            services: StudyServices,
-            path: PurePath = PurePath("."),
-            solver_path: Optional[Path] = None,
+        self,
+        name: str,
+        version: str,
+        services: StudyServices,
+        path: PurePath = PurePath("."),
+        solver_path: Optional[Path] = None,
     ):
         self.name = name
-        self.version = version
         self.path = path
         self._study_service = services.study_service
         self._area_service = services.area_service
@@ -82,50 +98,41 @@ class Study:
         self._run_service = services.run_service
         self._binding_constraints_service = services.bc_service
         self._settings_service = services.settings_service
+        self._xpansion_service = services.xpansion_service
+        self._xpansion_configuration: XpansionConfiguration | None = None
         self._settings = StudySettings()
-        self._areas: dict[str, Area] = dict()
-        self._links: dict[str, Link] = dict()
-        self._binding_constraints: dict[str, BindingConstraint] = dict()
-        self._outputs: dict[str, Output] = dict()
+        self._areas: dict[str, Area] = {}
+        self._links: dict[str, Link] = {}
+        self._binding_constraints: dict[str, BindingConstraint] = {}
+        self._outputs: dict[str, Output] = {}
         self._solver_path: Optional[Path] = solver_path
+
+        study_version = StudyVersion.parse(version)
+        if study_version not in SUPPORTED_STUDY_VERSIONS:
+            raise UnsupportedStudyVersion(version, SUPPORTED_STUDY_VERSIONS)
+        self._version = study_version
 
     @property
     def service(self) -> BaseStudyService:
         return self._study_service
-
-    def _read_areas(self) -> None:
-        """
-        Synchronize the internal study object with the actual object written in an antares study
-        """
-        if len(self._areas) > 0:
-            raise ReadingMethodUsedOufOfScopeError(self._study_service.study_id, "read_areas", "areas")
-        self._areas = self._area_service.read_areas()
-
-    def _read_links(self) -> None:
-        if len(self._links) > 0:
-            raise ReadingMethodUsedOufOfScopeError(self._study_service.study_id, "read_links", "links")
-        self._links = self._link_service.read_links()
-
-    def _read_settings(self) -> None:
-        self._settings = self._settings_service.read_study_settings()
 
     def update_settings(self, settings: StudySettingsUpdate) -> None:
         """
         Updates the study settings.
 
         Parameters:
-            settings: StudySettingsUpdate
-                New settings to be applied to the study configuration.
+            settings: StudySettingsUpdate: New settings to be applied to the study configuration.
         """
-        self._settings_service.edit_study_settings(settings)
-        new_settings = self._settings_service.read_study_settings()
-        self._settings.general_parameters = new_settings.general_parameters
-        self._settings.optimization_parameters = new_settings.optimization_parameters
-        self._settings.advanced_parameters = new_settings.advanced_parameters
-        self._settings.seed_parameters = new_settings.seed_parameters
-        self._settings.adequacy_patch_parameters = new_settings.adequacy_patch_parameters
-        self._settings.thematic_trimming_parameters = new_settings.thematic_trimming_parameters
-        self._settings.playlist_parameters = new_settings.playlist_parameters
+        new_settings = self._settings_service.edit_study_settings(settings, self._settings, self._version)
+        self._settings = new_settings
+
+    def set_playlist(self, playlist: dict[int, PlaylistParameters]) -> None:
+        self._settings_service.set_playlist(playlist)
+        self._settings.playlist_parameters = playlist
+
+    def set_thematic_trimming(self, thematic_trimming: ThematicTrimmingParameters) -> None:
+        trimming = self._settings_service.set_thematic_trimming(thematic_trimming)
+        self._settings.thematic_trimming_parameters = trimming
 
     def get_areas(self) -> MappingProxyType[str, Area]:
         """
@@ -152,7 +159,7 @@ class Study:
         return MappingProxyType(self._binding_constraints)
 
     def create_area(
-            self, area_name: str, *, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
+        self, area_name: str, *, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
     ) -> Area:
         """
         Adds a new area to the study.
@@ -175,16 +182,30 @@ class Study:
         """
         Deletes the specified area.
         """
+        # Check area is not referenced in any binding constraint
+        referencing_binding_constraints = []
+        for bc in self._binding_constraints.values():
+            for term in bc._terms.values():
+                data = term.data
+                if (isinstance(data, ClusterData) and data.area == area.id) or (
+                    isinstance(data, LinkData) and (data.area1 == area.id or data.area2 == area.id)
+                ):
+                    referencing_binding_constraints.append(bc.name)
+                    break
+        if referencing_binding_constraints:
+            raise ReferencedObjectDeletionNotAllowed(area.id, referencing_binding_constraints, object_type="Area")
+
+        # Delete the area
         self._area_service.delete_area(area.id)
         self._areas.pop(area.id)
 
     def create_link(
-            self,
-            *,
-            area_from: str,
-            area_to: str,
-            properties: Optional[LinkProperties] = None,
-            ui: Optional[LinkUi] = None,
+        self,
+        *,
+        area_from: str,
+        area_to: str,
+        properties: Optional[LinkProperties] = None,
+        ui: Optional[LinkUi] = None,
     ) -> Link:
         """
         Adds a new link to the study.
@@ -224,18 +245,30 @@ class Study:
         """
         Deletes the specified link.
         """
+        # Check link is not referenced in any binding constraint
+        referencing_binding_constraints = []
+        for bc in self._binding_constraints.values():
+            for term in bc._terms.values():
+                data = term.data
+                if isinstance(data, LinkData) and data.area1 == link.area_from_id and data.area2 == link.area_to_id:
+                    referencing_binding_constraints.append(bc.name)
+                    break
+        if referencing_binding_constraints:
+            raise ReferencedObjectDeletionNotAllowed(link.id, referencing_binding_constraints, object_type="Link")
+
+        # Delete the link
         self._link_service.delete_link(link)
         self._links.pop(link.id)
 
     def create_binding_constraint(
-            self,
-            *,
-            name: str,
-            properties: Optional[BindingConstraintProperties] = None,
-            terms: Optional[List[ConstraintTerm]] = None,
-            less_term_matrix: Optional[pd.DataFrame] = None,
-            equal_term_matrix: Optional[pd.DataFrame] = None,
-            greater_term_matrix: Optional[pd.DataFrame] = None,
+        self,
+        *,
+        name: str,
+        properties: Optional[BindingConstraintProperties] = None,
+        terms: Optional[List[ConstraintTerm]] = None,
+        less_term_matrix: Optional[pd.DataFrame] = None,
+        equal_term_matrix: Optional[pd.DataFrame] = None,
+        greater_term_matrix: Optional[pd.DataFrame] = None,
     ) -> BindingConstraint:
         """
         Create a new binding constraint.
@@ -256,13 +289,6 @@ class Study:
         )
         self._binding_constraints[binding_constraint.id] = binding_constraint
         return binding_constraint
-
-    def _read_binding_constraints(self) -> None:
-        if len(self._binding_constraints) > 0:
-            raise ReadingMethodUsedOufOfScopeError(
-                self._study_service.study_id, "read_binding_constraints", "constraints"
-            )
-        self._binding_constraints = self._binding_constraints_service.read_binding_constraints()
 
     def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
         """
@@ -399,12 +425,12 @@ class Study:
         # Copies objects to bypass the fact that the class is frozen
         self._settings.general_parameters = replace(self._settings.general_parameters, nb_timeseries_thermal=nb_years)
 
-    def update_areas(self, new_properties: Dict[str, AreaPropertiesUpdate]) -> None:
+    def update_areas(self, new_properties: Dict[Area, AreaPropertiesUpdate]) -> None:
         """
         Update existing areas properties.
 
         Parameters:
-            new_properties: a dictionary of area ID to area update data
+            new_properties: a mapping from area its new properties
         """
         new_areas_props = self._area_service.update_areas_properties(new_properties)
         for area_prop in new_areas_props:
@@ -424,7 +450,7 @@ class Study:
             self._areas[thermal.area_id]._thermals[thermal.id]._properties = new_thermal_clusters_props[thermal]
 
     def update_renewable_clusters(
-            self, new_properties: dict[RenewableCluster, RenewableClusterPropertiesUpdate]
+        self, new_properties: dict[RenewableCluster, RenewableClusterPropertiesUpdate]
     ) -> None:
         """
         Update existing renewable cluster properties.
@@ -462,6 +488,50 @@ class Study:
         for bc_props in new_bc_props:
             self._binding_constraints[bc_props]._properties = new_bc_props[bc_props]
 
+    def update_st_storages(self, new_properties: dict[STStorage, STStoragePropertiesUpdate]) -> None:
+        new_st_props = self._area_service.storage_service.update_st_storages_properties(new_properties)
+
+        for storage in new_st_props:
+            self._areas[storage.area_id]._st_storages[storage.id]._properties = new_st_props[storage]
+
+    def update_st_storages_constraints(
+        self, new_constraints: dict[STStorage, dict[str, STStorageAdditionalConstraintUpdate]]
+    ) -> None:
+        new_st_constraints = self._area_service.storage_service.update_st_storages_constraints(new_constraints)
+        for area_id, value in new_st_constraints.items():
+            for storage_id, values in value.items():
+                for constraint_id, constraint in values.items():
+                    self._areas[area_id]._st_storages[storage_id]._constraints[constraint_id] = constraint
+
+    def get_scenario_builder(self) -> ScenarioBuilder:
+        sc_builder = self._study_service.get_scenario_builder(self._settings.general_parameters.nb_years, self._version)
+        sc_builder.validate_against_version(self._version)
+        sc_builder._set_study(self)
+        return sc_builder
+
+    def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
+        scenario_builder.validate_against_version(self._version)
+        self._study_service.set_scenario_builder(scenario_builder)
+
+    @property
+    def xpansion(self) -> XpansionConfiguration:
+        if self._xpansion_configuration is None:
+            raise XpansionConfigurationMissingError(self._study_service.study_id)
+        return self._xpansion_configuration
+
+    @property
+    def has_an_xpansion_configuration(self) -> bool:
+        return self._xpansion_configuration is not None
+
+    def create_xpansion_configuration(self) -> XpansionConfiguration:
+        configuration = self._xpansion_service.create_xpansion_configuration()
+        self._xpansion_configuration = configuration
+        return configuration
+
+    def delete_xpansion_configuration(self) -> None:
+        self._xpansion_service.delete()
+        self._xpansion_configuration = None
+
 
 # Design note:
 # all following methods are entry points for study creation.
@@ -473,7 +543,7 @@ class Study:
 
 
 def create_study_local(
-        study_name: str, version: str, parent_directory: "Path", solver_path: Optional[Path] = None
+    study_name: str, version: str, parent_directory: "Path", solver_path: Optional[Path] = None
 ) -> "Study":
     """
     Creates a new study on your filesystem.
@@ -515,7 +585,7 @@ def read_study_local(study_path: "Path", solver_path: Optional[Path] = None) -> 
 
 
 def create_study_api(
-        study_name: str, version: str, api_config: APIconf, parent_path: "Optional[Path]" = None
+    study_name: str, version: str, api_config: APIconf, parent_path: "Optional[Path]" = None
 ) -> "Study":
     """
     Creates a study on antares-web server.

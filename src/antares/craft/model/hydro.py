@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import dataclass, replace
+from dataclasses import asdict, dataclass, replace
 from typing import Optional
 
 import pandas as pd
@@ -34,6 +34,8 @@ class HydroPropertiesUpdate:
     leeway_low: Optional[float] = None
     leeway_up: Optional[float] = None
     pumping_efficiency: Optional[float] = None
+    # Introduced in v9.2
+    overflow_spilled_cost_difference: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -53,25 +55,13 @@ class HydroProperties:
     leeway_low: float = 1
     leeway_up: float = 1
     pumping_efficiency: float = 1
+    # Introduced in v9.2
+    overflow_spilled_cost_difference: Optional[float] = None  # default 1
 
     def from_update_properties(self, update_properties: HydroPropertiesUpdate) -> "HydroProperties":
-        return HydroProperties(
-            inter_daily_breakdown=update_properties.inter_daily_breakdown or self.inter_daily_breakdown,
-            intra_daily_modulation=update_properties.intra_daily_modulation or self.intra_daily_modulation,
-            inter_monthly_breakdown=update_properties.inter_monthly_breakdown or self.inter_monthly_breakdown,
-            reservoir=update_properties.reservoir or self.reservoir,
-            reservoir_capacity=update_properties.reservoir_capacity or self.reservoir_capacity,
-            follow_load=update_properties.follow_load or self.follow_load,
-            use_water=update_properties.use_water or self.use_water,
-            hard_bounds=update_properties.hard_bounds or self.hard_bounds,
-            initialize_reservoir_date=update_properties.initialize_reservoir_date or self.initialize_reservoir_date,
-            use_heuristic=update_properties.use_heuristic or self.use_heuristic,
-            power_to_level=update_properties.power_to_level or self.power_to_level,
-            use_leeway=update_properties.use_leeway or self.use_leeway,
-            leeway_low=update_properties.leeway_low or self.leeway_low,
-            leeway_up=update_properties.leeway_up or self.leeway_up,
-            pumping_efficiency=update_properties.pumping_efficiency or self.pumping_efficiency,
-        )
+        current_properties = asdict(self)
+        current_properties.update({k: v for k, v in asdict(update_properties).items() if v is not None})
+        return HydroProperties(**current_properties)
 
     def to_update_properties(self) -> HydroPropertiesUpdate:
         return HydroPropertiesUpdate(
@@ -90,6 +80,7 @@ class HydroProperties:
             leeway_low=self.leeway_low,
             leeway_up=self.leeway_up,
             pumping_efficiency=self.pumping_efficiency,
+            overflow_spilled_cost_difference=self.overflow_spilled_cost_difference,
         )
 
 
@@ -103,14 +94,26 @@ class InflowStructureUpdate:
     intermonthly_correlation: float
 
 
+@dataclass(frozen=True)
+class HydroAllocation:
+    area_id: str
+    coefficient: float = 1
+
+
 class Hydro:
     def __init__(
-        self, service: BaseHydroService, area_id: str, properties: HydroProperties, inflow_structure: InflowStructure
+        self,
+        service: BaseHydroService,
+        area_id: str,
+        properties: HydroProperties,
+        inflow_structure: InflowStructure,
+        allocation: list[HydroAllocation],
     ):
         self._area_id = area_id
         self._service = service
         self._properties = properties
         self._inflow_structure = inflow_structure
+        self._allocation = allocation
 
     @property
     def area_id(self) -> str:
@@ -124,6 +127,10 @@ class Hydro:
     def inflow_structure(self) -> InflowStructure:
         return self._inflow_structure
 
+    @property
+    def allocation(self) -> list[HydroAllocation]:
+        return self._allocation
+
     def update_properties(self, properties: HydroPropertiesUpdate) -> None:
         self._service.update_properties(self.area_id, properties)
         self._properties = self._properties.from_update_properties(properties)
@@ -133,6 +140,10 @@ class Hydro:
         self._inflow_structure = replace(
             self._inflow_structure, intermonthly_correlation=inflow_structure.intermonthly_correlation
         )
+
+    def set_allocation(self, allocation: list[HydroAllocation]) -> None:
+        new_allocation = self._service.set_allocation(self.area_id, allocation)
+        self._allocation = new_allocation
 
     def get_maxpower(self) -> pd.DataFrame:
         return self._service.get_maxpower(self.area_id)

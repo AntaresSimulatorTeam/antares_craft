@@ -111,20 +111,20 @@ class Area:
     """
 
     def __init__(
-            self,
-            name: str,
-            area_service: BaseAreaService,
-            storage_service: BaseShortTermStorageService,
-            thermal_service: BaseThermalService,
-            renewable_service: BaseRenewableService,
-            hydro_service: BaseHydroService,
-            *,
-            renewables: Optional[dict[str, RenewableCluster]] = None,
-            thermals: Optional[dict[str, ThermalCluster]] = None,
-            st_storages: Optional[dict[str, STStorage]] = None,
-            hydro: Optional[Hydro] = None,
-            properties: Optional[AreaProperties] = None,
-            ui: Optional[AreaUi] = None,
+        self,
+        name: str,
+        area_service: BaseAreaService,
+        storage_service: BaseShortTermStorageService,
+        thermal_service: BaseThermalService,
+        renewable_service: BaseRenewableService,
+        hydro_service: BaseHydroService,
+        *,
+        renewables: Optional[dict[str, RenewableCluster]] = None,
+        thermals: Optional[dict[str, ThermalCluster]] = None,
+        st_storages: Optional[dict[str, STStorage]] = None,
+        hydro: Optional[Hydro] = None,
+        properties: Optional[AreaProperties] = None,
+        ui: Optional[AreaUi] = None,
     ):
         self._name = name
         self._id = transform_name_to_id(name)
@@ -133,10 +133,10 @@ class Area:
         self._thermal_service = thermal_service
         self._renewable_service = renewable_service
         self._hydro_service = hydro_service
-        self._renewables = renewables or dict()
-        self._thermals = thermals or dict()
-        self._st_storages = st_storages or dict()
-        self._hydro = hydro or Hydro(self._hydro_service, self._id, HydroProperties(), InflowStructure())
+        self._renewables = renewables or {}
+        self._thermals = thermals or {}
+        self._st_storages = st_storages or {}
+        self._hydro = hydro or Hydro(self._hydro_service, self._id, HydroProperties(), InflowStructure(), [])
         self._properties = properties or AreaProperties()
         self._ui = ui or AreaUi()
 
@@ -203,14 +203,7 @@ class Area:
         return self._ui
 
     def create_thermal_cluster(
-            self,
-            thermal_name: str,
-            properties: Optional[ThermalClusterProperties] = None,
-            prepro: Optional[pd.DataFrame] = None,
-            modulation: Optional[pd.DataFrame] = None,
-            series: Optional[pd.DataFrame] = None,
-            co2_cost: Optional[pd.DataFrame] = None,
-            fuel_cost: Optional[pd.DataFrame] = None,
+        self, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
     ) -> ThermalCluster:
         """
         Creates a new thermal cluster in the current area.
@@ -218,31 +211,16 @@ class Area:
         Parameters:
             thermal_name: The name of the new thermal cluster.
             properties: The properties of the new thermal cluster.
-            prepro: Daily timeseries used for the generation of availability timeseries. Should have 365 rows,
-                    and 6 columns: expected forced outage duration, expected planned outage duration, rate of forced
-                    outage, rate of planned outage, minimum count of planned outages, and maximum count of planned outages.
-            modulation: Hourly modulation timeseries. The table should have 8760 and 4 columns:
-                        1st column is cost modulation, 2nd is marked bid modulation, 3rd is capacity modulation,
-                        4th is minimum generation modulation.
-            series: Hourly timeseries of generation availability. Should have 8760 rows, and as many
-                    columns as scenarios. Values should be the overall available generation in MW for that hour.
-            co2_cost: The hourly cost of CO2 emissions.
-            fuel_cost: The hourly fuel cost.
 
         Returns:
             The newly created thermal cluster.
         """
-        thermal = self._area_service.create_thermal_cluster(
-            self.id, thermal_name, properties, prepro, modulation, series, co2_cost, fuel_cost
-        )
+        thermal = self._area_service.create_thermal_cluster(self.id, thermal_name, properties)
         self._thermals[thermal.id] = thermal
         return thermal
 
     def create_renewable_cluster(
-            self,
-            renewable_name: str,
-            properties: Optional[RenewableClusterProperties] = None,
-            series: Optional[pd.DataFrame] = None,
+        self, renewable_name: str, properties: Optional[RenewableClusterProperties] = None
     ) -> RenewableCluster:
         """
         Creates a new renewable cluster in the current area.
@@ -250,12 +228,11 @@ class Area:
         Parameters:
             renewable_name: The name of the new renewable cluster.
             properties: The properties of the new renewable cluster.
-            series: Hourly timeseries of generation value.
 
         Returns:
             The newly created renewable cluster.
         """
-        renewable = self._area_service.create_renewable_cluster(self.id, renewable_name, properties, series=series)
+        renewable = self._area_service.create_renewable_cluster(self.id, renewable_name, properties)
         self._renewables[renewable.id] = renewable
         return renewable
 
@@ -339,12 +316,12 @@ class Area:
         self.delete_st_storages([storage])
 
     def update_properties(self, properties: AreaPropertiesUpdate) -> AreaProperties:
-        new_properties = self._area_service.update_areas_properties({self.id: properties})
+        new_properties = self._area_service.update_areas_properties({self: properties})
         self._properties = new_properties[self.id]
         return self._properties
 
     def update_ui(self, ui: AreaUiUpdate) -> AreaUi:
-        new_ui = self._area_service.update_area_ui(self.id, ui)
+        new_ui = self._area_service.update_area_ui(self, ui)
         self._ui = new_ui
         return new_ui
 

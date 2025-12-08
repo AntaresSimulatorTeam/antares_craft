@@ -10,13 +10,16 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
+from typing import Any, Optional
 
+from pydantic import Field
+
+from antares.craft.model.commons import STUDY_VERSION_9_2
 from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
+from antares.craft.service.local_services.models.utils import check_min_version, initialize_field_default
 from antares.craft.tools.alias_generators import to_kebab
-from antares.craft.tools.all_optional_meta import all_optional_model
-from pydantic import Field
-from typing_extensions import override
+from antares.study.version import StudyVersion
 
 HydroPropertiesType = HydroProperties | HydroPropertiesUpdate
 HydroInflowStructureType = InflowStructure | InflowStructureUpdate
@@ -38,10 +41,16 @@ class HydroPropertiesLocal(LocalBaseModel):
     leeway_low: float = Field(default=1, alias="leeway low")
     leeway_up: float = Field(default=1, alias="leeway up")
     pumping_efficiency: float = Field(default=1, alias="pumping efficiency")
+    # Introduced in v9.2
+    overflow_spilled_cost_difference: Optional[float] = Field(default=None, alias="overflow spilled cost difference")
+
+    @staticmethod
+    def get_9_2_fields_and_default_value() -> dict[str, Any]:
+        return {"overflow_spilled_cost_difference": 1}
 
     @staticmethod
     def from_user_model(user_class: HydroPropertiesType) -> "HydroPropertiesLocal":
-        user_dict = asdict(user_class)
+        user_dict = {k: v for k, v in asdict(user_class).items() if v is not None}
         return HydroPropertiesLocal.model_validate(user_dict)
 
     def to_user_model(self) -> HydroProperties:
@@ -60,16 +69,36 @@ class HydroPropertiesLocal(LocalBaseModel):
             leeway_low=self.leeway_low,
             leeway_up=self.leeway_up,
             pumping_efficiency=self.pumping_efficiency,
+            overflow_spilled_cost_difference=self.overflow_spilled_cost_difference,
         )
 
 
-@all_optional_model
-class HydroPropertiesLocalUpdate(HydroPropertiesLocal):
-    @staticmethod
-    @override
-    def from_user_model(user_class: HydroPropertiesType) -> "HydroPropertiesLocalUpdate":
-        user_dict = asdict(user_class)
-        return HydroPropertiesLocalUpdate.model_validate(user_dict)
+def validate_properties_against_version(properties: HydroPropertiesLocal, version: StudyVersion) -> None:
+    if version < STUDY_VERSION_9_2:
+        for field in HydroPropertiesLocal.get_9_2_fields_and_default_value():
+            check_min_version(properties, field, version)
+
+
+def initialize_with_version(properties: HydroPropertiesLocal, version: StudyVersion) -> HydroPropertiesLocal:
+    if version >= STUDY_VERSION_9_2:
+        for field, value in HydroPropertiesLocal.get_9_2_fields_and_default_value().items():
+            initialize_field_default(properties, field, value)
+    return properties
+
+
+def parse_hydro_properties_local(study_version: StudyVersion, data: Any) -> HydroProperties:
+    local_properties = HydroPropertiesLocal.model_validate(data)
+    validate_properties_against_version(local_properties, study_version)
+    initialize_with_version(local_properties, study_version)
+    return local_properties.to_user_model()
+
+
+def serialize_hydro_properties_local(
+    study_version: StudyVersion, properties: HydroPropertiesType, exclude_unset: bool
+) -> dict[str, Any]:
+    local_properties = HydroPropertiesLocal.from_user_model(properties)
+    validate_properties_against_version(local_properties, study_version)
+    return local_properties.model_dump(mode="json", by_alias=True, exclude_none=True, exclude_unset=exclude_unset)
 
 
 class InterMonthlyCorrelation(LocalBaseModel, alias_generator=to_kebab):
