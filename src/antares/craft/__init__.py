@@ -12,7 +12,7 @@
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
+from antares.craft.model.area import AdequacyPatchMode, Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
@@ -182,6 +182,7 @@ __all__ = [
     "ThematicTrimmingParameters",
     "StudySettingsUpdate",
     "ScenarioBuilder",
+    "Area",
     "AreaProperties",
     "AreaPropertiesUpdate",
     "AreaUi",

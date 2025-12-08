@@ -32,6 +32,7 @@ theme:
 
 plugins:
   - search
+  - autorefs
   - mkdocstrings:
       default_handler: python
       handlers:
@@ -40,6 +41,9 @@ plugins:
           options:
             show_bases: false
             show_source: false
+            show_signature: true
+            show_signature_annotations: false
+            separate_signature: true
 
 extra_css:
   - stylesheets/extra.css
