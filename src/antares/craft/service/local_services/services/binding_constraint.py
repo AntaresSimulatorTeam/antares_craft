@@ -27,6 +27,7 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintFrequency,
+    BindingConstraintOperator,
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
     ConstraintMatrixName,
@@ -53,6 +54,28 @@ DEFAULT_VALUE_MAPPING = {
     BindingConstraintFrequency.WEEKLY: (366, 1),
     BindingConstraintFrequency.DAILY: (366, 1),
 }
+
+
+def _check_matrices_coherence(
+    operator: BindingConstraintOperator,
+    name: str,
+    less_term_matrix: pd.DataFrame | None,
+    greater_term_matrix: pd.DataFrame | None,
+    equal_term_matrix: pd.DataFrame | None,
+) -> None:
+    OPERATOR_CONFLICT_MAP = {
+        BindingConstraintOperator.EQUAL: [less_term_matrix, greater_term_matrix],
+        BindingConstraintOperator.GREATER: [less_term_matrix, equal_term_matrix],
+        BindingConstraintOperator.LESS: [equal_term_matrix, greater_term_matrix],
+        BindingConstraintOperator.BOTH: [equal_term_matrix],
+    }
+
+    for matrix in OPERATOR_CONFLICT_MAP[operator]:
+        if matrix is not None:
+            raise BindingConstraintCreationError(
+                name,
+                f"You cannot fill matrices '{OPERATOR_CONFLICT_MAP[operator]}' while using the operator '{operator}'",
+            )
 
 
 class BindingConstraintLocalService(BaseBindingConstraintService):
@@ -85,14 +108,20 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         self._create_constraint_inside_ini(name, local_properties, terms or [])
 
         # Save matrices
-        mapping = {
-            ConstraintMatrixName.LESS_TERM: less_term_matrix,
-            ConstraintMatrixName.EQUAL_TERM: equal_term_matrix,
-            ConstraintMatrixName.GREATER_TERM: greater_term_matrix,
-        }
-        for matrix_name, matrix in mapping.items():
-            matrix = matrix if matrix is not None else pd.DataFrame()
-            self.set_constraint_matrix(constraint, matrix_name, matrix)
+        operator = local_properties.operator
+        _check_matrices_coherence(operator, name, less_term_matrix, greater_term_matrix, equal_term_matrix)
+
+        if operator == BindingConstraintOperator.EQUAL:
+            matrix = equal_term_matrix if equal_term_matrix is not None else pd.DataFrame()
+            self.set_constraint_matrix(constraint, ConstraintMatrixName.EQUAL_TERM, matrix)
+
+        if operator in {BindingConstraintOperator.GREATER, BindingConstraintOperator.BOTH}:
+            matrix = greater_term_matrix if greater_term_matrix is not None else pd.DataFrame()
+            self.set_constraint_matrix(constraint, ConstraintMatrixName.GREATER_TERM, matrix)
+
+        if operator in {BindingConstraintOperator.LESS, BindingConstraintOperator.BOTH}:
+            matrix = less_term_matrix if less_term_matrix is not None else pd.DataFrame()
+            self.set_constraint_matrix(constraint, ConstraintMatrixName.LESS_TERM, matrix)
 
         return constraint
 
