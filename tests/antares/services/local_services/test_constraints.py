@@ -19,6 +19,7 @@ import pandas as pd
 
 from antares.craft import Study
 from antares.craft.exceptions.exceptions import (
+    BindingConstraintCreationError,
     ConstraintDoesNotExistError,
     MatrixFormatError,
 )
@@ -209,3 +210,49 @@ class TestBindingConstraints:
             match=f"The binding constraint '{bc.name}' doesn't exist inside study '{study_name}'.",
         ):
             bc.set_terms([])
+
+    def test_create_bc_with_wrong_matrices(self, local_study: Study) -> None:
+        name = "bc1"
+        default_matrix = pd.DataFrame(data=8784 * [[3]])
+
+        # Less operator
+        properties = BindingConstraintProperties(operator=BindingConstraintOperator.LESS)
+        msg = "You cannot fill matrices '['equal_term_matrix', 'greater_term_matrix']' while using the operator 'less'"
+        with pytest.raises(BindingConstraintCreationError, match=re.escape(msg)):
+            local_study.create_binding_constraint(name=name, properties=properties, equal_term_matrix=default_matrix)
+        with pytest.raises(BindingConstraintCreationError, match=re.escape(msg)):
+            local_study.create_binding_constraint(name=name, properties=properties, greater_term_matrix=default_matrix)
+
+        # Equal operator
+        properties = BindingConstraintProperties(operator=BindingConstraintOperator.EQUAL)
+        msg = "You cannot fill matrices '['less_term_matrix', 'greater_term_matrix']' while using the operator 'equal'"
+        with pytest.raises(BindingConstraintCreationError, match=re.escape(msg)):
+            local_study.create_binding_constraint(name=name, properties=properties, greater_term_matrix=default_matrix)
+        with pytest.raises(BindingConstraintCreationError, match=re.escape(msg)):
+            local_study.create_binding_constraint(name=name, properties=properties, less_term_matrix=default_matrix)
+
+        # Both operator
+        properties = BindingConstraintProperties(operator=BindingConstraintOperator.BOTH)
+        msg = "You cannot fill matrices '['equal_term_matrix']' while using the operator 'both'"
+        with pytest.raises(BindingConstraintCreationError, match=re.escape(msg)):
+            local_study.create_binding_constraint(name=name, properties=properties, equal_term_matrix=default_matrix)
+
+        # Greater operator
+        properties = BindingConstraintProperties(operator=BindingConstraintOperator.GREATER)
+        msg = "You cannot fill matrices '['less_term_matrix', 'equal_term_matrix']' while using the operator 'greater'"
+        with pytest.raises(BindingConstraintCreationError, match=re.escape(msg)):
+            local_study.create_binding_constraint(name=name, properties=properties, equal_term_matrix=default_matrix)
+        with pytest.raises(BindingConstraintCreationError, match=re.escape(msg)):
+            local_study.create_binding_constraint(name=name, properties=properties, less_term_matrix=default_matrix)
+
+    def test_create_bc_creates_only_needed_matrices(self, local_study: Study) -> None:
+        name = "bc1"
+        default_matrix = pd.DataFrame(data=8784 * [[3]])
+        properties = BindingConstraintProperties(operator=BindingConstraintOperator.LESS)
+        bc = local_study.create_binding_constraint(name=name, properties=properties, less_term_matrix=default_matrix)
+        assert bc.get_less_term_matrix().equals(default_matrix)
+        # Checks only one matrix is created
+        bc_folder = Path(local_study.path) / "input" / "bindingconstraints"
+        matrices = list(bc_folder.glob("*.txt"))
+        assert len(matrices) == 1
+        assert matrices[0].name == "bc1_lt.txt"

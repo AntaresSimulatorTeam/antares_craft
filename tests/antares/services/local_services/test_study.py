@@ -1295,7 +1295,7 @@ at%fr = 1%1
                 f"Wrong format for bindingconstraints/{bc_name}/bc_hourly matrix, expected shape is (8784, Any) and was : (3, 1)"
             ),
         ):
-            local_study.create_binding_constraint(name=bc_name, greater_term_matrix=wrong_time_series)
+            local_study.create_binding_constraint(name=bc_name, less_term_matrix=wrong_time_series)
 
         bc_name = "bc_2"
         bc = local_study.create_binding_constraint(name=bc_name)
