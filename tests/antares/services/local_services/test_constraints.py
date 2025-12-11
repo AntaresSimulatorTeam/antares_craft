@@ -244,3 +244,15 @@ class TestBindingConstraints:
             local_study.create_binding_constraint(name=name, properties=properties, equal_term_matrix=default_matrix)
         with pytest.raises(BindingConstraintCreationError, match=re.escape(msg)):
             local_study.create_binding_constraint(name=name, properties=properties, less_term_matrix=default_matrix)
+
+    def test_create_bc_creates_only_needed_matrices(self, local_study: Study) -> None:
+        name = "bc1"
+        default_matrix = pd.DataFrame(data=8784 * [[3]])
+        properties = BindingConstraintProperties(operator=BindingConstraintOperator.LESS)
+        bc = local_study.create_binding_constraint(name=name, properties=properties, less_term_matrix=default_matrix)
+        assert bc.get_less_term_matrix().equals(default_matrix)
+        # Checks only one matrix is created
+        bc_folder = Path(local_study.path) / "input" / "bindingconstraints"
+        matrices = list(bc_folder.glob("*.txt"))
+        assert len(matrices) == 1
+        assert matrices[0].name == "bc1_lt.txt"
