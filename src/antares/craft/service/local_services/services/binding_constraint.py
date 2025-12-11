@@ -57,12 +57,12 @@ DEFAULT_VALUE_MAPPING = {
 
 
 def _check_matrices_coherence(
-    operator: BindingConstraintOperator,
-    name: str,
+    constraint: BindingConstraint,
     less_term_matrix: pd.DataFrame | None,
     greater_term_matrix: pd.DataFrame | None,
     equal_term_matrix: pd.DataFrame | None,
 ) -> None:
+    # Checks if there's a conflict between operator and given matrices
     OPERATOR_CONFLICT_MAP = {
         BindingConstraintOperator.EQUAL: [less_term_matrix, greater_term_matrix],
         BindingConstraintOperator.GREATER: [less_term_matrix, equal_term_matrix],
@@ -70,11 +70,31 @@ def _check_matrices_coherence(
         BindingConstraintOperator.BOTH: [equal_term_matrix],
     }
 
+    operator = constraint.properties.operator
     for matrix in OPERATOR_CONFLICT_MAP[operator]:
         if matrix is not None:
+            OPERATOR_CONFLICT_MAP_NAME = {
+                BindingConstraintOperator.EQUAL: ["less_term_matrix", "greater_term_matrix"],
+                BindingConstraintOperator.GREATER: ["less_term_matrix", "equal_term_matrix"],
+                BindingConstraintOperator.LESS: ["equal_term_matrix", "greater_term_matrix"],
+                BindingConstraintOperator.BOTH: ["equal_term_matrix"],
+            }
             raise BindingConstraintCreationError(
-                name,
-                f"You cannot fill matrices '{OPERATOR_CONFLICT_MAP[operator]}' while using the operator '{operator}'",
+                constraint.name,
+                f"You cannot fill matrices '{OPERATOR_CONFLICT_MAP_NAME[operator]}' while using the operator '{operator.value}'",
+            )
+
+    # Checks matrix dimensions
+    OPERATOR_MAP = {
+        BindingConstraintOperator.EQUAL: [equal_term_matrix],
+        BindingConstraintOperator.GREATER: [greater_term_matrix],
+        BindingConstraintOperator.LESS: [less_term_matrix],
+        BindingConstraintOperator.BOTH: [less_term_matrix, greater_term_matrix],
+    }
+    for matrix in OPERATOR_MAP[operator]:
+        if matrix is not None:
+            checks_matrix_dimensions(
+                matrix, f"bindingconstraints/{constraint.id}", f"bc_{constraint.properties.time_step.value}"
             )
 
 
@@ -102,15 +122,16 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             properties=properties,
             terms=terms,
         )
+        # Check matrices coherence at first
+        _check_matrices_coherence(constraint, less_term_matrix, greater_term_matrix, equal_term_matrix)
 
+        # Save the ini content
         local_properties = BindingConstraintPropertiesLocal.from_user_model(properties)
 
         self._create_constraint_inside_ini(name, local_properties, terms or [])
 
         # Save matrices
-        operator = local_properties.operator
-        _check_matrices_coherence(operator, name, less_term_matrix, greater_term_matrix, equal_term_matrix)
-
+        operator = properties.operator
         if operator == BindingConstraintOperator.EQUAL:
             matrix = equal_term_matrix if equal_term_matrix is not None else pd.DataFrame()
             self.set_constraint_matrix(constraint, ConstraintMatrixName.EQUAL_TERM, matrix)
