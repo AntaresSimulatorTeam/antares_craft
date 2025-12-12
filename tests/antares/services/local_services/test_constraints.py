@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from antares.craft import Study
+from antares.craft import BindingConstraintFrequency, Study
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
     ConstraintDoesNotExistError,
@@ -256,3 +256,46 @@ class TestBindingConstraints:
         matrices = list(bc_folder.glob("*.txt"))
         assert len(matrices) == 1
         assert matrices[0].name == "bc1_lt.txt"
+
+    def test_modify_constraint_time_step(self, local_study_with_constraint: Study) -> None:
+        bc = local_study_with_constraint.get_binding_constraints()["test constraint"]
+        # Set a matrix with specific values
+        matrix = pd.DataFrame(data=8784 * [[3]])
+        bc.set_less_term(matrix)
+        # Asserts the matrix is saved correctly
+        assert bc.get_less_term_matrix().equals(matrix)
+        # Update the timestep
+        new_properties = BindingConstraintPropertiesUpdate(time_step=BindingConstraintFrequency.DAILY)
+        bc.update_properties(new_properties)
+        # Assert the matrix was reset to its default value
+        assert bc.get_less_term_matrix().equals(pd.DataFrame(366 * [[0.0]]))
+
+    def test_modify_constraint_operator(self, local_study_with_constraint: Study) -> None:
+        bc = local_study_with_constraint.get_binding_constraints()["test constraint"]
+        # Set a matrix with specific values
+        matrix = pd.DataFrame(data=8784 * [[3]])
+        bc.set_less_term(matrix)
+        # Asserts the matrix is saved correctly
+        assert bc.get_less_term_matrix().equals(matrix)
+        # Update the operator
+        new_properties = BindingConstraintPropertiesUpdate(operator=BindingConstraintOperator.GREATER)
+        bc.update_properties(new_properties)
+        # Check the matrices were swapped accordingly
+        default_matrix = pd.DataFrame(8784 * [[0.0]])
+        assert bc.get_less_term_matrix().equals(default_matrix)
+        assert bc.get_greater_term_matrix().equals(matrix)
+
+        # Use operator `BOTH`
+        new_properties = BindingConstraintPropertiesUpdate(operator=BindingConstraintOperator.BOTH)
+        bc.update_properties(new_properties)
+        # Check the matrix was duplicated
+        assert bc.get_less_term_matrix().equals(matrix)
+        assert bc.get_greater_term_matrix().equals(matrix)
+
+        # Use operator `EQUAL`
+        new_properties = BindingConstraintPropertiesUpdate(operator=BindingConstraintOperator.EQUAL)
+        bc.update_properties(new_properties)
+        # Check the matrices were swapped accordingly
+        assert bc.get_less_term_matrix().equals(default_matrix)
+        assert bc.get_less_term_matrix().equals(default_matrix)
+        assert bc.get_equal_term_matrix().equals(matrix)

@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 import copy
+import shutil
 
 from typing import Any, Optional
 
@@ -207,11 +208,23 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         new_properties_dict: dict[str, BindingConstraintProperties] = {}
         all_constraint_to_update = set(new_properties.keys())  # used to raise an Exception if a bc doesn't exist
 
+        # Gather all BCs where `operator` was modified for future usage.
+        operator_dict: dict[str, tuple[BindingConstraintOperator, BindingConstraintOperator]] = {}
+
+        # Modify the ini content in memory
         current_ini_content = self.read_ini()
         for key, constraint in current_ini_content.items():
             constraint_id = constraint["id"]
             if constraint_id in new_properties:
                 all_constraint_to_update.remove(constraint_id)
+
+                # Check operator change
+                new_operator = new_properties[constraint_id].operator
+                if new_operator:
+                    old_operator_text = constraint.get("operator", BindingConstraintOperator.LESS.value)
+                    old_operator = BindingConstraintOperator(old_operator_text)
+                    if new_operator != old_operator:
+                        operator_dict[constraint_id] = (old_operator, new_operator)
 
                 # Performs the update
                 local_properties = BindingConstraintPropertiesLocal.from_user_model(new_properties[constraint_id])
@@ -229,6 +242,12 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
         # Update ini file
         self._save_ini(current_ini_content)
+
+        # We should modify matrices if some updates concerned `time_step`
+        self._change_constraint_matrices_according_to_new_timestep(new_properties)
+
+        # Same goes for constraints where the `operator` was modified
+        self._change_constraint_matrices_according_to_new_operator(operator_dict)
 
         return new_properties_dict
 
@@ -302,3 +321,53 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         }
         current_ini_content[existing_key] = dict_props_terms
         self._save_ini(current_ini_content)
+
+    def _change_constraint_matrices_according_to_new_timestep(
+        self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
+    ) -> None:
+        study_path = self.config.study_path
+        for bc_id, update_properties in new_properties.items():
+            if update_properties.time_step is not None:
+                # The user changed the time_step -> We reset matrices to their default values
+                # We're doing so by removing all matrices are they are optional
+                for keyword in ["lt", "gt", "eq"]:
+                    (study_path / "input" / "bindingconstraints" / f"{bc_id}_{keyword}.txt").unlink(missing_ok=True)
+
+    def _change_constraint_matrices_according_to_new_operator(
+        self, operator_dict: dict[str, tuple[BindingConstraintOperator, BindingConstraintOperator]]
+    ) -> None:
+        study_path = self.config.study_path
+        mapping = {
+            BindingConstraintOperator.EQUAL: ["eq"],
+            BindingConstraintOperator.GREATER: ["gt"],
+            BindingConstraintOperator.LESS: ["lt"],
+            BindingConstraintOperator.BOTH: ["lt", "gt"],
+        }
+        for bc_id, (existing_operator, new_operator) in operator_dict.items():
+            # The user changed the operator -> We move the existing matrices to their new path according to the new operator.
+            if existing_operator != BindingConstraintOperator.BOTH and new_operator != BindingConstraintOperator.BOTH:
+                old_matrix_name = mapping[existing_operator][0]
+                new_matrix_name = mapping[new_operator][0]
+                old_matrix_path = study_path / "input" / "bindingconstraints" / f"{bc_id}_{old_matrix_name}.txt"
+                new_matrix_path = study_path / "input" / "bindingconstraints" / f"{bc_id}_{new_matrix_name}.txt"
+                old_matrix_path.rename(new_matrix_path)
+
+            elif new_operator == BindingConstraintOperator.BOTH:
+                old_matrix_name = mapping[existing_operator][0]
+                old_matrix_path = study_path / "input" / "bindingconstraints" / f"{bc_id}_{old_matrix_name}.txt"
+
+                new_name1, new_name2 = mapping[new_operator]
+                new_path1 = study_path / "input" / "bindingconstraints" / f"{bc_id}_{new_name1}.txt"
+                old_matrix_path.rename(new_path1)
+                new_path2 = study_path / "input" / "bindingconstraints" / f"{bc_id}_{new_name2}.txt"
+                shutil.copyfile(new_path1, new_path2)
+
+            else:
+                new_matrix_name = mapping[new_operator][0]
+                new_matrix_path = study_path / "input" / "bindingconstraints" / f"{bc_id}_{new_matrix_name}.txt"
+
+                old_name1, old_name2 = mapping[existing_operator]
+                old_path1 = study_path / "input" / "bindingconstraints" / f"{bc_id}_{old_name1}.txt"
+                old_path1.rename(new_matrix_path)
+                old_path2 = study_path / "input" / "bindingconstraints" / f"{bc_id}_{old_name2}.txt"
+                old_path2.unlink()
