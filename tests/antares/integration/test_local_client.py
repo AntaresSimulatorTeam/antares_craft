@@ -71,7 +71,7 @@ class TestLocalClient:
         # Setup time series for following tests
         time_series_rows = 10  # 365 * 24
         time_series_columns = 1
-        time_series = pd.DataFrame(np.around(np.random.rand(time_series_rows, time_series_columns)))
+        time_series = pd.DataFrame(np.around(np.random.rand(time_series_rows, time_series_columns)), dtype=np.int64)
 
         # Load
         fr.set_load(time_series)

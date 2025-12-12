@@ -143,15 +143,17 @@ def read_timeseries(
 
     if file_path.exists() and file_path.lstat().st_size != 0:
         try:
-            return pl.read_csv(file_path, n_threads=1, separator="\t", has_header=False).to_pandas()
+            polars_df = pl.read_csv(file_path, n_threads=1, separator="\t", has_header=False)
         except ComputeError:
             # Happens for file `conversion.txt` as polars infer the data as int64, but the value is too big.
             # In such cases, we'll read the data as a string and convert it in float64 afterward
-            return (
-                pl.read_csv(file_path, n_threads=1, separator="\t", has_header=False, infer_schema=False)
-                .with_columns(pl.all().cast(pl.Float64))
-                .to_pandas()
-            )
+            polars_df = pl.read_csv(
+                file_path, n_threads=1, separator="\t", has_header=False, infer_schema=False
+            ).with_columns(pl.all().cast(pl.Float64))
+
+        df = polars_df.to_pandas()
+        df.columns = pd.RangeIndex(len(df.columns))  # type: ignore
+        return df
 
     if not file_path.exists() and ts_file_type not in OPTIONAL_MATRICES:
         raise FileNotFoundError(f"File {file_path} not found")
