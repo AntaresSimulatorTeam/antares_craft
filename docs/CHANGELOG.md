@@ -1,3 +1,25 @@
+v0.7.0 (2025-12-12)
+-------------------
+
+## Compatibility
+* This version is compatible with AntaresWeb v2.27.0. So does the 0.6.0.
+
+### Bug fixes
+* **local, thermal**: consider free groups before 9.3 are `other 1` [`292`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/292)
+* **local, st-storage**: make groups case-insensitive [`293`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/293)
+* **local, bc**: check matrices coherence at constraint creation [`298`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/298)
+* **local, bc**: modify matrices when updating constraint `time_step` or `operator` [`301`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/301)
+
+### Perfs
+* **local, output**: use polars inside output aggregation [`302`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/302)
+* **local, matrix**: use polars to read and write input matrices [`303`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/303)
+
+### Others
+* **ci**: use the right desktop name [`291`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/291)
+* **doc**: more docstrings [`144`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/144)
+* **tests**: use AntaresWeb 2.27 inside integration tests [`300`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/300)
+
+
 v0.6.0 (2025-11-07)
 -------------------
 
