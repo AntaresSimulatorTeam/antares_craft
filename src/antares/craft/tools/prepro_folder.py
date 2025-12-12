@@ -29,9 +29,10 @@ class PreproFolder(Enum):
         ini_path = study_path / "input" / self.value / "prepro" / area_id / "settings.ini"
         IniWriter().write({}, ini_path)
 
-        conversion_matrix = pd.DataFrame([[-9999999980506447872, 0, 9999999980506447872], [0, 0, 0]], dtype=np.float64)
+        conversion_matrix = pd.DataFrame([[-9999999980506447872, 0, 9999999980506447872], [0, 0, 0]])
         ts_type = TimeSeriesFileType.__getitem__(f"{self.value.upper()}_CONVERSION")
-        write_timeseries(study_path, conversion_matrix, ts_type, area_id=area_id)
+        file_path = study_path / ts_type.value.format(area_id=area_id)
+        conversion_matrix.to_csv(file_path, sep="\t", header=False, index=False, encoding="utf-8")
 
         data_matrix = pd.DataFrame(np.ones([12, 6]), dtype=int)
         data_matrix[2] = 0
