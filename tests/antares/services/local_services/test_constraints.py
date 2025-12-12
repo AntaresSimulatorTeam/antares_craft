@@ -283,3 +283,10 @@ class TestBindingConstraints:
         # Check the matrices were swapped accordingly
         assert bc.get_less_term_matrix().equals(pd.DataFrame(8784 * [[0.0]]))
         assert bc.get_greater_term_matrix().equals(matrix)
+
+        # Use operator `BOTH`
+        new_properties = BindingConstraintPropertiesUpdate(operator=BindingConstraintOperator.BOTH)
+        bc.update_properties(new_properties)
+        # Check the matrix was duplicated
+        assert bc.get_less_term_matrix().equals(matrix)
+        assert bc.get_greater_term_matrix().equals(matrix)

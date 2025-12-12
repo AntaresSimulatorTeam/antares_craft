@@ -362,10 +362,6 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
                 new_path2 = study_path / "input" / "bindingconstraints" / f"{bc_id}_{new_name2}.txt"
                 shutil.copyfile(new_path1, new_path2)
 
-                for name in mapping[new_operator]:
-                    new_path = study_path / "input" / "bindingconstraints" / f"{bc_id}_{name}.txt"
-                    old_matrix_path.rename(new_path)
-
             else:
                 new_matrix_name = mapping[existing_operator][0]
                 new_matrix_path = study_path / "input" / "bindingconstraints" / f"{bc_id}_{new_matrix_name}.txt"
