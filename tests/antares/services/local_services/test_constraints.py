@@ -269,3 +269,17 @@ class TestBindingConstraints:
         bc.update_properties(new_properties)
         # Assert the matrix was reset to its default value
         assert bc.get_less_term_matrix().equals(pd.DataFrame(366 * [[0.0]]))
+
+    def test_modify_constraint_operator(self, local_study_with_constraint: Study) -> None:
+        bc = local_study_with_constraint.get_binding_constraints()["test constraint"]
+        # Set a matrix with specific values
+        matrix = pd.DataFrame(data=8784 * [[3]])
+        bc.set_less_term(matrix)
+        # Asserts the matrix is saved correctly
+        assert bc.get_less_term_matrix().equals(matrix)
+        # Update the operator
+        new_properties = BindingConstraintPropertiesUpdate(operator=BindingConstraintOperator.GREATER)
+        bc.update_properties(new_properties)
+        # Check the matrices were swapped accordingly
+        assert bc.get_less_term_matrix().equals(pd.DataFrame(8784 * [[0.0]]))
+        assert bc.get_greater_term_matrix().equals(matrix)
