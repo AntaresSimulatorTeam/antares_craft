@@ -24,10 +24,9 @@ def read_output_matrix(data: Path | StringIO, frequency: Frequency) -> pd.DataFr
 
     date_serializer = FactoryDateSerializer.create(frequency.value, "")
     _, body = date_serializer.extract_date(df)
+    rename_unnamed(body)
 
-    final_df = rename_unnamed(body).astype(float)
-
-    return final_df
+    return body.astype(float)
 
 
 def check_field_is_not_null(data: Any) -> Any:
