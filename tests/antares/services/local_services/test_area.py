@@ -694,24 +694,12 @@ def _write_file(_file_path: Path, _time_series: pd.DataFrame) -> None:
 
 class TestReadLoad:
     def test_read_load_local(self, local_study_w_areas: Study) -> None:
-        study_path = Path(local_study_w_areas.path)
-        local_study_object = read_study_local(study_path)
-        areas = local_study_object.get_areas()
-
+        areas = local_study_w_areas.get_areas()
         for area in areas.values():
-            expected_time_serie = pd.DataFrame(
-                [
-                    [-9999999980506447872, 0, 9999999980506447872],
-                    [0, area.id, 0],
-                ],
-                dtype="object",
-            )
-
-            file_path = study_path / "input" / "load" / "series" / f"load_{area.id}.txt"
-            _write_file(file_path, expected_time_serie)
-
+            expected_df = pd.DataFrame(data=np.ones((8760, 6)))
+            area.set_load(expected_df)
             matrix = area.get_load_matrix()
-            pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
+            assert matrix.equals(expected_df)
 
 
 class TestReadRenewable:
@@ -750,88 +738,42 @@ class TestReadRenewable:
 
 class TestReadSolar:
     def test_read_solar_local(self, local_study_w_areas: Study) -> None:
-        study_path = Path(local_study_w_areas.path)
-        local_study_object = read_study_local(study_path)
-        areas = local_study_object.get_areas()
-
+        areas = local_study_w_areas.get_areas()
         for area in areas.values():
-            expected_time_serie = pd.DataFrame(
-                [
-                    [-9999999980506447872, 0, 9999999980506447872],
-                    [0, area.id, 0],
-                ],
-                dtype="object",
-            )
-
-            file_path = study_path / "input" / "solar" / "series" / f"solar_{area.id}.txt"
-            _write_file(file_path, expected_time_serie)
-
+            expected_df = pd.DataFrame(data=np.ones((8760, 6)))
+            area.set_solar(expected_df)
             matrix = area.get_solar_matrix()
-            pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
+            assert matrix.equals(expected_df)
 
 
 class TestReadReserves:
     def test_read_reserve_local(self, local_study_w_areas: Study) -> None:
-        study_path = Path(local_study_w_areas.path)
-        local_study_object = read_study_local(study_path)
-        areas = local_study_object.get_areas()
-
+        areas = local_study_w_areas.get_areas()
         for area in areas.values():
-            expected_time_serie = pd.DataFrame(
-                [
-                    [-9999999980506447872, 0, 9999999980506447872],
-                    [0, area.id, 0],
-                ],
-                dtype="object",
-            )
-
-            file_path = study_path / "input" / "reserves" / f"{area.id}.txt"
-            _write_file(file_path, expected_time_serie)
-
+            expected_df = pd.DataFrame(data=np.ones((8760, 6)))
+            area.set_reserves(expected_df)
             matrix = area.get_reserves_matrix()
-            pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
+            assert matrix.equals(expected_df)
 
 
 class TestReadWind:
     def test_read_wind_local(self, local_study_w_areas: Study) -> None:
-        study_path = Path(local_study_w_areas.path)
         areas = local_study_w_areas.get_areas()
-
         for area in areas.values():
-            expected_time_serie = pd.DataFrame(
-                [
-                    [-9999999980506447872, 0, 9999999980506447872],
-                    [0, area.id, 0],
-                ],
-                dtype="object",
-            )
-
-            file_path = study_path / "input" / "wind" / "series" / f"wind_{area.id}.txt"
-            _write_file(file_path, expected_time_serie)
-
+            expected_df = pd.DataFrame(data=np.ones((8760, 6)))
+            area.set_wind(expected_df)
             matrix = area.get_wind_matrix()
-            pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
+            assert matrix.equals(expected_df)
 
 
 class TestReadmisc_gen:
     def test_read_misc_gen_local(self, local_study_w_areas: Study) -> None:
-        study_path = Path(local_study_w_areas.path)
         areas = local_study_w_areas.get_areas()
-
         for area in areas.values():
-            expected_time_serie = pd.DataFrame(
-                [
-                    [-9999999980506447872, 0, 9999999980506447872],
-                    [0, area.id, 0],
-                ],
-                dtype="object",
-            )
-
-            file_path = study_path / "input" / "misc-gen" / f"miscgen-{area.id}.txt"
-            _write_file(file_path, expected_time_serie)
-
+            expected_df = pd.DataFrame(data=np.ones((8760, 6)))
+            area.set_misc_gen(expected_df)
             matrix = area.get_misc_gen_matrix()
-            pd.testing.assert_frame_equal(matrix.astype(str), expected_time_serie.astype(str), check_dtype=False)
+            assert matrix.equals(expected_df)
 
 
 class TestReadThermal:
