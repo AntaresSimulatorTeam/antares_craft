@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from antares.craft import Study
+from antares.craft import BindingConstraintFrequency, Study
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
     ConstraintDoesNotExistError,
@@ -256,3 +256,16 @@ class TestBindingConstraints:
         matrices = list(bc_folder.glob("*.txt"))
         assert len(matrices) == 1
         assert matrices[0].name == "bc1_lt.txt"
+
+    def test_modify_constraint_time_step(self, local_study_with_constraint: Study) -> None:
+        bc = local_study_with_constraint.get_binding_constraints()["test constraint"]
+        # Set a matrix with specific values
+        matrix = pd.DataFrame(data=8784 * [[3]])
+        bc.set_less_term(matrix)
+        # Asserts the matrix is saved correctly
+        assert bc.get_less_term_matrix().equals(matrix)
+        # Update the timestep
+        new_properties = BindingConstraintPropertiesUpdate(time_step=BindingConstraintFrequency.DAILY)
+        bc.update_properties(new_properties)
+        # Assert the matrix was reset to its default value
+        assert bc.get_less_term_matrix().equals(pd.DataFrame(366 * [[0.0]]))

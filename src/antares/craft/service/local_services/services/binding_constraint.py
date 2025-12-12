@@ -356,6 +356,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             BindingConstraintOperator.BOTH: ["lt", "gt"],
         }
         for bc_id, (existing_operator, new_operator) in operator_dict.items():
+            # The user changed the operator -> We move the existing matrices to their new path according to the new operator.
             if existing_operator != BindingConstraintOperator.BOTH and new_operator != BindingConstraintOperator.BOTH:
                 old_matrix_name = mapping[existing_operator][0]
                 new_matrix_name = mapping[new_operator][0]
