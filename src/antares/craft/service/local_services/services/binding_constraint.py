@@ -329,21 +329,9 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         for bc_id, update_properties in new_properties.items():
             if update_properties.time_step is not None:
                 # The user changed the time_step -> We reset matrices to their default values
-                # First remove all matrices relative to this constraint
+                # We're doing so by removing all matrices are they are optional
                 for keyword in ["lt", "gt", "eq"]:
                     (study_path / "input" / "bindingconstraints" / f"{bc_id}_{keyword}.txt").unlink(missing_ok=True)
-                # Then save the default value for the new operator
-                operator = new_properties[bc_id].operator
-                if operator == BindingConstraintOperator.EQUAL:
-                    write_timeseries(study_path, None, TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL, constraint_id=bc_id)
-
-                if operator in {BindingConstraintOperator.GREATER, BindingConstraintOperator.BOTH}:
-                    write_timeseries(
-                        study_path, None, TimeSeriesFileType.BINDING_CONSTRAINT_GREATER, constraint_id=bc_id
-                    )
-
-                if operator in {BindingConstraintOperator.LESS, BindingConstraintOperator.BOTH}:
-                    write_timeseries(study_path, None, TimeSeriesFileType.BINDING_CONSTRAINT_LESS, constraint_id=bc_id)
 
     def _change_constraint_matrices_according_to_new_operator(
         self, operator_dict: dict[str, tuple[BindingConstraintOperator, BindingConstraintOperator]]
