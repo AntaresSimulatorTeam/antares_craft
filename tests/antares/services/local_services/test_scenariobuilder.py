@@ -217,3 +217,48 @@ def test_scenario_builder_removals(local_study_with_renewable: Study) -> None:
             "r,fr,1,other": 12,
         }
     }
+
+
+def test_scenario_builder_sts_removals(local_study_93: Study) -> None:
+    area_fr = local_study_93.get_areas()["fr"]
+    # Create the necessary objects for the test
+    sts = area_fr.create_st_storage("sts_test")
+    sts.create_constraints([STStorageAdditionalConstraint(name="c1"), STStorageAdditionalConstraint(name="c2")])
+    # Creates a scenario builder with thermal and renewable data
+    file_path = Path(local_study_93.path) / "settings" / "scenariobuilder.dat"
+    content = {
+        "Default Ruleset": {
+            # Short-term storage part
+            "sts,fr,1,sts_test": 4,
+            "sts,fr,1,other": 3,
+            # Additional constraints part
+            "sta,fr,1,sts_test,c1": 11,
+            "sta,fr,1,sts_test,c2": 12,
+            "sta,de,1,other,other": 13,
+        }
+    }
+    IniWriter().write(content, file_path)
+
+    # Remove the c1 constraint
+    sts.delete_constraints(["c1"])
+    # Checks the content -> 1 line should disappear
+    content = IniReader().read(file_path)
+    assert content == {
+        "Default Ruleset": {
+            "sts,fr,1,sts_test": 4,
+            "sts,fr,1,other": 3,
+            "sta,fr,1,sts_test,c2": 12,
+            "sta,de,1,other,other": 13,
+        }
+    }
+
+    # Remove the sts "sts_test"
+    area_fr.delete_st_storage(storage=sts)
+    # Checks the content -> 2 lines should disappear (we delete its constaints too)
+    content = IniReader().read(file_path)
+    assert content == {
+        "Default Ruleset": {
+            "sts,fr,1,other": 3,
+            "sta,de,1,other,other": 13,
+        }
+    }
