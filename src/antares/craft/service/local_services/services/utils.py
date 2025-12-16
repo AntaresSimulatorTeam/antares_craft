@@ -75,11 +75,10 @@ def _read_scenario_builder(study_path: Path) -> dict[str, Any]:
     return IniReader().read(scenario_builder_path)
 
 
-def _remove_cluster_from_scenario_builder(study_path: Path, pattern: Callable[[str, list[str]], bool]) -> None:
+def _remove_object_from_scenario_builder(study_path: Path, pattern: Callable[[str, list[str]], bool]) -> None:
     rulesets = _read_scenario_builder(study_path)
     for ruleset in rulesets.values():
         for key in list(ruleset):
-            # The key is in the form "symbol,area,year,cluster"
             symbol, *parts = key.split(",")
             if pattern(symbol, parts):
                 del ruleset[key]

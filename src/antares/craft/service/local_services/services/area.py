@@ -64,7 +64,7 @@ from antares.craft.service.local_services.services.renewable import RenewableLoc
 from antares.craft.service.local_services.services.st_storage import ShortTermStorageLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService
 from antares.craft.service.local_services.services.utils import (
-    _remove_cluster_from_scenario_builder,
+    _remove_object_from_scenario_builder,
 )
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
@@ -490,7 +490,7 @@ class AreaLocalService(BaseAreaService):
         def clean_thermals(symbol: str, parts: list[str]) -> bool:
             return symbol == "t" and parts[0] == area_id and parts[2] in cluster_ids
 
-        _remove_cluster_from_scenario_builder(self.config.study_path, clean_thermals)
+        _remove_object_from_scenario_builder(self.config.study_path, clean_thermals)
 
     @override
     def delete_renewable_clusters(self, area_id: str, renewable_clusters: List[RenewableCluster]) -> None:
@@ -507,7 +507,7 @@ class AreaLocalService(BaseAreaService):
         def clean_renewables(symbol: str, parts: list[str]) -> bool:
             return symbol == "r" and parts[0] == area_id and parts[2] in cluster_ids
 
-        _remove_cluster_from_scenario_builder(self.config.study_path, clean_renewables)
+        _remove_object_from_scenario_builder(self.config.study_path, clean_renewables)
 
     @override
     def delete_st_storages(self, area_id: str, storages: List[STStorage]) -> None:
@@ -523,6 +523,14 @@ class AreaLocalService(BaseAreaService):
             constraints_path = self.config.study_path / "input" / "st-storage" / "constraints" / area_id / storage.id
             if constraints_path.exists():
                 shutil.rmtree(constraints_path)
+
+        # Clean the scenario-builder
+        storage_ids = {sts.id for sts in storages}
+
+        def clean_sts(symbol: str, parts: list[str]) -> bool:
+            return symbol in {"sts", "sta"} and parts[0] == area_id and parts[2] in storage_ids
+
+        _remove_object_from_scenario_builder(self.config.study_path, clean_sts)
 
     @override
     def get_load_matrix(self, area_id: str) -> pd.DataFrame:
