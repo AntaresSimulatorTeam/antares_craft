@@ -63,6 +63,9 @@ from antares.craft.service.local_services.services.hydro import HydroLocalServic
 from antares.craft.service.local_services.services.renewable import RenewableLocalService
 from antares.craft.service.local_services.services.st_storage import ShortTermStorageLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService
+from antares.craft.service.local_services.services.utils import (
+    _remove_cluster_from_scenario_builder,
+)
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.prepro_folder import PreproFolder
@@ -481,6 +484,14 @@ class AreaLocalService(BaseAreaService):
         for thermal in thermal_clusters:
             shutil.rmtree(self.config.study_path / "input" / "thermal" / "series" / thermal.area_id / thermal.id)
 
+        # Clean the scenario-builder
+        cluster_ids = {th.id for th in thermal_clusters}
+
+        def clean_thermals(symbol: str, parts: list[str]) -> bool:
+            return symbol == "t" and parts[0] == area_id and parts[2] in cluster_ids
+
+        _remove_cluster_from_scenario_builder(self.config.study_path, clean_thermals)
+
     @override
     def delete_renewable_clusters(self, area_id: str, renewable_clusters: List[RenewableCluster]) -> None:
         renewable_names_to_delete = {renewable.name for renewable in renewable_clusters}
@@ -489,6 +500,14 @@ class AreaLocalService(BaseAreaService):
         # Remove the matrices
         for renewable in renewable_clusters:
             shutil.rmtree(self.config.study_path / "input" / "renewables" / "series" / renewable.area_id / renewable.id)
+
+        # Clean the scenario-builder
+        cluster_ids = {renewable.id for renewable in renewable_clusters}
+
+        def clean_renewables(symbol: str, parts: list[str]) -> bool:
+            return symbol == "r" and parts[0] == area_id and parts[2] in cluster_ids
+
+        _remove_cluster_from_scenario_builder(self.config.study_path, clean_renewables)
 
     @override
     def delete_st_storages(self, area_id: str, storages: List[STStorage]) -> None:
