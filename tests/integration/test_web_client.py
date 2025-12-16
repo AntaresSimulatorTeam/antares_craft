@@ -572,7 +572,7 @@ class TestWebClient:
         assert not link_de_fr.properties.hurdles_cost
 
         # tests constraint deletion
-        study.delete_binding_constraint(constraint_1)
+        study.delete_binding_constraints([constraint_1])
         assert constraint_1.id not in study.get_binding_constraints()
 
         # tests link deletion

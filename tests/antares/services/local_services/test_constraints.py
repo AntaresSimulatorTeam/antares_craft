@@ -20,7 +20,7 @@ import pandas as pd
 from antares.craft import BindingConstraintFrequency, Study
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
-    ConstraintDoesNotExistError,
+    ConstraintsDoNotExistError,
     MatrixFormatError,
 )
 from antares.craft.model.binding_constraint import (
@@ -113,7 +113,7 @@ class TestBindingConstraints:
 
     def test_delete(self, local_study_w_constraints: Study) -> None:
         bc = local_study_w_constraints.get_binding_constraints()["bc_1"]
-        local_study_w_constraints.delete_binding_constraint(bc)
+        local_study_w_constraints.delete_binding_constraints([bc])
         assert bc.id not in local_study_w_constraints.get_binding_constraints()
         # Checks ini file
         study_path = Path(local_study_w_constraints.path)
@@ -138,10 +138,10 @@ class TestBindingConstraints:
         assert not matrix_path.exists()
 
         with pytest.raises(
-            ConstraintDoesNotExistError,
+            ConstraintsDoNotExistError,
             match=re.escape("The binding constraint 'bc_1' doesn't exist inside study 'studyTest'."),
         ):
-            local_study_w_constraints.delete_binding_constraint(bc)
+            local_study_w_constraints.delete_binding_constraints([bc])
 
     def test_set_constraint_terms_success_add_and_replace_terms(self, local_study_w_constraints: Study) -> None:
         bc = local_study_w_constraints.get_binding_constraints()["bc_1"]
@@ -206,7 +206,7 @@ class TestBindingConstraints:
         study_name = local_study_w_constraints.name
 
         with pytest.raises(
-            ConstraintDoesNotExistError,
+            ConstraintsDoNotExistError,
             match=f"The binding constraint '{bc.name}' doesn't exist inside study '{study_name}'.",
         ):
             bc.set_terms([])
