@@ -17,12 +17,25 @@ from typing import TYPE_CHECKING, Dict, Optional
 
 import pandas as pd
 
-from antares.craft.config.base_configuration import BaseConfiguration
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
+from antares.craft.model.xpansion.candidate import XpansionLinkProfile
+from antares.study.version import StudyVersion
 
 if TYPE_CHECKING:
-    from antares.craft import PlaylistParameters, ScenarioBuilder, ThematicTrimmingParameters
+    from antares.craft import (
+        PlaylistParameters,
+        ScenarioBuilder,
+        ThematicTrimmingParameters,
+        XpansionCandidate,
+        XpansionCandidateUpdate,
+        XpansionConstraint,
+        XpansionConstraintUpdate,
+        XpansionSensitivity,
+        XpansionSensitivityUpdate,
+        XpansionSettings,
+        XpansionSettingsUpdate,
+    )
     from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
     from antares.craft.model.binding_constraint import (
         BindingConstraint,
@@ -30,11 +43,16 @@ if TYPE_CHECKING:
         BindingConstraintPropertiesUpdate,
         ConstraintMatrixName,
         ConstraintTerm,
-        ConstraintTermUpdate,
     )
-    from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
+    from antares.craft.model.hydro import HydroAllocation, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
-    from antares.craft.model.output import AggregationEntry, Frequency, Output
+    from antares.craft.model.output import (
+        AggregationEntry,
+        Frequency,
+        Output,
+        XpansionResult,
+        XpansionSensitivityResult,
+    )
     from antares.craft.model.renewable import (
         RenewableCluster,
         RenewableClusterProperties,
@@ -42,6 +60,8 @@ if TYPE_CHECKING:
     )
     from antares.craft.model.st_storage import (
         STStorage,
+        STStorageAdditionalConstraint,
+        STStorageAdditionalConstraintUpdate,
         STStorageMatrixName,
         STStorageProperties,
         STStoragePropertiesUpdate,
@@ -53,6 +73,7 @@ if TYPE_CHECKING:
         ThermalClusterProperties,
         ThermalClusterPropertiesUpdate,
     )
+    from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 
 
 class BaseAreaService(ABC):
@@ -84,15 +105,7 @@ class BaseAreaService(ABC):
 
     @abstractmethod
     def create_thermal_cluster(
-        self,
-        area_id: str,
-        cluster_name: str,
-        properties: Optional["ThermalClusterProperties"] = None,
-        prepro: Optional[pd.DataFrame] = None,
-        modulation: Optional[pd.DataFrame] = None,
-        series: Optional[pd.DataFrame] = None,
-        co2_cost: Optional[pd.DataFrame] = None,
-        fuel_cost: Optional[pd.DataFrame] = None,
+        self, area_id: str, cluster_name: str, properties: Optional["ThermalClusterProperties"] = None
     ) -> "ThermalCluster":
         """
         Args:
@@ -100,11 +113,6 @@ class BaseAreaService(ABC):
             area_id: area id in which to create the thermal cluster
             cluster_name: thermal cluster nam
             properties: properties of the thermal cluster.
-            prepro: matrix corresponding to prepro/data.txt
-            modulation: matrix corresponding to prepro/modulation.txt
-            series: matrix for series/series.txt
-            co2_cost: matrix for series/CO2Cost.txt
-            fuel_cost: matrix for series/fuelCost.txt
 
         Returns:
            Thermal cluster created
@@ -113,18 +121,13 @@ class BaseAreaService(ABC):
 
     @abstractmethod
     def create_renewable_cluster(
-        self,
-        area_id: str,
-        renewable_name: str,
-        properties: Optional["RenewableClusterProperties"] = None,
-        series: Optional[pd.DataFrame] = None,
+        self, area_id: str, renewable_name: str, properties: Optional["RenewableClusterProperties"] = None
     ) -> "RenewableCluster":
         """
         Args:
             area_id: the area id in which to create the renewable cluster
             renewable_name: the name of the renewable cluster
             properties: the properties of the renewable cluster. If not provided, AntaresWeb will use its own default values.
-            series: matrix for renewables/area_id/renewable_name/series.txt
 
         Returns:
             The created renewable cluster
@@ -147,13 +150,13 @@ class BaseAreaService(ABC):
     ) -> "STStorage":
         """
         Args:
-
-            area_id: the area id in which to create the short term storage
-            st_storage_name: the name of the short term storage
-            properties: the properties of the short term storage. If not provided, AntaresWeb will use its own default values.
+            area_id: area in which st_storage will be created
+            st_storage_name: name of new st_storage
+            properties: if 'None', default values will be used,
+                        otherwise custom parameters to be validated with the study version
 
         Returns:
-            The created short term storage
+            New st_storage
         """
         pass
 
@@ -287,13 +290,6 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def read_areas(self) -> dict[str, "Area"]:
-        """
-        Returns: Map from area id to Area object
-        """
-        pass
-
-    @abstractmethod
     def update_areas_properties(self, dict_areas: Dict["Area", "AreaPropertiesUpdate"]) -> Dict[str, "AreaProperties"]:
         pass
 
@@ -313,16 +309,12 @@ class BaseHydroService(ABC):
         pass
 
     @abstractmethod
-    def read_inflow_structure_for_one_area(self, area_id: str) -> "InflowStructure":
-        """Reads the inflow structure for the given area"""
+    def set_allocation(self, area_id: str, allocation: list["HydroAllocation"]) -> list["HydroAllocation"]:
         pass
 
     @abstractmethod
-    def read_properties_and_inflow_structure(self) -> dict[str, tuple["HydroProperties", "InflowStructure"]]:
-        """
-        Returns:
-            The hydro properties and inflow structure for each area of the study
-        """
+    def read_inflow_structure_for_one_area(self, area_id: str) -> "InflowStructure":
+        """Reads the inflow structure for the given area"""
         pass
 
     @abstractmethod
@@ -448,10 +440,6 @@ class BaseLinkService(ABC):
         pass
 
     @abstractmethod
-    def read_links(self) -> dict[str, "Link"]:
-        pass
-
-    @abstractmethod
     def get_capacity_direct(self, area_from: str, area_to: str) -> pd.DataFrame:
         """
         Returns: the direct capacity of a link
@@ -505,10 +493,6 @@ class BaseThermalService(ABC):
     ) -> dict["ThermalCluster", "ThermalClusterProperties"]:
         pass
 
-    @abstractmethod
-    def read_thermal_clusters(self) -> dict[str, dict[str, "ThermalCluster"]]:
-        pass
-
 
 class BaseBindingConstraintService(ABC):
     @abstractmethod
@@ -536,35 +520,14 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def add_constraint_terms(self, constraint: "BindingConstraint", terms: list["ConstraintTerm"]) -> None:
+    def set_constraint_terms(self, constraint: "BindingConstraint", terms: list["ConstraintTerm"]) -> None:
         """
         Args:
-            constraint: the concerned binding constraint
-            terms: the terms to add to the constraint.
+            constraint: the constraint we want to set terms
+            terms: the terms to set to the constraint.
 
         Returns:
-            The created terms
-        """
-        pass
-
-    @abstractmethod
-    def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
-        """
-        Args:
-            constraint_id: binding constraint's id containing the term
-            term_id: binding constraint term to be deleted
-        """
-        pass
-
-    @abstractmethod
-    def update_binding_constraint_term(
-        self, constraint_id: str, term: "ConstraintTermUpdate", existing_term: "ConstraintTerm"
-    ) -> "ConstraintTerm":
-        """
-        Args:
-            constraint_id: binding constraint's id containing the term
-            term: term with new values
-            existing_term: existing term with existing values
+            None
         """
         pass
 
@@ -592,15 +555,6 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
-    def read_binding_constraints(self) -> dict[str, "BindingConstraint"]:
-        """
-        Loads binding constraints into study
-
-        Returns: A map from the binding constraint id to the binding constraint object
-        """
-        pass
-
-    @abstractmethod
     def update_binding_constraints_properties(
         self, new_properties: Dict[str, "BindingConstraintPropertiesUpdate"]
     ) -> Dict[str, "BindingConstraintProperties"]:
@@ -614,17 +568,11 @@ class BaseStudyService(ABC):
         """The ID for the study"""
         pass
 
-    @property
     @abstractmethod
-    def config(self) -> BaseConfiguration:
-        """The configuration of the study."""
-        pass
-
-    @abstractmethod
-    def delete_binding_constraint(self, constraint: "BindingConstraint") -> None:
+    def delete_binding_constraints(self, constraints: list["BindingConstraint"]) -> None:
         """
         Args:
-            constraint: binding constraint object to be deleted
+            constraints: binding constraints object to be deleted
         """
         pass
 
@@ -686,7 +634,7 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
-    def get_scenario_builder(self, nb_years: int) -> "ScenarioBuilder":
+    def get_scenario_builder(self, nb_years: int, study_version: StudyVersion) -> "ScenarioBuilder":
         pass
 
     @abstractmethod
@@ -717,10 +665,6 @@ class BaseRenewableService(ABC):
         pass
 
     @abstractmethod
-    def read_renewables(self) -> dict[str, dict[str, "RenewableCluster"]]:
-        pass
-
-    @abstractmethod
     def update_renewable_clusters_properties(
         self, new_props: dict["RenewableCluster", "RenewableClusterPropertiesUpdate"]
     ) -> dict["RenewableCluster", "RenewableClusterProperties"]:
@@ -737,13 +681,33 @@ class BaseShortTermStorageService(ABC):
         pass
 
     @abstractmethod
-    def read_st_storages(self) -> dict[str, dict[str, "STStorage"]]:
-        pass
-
-    @abstractmethod
     def update_st_storages_properties(
         self, new_properties: dict["STStorage", "STStoragePropertiesUpdate"]
     ) -> dict["STStorage", "STStorageProperties"]:
+        pass
+
+    @abstractmethod
+    def update_st_storages_constraints(
+        self, new_constraints: dict["STStorage", dict[str, "STStorageAdditionalConstraintUpdate"]]
+    ) -> dict[str, dict[str, dict[str, "STStorageAdditionalConstraint"]]]:
+        pass
+
+    @abstractmethod
+    def create_constraints(
+        self, area_id: str, storage_id: str, constraints: list["STStorageAdditionalConstraint"]
+    ) -> list["STStorageAdditionalConstraint"]:
+        pass
+
+    @abstractmethod
+    def delete_constraints(self, area_id: str, storage_id: str, constraint_ids: list[str]) -> None:
+        pass
+
+    @abstractmethod
+    def get_constraint_term(self, area_id: str, storage_id: str, constraint_id: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def set_constraint_term(self, area_id: str, storage_id: str, constraint_id: str, matrix: pd.DataFrame) -> None:
         pass
 
 
@@ -807,36 +771,182 @@ class BaseOutputService(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_xpansion_result(self, output_id: str) -> "XpansionResult":
+        """
+        Parses the expansion/out.json file and converts it inside an XpansionResult object
+        """
+        pass
+
+    @abstractmethod
+    def get_xpansion_sensitivity_result(self, output_id: str) -> "XpansionSensitivityResult":
+        """
+        Parses the sensitivity/out.json file and converts it inside an XpansionResult object
+        """
+        pass
+
 
 class BaseStudySettingsService(ABC):
     @abstractmethod
-    def edit_study_settings(self, settings: StudySettingsUpdate) -> None:
+    def edit_study_settings(
+        self, settings: StudySettingsUpdate, current_settings: StudySettings, study_version: StudyVersion
+    ) -> StudySettings:
         """
         Edit the settings for a given study
 
         Args:
             settings: the settings to update with their values
-        """
-        pass
-
-    @abstractmethod
-    def read_study_settings(self) -> StudySettings:
-        """
-        Reads the settings of a study
+            current_settings: the current settings of the study
+            study_version: the version of the current study
         """
         pass
 
     @abstractmethod
     def set_playlist(self, new_playlist: dict[int, "PlaylistParameters"]) -> None:
         """
-        Set new playlist for the study
+        Set a new playlist for the study
         """
         pass
 
     @abstractmethod
-    def set_thematic_trimming(self, new_thematic_trimming: "ThematicTrimmingParameters") -> None:
+    def set_thematic_trimming(
+        self, new_thematic_trimming: "ThematicTrimmingParameters"
+    ) -> "ThematicTrimmingParameters":
         """
-        Set new playlist for the study
+        Set new thematic trimming for the study
+        """
+        pass
+
+
+class BaseXpansionService(ABC):
+    @property
+    @abstractmethod
+    def study_id(self) -> str:
+        """The ID for the study"""
+        pass
+
+    @abstractmethod
+    def create_xpansion_configuration(self) -> "XpansionConfiguration":
+        """
+        Creates an Xpansion configuration for a given study
+        """
+        pass
+
+    @abstractmethod
+    def delete(self) -> None:
+        """
+        Deletes the Xpansion configuration for a given study
+        """
+        pass
+
+    @abstractmethod
+    def get_matrix(self, file_name: str, file_type: "XpansionMatrix") -> pd.DataFrame:
+        """
+        Returns an existing matrix (either capacity or weights) for a given study
+        """
+        pass
+
+    @abstractmethod
+    def delete_matrix(self, file_name: str, file_type: "XpansionMatrix") -> None:
+        """
+        Deletes an existing matrix (either capacity or weights) for a given study
+        """
+        pass
+
+    @abstractmethod
+    def set_matrix(self, file_name: str, series: pd.DataFrame, file_type: "XpansionMatrix") -> None:
+        """
+        Modifies or creates a matrix (either capacity or weights) for a given study
+        """
+        pass
+
+    @abstractmethod
+    def create_candidate(self, candidate: "XpansionCandidate") -> "XpansionCandidate":
+        """
+        Creates an Xpansion candidate inside a given study
+        """
+        pass
+
+    @abstractmethod
+    def update_candidate(self, name: str, candidate: "XpansionCandidateUpdate") -> "XpansionCandidate":
+        """
+        Updates an existing Xpansion candidate inside a given study
+        """
+        pass
+
+    @abstractmethod
+    def delete_candidates(self, names: set[str]) -> None:
+        """
+        Removes several candidates from a given study
+        """
+        pass
+
+    @abstractmethod
+    def remove_links_profile_from_candidate(
+        self, candidate: "XpansionCandidate", profiles: list["XpansionLinkProfile"]
+    ) -> "XpansionCandidate":
+        """
+        Edits a candidate by removing some reference he has to capacity files
+        """
+        pass
+
+    @abstractmethod
+    def create_constraint(self, constraint: "XpansionConstraint", file_name: str) -> "XpansionConstraint":
+        """
+        Creates an xpansion additional-constraint for a given study
+        """
+        pass
+
+    @abstractmethod
+    def update_constraint(
+        self, name: str, constraint: "XpansionConstraintUpdate", file_name: str
+    ) -> "XpansionConstraint":
+        """
+        Updates an xpansion additional-constraint for a given study
+        """
+        pass
+
+    @abstractmethod
+    def delete_constraints(self, names: list[str], file_name: str) -> None:
+        """
+        Delete some xpansion additional-constraints for a given study
+        """
+        pass
+
+    @abstractmethod
+    def delete_constraints_file(self, file_name: str) -> None:
+        """
+        Delete a xpansion additional-constraints file for a given study
+        """
+        pass
+
+    @abstractmethod
+    def update_settings(
+        self, settings: "XpansionSettingsUpdate", current_settings: "XpansionSettings"
+    ) -> "XpansionSettings":
+        """
+        Updates the xpansion settings for a given study
+        """
+        pass
+
+    @abstractmethod
+    def remove_constraints_and_or_weights_from_settings(
+        self, constraint: bool, weight: bool, settings: "XpansionSettings"
+    ) -> "XpansionSettings":
+        """
+        Removes the additional constraint and/or yearly-weights from the xpansion settings for a given study
+        """
+        pass
+
+    @abstractmethod
+    def update_sensitivity(
+        self,
+        sensitivity: "XpansionSensitivityUpdate",
+        current_settings: "XpansionSettings",
+        current_sensitivity: "XpansionSensitivity",
+    ) -> "XpansionSensitivity":
+        """
+        Removes the additional constraint and/or yearly-weights from the xpansion settings for a given study
         """
         pass
 
@@ -854,3 +964,4 @@ class StudyServices:
     short_term_storage_service: BaseShortTermStorageService
     run_service: BaseRunService
     output_service: BaseOutputService
+    xpansion_service: BaseXpansionService

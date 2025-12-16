@@ -31,11 +31,9 @@ from antares.craft import (
     LinkProperties,
     LinkStyle,
     LinkUi,
-    RenewableClusterGroup,
     RenewableClusterProperties,
     STStorageGroup,
     STStorageProperties,
-    ThermalClusterGroup,
     ThermalClusterProperties,
     create_study_local,
     read_study_local,
@@ -44,12 +42,13 @@ from antares.craft.exceptions.exceptions import AntaresSimulationRunningError
 from antares.craft.model.simulation import JobStatus
 
 
-def find_executable_path() -> Path:
+def find_executable_path(version: str) -> Path:
     solver_parent_path = (
         [p for p in Path(__file__).parents if p.name == "antares_craft"][0]
         / "AntaresWebDesktop"
         / "AntaresWeb"
         / "antares_solver"
+        / version
     )
     return list(solver_parent_path.glob("antares-*"))[0]
 
@@ -60,11 +59,11 @@ class TestLocalLauncher:
         # Ensure it's impossible to run a study without giving a solver path at the instantiation
         with pytest.raises(
             AntaresSimulationRunningError,
-            match=re.escape("Could not run the simulation for study test study: No solver path was provided"),
+            match=re.escape("Could not run the simulation for study 'test study': No solver path was provided"),
         ):
             study.run_antares_simulation()
 
-        solver_path = find_executable_path()
+        solver_path = find_executable_path("8_8")
         study = read_study_local(tmp_path / "test study", solver_path)
 
         # Asserts running a simulation without areas fail and doesn't create an output file
@@ -77,7 +76,7 @@ class TestLocalLauncher:
         assert list(output_path.iterdir()) == []
 
     def test_lifecycle(self, tmp_path: Path) -> None:
-        solver_path = find_executable_path()
+        solver_path = find_executable_path("8_8")
         study = create_study_local("test study", "880", tmp_path, solver_path)
         output_path = Path(study.path / "output")
 
@@ -138,8 +137,19 @@ class TestLocalLauncher:
         assert len(outputs) == 0
         assert study.get_outputs() == {}
 
+    def test_version_92(self, tmp_path: Path) -> None:
+        solver_path = find_executable_path("9_2")
+        study = create_study_local("test study", "920", tmp_path, solver_path)
+
+        # Simulation succeeds
+        area_1 = study.create_area("area_1")
+        area_1.hydro.update_properties(HydroPropertiesUpdate(reservoir_capacity=1))  # make the simulation succeeds
+        job = study.run_antares_simulation()
+        study.wait_job_completion(job)
+        assert job.status == JobStatus.SUCCESS
+
     def test_simulation_succeeds_with_real_study(self, tmp_path: Path) -> None:
-        solver_path = find_executable_path()
+        solver_path = find_executable_path("8_8")
         study = create_study_local("test study", "880", tmp_path, solver_path)
 
         # Create 2 areas
@@ -166,15 +176,15 @@ class TestLocalLauncher:
         study.create_link(area_from=area_fr.id, area_to=area_be.id, properties=link_properties, ui=link_ui)
 
         # Create thermal cluster
-        th_properties = ThermalClusterProperties(group=ThermalClusterGroup.NUCLEAR, unit_count=12, nominal_capacity=43)
+        th_properties = ThermalClusterProperties(group="nuclear", unit_count=12, nominal_capacity=43)
         area_fr.create_thermal_cluster("Nuclear_fr", th_properties)
 
         # Create renewable cluster
-        renewable_properties = RenewableClusterProperties(group=RenewableClusterGroup.WIND_ON_SHORE, enabled=False)
+        renewable_properties = RenewableClusterProperties(group="wind onshore", enabled=False)
         area_fr.create_renewable_cluster("Wind onshore fr", renewable_properties)
 
         # Create short term storage
-        sts_properties = STStorageProperties(group=STStorageGroup.BATTERY, efficiency=0.4)
+        sts_properties = STStorageProperties(group=STStorageGroup.BATTERY.value, efficiency=0.4)
         area_fr.create_st_storage("Battery fr", sts_properties)
 
         # Create binding constraint

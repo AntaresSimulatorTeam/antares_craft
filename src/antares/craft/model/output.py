@@ -10,11 +10,13 @@
 #
 # This file is part of the Antares project.
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from typing import Optional
 
 import pandas as pd
 
+from antares.craft.exceptions.exceptions import OutputDataRetrievalError
 from antares.craft.service.base_services import BaseOutputService
 
 
@@ -50,6 +52,100 @@ class Frequency(Enum):
     ANNUAL = "annual"
 
 
+@dataclass(frozen=True)
+class XpansionOutputAntares:
+    version: str
+
+
+@dataclass(frozen=True)
+class XpansionOutputOptions:
+    log_level: int
+    master_name: str
+    problem_format: str
+    solver_name: str
+
+
+@dataclass(frozen=True)
+class XpansionOutputIteration:
+    best_ub: float
+    cumulative_number_of_subproblem_resolutions: int
+    investment_cost: float
+    lb: float
+    master_duration: float
+    operational_cost: float
+    optimality_gap: float
+    overall_cost: float
+    relative_gap: float
+    subproblem_duration: float
+    ub: float
+
+
+@dataclass(frozen=True)
+class XpansionOutputSolution:
+    investment_cost: float
+    iteration: int
+    operational_cost: float
+    optimality_gap: float
+    overall_cost: float
+    problem_status: str
+    relative_gap: float
+    stopping_criterion: str
+
+
+@dataclass(frozen=True)
+class XpansionOutputCandidateInvest:
+    invest: float
+
+
+@dataclass(frozen=True)
+class XpansionOutputCandidate:
+    solution: float
+    max: float
+    min: float
+    iterations: list[XpansionOutputCandidateInvest]
+
+
+@dataclass(frozen=True)
+class XpansionResult:
+    antares: XpansionOutputAntares
+    antares_xpansion: XpansionOutputAntares
+    begin: datetime
+    end: datetime
+    iterations: dict[int, XpansionOutputIteration]
+    nb_weeks: int
+    options: XpansionOutputOptions
+    run_duration: float
+    solution: XpansionOutputSolution
+    candidates: dict[str, XpansionOutputCandidate]
+
+
+@dataclass(frozen=True)
+class XpansionOutputCandidateSensitivity:
+    lb: float
+    ub: float
+    solution_max: XpansionOutputCandidateInvest
+    solution_min: XpansionOutputCandidateInvest
+
+
+@dataclass(frozen=True)
+class XpansionOutputSensitivitySolution:
+    objective: float
+    problem_type: str
+    status: int
+    system_cost: float
+
+
+@dataclass(frozen=True)
+class XpansionSensitivityResult:
+    antares: XpansionOutputAntares
+    antares_xpansion: XpansionOutputAntares
+    best_benders_cost: float
+    epsilon: float
+    candidates: dict[str, XpansionOutputCandidateSensitivity]
+    solution_max: XpansionOutputSensitivitySolution
+    solution_min: XpansionOutputSensitivitySolution
+
+
 @dataclass
 class AggregationEntry:
     """
@@ -73,7 +169,7 @@ class AggregationEntry:
         type_ids = f"&{object_type}_ids={','.join(self.type_ids)}" if self.type_ids else ""
         columns_names = f"&columns_names={','.join(self.columns_names)}" if self.columns_names else ""
 
-        return f"query_file={self.data_type.value}&frequency={self.frequency.value}{mc_years}{type_ids}{columns_names}&format=csv"
+        return f"query_file={self.data_type.value}&frequency={self.frequency.value}{mc_years}{type_ids}{columns_names}&format=parquet"
 
 
 class Output:
@@ -118,7 +214,8 @@ class Output:
         Returns:
 
         """
-        area_from, area_to = sorted([area_from, area_to])
+        if [area_from, area_to] != sorted([area_from, area_to]):
+            raise OutputDataRetrievalError(self.name, "Areas should be sorted alphabetically")
         file_path = f"mc-all/links/{area_from} - {area_to}/{data_type.value}-{frequency.value}"
         return self._output_service.get_matrix(self.name, file_path, frequency)
 
@@ -154,7 +251,8 @@ class Output:
         Returns:
 
         """
-        area_from, area_to = sorted([area_from, area_to])
+        if [area_from, area_to] != sorted([area_from, area_to]):
+            raise OutputDataRetrievalError(self.name, "Areas should be sorted alphabetically")
         file_path = f"mc-ind/{mc_year:05}/links/{area_from} - {area_to}/{data_type.value}-{frequency.value}"
         return self._output_service.get_matrix(self.name, file_path, frequency)
 
@@ -177,7 +275,7 @@ class Output:
         """
         aggregation_entry = AggregationEntry(
             data_type=data_type,
-            frequency=Frequency(frequency),
+            frequency=frequency,
             mc_years=mc_years,
             type_ids=areas_ids,
             columns_names=columns_names,
@@ -277,3 +375,9 @@ class Output:
         )
 
         return self._output_service.aggregate_values(self.name, aggregation_entry, "links", "all")
+
+    def get_xpansion_result(self) -> XpansionResult:
+        return self._output_service.get_xpansion_result(self.name)
+
+    def get_xpansion_sensitivity_result(self) -> XpansionSensitivityResult:
+        return self._output_service.get_xpansion_sensitivity_result(self.name)

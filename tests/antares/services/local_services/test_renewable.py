@@ -11,14 +11,17 @@
 # This file is part of the Antares project.
 import pytest
 
+import copy
 import re
 
 from pathlib import Path
 
 import pandas as pd
 
+from checksumdir import dirhash
+
 from antares.craft import RenewableClusterGroup, Study, TimeSeriesInterpretation, read_study_local
-from antares.craft.exceptions.exceptions import MatrixFormatError
+from antares.craft.exceptions.exceptions import MatrixFormatError, RenewablePropertiesUpdateError
 from antares.craft.model.renewable import RenewableClusterProperties, RenewableClusterPropertiesUpdate
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
@@ -30,13 +33,23 @@ class TestRenewable:
         renewable = local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"]
         assert renewable.properties == RenewableClusterProperties(enabled=False, unit_count=44)
         # Updates properties
-        update_properties = RenewableClusterPropertiesUpdate(group=RenewableClusterGroup.WIND_ON_SHORE, enabled=True)
+        update_properties = RenewableClusterPropertiesUpdate(group="wind onshore", enabled=True)
         new_properties = renewable.update_properties(update_properties)
         expected_properties = RenewableClusterProperties(
-            enabled=True, unit_count=44, group=RenewableClusterGroup.WIND_ON_SHORE
+            enabled=True, unit_count=44, group=RenewableClusterGroup.WIND_ON_SHORE.value
         )
         assert new_properties == expected_properties
         assert renewable.properties == expected_properties
+
+    def test_cluster_with_numeric_name(self, local_study_with_renewable: Study) -> None:
+        # Given
+        cluster_name = "123"
+
+        # When
+        local_study_with_renewable.get_areas()["fr"].create_renewable_cluster(cluster_name)
+
+        # Reading the study should not fail
+        read_study_local(Path(local_study_with_renewable.path))
 
     def test_matrices(self, tmp_path: Path, local_study_with_renewable: Study) -> None:
         # Checks all matrices exist
@@ -65,8 +78,10 @@ class TestRenewable:
         # Asserts the area dict is empty
         assert area_fr.get_renewables() == {}
         # Asserts the file is empty
-        ini_path = Path(local_study_with_renewable.path / "input" / "renewables" / "clusters" / "fr" / "list.ini")
-        assert not ini_path.read_text()
+        renewable_folder = Path(local_study_with_renewable.path) / "input" / "renewables"
+        assert not (renewable_folder / "clusters" / "fr" / "list.ini").read_text()
+        # Asserts the series matrix does not exist anymore
+        assert not (renewable_folder / "series" / "fr" / "renewable cluster" / "series.txt").exists()
 
     def test_update_renewable_properties(self, local_study_with_renewable: Study) -> None:
         area_fr = local_study_with_renewable.get_areas()["fr"]
@@ -83,7 +98,29 @@ class TestRenewable:
         assert renewable.properties.ts_interpretation == TimeSeriesInterpretation.PRODUCTION_FACTOR
 
         # testing the unmodified value
-        assert renewable.properties.group == RenewableClusterGroup.OTHER1
+        assert renewable.properties.group == RenewableClusterGroup.OTHER1.value
+
+    def test_update_several_properties_fails(self, local_study_with_renewable: Study) -> None:
+        """
+        Ensures the update fails as the area doesn't exist.
+        We also want to ensure the study wasn't partially modified.
+        """
+        update_for_renewable = RenewableClusterPropertiesUpdate(enabled=False, unit_count=13)
+        renewable = local_study_with_renewable.get_areas()["fr"].get_renewables()["renewable cluster"]
+        fake_renewable = copy.deepcopy(renewable)
+        fake_renewable._area_id = "fake"
+        dict_renewable = {renewable: update_for_renewable, fake_renewable: update_for_renewable}
+        renewable_folder = Path(local_study_with_renewable.path) / "input" / "renewables"
+        hash_before_update = dirhash(renewable_folder, "md5")
+        with pytest.raises(
+            RenewablePropertiesUpdateError,
+            match=re.escape(
+                "Could not update properties for renewable cluster 'renewable cluster' inside area 'fake': The cluster does not exist"
+            ),
+        ):
+            local_study_with_renewable.update_renewable_clusters(dict_renewable)
+        hash_after_update = dirhash(renewable_folder, "md5")
+        assert hash_before_update == hash_after_update
 
     def test_read_renewable_group_with_weird_case(self, local_study_with_renewable: Study) -> None:
         """Asserts we're able to read a group written in a weird case"""
@@ -96,4 +133,23 @@ class TestRenewable:
         study = read_study_local(study_path)
         thermal = study.get_areas()["fr"].get_renewables()["renewable cluster"]
         # Ensure we consider the group as THERMAL SOLAR
-        assert thermal.properties.group == RenewableClusterGroup.THERMAL_SOLAR
+        assert thermal.properties.group == RenewableClusterGroup.THERMAL_SOLAR.value
+
+    def test_version_93(self, tmp_path: Path, local_study_93: Study, local_study_92: Study) -> None:
+        renewable = local_study_93.get_areas()["fr"].create_renewable_cluster("renewable")
+        assert renewable.properties.group == "other res 1"
+
+        # Use a free group for the update
+        update_properties = RenewableClusterPropertiesUpdate(group="free_group")
+        new_properties = renewable.update_properties(update_properties)
+
+        assert new_properties.group == "free_group"
+
+        # Use a free group for creation
+        props = RenewableClusterProperties(group="my_group")
+        renewable = local_study_93.get_areas()["fr"].create_renewable_cluster("ren2", properties=props)
+        assert renewable.properties.group == "my_group"
+
+        # Ensures we can't use free groups before version 9.3
+        with pytest.raises(ValueError, match="Before v9.3, group has to be a valid value"):
+            local_study_92.get_areas()["fr"].create_renewable_cluster("ren2", properties=props)

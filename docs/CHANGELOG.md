@@ -1,3 +1,172 @@
+v0.7.0 (2025-12-12)
+-------------------
+
+## Compatibility
+* This version is compatible with AntaresWeb v2.27.0. So does the 0.6.0.
+
+### Bug fixes
+* **local, thermal**: consider free groups before 9.3 are `other 1` [`292`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/292)
+* **local, st-storage**: make groups case-insensitive [`293`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/293)
+* **local, bc**: check matrices coherence at constraint creation [`298`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/298)
+* **local, bc**: modify matrices when updating constraint `time_step` or `operator` [`301`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/301)
+
+### Perfs
+* **local, output**: use polars inside output aggregation [`302`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/302)
+* **local, matrix**: use polars to read and write input matrices [`303`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/303)
+
+### Others
+* **ci**: use the right desktop name [`291`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/291)
+* **doc**: more docstrings [`144`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/144)
+* **tests**: use AntaresWeb 2.27 inside integration tests [`300`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/300)
+
+
+v0.6.0 (2025-11-07)
+-------------------
+
+## Compatibility
+* This version is compatible with AntaresWeb v2.26.0. The previous is not.
+* The following methods concerning binding constraint terms were removed due to this [`279`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/279):
+    * `add_terms`, `delete_term` and `update_term` were replaced by `set_terms` that takes the given terms and replace existing ones.
+
+### Features
+* **hydro**: support reading and editing allocation [`285`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/285)
+
+### Bug fixes
+* **dependencies**: fix issue with optional fields and pydantic 2.12 [`281`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/281)
+* **clusters**: stop writing cluster names in lowercase inside API [`288`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/288)
+
+### Perfs
+* **binding-constraints**: clean code and improve perfs for local [`280`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/280)
+* **api**: use new endpoint inside `read_study_api` [`271`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/271)
+
+### Others
+* **tests**: remove useless API UTs [`283`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/283)
+* **tests**: add integration API test inside the CI [`282`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/282)
+* **tests**: launch API integration test with new AWeb API[`284`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/284)
+* **docs**: change package presentation message on pypi [`286`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/286)
+* **tests**: add daily integration test with latest AntaresWeb code [`287`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/287)
+
+
+v0.5.0 (2025-10-13)
+-------------------
+
+### Compatiblity
+* This version fully supports the Simulator v9.3 [251](https://github.com/AntaresSimulatorTeam/antares_craft/pull/251), [277](https://github.com/AntaresSimulatorTeam/antares_craft/pull/277)
+* This version is compatible with AntaresWeb v2.25.0. The previous is not.
+
+### Bug fixes
+* **ts-gen**: bump the `timeseries generation` package to fix an issue [263](https://github.com/AntaresSimulatorTeam/antares_craft/pull/263)
+* **local**: allow clusters with numeric names [268](https://github.com/AntaresSimulatorTeam/antares_craft/pull/268)
+* **api**: fix issue inside area properties reading and mass update [272](https://github.com/AntaresSimulatorTeam/antares_craft/pull/272)
+* **output**: raise when links are given in the wrong order [274](https://github.com/AntaresSimulatorTeam/antares_craft/pull/274)
+* **deps**: add pyarrow inside pyproject.toml [276](https://github.com/AntaresSimulatorTeam/antares_craft/pull/276)
+* **scenario-builder**: only use `hydro final level` for v9.2+ studies [275](https://github.com/AntaresSimulatorTeam/antares_craft/pull/275)
+
+### Perfs
+* **aggregation**: use parquet instead of csv inside output aggregation [273](https://github.com/AntaresSimulatorTeam/antares_craft/pull/273)
+
+### Others
+* **deps**: relax dependencies requirements in pyproject.toml [266](https://github.com/AntaresSimulatorTeam/antares_craft/pull/266)
+* **lint** fix linting [269](https://github.com/AntaresSimulatorTeam/antares_craft/pull/269)
+
+## New Contributors
+* @RobbieKiwi made their first contribution in [268](https://github.com/AntaresSimulatorTeam/antares_craft/pull/268)
+
+
+v0.4.0 (2025-09-16)
+-------------------
+
+### Compatiblity
+* This version fully supports the Simulator v9.2
+
+### Features
+* **thematic-trimming**: add `BC. MARG. COST` [244](https://github.com/AntaresSimulatorTeam/antares_craft/pull/244)
+* **st-storages**: add attributes coherence check [245](https://github.com/AntaresSimulatorTeam/antares_craft/pull/245)
+* **st-storages**: support additional constraints [246](https://github.com/AntaresSimulatorTeam/antares_craft/pull/246)
+* **local**: support 9.2 launcher [249](https://github.com/AntaresSimulatorTeam/antares_craft/pull/249)
+
+### Bug fixes
+* **local**: support optional matrices [248](https://github.com/AntaresSimulatorTeam/antares_craft/pull/248)
+* **local**: delete matrices when deleting an object [250](https://github.com/AntaresSimulatorTeam/antares_craft/pull/250)
+* **api**: encode binding constraint term ID inside API call + use the right solver inside simulation [256](https://github.com/AntaresSimulatorTeam/antares_craft/pull/256)
+
+### Others
+* **output**: remove columns renaming inside local aggregation [243](https://github.com/AntaresSimulatorTeam/antares_craft/pull/243)
+* **tests**: fix desktop tests [261](https://github.com/AntaresSimulatorTeam/antares_craft/pull/261)
+
+### Perfs
+* **xpansion**: remove one API call [247](https://github.com/AntaresSimulatorTeam/antares_craft/pull/247)
+* **settings**: remove some API calls when updating study settings [253](https://github.com/AntaresSimulatorTeam/antares_craft/pull/253)
+
+v0.3.0 (2025-07-24)
+-------------------
+
+### Features
+* **xpansion**: implement matrices reading [231](https://github.com/AntaresSimulatorTeam/antares_craft/pull/231)
+* **xpansion**: implement inputs editing  [232](https://github.com/AntaresSimulatorTeam/antares_craft/pull/232), [233](https://github.com/AntaresSimulatorTeam/antares_craft/pull/233), [234](https://github.com/AntaresSimulatorTeam/antares_craft/pull/234), [235](https://github.com/AntaresSimulatorTeam/antares_craft/pull/235), [236](https://github.com/AntaresSimulatorTeam/antares_craft/pull/236), [237](https://github.com/AntaresSimulatorTeam/antares_craft/pull/237), [238](https://github.com/AntaresSimulatorTeam/antares_craft/pull/238), [239](https://github.com/AntaresSimulatorTeam/antares_craft/pull/239), [240](https://github.com/AntaresSimulatorTeam/antares_craft/pull/240), [241](https://github.com/AntaresSimulatorTeam/antares_craft/pull/241)
+* **xpansion**: implement outputs reading [206](https://github.com/AntaresSimulatorTeam/antares_craft/pull/206)
+
+v0.2.10 (2025-07-16)
+-------------------
+
+### Features
+* **xpansion**: implement inputs reading [227](https://github.com/AntaresSimulatorTeam/antares_craft/pull/227)
+
+### Bug fixes
+* **api**: change thematic-trimming `to_model` method [229](https://github.com/AntaresSimulatorTeam/antares_craft/pull/229)
+
+v0.2.9 (2025-07-09)
+-------------------
+
+### Compatiblity
+* This version is compatible with AntaresWeb v2.22.1. The previous is not.
+* This version is compatible with Simulator v9.2 except for the short-term storage additional constraints.
+
+### Features
+* **api**: support AntaresWeb 2.22.1 [220](https://github.com/AntaresSimulatorTeam/antares_craft/pull/220)
+* **version**:  handle Simulator v9.2 [179](https://github.com/AntaresSimulatorTeam/antares_craft/pull/179)
+
+### Breaking changes
+* **clusters**: forbid creation with matrices for thermal and renewable clusters [219](https://github.com/AntaresSimulatorTeam/antares_craft/pull/219)
+  * Thermal and renewable clusters can no longer be instantiated with matrices (`DataFrame`)
+  * Before:
+    ```python
+    thermal = area_fr.create_thermal_cluster("cluster_nuclear", series=matrix)
+    ```
+  * After:
+    ```python
+    thermal = area_fr.create_thermal_cluster("cluster_nuclear")
+    thermal.set_series(matrix)
+    ```
+
+### Bug fixes
+* **local**: remove useless thermal file [212](https://github.com/AntaresSimulatorTeam/antares_craft/pull/212)
+* **local**: rename matrix C02Cost in CO2Cost [213](https://github.com/AntaresSimulatorTeam/antares_craft/pull/213)
+* **local**: check constraint matrices size at the creation [214](https://github.com/AntaresSimulatorTeam/antares_craft/pull/214)
+* **local**: use different thermal prepro matrices [215](https://github.com/AntaresSimulatorTeam/antares_craft/pull/215)
+* **local**: perform whole data validation before writing data inside mass update methods [216](https://github.com/AntaresSimulatorTeam/antares_craft/pull/216)
+* **api**: allow extra fields from API inside pydantic model [225](https://github.com/AntaresSimulatorTeam/antares_craft/pull/225)
+
+### Miscellaneous
+* **chore**: make exception messages a bit clearer [217](https://github.com/AntaresSimulatorTeam/antares_craft/pull/217)
+
+v0.2.8 (2025-07-03)
+-------------------
+
+### Compatiblity
+This version is compatible with AntaresWeb v2.22. The previous is not.
+
+### Features
+* **bcs**: forbid deletion if area/link/cluster is referenced inside a constraint term [195](https://github.com/AntaresSimulatorTeam/antares_craft/pull/195)
+* **api** handle AntaresWeb version 2.22 [197](https://github.com/AntaresSimulatorTeam/antares_craft/pull/197)
+
+### Miscellaneous
+* **deps**: bump pydantic and move documentation requirements [198](https://github.com/AntaresSimulatorTeam/antares_craft/pull/198)
+* **sonar**: fix little sonar issues [199](https://github.com/AntaresSimulatorTeam/antares_craft/pull/199)
+* **output**: add aggregation enums inside `__all__` [200](https://github.com/AntaresSimulatorTeam/antares_craft/pull/200)
+* **tests**: adapt code to custom desktop version [210](https://github.com/AntaresSimulatorTeam/antares_craft/pull/210)
+
+
 v0.2.7 (2025-06-13)
 -------------------
 

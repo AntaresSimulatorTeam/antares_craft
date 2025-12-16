@@ -20,6 +20,8 @@ from pathlib import Path
 import pandas as pd
 
 from antares.craft import LocalConfiguration, Study
+from antares.craft.exceptions.exceptions import OutputDataRetrievalError
+from antares.craft.model.commons import STUDY_VERSION_8_8
 from antares.craft.model.output import (
     Frequency,
     MCAllAreasDataType,
@@ -224,7 +226,7 @@ AREAS_REQUESTS__IND = [
             type_ids=[],
             columns_names=[],
         ),
-        "test-01-result.tsv",
+        "test-01.result.tsv",
     ),
     (
         TestParamsAreas(
@@ -235,7 +237,7 @@ AREAS_REQUESTS__IND = [
             type_ids=["de", "fr", "it"],
             columns_names=[],
         ),
-        "test-02-result.tsv",
+        "test-02.result.tsv",
     ),
     (
         TestParamsAreas(
@@ -246,7 +248,7 @@ AREAS_REQUESTS__IND = [
             type_ids=[],
             columns_names=["OP. COST", "MRG. PRICE"],
         ),
-        "test-03-result.tsv",
+        "test-03.result.tsv",
     ),
     (
         TestParamsAreas(
@@ -257,7 +259,7 @@ AREAS_REQUESTS__IND = [
             type_ids=["es", "fr", "de"],
             columns_names=[],
         ),
-        "test-04-result.tsv",
+        "test-04.result.tsv",
     ),
     (
         TestParamsAreas(
@@ -268,7 +270,7 @@ AREAS_REQUESTS__IND = [
             type_ids=[],
             columns_names=[],
         ),
-        "test-05-result.tsv",
+        "test-05.result.tsv",
     ),
     (
         TestParamsAreas(
@@ -279,7 +281,7 @@ AREAS_REQUESTS__IND = [
             type_ids=[],
             columns_names=["COSt", "NODu"],
         ),
-        "test-06-result.tsv",
+        "test-06.result.tsv",
     ),
     (
         TestParamsAreas(
@@ -290,7 +292,7 @@ AREAS_REQUESTS__IND = [
             type_ids=[],
             columns_names=["COSt", "NODu"],
         ),
-        "test-07-result.tsv",
+        "test-07.result.tsv",
     ),
 ]
 
@@ -356,7 +358,7 @@ LINKS_REQUESTS__IND = [
 def setup_output(tmp_path: Path, output_id: str) -> Output:
     study_name = "studyTest"
     config = LocalConfiguration(tmp_path, study_name)
-    services = create_local_services(config, study_name)
+    services = create_local_services(config, study_name, STUDY_VERSION_8_8)
     output_service = services.output_service
 
     zip_path = Path(ASSETS_DIR).joinpath("output.zip")
@@ -396,8 +398,15 @@ class TestOutput:
         file_path = Path("mc-ind/00001/links/de - fr/values-hourly.txt")
         matrix_path = tmp_path / "studyTest" / "output" / output_name / "economy" / file_path
         expected_dataframe = read_output_matrix(matrix_path, Frequency.HOURLY)
-        dataframe = output_2.get_mc_ind_link(1, Frequency.HOURLY, MCIndLinksDataType.VALUES, "fr", "de")
+        dataframe = output_2.get_mc_ind_link(1, Frequency.HOURLY, MCIndLinksDataType.VALUES, "de", "fr")
         assert dataframe.equals(expected_dataframe)
+
+        # Ensures we raise if the link is given in the wrong order
+        with pytest.raises(
+            OutputDataRetrievalError,
+            match="Could not retrieve data for output '20201014-1422eco-hello': Areas should be sorted alphabetically",
+        ):
+            output_2.get_mc_ind_link(1, Frequency.HOURLY, MCIndLinksDataType.VALUES, "fr", "de")
 
     @pytest.mark.parametrize("params,expected_result_filename", AREAS_REQUESTS__ALL)
     def test_area_aggregate_mc_all(

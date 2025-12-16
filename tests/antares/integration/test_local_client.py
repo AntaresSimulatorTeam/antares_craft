@@ -28,7 +28,7 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.model.commons import FilterOption
 from antares.craft.model.link import LinkProperties, LinkUi
-from antares.craft.model.renewable import RenewableClusterGroup, RenewableClusterProperties
+from antares.craft.model.renewable import RenewableClusterProperties
 from antares.craft.model.st_storage import STStorageGroup, STStorageProperties
 from antares.craft.model.thermal import ThermalClusterGroup, ThermalClusterProperties
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -54,7 +54,7 @@ class TestLocalClient:
         # Area already exists
         with pytest.raises(
             AreaCreationError,
-            match="Could not create the area fr: There is already an area 'fr' in the study 'test study'",
+            match="Could not create the area 'fr': There is already an area 'fr' in the study 'test study'",
         ):
             test_study.create_area("fr")
 
@@ -62,7 +62,7 @@ class TestLocalClient:
         at_fr = test_study.create_link(area_from=fr.id, area_to=at.id)
 
         # Cannot create a link from an area that doesn't exist in the study
-        with pytest.raises(LinkCreationError, match="Could not create the link fr / usa: usa does not exist"):
+        with pytest.raises(LinkCreationError, match="Could not create the link 'fr / usa': usa does not exist"):
             test_study.create_link(area_from=fr.id, area_to="usa")
 
         # Thermal
@@ -71,7 +71,7 @@ class TestLocalClient:
         # Setup time series for following tests
         time_series_rows = 10  # 365 * 24
         time_series_columns = 1
-        time_series = pd.DataFrame(np.around(np.random.rand(time_series_rows, time_series_columns)))
+        time_series = pd.DataFrame(np.around(np.random.rand(time_series_rows, time_series_columns)), dtype=np.int64)
 
         # Load
         fr.set_load(time_series)
@@ -140,23 +140,23 @@ class TestLocalClient:
 
         # test thermal cluster creation with properties
         thermal_name = "gaz_be"
-        thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS)
+        thermal_properties = ThermalClusterProperties(efficiency=55, group=ThermalClusterGroup.GAS.value)
         thermal_be = area_be.create_thermal_cluster(thermal_name, thermal_properties)
         assert thermal_be.properties.efficiency == 55
-        assert thermal_be.properties.group == ThermalClusterGroup.GAS
+        assert thermal_be.properties.group == ThermalClusterGroup.GAS.value
 
         # test renewable cluster creation with default values
         renewable_name = "cluster_test"
-        renewable_fr = fr.create_renewable_cluster(renewable_name, None, None)
+        renewable_fr = fr.create_renewable_cluster(renewable_name, None)
         assert renewable_fr.name == renewable_name
         assert renewable_fr.id == "cluster_test"
 
         # test renewable cluster creation with properties
         renewable_name = "wind_onshore"
-        renewable_properties = RenewableClusterProperties(enabled=False, group=RenewableClusterGroup.WIND_ON_SHORE)
-        renewable_onshore = fr.create_renewable_cluster(renewable_name, renewable_properties, None)
+        renewable_properties = RenewableClusterProperties(enabled=False, group="wind onshore")
+        renewable_onshore = fr.create_renewable_cluster(renewable_name, renewable_properties)
         assert not renewable_onshore.properties.enabled
-        assert renewable_onshore.properties.group == RenewableClusterGroup.WIND_ON_SHORE
+        assert renewable_onshore.properties.group == "wind onshore"
 
         # test short term storage creation with default values
         st_storage_name = "cluster_test"
@@ -166,10 +166,10 @@ class TestLocalClient:
 
         # test short term storage creation with properties
         st_storage_name = "wind_onshore"
-        storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY)
+        storage_properties = STStorageProperties(reservoir_capacity=0.5, group=STStorageGroup.BATTERY.value)
         battery_fr = fr.create_st_storage(st_storage_name, storage_properties)
         assert battery_fr.properties.reservoir_capacity == 0.5
-        assert battery_fr.properties.group == STStorageGroup.BATTERY
+        assert battery_fr.properties.group == STStorageGroup.BATTERY.value
 
         # test binding constraint creation without terms
         bc_props = BindingConstraintProperties(enabled=False, group="group_1")
@@ -195,7 +195,7 @@ class TestLocalClient:
         cluster_data = ClusterData(area=area_be.id, cluster=thermal_be.id)
         cluster_term = ConstraintTerm(data=cluster_data, weight=100)
         terms = [link_term_1, cluster_term]
-        constraint_1.add_terms(terms)
+        constraint_1.set_terms(terms)
         assert constraint_1.get_terms() == {link_term_1.id: link_term_1, cluster_term.id: cluster_term}
 
         # Case that succeeds

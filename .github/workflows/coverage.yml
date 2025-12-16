@@ -5,12 +5,51 @@ on:
       - "**"
 
 jobs:
-  coverage:
+  coverage_and_integration_test:
     runs-on: ubuntu-22.04
+    env:
+      GITHUB_TOKEN: ${{ secrets.DAILY_CI }}
+      REPO: AntaresSimulatorTeam/antares_desktop
+      VERSION: v2.27
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download AntaresWeb asset from draft release
+        run: |
+          echo "Finding release ID..."
+  
+          release_id=$(curl -s \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            https://api.github.com/repos/$REPO/releases | \
+            jq --arg ver "$VERSION" '.[] | select(.name == $ver) | .id')
+          
+          if [ -z "$release_id" ]; then
+            echo "Release not found!"
+            exit 1
+          fi
+          echo "Release ID: $release_id"
+  
+          echo "Finding AntaresWeb asset ID..."
+          asset_id=$(curl -s \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            https://api.github.com/repos/$REPO/releases/$release_id/assets | \
+            jq --arg ver "$VERSION" '.[] | select(.name=="AntaresWeb-ubuntu-22.04-\($ver).zip") | .id')
+          if [ -z "$asset_id" ]; then
+            echo "Asset AntaresWebDesktop.zip not found!"
+            exit 1
+          fi
+          echo "Asset ID: $asset_id"
+  
+          echo "Downloading asset..."
+          curl -L -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/octet-stream" \
+            https://api.github.com/repos/$REPO/releases/assets/$asset_id \
+            -o AntaresWeb-ubuntu-22.04-$VERSION.zip
+
+      - name: Unzip AntaresWebDesktop asset
+        run: unzip -o "AntaresWeb-ubuntu-22.04-$VERSION.zip" -d ./AntaresWebDesktop
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -31,9 +70,10 @@ jobs:
           name: python-code-coverage-report
           path: coverage.xml
 
+
   sonarcloud:
     runs-on: ubuntu-22.04
-    needs: [coverage]
+    needs: [coverage_and_integration_test]
 
     steps:
       - uses: actions/checkout@v4

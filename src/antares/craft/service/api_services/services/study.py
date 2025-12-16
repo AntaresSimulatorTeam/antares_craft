@@ -39,6 +39,7 @@ from antares.craft.model.output import Output
 from antares.craft.service.api_services.models.scenario_builder import ScenarioBuilderAPI
 from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
+from antares.study.version import StudyVersion
 
 if TYPE_CHECKING:
     from antares.craft.model.study import Study
@@ -49,8 +50,8 @@ class StudyApiService(BaseStudyService):
         super().__init__()
         self._config = config
         self._study_id = study_id
-        self._base_url = f"{self.config.get_host()}/api/v1"
-        self._wrapper = RequestWrapper(self.config.set_up_api_conf())
+        self._base_url = f"{self._config.get_host()}/api/v1"
+        self._wrapper = RequestWrapper(self._config.set_up_api_conf())
         self._output_service: BaseOutputService = output_service
 
     @property
@@ -59,21 +60,17 @@ class StudyApiService(BaseStudyService):
         return self._study_id
 
     @property
-    @override
-    def config(self) -> APIconf:
-        return self._config
-
-    @property
     def output_service(self) -> BaseOutputService:
         return self._output_service
 
     @override
-    def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
-        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint.id}"
+    def delete_binding_constraints(self, constraints: list[BindingConstraint]) -> None:
+        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints"
+        body = [bc.id for bc in constraints]
         try:
-            self._wrapper.delete(url)
+            self._wrapper.delete(url, json=body)
         except APIError as e:
-            raise BindingConstraintDeletionError(constraint.id, e.message) from e
+            raise BindingConstraintDeletionError(body, e.message) from e
 
     @override
     def delete(self, children: bool) -> None:
@@ -91,7 +88,7 @@ class StudyApiService(BaseStudyService):
         try:
             response = self._wrapper.post(url)
             variant_id = response.json()
-            return read_study_api(self.config, variant_id)
+            return read_study_api(self._config, variant_id)
         except APIError as e:
             raise StudyVariantCreationError(self.study_id, e.message) from e
 
@@ -156,12 +153,12 @@ class StudyApiService(BaseStudyService):
             raise ThermalTimeseriesGenerationError(self.study_id, e.message)
 
     @override
-    def get_scenario_builder(self, nb_years: int) -> ScenarioBuilder:
+    def get_scenario_builder(self, nb_years: int, study_version: StudyVersion) -> ScenarioBuilder:
         url = f"{self._base_url}/studies/{self.study_id}/config/scenariobuilder"
         try:
             json_response = self._wrapper.get(url).json()
             api_model = ScenarioBuilderAPI.from_api(json_response)
-            return api_model.to_user_model(nb_years)
+            return api_model.to_user_model(nb_years, study_version)
         except APIError as e:
             raise ScenarioBuilderReadingError(self.study_id, e.message)
 

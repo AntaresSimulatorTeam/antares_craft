@@ -28,80 +28,80 @@ class MissingTokenError(Exception):
 
 class AreaCreationError(Exception):
     def __init__(self, area_name: str, message: str) -> None:
-        self.message = f"Could not create the area {area_name}: " + message
+        self.message = f"Could not create the area '{area_name}': " + message
         super().__init__(self.message)
 
 
 class AreaUiUpdateError(Exception):
     def __init__(self, area_name: str, message: str) -> None:
-        self.message = f"Could not update ui for area {area_name}: " + message
+        self.message = f"Could not update ui for area '{area_name}': " + message
         super().__init__(self.message)
 
 
 class AreaDeletionError(Exception):
     def __init__(self, area_name: str, message: str) -> None:
-        self.message = f"Could not delete the area {area_name}: " + message
+        self.message = f"Could not delete the area '{area_name}': " + message
         super().__init__(self.message)
 
 
 class AreasRetrievalError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not retrieve the areas from study {study_id} : " + message
+        self.message = f"Could not retrieve the areas from study '{study_id}' : " + message
         super().__init__(self.message)
 
 
 class AreasPropertiesUpdateError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not update areas properties from study {study_id} : {message}"
+        self.message = f"Could not update areas properties from study '{study_id}' : {message}"
         super().__init__(self.message)
 
 
 class LinkCreationError(Exception):
     def __init__(self, area_from: str, area_to: str, message: str) -> None:
-        self.message = f"Could not create the link {area_from} / {area_to}: " + message
+        self.message = f"Could not create the link '{area_from} / {area_to}': " + message
         super().__init__(self.message)
 
 
 class LinkUiUpdateError(Exception):
     def __init__(self, link_name: str, message: str) -> None:
-        self.message = f"Could not update ui for link {link_name}: " + message
+        self.message = f"Could not update ui for link '{link_name}': " + message
         super().__init__(self.message)
 
 
 class LinkDeletionError(Exception):
     def __init__(self, link_name: str, message: str) -> None:
-        self.message = f"Could not delete the link {link_name}: " + message
+        self.message = f"Could not delete the link '{link_name}': " + message
         super().__init__(self.message)
 
 
 class LinksRetrievalError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not retrieve links from study {study_id} : {message}"
+        self.message = f"Could not retrieve links from study '{study_id}' : {message}"
         super().__init__(self.message)
 
 
 class LinkPropertiesUpdateError(Exception):
     def __init__(self, link_id: str, study_id: str, message: str) -> None:
-        self.message = f"Could not update properties for link {link_id} from study {study_id} : {message}"
+        self.message = f"Could not update properties for link '{link_id}' from study '{study_id}' : {message}"
         super().__init__(self.message)
 
 
 class LinksPropertiesUpdateError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not update links properties from study {study_id} : {message}"
+        self.message = f"Could not update links properties from study '{study_id}' : {message}"
         super().__init__(self.message)
 
 
 class ThermalCreationError(Exception):
     def __init__(self, thermal_name: str, area_id: str, message: str) -> None:
-        self.message = f"Could not create the thermal cluster {thermal_name} inside area {area_id}: " + message
+        self.message = f"Could not create the thermal cluster '{thermal_name}' inside area '{area_id}': " + message
         super().__init__(self.message)
 
 
 class ThermalPropertiesUpdateError(Exception):
     def __init__(self, thermal_name: str, area_id: str, message: str) -> None:
         self.message = (
-            f"Could not update properties for thermal cluster {thermal_name} inside area {area_id}: " + message
+            f"Could not update properties for thermal cluster '{thermal_name}' inside area '{area_id}': " + message
         )
         super().__init__(self.message)
 
@@ -109,7 +109,7 @@ class ThermalPropertiesUpdateError(Exception):
 class ThermalDeletionError(Exception):
     def __init__(self, area_id: str, thermal_names: List[str], message: str) -> None:
         self.message = (
-            f"Could not delete the following thermal clusters: {', '.join(thermal_names)} inside area {area_id}: "
+            f"Could not delete the following thermal clusters: '{', '.join(thermal_names)}' inside area '{area_id}': "
             + message
         )
         super().__init__(self.message)
@@ -117,28 +117,36 @@ class ThermalDeletionError(Exception):
 
 class ClustersPropertiesUpdateError(Exception):
     def __init__(self, study_id: str, cluster_type: str, message: str) -> None:
-        self.message = f"Could not update properties of the {cluster_type} clusters from study {study_id} : {message}"
+        self.message = f"Could not update properties of the {cluster_type} clusters from study '{study_id}' : {message}"
         super().__init__(self.message)
 
 
 class HydroPropertiesUpdateError(Exception):
     def __init__(self, area_id: str, message: str) -> None:
-        self.message = f"Could not update hydro properties for area {area_id}: " + message
+        self.message = f"Could not update hydro properties for area '{area_id}': " + message
         super().__init__(self.message)
 
 
 class HydroInflowStructureUpdateError(Exception):
     def __init__(self, area_id: str, message: str) -> None:
-        self.message = f"Could not update hydro inflow-structure for area {area_id}: " + message
+        self.message = f"Could not update hydro inflow-structure for area '{area_id}': " + message
+        super().__init__(self.message)
+
+
+class HydroAllocationUpdateError(Exception):
+    def __init__(self, area_id: str, message: str) -> None:
+        self.message = f"Could not update hydro allocation for area '{area_id}': " + message
         super().__init__(self.message)
 
 
 class HydroPropertiesReadingError(Exception):
     def __init__(self, study_id: str, message: str, area_id: Optional[str] = None) -> None:
         if area_id:
-            self.message = f"Could not read the hydro properties for area {area_id} inside study {study_id}: " + message
+            self.message = (
+                f"Could not read the hydro properties for area '{area_id}' inside study '{study_id}': " + message
+            )
         else:
-            self.message = f"Could not read the hydro properties for study {study_id}: " + message
+            self.message = f"Could not read the hydro properties for study '{study_id}': " + message
         super().__init__(self.message)
 
 
@@ -146,23 +154,23 @@ class HydroInflowStructureReadingError(Exception):
     def __init__(self, study_id: str, message: str, area_id: Optional[str] = None) -> None:
         if area_id:
             self.message = (
-                f"Could not read the hydro inflow-structure for area {area_id} inside study {study_id}: " + message
+                f"Could not read the hydro inflow-structure for area '{area_id}' inside study '{study_id}': " + message
             )
         else:
-            self.message = f"Could not read the hydro inflow-structure for study {study_id}: " + message
+            self.message = f"Could not read the hydro inflow-structure for study '{study_id}': " + message
         super().__init__(self.message)
 
 
 class RenewableCreationError(Exception):
     def __init__(self, renewable_name: str, area_id: str, message: str) -> None:
-        self.message = f"Could not create the renewable cluster {renewable_name} inside area {area_id}: " + message
+        self.message = f"Could not create the renewable cluster '{renewable_name}' inside area '{area_id}': " + message
         super().__init__(self.message)
 
 
 class RenewablePropertiesUpdateError(Exception):
     def __init__(self, renewable_name: str, area_id: str, message: str) -> None:
         self.message = (
-            f"Could not update properties for renewable cluster {renewable_name} inside area {area_id}: " + message
+            f"Could not update properties for renewable cluster '{renewable_name}' inside area '{area_id}': " + message
         )
         super().__init__(self.message)
 
@@ -170,7 +178,7 @@ class RenewablePropertiesUpdateError(Exception):
 class RenewableDeletionError(Exception):
     def __init__(self, area_id: str, renewable_names: List[str], message: str) -> None:
         self.message = (
-            f"Could not delete the following renewable clusters: {', '.join(renewable_names)} inside area {area_id}: "
+            f"Could not delete the following renewable clusters: '{', '.join(renewable_names)}' inside area '{area_id}': "
             + message
         )
         super().__init__(self.message)
@@ -178,14 +186,17 @@ class RenewableDeletionError(Exception):
 
 class STStorageCreationError(Exception):
     def __init__(self, st_storage_name: str, area_id: str, message: str) -> None:
-        self.message = f"Could not create the short term storage {st_storage_name} inside area {area_id}: " + message
+        self.message = (
+            f"Could not create the short term storage '{st_storage_name}' inside area '{area_id}': " + message
+        )
         super().__init__(self.message)
 
 
 class STStoragePropertiesUpdateError(Exception):
     def __init__(self, st_storage_name: str, area_id: str, message: str) -> None:
         self.message = (
-            f"Could not update properties for short term storage {st_storage_name} inside area {area_id}: " + message
+            f"Could not update properties for short term storage '{st_storage_name}' inside area '{area_id}': "
+            + message
         )
         super().__init__(self.message)
 
@@ -193,7 +204,8 @@ class STStoragePropertiesUpdateError(Exception):
 class STStorageMatrixDownloadError(Exception):
     def __init__(self, area_name: str, storage_name: str, matrix_name: str, message: str) -> None:
         self.message = (
-            f"Could not download {matrix_name} matrix for storage {storage_name} inside area {area_name}: " + message
+            f"Could not download {matrix_name} matrix for storage '{storage_name}' inside area '{area_name}': "
+            + message
         )
         super().__init__(self.message)
 
@@ -201,7 +213,7 @@ class STStorageMatrixDownloadError(Exception):
 class STStorageMatrixUploadError(Exception):
     def __init__(self, area_name: str, storage_name: str, matrix_name: str, message: str) -> None:
         self.message = (
-            f"Could not upload {matrix_name} matrix for storage {storage_name} inside area {area_name}: " + message
+            f"Could not upload {matrix_name} matrix for storage '{storage_name}' inside area '{area_name}': " + message
         )
         super().__init__(self.message)
 
@@ -209,7 +221,7 @@ class STStorageMatrixUploadError(Exception):
 class STStorageDeletionError(Exception):
     def __init__(self, area_id: str, st_storage_names: List[str], message: str) -> None:
         self.message = (
-            f"Could not delete the following short term storages: {', '.join(st_storage_names)} inside area {area_id}: "
+            f"Could not delete the following short term storages: '{', '.join(st_storage_names)}' inside area '{area_id}': "
             + message
         )
         super().__init__(self.message)
@@ -217,232 +229,220 @@ class STStorageDeletionError(Exception):
 
 class BindingConstraintCreationError(Exception):
     def __init__(self, constraint_name: str, message: str) -> None:
-        self.message = f"Could not create the binding constraint {constraint_name}: " + message
+        self.message = f"Could not create the binding constraint '{constraint_name}': " + message
         super().__init__(self.message)
 
 
 class ConstraintPropertiesUpdateError(Exception):
     def __init__(self, constraint_name: str, message: str) -> None:
-        self.message = f"Could not update properties for binding constraint {constraint_name}: " + message
+        self.message = f"Could not update properties for binding constraint '{constraint_name}': " + message
         super().__init__(self.message)
 
 
 class ConstraintsPropertiesUpdateError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not update binding constraints properties from study {study_id}: {message}"
+        self.message = f"Could not update binding constraints properties from study '{study_id}': {message}"
         super().__init__(self.message)
 
 
-class ConstraintDoesNotExistError(Exception):
-    def __init__(self, constraint_name: str, study_name: str) -> None:
-        self.message = f"The binding constraint {constraint_name} doesn't exist inside study {study_name}."
+class ConstraintsDoNotExistError(Exception):
+    def __init__(self, constraint_names: list[str], study_name: str) -> None:
+        bc_names = ", ".join(constraint_names)
+        self.message = f"The binding constraints '{bc_names}' do not exist inside study '{study_name}'."
         super().__init__(self.message)
 
 
 class ConstraintMatrixUpdateError(Exception):
     def __init__(self, constraint_name: str, matrix_name: str, message: str) -> None:
-        self.message = f"Could not update matrix {matrix_name} for binding constraint {constraint_name}: " + message
+        self.message = f"Could not update matrix {matrix_name} for binding constraint '{constraint_name}': " + message
         super().__init__(self.message)
 
 
 class ConstraintMatrixDownloadError(Exception):
     def __init__(self, constraint_name: str, matrix_name: str, message: str) -> None:
-        self.message = f"Could not download matrix {matrix_name} for binding constraint {constraint_name}: " + message
-        super().__init__(self.message)
-
-
-class ConstraintTermAdditionError(Exception):
-    def __init__(self, constraint_name: str, terms_ids: List[str], message: str) -> None:
-        self.message = (
-            f"Could not add the following constraint terms: {', '.join(terms_ids)} inside constraint {constraint_name}: "
-            + message
-        )
+        self.message = f"Could not download matrix {matrix_name} for binding constraint '{constraint_name}': " + message
         super().__init__(self.message)
 
 
 class BindingConstraintDeletionError(Exception):
-    def __init__(self, constraint_name: str, message: str) -> None:
-        self.message = f"Could not delete the binding constraint {constraint_name}: " + message
-        super().__init__(self.message)
-
-
-class ConstraintTermDeletionError(Exception):
-    def __init__(self, constraint_id: str, term_id: str, message: str) -> None:
-        self.message = f"Could not delete the term {term_id} of the binding constraint {constraint_id}: " + message
-        super().__init__(self.message)
-
-
-class ConstraintTermEditionError(Exception):
-    def __init__(self, constraint_id: str, term_id: str, message: str) -> None:
-        self.message = f"Could not update the term {term_id} of the binding constraint {constraint_id}: " + message
+    def __init__(self, constraint_names: list[str], message: str) -> None:
+        names = ", ".join(constraint_names)
+        self.message = f"Could not delete the binding constraints '{names}': " + message
         super().__init__(self.message)
 
 
 class StudyCreationError(Exception):
     def __init__(self, study_name: str, message: str) -> None:
-        self.message = f"Could not create the study {study_name}: " + message
+        self.message = f"Could not create the study '{study_name}': " + message
         super().__init__(self.message)
 
 
 class StudySettingsUpdateError(Exception):
     def __init__(self, study_name: str, message: str) -> None:
-        self.message = f"Could not update settings for study {study_name}: " + message
+        self.message = f"Could not update settings for study '{study_name}': " + message
         super().__init__(self.message)
 
 
 class StudySettingsReadError(Exception):
     def __init__(self, study_name: str, message: str) -> None:
-        self.message = f"Could not read settings for study {study_name}: " + message
+        self.message = f"Could not read settings for study '{study_name}': " + message
         super().__init__(self.message)
 
 
 class StudyDeletionError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not delete the study {study_id}: " + message
+        self.message = f"Could not delete the study '{study_id}': " + message
         super().__init__(self.message)
 
 
 class StudyVariantCreationError(Exception):
     def __init__(self, study_name: str, message: str) -> None:
-        self.message = f"Could not create a variant for {study_name}: " + message
+        self.message = f"Could not create a variant for '{study_name}': " + message
         super().__init__(self.message)
 
 
 class StudyMoveError(Exception):
     def __init__(self, study_id: str, new_folder_name: str, message: str) -> None:
-        self.message = f"Could not move the study {study_id} to folder {new_folder_name}: " + message
+        self.message = f"Could not move the study '{study_id}' to folder '{new_folder_name}': " + message
         super().__init__(self.message)
 
 
 class StudyImportError(Exception):
     def __init__(self, study_id: str, message: str):
-        self.message = f"Could not import the study {study_id} : {message}"
+        self.message = f"Could not import the study '{study_id}' : {message}"
         super().__init__(self.message)
 
 
 class ThermalMatrixDownloadError(Exception):
     def __init__(self, area_name: str, cluster_name: str, matrix_name: str, message: str) -> None:
         self.message = (
-            f"Could not download {matrix_name} for cluster {cluster_name} inside area {area_name}: " + message
+            f"Could not download {matrix_name} for cluster '{cluster_name}' inside area '{area_name}': " + message
         )
         super().__init__(self.message)
 
 
 class ThermalMatrixUpdateError(Exception):
     def __init__(self, area_name: str, cluster_name: str, matrix_name: str, message: str) -> None:
-        self.message = f"Could not upload {matrix_name} for cluster {cluster_name} inside area {area_name}: " + message
+        self.message = (
+            f"Could not upload {matrix_name} for cluster '{cluster_name}' inside area '{area_name}': " + message
+        )
         super().__init__(self.message)
 
 
 class RenewableMatrixDownloadError(Exception):
     def __init__(self, area_name: str, renewable_name: str, message: str) -> None:
-        self.message = f"Could not download matrix for cluster {renewable_name} inside area {area_name}: " + message
+        self.message = f"Could not download matrix for cluster '{renewable_name}' inside area '{area_name}': " + message
         super().__init__(self.message)
 
 
 class RenewableMatrixUpdateError(Exception):
     def __init__(self, area_name: str, renewable_name: str, message: str) -> None:
-        self.message = f"Could not upload matrix for cluster {renewable_name} inside area {area_name}: " + message
+        self.message = f"Could not upload matrix for cluster '{renewable_name}' inside area '{area_name}': " + message
         super().__init__(self.message)
 
 
 class MatrixUploadError(Exception):
     def __init__(self, area_id: str, matrix_type: str, message: str) -> None:
-        self.message = f"Error uploading {matrix_type} matrix for area {area_id}: {message}"
+        self.message = f"Error uploading {matrix_type} matrix for area '{area_id}': {message}"
         super().__init__(self.message)
 
 
 class MatrixDownloadError(Exception):
     def __init__(self, area_id: str, matrix_type: str, message: str) -> None:
-        self.message = f"Error downloading {matrix_type} matrix for area {area_id}: {message}"
+        self.message = f"Error downloading {matrix_type} matrix for area '{area_id}': {message}"
         super().__init__(self.message)
 
 
 class LinkUploadError(Exception):
     def __init__(self, area_from_id: str, area_to_id: str, matrix_type: str, message: str) -> None:
-        self.message = f"Error uploading {matrix_type} matrix for link {area_from_id}/{area_to_id}: {message}"
+        self.message = f"Error uploading {matrix_type} matrix for link '{area_from_id}/{area_to_id}': {message}"
         super().__init__(self.message)
 
 
 class LinkDownloadError(Exception):
     def __init__(self, area_from_id: str, area_to_id: str, matrix_type: str, message: str):
-        self.message = f"Could not download {matrix_type} matrix for link {area_from_id}/{area_to_id}: {message}"
+        self.message = f"Could not download {matrix_type} matrix for link '{area_from_id}/{area_to_id}': {message}"
         super().__init__(self.message)
 
 
 class AntaresSimulationRunningError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not run the simulation for study {study_id}: " + message
+        self.message = f"Could not run the simulation for study '{study_id}': " + message
         super().__init__(self.message)
 
 
 class SimulationTimeOutError(Exception):
     def __init__(self, job_id: str, time_out: int) -> None:
-        self.message = f"Job {job_id} exceeded timeout of {time_out} seconds"
+        self.message = f"Job '{job_id}' exceeded timeout of {time_out} seconds"
         super().__init__(self.message)
 
 
 class TaskTimeOutError(Exception):
     def __init__(self, task_id: str, time_out: int) -> None:
-        self.message = f"Task {task_id} exceeded timeout of {time_out} seconds"
+        self.message = f"Task '{task_id}' exceeded timeout of {time_out} seconds"
         super().__init__(self.message)
 
 
 class TaskFailedError(Exception):
     def __init__(self, task_id: str) -> None:
-        self.message = f"Task {task_id} failed"
+        self.message = f"Task '{task_id}' failed"
         super().__init__(self.message)
 
 
 class AntaresSimulationUnzipError(Exception):
     def __init__(self, study_id: str, job_id: str, message: str) -> None:
-        self.message = f"Could not unzip simulation for study {study_id} and job {job_id}: " + message
+        self.message = f"Could not unzip simulation for study '{study_id}' and job '{job_id}': " + message
         super().__init__(self.message)
 
 
 class SimulationFailedError(Exception):
     def __init__(self, study_id: str, job_id: str) -> None:
-        self.message = f"Simulation failed for {study_id} and job {job_id}"
+        self.message = f"Simulation failed for study '{study_id}' and job '{job_id}'"
         super().__init__(self.message)
 
 
 class OutputsRetrievalError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not get outputs for {study_id}: " + message
+        self.message = f"Could not get outputs for '{study_id}': " + message
         super().__init__(self.message)
 
 
 class OutputDeletionError(Exception):
     def __init__(self, study_id: str, output_name: str, message: str) -> None:
-        self.message = f"Could not delete the output {output_name} from study {study_id}: " + message
+        self.message = f"Could not delete the output '{output_name}' from study '{study_id}': " + message
         super().__init__(self.message)
 
 
 class ConstraintRetrievalError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not get binding constraints for {study_id}: " + message
+        self.message = f"Could not get binding constraints for '{study_id}': " + message
+        super().__init__(self.message)
+
+
+class ConstraintTermsSettingError(Exception):
+    def __init__(self, study_id: str, constraint_id: str, message: str) -> None:
+        self.message = f"Could not set binding constraint {constraint_id} terms from the study {study_id} : " + message
         super().__init__(self.message)
 
 
 class AggregateCreationError(Exception):
     def __init__(self, study_id: str, output_id: str, mc_type: str, object_type: str, message: str) -> None:
         self.message = (
-            f"Could not create {mc_type}/{object_type} aggregate for study {study_id}, output {output_id}: " + message
+            f"Could not create {mc_type}/{object_type} aggregate for study '{study_id}', output '{output_id}': "
+            + message
         )
         super().__init__(self.message)
 
 
 class ThermalTimeseriesGenerationError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not generate thermal timeseries for study {study_id}: " + message
+        self.message = f"Could not generate thermal timeseries for study '{study_id}': " + message
         super().__init__(self.message)
 
 
 class FilteringValueError(Exception):
     def __init__(self, invalid_options: list[str], valid_values: set[str]) -> None:
-        self.message = (
-            f"Invalid value(s) in filters: {', '.join(invalid_options)}. Allowed values are: {', '.join(valid_values)}."
-        )
+        self.message = f"Invalid value(s) in filters: '{', '.join(invalid_options)}'. Allowed values are: '{', '.join(valid_values)}'."
         super().__init__(self.message)
 
 
@@ -452,27 +452,15 @@ class MatrixFormatError(Exception):
         super().__init__(self.message)
 
 
-class ReadingMethodUsedOufOfScopeError(Exception):
-    def __init__(self, study_id: str, method_name: str, objects: str) -> None:
-        self.message = f"The method {method_name} was used on study {study_id} which already contains some {objects}. This is prohibited."
-        super().__init__(self.message)
-
-
 class OutputNotFound(Exception):
     def __init__(self, output_id: str) -> None:
-        self.message = f"Output {output_id} not found"
+        self.message = f"Output '{output_id}' not found"
         super().__init__(self.message)
 
 
 class OutputSubFolderNotFound(Exception):
     def __init__(self, output_id: str, mc_root: str):
-        self.message = f"The output {output_id} sub-folder {mc_root} does not exist"
-        super().__init__(self.message)
-
-
-class FileTooLargeError(Exception):
-    def __init__(self, estimated_size: int, maximum_size: int):
-        self.message = f"Cannot aggregate output data. The expected size: {estimated_size} Mo exceeds the max supported size: {maximum_size}"
+        self.message = f"The output '{output_id}' sub-folder '{mc_root}' does not exist"
         super().__init__(self.message)
 
 
@@ -483,13 +471,13 @@ class MCRootNotHandled(Exception):
 
 class ScenarioBuilderReadingError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not read the scenario builder for study {study_id}: " + message
+        self.message = f"Could not read the scenario builder for study '{study_id}': " + message
         super().__init__(self.message)
 
 
 class ScenarioBuilderEditionError(Exception):
     def __init__(self, study_id: str, message: str) -> None:
-        self.message = f"Could not edit the scenario builder for study {study_id}: " + message
+        self.message = f"Could not edit the scenario builder for study '{study_id}': " + message
         super().__init__(self.message)
 
 
@@ -501,7 +489,7 @@ class InvalidRequestForScenarioBuilder(Exception):
 class UnsupportedStudyVersion(Exception):
     def __init__(self, version: str, supported_versions: set[StudyVersion]) -> None:
         supported_list = ", ".join(f"{v:2d}" for v in supported_versions)
-        msg = f"Unsupported study version: {version}, supported ones are {supported_list}"
+        msg = f"Unsupported study version: '{version}', supported ones are '{supported_list}'"
         super().__init__(msg)
 
 
@@ -528,3 +516,172 @@ class ReferencedObjectDeletionNotAllowed(Exception):
             f" in the following binding constraints:\n{first_bcs_ids}{and_more}"
         )
         super().__init__(message)
+
+
+class XpansionOutputParsingError(Exception):
+    def __init__(self, study_id: str, output_id: str, file_name: str, message: str) -> None:
+        self.message = f"Could not parse {file_name} for study {study_id}, output {output_id}: " + message
+        super().__init__(self.message)
+
+
+class InvalidFieldForVersionError(ValueError):
+    def __init__(self, message: str) -> None:
+        super().__init__(self, message)
+
+
+class ThematicTrimmingUpdateError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not update thematic_trimming for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionConfigurationCreationError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not create an xpansion configuration for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionConfigurationDeletionError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not delete the xpansion configuration for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionConfigurationReadingError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not read the xpansion configuration for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class BadCandidateFormatError(Exception):
+    def __init__(self, candidate_name: str) -> None:
+        self.message = f"The candidate {candidate_name} is not well formatted. It should either contain max-investment or (max-units and unit-size)."
+        super().__init__(self.message)
+
+
+class XpansionFileDeletionError(Exception):
+    def __init__(self, study_name: str, file_name: str, message: str) -> None:
+        self.message = f"Could not delete the xpansion file {file_name} for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionMatrixEditionError(Exception):
+    def __init__(self, study_name: str, file_name: str, message: str) -> None:
+        self.message = f"Could not edit the xpansion matrix {file_name} for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionMatrixReadingError(Exception):
+    def __init__(self, study_name: str, file_name: str, message: str) -> None:
+        self.message = f"Could not read the xpansion matrix {file_name} for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionCandidateCreationError(Exception):
+    def __init__(self, study_name: str, candidate_name: str, message: str) -> None:
+        self.message = f"Could not create the candidate {candidate_name} for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionCandidateEditionError(Exception):
+    def __init__(self, study_name: str, candidate_name: str, message: str) -> None:
+        self.message = f"Could not edit the candidate {candidate_name} for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionCandidateDeletionError(Exception):
+    def __init__(self, study_name: str, names: set[str], message: str) -> None:
+        self.message = f"Could not delete candidates {names} for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionCandidateCoherenceError(Exception):
+    def __init__(self, study_name: str, candidate_name: str, message: str) -> None:
+        self.message = f"The candidate {candidate_name} for study {study_name} has incoherence: " + message
+        super().__init__(self.message)
+
+
+class XpansionConstraintCreationError(Exception):
+    def __init__(self, study_name: str, constraint_name: str, file_name: str, message: str) -> None:
+        self.message = (
+            f"Could not create the xpansion constraint {constraint_name} inside the file {file_name} for study {study_name}: "
+            + message
+        )
+        super().__init__(self.message)
+
+
+class XpansionConstraintsDeletionError(Exception):
+    def __init__(self, study_name: str, names: list[str], file_name: str, message: str) -> None:
+        self.message = (
+            f"Could not create the xpansion constraints {names} inside the file {file_name} for study {study_name}: "
+            + message
+        )
+        super().__init__(self.message)
+
+
+class XpansionConstraintsEditionError(Exception):
+    def __init__(self, study_name: str, constraint_name: str, file_name: str, message: str) -> None:
+        self.message = (
+            f"Could not edit the xpansion constraint {constraint_name} inside the file {file_name} for study {study_name}: "
+            + message
+        )
+        super().__init__(self.message)
+
+
+class XpansionResourceDeletionError(Exception):
+    def __init__(self, resource_type: str, file_name: str, message: str) -> None:
+        self.message = f"Could not delete the {resource_type} {file_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionSettingsEditionError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not update the xpansion settings for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionSensitivityEditionError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not update the xpansion sensitivity for study {study_name}: " + message
+        super().__init__(self.message)
+
+
+class XpansionConfigurationMissingError(Exception):
+    def __init__(self, study_name: str) -> None:
+        self.message = f"The study {study_name} does not have any xpansion configuration, you should add one first"
+        super().__init__(self.message)
+
+
+class STStorageConstraintCreationError(Exception):
+    def __init__(self, study_name: str, area_id: str, storage_id: str, message: str) -> None:
+        self.message = (
+            f"Could not create constraint for storage {storage_id} inside area {area_id} for study {study_name}"
+            + message
+        )
+        super().__init__(self.message)
+
+
+class STStorageConstraintEditionError(Exception):
+    def __init__(self, study_name: str, message: str) -> None:
+        self.message = f"Could not update short-term storage constraints for study {study_name}" + message
+        super().__init__(self.message)
+
+
+class STStorageConstraintDeletionError(Exception):
+    def __init__(self, study_name: str, area_id: str, storage_id: str, message: str) -> None:
+        self.message = (
+            f"Could not delete constraints for storage {storage_id} inside area {area_id} for study {study_name}"
+            + message
+        )
+        super().__init__(self.message)
+
+
+class OutputAggregationError(Exception):
+    def __init__(self, output_id: str, message: str) -> None:
+        super().__init__(f"Could not aggregate output data for output '{output_id}' : {message}.")
+
+
+class OutputDataRetrievalError(Exception):
+    def __init__(self, output_name: str, message: str) -> None:
+        self.message = f"Could not retrieve data for output '{output_name}': " + message
+        super().__init__(self.message)

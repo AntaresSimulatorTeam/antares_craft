@@ -11,8 +11,6 @@
 # This file is part of the Antares project.
 import pytest
 
-import re
-
 import numpy as np
 import pandas as pd
 
@@ -38,8 +36,10 @@ class TestThermalTsGeneration:
             assert series.equals(expected_series)
 
     def test_error_case(self, local_study_w_thermals: Study) -> None:
+        thermal = local_study_w_thermals.get_areas()["it"].get_thermals()["thermal_it"]
+        thermal.set_prepro_data(pd.DataFrame(np.full((365, 6), 12)))
         with pytest.raises(
             ValueError,
-            match=re.escape("Area fr, cluster test thermal cluster: Nominal power must be strictly positive, got 0."),
+            match="Area it, cluster thermal_it: Forced failure rate is greater than 1 on following days",
         ):
             local_study_w_thermals.generate_thermal_timeseries(4)

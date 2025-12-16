@@ -23,7 +23,6 @@ from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     AreaDeletionError,
     AreasPropertiesUpdateError,
-    AreasRetrievalError,
     AreaUiUpdateError,
     MatrixDownloadError,
     MatrixUploadError,
@@ -35,13 +34,16 @@ from antares.craft.exceptions.exceptions import (
     ThermalDeletionError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
-from antares.craft.model.hydro import Hydro
+from antares.craft.model.hydro import Hydro, HydroAllocation
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
 from antares.craft.service.api_services.models.area import AreaPropertiesAPI, AreaPropertiesAPITableMode, AreaUiAPI
 from antares.craft.service.api_services.models.renewable import RenewableClusterPropertiesAPI
-from antares.craft.service.api_services.models.st_storage import STStoragePropertiesAPI
+from antares.craft.service.api_services.models.st_storage import (
+    parse_st_storage_api,
+    serialize_st_storage_api,
+)
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.services.hydro import HydroApiService
 from antares.craft.service.api_services.utils import get_matrix, update_series
@@ -114,7 +116,7 @@ class AreaApiService(BaseAreaService):
         base_area_url = f"{self._base_url}/studies/{self.study_id}/areas"
 
         try:
-            response = self._wrapper.post(base_area_url, json={"name": area_name, "type": "AREA"})
+            response = self._wrapper.post(base_area_url, json={"name": area_name})
             area_id = response.json()["id"]
 
             if properties:
@@ -140,7 +142,8 @@ class AreaApiService(BaseAreaService):
             api_hydro_service = cast(HydroApiService, self.hydro_service)
             hydro_properties = api_hydro_service.read_properties_for_one_area(area_id)
             inflow_structure = api_hydro_service.read_inflow_structure_for_one_area(area_id)
-            hydro = Hydro(self.hydro_service, area_id, hydro_properties, inflow_structure)
+            hydro_allocation = [HydroAllocation(area_id=area_id)]
+            hydro = Hydro(self.hydro_service, area_id, hydro_properties, inflow_structure, hydro_allocation)
 
         except APIError as e:
             raise AreaCreationError(area_name, e.message) from e
@@ -159,15 +162,7 @@ class AreaApiService(BaseAreaService):
 
     @override
     def create_thermal_cluster(
-        self,
-        area_id: str,
-        cluster_name: str,
-        properties: Optional[ThermalClusterProperties] = None,
-        prepro: Optional[pd.DataFrame] = None,
-        modulation: Optional[pd.DataFrame] = None,
-        series: Optional[pd.DataFrame] = None,
-        co2_cost: Optional[pd.DataFrame] = None,
-        fuel_cost: Optional[pd.DataFrame] = None,
+        self, area_id: str, cluster_name: str, properties: Optional[ThermalClusterProperties] = None
     ) -> ThermalCluster:
         """
         Args:
@@ -175,11 +170,6 @@ class AreaApiService(BaseAreaService):
             area_id: the area id of the thermal cluster
             cluster_name: the name of the thermal cluster
             properties: the properties of the thermal cluster.
-            prepro: prepro matrix as a pandas DataFrame.
-            modulation: modulation matrix as a pandas DataFrame.
-            series: matrix for series at input/thermal/series/series.txt (optional).
-            co2_cost: matrix for CO2Cost at input/thermal/series/CO2Cost.txt (optional).
-            fuel_cost: matrix for CO2Cost at input/thermal/series/fuelCost.txt (optional).
 
         Returns:
             The created thermal cluster with matrices.
@@ -190,7 +180,7 @@ class AreaApiService(BaseAreaService):
         """
         try:
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/thermal"
-            body = {"name": cluster_name.lower()}
+            body = {"name": cluster_name}
             if properties:
                 api_properties = ThermalClusterPropertiesAPI.from_user_model(properties)
                 camel_properties = api_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
@@ -198,26 +188,9 @@ class AreaApiService(BaseAreaService):
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
             name = json_response.pop("name")
-            thermal_id = json_response.pop("id")
+            json_response.pop("id")
             created_api_properties = ThermalClusterPropertiesAPI.model_validate(json_response)
             properties = created_api_properties.to_user_model()
-
-            # Upload matrices
-            if prepro is not None:
-                matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/data"
-                update_series(self._base_url, self.study_id, self._wrapper, prepro, matrix_path)
-            if modulation is not None:
-                matrix_path = f"input/thermal/prepro/{area_id}/{thermal_id}/modulation"
-                update_series(self._base_url, self.study_id, self._wrapper, modulation, matrix_path)
-            if series is not None:
-                matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/series"
-                update_series(self._base_url, self.study_id, self._wrapper, series, matrix_path)
-            if co2_cost is not None:
-                matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/CO2Cost"
-                update_series(self._base_url, self.study_id, self._wrapper, co2_cost, matrix_path)
-            if fuel_cost is not None:
-                matrix_path = f"input/thermal/series/{area_id}/{thermal_id}/fuelCost"
-                update_series(self._base_url, self.study_id, self._wrapper, fuel_cost, matrix_path)
 
         except APIError as e:
             raise ThermalCreationError(cluster_name, area_id, e.message) from e
@@ -226,18 +199,13 @@ class AreaApiService(BaseAreaService):
 
     @override
     def create_renewable_cluster(
-        self,
-        area_id: str,
-        renewable_name: str,
-        properties: Optional[RenewableClusterProperties] = None,
-        series: Optional[pd.DataFrame] = None,
+        self, area_id: str, renewable_name: str, properties: Optional[RenewableClusterProperties] = None
     ) -> RenewableCluster:
         """
         Args:
             area_id: the area id of the renewable cluster
             renewable_name: the name of the renewable cluster
             properties: the properties of the renewable cluster. If not provided, AntaresWeb will use its own default values
-            series: matrix for series.txt
 
         Returns:
             The created renewable cluster
@@ -248,7 +216,7 @@ class AreaApiService(BaseAreaService):
         """
         try:
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/clusters/renewable"
-            body = {"name": renewable_name.lower()}
+            body = {"name": renewable_name}
             if properties:
                 api_model = RenewableClusterPropertiesAPI.from_user_model(properties)
                 camel_properties = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
@@ -259,10 +227,6 @@ class AreaApiService(BaseAreaService):
             del json_response["id"]
             api_properties = RenewableClusterPropertiesAPI.model_validate(json_response)
             properties = api_properties.to_user_model()
-
-            if series is not None:
-                series_path = f"input/renewables/series/{area_id}/{renewable_name.lower()}/series"
-                update_series(self._base_url, self.study_id, self._wrapper, series, series_path)
 
         except APIError as e:
             raise RenewableCreationError(renewable_name, area_id, e.message) from e
@@ -290,15 +254,13 @@ class AreaApiService(BaseAreaService):
             url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}/storages"
             body = {"name": st_storage_name}
             if properties:
-                api_model = STStoragePropertiesAPI.from_user_model(properties)
-                camel_properties = api_model.model_dump(mode="json", by_alias=True, exclude_none=True)
+                camel_properties = serialize_st_storage_api(properties)
                 body = {**body, **camel_properties}
             response = self._wrapper.post(url, json=body)
             json_response = response.json()
             name = json_response.pop("name")
             del json_response["id"]
-            api_properties = STStoragePropertiesAPI.model_validate(json_response)
-            properties = api_properties.to_user_model()
+            properties = parse_st_storage_api(json_response)
 
         except APIError as e:
             raise STStorageCreationError(st_storage_name, area_id, e.message) from e
@@ -442,68 +404,6 @@ class AreaApiService(BaseAreaService):
             return get_matrix(self._base_url, self.study_id, self._wrapper, f"input/misc-gen/miscgen-{area_id}")
         except APIError as e:
             raise MatrixDownloadError(area_id, "misc-gen", e.message)
-
-    @override
-    def read_areas(self) -> dict[str, Area]:
-        all_areas: dict[str, Area] = {}
-
-        try:
-            # Read all thermals
-            thermals = self.thermal_service.read_thermal_clusters()
-
-            # Read all renewables
-            renewables = self.renewable_service.read_renewables()
-
-            # Read all st_storages
-            st_storages = self.storage_service.read_st_storages()
-
-            # Read all area_properties
-            area_properties = self._read_area_properties()
-
-            # Read all hydro properties and inflow structure
-            hydro_properties_and_inflow_structure = self.hydro_service.read_properties_and_inflow_structure()
-
-            # Read all area_ui
-            ui_url = f"{self._base_url}/studies/{self.study_id}/areas?ui=true"
-            json_resp = self._wrapper.get(ui_url).json()
-            for area in json_resp:
-                ui_api = AreaUiAPI.model_validate(json_resp[area])
-                ui_properties = ui_api.to_user_model()
-
-                # Loop on Ui to create a basic area
-                area_obj = Area(
-                    area,
-                    self,
-                    self.storage_service,
-                    self.thermal_service,
-                    self.renewable_service,
-                    self.hydro_service,
-                    ui=ui_properties,
-                )
-                # Fill the created object with the right values
-                area_obj._properties = area_properties[area_obj.id]
-                area_obj._thermals = thermals.get(area_obj.id, {})
-                area_obj._renewables = renewables.get(area_obj.id, {})
-                area_obj._st_storages = st_storages.get(area_obj.id, {})
-                area_obj.hydro._properties = hydro_properties_and_inflow_structure[area_obj.id][0]
-                area_obj.hydro._inflow_structure = hydro_properties_and_inflow_structure[area_obj.id][1]
-
-                all_areas[area_obj.id] = area_obj
-
-        except APIError as e:
-            raise AreasRetrievalError(self.study_id, e.message) from e
-
-        return all_areas
-
-    def _read_area_properties(self) -> dict[str, AreaProperties]:
-        url = f"{self._base_url}/studies/{self.study_id}/table-mode/areas"
-        properties_json = self._wrapper.get(url).json()
-        properties: dict[str, AreaProperties] = {}
-        for area_id, props in properties_json.items():
-            api_response = AreaPropertiesAPITableMode.model_validate(props)
-            area_properties = api_response.to_user_model()
-            properties[area_id] = area_properties
-        return properties
 
     @override
     def update_areas_properties(self, dict_areas: Dict[Area, AreaPropertiesUpdate]) -> Dict[str, AreaProperties]:

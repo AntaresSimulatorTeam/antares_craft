@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 import pytest
 
-from dataclasses import asdict
 from pathlib import Path
 
 from antares.craft import (
@@ -21,12 +20,13 @@ from antares.craft import (
     HydroPricingMode,
     OptimizationTransmissionCapacities,
     PlaylistParameters,
+    SheddingPolicy,
     StudySettingsUpdate,
-    ThematicTrimmingParameters,
     UnitCommitmentMode,
     create_study_local,
     read_study_local,
 )
+from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 
@@ -104,83 +104,6 @@ playlist_year_weight = 0,2.5"""
     )
 
 
-def test_thematic_trimming_methods(tmp_path: Path) -> None:
-    trimming = ThematicTrimmingParameters(spil_enrg=False)
-    for field in asdict(trimming):
-        if field != "spil_enrg":
-            assert getattr(trimming, field) is True
-        else:
-            assert getattr(trimming, field) is False
-    # Reverse it
-    new_trimming = trimming.all_reversed()
-    for field in asdict(new_trimming):
-        if field != "spil_enrg":
-            assert getattr(new_trimming, field) is False
-        else:
-            assert getattr(new_trimming, field) is True
-    # Enable everything
-    all_true_trimming = trimming.all_enabled()
-    assert all_true_trimming == ThematicTrimmingParameters()
-    # Disable everything
-    all_false_trimming = trimming.all_disabled()
-    for field in asdict(all_false_trimming):
-        assert getattr(all_false_trimming, field) is False
-
-
-def test_thematic_trimming(tmp_path: Path) -> None:
-    study = create_study_local("second_study", "880", tmp_path)
-    settings = study.get_settings()
-    assert settings.thematic_trimming_parameters == ThematicTrimmingParameters()
-    # Checks the `set` method
-    new_trimming = ThematicTrimmingParameters(sts_cashflow_by_cluster=False, nuclear=False)
-    study.set_thematic_trimming(new_trimming)
-    assert study.get_settings().thematic_trimming_parameters == new_trimming
-    # Checks the `reading` method
-    study_path = Path(study.path)
-    study = read_study_local(study_path)
-    trimming = study.get_settings().thematic_trimming_parameters
-    assert trimming == new_trimming
-    # Checks the ini content
-    ini_path = study_path / "settings" / "generaldata.ini"
-    content = ini_path.read_text()
-    assert (
-        """[variables selection]
-selected_vars_reset = True
-select_var - = NUCLEAR
-select_var - = STS Cashflow By Cluster
-"""
-        in content
-    )
-
-    # Inverts the trimming
-    new_trimming = new_trimming.all_reversed()
-    study.set_thematic_trimming(new_trimming)
-    assert study.get_settings().thematic_trimming_parameters == new_trimming
-    # Checks the `reading` method
-    study = read_study_local(study_path)
-    trimming = study.get_settings().thematic_trimming_parameters
-    assert trimming == new_trimming
-    # Checks the ini content
-    content = ini_path.read_text()
-    assert (
-        """[variables selection]
-selected_vars_reset = False
-select_var + = NUCLEAR
-select_var + = STS Cashflow By Cluster"""
-        in content
-    )
-
-    # Disable everything
-    all_disabled_trimming = new_trimming.all_disabled()
-    study.set_thematic_trimming(all_disabled_trimming)
-    content = ini_path.read_text()
-    assert (
-        """[variables selection]
-selected_vars_reset = False"""
-        in content
-    )
-
-
 def test_wrongly_formatted_fields_that_we_do_not_care_about(tmp_path: Path) -> None:
     study = create_study_local("second_study", "880", tmp_path)
     study_path = Path(study.path)
@@ -246,3 +169,23 @@ def test_transmission_capacities(tmp_path: Path, value: bool | str) -> None:
         assert transmission_value == OptimizationTransmissionCapacities.INFINITE_FOR_ALL_LINKS
     else:
         assert transmission_value == OptimizationTransmissionCapacities.NULL_FOR_ALL_LINKS
+
+
+@pytest.mark.parametrize("version", ["8.8", "9.2"])
+def test_shedding_policy(tmp_path: Path, version: str) -> None:
+    study = create_study_local("study", version, tmp_path)
+    study_path = Path(study.path)
+    ini_path = study_path / "settings" / "generaldata.ini"
+    ini_content = IniReader().read(ini_path)
+    ini_content["other preferences"]["shedding-policy"] = "accurate shave peaks"
+    IniWriter().write(ini_content, ini_path)
+    # Ensure we're able to read the study if we're in v9.2 but not in v8.8
+    if version == "9.2":
+        study = read_study_local(study_path)
+        assert study.get_settings().advanced_parameters.shedding_policy == SheddingPolicy.ACCURATE_SHAVE_PEAKS
+    else:
+        with pytest.raises(
+            InvalidFieldForVersionError,
+            match="Shedding policy should be `shave peaks` or `minimize duration` and was 'accurate shave peaks'",
+        ):
+            read_study_local(study_path)

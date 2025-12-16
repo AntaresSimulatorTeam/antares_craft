@@ -10,32 +10,39 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
+from typing import Any
 
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
+from antares.craft.model.hydro import (
+    HydroAllocation,
+    HydroProperties,
+    HydroPropertiesUpdate,
+    InflowStructure,
+    InflowStructureUpdate,
+)
 from antares.craft.service.api_services.models.base_model import APIBaseModel
-from antares.craft.tools.all_optional_meta import all_optional_model
 
 HydroPropertiesType = HydroProperties | HydroPropertiesUpdate
 HydroInflowStructureType = InflowStructure | InflowStructureUpdate
 
 
-@all_optional_model
 class HydroPropertiesAPI(APIBaseModel):
-    inter_daily_breakdown: float
-    intra_daily_modulation: float
-    inter_monthly_breakdown: float
-    reservoir: bool
-    reservoir_capacity: float
-    follow_load: bool
-    use_water: bool
-    hard_bounds: bool
-    initialize_reservoir_date: int
-    use_heuristic: bool
-    power_to_level: bool
-    use_leeway: bool
-    leeway_low: float
-    leeway_up: float
-    pumping_efficiency: float
+    inter_daily_breakdown: float | None = None
+    intra_daily_modulation: float | None = None
+    inter_monthly_breakdown: float | None = None
+    reservoir: bool | None = None
+    reservoir_capacity: float | None = None
+    follow_load: bool | None = None
+    use_water: bool | None = None
+    hard_bounds: bool | None = None
+    initialize_reservoir_date: int | None = None
+    use_heuristic: bool | None = None
+    power_to_level: bool | None = None
+    use_leeway: bool | None = None
+    leeway_low: float | None = None
+    leeway_up: float | None = None
+    pumping_efficiency: float | None = None
+    # Introduced in v9.2
+    overflow_spilled_cost_difference: float | None = None
 
     @staticmethod
     def from_user_model(user_class: HydroPropertiesType) -> "HydroPropertiesAPI":
@@ -59,12 +66,12 @@ class HydroPropertiesAPI(APIBaseModel):
             leeway_low=self.leeway_low or default_properties.leeway_low,
             leeway_up=self.leeway_up or default_properties.leeway_up,
             pumping_efficiency=self.pumping_efficiency or default_properties.pumping_efficiency,
+            overflow_spilled_cost_difference=self.overflow_spilled_cost_difference,
         )
 
 
-@all_optional_model
 class HydroInflowStructureAPI(APIBaseModel):
-    inter_monthly_correlation: float
+    inter_monthly_correlation: float | None = None
 
     @staticmethod
     def from_user_model(user_class: HydroInflowStructureType) -> "HydroInflowStructureAPI":
@@ -76,3 +83,16 @@ class HydroInflowStructureAPI(APIBaseModel):
         return InflowStructure(
             intermonthly_correlation=self.inter_monthly_correlation or InflowStructure().intermonthly_correlation
         )
+
+
+def parse_hydro_allocation_api(data: dict[str, Any]) -> list[HydroAllocation]:
+    allocations = []
+    allocations_api = data["allocation"]
+    for allocation_api in allocations_api:
+        allocations.append(HydroAllocation(area_id=allocation_api["areaId"], coefficient=allocation_api["coefficient"]))
+    return allocations
+
+
+def serialize_hydro_allocation_api(data: list[HydroAllocation]) -> dict[str, Any]:
+    allocations = [{"areaId": allocation.area_id, "coefficient": allocation.coefficient} for allocation in data]
+    return {"allocation": allocations}

@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 import copy
+import shutil
 
 from typing import Any, Optional
 
@@ -21,22 +22,25 @@ from typing_extensions import override
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
-    ConstraintDoesNotExistError,
     ConstraintPropertiesUpdateError,
+    ConstraintsDoNotExistError,
 )
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintFrequency,
+    BindingConstraintOperator,
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
     ConstraintMatrixName,
     ConstraintTerm,
     ConstraintTermData,
-    ConstraintTermUpdate,
 )
 from antares.craft.service.base_services import BaseBindingConstraintService
 from antares.craft.service.local_services.models.binding_constraint import BindingConstraintPropertiesLocal
-from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
+from antares.craft.service.local_services.services.utils import (
+    checks_matrix_dimensions,
+    remove_object_from_scenario_builder,
+)
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -54,6 +58,48 @@ DEFAULT_VALUE_MAPPING = {
     BindingConstraintFrequency.WEEKLY: (366, 1),
     BindingConstraintFrequency.DAILY: (366, 1),
 }
+
+
+def _check_matrices_coherence(
+    constraint: BindingConstraint,
+    less_term_matrix: pd.DataFrame | None,
+    greater_term_matrix: pd.DataFrame | None,
+    equal_term_matrix: pd.DataFrame | None,
+) -> None:
+    # Checks if there's a conflict between operator and given matrices
+    OPERATOR_CONFLICT_MAP = {
+        BindingConstraintOperator.EQUAL: [less_term_matrix, greater_term_matrix],
+        BindingConstraintOperator.GREATER: [less_term_matrix, equal_term_matrix],
+        BindingConstraintOperator.LESS: [equal_term_matrix, greater_term_matrix],
+        BindingConstraintOperator.BOTH: [equal_term_matrix],
+    }
+
+    operator = constraint.properties.operator
+    for matrix in OPERATOR_CONFLICT_MAP[operator]:
+        if matrix is not None:
+            OPERATOR_CONFLICT_MAP_NAME = {
+                BindingConstraintOperator.EQUAL: ["less_term_matrix", "greater_term_matrix"],
+                BindingConstraintOperator.GREATER: ["less_term_matrix", "equal_term_matrix"],
+                BindingConstraintOperator.LESS: ["equal_term_matrix", "greater_term_matrix"],
+                BindingConstraintOperator.BOTH: ["equal_term_matrix"],
+            }
+            raise BindingConstraintCreationError(
+                constraint.name,
+                f"You cannot fill matrices '{OPERATOR_CONFLICT_MAP_NAME[operator]}' while using the operator '{operator.value}'",
+            )
+
+    # Checks matrix dimensions
+    OPERATOR_MAP = {
+        BindingConstraintOperator.EQUAL: [equal_term_matrix],
+        BindingConstraintOperator.GREATER: [greater_term_matrix],
+        BindingConstraintOperator.LESS: [less_term_matrix],
+        BindingConstraintOperator.BOTH: [less_term_matrix, greater_term_matrix],
+    }
+    for matrix in OPERATOR_MAP[operator]:
+        if matrix is not None:
+            checks_matrix_dimensions(
+                matrix, f"bindingconstraints/{constraint.id}", f"bc_{constraint.properties.time_step.value}"
+            )
 
 
 class BindingConstraintLocalService(BaseBindingConstraintService):
@@ -80,33 +126,31 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
             properties=properties,
             terms=terms,
         )
+        # Check matrices coherence at first
+        _check_matrices_coherence(constraint, less_term_matrix, greater_term_matrix, equal_term_matrix)
 
+        # Save the ini content
         local_properties = BindingConstraintPropertiesLocal.from_user_model(properties)
 
         self._create_constraint_inside_ini(name, local_properties, terms or [])
 
-        self._store_time_series(constraint, less_term_matrix, equal_term_matrix, greater_term_matrix)
+        # Save matrices
+        operator = properties.operator
+        if operator == BindingConstraintOperator.EQUAL:
+            matrix = equal_term_matrix if equal_term_matrix is not None else pd.DataFrame()
+            self.set_constraint_matrix(constraint, ConstraintMatrixName.EQUAL_TERM, matrix)
+
+        if operator in {BindingConstraintOperator.GREATER, BindingConstraintOperator.BOTH}:
+            matrix = greater_term_matrix if greater_term_matrix is not None else pd.DataFrame()
+            self.set_constraint_matrix(constraint, ConstraintMatrixName.GREATER_TERM, matrix)
+
+        if operator in {BindingConstraintOperator.LESS, BindingConstraintOperator.BOTH}:
+            matrix = less_term_matrix if less_term_matrix is not None else pd.DataFrame()
+            self.set_constraint_matrix(constraint, ConstraintMatrixName.LESS_TERM, matrix)
 
         return constraint
 
-    def _store_time_series(
-        self,
-        constraint: BindingConstraint,
-        less_term_matrix: Optional[pd.DataFrame],
-        equal_term_matrix: Optional[pd.DataFrame],
-        greater_term_matrix: Optional[pd.DataFrame],
-    ) -> None:
-        study_path = self.config.study_path
-        bc_id = constraint.id
-        write_timeseries(study_path, less_term_matrix, TimeSeriesFileType.BINDING_CONSTRAINT_LESS, constraint_id=bc_id)
-        write_timeseries(
-            study_path, greater_term_matrix, TimeSeriesFileType.BINDING_CONSTRAINT_GREATER, constraint_id=bc_id
-        )
-        write_timeseries(
-            study_path, equal_term_matrix, TimeSeriesFileType.BINDING_CONSTRAINT_EQUAL, constraint_id=bc_id
-        )
-
-    def _read_ini(self) -> dict[str, Any]:
+    def read_ini(self) -> dict[str, Any]:
         return IniReader().read(self._ini_path)
 
     def _save_ini(self, content: dict[str, Any]) -> None:
@@ -118,7 +162,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         properties: BindingConstraintPropertiesLocal,
         terms: list[ConstraintTerm],
     ) -> None:
-        current_ini_content = self._read_ini()
+        current_ini_content = self.read_ini()
         constraint_id = transform_name_to_id(constraint_name)
         # Ensures the constraint doesn't already exist
         for existing_constraint in current_ini_content.values():
@@ -137,46 +181,6 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         whole_content = props_content | term_content
         current_ini_content[new_key] = whole_content
         self._save_ini(current_ini_content)
-
-    @override
-    def add_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> None:
-        """
-        Add terms to a binding constraint and update the INI file.
-
-        Args:
-            constraint (BindingConstraint): The binding constraint to update.
-            terms (list[ConstraintTerm]): A list of new terms to add.
-        """
-
-        # Checks the terms to add are not already defined
-        current_terms = constraint.get_terms()
-        new_terms = {}
-        for term in terms:
-            if term.id in current_terms:
-                raise BindingConstraintCreationError(
-                    constraint_name=constraint.name, message=f"Duplicate term found: {term.id}"
-                )
-            new_terms[term.id] = term.weight_offset()
-
-        current_ini_content = self._read_ini()
-
-        # Look for the constraint
-        existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint.id), None)
-        if not existing_key:
-            raise ConstraintDoesNotExistError(constraint.name, self.study_name)
-
-        current_ini_content[existing_key].update(new_terms)
-        self._save_ini(current_ini_content)
-
-    @override
-    def delete_binding_constraint_term(self, constraint_id: str, term_id: str) -> None:
-        raise NotImplementedError
-
-    @override
-    def update_binding_constraint_term(
-        self, constraint_id: str, term: ConstraintTermUpdate, existing_term: ConstraintTerm
-    ) -> ConstraintTerm:
-        raise NotImplementedError
 
     @override
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
@@ -201,9 +205,82 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         )
 
     @override
+    def update_binding_constraints_properties(
+        self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
+    ) -> dict[str, BindingConstraintProperties]:
+        new_properties_dict: dict[str, BindingConstraintProperties] = {}
+        all_constraint_to_update = set(new_properties.keys())  # used to raise an Exception if a bc doesn't exist
+
+        # Gather all BCs where `operator` was modified for future usage.
+        operator_dict: dict[str, tuple[BindingConstraintOperator, BindingConstraintOperator]] = {}
+
+        # Modify the ini content in memory
+        existing_groups = set()
+        current_ini_content = self.read_ini()
+        for key, constraint in current_ini_content.items():
+            if grp := constraint.get("group"):
+                # Keep track of existing groups before the modification
+                existing_groups.add(grp)
+            constraint_id = constraint["id"]
+            if constraint_id in new_properties:
+                all_constraint_to_update.remove(constraint_id)
+
+                # Check operator change
+                new_operator = new_properties[constraint_id].operator
+                if new_operator:
+                    old_operator_text = constraint.get("operator", BindingConstraintOperator.LESS.value)
+                    old_operator = BindingConstraintOperator(old_operator_text)
+                    if new_operator != old_operator:
+                        operator_dict[constraint_id] = (old_operator, new_operator)
+
+                # Performs the update
+                local_properties = BindingConstraintPropertiesLocal.from_user_model(new_properties[constraint_id])
+                constraint.update(local_properties.model_dump(mode="json", by_alias=True, exclude_unset=True))
+
+                # Prepare the object to return
+                local_dict = copy.deepcopy(constraint)
+                del local_dict["name"]
+                del local_dict["id"]
+                local_properties = BindingConstraintPropertiesLocal.model_validate(local_dict)
+                new_properties_dict[constraint_id] = local_properties.to_user_model()
+
+        if len(all_constraint_to_update) > 0:
+            raise ConstraintPropertiesUpdateError(next(iter(all_constraint_to_update)), "The bc does not exist")
+
+        # Update ini file
+        self._save_ini(current_ini_content)
+
+        # We should modify matrices if some updates concerned `time_step`
+        self._change_constraint_matrices_according_to_new_timestep(new_properties)
+
+        # Same goes for constraints where the `operator` was modified
+        self._change_constraint_matrices_according_to_new_operator(operator_dict)
+
+        # Clean the scenario builder
+        new_groups = set()
+        for bc in current_ini_content.values():
+            if grp := bc.get("group"):
+                new_groups.add(grp)
+
+        if removed_groups := existing_groups - new_groups:
+
+            def clean_constraints(symbol: str, parts: list[str]) -> bool:
+                return symbol == "bc" and parts[0] in removed_groups
+
+            remove_object_from_scenario_builder(self.config.study_path, clean_constraints)
+
+        return new_properties_dict
+
+    def _get_constraint_inside_ini(self, ini_content: dict[str, Any], constraint: BindingConstraint) -> dict[str, Any]:
+        existing_key = next((key for key, bc in ini_content.items() if bc["id"] == constraint.id), None)
+        if not existing_key:
+            raise ConstraintsDoNotExistError([constraint.name], self.study_name)
+
+        return ini_content[existing_key]  # type: ignore
+
     def read_binding_constraints(self) -> dict[str, BindingConstraint]:
         constraints: dict[str, BindingConstraint] = {}
-        current_ini_content = self._read_ini()
+        current_ini_content = self.read_ini()
         for constraint in current_ini_content.values():
             name = constraint.pop("name")
             del constraint["id"]
@@ -240,40 +317,77 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         return constraints
 
     @override
-    def update_binding_constraints_properties(
-        self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
-    ) -> dict[str, BindingConstraintProperties]:
-        new_properties_dict: dict[str, BindingConstraintProperties] = {}
-        all_constraint_to_update = set(new_properties.keys())  # used to raise an Exception if a bc doesn't exist
+    def set_constraint_terms(self, constraint: BindingConstraint, terms: list[ConstraintTerm]) -> None:
+        constraint_id = constraint.id
+        constraint_name = constraint.name
 
-        current_ini_content = self._read_ini()
-        for key, constraint in current_ini_content.items():
-            constraint_id = constraint["id"]
-            if constraint_id in new_properties:
-                all_constraint_to_update.remove(constraint_id)
+        new_terms = {}
+        for term in terms:
+            new_terms[term.id] = term.weight_offset()
 
-                # Performs the update
-                local_properties = BindingConstraintPropertiesLocal.from_user_model(new_properties[constraint_id])
-                constraint.update(local_properties.model_dump(mode="json", by_alias=True, exclude_unset=True))
+        current_ini_content = self.read_ini()
+        # Look for the constraint
+        existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint_id), None)
+        if not existing_key:
+            raise ConstraintsDoNotExistError([constraint_name], self.study_name)
 
-                # Prepare the object to return
-                local_dict = copy.deepcopy(constraint)
-                del local_dict["name"]
-                del local_dict["id"]
-                local_properties = BindingConstraintPropertiesLocal.model_validate(local_dict)
-                new_properties_dict[constraint_id] = local_properties.to_user_model()
+        props = BindingConstraintPropertiesLocal.from_user_model(constraint.properties)
 
-        if len(all_constraint_to_update) > 0:
-            raise ConstraintPropertiesUpdateError(next(iter(all_constraint_to_update)), "The bc does not exist")
-
-        # Update ini file
+        dict_props_terms = {
+            "id": constraint_id,
+            "name": constraint_name,
+            **props.model_dump(mode="json", by_alias=True),
+            **new_terms,
+        }
+        current_ini_content[existing_key] = dict_props_terms
         self._save_ini(current_ini_content)
 
-        return new_properties_dict
+    def _change_constraint_matrices_according_to_new_timestep(
+        self, new_properties: dict[str, BindingConstraintPropertiesUpdate]
+    ) -> None:
+        study_path = self.config.study_path
+        for bc_id, update_properties in new_properties.items():
+            if update_properties.time_step is not None:
+                # The user changed the time_step -> We reset matrices to their default values
+                # We're doing so by removing all matrices are they are optional
+                for keyword in ["lt", "gt", "eq"]:
+                    (study_path / "input" / "bindingconstraints" / f"{bc_id}_{keyword}.txt").unlink(missing_ok=True)
 
-    def _get_constraint_inside_ini(self, ini_content: dict[str, Any], constraint: BindingConstraint) -> dict[str, Any]:
-        existing_key = next((key for key, bc in ini_content.items() if bc["id"] == constraint.id), None)
-        if not existing_key:
-            raise ConstraintDoesNotExistError(constraint.name, self.study_name)
+    def _change_constraint_matrices_according_to_new_operator(
+        self, operator_dict: dict[str, tuple[BindingConstraintOperator, BindingConstraintOperator]]
+    ) -> None:
+        study_path = self.config.study_path
+        mapping = {
+            BindingConstraintOperator.EQUAL: ["eq"],
+            BindingConstraintOperator.GREATER: ["gt"],
+            BindingConstraintOperator.LESS: ["lt"],
+            BindingConstraintOperator.BOTH: ["lt", "gt"],
+        }
+        for bc_id, (existing_operator, new_operator) in operator_dict.items():
+            # The user changed the operator -> We move the existing matrices to their new path according to the new operator.
+            if existing_operator != BindingConstraintOperator.BOTH and new_operator != BindingConstraintOperator.BOTH:
+                old_matrix_name = mapping[existing_operator][0]
+                new_matrix_name = mapping[new_operator][0]
+                old_matrix_path = study_path / "input" / "bindingconstraints" / f"{bc_id}_{old_matrix_name}.txt"
+                new_matrix_path = study_path / "input" / "bindingconstraints" / f"{bc_id}_{new_matrix_name}.txt"
+                old_matrix_path.rename(new_matrix_path)
 
-        return ini_content[existing_key]  # type: ignore
+            elif new_operator == BindingConstraintOperator.BOTH:
+                old_matrix_name = mapping[existing_operator][0]
+                old_matrix_path = study_path / "input" / "bindingconstraints" / f"{bc_id}_{old_matrix_name}.txt"
+
+                new_name1, new_name2 = mapping[new_operator]
+                new_path1 = study_path / "input" / "bindingconstraints" / f"{bc_id}_{new_name1}.txt"
+                old_matrix_path.rename(new_path1)
+                new_path2 = study_path / "input" / "bindingconstraints" / f"{bc_id}_{new_name2}.txt"
+                shutil.copyfile(new_path1, new_path2)
+
+            else:
+                new_matrix_name = mapping[new_operator][0]
+                new_matrix_path = study_path / "input" / "bindingconstraints" / f"{bc_id}_{new_matrix_name}.txt"
+
+                old_name1, old_name2 = mapping[existing_operator]
+                old_path1 = study_path / "input" / "bindingconstraints" / f"{bc_id}_{old_name1}.txt"
+                old_path1.rename(new_matrix_path)
+                old_path2 = study_path / "input" / "bindingconstraints" / f"{bc_id}_{old_name2}.txt"
+                old_path2.unlink()

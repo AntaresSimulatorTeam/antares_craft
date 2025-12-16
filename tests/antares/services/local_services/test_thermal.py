@@ -11,20 +11,23 @@
 # This file is part of the Antares project.
 import pytest
 
+import copy
 import re
 
 from pathlib import Path
-from typing import cast
 
 import numpy as np
 import pandas as pd
 
-from antares.craft import ClusterData, ConstraintTerm, LocalConfiguration, Study
+from checksumdir import dirhash
+
+from antares.craft import ClusterData, ConstraintTerm, Study
 from antares.craft.exceptions.exceptions import (
     MatrixFormatError,
     ReferencedObjectDeletionNotAllowed,
     ThermalCreationError,
     ThermalDeletionError,
+    ThermalPropertiesUpdateError,
 )
 from antares.craft.model.thermal import (
     LawOption,
@@ -50,6 +53,16 @@ class TestThermalCluster:
         created_thermal = local_study_w_areas.get_areas()["fr"].create_thermal_cluster(thermal_name)
         assert isinstance(created_thermal, ThermalCluster)
 
+    def test_cluster_with_numeric_name(self, local_study_w_areas: Study) -> None:
+        # Given
+        thermal_name = "123"
+
+        # When
+        local_study_w_areas.get_areas()["fr"].create_thermal_cluster(thermal_name)
+
+        # Reading the study should not fail
+        read_study_local(Path(local_study_w_areas.path))
+
     def test_duplicate_name_errors(self, local_study_w_thermal: Study) -> None:
         # Given
         area_name = "fr"
@@ -58,16 +71,16 @@ class TestThermalCluster:
         # Then
         with pytest.raises(
             ThermalCreationError,
-            match=f"Could not create the thermal cluster {thermal_name} inside area {area_name}: A thermal cluster called '{thermal_name}' already exists in area '{area_name}'.",
+            match=f"Could not create the thermal cluster '{thermal_name}' inside area '{area_name}': A thermal cluster called '{thermal_name}' already exists in area '{area_name}'.",
         ):
             local_study_w_thermal.get_areas()[area_name].create_thermal_cluster(thermal_name)
 
     def test_has_correct_default_properties(self, local_study_w_thermal: Study) -> None:
         thermal_cluster = local_study_w_thermal.get_areas()["fr"].get_thermals()["test thermal cluster"]
-        assert thermal_cluster.properties == ThermalClusterProperties(group=ThermalClusterGroup.NUCLEAR, must_run=True)
+        assert thermal_cluster.properties == ThermalClusterProperties(group="nuclear", must_run=True)
 
     def test_required_ini_files_exist(self, tmp_path: Path, local_study_w_thermal: Study) -> None:
-        study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
+        study_path = Path(local_study_w_thermal.path)
         assert (study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini").exists()
         assert (study_path / "input" / "thermal" / "areas.ini").exists()
 
@@ -112,7 +125,7 @@ efficiency = 100.0
 variableomcost = 0.0
 
 """
-        study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
+        study_path = Path(local_study_w_thermal.path)
         assert (
             study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini"
         ).read_text() == expected_list_ini_contents
@@ -159,7 +172,7 @@ variableomcost = 5.0
 
 """
         thermal_cluster_properties = ThermalClusterProperties(
-            group=ThermalClusterGroup.NUCLEAR,
+            group=ThermalClusterGroup.NUCLEAR.value,
             enabled=False,
             unit_count=12,
             nominal_capacity=3.9,
@@ -205,16 +218,17 @@ variableomcost = 5.0
     def test_list_ini_has_multiple_clusters(self, local_study_w_thermal: Study) -> None:
         # Asserts we can create 2 clusters
         local_study_w_thermal.get_areas()["fr"].create_thermal_cluster("test thermal cluster two")
-        study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
+        study_path = Path(local_study_w_thermal.path)
         ini_content = IniReader().read(study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini")
 
         assert len(ini_content.keys()) == 2
         expected_sections = ["test thermal cluster", "test thermal cluster two"]
         for key in expected_sections:
             assert key in ini_content
+            ini_content[key].pop("name")
             created_properties = ThermalClusterPropertiesLocal(**ini_content[key]).to_user_model()
             if key == "test thermal cluster":
-                assert created_properties == ThermalClusterProperties(group=ThermalClusterGroup.NUCLEAR, must_run=True)
+                assert created_properties == ThermalClusterProperties(group="nuclear", must_run=True)
             else:
                 assert created_properties == ThermalClusterProperties()
 
@@ -239,7 +253,7 @@ variableomcost = 5.0
         # Checks values before update
         thermal = local_study_w_thermal.get_areas()["fr"].get_thermals()["test thermal cluster"]
         current_properties = ThermalClusterProperties(
-            must_run=True, group=ThermalClusterGroup.NUCLEAR, law_forced=LawOption.UNIFORM, startup_cost=0
+            must_run=True, group="nuclear", law_forced=LawOption.UNIFORM, startup_cost=0
         )
         assert thermal.properties == current_properties
         # Updates properties
@@ -249,7 +263,7 @@ variableomcost = 5.0
         new_properties = thermal.update_properties(update_properties)
         expected_properties = ThermalClusterProperties(
             must_run=True,
-            group=ThermalClusterGroup.NUCLEAR,
+            group="nuclear",
             spinning=0.1,
             startup_cost=1.2,
             law_forced=LawOption.GEOMETRIC,
@@ -257,7 +271,7 @@ variableomcost = 5.0
         assert new_properties == expected_properties
         assert thermal.properties == expected_properties
         # Asserts the ini file is properly modified
-        study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
+        study_path = Path(local_study_w_thermal.path)
         ini_content = IniReader().read(study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini")
         assert ini_content == {
             "test thermal cluster": {
@@ -349,9 +363,11 @@ variableomcost = 5.0
         area_fr.delete_thermal_cluster(thermal_1)
         assert list(area_fr.get_thermals().keys()) == ["th_2", "th_3"]
         # Checks ini content
-        study_path = cast(LocalConfiguration, local_study_w_thermal.service.config).study_path
+        study_path = Path(local_study_w_thermal.path)
         ini_content = IniReader().read(study_path / "input" / "thermal" / "clusters" / "fr" / "list.ini")
         assert list(ini_content.keys()) == ["th_2", "th_3"]
+        # Asserts the series do not exist anymore
+        assert not (study_path / "input" / "thermal" / "series" / "fr" / "test thermal cluster").exists()
 
         # Deletes the remaining clusters
         area_fr.delete_thermal_clusters([thermal_2, thermal_3])
@@ -364,24 +380,46 @@ variableomcost = 5.0
         with pytest.raises(
             ThermalDeletionError,
             match=re.escape(
-                "Could not delete the following thermal clusters: test thermal cluster inside area fr: it doesn't exist"
+                "Could not delete the following thermal clusters: 'test thermal cluster' inside area 'fr': it doesn't exist"
             ),
         ):
             area_fr.delete_thermal_cluster(thermal_1)
 
-    def test_update_thermal_properties(self, local_study_w_thermal: Study) -> None:
-        area_fr = local_study_w_thermal.get_areas()["fr"]
+    def test_update_thermal_properties(self, local_study_w_thermals: Study) -> None:
+        area_fr = local_study_w_thermals.get_areas()["fr"]
         thermal = area_fr.get_thermals()["test thermal cluster"]
         update_for_thermal = ThermalClusterPropertiesUpdate(enabled=False, unit_count=13)
         dict_thermal = {thermal: update_for_thermal}
-        local_study_w_thermal.update_thermal_clusters(dict_thermal)
+        local_study_w_thermals.update_thermal_clusters(dict_thermal)
 
         # testing the modified value
         assert not thermal.properties.enabled
         assert thermal.properties.unit_count == 13
 
         # testing the unmodified value
-        assert thermal.properties.group == ThermalClusterGroup.NUCLEAR
+        assert thermal.properties.group == ThermalClusterGroup.NUCLEAR.value
+
+    def test_update_several_properties_fails(self, local_study_w_thermals: Study) -> None:
+        """
+        Ensures the update fails as the area doesn't exist.
+        We also want to ensure the study wasn't partially modified.
+        """
+        update_for_thermal = ThermalClusterPropertiesUpdate(enabled=False, unit_count=13)
+        thermal = local_study_w_thermals.get_areas()["fr"].get_thermals()["test thermal cluster"]
+        fake_thermal = copy.deepcopy(thermal)
+        fake_thermal._area_id = "fake"
+        dict_thermal = {thermal: update_for_thermal, fake_thermal: update_for_thermal}
+        thermal_folder = Path(local_study_w_thermals.path) / "input" / "thermal"
+        hash_before_update = dirhash(thermal_folder, "md5")
+        with pytest.raises(
+            ThermalPropertiesUpdateError,
+            match=re.escape(
+                "Could not update properties for thermal cluster 'test thermal cluster' inside area 'fake': The cluster does not exist"
+            ),
+        ):
+            local_study_w_thermals.update_thermal_clusters(dict_thermal)
+        hash_after_update = dirhash(thermal_folder, "md5")
+        assert hash_before_update == hash_after_update
 
     def test_read_legacy_groups(self, local_study_w_thermal: Study) -> None:
         """The group OTHER exists and is considered the same as OTHER1, so we have to be able to parse it"""
@@ -394,7 +432,7 @@ variableomcost = 5.0
         study = read_study_local(study_path)
         thermal = study.get_areas()["fr"].get_thermals()["test thermal cluster"]
         # Ensure we consider the group as OTHER1
-        assert thermal.properties.group == ThermalClusterGroup.OTHER1
+        assert thermal.properties.group == ThermalClusterGroup.OTHER1.value
 
     def test_delete_referenced_cluster(self, local_study_w_thermal: Study) -> None:
         area_fr = local_study_w_thermal.get_areas()["fr"]
@@ -417,3 +455,22 @@ variableomcost = 5.0
             match="Thermal cluster 'test thermal cluster' is not allowed to be deleted, because it is referenced in the following binding constraints:\n1- 'bc 1'",
         ):
             area_fr.delete_thermal_cluster(area_fr.get_thermals()["test thermal cluster"])
+
+    def test_version_93(self, tmp_path: Path, local_study_93: Study, local_study_92: Study) -> None:
+        thermal = local_study_93.get_areas()["fr"].create_thermal_cluster("thermal")
+        assert thermal.properties.group == "other 1"
+
+        # Use a free group for the update
+        update_properties = ThermalClusterPropertiesUpdate(group="free_group")
+        new_properties = thermal.update_properties(update_properties)
+
+        assert new_properties.group == "free_group"
+
+        # Use a free group for creation
+        props = ThermalClusterProperties(group="my_group")
+        thermal = local_study_93.get_areas()["fr"].create_thermal_cluster("thermal2", properties=props)
+        assert thermal.properties.group == "my_group"
+
+        # Ensures before version 9.3, using a free group is possible but it will be considered as `OTHER 1`.
+        thermal = local_study_92.get_areas()["fr"].create_thermal_cluster("thermal2", properties=props)
+        assert thermal.properties.group == "other 1"

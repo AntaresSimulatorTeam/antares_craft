@@ -103,6 +103,13 @@ class AreaUi:
 
 
 class Area:
+    """
+    Represents an area of the study.
+
+    Provides access to data associated to that area, and to objects that are connected to it,
+    for example thermal clusters, renewable clusters, binding constraints, etc.
+    """
+
     def __init__(
         self,
         name: str,
@@ -126,69 +133,120 @@ class Area:
         self._thermal_service = thermal_service
         self._renewable_service = renewable_service
         self._hydro_service = hydro_service
-        self._renewables = renewables or dict()
-        self._thermals = thermals or dict()
-        self._st_storages = st_storages or dict()
-        self._hydro = hydro or Hydro(self._hydro_service, self._id, HydroProperties(), InflowStructure())
+        self._renewables = renewables or {}
+        self._thermals = thermals or {}
+        self._st_storages = st_storages or {}
+        self._hydro = hydro or Hydro(self._hydro_service, self._id, HydroProperties(), InflowStructure(), [])
         self._properties = properties or AreaProperties()
         self._ui = ui or AreaUi()
 
     @property
     def name(self) -> str:
+        """
+        The name of this area.
+        """
         return self._name
 
     @property
     def id(self) -> str:
+        """
+        The ID of this area.
+        """
         return self._id
 
     def get_thermals(self) -> MappingProxyType[str, ThermalCluster]:
+        """
+        Thermal clusters connected to this area.
+
+        Returns:
+            Thermal clusters connected to this area, as a mapping of cluster ID to cluster.
+        """
         return MappingProxyType(self._thermals)
 
     def get_renewables(self) -> MappingProxyType[str, RenewableCluster]:
+        """
+        Renewable clusters connected to this area.
+
+        Returns:
+            Renewable clusters connected to this area, as a mapping of cluster ID to cluster.
+        """
         return MappingProxyType(self._renewables)
 
     def get_st_storages(self) -> MappingProxyType[str, STStorage]:
+        """
+        Short term storages connected to this area.
+
+        Returns:
+            Short term storages connected to this area, as a mapping of storage ID to storage.
+        """
         return MappingProxyType(self._st_storages)
 
     @property
     def hydro(self) -> Hydro:
+        """
+        Hydro properties of this area.
+        """
         return self._hydro
 
     @property
     def properties(self) -> AreaProperties:
+        """
+        Properties of this area.
+        """
         return self._properties
 
     @property
     def ui(self) -> AreaUi:
+        """
+        UI (display) properties of this area.
+        """
         return self._ui
 
     def create_thermal_cluster(
-        self,
-        thermal_name: str,
-        properties: Optional[ThermalClusterProperties] = None,
-        prepro: Optional[pd.DataFrame] = None,
-        modulation: Optional[pd.DataFrame] = None,
-        series: Optional[pd.DataFrame] = None,
-        co2_cost: Optional[pd.DataFrame] = None,
-        fuel_cost: Optional[pd.DataFrame] = None,
+        self, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
     ) -> ThermalCluster:
-        thermal = self._area_service.create_thermal_cluster(
-            self.id, thermal_name, properties, prepro, modulation, series, co2_cost, fuel_cost
-        )
+        """
+        Creates a new thermal cluster in the current area.
+
+        Parameters:
+            thermal_name: The name of the new thermal cluster.
+            properties: The properties of the new thermal cluster.
+
+        Returns:
+            The newly created thermal cluster.
+        """
+        thermal = self._area_service.create_thermal_cluster(self.id, thermal_name, properties)
         self._thermals[thermal.id] = thermal
         return thermal
 
     def create_renewable_cluster(
-        self,
-        renewable_name: str,
-        properties: Optional[RenewableClusterProperties] = None,
-        series: Optional[pd.DataFrame] = None,
+        self, renewable_name: str, properties: Optional[RenewableClusterProperties] = None
     ) -> RenewableCluster:
-        renewable = self._area_service.create_renewable_cluster(self.id, renewable_name, properties, series=series)
+        """
+        Creates a new renewable cluster in the current area.
+
+        Parameters:
+            renewable_name: The name of the new renewable cluster.
+            properties: The properties of the new renewable cluster.
+
+        Returns:
+            The newly created renewable cluster.
+        """
+        renewable = self._area_service.create_renewable_cluster(self.id, renewable_name, properties)
         self._renewables[renewable.id] = renewable
         return renewable
 
     def create_st_storage(self, st_storage_name: str, properties: Optional[STStorageProperties] = None) -> STStorage:
+        """
+        Creates a new short term storage in this area.
+
+        Parameters:
+            st_storage_name: The name of the new short term storage.
+            properties: The properties of the new short term storage.
+
+        Returns:
+            The newly created short term storage.
+        """
         storage = self._area_service.create_st_storage(self.id, st_storage_name, properties)
         self._st_storages[storage.id] = storage
 

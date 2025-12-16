@@ -45,12 +45,9 @@ class RunApiService(BaseRunService):
     ) -> Job:
         url = f"{self._base_url}/launcher/run/{self.study_id}"
         try:
-            if parameters is not None:
-                payload = parameters.to_api()
-                response = self._wrapper.post(url, json=payload)
-            else:
-                parameters = AntaresSimulationParameters()
-                response = self._wrapper.post(url)
+            parameters = parameters or AntaresSimulationParameters()
+            payload = parameters.to_api()
+            response = self._wrapper.post(url, json=payload)
             job_id = response.json()["job_id"]
             return self._get_job_from_id(job_id, parameters)
         except APIError as e:

@@ -25,7 +25,10 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
-from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
+from antares.craft.service.local_services.services.utils import (
+    checks_matrix_dimensions,
+    remove_object_from_scenario_builder,
+)
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
@@ -38,7 +41,7 @@ class LinkLocalService(BaseLinkService):
         self.config = config
         self.study_name = study_name
 
-    def _read_ini(self, area_from: str) -> dict[str, Any]:
+    def read_ini(self, area_from: str) -> dict[str, Any]:
         return IniReader().read(self.config.study_path / "input" / "links" / area_from / "properties.ini")
 
     def _save_ini(self, content: dict[str, Any], area_from: str) -> None:
@@ -70,7 +73,7 @@ class LinkLocalService(BaseLinkService):
         link_dir.mkdir(parents=True, exist_ok=True)
         local_model = LinkPropertiesAndUiLocal.from_user_model(ui or LinkUi(), properties or LinkProperties())
 
-        current_content = self._read_ini(area_from)
+        current_content = self.read_ini(area_from)
 
         if area_to in current_content:
             raise LinkCreationError(
@@ -102,18 +105,31 @@ class LinkLocalService(BaseLinkService):
 
     @override
     def delete_link(self, link: Link) -> None:
-        links_dict = self._read_ini(link.area_from_id)
+        links_dict = self.read_ini(link.area_from_id)
         for area_to, link_props in links_dict.items():
             if area_to == link.area_to_id:
                 links_dict.pop(area_to)
                 self._save_ini(links_dict, link.area_from_id)
+
+                # Remove the matrices
+                folder_path = self.config.study_path / "input" / "links" / link.area_from_id
+                (folder_path / f"{link.area_to_id}_parameters.txt").unlink()
+                (folder_path / "capacities" / f"{link.area_to_id}_direct.txt").unlink()
+                (folder_path / "capacities" / f"{link.area_to_id}_indirect.txt").unlink()
+
+                # Clean the scenario-builder
+                def clean_link(symbol: str, parts: list[str]) -> bool:
+                    return symbol == "ntc" and parts[0] == link.area_from_id and parts[1] == link.area_to_id
+
+                remove_object_from_scenario_builder(self.config.study_path, clean_link)
+
                 return
 
         raise LinkDeletionError(link.id, "it doesn't exist")
 
     @override
     def update_link_ui(self, link: Link, ui: LinkUiUpdate) -> LinkUi:
-        links_dict = self._read_ini(link.area_from_id)
+        links_dict = self.read_ini(link.area_from_id)
         for area_to, link_props in links_dict.items():
             if area_to == link.area_to_id:
                 # Update properties
@@ -199,24 +215,6 @@ class LinkLocalService(BaseLinkService):
         )
 
     @override
-    def read_links(self) -> dict[str, Link]:
-        link_path = self.config.study_path / "input" / "links"
-
-        all_links: dict[str, Link] = {}
-
-        for element in link_path.iterdir():
-            area_from = element.name
-            links_dict = self._read_ini(area_from)
-            for area_to, values in links_dict.items():
-                local_model = LinkPropertiesAndUiLocal.model_validate(values)
-                properties = local_model.to_properties_user_model()
-                ui = local_model.to_ui_user_model()
-                link = Link(area_from=area_from, area_to=area_to, link_service=self, properties=properties, ui=ui)
-                all_links[link.id] = link
-
-        return all_links
-
-    @override
     def update_links_properties(self, new_properties: dict[str, LinkPropertiesUpdate]) -> dict[str, LinkProperties]:
         new_properties_dict: dict[str, LinkProperties] = {}
 
@@ -227,7 +225,7 @@ class LinkLocalService(BaseLinkService):
 
         for area_from, value in properties_by_areas.items():
             all_link_names = set(value.keys())  # used to raise an Exception if a link doesn't exist
-            current_dict = self._read_ini(area_from)
+            current_dict = self.read_ini(area_from)
             for area_to, link_properties_dict in current_dict.items():
                 if area_to in value:
                     all_link_names.remove(area_to)

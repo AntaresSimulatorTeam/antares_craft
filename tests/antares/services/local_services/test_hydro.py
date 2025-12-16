@@ -9,12 +9,16 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import pytest
 
+from dataclasses import replace
 from pathlib import Path
 
-from antares.craft import Study, read_study_local
+from antares.craft import HydroAllocation, Study, read_study_local
+from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
 from antares.craft.model.hydro import Hydro, HydroProperties, HydroPropertiesUpdate, InflowStructureUpdate
 from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
 class TestCreateHydro:
@@ -23,13 +27,16 @@ class TestCreateHydro:
         assert isinstance(hydro, Hydro)
         assert hydro.properties == HydroProperties(reservoir_capacity=4.3, use_heuristic=False)
 
-    def test_hydro_has_properties(self, local_study_w_areas: Study) -> None:
-        assert local_study_w_areas.get_areas()["fr"].hydro.properties
-
     def test_hydro_has_correct_default_properties(
-        self, local_study_w_areas: Study, default_hydro_properties: HydroProperties
+        self, local_study_w_areas: Study, default_hydro_properties_88: HydroProperties
     ) -> None:
-        assert local_study_w_areas.get_areas()["fr"].hydro.properties == default_hydro_properties
+        assert local_study_w_areas.get_areas()["fr"].hydro.properties == default_hydro_properties_88
+
+    def test_hydro_has_correct_default_properties_v92(
+        self, default_hydro_properties_88: HydroProperties, local_study_92: Study
+    ) -> None:
+        expected_properties = replace(default_hydro_properties_88, overflow_spilled_cost_difference=1)
+        assert local_study_92.get_areas()["fr"].hydro.properties == expected_properties
 
     def test_files_exist(self, local_study_w_areas: Study) -> None:
         """
@@ -55,13 +62,6 @@ class TestCreateHydro:
 
             for expected_path in expected_paths:
                 assert expected_path.is_file(), f"File not created: {expected_path}"
-
-    def test_hydro_allocation_has_correct_default_values(self, local_study_w_areas: Study) -> None:
-        areas = local_study_w_areas.get_areas()
-        study_path = Path(local_study_w_areas.path)
-        for area in areas.values():
-            ini_content = IniReader().read(study_path / "input" / "hydro" / "allocation" / f"{area.id}.ini")
-            assert ini_content == {"[allocation]": {area.id: 1}}
 
     def test_hydro_prepro_has_correct_default_values(self, local_study_w_areas: Study) -> None:
         areas = local_study_w_areas.get_areas()
@@ -204,3 +204,55 @@ fr = True
 
 """
         assert actual_ini_content == expected_ini_content
+
+    def test_errors(self, local_study_w_areas: Study) -> None:
+        # Ensures modification fails
+        new_properties = HydroPropertiesUpdate(overflow_spilled_cost_difference=0.9)
+        with pytest.raises(
+            InvalidFieldForVersionError,
+            match="Field overflow_spilled_cost_difference is not a valid field for study version 8.8",
+        ):
+            local_study_w_areas.get_areas()["fr"].hydro.update_properties(new_properties)
+
+        # Ensures reading fails
+        study_path = Path(local_study_w_areas.path)
+        ini_path = study_path / "input" / "hydro" / "hydro.ini"
+        ini_content = IniReader().read(ini_path)
+        ini_content["overflow spilled cost difference"] = {"fr": 0.5}
+        IniWriter().write(ini_content, ini_path)
+        with pytest.raises(
+            InvalidFieldForVersionError,
+            match="Field overflow_spilled_cost_difference is not a valid field for study version 8.8",
+        ):
+            read_study_local(study_path)
+
+    def test_hydro_allocation_has_correct_default_values(self, local_study_w_areas: Study) -> None:
+        areas = local_study_w_areas.get_areas()
+        study_path = Path(local_study_w_areas.path)
+        for area in areas.values():
+            ini_content = IniReader().read(study_path / "input" / "hydro" / "allocation" / f"{area.id}.ini")
+            assert ini_content == {"[allocation]": {}}
+
+    def test_allocation(self, local_study_w_areas: Study) -> None:
+        hydro_fr = local_study_w_areas.get_areas()["fr"].hydro
+        # Ensures we have the correct default value and only this.
+        assert hydro_fr.allocation == [HydroAllocation(area_id="fr")]
+        # Sets a new allocation
+        hydro_fr.set_allocation([HydroAllocation(area_id="it", coefficient=2.4)])
+        assert hydro_fr.allocation == [HydroAllocation(area_id="fr"), HydroAllocation(area_id="it", coefficient=2.4)]
+        # Reading should return the same value
+        study_path = Path(local_study_w_areas.path)
+        study = read_study_local(study_path)
+        assert study.get_areas()["fr"].hydro.allocation == [
+            HydroAllocation(area_id="fr"),
+            HydroAllocation(area_id="it", coefficient=2.4),
+        ]
+        # Create a new area 'DE'
+        study.create_area("DE")
+        # Sets a new allocation for area_fr that should replace IT with DE
+        hydro_fr.set_allocation([HydroAllocation(area_id="DE", coefficient=1.3)])
+        assert hydro_fr.allocation == [HydroAllocation(area_id="fr"), HydroAllocation(area_id="de", coefficient=1.3)]
+        # Checks the ini content
+        ini_path = study_path / "input" / "hydro" / "allocation" / "fr.ini"
+        ini_content = IniReader().read(ini_path)
+        assert ini_content == {"[allocation]": {"DE": 1.3}}

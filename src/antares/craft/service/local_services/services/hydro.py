@@ -17,23 +17,30 @@ import pandas as pd
 from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
+from antares.craft.model.hydro import (
+    HydroAllocation,
+    HydroPropertiesUpdate,
+    InflowStructure,
+    InflowStructureUpdate,
+)
 from antares.craft.service.base_services import BaseHydroService
 from antares.craft.service.local_services.models.hydro import (
     HydroInflowStructureLocal,
-    HydroPropertiesLocal,
+    serialize_hydro_properties_local,
 )
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from antares.study.version import StudyVersion
 
 
 class HydroLocalService(BaseHydroService):
-    def __init__(self, config: LocalConfiguration, study_name: str):
+    def __init__(self, config: LocalConfiguration, study_name: str, study_version: StudyVersion):
         self.config = config
         self.study_name = study_name
+        self.study_version = study_version
 
     @staticmethod
     def _transform_areas_name_to_id(content: dict[str, Any]) -> dict[str, Any]:
@@ -53,6 +60,9 @@ class HydroLocalService(BaseHydroService):
     def _get_inflow_path(self, area_id: str) -> Path:
         return self.config.study_path / "input" / "hydro" / "prepro" / area_id / "prepro.ini"
 
+    def _get_allocation_path(self, area_id: str) -> Path:
+        return self.config.study_path / "input" / "hydro" / "allocation" / f"{area_id}.ini"
+
     def _read_inflow_ini(self, area_id: str) -> dict[str, Any]:
         return IniReader().read(self._get_inflow_path(area_id))
 
@@ -60,7 +70,7 @@ class HydroLocalService(BaseHydroService):
         IniWriter().write(content, self._get_inflow_path(area_id))
 
     def save_allocation_ini(self, content: dict[str, Any], area_id: str) -> None:
-        IniWriter().write(content, self.config.study_path / "input" / "hydro" / "allocation" / f"{area_id}.ini")
+        IniWriter().write(content, self._get_allocation_path(area_id))
 
     @override
     def update_properties(self, area_id: str, properties: HydroPropertiesUpdate) -> None:
@@ -72,35 +82,19 @@ class HydroLocalService(BaseHydroService):
         self.save_inflow_ini(new_content, area_id)
 
     @override
+    def set_allocation(self, area_id: str, allocation: list[HydroAllocation]) -> list[HydroAllocation]:
+        allocation_content = {}
+        for alloc in allocation:
+            if alloc.coefficient and area_id != alloc.area_id:
+                # Null values are not written nor are the diagonal ones
+                allocation_content[alloc.area_id] = alloc.coefficient
+        self.save_allocation_ini({"[allocation]": allocation_content}, area_id)
+        return self.read_allocation_for_area(area_id)
+
+    @override
     def read_inflow_structure_for_one_area(self, area_id: str) -> InflowStructure:
         prepro_dict = self._read_inflow_ini(area_id)
         return HydroInflowStructureLocal.model_validate(prepro_dict).to_user_model()
-
-    @override
-    def read_properties_and_inflow_structure(self) -> dict[str, tuple[HydroProperties, InflowStructure]]:
-        response: dict[str, tuple[HydroProperties, InflowStructure]] = {}
-
-        all_properties = self.read_properties()
-        for area_id, hydro_properties in all_properties.items():
-            inflow_structure = self.read_inflow_structure_for_one_area(area_id)
-            response[area_id] = (hydro_properties, inflow_structure)
-
-        return response
-
-    def read_properties(self) -> dict[str, HydroProperties]:
-        hydro_properties: dict[str, HydroProperties] = {}
-
-        current_content = self.read_hydro_ini()
-
-        body_by_area: dict[str, dict[str, Any]] = {}
-        for key, value in current_content.items():
-            for area_id, data in value.items():
-                body_by_area.setdefault(area_id, {})[key] = data
-        for area_id, local_properties in body_by_area.items():
-            user_properties = HydroPropertiesLocal.model_validate(local_properties).to_user_model()
-            hydro_properties[area_id] = user_properties
-
-        return hydro_properties
 
     @override
     def get_maxpower(self, area_id: str) -> pd.DataFrame:
@@ -177,10 +171,19 @@ class HydroLocalService(BaseHydroService):
     def edit_hydro_properties(self, area_id: str, properties: HydroPropertiesUpdate, creation: bool) -> None:
         current_content = self.read_hydro_ini()
 
-        local_dict = HydroPropertiesLocal.from_user_model(properties).model_dump(
-            mode="json", by_alias=True, exclude_unset=not creation
-        )
+        local_dict = serialize_hydro_properties_local(self.study_version, properties, exclude_unset=not creation)
 
         for key, value in local_dict.items():
             current_content.setdefault(key, {})[area_id] = value
         self.save_hydro_ini(current_content)
+
+    def read_allocation_for_area(self, area_id: str) -> list[HydroAllocation]:
+        ini_content = IniReader().read(self._get_allocation_path(area_id))
+        # allocation format can differ from the number of '[' (i.e. [[allocation]] or [allocation])
+        allocation_data = ini_content.get("[allocation]", ini_content.get("allocation", {}))
+        allocations = [HydroAllocation(area_id=area_id)]
+        for area_name, coefficient in allocation_data.items():
+            alloc_area_id = transform_name_to_id(area_name)
+            if alloc_area_id != area_id:  # Already initialized in case it was not written in the file
+                allocations.append(HydroAllocation(area_id=alloc_area_id, coefficient=coefficient))
+        return allocations

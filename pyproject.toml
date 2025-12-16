@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "antares_craft"
-version = "0.2.7"
-description = """Antares Craft python library under construction. It will allow to create, update and read antares studies."""
+version = "0.7.0"
+description = """Python library to read, edit and launch antares-simulator studies"""
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
@@ -16,13 +16,15 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "antares-timeseries-generation==0.1.7",
-    "antares-study-version==1.0.15",
-    "numpy~=1.26.4",
-    "pandas~=2.2.2",
-    "pydantic~=2.10.0",
-    "requests~=2.32.0",
-    "psutil~=7.0.0"
+    "antares-timeseries-generation==0.1.8",
+    "antares-study-version==1.0.20",
+    "numpy>=1.0.0,<2.0.0",
+    "pandas>=2.0.0,<3.0.0",
+    "pyarrow>=20.0.0,<30.0.0",
+    "pydantic>=2.0.0,<3.0.0",
+    "requests>=2.0.0,<3.0.0",
+    "psutil>=7.0.0,<8.0.0",
+    "polars>=1.35.0"
 ]
 
 classifiers = [

@@ -145,11 +145,18 @@ class TestLink:
     def test_deletion(self, local_study_w_links: Study) -> None:
         link = local_study_w_links.get_links()["at / fr"]
         local_study_w_links.delete_link(link)
-        study_path = Path(local_study_w_links.path)
-        ini_content = IniReader().read(study_path / "input" / "links" / link.area_from_id / "properties.ini")
+        link_folder_path = Path(local_study_w_links.path) / "input" / "links" / link.area_from_id
+
+        # Checks the ini content
+        ini_content = IniReader().read(link_folder_path / "properties.ini")
         assert "fr" not in ini_content
 
-        with pytest.raises(LinkDeletionError, match=re.escape("Could not delete the link at / fr: it doesn't exist")):
+        # Asserts the matrices do not exist anymore
+        assert not (link_folder_path / f"{link.area_to_id}_parameters.txt").exists()
+        assert not (link_folder_path / "capacities" / f"{link.area_to_id}_direct.txt").exists()
+        assert not (link_folder_path / "capacities" / f"{link.area_to_id}_indirect.txt").exists()
+
+        with pytest.raises(LinkDeletionError, match=re.escape("Could not delete the link 'at / fr': it doesn't exist")):
             local_study_w_links.delete_link(link)
 
         # Recreate the link

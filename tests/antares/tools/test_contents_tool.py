@@ -10,12 +10,25 @@
 #
 # This file is part of the Antares project.
 
+import pytest
+
 from pathlib import Path
 
 import pandas as pd
 
-from antares.craft.tools.matrix_tool import write_timeseries
+from antares.craft.tools.matrix_tool import DEFAULT_MATRIX_MAPPING, OPTIONAL_MATRICES, read_timeseries, write_timeseries
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+
+
+def test_read_timeseries(tmp_path: Path) -> None:
+    # Assert reading optional matrices that do not exist does not raise
+    for ts_type in OPTIONAL_MATRICES:
+        df = read_timeseries(ts_type, tmp_path)
+        assert df.equals(DEFAULT_MATRIX_MAPPING[ts_type])
+
+    # Assert that reading a missing matrix that isn't optional raises an Exception
+    with pytest.raises(FileNotFoundError):
+        read_timeseries(TimeSeriesFileType.LOAD, tmp_path)
 
 
 def test_write_timeseries(tmp_path: Path) -> None:

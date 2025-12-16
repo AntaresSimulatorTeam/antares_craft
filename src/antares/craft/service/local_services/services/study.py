@@ -23,7 +23,7 @@ from typing_extensions import override
 
 from antares.craft import ScenarioBuilder
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import ConstraintDoesNotExistError
+from antares.craft.exceptions.exceptions import ConstraintsDoNotExistError
 from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -32,8 +32,13 @@ from antares.craft.model.output import Output
 from antares.craft.model.thermal import LocalTSGenerationBehavior
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 from antares.craft.service.local_services.models.scenario_builder import ScenarioBuilderLocal
+from antares.craft.service.local_services.services.utils import (
+    _read_scenario_builder,
+    remove_object_from_scenario_builder,
+)
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
+from antares.study.version import StudyVersion
 from antares.tsgen.duration_generator import ProbabilityLaw
 from antares.tsgen.random_generator import MersenneTwisterRNG
 from antares.tsgen.ts_generator import OutageGenerationParameters, ThermalCluster, TimeseriesGenerator
@@ -112,7 +117,7 @@ class StudyLocalService(BaseStudyService):
         self._config = config
         self._study_name = study_name
         self._output_service: BaseOutputService = output_service
-        self._output_path = self.config.study_path / "output"
+        self._output_path = self._config.study_path / "output"
 
     @property
     @override
@@ -120,31 +125,50 @@ class StudyLocalService(BaseStudyService):
         return self._study_name
 
     @property
-    @override
-    def config(self) -> LocalConfiguration:
-        return self._config
-
-    @property
     def output_service(self) -> BaseOutputService:
         return self._output_service
 
     @override
-    def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
-        study_path = self.config.study_path
+    def delete_binding_constraints(self, constraints: list[BindingConstraint]) -> None:
+        study_path = self._config.study_path
         ini_path = study_path / "input" / "bindingconstraints" / "bindingconstraints.ini"
         current_content = IniReader().read(ini_path)
         copied_content = copy.deepcopy(current_content)
+        constraint_ids = {c.id: c for c in constraints}
+        existing_bcs = set()
+        existing_groups = set()
         for index, bc in current_content.items():
-            if bc["id"] == constraint.id:
+            if grp := bc.get("group"):
+                # Keep track of existing groups before the modification
+                existing_groups.add(grp)
+            if bc["id"] in constraint_ids:
                 copied_content.pop(index)
-                new_dict = {str(i): v for i, (k, v) in enumerate(copied_content.items())}
-                IniWriter().write(new_dict, ini_path)
-                return
-        raise ConstraintDoesNotExistError(constraint.name, self._study_name)
+                existing_bcs.add(bc["id"])
+
+        # Check if all constraints existed
+        if missing_ids := set(constraint_ids) - existing_bcs:
+            raise ConstraintsDoNotExistError(list(missing_ids), self._study_name)
+
+        new_dict = {str(i): v for i, (k, v) in enumerate(copied_content.items())}
+        IniWriter().write(new_dict, ini_path)
+
+        # Remove the matrices
+        for constraint in constraints:
+            for key in ["lt", "gt", "eq"]:
+                (study_path / "input" / "bindingconstraints" / f"{constraint.id}_{key}.txt").unlink(missing_ok=True)
+
+        # Clean the scenario builder
+        new_groups = {bc["group"] for bc in copied_content.values()}
+        if removed_groups := existing_groups - new_groups:
+
+            def clean_constraints(symbol: str, parts: list[str]) -> bool:
+                return symbol == "bc" and parts[0] in removed_groups
+
+            remove_object_from_scenario_builder(self._config.study_path, clean_constraints)
 
     @override
     def delete(self, children: bool) -> None:
-        shutil.rmtree(self.config.study_path, ignore_errors=True)
+        shutil.rmtree(self._config.study_path, ignore_errors=True)
 
     @override
     def create_variant(self, variant_name: str) -> "Study":
@@ -183,7 +207,7 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def generate_thermal_timeseries(self, number_of_years: int, areas: dict[str, Area], seed: int) -> None:
-        study_path = self.config.study_path
+        study_path = self._config.study_path
         with tempfile.TemporaryDirectory(suffix=".thermal_ts_gen.tmp", prefix="~", dir=study_path.parent) as path:
             tmp_dir = Path(path)
             shutil.copytree(study_path / "input" / "thermal" / "series", tmp_dir, dirs_exist_ok=True)
@@ -191,14 +215,13 @@ class StudyLocalService(BaseStudyService):
             _replace_safely_original_files(study_path, tmp_dir)
 
     @override
-    def get_scenario_builder(self, nb_years: int) -> ScenarioBuilder:
-        scenario_builder_path = self.config.study_path / "settings" / "scenariobuilder.dat"
-        content = IniReader().read(scenario_builder_path)
+    def get_scenario_builder(self, nb_years: int, study_version: StudyVersion) -> ScenarioBuilder:
+        content = _read_scenario_builder(self._config.study_path)
         sc_builder_local = ScenarioBuilderLocal.from_ini(content)
-        return sc_builder_local.to_user_model(nb_years)
+        return sc_builder_local.to_user_model(nb_years, study_version)
 
     @override
     def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
-        scenario_builder_path = self.config.study_path / "settings" / "scenariobuilder.dat"
+        scenario_builder_path = self._config.study_path / "settings" / "scenariobuilder.dat"
         sc_builder_local = ScenarioBuilderLocal.from_user_model(scenario_builder)
         IniWriter().write(sc_builder_local.to_ini(), scenario_builder_path)

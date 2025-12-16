@@ -12,7 +12,7 @@
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.model.area import AdequacyPatchMode, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
+from antares.craft.model.area import AdequacyPatchMode, Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.binding_constraint import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
@@ -20,11 +20,10 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintPropertiesUpdate,
     ClusterData,
     ConstraintTerm,
-    ConstraintTermUpdate,
     LinkData,
 )
 from antares.craft.model.commons import FilterOption
-from antares.craft.model.hydro import HydroProperties, HydroPropertiesUpdate
+from antares.craft.model.hydro import HydroAllocation, HydroProperties, HydroPropertiesUpdate, InflowStructureUpdate
 from antares.craft.model.link import (
     AssetType,
     LinkProperties,
@@ -33,6 +32,13 @@ from antares.craft.model.link import (
     LinkUi,
     LinkUiUpdate,
     TransmissionCapacities,
+)
+from antares.craft.model.output import (
+    Frequency,
+    MCAllAreasDataType,
+    MCAllLinksDataType,
+    MCIndAreasDataType,
+    MCIndLinksDataType,
 )
 from antares.craft.model.renewable import (
     RenewableClusterGroup,
@@ -73,7 +79,16 @@ from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
 from antares.craft.model.simulation import AntaresSimulationParameters, Solver
-from antares.craft.model.st_storage import STStorageGroup, STStorageProperties, STStoragePropertiesUpdate
+from antares.craft.model.st_storage import (
+    AdditionalConstraintOperator,
+    AdditionalConstraintVariable,
+    Occurrence,
+    STStorageAdditionalConstraint,
+    STStorageAdditionalConstraintUpdate,
+    STStorageGroup,
+    STStorageProperties,
+    STStoragePropertiesUpdate,
+)
 from antares.craft.model.study import (
     Study,
     create_study_api,
@@ -90,6 +105,16 @@ from antares.craft.model.thermal import (
     ThermalClusterProperties,
     ThermalClusterPropertiesUpdate,
     ThermalCostGeneration,
+)
+from antares.craft.model.xpansion.candidate import XpansionCandidate, XpansionCandidateUpdate, XpansionLinkProfile
+from antares.craft.model.xpansion.constraint import ConstraintSign, XpansionConstraint, XpansionConstraintUpdate
+from antares.craft.model.xpansion.sensitivity import XpansionSensitivity, XpansionSensitivityUpdate
+from antares.craft.model.xpansion.settings import (
+    Master,
+    UcType,
+    XpansionSettings,
+    XpansionSettingsUpdate,
+    XpansionSolver,
 )
 
 __all__ = [
@@ -135,6 +160,18 @@ __all__ = [
     "ThermalClusterGroup",
     "LocalTSGenerationBehavior",
     "ThermalCostGeneration",
+    "Frequency",
+    "MCIndAreasDataType",
+    "MCAllAreasDataType",
+    "MCIndLinksDataType",
+    "MCAllLinksDataType",
+    "ConstraintSign",
+    "UcType",
+    "Master",
+    "XpansionSolver",
+    "XpansionLinkProfile",
+    "AdditionalConstraintVariable",
+    "AdditionalConstraintOperator",
     # Model classes
     "AdequacyPatchParametersUpdate",
     "AdvancedParametersUpdate",
@@ -145,6 +182,7 @@ __all__ = [
     "ThematicTrimmingParameters",
     "StudySettingsUpdate",
     "ScenarioBuilder",
+    "Area",
     "AreaProperties",
     "AreaPropertiesUpdate",
     "AreaUi",
@@ -152,12 +190,12 @@ __all__ = [
     "LinkData",
     "ClusterData",
     "ConstraintTerm",
-    "ConstraintTermUpdate",
     "BindingConstraintProperties",
     "BindingConstraintPropertiesUpdate",
     "FilterOption",
     "HydroProperties",
     "HydroPropertiesUpdate",
+    "HydroAllocation",
     "LinkProperties",
     "LinkPropertiesUpdate",
     "LinkUi",
@@ -170,4 +208,16 @@ __all__ = [
     "STStoragePropertiesUpdate",
     "ThermalClusterProperties",
     "ThermalClusterPropertiesUpdate",
+    "XpansionCandidate",
+    "XpansionCandidateUpdate",
+    "XpansionSettings",
+    "XpansionSettingsUpdate",
+    "XpansionConstraint",
+    "XpansionConstraintUpdate",
+    "XpansionSensitivity",
+    "XpansionSensitivityUpdate",
+    "InflowStructureUpdate",
+    "Occurrence",
+    "STStorageAdditionalConstraint",
+    "STStorageAdditionalConstraintUpdate",
 ]
