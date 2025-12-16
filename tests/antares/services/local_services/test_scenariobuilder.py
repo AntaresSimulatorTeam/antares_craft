@@ -20,6 +20,8 @@ from antares.craft import Occurrence, STStorageAdditionalConstraint, Study, Stud
 from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
 from antares.craft.model.commons import STUDY_VERSION_9_2, STUDY_VERSION_9_3
 from antares.craft.model.settings.general import GeneralParametersUpdate
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
 def test_empty_scenariobuilder(local_study: Study) -> None:
@@ -175,3 +177,43 @@ sta,fr,2,battery,c1 = 4
                 4,
                 None,
             ]
+
+
+def test_scenario_builder_removals(local_study_with_renewable: Study) -> None:
+    area_fr = local_study_with_renewable.get_areas()["fr"]
+    # Creates a scenario builder with thermal and renewable data
+    file_path = Path(local_study_with_renewable.path) / "settings" / "scenariobuilder.dat"
+    content = {
+        "Default Ruleset": {
+            # Thermal part
+            "t,fr,1,test thermal cluster": 4,
+            "t,fr,1,other": 3,
+            # Renewable part
+            "r,fr,1,renewable cluster": 11,
+            "r,fr,1,other": 12,
+        }
+    }
+    IniWriter().write(content, file_path)
+
+    # Remove the renewable
+    area_fr.delete_renewable_cluster(area_fr.get_renewables()["renewable cluster"])
+    # Checks the content -> 1 line should disappear
+    content = IniReader().read(file_path)
+    assert content == {
+        "Default Ruleset": {
+            "t,fr,1,test thermal cluster": 4,
+            "t,fr,1,other": 3,
+            "r,fr,1,other": 12,
+        }
+    }
+
+    # Remove the thermal cluster
+    area_fr.delete_thermal_cluster(area_fr.get_thermals()["test thermal cluster"])
+    # Checks the content -> 1 line should disappear
+    content = IniReader().read(file_path)
+    assert content == {
+        "Default Ruleset": {
+            "t,fr,1,other": 3,
+            "r,fr,1,other": 12,
+        }
+    }

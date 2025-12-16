@@ -81,7 +81,7 @@ def _remove_cluster_from_scenario_builder(study_path: Path, pattern: Callable[[s
         for key in list(ruleset):
             # The key is in the form "symbol,area,year,cluster"
             symbol, *parts = key.split(",")
-            if pattern(symbol, *parts):
+            if pattern(symbol, parts):
                 del ruleset[key]
 
     IniWriter().write(rulesets, study_path / "settings" / "scenariobuilder.dat")
