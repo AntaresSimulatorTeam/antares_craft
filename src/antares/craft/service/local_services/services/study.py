@@ -144,8 +144,8 @@ class StudyLocalService(BaseStudyService):
                     BindingConstraintOperator.EQUAL: ["_eq"],
                     BindingConstraintOperator.BOTH: ["_lt", "_gt"],
                 }
-                for suffix in mapping[constraint.properties.operator]:
-                    (study_path / "input" / "bindingconstraints" / f"{constraint.id}{suffix}.txt").unlink()
+                for key in mapping[constraint.properties.operator]:
+                    (study_path / "input" / "bindingconstraints" / f"{constraint.id}{key}.txt").unlink(missing_ok=True)
 
                 return
 

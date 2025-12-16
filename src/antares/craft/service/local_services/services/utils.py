@@ -75,7 +75,7 @@ def _read_scenario_builder(study_path: Path) -> dict[str, Any]:
     return IniReader().read(scenario_builder_path)
 
 
-def _remove_object_from_scenario_builder(study_path: Path, pattern: Callable[[str, list[str]], bool]) -> None:
+def remove_object_from_scenario_builder(study_path: Path, pattern: Callable[[str, list[str]], bool]) -> None:
     rulesets = _read_scenario_builder(study_path)
     for ruleset in rulesets.values():
         for key in list(ruleset):

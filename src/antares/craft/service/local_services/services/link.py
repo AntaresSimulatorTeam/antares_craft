@@ -26,8 +26,8 @@ from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate,
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
 from antares.craft.service.local_services.services.utils import (
-    _remove_object_from_scenario_builder,
     checks_matrix_dimensions,
+    remove_object_from_scenario_builder,
 )
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -121,7 +121,7 @@ class LinkLocalService(BaseLinkService):
                 def clean_link(symbol: str, parts: list[str]) -> bool:
                     return symbol == "ntc" and parts[0] == link.area_from_id and parts[1] == link.area_to_id
 
-                _remove_object_from_scenario_builder(self.config.study_path, clean_link)
+                remove_object_from_scenario_builder(self.config.study_path, clean_link)
 
                 return
 
