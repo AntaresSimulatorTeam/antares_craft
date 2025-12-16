@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import contextlib
 import copy
 import os
 import shutil
@@ -607,16 +608,9 @@ class AreaLocalService(BaseAreaService):
         self._remove_area_from_hydro_ini_file(area_id)
         self._remove_area_from_thermal_ini_file(area_id)
         self._remove_area_from_list_txt_file(area_id)
-
-        # todo: implement those;
-        # todo: Correlation and allocation are not handled by ANtares-Craft yet :/
-        # todo: neither are districts
-        # todo: we have to do the scenario builder though. How ? We need the study service :/
-        # todo: or we can read the file as is ... Perhaps we'll have to.
-        # self._remove_area_from_correlation_matrices(study_data)
-        # self._remove_area_from_hydro_allocation(study_data)
-        # self._remove_area_from_districts(study_data)
-        # self._remove_area_from_scenario_builder(study_data)
+        self._remove_area_from_correlation_matrices(area_id)
+        self._remove_area_from_hydro_allocation(area_id)
+        self._remove_area_from_districts(area_id)
 
         def clean_area(symbol: str, parts: list[str]) -> bool:
             area_keys = {"l", "h", "w", "s", "t", "r", "hl", "hfl", "hgp", "sts", "sta"}
@@ -651,3 +645,42 @@ class AreaLocalService(BaseAreaService):
             lines = list_txt.readlines()
             lines.remove(id_to_remove)
             list_txt.writelines(lines)
+
+    def _remove_area_from_correlation_matrices(self, area_id: str) -> None:
+        file_path = self.config.study_path / "input" / "hydro" / "prepro" / "correlation.ini"
+        correlation_cfg = IniReader().read(file_path)
+        for section, correlation in correlation_cfg.items():
+            if section == "general":
+                continue
+            for key in list(correlation):
+                a1, a2 = key.split("%")
+                if a1 == area_id or a2 == area_id:
+                    del correlation[key]
+        IniWriter().write(correlation_cfg, file_path)
+
+    def _remove_area_from_hydro_allocation(self, area_id: str) -> None:
+        file_path = self.config.study_path / "input" / "hydro" / "allocation" / f"{area_id}.ini"
+        file_path.unlink(missing_ok=True)
+        hydro_service = cast(HydroLocalService, self._hydro_service)
+        for file in (self.config.study_path / "input" / "hydro" / "allocation").iterdir():
+            other_area_id = file.stem
+            allocation = hydro_service.read_allocation_for_area(other_area_id)
+            new_allocations = copy.deepcopy(allocation)
+            for alloc in allocation:
+                if alloc.area_id == area_id:
+                    new_allocations.remove(alloc)
+            if len(new_allocations) != len(allocation):
+                hydro_service.set_allocation(other_area_id, allocation)
+
+    def _remove_area_from_districts(self, area_id: str) -> None:
+        file_path = self.config.study_path / "input" / "areas" / "sets.ini"
+        districts = IniReader().read(file_path)
+        for district in districts.values():
+            if district.get("+", None):
+                with contextlib.suppress(ValueError):
+                    district["+"].remove(area_id)
+            elif district.get("-", None):
+                with contextlib.suppress(ValueError):
+                    district["-"].remove(area_id)
+
+        IniWriter().write(districts, file_path)
