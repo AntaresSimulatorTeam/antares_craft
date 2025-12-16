@@ -179,7 +179,7 @@ sta,fr,2,battery,c1 = 4
             ]
 
 
-def test_scenario_builder_removals(local_study_with_renewable: Study) -> None:
+def test_scenario_builder_cluster_removals(local_study_with_renewable: Study) -> None:
     area_fr = local_study_with_renewable.get_areas()["fr"]
     # Creates a scenario builder with thermal and renewable data
     file_path = Path(local_study_with_renewable.path) / "settings" / "scenariobuilder.dat"
@@ -254,7 +254,7 @@ def test_scenario_builder_sts_removals(local_study_93: Study) -> None:
 
     # Remove the sts "sts_test"
     area_fr.delete_st_storage(storage=sts)
-    # Checks the content -> 2 lines should disappear (we delete its constaints too)
+    # Checks the content -> 2 lines should disappear (we delete its constraints too)
     content = IniReader().read(file_path)
     assert content == {
         "Default Ruleset": {
