@@ -32,6 +32,7 @@ from antares.craft.model.output import Output
 from antares.craft.model.thermal import LocalTSGenerationBehavior
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 from antares.craft.service.local_services.models.scenario_builder import ScenarioBuilderLocal
+from antares.craft.service.local_services.services.utils import _read_scenario_builder
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.study.version import StudyVersion
@@ -200,8 +201,7 @@ class StudyLocalService(BaseStudyService):
 
     @override
     def get_scenario_builder(self, nb_years: int, study_version: StudyVersion) -> ScenarioBuilder:
-        scenario_builder_path = self._config.study_path / "settings" / "scenariobuilder.dat"
-        content = IniReader().read(scenario_builder_path)
+        content = _read_scenario_builder(self._config.study_path)
         sc_builder_local = ScenarioBuilderLocal.from_ini(content)
         return sc_builder_local.to_user_model(nb_years, study_version)
 

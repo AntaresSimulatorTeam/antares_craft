@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -18,6 +19,7 @@ from typing_extensions import override
 from antares.craft.exceptions.exceptions import MatrixFormatError
 from antares.craft.model.st_storage import STStorageMatrixName
 from antares.craft.model.thermal import ThermalClusterMatrixName
+from antares.craft.tools.serde_local.ini_reader import IniReader
 
 
 class AlwaysEqual:
@@ -65,3 +67,8 @@ def checks_matrix_dimensions(matrix: pd.DataFrame, matrix_path: str, ts_name: st
         if matrix_shape != expected_shape:
             matrix_name = f"{matrix_path}/{ts_name}"
             raise MatrixFormatError(matrix_name, expected_shape, matrix_shape)
+
+
+def _read_scenario_builder(study_path: Path) -> dict[str, Any]:
+    scenario_builder_path = study_path / "settings" / "scenariobuilder.dat"
+    return IniReader().read(scenario_builder_path)
