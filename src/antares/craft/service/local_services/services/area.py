@@ -35,6 +35,7 @@ from antares.craft.model.area import (
     AreaUi,
     AreaUiUpdate,
 )
+from antares.craft.model.commons import STUDY_VERSION_9_2
 from antares.craft.model.hydro import Hydro, HydroAllocation, HydroProperties, InflowStructure
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
@@ -525,6 +526,10 @@ class AreaLocalService(BaseAreaService):
                 shutil.rmtree(constraints_path)
 
         # Clean the scenario-builder
+        if self.study_version < STUDY_VERSION_9_2:
+            # The sc builder is filled with sts data since v9.2 alone
+            return
+
         storage_ids = {sts.id for sts in storages}
 
         def clean_sts(symbol: str, parts: list[str]) -> bool:
