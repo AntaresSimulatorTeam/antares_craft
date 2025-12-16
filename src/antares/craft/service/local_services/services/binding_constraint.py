@@ -37,7 +37,10 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.service.base_services import BaseBindingConstraintService
 from antares.craft.service.local_services.models.binding_constraint import BindingConstraintPropertiesLocal
-from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
+from antares.craft.service.local_services.services.utils import (
+    checks_matrix_dimensions,
+    remove_object_from_scenario_builder,
+)
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -212,8 +215,12 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         operator_dict: dict[str, tuple[BindingConstraintOperator, BindingConstraintOperator]] = {}
 
         # Modify the ini content in memory
+        existing_groups = set()
         current_ini_content = self.read_ini()
         for key, constraint in current_ini_content.items():
+            if grp := constraint.get("group"):
+                # Keep track of existing groups before the modification
+                existing_groups.add(grp)
             constraint_id = constraint["id"]
             if constraint_id in new_properties:
                 all_constraint_to_update.remove(constraint_id)
@@ -248,6 +255,19 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
         # Same goes for constraints where the `operator` was modified
         self._change_constraint_matrices_according_to_new_operator(operator_dict)
+
+        # Clean the scenario builder
+        new_groups = set()
+        for bc in current_ini_content.values():
+            if grp := bc.get("group"):
+                new_groups.add(grp)
+
+        if removed_groups := existing_groups - new_groups:
+
+            def clean_constraints(symbol: str, parts: list[str]) -> bool:
+                return symbol == "bc" and parts[0] in removed_groups
+
+            remove_object_from_scenario_builder(self.config.study_path, clean_constraints)
 
         return new_properties_dict
 

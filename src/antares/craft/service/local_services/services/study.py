@@ -138,7 +138,9 @@ class StudyLocalService(BaseStudyService):
         existing_bcs = set()
         existing_groups = set()
         for index, bc in current_content.items():
-            existing_groups.add(bc["group"])
+            if grp := bc.get("group"):
+                # Keep track of existing groups before the modification
+                existing_groups.add(grp)
             if bc["id"] in constraint_ids:
                 copied_content.pop(index)
                 existing_bcs.add(bc["id"])
