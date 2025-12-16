@@ -290,12 +290,13 @@ class Study:
         self._binding_constraints[binding_constraint.id] = binding_constraint
         return binding_constraint
 
-    def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
+    def delete_binding_constraints(self, constraints: list[BindingConstraint]) -> None:
         """
         Deletes the specified binding constraint.
         """
-        self._study_service.delete_binding_constraint(constraint)
-        self._binding_constraints.pop(constraint.id)
+        self._study_service.delete_binding_constraints(constraints)
+        for constraint in constraints:
+            self._binding_constraints.pop(constraint.id)
 
     def delete(self, children: bool = False) -> None:
         """

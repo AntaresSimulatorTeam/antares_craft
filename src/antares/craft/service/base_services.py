@@ -569,10 +569,10 @@ class BaseStudyService(ABC):
         pass
 
     @abstractmethod
-    def delete_binding_constraint(self, constraint: "BindingConstraint") -> None:
+    def delete_binding_constraints(self, constraints: list["BindingConstraint"]) -> None:
         """
         Args:
-            constraint: binding constraint object to be deleted
+            constraints: binding constraints object to be deleted
         """
         pass
 

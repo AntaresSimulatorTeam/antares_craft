@@ -22,8 +22,8 @@ from typing_extensions import override
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
-    ConstraintDoesNotExistError,
     ConstraintPropertiesUpdateError,
+    ConstraintsDoNotExistError,
 )
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -254,7 +254,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     def _get_constraint_inside_ini(self, ini_content: dict[str, Any], constraint: BindingConstraint) -> dict[str, Any]:
         existing_key = next((key for key, bc in ini_content.items() if bc["id"] == constraint.id), None)
         if not existing_key:
-            raise ConstraintDoesNotExistError(constraint.name, self.study_name)
+            raise ConstraintsDoNotExistError([constraint.name], self.study_name)
 
         return ini_content[existing_key]  # type: ignore
 
@@ -309,7 +309,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         # Look for the constraint
         existing_key = next((key for key, bc in current_ini_content.items() if bc["id"] == constraint_id), None)
         if not existing_key:
-            raise ConstraintDoesNotExistError(constraint_name, self.study_name)
+            raise ConstraintsDoNotExistError([constraint_name], self.study_name)
 
         props = BindingConstraintPropertiesLocal.from_user_model(constraint.properties)
 

@@ -245,9 +245,10 @@ class ConstraintsPropertiesUpdateError(Exception):
         super().__init__(self.message)
 
 
-class ConstraintDoesNotExistError(Exception):
-    def __init__(self, constraint_name: str, study_name: str) -> None:
-        self.message = f"The binding constraint '{constraint_name}' doesn't exist inside study '{study_name}'."
+class ConstraintsDoNotExistError(Exception):
+    def __init__(self, constraint_names: list[str], study_name: str) -> None:
+        bc_names = ", ".join(constraint_names)
+        self.message = f"The binding constraints '{bc_names}' do not exist inside study '{study_name}'."
         super().__init__(self.message)
 
 
@@ -264,8 +265,9 @@ class ConstraintMatrixDownloadError(Exception):
 
 
 class BindingConstraintDeletionError(Exception):
-    def __init__(self, constraint_name: str, message: str) -> None:
-        self.message = f"Could not delete the binding constraint '{constraint_name}': " + message
+    def __init__(self, constraint_names: list[str], message: str) -> None:
+        names = ", ".join(constraint_names)
+        self.message = f"Could not delete the binding constraints '{names}': " + message
         super().__init__(self.message)
 
 

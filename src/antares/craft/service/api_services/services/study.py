@@ -64,12 +64,13 @@ class StudyApiService(BaseStudyService):
         return self._output_service
 
     @override
-    def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
-        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints/{constraint.id}"
+    def delete_binding_constraints(self, constraints: list[BindingConstraint]) -> None:
+        url = f"{self._base_url}/studies/{self.study_id}/bindingconstraints"
+        body = [bc.id for bc in constraints]
         try:
-            self._wrapper.delete(url)
+            self._wrapper.delete(url, json=body)
         except APIError as e:
-            raise BindingConstraintDeletionError(constraint.id, e.message) from e
+            raise BindingConstraintDeletionError(body, e.message) from e
 
     @override
     def delete(self, children: bool) -> None:

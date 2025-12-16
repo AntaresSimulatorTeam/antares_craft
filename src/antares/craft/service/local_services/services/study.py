@@ -21,9 +21,9 @@ import pandas as pd
 
 from typing_extensions import override
 
-from antares.craft import BindingConstraintOperator, ScenarioBuilder
+from antares.craft import ScenarioBuilder
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import ConstraintDoesNotExistError
+from antares.craft.exceptions.exceptions import ConstraintsDoNotExistError
 from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import (
     BindingConstraint,
@@ -32,7 +32,10 @@ from antares.craft.model.output import Output
 from antares.craft.model.thermal import LocalTSGenerationBehavior
 from antares.craft.service.base_services import BaseOutputService, BaseStudyService
 from antares.craft.service.local_services.models.scenario_builder import ScenarioBuilderLocal
-from antares.craft.service.local_services.services.utils import _read_scenario_builder
+from antares.craft.service.local_services.services.utils import (
+    _read_scenario_builder,
+    remove_object_from_scenario_builder,
+)
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.study.version import StudyVersion
@@ -126,30 +129,40 @@ class StudyLocalService(BaseStudyService):
         return self._output_service
 
     @override
-    def delete_binding_constraint(self, constraint: BindingConstraint) -> None:
+    def delete_binding_constraints(self, constraints: list[BindingConstraint]) -> None:
         study_path = self._config.study_path
         ini_path = study_path / "input" / "bindingconstraints" / "bindingconstraints.ini"
         current_content = IniReader().read(ini_path)
         copied_content = copy.deepcopy(current_content)
+        constraint_ids = {c.id: c for c in constraints}
+        existing_bcs = set()
+        existing_groups = set()
         for index, bc in current_content.items():
-            if bc["id"] == constraint.id:
+            existing_groups.add(bc["group"])
+            if bc["id"] in constraint_ids:
                 copied_content.pop(index)
-                new_dict = {str(i): v for i, (k, v) in enumerate(copied_content.items())}
-                IniWriter().write(new_dict, ini_path)
+                existing_bcs.add(bc["id"])
 
-                # Remove the matrices
-                mapping = {
-                    BindingConstraintOperator.LESS: ["_lt"],
-                    BindingConstraintOperator.GREATER: ["_gt"],
-                    BindingConstraintOperator.EQUAL: ["_eq"],
-                    BindingConstraintOperator.BOTH: ["_lt", "_gt"],
-                }
-                for suffix in mapping[constraint.properties.operator]:
-                    (study_path / "input" / "bindingconstraints" / f"{constraint.id}{suffix}.txt").unlink()
+        # Check if all constraints existed
+        if missing_ids := set(constraint_ids) - existing_bcs:
+            raise ConstraintsDoNotExistError(list(missing_ids), self._study_name)
 
-                return
+        new_dict = {str(i): v for i, (k, v) in enumerate(copied_content.items())}
+        IniWriter().write(new_dict, ini_path)
 
-        raise ConstraintDoesNotExistError(constraint.name, self._study_name)
+        # Remove the matrices
+        for constraint in constraints:
+            for key in ["lt", "gt", "eq"]:
+                (study_path / "input" / "bindingconstraints" / f"{constraint.id}_{key}.txt").unlink(missing_ok=True)
+
+        # Clean the scenario builder
+        new_groups = {bc["group"] for bc in copied_content.values()}
+        if removed_groups := existing_groups - new_groups:
+
+            def clean_constraints(symbol: str, parts: list[str]) -> bool:
+                return symbol == "bc" and parts[0] in removed_groups
+
+            remove_object_from_scenario_builder(self._config.study_path, clean_constraints)
 
     @override
     def delete(self, children: bool) -> None:

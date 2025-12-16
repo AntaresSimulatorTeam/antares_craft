@@ -43,8 +43,8 @@ from antares.craft.service.local_services.models.st_storage import (
     update_st_storage_constraint_local,
 )
 from antares.craft.service.local_services.services.utils import (
-    _remove_object_from_scenario_builder,
     checks_matrix_dimensions,
+    remove_object_from_scenario_builder,
 )
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -276,7 +276,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         def clean_constraints(symbol: str, parts: list[str]) -> bool:
             return symbol == "sta" and parts[0] == area_id and parts[2] == storage_id and parts[3] in c_ids
 
-        _remove_object_from_scenario_builder(self.config.study_path, clean_constraints)
+        remove_object_from_scenario_builder(self.config.study_path, clean_constraints)
 
     @override
     def get_constraint_term(self, area_id: str, storage_id: str, constraint_id: str) -> pd.DataFrame:
