@@ -20,6 +20,8 @@ from antares.craft import Occurrence, STStorageAdditionalConstraint, Study, Stud
 from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
 from antares.craft.model.commons import STUDY_VERSION_9_2, STUDY_VERSION_9_3
 from antares.craft.model.settings.general import GeneralParametersUpdate
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
 def test_empty_scenariobuilder(local_study: Study) -> None:
@@ -175,3 +177,112 @@ sta,fr,2,battery,c1 = 4
                 4,
                 None,
             ]
+
+
+def test_scenario_builder_cluster_removals(local_study_with_renewable: Study) -> None:
+    area_fr = local_study_with_renewable.get_areas()["fr"]
+    # Creates a scenario builder with thermal and renewable data
+    file_path = Path(local_study_with_renewable.path) / "settings" / "scenariobuilder.dat"
+    content = {
+        "Default Ruleset": {
+            # Thermal part
+            "t,fr,1,test thermal cluster": 4,
+            "t,fr,1,other": 3,
+            # Renewable part
+            "r,fr,1,renewable cluster": 11,
+            "r,fr,1,other": 12,
+        }
+    }
+    IniWriter().write(content, file_path)
+
+    # Remove the renewable
+    area_fr.delete_renewable_cluster(area_fr.get_renewables()["renewable cluster"])
+    # Checks the content -> 1 line should disappear
+    content = IniReader().read(file_path)
+    assert content == {
+        "Default Ruleset": {
+            "t,fr,1,test thermal cluster": 4,
+            "t,fr,1,other": 3,
+            "r,fr,1,other": 12,
+        }
+    }
+
+    # Remove the thermal cluster
+    area_fr.delete_thermal_cluster(area_fr.get_thermals()["test thermal cluster"])
+    # Checks the content -> 1 line should disappear
+    content = IniReader().read(file_path)
+    assert content == {
+        "Default Ruleset": {
+            "t,fr,1,other": 3,
+            "r,fr,1,other": 12,
+        }
+    }
+
+
+def test_scenario_builder_sts_removals(local_study_93: Study) -> None:
+    area_fr = local_study_93.get_areas()["fr"]
+    # Create the necessary objects for the test
+    sts = area_fr.create_st_storage("sts_test")
+    sts.create_constraints([STStorageAdditionalConstraint(name="c1"), STStorageAdditionalConstraint(name="c2")])
+    # Creates a scenario builder with thermal and renewable data
+    file_path = Path(local_study_93.path) / "settings" / "scenariobuilder.dat"
+    content = {
+        "Default Ruleset": {
+            # Short-term storage part
+            "sts,fr,1,sts_test": 4,
+            "sts,fr,1,other": 3,
+            # Additional constraints part
+            "sta,fr,1,sts_test,c1": 11,
+            "sta,fr,1,sts_test,c2": 12,
+            "sta,de,1,other,other": 13,
+        }
+    }
+    IniWriter().write(content, file_path)
+
+    # Remove the c1 constraint
+    sts.delete_constraints(["c1"])
+    # Checks the content -> 1 line should disappear
+    content = IniReader().read(file_path)
+    assert content == {
+        "Default Ruleset": {
+            "sts,fr,1,sts_test": 4,
+            "sts,fr,1,other": 3,
+            "sta,fr,1,sts_test,c2": 12,
+            "sta,de,1,other,other": 13,
+        }
+    }
+
+    # Remove the sts "sts_test"
+    area_fr.delete_st_storage(storage=sts)
+    # Checks the content -> 2 lines should disappear (we delete its constraints too)
+    content = IniReader().read(file_path)
+    assert content == {
+        "Default Ruleset": {
+            "sts,fr,1,other": 3,
+            "sta,de,1,other,other": 13,
+        }
+    }
+
+
+def test_scenario_builder_link_removals(local_study_w_links: Study) -> None:
+    study = local_study_w_links
+    file_path = Path(study.path) / "settings" / "scenariobuilder.dat"
+    content = {
+        "Default Ruleset": {
+            "ntc,at,fr,1": 2,
+            "ntc,at,fr,2": 3,
+            "ntc,at,it,1": 4,
+        }
+    }
+    IniWriter().write(content, file_path)
+
+    # Remove the link
+    study.delete_link(study.get_links()["at / fr"])
+
+    # Check the content -> Only 1 line left
+    content = IniReader().read(file_path)
+    assert content == {
+        "Default Ruleset": {
+            "ntc,at,it,1": 4,
+        }
+    }

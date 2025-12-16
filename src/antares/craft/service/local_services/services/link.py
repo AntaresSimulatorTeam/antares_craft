@@ -25,7 +25,10 @@ from antares.craft.exceptions.exceptions import (
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
-from antares.craft.service.local_services.services.utils import checks_matrix_dimensions
+from antares.craft.service.local_services.services.utils import (
+    _remove_object_from_scenario_builder,
+    checks_matrix_dimensions,
+)
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
@@ -113,6 +116,12 @@ class LinkLocalService(BaseLinkService):
                 (folder_path / f"{link.area_to_id}_parameters.txt").unlink()
                 (folder_path / "capacities" / f"{link.area_to_id}_direct.txt").unlink()
                 (folder_path / "capacities" / f"{link.area_to_id}_indirect.txt").unlink()
+
+                # Clean the scenario-builder
+                def clean_link(symbol: str, parts: list[str]) -> bool:
+                    return symbol == "ntc" and parts[0] == link.area_from_id and parts[1] == link.area_to_id
+
+                _remove_object_from_scenario_builder(self.config.study_path, clean_link)
 
                 return
 
