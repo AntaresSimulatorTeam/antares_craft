@@ -196,7 +196,7 @@ class Study:
             raise ReferencedObjectDeletionNotAllowed(area.id, referencing_binding_constraints, object_type="Area")
 
         # Delete the area
-        self._area_service.delete_area(area.id)
+        self._area_service.delete_area(area.id, list(self._links.values()))
         self._areas.pop(area.id)
         # Delete it from the links
         links_to_remove = []

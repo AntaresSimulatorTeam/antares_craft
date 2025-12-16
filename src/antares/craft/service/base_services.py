@@ -212,10 +212,11 @@ class BaseAreaService(ABC):
         pass
 
     @abstractmethod
-    def delete_area(self, area_id: str) -> None:
+    def delete_area(self, area_id: str, links: list["Link"]) -> None:
         """
         Args:
-            area: area object to be deleted
+            area_id: area's id to be deleted
+            links: Implementation detail for the local service
         """
         pass
 

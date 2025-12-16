@@ -37,6 +37,7 @@ from antares.craft.model.area import (
 )
 from antares.craft.model.commons import STUDY_VERSION_9_2
 from antares.craft.model.hydro import Hydro, HydroAllocation, HydroProperties, InflowStructure
+from antares.craft.model.link import Link
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
@@ -61,6 +62,7 @@ from antares.craft.service.local_services.models.thermal import (
 )
 from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
 from antares.craft.service.local_services.services.hydro import HydroLocalService
+from antares.craft.service.local_services.services.link import LinkLocalService
 from antares.craft.service.local_services.services.renewable import RenewableLocalService
 from antares.craft.service.local_services.services.st_storage import ShortTermStorageLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService
@@ -87,6 +89,7 @@ class AreaLocalService(BaseAreaService):
         renewable_service: BaseRenewableService,
         hydro_service: BaseHydroService,
         binding_constraint_service: BaseBindingConstraintService,
+        link_service: LinkLocalService,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -98,6 +101,7 @@ class AreaLocalService(BaseAreaService):
         self._renewable_service: BaseRenewableService = renewable_service
         self._hydro_service: BaseHydroService = hydro_service
         self._binding_constraint_service: BaseBindingConstraintService = binding_constraint_service
+        self._link_service = link_service
 
     def read_adequacy_ini(self, area_id: str) -> dict[str, Any]:
         return IniReader().read(self.config.study_path / "input" / "areas" / area_id / "adequacy_patch.ini")
@@ -562,7 +566,11 @@ class AreaLocalService(BaseAreaService):
         return new_properties_dict
 
     @override
-    def delete_area(self, area_id: str) -> None:
+    def delete_area(self, area_id: str, links: list[Link]) -> None:
+        for link in links:
+            if link.area_from_id == area_id or link.area_to_id == area_id:
+                self._link_service.delete_link(link)
+
         folders = [
             Path(f"input/areas/{area_id}"),
             Path(f"input/hydro/prepro/{area_id}"),
@@ -571,7 +579,6 @@ class AreaLocalService(BaseAreaService):
             Path(f"input/solar/prepro/{area_id}"),
             Path(f"input/wind/prepro/{area_id}"),
             Path(f"input/reserves/{area_id}"),
-            Path(f"input/links/{area_id}"),
             Path(f"input/renewables/clusters/{area_id}"),
             Path(f"input/renewables/series/{area_id}"),
             Path(f"input/st-storage/clusters/{area_id}"),

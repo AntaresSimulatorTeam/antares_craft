@@ -35,6 +35,7 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.hydro import Hydro, HydroAllocation
+from antares.craft.model.link import Link
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
@@ -336,7 +337,7 @@ class AreaApiService(BaseAreaService):
         return update_api_model.to_user_model()
 
     @override
-    def delete_area(self, area_id: str) -> None:
+    def delete_area(self, area_id: str, links: list[Link]) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/areas/{area_id}"
         try:
             self._wrapper.delete(url)
