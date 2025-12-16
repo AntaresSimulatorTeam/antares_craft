@@ -16,7 +16,14 @@ import re
 from dataclasses import asdict
 from pathlib import Path
 
-from antares.craft import Occurrence, STStorageAdditionalConstraint, Study, StudySettingsUpdate
+from antares.craft import (
+    BindingConstraintProperties,
+    BindingConstraintPropertiesUpdate,
+    Occurrence,
+    STStorageAdditionalConstraint,
+    Study,
+    StudySettingsUpdate,
+)
 from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
 from antares.craft.model.commons import STUDY_VERSION_9_2, STUDY_VERSION_9_3
 from antares.craft.model.settings.general import GeneralParametersUpdate
@@ -286,3 +293,36 @@ def test_scenario_builder_link_removals(local_study_w_links: Study) -> None:
             "ntc,at,it,1": 4,
         }
     }
+
+
+def test_scenario_builder_binding_constraints(local_study_w_constraints: Study) -> None:
+    study = local_study_w_constraints
+    file_path = Path(study.path) / "settings" / "scenariobuilder.dat"
+    content = {
+        "Default Ruleset": {
+            "bc,default,1": 2,
+            "bc,default,2": 3,
+            "bc,group a,1": 4,
+        }
+    }
+    IniWriter().write(content, file_path)
+
+    # Remove the binding constraints
+    study.delete_binding_constraints(list(study.get_binding_constraints().values()))
+
+    # Check the content -> Only the group `group a` should still exist
+    content = IniReader().read(file_path)
+    assert content == {
+        "Default Ruleset": {
+            "bc,group a,1": 4,
+        }
+    }
+
+    # Create a new constraint with group `group a`
+    study.create_binding_constraint(name="bc_1", properties=BindingConstraintProperties(group="group a"))
+    # Change the group of the constraint
+    study.update_binding_constraints({"bc_1": BindingConstraintPropertiesUpdate(group="group b")})
+
+    # Check the content -> Nothing left
+    content = IniReader().read(file_path)
+    assert content == {"Default Ruleset": {}}
