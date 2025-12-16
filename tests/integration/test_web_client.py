@@ -817,12 +817,6 @@ class TestWebClient:
         # ===== Test run study simulation and wait job completion ======
 
         parameters = AntaresSimulationParameters(nb_cpu=4)
-
-        # TODO: Remove this when v8.8 bug is fixed
-        for area in study.get_areas().values():
-            area.hydro.update_properties(HydroPropertiesUpdate(reservoir_capacity=1))
-        # End of the TODO
-
         job = study.run_antares_simulation(parameters)
         assert isinstance(job, Job)
         assert job.status == JobStatus.PENDING
