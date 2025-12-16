@@ -139,7 +139,7 @@ class TestBindingConstraints:
 
         with pytest.raises(
             ConstraintsDoNotExistError,
-            match=re.escape("The binding constraint 'bc_1' doesn't exist inside study 'studyTest'."),
+            match=re.escape("The binding constraints 'bc_1' do not exist inside study 'studyTest'."),
         ):
             local_study_w_constraints.delete_binding_constraints([bc])
 
@@ -207,7 +207,7 @@ class TestBindingConstraints:
 
         with pytest.raises(
             ConstraintsDoNotExistError,
-            match=f"The binding constraint '{bc.name}' doesn't exist inside study '{study_name}'.",
+            match=f"The binding constraints '{bc.name}' do not exist inside study '{study_name}'.",
         ):
             bc.set_terms([])
 
