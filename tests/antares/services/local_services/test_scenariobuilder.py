@@ -262,3 +262,27 @@ def test_scenario_builder_sts_removals(local_study_93: Study) -> None:
             "sta,de,1,other,other": 13,
         }
     }
+
+
+def test_scenario_builder_link_removals(local_study_w_links: Study) -> None:
+    study = local_study_w_links
+    file_path = Path(study.path) / "settings" / "scenariobuilder.dat"
+    content = {
+        "Default Ruleset": {
+            "ntc,at,fr,1": 2,
+            "ntc,at,fr,2": 3,
+            "ntc,at,it,1": 4,
+        }
+    }
+    IniWriter().write(content, file_path)
+
+    # Remove the link
+    study.delete_link(study.get_links()["at / fr"])
+
+    # Check the content -> Only 1 line left
+    content = IniReader().read(file_path)
+    assert content == {
+        "Default Ruleset": {
+            "ntc,at,it,1": 4,
+        }
+    }
