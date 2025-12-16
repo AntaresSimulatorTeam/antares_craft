@@ -618,6 +618,15 @@ class AreaLocalService(BaseAreaService):
         # self._remove_area_from_districts(study_data)
         # self._remove_area_from_scenario_builder(study_data)
 
+        def clean_area(symbol: str, parts: list[str]) -> bool:
+            area_keys = {"l", "h", "w", "s", "t", "r", "hl", "hfl", "hgp", "sts", "sta"}
+            link_keys = {"ntc"}
+            return (symbol in area_keys and parts[0] == area_id) or (
+                symbol in link_keys and (parts[0] == area_id or parts[1] == area_id)
+            )
+
+        remove_object_from_scenario_builder(self.config.study_path, clean_area)
+
     def _remove_area_from_hydro_ini_file(self, id_to_remove: str) -> None:
         hydro_service = cast(HydroLocalService, self._hydro_service)
         ini_content = hydro_service.read_hydro_ini()
