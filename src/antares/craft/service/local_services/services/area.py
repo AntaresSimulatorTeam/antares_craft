@@ -569,11 +569,12 @@ class AreaLocalService(BaseAreaService):
     @override
     def delete_area(self, area_id: str, links: list[Link]) -> None:
         for link in links:
-            if link.area_from_id == area_id or link.area_to_id == area_id:
+            if link.area_to_id == area_id:
                 self._link_service.delete_link(link)
 
         folders = [
             Path(f"input/areas/{area_id}"),
+            Path(f"input/links/{area_id}"),
             Path(f"input/hydro/prepro/{area_id}"),
             Path(f"input/hydro/series/{area_id}"),
             Path(f"input/load/prepro/{area_id}"),
@@ -645,7 +646,7 @@ class AreaLocalService(BaseAreaService):
         file_path = self.config.study_path / "input" / "areas" / "list.txt"
         context = file_path.read_text().splitlines()
         context.remove(id_to_remove)
-        file_path.write_text("\n".join(context))
+        file_path.write_text("\n".join(context) + "\n")
 
     def _remove_area_from_correlation_matrices(self, area_id: str) -> None:
         file_path = self.config.study_path / "input" / "hydro" / "prepro" / "correlation.ini"
