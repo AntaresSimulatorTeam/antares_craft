@@ -11,6 +11,8 @@
 # This file is part of the Antares project.
 import pytest
 
+import os
+
 from pathlib import Path
 
 from antares.craft import LinkProperties, LinkUi, create_study_local
@@ -188,3 +190,6 @@ def local_study_93(tmp_path: Path) -> Study:
         local_study.create_area(area)
 
     return local_study
+
+
+RUN_ON_WINDOWS = os.name == "nt"

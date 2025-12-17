@@ -22,10 +22,19 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from antares.craft import STStoragePropertiesUpdate, Study, read_study_local
+from checksumdir import dirhash
+
+from antares.craft import (
+    ConstraintTerm,
+    LinkData,
+    STStoragePropertiesUpdate,
+    Study,
+    read_study_local,
+)
 from antares.craft.exceptions.exceptions import (
     InvalidFieldForVersionError,
     MatrixFormatError,
+    ReferencedObjectDeletionNotAllowed,
 )
 from antares.craft.model.area import AdequacyPatchMode, Area, AreaProperties, AreaPropertiesUpdate, AreaUi, AreaUiUpdate
 from antares.craft.model.commons import FilterOption
@@ -39,6 +48,7 @@ from antares.craft.service.local_services.services.area import AreaLocalService
 from antares.craft.tools import matrix_tool
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from tests.antares.services.local_services.conftest import RUN_ON_WINDOWS
 
 
 class TestCreateRenewablesCluster:
@@ -944,3 +954,38 @@ class TestUpateArea:
         assert (study_path / TimeSeriesFileType.SOLAR.value.format(area_id=area_id)).exists()
         assert (study_path / TimeSeriesFileType.WIND.value.format(area_id=area_id)).exists()
         assert (study_path / TimeSeriesFileType.LOAD.value.format(area_id=area_id)).exists()
+
+
+@pytest.mark.skipif(RUN_ON_WINDOWS, reason="This test runs randomly on Windows")
+def test_remove_area(local_study_w_areas: Study) -> None:
+    study = local_study_w_areas
+    study_path = Path(study.path)
+    hash_before_update = dirhash(study_path, "md5", excluded_files=["sets.ini"])
+
+    # Create an area with:
+    # 1 thermal cluster,
+    # 1 renewable cluster
+    # 1 short-term storage
+    # 1 link from it to another area
+    # 1 link from another area to it
+    area = study.create_area("greece")
+    area.create_thermal_cluster("th1")
+    area.create_renewable_cluster("renewable1")
+    area.create_st_storage("sts")
+    study.create_link(area_from="greece", area_to="it")
+    study.create_link(area_from="fr", area_to="greece")
+
+    # Add a binding constraint referencing the link to ensure the area deletion is impossible
+    term = ConstraintTerm(data=LinkData(area1="greece", area2="it"))
+    bc = study.create_binding_constraint(name="bc", terms=[term])
+
+    with pytest.raises(ReferencedObjectDeletionNotAllowed, match="Area 'greece' is not allowed to be deleted"):
+        study.delete_area(area)
+
+    # Remove the constraint and remove the area
+    study.delete_binding_constraints([bc])
+    study.delete_area(area)
+
+    # The hash should be the same as before creating the area
+    hash_after_update = dirhash(study_path, "md5", excluded_files=["sets.ini"])
+    assert hash_before_update == hash_after_update

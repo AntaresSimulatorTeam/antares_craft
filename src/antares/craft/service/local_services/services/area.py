@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import contextlib
 import copy
 import os
 import shutil
@@ -37,6 +38,7 @@ from antares.craft.model.area import (
 )
 from antares.craft.model.commons import STUDY_VERSION_9_2
 from antares.craft.model.hydro import Hydro, HydroAllocation, HydroProperties, InflowStructure
+from antares.craft.model.link import Link
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterProperties
@@ -61,6 +63,7 @@ from antares.craft.service.local_services.models.thermal import (
 )
 from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
 from antares.craft.service.local_services.services.hydro import HydroLocalService
+from antares.craft.service.local_services.services.link import LinkLocalService
 from antares.craft.service.local_services.services.renewable import RenewableLocalService
 from antares.craft.service.local_services.services.st_storage import ShortTermStorageLocalService
 from antares.craft.service.local_services.services.thermal import ThermalLocalService
@@ -87,6 +90,7 @@ class AreaLocalService(BaseAreaService):
         renewable_service: BaseRenewableService,
         hydro_service: BaseHydroService,
         binding_constraint_service: BaseBindingConstraintService,
+        link_service: LinkLocalService,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -98,6 +102,7 @@ class AreaLocalService(BaseAreaService):
         self._renewable_service: BaseRenewableService = renewable_service
         self._hydro_service: BaseHydroService = hydro_service
         self._binding_constraint_service: BaseBindingConstraintService = binding_constraint_service
+        self._link_service = link_service
 
     def read_adequacy_ini(self, area_id: str) -> dict[str, Any]:
         return IniReader().read(self.config.study_path / "input" / "areas" / area_id / "adequacy_patch.ini")
@@ -407,10 +412,6 @@ class AreaLocalService(BaseAreaService):
         )
         return created_area
 
-    @override
-    def delete_area(self, area_id: str) -> None:
-        raise NotImplementedError
-
     def update_area_properties(self, area: Area, properties: AreaPropertiesUpdate) -> AreaProperties:
         area_id = area.id
         new_local_properties = AreaPropertiesLocal.build_for_update(properties, area.properties)
@@ -564,3 +565,124 @@ class AreaLocalService(BaseAreaService):
             new_properties = self.update_area_properties(area, update_properties)
             new_properties_dict[area.id] = new_properties
         return new_properties_dict
+
+    @override
+    def delete_area(self, area_id: str, links: list[Link]) -> None:
+        for link in links:
+            if link.area_to_id == area_id:
+                self._link_service.delete_link(link)
+
+        folders = [
+            Path(f"input/areas/{area_id}"),
+            Path(f"input/links/{area_id}"),
+            Path(f"input/hydro/prepro/{area_id}"),
+            Path(f"input/hydro/series/{area_id}"),
+            Path(f"input/load/prepro/{area_id}"),
+            Path(f"input/solar/prepro/{area_id}"),
+            Path(f"input/wind/prepro/{area_id}"),
+            Path(f"input/renewables/clusters/{area_id}"),
+            Path(f"input/renewables/series/{area_id}"),
+            Path(f"input/st-storage/clusters/{area_id}"),
+            Path(f"input/st-storage/series/{area_id}"),
+            Path(f"input/thermal/clusters/{area_id}"),
+            Path(f"input/thermal/prepro/{area_id}"),
+            Path(f"input/thermal/series/{area_id}"),
+            Path(f"input/st-storage/constraints/{area_id}"),
+        ]
+        for folder in folders:
+            shutil.rmtree(self.config.study_path / folder, ignore_errors=True)
+
+        files = [
+            TimeSeriesFileType.HYDRO_MAX_POWER.value.format(area_id=area_id),
+            TimeSeriesFileType.HYDRO_RESERVOIR.value.format(area_id=area_id),
+            TimeSeriesFileType.HYDRO_INFLOW_PATTERN.value.format(area_id=area_id),
+            TimeSeriesFileType.HYDRO_CREDITS_MODULATION.value.format(area_id=area_id),
+            TimeSeriesFileType.HYDRO_WATER_VALUES.value.format(area_id=area_id),
+            TimeSeriesFileType.LOAD.value.format(area_id=area_id),
+            TimeSeriesFileType.MISC_GEN.value.format(area_id=area_id),
+            TimeSeriesFileType.SOLAR.value.format(area_id=area_id),
+            TimeSeriesFileType.WIND.value.format(area_id=area_id),
+            TimeSeriesFileType.RESERVES.value.format(area_id=area_id),
+        ]
+        for file in files:
+            (self.config.study_path / file).unlink(missing_ok=True)
+
+        self._remove_area_from_hydro_ini_file(area_id)
+        self._remove_area_from_thermal_ini_file(area_id)
+        self._remove_area_from_list_txt_file(area_id)
+        self._remove_area_from_correlation_matrices(area_id)
+        self._remove_area_from_hydro_allocation(area_id)
+        self._remove_area_from_districts(area_id)
+
+        def clean_area(symbol: str, parts: list[str]) -> bool:
+            area_keys = {"l", "h", "w", "s", "t", "r", "hl", "hfl", "hgp", "sts", "sta"}
+            link_keys = {"ntc"}
+            return (symbol in area_keys and parts[0] == area_id) or (
+                symbol in link_keys and (parts[0] == area_id or parts[1] == area_id)
+            )
+
+        remove_object_from_scenario_builder(self.config.study_path, clean_area)
+
+    def _remove_area_from_hydro_ini_file(self, id_to_remove: str) -> None:
+        hydro_service = cast(HydroLocalService, self._hydro_service)
+        ini_content = hydro_service.read_hydro_ini()
+        for key, values in ini_content.items():
+            for area_id in values:
+                if area_id == id_to_remove:
+                    del ini_content[key][area_id]
+                    break
+        hydro_service.save_hydro_ini(ini_content)
+
+    def _remove_area_from_thermal_ini_file(self, id_to_remove: str) -> None:
+        ini_content = self.read_thermal_areas_ini()
+        for key, values in ini_content.items():
+            for area_id in values:
+                if area_id == id_to_remove:
+                    del ini_content[key][area_id]
+                    break
+        self._save_thermal_areas_ini(ini_content)
+
+    def _remove_area_from_list_txt_file(self, id_to_remove: str) -> None:
+        file_path = self.config.study_path / "input" / "areas" / "list.txt"
+        context = file_path.read_text().splitlines()
+        context.remove(id_to_remove)
+        file_path.write_text("\n".join(context) + "\n")
+
+    def _remove_area_from_correlation_matrices(self, area_id: str) -> None:
+        file_path = self.config.study_path / "input" / "hydro" / "prepro" / "correlation.ini"
+        correlation_cfg = IniReader().read(file_path)
+        for section, correlation in correlation_cfg.items():
+            if section == "general":
+                continue
+            for key in list(correlation):
+                a1, a2 = key.split("%")
+                if a1 == area_id or a2 == area_id:
+                    del correlation[key]
+        IniWriter().write(correlation_cfg, file_path)
+
+    def _remove_area_from_hydro_allocation(self, area_id: str) -> None:
+        file_path = self.config.study_path / "input" / "hydro" / "allocation" / f"{area_id}.ini"
+        file_path.unlink(missing_ok=True)
+        hydro_service = cast(HydroLocalService, self._hydro_service)
+        for file in (self.config.study_path / "input" / "hydro" / "allocation").iterdir():
+            other_area_id = file.stem
+            allocation = hydro_service.read_allocation_for_area(other_area_id)
+            new_allocations = copy.deepcopy(allocation)
+            for alloc in allocation:
+                if alloc.area_id == area_id:
+                    new_allocations.remove(alloc)
+            if len(new_allocations) != len(allocation):
+                hydro_service.set_allocation(other_area_id, allocation)
+
+    def _remove_area_from_districts(self, area_id: str) -> None:
+        file_path = self.config.study_path / "input" / "areas" / "sets.ini"
+        districts = IniReader().read(file_path)
+        for district in districts.values():
+            if district.get("+", None):
+                with contextlib.suppress(ValueError):
+                    district["+"].remove(area_id)
+            elif district.get("-", None):
+                with contextlib.suppress(ValueError):
+                    district["-"].remove(area_id)
+
+        IniWriter().write(districts, file_path)
