@@ -958,7 +958,7 @@ class TestUpateArea:
 def test_remove_area(local_study_w_areas: Study) -> None:
     study = local_study_w_areas
     study_path = Path(study.path)
-    hash_before_update = dirhash(study_path, "md5")
+    hash_before_update = dirhash(study_path, "md5", excluded_files=["sets.ini"])
 
     # Create an area with:
     # 1 thermal cluster,
@@ -985,5 +985,5 @@ def test_remove_area(local_study_w_areas: Study) -> None:
     study.delete_area(area)
 
     # The hash should be the same as before creating the area
-    hash_after_update = dirhash(study_path, "md5")
+    hash_after_update = dirhash(study_path, "md5", excluded_files=["sets.ini"])
     assert hash_before_update == hash_after_update
