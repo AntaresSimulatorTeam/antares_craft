@@ -604,7 +604,7 @@ class AreaLocalService(BaseAreaService):
             TimeSeriesFileType.RESERVES.value.format(area_id=area_id),
         ]
         for file in files:
-            Path(file).unlink(missing_ok=True)
+            (self.config.study_path / file).unlink(missing_ok=True)
 
         self._remove_area_from_hydro_ini_file(area_id)
         self._remove_area_from_thermal_ini_file(area_id)
