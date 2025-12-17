@@ -579,7 +579,6 @@ class AreaLocalService(BaseAreaService):
             Path(f"input/load/prepro/{area_id}"),
             Path(f"input/solar/prepro/{area_id}"),
             Path(f"input/wind/prepro/{area_id}"),
-            Path(f"input/reserves/{area_id}"),
             Path(f"input/renewables/clusters/{area_id}"),
             Path(f"input/renewables/series/{area_id}"),
             Path(f"input/st-storage/clusters/{area_id}"),
@@ -589,7 +588,7 @@ class AreaLocalService(BaseAreaService):
             Path(f"input/thermal/series/{area_id}"),
         ]
         for folder in folders:
-            shutil.rmtree(folder)
+            shutil.rmtree(self.config.study_path / folder, ignore_errors=True)
 
         files = [
             TimeSeriesFileType.HYDRO_MAX_POWER.value.format(area_id=area_id),
@@ -601,9 +600,10 @@ class AreaLocalService(BaseAreaService):
             TimeSeriesFileType.MISC_GEN.value.format(area_id=area_id),
             TimeSeriesFileType.SOLAR.value.format(area_id=area_id),
             TimeSeriesFileType.WIND.value.format(area_id=area_id),
+            TimeSeriesFileType.RESERVES.value.format(area_id=area_id),
         ]
         for file in files:
-            Path(file).unlink()
+            Path(file).unlink(missing_ok=True)
 
         self._remove_area_from_hydro_ini_file(area_id)
         self._remove_area_from_thermal_ini_file(area_id)
@@ -641,10 +641,10 @@ class AreaLocalService(BaseAreaService):
         self._save_thermal_areas_ini(ini_content)
 
     def _remove_area_from_list_txt_file(self, id_to_remove: str) -> None:
-        with open(self.config.study_path / "input" / "areas" / "list.txt", mode="w") as list_txt:
-            lines = list_txt.readlines()
-            lines.remove(id_to_remove)
-            list_txt.writelines(lines)
+        file_path = self.config.study_path / "input" / "areas" / "list.txt"
+        context = file_path.read_text().splitlines()
+        context.remove(id_to_remove)
+        file_path.write_text("\n".join(context))
 
     def _remove_area_from_correlation_matrices(self, area_id: str) -> None:
         file_path = self.config.study_path / "input" / "hydro" / "prepro" / "correlation.ini"

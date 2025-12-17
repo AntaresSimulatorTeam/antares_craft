@@ -326,3 +326,38 @@ def test_scenario_builder_binding_constraints(local_study_w_constraints: Study) 
     # Check the content -> Nothing left
     content = IniReader().read(file_path)
     assert content == {"Default Ruleset": {}}
+
+
+def test_scenario_builder_area_removal(local_study_w_areas: Study) -> None:
+    study = local_study_w_areas
+    file_path = Path(study.path) / "settings" / "scenariobuilder.dat"
+    content = {
+        "Default Ruleset": {
+            # Area `fr` related lines
+            "ntc,at,fr,1": 2,
+            "sts,fr,1,sts_test": 4,
+            "sta,fr,1,sts_test,c2": 12,
+            "t,fr,1,other": 3,
+            "r,fr,1,other": 12,
+            # Non-related lines
+            "sta,de,1,other,other": 13,
+            "bc,default,1": 2,
+            "t,de,1,th1": 3,
+            "r,de,1,renewable1": 12,
+        }
+    }
+    IniWriter().write(content, file_path)
+
+    # Remove the area
+    study.delete_area(study.get_areas()["fr"])
+
+    # Check the content -> Only 4 lines left
+    content = IniReader().read(file_path)
+    assert content == {
+        "Default Ruleset": {
+            "sta,de,1,other,other": 13,
+            "bc,default,1": 2,
+            "t,de,1,th1": 3,
+            "r,de,1,renewable1": 12,
+        }
+    }
