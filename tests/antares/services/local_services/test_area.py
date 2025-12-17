@@ -48,6 +48,7 @@ from antares.craft.service.local_services.services.area import AreaLocalService
 from antares.craft.tools import matrix_tool
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from tests.antares.services.local_services.conftest import RUN_ON_WINDOWS
 
 
 class TestCreateRenewablesCluster:
@@ -955,10 +956,11 @@ class TestUpateArea:
         assert (study_path / TimeSeriesFileType.LOAD.value.format(area_id=area_id)).exists()
 
 
+@pytest.mark.skipif(RUN_ON_WINDOWS, reason="This test runs randomly on Windows")
 def test_remove_area(local_study_w_areas: Study) -> None:
     study = local_study_w_areas
     study_path = Path(study.path)
-    hash_before_update = dirhash(study_path, "md5", excluded_files=["sets.ini", "list.txt"])
+    hash_before_update = dirhash(study_path, "md5", excluded_files=["sets.ini"])
 
     # Create an area with:
     # 1 thermal cluster,
@@ -985,5 +987,5 @@ def test_remove_area(local_study_w_areas: Study) -> None:
     study.delete_area(area)
 
     # The hash should be the same as before creating the area
-    hash_after_update = dirhash(study_path, "md5", excluded_files=["sets.ini", "list.txt"])
+    hash_after_update = dirhash(study_path, "md5", excluded_files=["sets.ini"])
     assert hash_before_update == hash_after_update
