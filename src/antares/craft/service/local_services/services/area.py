@@ -586,6 +586,7 @@ class AreaLocalService(BaseAreaService):
             Path(f"input/thermal/clusters/{area_id}"),
             Path(f"input/thermal/prepro/{area_id}"),
             Path(f"input/thermal/series/{area_id}"),
+            Path(f"input/st-storage/constraints/{area_id}"),
         ]
         for folder in folders:
             shutil.rmtree(self.config.study_path / folder, ignore_errors=True)
