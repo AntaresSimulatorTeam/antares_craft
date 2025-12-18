@@ -52,7 +52,10 @@ from antares.craft.service.base_services import (
 )
 from antares.craft.service.local_services.models.area import AreaPropertiesLocal, AreaUiLocal
 from antares.craft.service.local_services.models.hydro import HydroInflowStructureLocal, parse_hydro_properties_local
-from antares.craft.service.local_services.models.renewable import serialize_renewable_cluster_local
+from antares.craft.service.local_services.models.renewable import (
+    parse_renewable_cluster_local,
+    serialize_renewable_cluster_local,
+)
 from antares.craft.service.local_services.models.st_storage import (
     parse_st_storage_local,
     serialize_st_storage_local,
@@ -200,10 +203,8 @@ class AreaLocalService(BaseAreaService):
         local_renewable_service = cast(RenewableLocalService, self.renewable_service)
         local_renewable_service.read_ini(area_id)
         ini_content = local_renewable_service.read_ini(area_id)
-        ini_content[renewable_name] = {
-            "name": renewable_name,
-            **serialize_renewable_cluster_local(self.study_version, properties or RenewableClusterProperties()),
-        }
+        content = serialize_renewable_cluster_local(self.study_version, properties or RenewableClusterProperties())
+        ini_content[renewable_name] = {"name": renewable_name, **content}
         local_renewable_service.save_ini(ini_content, area_id)
 
         write_timeseries(
@@ -213,7 +214,10 @@ class AreaLocalService(BaseAreaService):
             area_id,
             cluster_id=transform_name_to_id(renewable_name),
         )
-        return RenewableCluster(self.renewable_service, area_id, renewable_name, properties)
+
+        # Round trip around properties for the groups.
+        final_props = parse_renewable_cluster_local(self.study_version, content)
+        return RenewableCluster(self.renewable_service, area_id, renewable_name, final_props)
 
     @override
     def set_load(self, area_id: str, series: pd.DataFrame) -> None:
