@@ -119,7 +119,10 @@ def test_wrongly_formatted_fields_that_we_do_not_care_about(tmp_path: Path) -> N
     read_study_local(study_path)
 
 
-def test_export_mps(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "mps_value, expected_result", [("None", ExportMPS.FALSE), ("both-optims", ExportMPS.BOTH_OPTIMS)]
+)
+def test_export_mps(tmp_path: Path, mps_value: str, expected_result: ExportMPS) -> None:
     study = create_study_local("second_study", "880", tmp_path)
     study_path = Path(study.path)
     ini_path = study_path / "settings" / "generaldata.ini"
@@ -127,12 +130,12 @@ def test_export_mps(tmp_path: Path) -> None:
         new_lines = ini_file.readlines()
         for k, line in enumerate(new_lines):
             if "include-exportmps" in line:
-                new_lines[k] = "include-exportmps = None\n"
+                new_lines[k] = f"include-exportmps = {mps_value}\n"
     with open(ini_path, "w") as ini_file:
         ini_file.writelines(new_lines)
     # Asserts the reading succeeds with an unusual exportMps value
     study = read_study_local(study_path)
-    assert study.get_settings().optimization_parameters.include_exportmps == ExportMPS.FALSE
+    assert study.get_settings().optimization_parameters.include_exportmps == expected_result
 
 
 @pytest.mark.parametrize("value", ["", "wind", "wind, load"])
