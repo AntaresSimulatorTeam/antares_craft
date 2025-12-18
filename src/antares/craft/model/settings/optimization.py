@@ -54,6 +54,7 @@ class ExportMPS(Enum):
     FALSE = False
     OPTIM1 = "optim1"
     OPTIM2 = "optim2"
+    BOTH_OPTIMS = "both-optims"
 
 
 @dataclass(frozen=True)
