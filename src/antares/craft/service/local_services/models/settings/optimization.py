@@ -22,13 +22,13 @@ from antares.craft.model.settings.optimization import (
     SimplexOptimizationRange,
     UnfeasibleProblemBehavior,
 )
-from antares.craft.service.local_services.models.base_model import LocalBaseModel
+from antares.craft.service.local_services.models.base_model import LocalBaseModelAllowExtraValues
 from antares.craft.tools.alias_generators import to_kebab
 
 OptimizationParametersType = OptimizationParameters | OptimizationParametersUpdate
 
 
-class OptimizationParametersLocal(LocalBaseModel, alias_generator=to_kebab):
+class OptimizationParametersLocal(LocalBaseModelAllowExtraValues, alias_generator=to_kebab):
     simplex_range: SimplexOptimizationRange = SimplexOptimizationRange.WEEK
     transmission_capacities: OptimizationTransmissionCapacities = OptimizationTransmissionCapacities.LOCAL_VALUES
     include_constraints: bool = True

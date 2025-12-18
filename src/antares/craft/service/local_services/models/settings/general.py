@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from typing import Any, Set
+from typing import Any
 
 from pydantic import Field
 
@@ -22,12 +22,12 @@ from antares.craft.model.settings.general import (
     Month,
     WeekDay,
 )
-from antares.craft.service.local_services.models.base_model import LocalBaseModel
+from antares.craft.service.local_services.models.base_model import LocalBaseModel, LocalBaseModelAllowExtraValues
 
 GeneralParametersType = GeneralParameters | GeneralParametersUpdate
 
 
-class GeneralSectionLocal(LocalBaseModel, extra="allow"):
+class GeneralSectionLocal(LocalBaseModelAllowExtraValues):
     mode: Mode = Mode.ECONOMY
     horizon: str = ""
     nb_years: int = Field(default=1, alias="nbyears")
@@ -49,8 +49,6 @@ class GeneralSectionLocal(LocalBaseModel, extra="allow"):
     nb_timeseries_thermal: int = Field(default=1, alias="nbtimeseriesthermal")
     nb_timeseries_solar: int = Field(default=1, alias="nbtimeseriessolar")
     refresh_timeseries: bool = Field(default=False, alias="refreshtimeseries")
-    intra_modal: bool = Field(default=False, alias="intra-modal")
-    inter_modal: bool = Field(default=False, alias="inter-modal")
     refresh_interval_load: int = Field(default=100, alias="refreshintervalload")
     refresh_interval_hydro: int = Field(default=100, alias="refreshintervalhydro")
     refresh_interval_wind: int = Field(default=100, alias="refreshintervalwind")
@@ -59,13 +57,13 @@ class GeneralSectionLocal(LocalBaseModel, extra="allow"):
     read_only: bool = Field(default=False, alias="readonly")
 
 
-class OutputSectionLocal(LocalBaseModel):
+class OutputSectionLocal(LocalBaseModelAllowExtraValues):
     synthesis: bool = True
     store_new_set: bool = Field(default=False, alias="storenewset")
     archives: Any = ""
 
 
-class GeneralParametersLocal(LocalBaseModel, extra="allow"):
+class GeneralParametersLocal(LocalBaseModel):
     general: GeneralSectionLocal
     input: dict[str, str] = {"import": ""}
     output: OutputSectionLocal
@@ -101,25 +99,6 @@ class GeneralParametersLocal(LocalBaseModel, extra="allow"):
         else:
             current_content.update(content)
         return current_content
-
-    @staticmethod
-    def get_excluded_fields_for_user_class() -> Set[str]:
-        return {
-            "generate",
-            "nbtimeseriesload",
-            "nbtimeserieshydro",
-            "nbtimeserieswind",
-            "nbtimeseriessolar",
-            "refreshtimeseries",
-            "intra-modal",
-            "inter-modal",
-            "refreshintervalload",
-            "refreshintervalhydro",
-            "refreshintervalwind",
-            "refreshintervalthermal",
-            "refreshintervalsolar",
-            "readonly",
-        }
 
     def to_user_model(self) -> GeneralParameters:
         return GeneralParameters(
