@@ -11,9 +11,11 @@
 # This file is part of the Antares project.
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from typing import Optional, cast
 
 import pandas as pd
+
+from typing_extensions import override
 
 from antares.craft.model.cluster import ClusterProperties, ClusterPropertiesUpdate
 from antares.craft.service.base_services import BaseRenewableService
@@ -39,6 +41,18 @@ class RenewableClusterGroup(EnumIgnoreCase):
     OTHER2 = "other res 2"
     OTHER3 = "other res 3"
     OTHER4 = "other res 4"
+
+    @classmethod
+    @override
+    def _missing_(cls, value: object) -> Optional["RenewableClusterGroup"]:
+        if isinstance(value, str):
+            # Check if any group value matches the input value ignoring case sensitivity.
+            if any(value.upper() == group.value.upper() for group in cls):
+                return cast(RenewableClusterGroup, super()._missing_(value))
+            # If a group is not found, return the default group ('OTHER1' by default).
+            # Note that 'OTHER' is an alias for 'OTHER1'.
+            return cls.OTHER1
+        return cast(Optional["RenewableClusterGroup"], super()._missing_(value))
 
 
 class TimeSeriesInterpretation(Enum):

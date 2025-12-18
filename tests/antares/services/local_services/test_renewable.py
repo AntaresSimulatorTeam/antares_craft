@@ -150,6 +150,6 @@ class TestRenewable:
         renewable = local_study_93.get_areas()["fr"].create_renewable_cluster("ren2", properties=props)
         assert renewable.properties.group == "my_group"
 
-        # Ensures we can't use free groups before version 9.3
-        with pytest.raises(ValueError, match="Before v9.3, group has to be a valid value"):
-            local_study_92.get_areas()["fr"].create_renewable_cluster("ren2", properties=props)
+        # Ensures before version 9.3, using a free group is possible but it will be considered as `OTHER 1`.
+        renewable = local_study_92.get_areas()["fr"].create_renewable_cluster("ren2", properties=props)
+        assert renewable.properties.group == "other res 1"
