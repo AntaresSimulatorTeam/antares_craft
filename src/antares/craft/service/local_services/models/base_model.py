@@ -27,3 +27,11 @@ class LocalBaseModel(BaseModel):
         if value is None or value == "":
             raise PydanticUseDefault()
         return value
+
+
+class LocalBaseModelAllowExtraValues(LocalBaseModel, extra="allow"):
+    """
+    Model used for the settings are they are a lot of unwanted fields with weird behaviors
+    """
+
+    pass

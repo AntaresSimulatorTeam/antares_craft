@@ -115,7 +115,7 @@ def test_wrongly_formatted_fields_that_we_do_not_care_about(tmp_path: Path) -> N
                 new_lines[k] = "intra-modal = load, wind, solar\n"
     with open(ini_path, "w") as ini_file:
         ini_file.writelines(new_lines)
-    # Asserts the reading succeeds even thought the fields has a value we do not expect
+    # Asserts the reading succeeds even it the field is not in the pydantic local model
     read_study_local(study_path)
 
 

@@ -136,25 +136,22 @@ def read_study_settings(study_version: StudyVersion, study_directory: Path) -> S
     ini_content = read_ini_settings(study_directory)
 
     # general
-    general_params_ini = {"general": ini_content["general"]}
+    general_params_ini = {"general": ini_content.get("general", {})}
     if general_params_ini.pop("derated", None):
-        general_params_ini["building_mode"] = BuildingMode.DERATED.value
-    if general_params_ini.pop("custom-scenario", None):
-        general_params_ini["building_mode"] = BuildingMode.CUSTOM.value
+        building_mode = BuildingMode.DERATED.value
+    elif general_params_ini.pop("custom-scenario", None):
+        building_mode = BuildingMode.CUSTOM.value
     else:
-        general_params_ini["building_mode"] = BuildingMode.AUTOMATIC.value
+        building_mode = BuildingMode.AUTOMATIC.value
+    general_params_ini["general"]["building mode"] = building_mode
 
-    excluded_keys = GeneralParametersLocal.get_excluded_fields_for_user_class()
-    for key in excluded_keys:
-        general_params_ini["general"].pop(key, None)
-
-    output_parameters_ini = {"output": ini_content["output"]}
+    output_parameters_ini = {"output": ini_content.get("output", {})}
     local_general_ini = general_params_ini | output_parameters_ini
     general_parameters_local = GeneralParametersLocal.model_validate(local_general_ini)
     general_parameters = general_parameters_local.to_user_model()
 
     # optimization
-    optimization_ini = ini_content["optimization"]
+    optimization_ini = ini_content.get("optimization", {})
     optimization_ini.pop("link-type", None)
     optimization_parameters_local = OptimizationParametersLocal.model_validate(optimization_ini)
     optimization_parameters = optimization_parameters_local.to_user_model()
