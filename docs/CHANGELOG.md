@@ -1,3 +1,28 @@
+v0.8.0 (2025-12-18)
+-------------------
+
+## Compatibility
+* The method `study.delete_binding_constraint` has been replaced by `study.delete_binding_constraints` where you can now
+give a list of constraints to delete at the same time [308](https://github.com/AntaresSimulatorTeam/antares_craft/pull/308)
+
+### Features
+* **local, area**: implement area deletion [196](https://github.com/AntaresSimulatorTeam/antares_craft/pull/196)
+
+### Bug fixes
+
+* **local, settings**: allow exportmps `both-optims` value [311](https://github.com/AntaresSimulatorTeam/antares_craft/pull/311)
+* **local, settings**: allow reading with unwanted fields in the generaldata.ini [312](https://github.com/AntaresSimulatorTeam/antares_craft/pull/312)
+* **local, renewable**: consider free groups before v9.3 are `other res 1` [313](https://github.com/AntaresSimulatorTeam/antares_craft/pull/313)
+* **local, sc-builder**: clean the file when deleting objects [307](https://github.com/AntaresSimulatorTeam/antares_craft/pull/307)
+* **local, sc-builder**: clean it when changing bc group [309](https://github.com/AntaresSimulatorTeam/antares_craft/pull/309)
+
+### Perfs
+* **local, output**: faster aggregation for clusters [305](https://github.com/AntaresSimulatorTeam/antares_craft/pull/305)
+
+### Others
+* **tests**: use 8.8.19 inside integration tests [310](https://github.com/AntaresSimulatorTeam/antares_craft/pull/310)
+
+
 v0.7.0 (2025-12-12)
 -------------------
 
