@@ -31,7 +31,7 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           tox -e lint-ci
-          tox -p
+          tox -p all
 
       - name: Performs Windows tests
         if: matrix.os == 'windows-latest'
