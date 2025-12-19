@@ -29,10 +29,10 @@ jobs:
 
       - name: Performs Ubuntu tests
         if: matrix.os != 'windows-latest'
-        run: tox -p
+        run: |
+          tox -e lint-ci
+          tox -p
 
       - name: Performs Windows tests
         if: matrix.os == 'windows-latest'
-        run: |
-          tox -e lint-ci
-          tox -e py3.10-test
+        run: tox -e py3.10-test
