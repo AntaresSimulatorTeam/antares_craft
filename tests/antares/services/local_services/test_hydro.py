@@ -231,7 +231,7 @@ fr = True
         study_path = Path(local_study_w_areas.path)
         for area in areas.values():
             ini_content = IniReader().read(study_path / "input" / "hydro" / "allocation" / f"{area.id}.ini")
-            assert ini_content == {"[allocation]": {}}
+            assert ini_content == {"[allocation]": {area.id: 1.0}}
 
     def test_allocation(self, local_study_w_areas: Study) -> None:
         hydro_fr = local_study_w_areas.get_areas()["fr"].hydro
