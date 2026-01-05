@@ -1,3 +1,16 @@
+v0.9.0 (2026-01-05)
+-------------------
+
+### Features
+* **build**: support Python 3.14 [315](https://github.com/AntaresSimulatorTeam/antares_craft/pull/315)
+
+### Bug fixes
+* **local, hydro**: write allocation values to ini file [317](https://github.com/AntaresSimulatorTeam/antares_craft/pull/317)
+
+### Others
+* **deps**: use numpy v2 instead of v1 [316](https://github.com/AntaresSimulatorTeam/antares_craft/pull/316)
+
+
 v0.8.0 (2025-12-18)
 -------------------
 
