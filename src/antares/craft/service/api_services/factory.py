@@ -247,7 +247,7 @@ def _read_binding_constraints(
         terms: list[ConstraintTerm] = []
         for api_term in api_terms:
             term_data = ConstraintTermData.from_dict(api_term["data"])
-            terms.append(ConstraintTerm(weight=api_term["weight"], offset=api_term["offset"], data=term_data))
+            terms.append(ConstraintTerm(weight=api_term["weight"], offset=api_term.get("offset", 0), data=term_data))
 
         bc = BindingConstraint(constraint_name, bc_service, bc_properties, terms)
         constraints[bc.id] = bc

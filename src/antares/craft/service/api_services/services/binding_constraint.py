@@ -90,9 +90,12 @@ class BindingConstraintApiService(BaseBindingConstraintService):
                     body[matrix_name] = matrix.to_numpy().tolist()
 
             if terms:
-                json_terms = [
-                    {"weight": term.weight, "offset": term.offset, "data": asdict(term.data)} for term in terms
-                ]
+                json_terms = []
+                for term in terms:
+                    content = {"weight": term.weight, "data": asdict(term.data)}
+                    if term.offset:
+                        content["offset"] = term.offset
+                    json_terms.append(content)
                 body["terms"] = json_terms
 
             response = self._wrapper.post(base_url, json=body)

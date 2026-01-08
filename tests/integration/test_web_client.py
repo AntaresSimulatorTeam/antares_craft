@@ -451,7 +451,7 @@ class TestWebClient:
 
         # test replacing terms
         constraint_term_2 = ConstraintTerm(data=LinkData(area1=area_de.id, area2=area_be.id), weight=3, offset=4)
-        constraint_term_3 = ConstraintTerm(data=LinkData(area1=area_fr.id, area2=area_be.id), weight=4, offset=10)
+        constraint_term_3 = ConstraintTerm(data=LinkData(area1=area_fr.id, area2=area_be.id), weight=4)
         terms = [constraint_term_2, constraint_term_3]
         constraint_1.set_terms(terms)
         assert list(constraint_1.get_terms().values()) == [constraint_term_2, constraint_term_3]
