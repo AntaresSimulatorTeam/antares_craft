@@ -1,3 +1,9 @@
+v0.9.1 (2026-01-08)
+-------------------
+
+### Bug fixes
+* **api, binding constraints**: allow offset to be null inside terms [320](https://github.com/AntaresSimulatorTeam/antares_craft/pull/320)
+
 v0.9.0 (2026-01-05)
 -------------------
 
