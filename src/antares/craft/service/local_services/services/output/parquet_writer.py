@@ -94,13 +94,13 @@ def write_dataframes_in_parquet_format_by_column_sets(
 
 
 def yield_dataframes_from_parquet(files: list[Path], new_index: list[str]) -> pd.DataFrame:
-    final_df = pd.DataFrame(columns=new_index)
+    dfs = []
     for file in files:
         parquet_file = ParquetFile(file)
         for i in range(parquet_file.num_row_groups):
             table = parquet_file.read_row_group(i)
             df = table.to_pandas()
             df = df.reindex(new_index, axis="columns")
+            dfs.append(df)
 
-            final_df = pd.concat([final_df, df], ignore_index=True)
-    return final_df
+    return pd.concat(dfs, ignore_index=True)
