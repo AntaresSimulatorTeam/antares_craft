@@ -21,7 +21,7 @@ from antares.craft.service.local_services.models.utils import check_min_version
 from antares.study.version import StudyVersion
 
 
-class ThematicTrimmingParametersLocal(LocalBaseModel):
+class ThematicTrimmingParametersLocal(LocalBaseModel, extra="allow"):
     ov_cost: bool | None = Field(default=None, alias="OV. COST")
     op_cost: bool | None = Field(default=None, alias="OP. COST")
     mrg_price: bool | None = Field(default=None, alias="MRG. PRICE")
