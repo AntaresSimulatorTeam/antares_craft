@@ -1,3 +1,9 @@
+v0.9.2 (2026-01-09)
+-------------------
+
+### Bug fixes
+* **local, thematic-trimming**: allow unknown fields [323](https://github.com/AntaresSimulatorTeam/antares_craft/pull/323)
+
 v0.9.1 (2026-01-08)
 -------------------
 
