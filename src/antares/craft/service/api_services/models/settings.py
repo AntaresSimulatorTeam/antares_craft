@@ -436,6 +436,20 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
     sts_cashflow_by_cluster: bool | None = None
     npcap_hours: bool | None = None
     bc_marg_cost: bool | None = None
+    lmr_viol: bool | None = None
+    dtg_mrg_csr: bool | None = None
+    nh3_emis: bool | None = None
+    nox_emis: bool | None = None
+    pm2_5_emis: bool | None = None
+    pm5_emis: bool | None = None
+    pm10_emis: bool | None = None
+    op1_emis: bool | None = None
+    op2_emis: bool | None = None
+    op3_emis: bool | None = None
+    op4_emis: bool | None = None
+    op5_emis: bool | None = None
+    so2_emis: bool | None = None
+    nmvoc_emis: bool | None = None
     # Since v9.2
     sts_by_group: bool | None = None
     # Since v9.3
@@ -498,6 +512,20 @@ class ThematicTrimmingParametersAPI(APIBaseModel):
             sts_cashflow_by_cluster=check_field_is_not_null(self.sts_cashflow_by_cluster),
             npcap_hours=check_field_is_not_null(self.npcap_hours),
             bc_marg_cost=check_field_is_not_null(self.bc_marg_cost),
+            lmr_viol=check_field_is_not_null(self.lmr_viol),
+            dtg_mrg_csr=check_field_is_not_null(self.dtg_mrg_csr),
+            nh3_emis=check_field_is_not_null(self.nh3_emis),
+            nox_emis=check_field_is_not_null(self.nox_emis),
+            pm2_5_emis=check_field_is_not_null(self.pm2_5_emis),
+            pm5_emis=check_field_is_not_null(self.pm5_emis),
+            pm10_emis=check_field_is_not_null(self.pm10_emis),
+            op1_emis=check_field_is_not_null(self.op1_emis),
+            op2_emis=check_field_is_not_null(self.op2_emis),
+            op3_emis=check_field_is_not_null(self.op3_emis),
+            op4_emis=check_field_is_not_null(self.op4_emis),
+            op5_emis=check_field_is_not_null(self.op5_emis),
+            so2_emis=check_field_is_not_null(self.so2_emis),
+            nmvoc_emis=check_field_is_not_null(self.nmvoc_emis),
             # Optional fields
             solar=self.solar,
             nuclear=self.nuclear,

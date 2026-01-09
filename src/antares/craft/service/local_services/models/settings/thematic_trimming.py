@@ -118,6 +118,20 @@ class ThematicTrimmingParametersLocal(LocalBaseModel, extra="allow"):
     other5_injection: bool | None = Field(default=None, alias="Other5_injection")
     other5_withdrawal: bool | None = Field(default=None, alias="Other5_withdrawal")
     other5_level: bool | None = Field(default=None, alias="Other5_level")
+    lmr_viol: bool | None = Field(default=None, alias="LMR VIOL.")
+    dtg_mrg_csr: bool | None = Field(default=None, alias="DTG MRG CSR")
+    nh3_emis: bool | None = Field(default=None, alias="NH3 EMIS.")
+    nox_emis: bool | None = Field(default=None, alias="NOX EMIS.")
+    pm2_5_emis: bool | None = Field(default=None, alias="PM2_5 EMIS.")
+    pm5_emis: bool | None = Field(default=None, alias="PM5 EMIS.")
+    pm10_emis: bool | None = Field(default=None, alias="PM10 EMIS.")
+    op1_emis: bool | None = Field(default=None, alias="OP1 EMIS.")
+    op2_emis: bool | None = Field(default=None, alias="OP2 EMIS.")
+    op3_emis: bool | None = Field(default=None, alias="OP3 EMIS.")
+    op4_emis: bool | None = Field(default=None, alias="OP4 EMIS.")
+    op5_emis: bool | None = Field(default=None, alias="OP5 EMIS.")
+    so2_emis: bool | None = Field(default=None, alias="SO2 EMIS.")
+    nmvoc_emis: bool | None = Field(default=None, alias="NMVOC EMIS.")
     # Since v8.8
     sts_cashflow_by_cluster: bool | None = Field(default=None, alias="STS Cashflow By Cluster")
     npcap_hours: bool | None = Field(default=None, alias="NPCAP HOURS")
@@ -275,6 +289,20 @@ def get_thematic_trimming_fields_according_to_version(version: StudyVersion) -> 
         "other5_level",
         "sts_cashflow_by_cluster",
         "npcap_hours",
+        "lmr_viol",
+        "dtg_mrg_csr",
+        "nh3_emis",
+        "nox_emis",
+        "pm2_5_emis",
+        "pm5_emis",
+        "pm10_emis",
+        "op1_emis",
+        "op2_emis",
+        "op3_emis",
+        "op4_emis",
+        "op5_emis",
+        "so2_emis",
+        "nmvoc_emis",
     }
 
     if version >= STUDY_VERSION_9_2:

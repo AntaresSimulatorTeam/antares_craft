@@ -64,6 +64,20 @@ class ThematicTrimmingParameters:
     sts_cashflow_by_cluster: bool = True
     npcap_hours: bool = True
     bc_marg_cost: bool = True
+    lmr_viol: bool = True
+    dtg_mrg_csr: bool = True
+    nh3_emis: bool = True
+    nox_emis: bool = True
+    pm2_5_emis: bool = True
+    pm5_emis: bool = True
+    pm10_emis: bool = True
+    op1_emis: bool = True
+    op2_emis: bool = True
+    op3_emis: bool = True
+    op4_emis: bool = True
+    op5_emis: bool = True
+    so2_emis: bool = True
+    nmvoc_emis: bool = True
     # Simulator v9.1 parameters
     sts_by_group: Optional[bool] = None
     # Simulator v9.3 parameters
