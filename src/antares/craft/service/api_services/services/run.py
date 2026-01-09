@@ -92,13 +92,12 @@ class RunApiService(BaseRunService):
 
     def _wait_unzip_output(self, ref_id: str, job: Job, time_out: int) -> None:
         url = f"{self._base_url}/tasks"
-        repeat_interval = 2
         payload = {"type": ["UNARCHIVE"], "ref_id": ref_id}
         try:
             response = self._wrapper.post(url, json=payload)
             tasks = response.json()
             task_id = self._get_unarchiving_task_id(job, tasks)
-            wait_task_completion(self._base_url, self._wrapper, task_id, repeat_interval, time_out)
+            wait_task_completion(self._base_url, self._wrapper, task_id, time_out=time_out)
         except (APIError, TaskFailedError) as e:
             raise AntaresSimulationUnzipError(self.study_id, job.job_id, e.message) from e
 
