@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "antares_craft"
-version = "0.9.2"
+version = "0.9.3"
 description = """Python library to read, edit and launch antares-simulator studies"""
 readme = "README.md"
 license = { file = "LICENSE" }
