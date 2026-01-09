@@ -38,7 +38,7 @@ def get_matrix(base_url: str, study_id: str, wrapper: RequestWrapper, series_pat
 
 
 def wait_task_completion(
-    base_url: str, wrapper: RequestWrapper, task_id: str, repeat_interval: int = 5, time_out: int = DEFAULT_TIME_OUT
+    base_url: str, wrapper: RequestWrapper, task_id: str, repeat_interval: int = 2, time_out: int = DEFAULT_TIME_OUT
 ) -> None:
     url = f"{base_url}/tasks/{task_id}"
 
