@@ -1,3 +1,9 @@
+v0.9.3 (2026-01-09)
+-------------------
+
+### Perfs
+* **local, output**: speed-up aggregation process [325](https://github.com/AntaresSimulatorTeam/antares_craft/pull/325)
+
 v0.9.2 (2026-01-09)
 -------------------
 
