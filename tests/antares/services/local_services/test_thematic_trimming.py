@@ -22,6 +22,9 @@ from antares.craft import (
     read_study_local,
 )
 from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
+from antares.craft.service.local_services.services.settings import DUPLICATE_KEYS
+from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
 def test_class_methods(tmp_path: Path) -> None:
@@ -239,3 +242,15 @@ def test_93(local_study_93: Study) -> None:
     new_trimming = ThematicTrimmingParameters(nuclear=False)
     with pytest.raises(InvalidFieldForVersionError, match="Field nuclear is not a valid field for study version 9.3"):
         local_study_93.set_thematic_trimming(new_trimming)
+
+
+def test_unknown_fields(local_study: Study) -> None:
+    study_path = Path(local_study.path)
+    file_path = study_path / "settings" / "generaldata.ini"
+    content = IniReader().read(file_path)
+    content["variables selection"] = {"select_var -": ["OV. COST", "myVariable"]}
+    IniWriter(DUPLICATE_KEYS).write(content, file_path)
+    # Reading should succeed even if we don't know the field `myVariable`
+    study = read_study_local(study_path)
+    th_trimming = study.get_settings().thematic_trimming_parameters
+    assert th_trimming.ov_cost is False
