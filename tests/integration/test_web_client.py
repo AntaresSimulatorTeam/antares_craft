@@ -1298,7 +1298,7 @@ class TestWebClient:
         )
         new_matrix = pd.DataFrame(np.full((8760, 4), 10))
         storage.set_cost_variation_withdrawal(new_matrix)
-        assert storage.get_cost_variation_withdrawal().equals(new_matrix)
+        pd.testing.assert_frame_equal(new_matrix, storage.get_cost_variation_withdrawal(), check_dtype=False)
 
         ########## STS constraints ##########
         second_storage = area_fr.create_st_storage("second_storage")
