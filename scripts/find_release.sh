@@ -1,7 +1,7 @@
 VERSION=$1
-RELEASE_NAME=$2
+ARTEFACT_NAME=$2
 
-echo $RELEASE_NAME
+echo $ARTEFACT_NAME
 echo "Finding release ID..."
 
 release_id=$(curl -s \
@@ -19,7 +19,7 @@ echo "Finding AntaresWeb asset ID..."
 asset_id=$(curl -s \
   -H "Authorization: token $GITHUB_TOKEN" \
   https://api.github.com/repos/$REPO/releases/$release_id/assets | \
-  jq --arg release "$RELEASE_NAME" \
+  jq --arg release "$ARTEFACT_NAME" \
    '.[] | select(.name == ($release + ".zip")) | .id')
 
 if [ -z "$asset_id" ]; then
@@ -32,4 +32,4 @@ echo "Downloading asset..."
 curl -L -H "Authorization: token $GITHUB_TOKEN" \
   -H "Accept: application/octet-stream" \
   https://api.github.com/repos/$REPO/releases/assets/$asset_id \
-  -o "$RELEASE_NAME".zip
+  -o "$ARTEFACT_NAME".zip
