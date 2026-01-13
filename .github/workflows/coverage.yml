@@ -24,7 +24,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.DAILY_CI }}
           REPO: AntaresSimulatorTeam/antares_desktop
-          FILENAME: AntaresWeb-${{ matrix.os }}-${{ env.VERSION }}.zip
+          FILENAME: AntaresWeb-${{ matrix.os }}-${{ env.VERSION }}
         run: |
           bash scripts/find_release.sh $VERSION $FILENAME
 
