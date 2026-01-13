@@ -15,7 +15,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.DAILY_CI }}
       REPO: AntaresSimulatorTeam/antares_desktop
       VERSION: v2.27.0
-      FILENAME: AntaresWeb-${{ matrix.os }}-${{ env.VERSION }}-.zip
+      FILENAME: AntaresWeb-${{ matrix.os }}-${{ env.VERSION }}.zip
 
 
     steps:
