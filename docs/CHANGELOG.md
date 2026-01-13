@@ -1,3 +1,10 @@
+v0.9.5 (2026-01-13)
+-------------------
+
+### Bug fixes
+
+* **local, run**: allow simulations to run on Windows [330](https://github.com/AntaresSimulatorTeam/antares_craft/pull/330)
+
 v0.9.4 (2026-01-13)
 -------------------
 
