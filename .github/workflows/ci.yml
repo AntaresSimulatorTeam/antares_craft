@@ -1,11 +1,11 @@
-name: CI
+name: Unit Tests
 on:
   push:
     branches:
       - "**"
 
 jobs:
-  ci:
+  unit_tests:
     runs-on: ubuntu-22.04
 
     steps:
