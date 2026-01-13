@@ -4,52 +4,30 @@ on:
     branches:
       - "**"
 
+env:
+  VERSION: v2.27.0
+
 jobs:
   coverage_and_integration_test:
-    runs-on: ubuntu-22.04
-    env:
-      GITHUB_TOKEN: ${{ secrets.DAILY_CI }}
-      REPO: AntaresSimulatorTeam/antares_desktop
-      VERSION: v2.27.0
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 9
+      matrix:
+        os: [ windows-latest, ubuntu-22.04 ]
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download AntaresWeb asset from draft release
+      - name: Download AntaresWeb asset from last release and unzip it
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.DAILY_CI }}
+          REPO: AntaresSimulatorTeam/antares_desktop
+          FILENAME: AntaresWeb-${{ matrix.os }}-${{ env.VERSION }}
         run: |
-          echo "Finding release ID..."
-  
-          release_id=$(curl -s \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            https://api.github.com/repos/$REPO/releases | \
-            jq --arg ver "$VERSION" '.[] | select(.name == $ver) | .id')
-          
-          if [ -z "$release_id" ]; then
-            echo "Release not found!"
-            exit 1
-          fi
-          echo "Release ID: $release_id"
-  
-          echo "Finding AntaresWeb asset ID..."
-          asset_id=$(curl -s \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            https://api.github.com/repos/$REPO/releases/$release_id/assets | \
-            jq --arg ver "$VERSION" '.[] | select(.name=="AntaresWeb-ubuntu-22.04-\($ver).zip") | .id')
-          if [ -z "$asset_id" ]; then
-            echo "Asset AntaresWebDesktop.zip not found!"
-            exit 1
-          fi
-          echo "Asset ID: $asset_id"
-  
-          echo "Downloading asset..."
-          curl -L -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/octet-stream" \
-            https://api.github.com/repos/$REPO/releases/assets/$asset_id \
-            -o AntaresWeb-ubuntu-22.04-$VERSION.zip
-
-      - name: Unzip AntaresWebDesktop asset
-        run: unzip -o "AntaresWeb-ubuntu-22.04-$VERSION.zip" -d ./AntaresWebDesktop
+          bash scripts/find_release.sh $VERSION $FILENAME
+          unzip -o $FILENAME -d ./AntaresWebDesktop
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -62,9 +40,15 @@ jobs:
           pip install tox-uv~=1.11.3
 
       - name: Performs coverage
+        if: matrix.os == 'ubuntu-22.04'
         run: tox -e coverage
 
+      - name: Performs all tests
+        if: matrix.os == 'windows-latest'
+        run: tox -e windows
+
       - name: Archive code coverage results
+        if: matrix.os == 'ubuntu-22.04'
         uses: actions/upload-artifact@v4
         with:
           name: python-code-coverage-report
