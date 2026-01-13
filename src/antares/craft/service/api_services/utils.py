@@ -13,7 +13,6 @@ import io
 import time
 
 import pandas as pd
-import polars as pl
 
 from antares.craft.api_conf.request_wrapper import RequestWrapper
 from antares.craft.exceptions.exceptions import TaskFailedError, TaskTimeOutError
@@ -30,7 +29,7 @@ def update_series(base_url: str, study_id: str, wrapper: RequestWrapper, series:
 def get_matrix(base_url: str, study_id: str, wrapper: RequestWrapper, series_path: str) -> pd.DataFrame:
     raw_url = f"{base_url}/studies/{study_id}/raw?path={series_path}&matrix_format=arrow compressed"
     response = wrapper.get(raw_url)
-    return pl.read_ipc(io.BytesIO(response.content), memory_map=False).to_pandas()
+    return pd.read_feather(io.BytesIO(response.content))
 
 
 def wait_task_completion(
