@@ -1,3 +1,11 @@
+v0.9.4 (2026-01-13)
+-------------------
+
+### Perfs
+
+* **api, ts-gen**: wait less time the task ends [327](https://github.com/AntaresSimulatorTeam/antares_craft/pull/327)
+* **api, matrix**: use arrow to read matrices [328](https://github.com/AntaresSimulatorTeam/antares_craft/pull/328)
+
 v0.9.3 (2026-01-09)
 -------------------
 
