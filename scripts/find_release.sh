@@ -1,7 +1,6 @@
 VERSION=$1
 RELEASE_NAME=$2
 
-echo $VERSION
 echo $RELEASE_NAME
 echo "Finding release ID..."
 

@@ -25,7 +25,7 @@ jobs:
           VERSION: v2.27.0
           FILENAME: AntaresWeb-${{ matrix.os }}-${{ env.VERSION }}.zip
         run: |
-          bash scripts/find_release.sh $VERSION AntaresWeb
+          bash scripts/find_release.sh $VERSION FILENAME
 
       - name: Unzip AntaresWebDesktop asset
         run: unzip -o $FILENAME -d ./AntaresWebDesktop
