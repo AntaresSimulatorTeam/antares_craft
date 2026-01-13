@@ -28,7 +28,7 @@ from antares.study.version import SolverVersion
 
 
 def _get_solver_version(solver_path: Path) -> SolverVersion:
-    process = subprocess.Popen(args=[str(solver_path)," -v"], shell=True, stdout=subprocess.PIPE)
+    process = subprocess.Popen(args=[str(solver_path), " -v"], shell=True, stdout=subprocess.PIPE)
     process.wait(timeout=5)
     out, _ = process.communicate()
     version_str = out.decode("utf-8").splitlines()[-1]
