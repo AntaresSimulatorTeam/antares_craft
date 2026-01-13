@@ -19,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download AntaresWeb asset from last release
+      - name: Download AntaresWeb asset from last release and unzip it
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.DAILY_CI }}
@@ -27,9 +27,7 @@ jobs:
           FILENAME: AntaresWeb-${{ matrix.os }}-${{ env.VERSION }}
         run: |
           bash scripts/find_release.sh $VERSION $FILENAME
-
-      - name: Unzip AntaresWebDesktop asset
-        run: unzip -o $FILENAME -d ./AntaresWebDesktop
+          unzip -o $FILENAME -d ./AntaresWebDesktop
 
       - name: Set up Python
         uses: actions/setup-python@v5

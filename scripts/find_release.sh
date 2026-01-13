@@ -1,7 +1,6 @@
 VERSION=$1
 ARTEFACT_NAME=$2
 
-echo $ARTEFACT_NAME
 echo "Finding release ID..."
 
 release_id=$(curl -s \
