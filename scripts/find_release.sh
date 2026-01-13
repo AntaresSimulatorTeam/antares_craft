@@ -18,7 +18,9 @@ echo "Finding AntaresWeb asset ID..."
 asset_id=$(curl -s \
   -H "Authorization: token $GITHUB_TOKEN" \
   https://api.github.com/repos/$REPO/releases/$release_id/assets | \
-  jq '.[] | select(.name=="$RELEASE_NAME".zip) | .id')
+  jq --arg release "$RELEASE_NAME" \
+   '.[] | select(.name == ($release + ".zip")) | .id'
+
 if [ -z "$asset_id" ]; then
   echo "Asset not found!"
   exit 1
