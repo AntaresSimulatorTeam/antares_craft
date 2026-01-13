@@ -1,3 +1,30 @@
+v0.9.5 (2026-01-13)
+-------------------
+
+### Bug fixes
+
+* **local, run**: allow simulations to run on Windows [330](https://github.com/AntaresSimulatorTeam/antares_craft/pull/330)
+
+v0.9.4 (2026-01-13)
+-------------------
+
+### Perfs
+
+* **api, ts-gen**: wait less time the task ends [327](https://github.com/AntaresSimulatorTeam/antares_craft/pull/327)
+* **api, matrix**: use arrow to read matrices [328](https://github.com/AntaresSimulatorTeam/antares_craft/pull/328)
+
+v0.9.3 (2026-01-09)
+-------------------
+
+### Perfs
+* **local, output**: speed-up aggregation process [325](https://github.com/AntaresSimulatorTeam/antares_craft/pull/325)
+
+v0.9.2 (2026-01-09)
+-------------------
+
+### Bug fixes
+* **local, thematic-trimming**: allow unknown fields [323](https://github.com/AntaresSimulatorTeam/antares_craft/pull/323)
+
 v0.9.1 (2026-01-08)
 -------------------
 

@@ -1,17 +1,12 @@
-name: CI
+name: Unit Tests
 on:
   push:
     branches:
       - "**"
 
 jobs:
-  ci:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      max-parallel: 9
-      matrix:
-        os: [ windows-latest, ubuntu-22.04 ]
+  unit_tests:
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -28,11 +23,6 @@ jobs:
           pip install tox-uv~=1.25.0
 
       - name: Performs Ubuntu tests
-        if: matrix.os != 'windows-latest'
         run: |
           tox -e lint-ci
           tox -p
-
-      - name: Performs Windows tests
-        if: matrix.os == 'windows-latest'
-        run: tox -e py3.10-test

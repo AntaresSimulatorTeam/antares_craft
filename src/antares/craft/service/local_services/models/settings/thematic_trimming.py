@@ -21,7 +21,7 @@ from antares.craft.service.local_services.models.utils import check_min_version
 from antares.study.version import StudyVersion
 
 
-class ThematicTrimmingParametersLocal(LocalBaseModel):
+class ThematicTrimmingParametersLocal(LocalBaseModel, extra="allow"):
     ov_cost: bool | None = Field(default=None, alias="OV. COST")
     op_cost: bool | None = Field(default=None, alias="OP. COST")
     mrg_price: bool | None = Field(default=None, alias="MRG. PRICE")
@@ -149,7 +149,7 @@ class ThematicTrimmingParametersLocal(LocalBaseModel):
     def to_user_model(self, default_bool: bool, version: StudyVersion) -> ThematicTrimmingParameters:
         # We're initializing the default values here as the model class has default values
         args = dict.fromkeys(get_thematic_trimming_fields_according_to_version(version), default_bool)
-        args.update(self.model_dump(exclude_none=True))
+        args.update(self.model_dump(exclude_none=True, exclude=set(self.model_extra or {})))
         return ThematicTrimmingParameters(**args)
 
     @classmethod
