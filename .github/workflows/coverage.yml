@@ -4,6 +4,9 @@ on:
     branches:
       - "**"
 
+env:
+  VERSION: v2.27.0
+
 jobs:
   coverage_and_integration_test:
     runs-on: ${{ matrix.os }}
@@ -21,7 +24,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.DAILY_CI }}
           REPO: AntaresSimulatorTeam/antares_desktop
-          VERSION: v2.27.0
           FILENAME: AntaresWeb-${{ matrix.os }}-${{ env.VERSION }}.zip
         run: |
           bash scripts/find_release.sh $VERSION $FILENAME
