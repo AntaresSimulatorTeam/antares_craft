@@ -11,6 +11,7 @@
 # This file is part of the Antares project.
 import shutil
 import subprocess
+import sys
 
 from datetime import datetime
 from pathlib import Path
@@ -28,6 +29,8 @@ from antares.study.version import SolverVersion
 
 
 def _get_solver_version(solver_path: Path) -> SolverVersion:
+    if sys.platform == "win32":
+        raise NotImplementedError()
     process = subprocess.Popen(args=[str(solver_path) + " -v"], shell=True, stdout=subprocess.PIPE)
     process.wait(timeout=5)
     out, _ = process.communicate()
