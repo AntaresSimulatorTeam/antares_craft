@@ -30,7 +30,7 @@ from antares.study.version import SolverVersion
 
 def _get_solver_version(solver_path: Path) -> SolverVersion:
     if sys.platform == "win32":
-        args = [str(solver_path), " -v"]
+        args = [str(solver_path), "-v"]
     else:
         args = [str(solver_path) + " -v"]
     process = subprocess.Popen(args=args, shell=True, stdout=subprocess.PIPE)
