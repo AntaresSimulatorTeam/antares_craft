@@ -6,7 +6,11 @@ on:
 
 jobs:
   coverage_and_integration_test:
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 9
+      matrix:
+        os: [ windows-latest, ubuntu-22.04 ]
     env:
       GITHUB_TOKEN: ${{ secrets.DAILY_CI }}
       REPO: AntaresSimulatorTeam/antares_desktop
@@ -62,9 +66,15 @@ jobs:
           pip install tox-uv~=1.11.3
 
       - name: Performs coverage
+        if: matrix.os == 'ubuntu-22.04'
         run: tox -e coverage
 
+      - name: Performs all tests
+        if: matrix.os == 'windows-latest'
+        run: tox -e windows
+
       - name: Archive code coverage results
+        if: matrix.os == 'ubuntu-22.04'
         uses: actions/upload-artifact@v4
         with:
           name: python-code-coverage-report
