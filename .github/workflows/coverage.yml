@@ -14,6 +14,14 @@ jobs:
       max-parallel: 9
       matrix:
         os: [ windows-latest, ubuntu-22.04 ]
+        include:
+          - os: windows-latest
+            tox_env: windows
+            run_sonar: false
+
+          - os: ubuntu-22.04
+            tox_env: coverage
+            run_sonar: true
 
     steps:
       - name: Checkout
@@ -29,7 +37,7 @@ jobs:
           bash scripts/find_release.sh $VERSION $FILENAME
           unzip -o $FILENAME -d ./AntaresWebDesktop
 
-      - name: Set up Pythons
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: 3.11
@@ -40,29 +48,12 @@ jobs:
           pip install tox~=4.21.2
           pip install tox-uv~=1.11.3
 
-      - name: Performs all tests on Windows
-        if: matrix.os == 'windows-latest'
-        run: tox -e windows
 
-      - name: Performs coverage on Ubuntu
-        if: matrix.os == 'ubuntu-22.04'
-        run: tox -e coverage
-
-      - name: Archive code coverage results
-        if: matrix.os == 'ubuntu-22.04'
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-code-coverage-report
-          path: coverage.xml
-
-      - name: Download python coverage report
-        if: matrix.os == 'ubuntu-22.04'
-        uses: actions/download-artifact@v4
-        with:
-          name: python-code-coverage-report
+      - name: Run all tests (with coverage on Ubuntu)
+        run: tox -e ${{ matrix.tox_env }}
 
       - name: SonarCloud Scan
-        if: matrix.os == 'ubuntu-22.04'
+        if: matrix.run_sonar
         uses: sonarsource/sonarcloud-github-action@v2.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
