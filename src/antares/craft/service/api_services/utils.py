@@ -29,7 +29,9 @@ def update_series(base_url: str, study_id: str, wrapper: RequestWrapper, series:
 def get_matrix(base_url: str, study_id: str, wrapper: RequestWrapper, series_path: str) -> pd.DataFrame:
     raw_url = f"{base_url}/studies/{study_id}/raw?path={series_path}&matrix_format=arrow compressed"
     response = wrapper.get(raw_url)
-    return pd.read_feather(io.BytesIO(response.content))
+    dataframe = pd.read_feather(io.BytesIO(response.content))
+    dataframe.columns = pd.RangeIndex(len(dataframe.columns))  # type: ignore
+    return dataframe
 
 
 def wait_task_completion(
