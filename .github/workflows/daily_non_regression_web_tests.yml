@@ -2,6 +2,10 @@ name: Non regression API tests
 on:
   schedule:
     - cron: '21 5 * * *'
+  push:
+    branches:
+      - "**"
+
 
 jobs:
   ci:
