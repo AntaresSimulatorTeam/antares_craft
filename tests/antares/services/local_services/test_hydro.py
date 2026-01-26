@@ -255,4 +255,4 @@ fr = True
         # Checks the ini content
         ini_path = study_path / "input" / "hydro" / "allocation" / "fr.ini"
         ini_content = IniReader().read(ini_path)
-        assert ini_content == {"[allocation]": {"DE": 1.3}}
+        assert ini_content == {"[allocation]": {"DE": 1.3, "fr": 1.0}}

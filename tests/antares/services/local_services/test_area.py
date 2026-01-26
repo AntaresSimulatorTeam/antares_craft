@@ -26,6 +26,7 @@ from checksumdir import dirhash
 
 from antares.craft import (
     ConstraintTerm,
+    HydroAllocation,
     LinkData,
     STStoragePropertiesUpdate,
     Study,
@@ -968,12 +969,14 @@ def test_remove_area(local_study_w_areas: Study) -> None:
     # 1 short-term storage
     # 1 link from it to another area
     # 1 link from another area to it
+    # Allocation from `it` to `greece`
     area = study.create_area("greece")
     area.create_thermal_cluster("th1")
     area.create_renewable_cluster("renewable1")
     area.create_st_storage("sts")
     study.create_link(area_from="greece", area_to="it")
     study.create_link(area_from="fr", area_to="greece")
+    study.get_areas()["it"].hydro.set_allocation([HydroAllocation("greece", 4.5)])
 
     # Add a binding constraint referencing the link to ensure the area deletion is impossible
     term = ConstraintTerm(data=LinkData(area1="greece", area2="it"))
