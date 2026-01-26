@@ -222,8 +222,8 @@ def update_st_storage_constraint_local(
 ) -> STStorageAdditionalConstraint:
     return STStorageAdditionalConstraint(
         name=constraint.name,
-        variable=data.variable or constraint.variable,
-        operator=data.operator or constraint.operator,
-        occurrences=data.occurrences or constraint.occurrences,
-        enabled=data.enabled or constraint.enabled,
+        variable=data.variable if data.variable is not None else constraint.variable,
+        operator=data.operator if data.operator is not None else constraint.operator,
+        occurrences=data.occurrences if data.occurrences is not None else constraint.occurrences,
+        enabled=data.enabled if data.enabled is not None else constraint.enabled,
     )
