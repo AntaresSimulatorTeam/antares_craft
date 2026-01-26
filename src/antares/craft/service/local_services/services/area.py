@@ -648,8 +648,6 @@ class AreaLocalService(BaseAreaService):
         self._save_thermal_areas_ini(ini_content)
 
     def _remove_area_from_list_txt_file(self, id_to_remove: str) -> None:
-        from antares.craft.tools.contents_tool import transform_name_to_id
-
         file_path = self.config.study_path / "input" / "areas" / "list.txt"
         lines = file_path.read_text().splitlines()
 
