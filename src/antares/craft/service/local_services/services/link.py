@@ -106,26 +106,24 @@ class LinkLocalService(BaseLinkService):
     @override
     def delete_link(self, link: Link) -> None:
         links_dict = self.read_ini(link.area_from_id)
-        for area_to, link_props in links_dict.items():
-            if area_to == link.area_to_id:
-                links_dict.pop(area_to)
-                self._save_ini(links_dict, link.area_from_id)
 
-                # Remove the matrices
-                folder_path = self.config.study_path / "input" / "links" / link.area_from_id
-                (folder_path / f"{link.area_to_id}_parameters.txt").unlink()
-                (folder_path / "capacities" / f"{link.area_to_id}_direct.txt").unlink()
-                (folder_path / "capacities" / f"{link.area_to_id}_indirect.txt").unlink()
+        if link.area_to_id not in links_dict:
+            raise LinkDeletionError(link.id, "it doesn't exist")
 
-                # Clean the scenario-builder
-                def clean_link(symbol: str, parts: list[str]) -> bool:
-                    return symbol == "ntc" and parts[0] == link.area_from_id and parts[1] == link.area_to_id
+        links_dict.pop(link.area_to_id)
+        self._save_ini(links_dict, link.area_from_id)
 
-                remove_object_from_scenario_builder(self.config.study_path, clean_link)
+        # Remove the matrices
+        folder_path = self.config.study_path / "input" / "links" / link.area_from_id
+        (folder_path / f"{link.area_to_id}_parameters.txt").unlink()
+        (folder_path / "capacities" / f"{link.area_to_id}_direct.txt").unlink()
+        (folder_path / "capacities" / f"{link.area_to_id}_indirect.txt").unlink()
 
-                return
+        # Clean the scenario-builder
+        def clean_link(symbol: str, parts: list[str]) -> bool:
+            return symbol == "ntc" and parts[0] == link.area_from_id and parts[1] == link.area_to_id
 
-        raise LinkDeletionError(link.id, "it doesn't exist")
+        remove_object_from_scenario_builder(self.config.study_path, clean_link)
 
     @override
     def update_link_ui(self, link: Link, ui: LinkUiUpdate) -> LinkUi:
