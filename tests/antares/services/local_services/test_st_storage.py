@@ -448,3 +448,14 @@ def test_group_with_different_case(local_study_w_areas: Study) -> None:
     properties = STStorageProperties(group="Battery")
     # Ensures it does not raise
     area.create_st_storage("sts", properties=properties)
+
+
+def test_update_st_storage_constraint(local_study_93: Study) -> None:
+    area_fr = local_study_93.get_areas()["fr"]
+    sts = area_fr.create_st_storage("sts")
+    sts.create_constraints([STStorageAdditionalConstraint(name="c1")])
+    assert sts.get_constraints()["c1"].enabled is True
+
+    # Try to set `enabled` to False
+    sts.update_constraint("c1", STStorageAdditionalConstraintUpdate(enabled=False))
+    assert sts.get_constraints()["c1"].enabled is False
