@@ -135,13 +135,13 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         memory_mapping = {}
 
         new_properties_dict: dict[STStorage, STStorageProperties] = {}
-        cluster_name_to_object: dict[str, STStorage] = {}
+        cluster_name_to_object: dict[str, dict[str, STStorage]] = {}
 
         properties_by_areas: dict[str, dict[str, STStoragePropertiesUpdate]] = {}
 
         for sts, properties in new_properties.items():
             properties_by_areas.setdefault(sts.area_id, {})[sts.name] = properties
-            cluster_name_to_object[sts.name] = sts
+            cluster_name_to_object.setdefault(sts.area_id, {})[sts.name] = sts
 
         for area_id, value in properties_by_areas.items():
             all_storage_name = set(value.keys())  # used to raise an Exception if a storage doesn't exist
@@ -159,7 +159,7 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
                     local_dict = copy.deepcopy(storage)
                     del local_dict["name"]
                     user_properties = parse_st_storage_local(self.study_version, local_dict)
-                    new_properties_dict[cluster_name_to_object[storage_name]] = user_properties
+                    new_properties_dict[cluster_name_to_object[area_id][storage_name]] = user_properties
 
             if len(all_storage_name) > 0:
                 raise STStoragePropertiesUpdateError(
