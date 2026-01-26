@@ -648,10 +648,17 @@ class AreaLocalService(BaseAreaService):
         self._save_thermal_areas_ini(ini_content)
 
     def _remove_area_from_list_txt_file(self, id_to_remove: str) -> None:
+        from antares.craft.tools.contents_tool import transform_name_to_id
+
         file_path = self.config.study_path / "input" / "areas" / "list.txt"
-        context = file_path.read_text().splitlines()
-        context.remove(id_to_remove)
-        file_path.write_text("\n".join(context) + "\n")
+        lines = file_path.read_text().splitlines()
+
+        for i, line in enumerate(lines):
+            if transform_name_to_id(line) == id_to_remove:
+                lines.pop(i)
+                break
+
+        file_path.write_text("\n".join(lines) + "\n")
 
     def _remove_area_from_correlation_matrices(self, area_id: str) -> None:
         file_path = self.config.study_path / "input" / "hydro" / "prepro" / "correlation.ini"
