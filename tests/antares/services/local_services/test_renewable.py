@@ -84,21 +84,28 @@ class TestRenewable:
         assert not (renewable_folder / "series" / "fr" / "renewable cluster" / "series.txt").exists()
 
     def test_update_renewable_properties(self, local_study_with_renewable: Study) -> None:
+        """
+        We create 2 renewable clusters with the same name in 2 different areas.
+        The 2 updates should succeed.
+        """
         area_fr = local_study_with_renewable.get_areas()["fr"]
-        renewable = area_fr.get_renewables()["renewable cluster"]
+        area_it = local_study_with_renewable.get_areas()["it"]
+        renewable_fr = area_fr.get_renewables()["renewable cluster"]
+        renewable_it = area_it.create_renewable_cluster("renewable cluster")
         update_for_renewable = RenewableClusterPropertiesUpdate(
             enabled=False, unit_count=13, ts_interpretation=TimeSeriesInterpretation.PRODUCTION_FACTOR
         )
-        dict_renewable = {renewable: update_for_renewable}
+        dict_renewable = {renewable_fr: update_for_renewable, renewable_it: update_for_renewable}
         local_study_with_renewable.update_renewable_clusters(dict_renewable)
 
-        # testing the modified value
-        assert not renewable.properties.enabled
-        assert renewable.properties.unit_count == 13
-        assert renewable.properties.ts_interpretation == TimeSeriesInterpretation.PRODUCTION_FACTOR
+        for renewable in [renewable_fr, renewable_it]:
+            # testing the modified value
+            assert not renewable.properties.enabled
+            assert renewable.properties.unit_count == 13
+            assert renewable.properties.ts_interpretation == TimeSeriesInterpretation.PRODUCTION_FACTOR
 
-        # testing the unmodified value
-        assert renewable.properties.group == RenewableClusterGroup.OTHER1.value
+            # testing the unmodified value
+            assert renewable.properties.group == RenewableClusterGroup.OTHER1.value
 
     def test_update_several_properties_fails(self, local_study_with_renewable: Study) -> None:
         """
