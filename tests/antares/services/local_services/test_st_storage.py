@@ -149,14 +149,20 @@ class TestSTStorage:
         assert not (sts_folder / "series" / "fr" / "sts_2").exists()
 
     def test_st_storages_update_properties(self, local_study_w_storage: Study) -> None:
+        """
+        We create 2 short-term storages with the same name in 2 different areas.
+        The updates should succeed.
+        """
         area_fr = local_study_w_storage.get_areas()["fr"]
         storage = area_fr.get_st_storages()["sts_1"]
         storage_1 = area_fr.get_st_storages()["sts_2"]
+        area_it = local_study_w_storage.get_areas()["it"]
+        storage_it = area_it.create_st_storage("sts_1")
         update_for_storage = STStoragePropertiesUpdate(enabled=False, group=STStorageGroup.PSP_CLOSED.value)
         update_for_storage_1 = STStoragePropertiesUpdate(
             group=STStorageGroup.PONDAGE.value, injection_nominal_capacity=1000
         )
-        dict_storage = {storage: update_for_storage, storage_1: update_for_storage_1}
+        dict_storage = {storage: update_for_storage, storage_1: update_for_storage_1, storage_it: update_for_storage_1}
         local_study_w_storage.update_st_storages(dict_storage)
 
         assert not storage.properties.enabled
@@ -164,11 +170,12 @@ class TestSTStorage:
 
         assert storage.properties.efficiency == 0.4
 
-        assert storage_1.properties.group == STStorageGroup.PONDAGE.value
-        assert storage_1.properties.injection_nominal_capacity == 1000
+        for sts in [storage_1, storage_it]:
+            assert sts.properties.group == STStorageGroup.PONDAGE.value
+            assert sts.properties.injection_nominal_capacity == 1000
 
-        assert storage_1.properties.enabled
-        assert storage_1.properties.initial_level == 0.5
+            assert sts.properties.enabled
+            assert sts.properties.initial_level == 0.5
 
     def test_storage_group_version_handling(self) -> None:
         properties_88 = STStorageProperties(
