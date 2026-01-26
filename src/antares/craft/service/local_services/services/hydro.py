@@ -83,7 +83,7 @@ class HydroLocalService(BaseHydroService):
 
     @override
     def set_allocation(self, area_id: str, allocation: list[HydroAllocation]) -> list[HydroAllocation]:
-        allocation_content = {}
+        allocation_content = {area_id: 1.0}
         for alloc in allocation:
             if alloc.coefficient and area_id != alloc.area_id:
                 # Null values are not written nor are the diagonal ones
