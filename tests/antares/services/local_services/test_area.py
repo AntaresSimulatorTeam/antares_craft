@@ -989,3 +989,41 @@ def test_remove_area(local_study_w_areas: Study) -> None:
     # The hash should be the same as before creating the area
     hash_after_update = dirhash(study_path, "md5", excluded_files=["sets.ini"])
     assert hash_before_update == hash_after_update
+
+
+def test_remove_area_with_different_name_and_id(local_study_w_areas: Study) -> None:
+    """
+    Test that area deletion works correctly when display name differs from its ID.
+
+    Bug: create_area writes display name to list.txt, but delete_area
+    tries to remove slugified ID. This causes ValueError when name != id.
+
+    This test creates an area with a display name that gets slugified differently,
+    then verifies deletion works correctly.
+    """
+    study = local_study_w_areas
+
+    # Create area with a display name that will be slugified differently
+    area_display_name = "My Test Area"
+    area = study.create_area(area_display_name)
+
+    # Verify the area was created
+    assert area.name == area_display_name
+    assert area.id == "my test area"
+
+    # Verify list.txt contains the display name (current buggy behavior)
+    study_path = Path(study.path)
+    list_path = study_path / "input" / "areas" / "list.txt"
+    list_content = list_path.read_text()
+    assert area_display_name in list_content
+
+    # Delete the area - this should succeed
+    study.delete_area(area)
+
+    # Verify area is no longer in the study
+    areas_after = study.get_areas()
+    assert area.id not in areas_after
+
+    # Verify list.txt was properly updated
+    list_content_after = list_path.read_text()
+    assert area_display_name not in list_content_after
