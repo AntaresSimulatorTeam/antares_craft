@@ -46,6 +46,8 @@ class XpansionSettings:
     yearly_weights: Optional[str] = None
     additional_constraints: Optional[str] = None
     timelimit: int = int(1e12)
+    master_solution_tolerance: float = 1e-4
+    cut_coefficient_tolerance: float = 5e-3
 
 
 @dataclass
@@ -63,6 +65,8 @@ class XpansionSettingsUpdate:
     yearly_weights: Optional[str] = None
     additional_constraints: Optional[str] = None
     timelimit: Optional[int] = None
+    master_solution_tolerance: Optional[float] = None
+    cut_coefficient_tolerance: Optional[float] = None
 
 
 def update_xpansion_settings(settings: XpansionSettings, settings_update: XpansionSettingsUpdate) -> XpansionSettings:

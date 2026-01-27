@@ -41,6 +41,8 @@ class XpansionSettingsLocal(LocalBaseModel):
     yearly_weights: Optional[str] = Field(None, alias="yearly-weights")
     additional_constraints: Optional[str] = Field(None, alias="additional-constraints")
     timelimit: int = int(1e12)
+    master_solution_tolerance: float = 1e-4
+    cut_coefficient_tolerance: float = 5e-3
 
     @staticmethod
     def from_user_model(user_class: XpansionSettings) -> "XpansionSettingsLocal":
@@ -62,6 +64,8 @@ class XpansionSettingsLocal(LocalBaseModel):
             yearly_weights=self.yearly_weights,
             additional_constraints=self.additional_constraints,
             timelimit=self.timelimit,
+            master_solution_tolerance=self.master_solution_tolerance,
+            cut_coefficient_tolerance=self.cut_coefficient_tolerance,
         )
 
 

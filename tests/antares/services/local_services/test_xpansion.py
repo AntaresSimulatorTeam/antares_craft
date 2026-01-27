@@ -525,11 +525,18 @@ class TestXpansion:
 
         # Update settings
         settings_update = XpansionSettingsUpdate(
-            optimality_gap=40.5, solver=XpansionSolver.CBC, additional_constraints="new_file.ini"
+            optimality_gap=40.5,
+            solver=XpansionSolver.CBC,
+            additional_constraints="new_file.ini",
+            cut_coefficient_tolerance=0.72,
         )
         new_settings = xpansion.update_settings(settings_update)
         assert new_settings == XpansionSettings(
-            optimality_gap=40.5, solver=XpansionSolver.CBC, additional_constraints="new_file.ini", batch_size=0
+            optimality_gap=40.5,
+            solver=XpansionSolver.CBC,
+            additional_constraints="new_file.ini",
+            batch_size=0,
+            cut_coefficient_tolerance=0.72,
         )
 
         # Checks ini content
@@ -548,6 +555,8 @@ class TestXpansion:
             "solver": "Cbc",
             "timelimit": 1000000000000,
             "uc_type": "expansion_fast",
+            "master_solution_tolerance": 1e-4,
+            "cut_coefficient_tolerance": 0.72,
         }
         assert content["settings"] == expected_content
 
