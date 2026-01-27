@@ -5,7 +5,7 @@ on:
       - "**"
 
 env:
-  VERSION: v2.27.0
+  VERSION: v2.28.0
 
 jobs:
   coverage_and_integration_test:
