@@ -82,13 +82,13 @@ class RenewableLocalService(BaseRenewableService):
         memory_mapping = {}
 
         new_properties_dict: dict[RenewableCluster, RenewableClusterProperties] = {}
-        cluster_name_to_object: dict[str, RenewableCluster] = {}
+        cluster_name_to_object: dict[str, dict[str, RenewableCluster]] = {}
 
         properties_by_areas: dict[str, dict[str, RenewableClusterPropertiesUpdate]] = {}
 
         for renewable_cluster, properties in new_props.items():
             properties_by_areas.setdefault(renewable_cluster.area_id, {})[renewable_cluster.name] = properties
-            cluster_name_to_object[renewable_cluster.name] = renewable_cluster
+            cluster_name_to_object.setdefault(renewable_cluster.area_id, {})[renewable_cluster.name] = renewable_cluster
 
         for area_id, value in properties_by_areas.items():
             all_renewable_names = set(value.keys())  # used to raise an Exception if a cluster doesn't exist
@@ -105,8 +105,8 @@ class RenewableLocalService(BaseRenewableService):
                     # Prepare the object to return
                     local_dict = copy.deepcopy(renewable)
                     del local_dict["name"]
-                    new_properties_dict[cluster_name_to_object[renewable_name]] = parse_renewable_cluster_local(
-                        self.study_version, local_dict
+                    new_properties_dict[cluster_name_to_object[area_id][renewable_name]] = (
+                        parse_renewable_cluster_local(self.study_version, local_dict)
                     )
 
             if len(all_renewable_names) > 0:

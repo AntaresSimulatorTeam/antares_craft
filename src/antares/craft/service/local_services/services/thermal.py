@@ -90,12 +90,12 @@ class ThermalLocalService(BaseThermalService):
         memory_mapping = {}
 
         new_properties_dict: dict[ThermalCluster, ThermalClusterProperties] = {}
-        cluster_name_to_object: dict[str, ThermalCluster] = {}
+        cluster_name_to_object: dict[str, dict[str, ThermalCluster]] = {}
 
         properties_by_areas: dict[str, dict[str, ThermalClusterPropertiesUpdate]] = {}
         for thermal_cluster, properties in new_properties.items():
             properties_by_areas.setdefault(thermal_cluster.area_id, {})[thermal_cluster.name] = properties
-            cluster_name_to_object[thermal_cluster.name] = thermal_cluster
+            cluster_name_to_object.setdefault(thermal_cluster.area_id, {})[thermal_cluster.name] = thermal_cluster
 
         for area_id, value in properties_by_areas.items():
             all_thermal_names = set(value.keys())  # used to raise an Exception if a cluster doesn't exist
@@ -112,7 +112,7 @@ class ThermalLocalService(BaseThermalService):
                     # Prepare the object to return
                     local_dict = copy.deepcopy(thermal)
                     del local_dict["name"]
-                    new_properties_dict[cluster_name_to_object[thermal_name]] = parse_thermal_cluster_local(
+                    new_properties_dict[cluster_name_to_object[area_id][thermal_name]] = parse_thermal_cluster_local(
                         self.study_version, local_dict
                     )
 

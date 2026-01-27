@@ -386,18 +386,25 @@ variableomcost = 5.0
             area_fr.delete_thermal_cluster(thermal_1)
 
     def test_update_thermal_properties(self, local_study_w_thermals: Study) -> None:
+        """
+        We create 2 thermal clusters with the same name in 2 different areas.
+        The 2 updates should succeed.
+        """
         area_fr = local_study_w_thermals.get_areas()["fr"]
-        thermal = area_fr.get_thermals()["test thermal cluster"]
+        area_it = local_study_w_thermals.get_areas()["it"]
+        thermal_fr = area_fr.get_thermals()["test thermal cluster"]
+        thermal_it = area_it.create_thermal_cluster("test thermal cluster")
         update_for_thermal = ThermalClusterPropertiesUpdate(enabled=False, unit_count=13)
-        dict_thermal = {thermal: update_for_thermal}
+        dict_thermal = {thermal_fr: update_for_thermal, thermal_it: update_for_thermal}
         local_study_w_thermals.update_thermal_clusters(dict_thermal)
 
-        # testing the modified value
-        assert not thermal.properties.enabled
-        assert thermal.properties.unit_count == 13
+        for thermal in [thermal_fr, thermal_it]:
+            # testing the modified value
+            assert not thermal.properties.enabled
+            assert thermal.properties.unit_count == 13
 
-        # testing the unmodified value
-        assert thermal.properties.group == ThermalClusterGroup.NUCLEAR.value
+            # testing the unmodified value
+            assert thermal_fr.properties.group == ThermalClusterGroup.NUCLEAR.value
 
     def test_update_several_properties_fails(self, local_study_w_thermals: Study) -> None:
         """

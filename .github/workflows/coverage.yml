@@ -5,7 +5,7 @@ on:
       - "**"
 
 env:
-  VERSION: v2.27.0
+  VERSION: v2.28.0
 
 jobs:
   coverage_and_integration_test:
@@ -14,6 +14,14 @@ jobs:
       max-parallel: 9
       matrix:
         os: [ windows-latest, ubuntu-22.04 ]
+        include:
+          - os: windows-latest
+            tox_env: windows
+            run_sonar: false
+
+          - os: ubuntu-22.04
+            tox_env: coverage
+            run_sonar: true
 
     steps:
       - name: Checkout
@@ -33,39 +41,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: 3.11
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install tox~=4.21.2
           pip install tox-uv~=1.11.3
 
-      - name: Performs coverage
-        if: matrix.os == 'ubuntu-22.04'
-        run: tox -e coverage
 
-      - name: Performs all tests
-        if: matrix.os == 'windows-latest'
-        run: tox -e windows
+      - name: Run all tests (with coverage on Ubuntu)
+        run: tox -e ${{ matrix.tox_env }}
 
-      - name: Archive code coverage results
-        if: matrix.os == 'ubuntu-22.04'
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-code-coverage-report
-          path: coverage.xml
-
-
-  sonarcloud:
-    runs-on: ubuntu-22.04
-    needs: [coverage_and_integration_test]
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download python coverage report
-        uses: actions/download-artifact@v4
-        with:
-          name: python-code-coverage-report
       - name: SonarCloud Scan
+        if: matrix.run_sonar
         uses: sonarsource/sonarcloud-github-action@v2.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -385,8 +385,7 @@ class AreaLocalService(BaseAreaService):
             hydro_local_service.save_inflow_ini(
                 HydroInflowStructureLocal.from_user_model(InflowStructure()).model_dump(by_alias=True), area_id
             )
-            allocation_data = {item.area_id: float(item.coefficient) for item in hydro_allocation}
-            hydro_local_service.save_allocation_ini({"[allocation]": allocation_data}, area_id)
+            hydro_local_service.set_allocation(area_id, hydro_allocation)
 
             for ts in [
                 TimeSeriesFileType.HYDRO_MAX_POWER,
@@ -649,9 +648,14 @@ class AreaLocalService(BaseAreaService):
 
     def _remove_area_from_list_txt_file(self, id_to_remove: str) -> None:
         file_path = self.config.study_path / "input" / "areas" / "list.txt"
-        context = file_path.read_text().splitlines()
-        context.remove(id_to_remove)
-        file_path.write_text("\n".join(context) + "\n")
+        lines = file_path.read_text().splitlines()
+
+        for i, line in enumerate(lines):
+            if transform_name_to_id(line) == id_to_remove:
+                lines.pop(i)
+                break
+
+        file_path.write_text("\n".join(lines) + "\n")
 
     def _remove_area_from_correlation_matrices(self, area_id: str) -> None:
         file_path = self.config.study_path / "input" / "hydro" / "prepro" / "correlation.ini"
@@ -677,7 +681,7 @@ class AreaLocalService(BaseAreaService):
                 if alloc.area_id == area_id:
                     new_allocations.remove(alloc)
             if len(new_allocations) != len(allocation):
-                hydro_service.set_allocation(other_area_id, allocation)
+                hydro_service.set_allocation(other_area_id, new_allocations)
 
     def _remove_area_from_districts(self, area_id: str) -> None:
         file_path = self.config.study_path / "input" / "areas" / "sets.ini"
