@@ -1,3 +1,23 @@
+v0.10.0 (2026-01-27)
+-------------------
+
+### Features
+* **thematic-trimming**: add new fields [`#322`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/322)
+* **local, xpansion**: support reading and editing new settings [`#347`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/347)
+
+### Bug fixes
+* **local**: deleting an area with id != name doesn't delete area [`#334`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/334)
+* **local**: issue inside mass update for clusters and st-storages [`#341`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/341)
+* **local, sts**: issue when updating constraint properties [`#342`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/342)
+* **local, hydro**: issue inside allocation when deleting area [`#344`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/344)
+
+### Miscellaneous
+* **ci**: make the CI faster [`#332`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/332)
+* **api**: change matrix headers to always have integers [`#333`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/333)
+* **deps**: update setuptools to ~78.1.1 [`#335`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/335)
+* **links**: avoid dictionary mutation [`#345`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/345)
+* **tests**: use AntaresWeb v2.28 for API tests [`#346`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/346)
+
 v0.9.5 (2026-01-13)
 -------------------
 
