@@ -155,15 +155,16 @@ class XpansionLocalService(BaseXpansionService):
 
     @override
     def delete_candidates(self, names: set[str]) -> None:
+        given_names = set(names)  # Avoid mutating the `names` parameter inside the function
         ini_content = self.read_candidates()
         keys_to_delete = []
         for key, value in ini_content.items():
-            if value["name"] in names:
+            if value["name"] in given_names:
                 keys_to_delete.append(key)
-                names.remove(value["name"])
+                given_names.remove(value["name"])
 
-        if names:
-            raise XpansionCandidateDeletionError(self._study_name, names, "They do not exist")
+        if given_names:
+            raise XpansionCandidateDeletionError(self._study_name, given_names, "They do not exist")
 
         # Saves the content
         for key in keys_to_delete:
