@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 import shutil
 import subprocess
-import sys
 
 from datetime import datetime
 from pathlib import Path
@@ -29,11 +28,8 @@ from antares.study.version import SolverVersion
 
 
 def _get_solver_version(solver_path: Path) -> SolverVersion:
-    if sys.platform == "win32":
-        args = [str(solver_path), "-v"]
-    else:
-        args = [str(solver_path) + " -v"]
-    process = subprocess.Popen(args=args, shell=True, stdout=subprocess.PIPE)
+    args = [str(solver_path), "-v"]
+    process = subprocess.Popen(args=args, stdout=subprocess.PIPE)
     process.wait(timeout=5)
     out, _ = process.communicate()
     version_str = out.decode("utf-8").splitlines()[-1]
