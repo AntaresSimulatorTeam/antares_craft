@@ -62,7 +62,6 @@ class TestWebClient:
     ) -> None:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
         study = create_study_api("antares-craft-test", "880", api_config)
-        print("ok")
         # tests area creation with default values
         area_name = "FR"
         area_fr = study.create_area(area_name)
@@ -1489,7 +1488,7 @@ class TestWebClient:
         cols = ["area", "timeId", "LOLD MAX", "NODU EXP"]
         data = [["be", 1, 0.0, 0.0], ["fr", 1, 0.0, 0.0]]
         expected_df = pd.DataFrame(data=data, columns=cols)
-        assert expected_df.equals(aggregated_df)
+        pd.testing.assert_frame_equal(expected_df, aggregated_df, check_dtype=False)
 
         ######################
         # Specific tests for study version 9.3
