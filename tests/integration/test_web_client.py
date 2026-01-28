@@ -62,6 +62,7 @@ class TestWebClient:
     ) -> None:
         api_config = APIconf(api_host=antares_web.url, token="", verify=False)
         study = create_study_api("antares-craft-test", "880", api_config)
+        print('ok')
         # tests area creation with default values
         area_name = "FR"
         area_fr = study.create_area(area_name)
