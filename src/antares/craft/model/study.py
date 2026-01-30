@@ -551,7 +551,7 @@ class Study:
 
 
 def create_study_local(
-    study_name: str, version: str, parent_directory: "Path", solver_path: Optional[Path] = None
+    study_name: str, version: str, parent_directory: Path | str, solver_path: Path | str | None = None
 ) -> "Study":
     """
     Creates a new study on your filesystem.
@@ -573,7 +573,7 @@ def create_study_local(
     return create_study_local(study_name, version, parent_directory, solver_path)
 
 
-def read_study_local(study_path: "Path", solver_path: Optional[Path] = None) -> "Study":
+def read_study_local(study_path: Path | str, solver_path: Path | str | None = None) -> "Study":
     """
     Reads an existing study on your filesystem.
 
@@ -592,9 +592,7 @@ def read_study_local(study_path: "Path", solver_path: Optional[Path] = None) -> 
     return read_study_local(study_path, solver_path)
 
 
-def create_study_api(
-    study_name: str, version: str, api_config: APIconf, parent_path: "Optional[Path]" = None
-) -> "Study":
+def create_study_api(study_name: str, version: str, api_config: APIconf, parent_path: Path | None = None) -> "Study":
     """
     Creates a study on antares-web server.
 
@@ -612,7 +610,7 @@ def create_study_api(
     return create_study_api(study_name, version, api_config, parent_path)
 
 
-def import_study_api(api_config: APIconf, study_path: "Path", destination_path: "Optional[Path]" = None) -> "Study":
+def import_study_api(api_config: APIconf, study_path: Path, destination_path: Path | None = None) -> "Study":
     """
     Creates a study on antares-web server, by importing an existing study archive from your filesystem.
 

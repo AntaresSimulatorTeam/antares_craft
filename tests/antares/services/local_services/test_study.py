@@ -1335,3 +1335,11 @@ at%fr = 1%1
             ValueError, match=re.escape("The variant creation should only be used for API studies not for local ones")
         ):
             local_study.create_variant("test")
+
+    def test_read_and_create_methods_with_strings_path(self, tmp_path: Path) -> None:
+        """Ensures giving strings as Path will work"""
+        path_as_string = str(tmp_path)
+        create_study_local("My Study", "8.8", path_as_string)
+        assert (tmp_path / "My Study").exists()
+        study = read_study_local(f"{path_as_string}/My Study")
+        assert study.path == tmp_path / "My Study"
