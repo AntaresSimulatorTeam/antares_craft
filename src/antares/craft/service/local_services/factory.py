@@ -12,7 +12,7 @@
 import getpass
 
 from pathlib import Path
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 from antares.craft import HydroProperties
 from antares.craft.config.local_configuration import LocalConfiguration
@@ -111,7 +111,7 @@ def _get_current_os_user() -> str:
 
 
 def create_study_local(
-    study_name: str, version: str, parent_directory: Path, solver_path: Optional[Path] = None
+    study_name: str, version: str, parent_directory: Path | str, solver_path: Path | str | None = None
 ) -> "Study":
     """
     Create a directory structure for the study with empty files.
@@ -125,6 +125,11 @@ def create_study_local(
     Raises:
         FileExistsError if the study already exists in the given location
     """
+    if isinstance(parent_directory, str):
+        parent_directory = Path(parent_directory)
+    if isinstance(solver_path, str):
+        solver_path = Path(solver_path)
+
     local_config = LocalConfiguration(parent_directory, study_name)
 
     study_directory = parent_directory / study_name
@@ -154,7 +159,7 @@ def create_study_local(
     return study
 
 
-def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) -> "Study":
+def read_study_local(study_directory: Path | str, solver_path: Path | str | None = None) -> "Study":
     """
     Read a study structure by returning a study object.
     Args:
@@ -164,6 +169,10 @@ def read_study_local(study_directory: Path, solver_path: Optional[Path] = None) 
     Raises:
         FileNotFoundError: If the provided directory does not exist.
     """
+    if isinstance(study_directory, str):
+        study_directory = Path(study_directory)
+    if isinstance(solver_path, str):
+        solver_path = Path(solver_path)
 
     if not study_directory.is_dir():
         raise FileNotFoundError(f"The given path {study_directory} doesn't exist or isn't a folder.")
