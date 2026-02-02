@@ -1,3 +1,14 @@
+v0.10.1 (2026-02-02)
+-------------------
+
+### Features
+* **study, local**: allow path as string for read / create methods [`#359`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/359)
+
+### Miscellaneous
+* **tests**: adapt integration test to new Web behavior [`#355`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/355)
+* **chore**: remove unwanted parameter mutation [`#356`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/356)
+* **run**: remove usage of `shell=True` [`#357`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/357)
+
 v0.10.0 (2026-01-27)
 -------------------
 
