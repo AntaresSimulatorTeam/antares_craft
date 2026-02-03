@@ -192,3 +192,15 @@ def test_shedding_policy(tmp_path: Path, version: str) -> None:
             match="Shedding policy should be `shave peaks` or `minimize duration` and was 'accurate shave peaks'",
         ):
             read_study_local(study_path)
+
+
+def test_settings_with_refreshtimeseries(tmp_path: Path) -> None:
+    study = create_study_local("study", "8.8", tmp_path)
+    study_path = Path(study.path)
+    ini_path = study_path / "settings" / "generaldata.ini"
+    ini_content = IniReader().read(ini_path)
+    ini_content["general"]["refreshtimeseries"] = "thermal"
+    IniWriter().write(ini_content, ini_path)
+
+    # Reading should not fail
+    read_study_local(study_path)
