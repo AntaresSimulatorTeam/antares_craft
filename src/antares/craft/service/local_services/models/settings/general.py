@@ -48,7 +48,6 @@ class GeneralSectionLocal(LocalBaseModelAllowExtraValues):
     nb_timeseries_wind: int = Field(default=1, alias="nbtimeserieswind")
     nb_timeseries_thermal: int = Field(default=1, alias="nbtimeseriesthermal")
     nb_timeseries_solar: int = Field(default=1, alias="nbtimeseriessolar")
-    refresh_timeseries: bool = Field(default=False, alias="refreshtimeseries")
     refresh_interval_load: int = Field(default=100, alias="refreshintervalload")
     refresh_interval_hydro: int = Field(default=100, alias="refreshintervalhydro")
     refresh_interval_wind: int = Field(default=100, alias="refreshintervalwind")
