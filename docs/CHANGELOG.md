@@ -1,3 +1,9 @@
+v0.10.2 (2026-02-03)
+-------------------
+
+### Bug fixes
+* **local, settings**: allow other values inside generaldata reading [`#361`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/361)
+
 v0.10.1 (2026-02-02)
 -------------------
 
