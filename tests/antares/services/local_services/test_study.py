@@ -322,7 +322,6 @@ nbtimeserieshydro = 1
 nbtimeserieswind = 1
 nbtimeseriesthermal = 1
 nbtimeseriessolar = 1
-refreshtimeseries = False
 refreshintervalload = 100
 refreshintervalhydro = 100
 refreshintervalwind = 100

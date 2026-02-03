@@ -194,7 +194,7 @@ def test_shedding_policy(tmp_path: Path, version: str) -> None:
             read_study_local(study_path)
 
 
-def test_settings_ser_lille(tmp_path: Path) -> None:
+def test_settings_with_refreshtimeseries(tmp_path: Path) -> None:
     study = create_study_local("study", "8.8", tmp_path)
     study_path = Path(study.path)
     ini_path = study_path / "settings" / "generaldata.ini"
