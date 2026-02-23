@@ -1,3 +1,9 @@
+v0.10.3 (2026-02-23)
+-------------------
+
+### Bug fixes
+* **api, move**: use unix path inside `move` method [`#363`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/363)
+
 v0.10.2 (2026-02-03)
 -------------------
 
