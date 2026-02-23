@@ -1,3 +1,9 @@
+v0.10.4 (2026-02-23)
+-------------------
+
+### Refactorings
+* **thematic-trimming**: make the class not frozen for user to modify it [`#365`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/365)
+
 v0.10.3 (2026-02-23)
 -------------------
 
