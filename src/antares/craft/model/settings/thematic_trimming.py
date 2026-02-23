@@ -13,7 +13,8 @@ from dataclasses import asdict, dataclass
 from typing import Optional
 
 
-@dataclass(frozen=True)
+# This class is not frozen as it has so many fields, we want the user to be able to fill some values easily.
+@dataclass
 class ThematicTrimmingParameters:
     ov_cost: bool = True
     op_cost: bool = True
