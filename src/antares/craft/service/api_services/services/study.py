@@ -130,14 +130,15 @@ class StudyApiService(BaseStudyService):
 
     @override
     def move_study(self, new_parent_path: Path) -> PurePath:
-        url = f"{self._base_url}/studies/{self.study_id}/move?folder_dest={new_parent_path}"
+        unix_path = new_parent_path.as_posix().removeprefix("/")
+        url = f"{self._base_url}/studies/{self.study_id}/move?folder_dest={unix_path}"
         try:
             self._wrapper.put(url)
             json_study = self._wrapper.get(f"{self._base_url}/studies/{self.study_id}").json()
             folder = json_study.pop("folder")
             return PurePath(folder) if folder else PurePath(".")
         except APIError as e:
-            raise StudyMoveError(self.study_id, new_parent_path.as_posix(), e.message) from e
+            raise StudyMoveError(self.study_id, unix_path, e.message) from e
 
     @override
     def generate_thermal_timeseries(self, nb_years: int, areas: dict[str, Area], seed: int) -> None:
