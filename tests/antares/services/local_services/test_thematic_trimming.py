@@ -254,3 +254,10 @@ def test_unknown_fields(local_study: Study) -> None:
     study = read_study_local(study_path)
     th_trimming = study.get_settings().thematic_trimming_parameters
     assert th_trimming.ov_cost is False
+
+
+def test_the_class_is_not_frozen(local_study: Study) -> None:
+    trimming = local_study.get_settings().thematic_trimming_parameters
+    # This would fail if the class was frozen
+    trimming.ov_cost = False
+    assert trimming.ov_cost is False

@@ -77,7 +77,7 @@ class AdvancedParameters:
     initial_reservoir_levels: Optional[InitialReservoirLevel] = None  # was InitialReservoirLevel.COLD_START in v8.8
 
 
-@dataclass
+@dataclass(frozen=True)
 class SeedParameters:
     seed_tsgen_thermal: int = 3005489
     seed_tsnumbers: int = 5005489
