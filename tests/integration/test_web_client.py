@@ -15,7 +15,7 @@ import pytest
 import shutil
 import zipfile
 
-from pathlib import Path, PurePath
+from pathlib import Path, PurePath, PurePosixPath
 from typing import Generator
 
 import numpy as np
@@ -923,7 +923,7 @@ class TestWebClient:
         new_path = Path("/new/path/test")
         assert study.path == PurePath(".")
         study.move(new_path)
-        assert study.path == PurePath(new_path) / f"{study.service.study_id}"
+        assert study.path == PurePosixPath(f"new/path/test/{study.service.study_id}")
 
         moved_study = read_study_api(api_config, study.service.study_id)
         assert moved_study.path == study.path
@@ -960,7 +960,7 @@ class TestWebClient:
         path_test = Path("/new/test/studies")
         imported_study = import_study_api(api_config, zip_study, path_test)
 
-        assert imported_study.path == path_test / f"{imported_study.service.study_id}"
+        assert imported_study.path == PurePosixPath(f"new/test/studies/{imported_study.service.study_id}")
         assert list(imported_study.get_areas()) == list(study.get_areas())
 
         ######################
