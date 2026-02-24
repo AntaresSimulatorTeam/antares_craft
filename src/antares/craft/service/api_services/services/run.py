@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 import time
 
-from pathlib import Path
 from typing import Any, Optional, cast
 
 from typing_extensions import override
@@ -26,9 +25,41 @@ from antares.craft.exceptions.exceptions import (
     SimulationTimeOutError,
     TaskFailedError,
 )
-from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
+from antares.craft.model.simulation import (
+    AntaresSimulationParameters,
+    AntaresSimulationParametersAPI,
+    Job,
+    JobStatus,
+    Solver,
+)
 from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseRunService
+
+
+def convert_parameters_to_api_query(parameters: AntaresSimulationParametersAPI, url: str) -> tuple[str, dict[str, Any]]:
+    sign = "?"
+    if parameters.launcher is not None:
+        url += f"{sign}launcher={parameters.launcher}"
+        sign = "&"
+    if parameters.preset is not None:
+        url += f"{sign}solver_presets_id={parameters.preset}"
+        sign = "&"
+    if parameters.solver_version is not None:
+        url += f"{sign}version={parameters.solver_version}"
+
+    body: dict[str, Any] = {}
+    if parameters.unzip_output:
+        body["auto_unzip"] = True
+    if parameters.output_suffix is not None:
+        body["output_suffix"] = parameters.output_suffix
+    if parameters.other_options:
+        body["other_options"] = parameters.other_options or ""
+    if parameters.nb_cpu:
+        body["nb_cpu"] = parameters.nb_cpu
+    if parameters.solver is not None and parameters.solver != Solver.SIRIUS:
+        body["other_options"] = body.get("other_options", "") + parameters.solver.value
+
+    return url, body
 
 
 class RunApiService(BaseRunService):
@@ -40,13 +71,15 @@ class RunApiService(BaseRunService):
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
     @override
-    def run_antares_simulation(
-        self, parameters: Optional[AntaresSimulationParameters] = None, solver_path: Optional[Path] = None
-    ) -> Job:
+    def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
         url = f"{self._base_url}/launcher/run/{self.study_id}"
+        parameters = parameters or AntaresSimulationParametersAPI()
+        if not isinstance(parameters, AntaresSimulationParametersAPI):
+            raise AntaresSimulationRunningError(self.study_id, "You used local parameters to run an API study")
+
+        url, payload = convert_parameters_to_api_query(parameters, url)
+
         try:
-            parameters = parameters or AntaresSimulationParameters()
-            payload = parameters.to_api()
             response = self._wrapper.post(url, json=payload)
             job_id = response.json()["job_id"]
             return self._get_job_from_id(job_id, parameters)

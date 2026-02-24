@@ -22,7 +22,13 @@ from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import AntaresSimulationRunningError, SimulationTimeOutError
-from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
+from antares.craft.model.simulation import (
+    AntaresSimulationParameters,
+    AntaresSimulationParametersLocal,
+    Job,
+    JobStatus,
+    Solver,
+)
 from antares.craft.service.base_services import BaseRunService
 from antares.study.version import SolverVersion
 
@@ -39,6 +45,27 @@ def _get_solver_version(solver_path: Path) -> SolverVersion:
     return SolverVersion.parse(version_str)
 
 
+def convert_parameters_to_command_line(
+    parameters: AntaresSimulationParametersLocal, solver_version: SolverVersion
+) -> list[str]:
+    args = [str(parameters.solver_path)]
+    if parameters.nb_cpu:
+        args += ["--force-parallel", str(parameters.nb_cpu)]
+
+    if not parameters.unzip_output:
+        args.append("-z")
+
+    if parameters.output_suffix:
+        args += ["-n", parameters.output_suffix]
+
+    if solver_version >= SolverVersion.parse("9.2"):
+        args += [f"--solver={parameters.solver.value}"]
+    elif parameters.solver != Solver.SIRIUS:
+        args += ["--use-ortools", " --ortools-solver", parameters.solver.value]
+
+    return args
+
+
 class RunLocalService(BaseRunService):
     def __init__(self, config: LocalConfiguration, study_name: str, **kwargs: Any) -> None:
         super().__init__(**kwargs)
@@ -46,17 +73,15 @@ class RunLocalService(BaseRunService):
         self.study_name = study_name
 
     @override
-    def run_antares_simulation(
-        self, parameters: Optional[AntaresSimulationParameters] = None, solver_path: Optional[Path] = None
-    ) -> Job:
-        if not solver_path:
+    def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
+        if not parameters:
             raise AntaresSimulationRunningError(self.study_name, "No solver path was provided")
+        if not isinstance(parameters, AntaresSimulationParametersLocal):
+            raise AntaresSimulationRunningError(self.study_name, "You used API parameters to run a local study")
 
         # Builds command line call
-        args = [str(solver_path)]
-        parameters = parameters or AntaresSimulationParameters()
-        solver_version = _get_solver_version(solver_path)
-        args += parameters.to_local(solver_version)
+        solver_version = _get_solver_version(parameters.solver_path)
+        args = convert_parameters_to_command_line(parameters, solver_version)
         args += ["-i", str(self.config.study_path)]
 
         # Launches the simulation

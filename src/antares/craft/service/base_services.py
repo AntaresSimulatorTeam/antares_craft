@@ -714,9 +714,7 @@ class BaseShortTermStorageService(ABC):
 
 class BaseRunService(ABC):
     @abstractmethod
-    def run_antares_simulation(
-        self, parameters: Optional[AntaresSimulationParameters] = None, solver_path: Optional[Path] = None
-    ) -> Job:
+    def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
         """
         Runs the Antares simulation.
 

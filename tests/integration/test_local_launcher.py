@@ -17,7 +17,6 @@ from pathlib import Path
 
 from antares.craft import (
     AdequacyPatchMode,
-    AntaresSimulationParameters,
     AreaProperties,
     AreaUi,
     AssetType,
@@ -39,7 +38,7 @@ from antares.craft import (
     read_study_local,
 )
 from antares.craft.exceptions.exceptions import AntaresSimulationRunningError
-from antares.craft.model.simulation import JobStatus
+from antares.craft.model.simulation import AntaresSimulationParametersLocal, JobStatus
 
 
 def find_executable_path(version: str) -> Path:
@@ -56,37 +55,38 @@ def find_executable_path(version: str) -> Path:
 class TestLocalLauncher:
     def test_error_case(self, tmp_path: Path) -> None:
         study = create_study_local("test study", "880", tmp_path)
-        # Ensure it's impossible to run a study without giving a solver path at the instantiation
+        # Ensure it's impossible to run a study without giving a solver path inside the parameters
         with pytest.raises(
             AntaresSimulationRunningError,
             match=re.escape("Could not run the simulation for study 'test study': No solver path was provided"),
         ):
             study.run_antares_simulation()
 
-        solver_path = find_executable_path("8_8")
-        study = read_study_local(tmp_path / "test study", solver_path)
+        study = read_study_local(tmp_path / "test study")
 
         # Asserts running a simulation without areas fail and doesn't create an output file
-        job = study.run_antares_simulation()
+        solver_path = find_executable_path("8_8")
+        default_parameters = AntaresSimulationParametersLocal(solver_path=solver_path)
+        job = study.run_antares_simulation(default_parameters)
         study.wait_job_completion(job)
         assert job.status == JobStatus.FAILED
-        assert job.parameters == AntaresSimulationParameters()
+        assert job.parameters == default_parameters
         assert job.output_id is None
         output_path = Path(study.path / "output")
         assert list(output_path.iterdir()) == []
 
     def test_lifecycle(self, tmp_path: Path) -> None:
         solver_path = find_executable_path("8_8")
-        study = create_study_local("test study", "880", tmp_path, solver_path)
+        study = create_study_local("test study", "880", tmp_path)
         output_path = Path(study.path / "output")
 
         # Simulation succeeds
-        area_1 = study.create_area("area_1")
-        area_1.hydro.update_properties(HydroPropertiesUpdate(reservoir_capacity=1))  # make the simulation succeeds
-        job = study.run_antares_simulation()
+        study.create_area("area_1")
+        default_parameters = AntaresSimulationParametersLocal(solver_path=solver_path)
+        job = study.run_antares_simulation(default_parameters)
         study.wait_job_completion(job)
         assert job.status == JobStatus.SUCCESS
-        assert job.parameters == AntaresSimulationParameters()
+        assert job.parameters == default_parameters
         outputs = list(output_path.iterdir())
         assert len(outputs) == 1
         output_id = outputs[0].name
@@ -98,7 +98,9 @@ class TestLocalLauncher:
         assert list(study_outputs.keys())[0] == output_id
 
         # Runs simulation with parameters
-        simulation_parameters = AntaresSimulationParameters(unzip_output=False, output_suffix="test_integration")
+        simulation_parameters = AntaresSimulationParametersLocal(
+            solver_path=solver_path, unzip_output=False, output_suffix="test_integration"
+        )
         second_job = study.run_antares_simulation(simulation_parameters)
         study.wait_job_completion(second_job)
         assert second_job.status == JobStatus.SUCCESS
@@ -110,7 +112,7 @@ class TestLocalLauncher:
         assert second_output.endswith(".zip")
 
         # Runs a third simulation just for the rest of the test
-        third_job = study.run_antares_simulation()
+        third_job = study.run_antares_simulation(default_parameters)
         study.wait_job_completion(third_job)
         assert third_job.status == JobStatus.SUCCESS
         outputs = list(output_path.iterdir())
@@ -122,7 +124,7 @@ class TestLocalLauncher:
         assert sorted(list(study.get_outputs().keys())) == expected_outputs
 
         # Asserts read_study_local reads the outputs
-        second_study = read_study_local(tmp_path / "test study", solver_path)
+        second_study = read_study_local(tmp_path / "test study")
         assert sorted(list((second_study.get_outputs()).keys())) == expected_outputs
 
         # Deletes the first output
@@ -139,18 +141,18 @@ class TestLocalLauncher:
 
     def test_version_92(self, tmp_path: Path) -> None:
         solver_path = find_executable_path("9_2")
-        study = create_study_local("test study", "920", tmp_path, solver_path)
+        default_parameters = AntaresSimulationParametersLocal(solver_path=solver_path)
+        study = create_study_local("test study", "920", tmp_path)
 
         # Simulation succeeds
-        area_1 = study.create_area("area_1")
-        area_1.hydro.update_properties(HydroPropertiesUpdate(reservoir_capacity=1))  # make the simulation succeeds
-        job = study.run_antares_simulation()
+        study.create_area("area_1")
+        job = study.run_antares_simulation(default_parameters)
         study.wait_job_completion(job)
         assert job.status == JobStatus.SUCCESS
 
     def test_simulation_succeeds_with_real_study(self, tmp_path: Path) -> None:
         solver_path = find_executable_path("8_8")
-        study = create_study_local("test study", "880", tmp_path, solver_path)
+        study = create_study_local("test study", "880", tmp_path)
 
         # Create 2 areas
         area_fr_properties = AreaProperties(
@@ -195,6 +197,7 @@ class TestLocalLauncher:
         study.create_binding_constraint(name="BC_1", properties=bc_properties, terms=[term])
 
         # Run the simulation
-        job = study.run_antares_simulation()
+        default_parameters = AntaresSimulationParametersLocal(solver_path=solver_path)
+        job = study.run_antares_simulation(default_parameters)
         study.wait_job_completion(job)
         assert job.status == JobStatus.SUCCESS
