@@ -816,7 +816,7 @@ class TestWebClient:
 
         # ===== Test run study simulation and wait job completion ======
 
-        parameters = AntaresSimulationParameters(nb_cpu=4)
+        parameters = AntaresSimulationParametersAPI(nb_cpu=4)
         job = study.run_antares_simulation(parameters)
         assert isinstance(job, Job)
         assert job.status == JobStatus.PENDING
@@ -897,10 +897,10 @@ class TestWebClient:
 
         # run two new simulations for creating more outputs
         study.wait_job_completion(
-            study.run_antares_simulation(AntaresSimulationParameters(output_suffix="2")), time_out=60
+            study.run_antares_simulation(AntaresSimulationParametersAPI(output_suffix="2")), time_out=60
         )
         study.wait_job_completion(
-            study.run_antares_simulation(AntaresSimulationParameters(output_suffix="3")), time_out=60
+            study.run_antares_simulation(AntaresSimulationParametersAPI(output_suffix="3")), time_out=60
         )
         assert len(study.get_outputs()) == 3
 
@@ -1470,7 +1470,7 @@ class TestWebClient:
 
         ########## Simulation ##########
 
-        parameters = AntaresSimulationParameters(nb_cpu=4, output_suffix="test_integration")
+        parameters = AntaresSimulationParametersAPI(nb_cpu=4, output_suffix="test_integration")
         job = study.run_antares_simulation(parameters)
         assert isinstance(job, Job)
         assert job.status == JobStatus.PENDING

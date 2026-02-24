@@ -78,7 +78,7 @@ from antares.craft.model.settings.optimization import (
 from antares.craft.model.settings.playlist_parameters import PlaylistParameters
 from antares.craft.model.settings.study_settings import StudySettingsUpdate
 from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParameters
-from antares.craft.model.simulation import AntaresSimulationParameters, Solver
+from antares.craft.model.simulation import AntaresSimulationParametersAPI, AntaresSimulationParametersLocal, Solver
 from antares.craft.model.st_storage import (
     AdditionalConstraintOperator,
     AdditionalConstraintVariable,
@@ -203,7 +203,8 @@ __all__ = [
     "RenewableClusterProperties",
     "RenewableClusterPropertiesUpdate",
     "Solver",
-    "AntaresSimulationParameters",
+    "AntaresSimulationParametersLocal",
+    "AntaresSimulationParametersAPI",
     "STStorageProperties",
     "STStoragePropertiesUpdate",
     "ThermalClusterProperties",
