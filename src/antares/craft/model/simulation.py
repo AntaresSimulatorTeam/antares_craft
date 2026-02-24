@@ -22,13 +22,6 @@ class Solver(Enum):
 
 
 @dataclass
-class XpansionSimulationMode:
-    classic: bool = True
-    sensitivity: bool = False
-    adequacy_criterion: bool = False
-
-
-@dataclass
 class AntaresSimulationParametersAPI:
     solver: Optional[Solver] = None
     solver_version: Optional[str] = None
@@ -37,7 +30,6 @@ class AntaresSimulationParametersAPI:
     output_suffix: Optional[str] = None
     launcher: Optional[str] = None
     preset: Optional[str] = None
-    xpansion: Optional[XpansionSimulationMode] = None
     other_options: Optional[str] = None
 
 

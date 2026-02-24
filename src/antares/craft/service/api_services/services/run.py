@@ -55,12 +55,6 @@ def _convert_parameters_to_api_query(
         body["other_options"] = parameters.other_options
     if parameters.nb_cpu:
         body["nb_cpu"] = parameters.nb_cpu
-    if parameters.xpansion is not None:
-        body["xpansion"] = {
-            "enabled": parameters.xpansion.sensitivity,
-            "sensitivity_mode": parameters.xpansion.sensitivity,
-            "adequacy_criterion": parameters.xpansion.adequacy_criterion,
-        }
     if parameters.solver is not None and parameters.solver != Solver.SIRIUS:
         body["other_options"] += parameters.solver.value
 
