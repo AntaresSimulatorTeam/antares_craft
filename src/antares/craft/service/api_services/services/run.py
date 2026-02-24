@@ -46,20 +46,22 @@ def _convert_parameters_to_api_query(
     if parameters.solver_version is not None:
         url += f"?version={parameters.solver_version}"
 
-    body: dict[str, Any] = {
-        "auto_unzip": parameters.unzip_output,
-        "output_suffix": parameters.output_suffix,
-        "other_options": parameters.other_options,
-    }
-    if parameters.nb_cpu is not None:
-        body["np_cpu"] = parameters.nb_cpu
+    body: dict[str, Any] = {}
+    if parameters.unzip_output:
+        body["auto_unzip"] = True
+    if parameters.output_suffix is not None:
+        body["output_suffix"] = parameters.output_suffix
+    if parameters.other_options:
+        body["other_options"] = parameters.other_options
+    if parameters.nb_cpu:
+        body["nb_cpu"] = parameters.nb_cpu
     if parameters.xpansion is not None:
         body["xpansion"] = {
             "enabled": parameters.xpansion.sensitivity,
             "sensitivity_mode": parameters.xpansion.sensitivity,
             "adequacy_criterion": parameters.xpansion.adequacy_criterion,
         }
-    if parameters.solver != Solver.SIRIUS:
+    if parameters.solver is not None and parameters.solver != Solver.SIRIUS:
         body["other_options"] += parameters.solver.value
 
     return url, body

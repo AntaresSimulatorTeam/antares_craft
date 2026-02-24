@@ -30,7 +30,7 @@ class XpansionSimulationMode:
 
 @dataclass
 class AntaresSimulationParametersAPI:
-    solver: Solver = Solver.SIRIUS
+    solver: Optional[Solver] = None
     solver_version: Optional[str] = None
     nb_cpu: Optional[int] = None
     unzip_output: bool = True
