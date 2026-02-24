@@ -141,18 +141,18 @@ class TestLocalLauncher:
 
     def test_version_92(self, tmp_path: Path) -> None:
         solver_path = find_executable_path("9_2")
-        study = create_study_local("test study", "920", tmp_path, solver_path)
+        default_parameters = AntaresSimulationParametersLocal(solver_path=solver_path)
+        study = create_study_local("test study", "920", tmp_path)
 
         # Simulation succeeds
-        area_1 = study.create_area("area_1")
-        area_1.hydro.update_properties(HydroPropertiesUpdate(reservoir_capacity=1))  # make the simulation succeeds
-        job = study.run_antares_simulation()
+        study.create_area("area_1")
+        job = study.run_antares_simulation(default_parameters)
         study.wait_job_completion(job)
         assert job.status == JobStatus.SUCCESS
 
     def test_simulation_succeeds_with_real_study(self, tmp_path: Path) -> None:
         solver_path = find_executable_path("8_8")
-        study = create_study_local("test study", "880", tmp_path, solver_path)
+        study = create_study_local("test study", "880", tmp_path)
 
         # Create 2 areas
         area_fr_properties = AreaProperties(
@@ -197,6 +197,7 @@ class TestLocalLauncher:
         study.create_binding_constraint(name="BC_1", properties=bc_properties, terms=[term])
 
         # Run the simulation
-        job = study.run_antares_simulation()
+        default_parameters = AntaresSimulationParametersLocal(solver_path=solver_path)
+        job = study.run_antares_simulation(default_parameters)
         study.wait_job_completion(job)
         assert job.status == JobStatus.SUCCESS
