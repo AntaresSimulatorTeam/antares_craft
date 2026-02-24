@@ -17,7 +17,6 @@ from pathlib import Path
 
 from antares.craft import (
     AdequacyPatchMode,
-    AntaresSimulationParameters,
     AreaProperties,
     AreaUi,
     AssetType,
@@ -78,16 +77,16 @@ class TestLocalLauncher:
 
     def test_lifecycle(self, tmp_path: Path) -> None:
         solver_path = find_executable_path("8_8")
-        study = create_study_local("test study", "880", tmp_path, solver_path)
+        study = create_study_local("test study", "880", tmp_path)
         output_path = Path(study.path / "output")
 
         # Simulation succeeds
-        area_1 = study.create_area("area_1")
-        area_1.hydro.update_properties(HydroPropertiesUpdate(reservoir_capacity=1))  # make the simulation succeeds
-        job = study.run_antares_simulation()
+        study.create_area("area_1")
+        default_parameters = AntaresSimulationParametersLocal(solver_path=solver_path)
+        job = study.run_antares_simulation(default_parameters)
         study.wait_job_completion(job)
         assert job.status == JobStatus.SUCCESS
-        assert job.parameters == AntaresSimulationParameters()
+        assert job.parameters == default_parameters
         outputs = list(output_path.iterdir())
         assert len(outputs) == 1
         output_id = outputs[0].name
@@ -99,7 +98,9 @@ class TestLocalLauncher:
         assert list(study_outputs.keys())[0] == output_id
 
         # Runs simulation with parameters
-        simulation_parameters = AntaresSimulationParameters(unzip_output=False, output_suffix="test_integration")
+        simulation_parameters = AntaresSimulationParametersLocal(
+            solver_path=solver_path, unzip_output=False, output_suffix="test_integration"
+        )
         second_job = study.run_antares_simulation(simulation_parameters)
         study.wait_job_completion(second_job)
         assert second_job.status == JobStatus.SUCCESS
@@ -111,7 +112,7 @@ class TestLocalLauncher:
         assert second_output.endswith(".zip")
 
         # Runs a third simulation just for the rest of the test
-        third_job = study.run_antares_simulation()
+        third_job = study.run_antares_simulation(default_parameters)
         study.wait_job_completion(third_job)
         assert third_job.status == JobStatus.SUCCESS
         outputs = list(output_path.iterdir())
@@ -123,7 +124,7 @@ class TestLocalLauncher:
         assert sorted(list(study.get_outputs().keys())) == expected_outputs
 
         # Asserts read_study_local reads the outputs
-        second_study = read_study_local(tmp_path / "test study", solver_path)
+        second_study = read_study_local(tmp_path / "test study")
         assert sorted(list((second_study.get_outputs()).keys())) == expected_outputs
 
         # Deletes the first output
