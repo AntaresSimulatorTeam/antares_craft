@@ -1,3 +1,24 @@
+v0.11.0 (2026-02-24)
+-------------------
+
+## Breaking changes
+
+We changed the way the user runs a simulation due to [`#367`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/367)
+
+#### Before
+- **Local**: The user had to set a `solver_path` inside `read_study_local` or `create_study_local` to be able to run a simulation.
+- **API and Local**: To give specific solver parameters we used the `AntaresSimulationParameters` class.
+
+#### Now
+- **Local**: To give specific solver parameters we use the `AntaresSimulationParametersLocal` class. It requires an attribute `solver_path`.
+- **API**: We now use the class `AntaresSimulationParametersAPI` to do the same thing as before.
+
+We expect this to be more user-friendly, and it also allows the user to give more options for API usage.
+For instance, it's now possible to choose the solver version, the presets defined in the app or other niche options.
+
+### Miscellaneous
+* **tests**: use AntaresWeb v2.29 inside CI [`#368`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/368)
+
 v0.10.4 (2026-02-23)
 -------------------
 
