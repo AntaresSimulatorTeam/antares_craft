@@ -39,7 +39,7 @@ from antares.craft import (
     read_study_local,
 )
 from antares.craft.exceptions.exceptions import AntaresSimulationRunningError
-from antares.craft.model.simulation import JobStatus
+from antares.craft.model.simulation import AntaresSimulationParametersLocal, JobStatus
 
 
 def find_executable_path(version: str) -> Path:
@@ -56,21 +56,22 @@ def find_executable_path(version: str) -> Path:
 class TestLocalLauncher:
     def test_error_case(self, tmp_path: Path) -> None:
         study = create_study_local("test study", "880", tmp_path)
-        # Ensure it's impossible to run a study without giving a solver path at the instantiation
+        # Ensure it's impossible to run a study without giving a solver path inside the parameters
         with pytest.raises(
             AntaresSimulationRunningError,
             match=re.escape("Could not run the simulation for study 'test study': No solver path was provided"),
         ):
             study.run_antares_simulation()
 
-        solver_path = find_executable_path("8_8")
-        study = read_study_local(tmp_path / "test study", solver_path)
+        study = read_study_local(tmp_path / "test study")
 
         # Asserts running a simulation without areas fail and doesn't create an output file
-        job = study.run_antares_simulation()
+        solver_path = find_executable_path("8_8")
+        default_parameters = AntaresSimulationParametersLocal(solver_path=solver_path)
+        job = study.run_antares_simulation(default_parameters)
         study.wait_job_completion(job)
         assert job.status == JobStatus.FAILED
-        assert job.parameters == AntaresSimulationParameters()
+        assert job.parameters == default_parameters
         assert job.output_id is None
         output_path = Path(study.path / "output")
         assert list(output_path.iterdir()) == []
