@@ -45,7 +45,7 @@ def _get_solver_version(solver_path: Path) -> SolverVersion:
     return SolverVersion.parse(version_str)
 
 
-def _convert_parameters_to_command_line(
+def convert_parameters_to_command_line(
     parameters: AntaresSimulationParametersLocal, solver_version: SolverVersion
 ) -> list[str]:
     args = [str(parameters.solver_path)]
@@ -81,7 +81,7 @@ class RunLocalService(BaseRunService):
 
         # Builds command line call
         solver_version = _get_solver_version(parameters.solver_path)
-        args = _convert_parameters_to_command_line(parameters, solver_version)
+        args = convert_parameters_to_command_line(parameters, solver_version)
         args += ["-i", str(self.config.study_path)]
 
         # Launches the simulation
