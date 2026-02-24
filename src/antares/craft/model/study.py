@@ -82,14 +82,7 @@ class Study:
      - [read_study_local][antares.craft.read_study_local]
     """
 
-    def __init__(
-        self,
-        name: str,
-        version: str,
-        services: StudyServices,
-        path: PurePath = PurePath("."),
-        solver_path: Optional[Path] = None,
-    ):
+    def __init__(self, name: str, version: str, services: StudyServices, path: PurePath = PurePath(".")):
         self.name = name
         self.path = path
         self._study_service = services.study_service
@@ -105,7 +98,6 @@ class Study:
         self._links: dict[str, Link] = {}
         self._binding_constraints: dict[str, BindingConstraint] = {}
         self._outputs: dict[str, Output] = {}
-        self._solver_path: Optional[Path] = solver_path
 
         study_version = StudyVersion.parse(version)
         if study_version not in SUPPORTED_STUDY_VERSIONS:
@@ -335,7 +327,7 @@ class Study:
         Returns:
             A job representing the simulation task
         """
-        return self._run_service.run_antares_simulation(parameters, self._solver_path)
+        return self._run_service.run_antares_simulation(parameters)
 
     def wait_job_completion(self, job: Job, time_out: int = 172800) -> None:
         """
@@ -550,9 +542,7 @@ class Study:
 # import mechanics, we need to use local imports to avoid circular dependencies.
 
 
-def create_study_local(
-    study_name: str, version: str, parent_directory: Path | str, solver_path: Path | str | None = None
-) -> "Study":
+def create_study_local(study_name: str, version: str, parent_directory: Path | str) -> "Study":
     """
     Creates a new study on your filesystem.
 
@@ -563,17 +553,16 @@ def create_study_local(
         study_name: the name of the created study
         version: the study version, for example "8.8"
         parent_directory: the directory where the new study will be created
-        solver_path: path to antares-solver executable, if you wish to run a simulation
 
     Returns:
         a Study object representing the newly created study
     """
     from antares.craft.service.local_services.factory import create_study_local
 
-    return create_study_local(study_name, version, parent_directory, solver_path)
+    return create_study_local(study_name, version, parent_directory)
 
 
-def read_study_local(study_path: Path | str, solver_path: Path | str | None = None) -> "Study":
+def read_study_local(study_path: Path | str) -> "Study":
     """
     Reads an existing study on your filesystem.
 
@@ -582,14 +571,13 @@ def read_study_local(study_path: Path | str, solver_path: Path | str | None = No
 
     Parameters:
         study_path: the path to the existing study on your filesystem
-        solver_path: path to antares-solver executable, if you wish to run a simulation
 
     Returns:
         a Study object representing the study on disk
     """
     from antares.craft.service.local_services.factory import read_study_local
 
-    return read_study_local(study_path, solver_path)
+    return read_study_local(study_path)
 
 
 def create_study_api(study_name: str, version: str, api_config: APIconf, parent_path: Path | None = None) -> "Study":

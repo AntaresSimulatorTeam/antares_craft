@@ -110,9 +110,7 @@ def _get_current_os_user() -> str:
         return "Unknown"
 
 
-def create_study_local(
-    study_name: str, version: str, parent_directory: Path | str, solver_path: Path | str | None = None
-) -> "Study":
+def create_study_local(study_name: str, version: str, parent_directory: Path | str) -> "Study":
     """
     Create a directory structure for the study with empty files.
 
@@ -120,15 +118,12 @@ def create_study_local(
         study_name: antares study name to be created
         version: antares version for study
         parent_directory: Local directory to store the study in.
-        solver_path: antares solver path to use to run simulations
 
     Raises:
         FileExistsError if the study already exists in the given location
     """
     if isinstance(parent_directory, str):
         parent_directory = Path(parent_directory)
-    if isinstance(solver_path, str):
-        solver_path = Path(solver_path)
 
     local_config = LocalConfiguration(parent_directory, study_name)
 
@@ -143,7 +138,6 @@ def create_study_local(
         version=version,
         services=create_local_services(config=local_config, study_name=study_name, study_version=study_version),
         path=study_directory,
-        solver_path=solver_path,
     )
     # We need to create the file with default values
     default_settings = StudySettings()
@@ -159,20 +153,17 @@ def create_study_local(
     return study
 
 
-def read_study_local(study_directory: Path | str, solver_path: Path | str | None = None) -> "Study":
+def read_study_local(study_directory: Path | str) -> "Study":
     """
     Read a study structure by returning a study object.
     Args:
         study_directory: antares study path to be read
-        solver_path: antares solver path to use to run simulations
 
     Raises:
         FileNotFoundError: If the provided directory does not exist.
     """
     if isinstance(study_directory, str):
         study_directory = Path(study_directory)
-    if isinstance(solver_path, str):
-        solver_path = Path(solver_path)
 
     if not study_directory.is_dir():
         raise FileNotFoundError(f"The given path {study_directory} doesn't exist or isn't a folder.")
@@ -188,13 +179,7 @@ def read_study_local(study_directory: Path | str, solver_path: Path | str | None
         study_version=version,
     )
 
-    study = Study(
-        name=study_params["caption"],
-        version=f"{version:2d}",
-        services=local_services,
-        path=study_directory,
-        solver_path=solver_path,
-    )
+    study = Study(name=study_params["caption"], version=f"{version:2d}", services=local_services, path=study_directory)
 
     study._settings = read_study_settings(version, study_directory)
     study._read_outputs()

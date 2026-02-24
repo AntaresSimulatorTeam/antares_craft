@@ -11,7 +11,6 @@
 # This file is part of the Antares project.
 import time
 
-from pathlib import Path
 from typing import Any, Optional, cast
 
 from typing_extensions import override
@@ -26,9 +25,32 @@ from antares.craft.exceptions.exceptions import (
     SimulationTimeOutError,
     TaskFailedError,
 )
-from antares.craft.model.simulation import AntaresSimulationParameters, Job, JobStatus
+from antares.craft.model.simulation import AntaresSimulationParameters, AntaresSimulationParametersAPI, Job, JobStatus
 from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseRunService
+
+
+def _convert_parameters_to_api_qeury(parameters: AntaresSimulationParametersAPI) -> list[str]:
+    """
+    data = asdict(self)
+
+    # Rename arg
+    data["auto_unzip"] = data.pop("unzip_output")
+
+    # Fill other options for the API model
+    if self.other_options:
+        data["other_options"] = self.other_options
+    data.pop("solver", None)
+    data.pop("presolve", None)
+
+    # Removes optional options if not filled
+    for key in ["nb_cpu", "output_suffix"]:
+        if data[key] is None:
+            data.pop(key)
+
+    return data
+    """
+    pass
 
 
 class RunApiService(BaseRunService):
@@ -40,12 +62,13 @@ class RunApiService(BaseRunService):
         self._wrapper = RequestWrapper(self.config.set_up_api_conf())
 
     @override
-    def run_antares_simulation(
-        self, parameters: Optional[AntaresSimulationParameters] = None, solver_path: Optional[Path] = None
-    ) -> Job:
+    def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
         url = f"{self._base_url}/launcher/run/{self.study_id}"
+        parameters = parameters or AntaresSimulationParametersAPI()
+        if not isinstance(parameters, AntaresSimulationParametersAPI):
+            raise AntaresSimulationRunningError(self.study_id, "You used local parameters to run an API study")
+
         try:
-            parameters = parameters or AntaresSimulationParameters()
             payload = parameters.to_api()
             response = self._wrapper.post(url, json=payload)
             job_id = response.json()["job_id"]
