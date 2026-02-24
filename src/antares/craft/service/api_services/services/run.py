@@ -25,32 +25,44 @@ from antares.craft.exceptions.exceptions import (
     SimulationTimeOutError,
     TaskFailedError,
 )
-from antares.craft.model.simulation import AntaresSimulationParameters, AntaresSimulationParametersAPI, Job, JobStatus
+from antares.craft.model.simulation import (
+    AntaresSimulationParameters,
+    AntaresSimulationParametersAPI,
+    Job,
+    JobStatus,
+    Solver,
+)
 from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseRunService
 
 
-def _convert_parameters_to_api_qeury(parameters: AntaresSimulationParametersAPI) -> list[str]:
-    """
-    data = asdict(self)
+def _convert_parameters_to_api_query(
+    parameters: AntaresSimulationParametersAPI, url: str
+) -> tuple[str, dict[str, Any]]:
+    if parameters.launcher is not None:
+        url += f"?launcher={parameters.launcher}"
+    if parameters.preset is not None:
+        url += f"?solver_presets_id={parameters.preset}"
+    if parameters.solver_version is not None:
+        url += f"?version={parameters.solver_version}"
 
-    # Rename arg
-    data["auto_unzip"] = data.pop("unzip_output")
+    body: dict[str, Any] = {
+        "auto_unzip": parameters.unzip_output,
+        "output_suffix": parameters.output_suffix,
+        "other_options": parameters.other_options,
+    }
+    if parameters.nb_cpu is not None:
+        body["np_cpu"] = parameters.nb_cpu
+    if parameters.xpansion is not None:
+        body["xpansion"] = {
+            "enabled": parameters.xpansion.sensitivity,
+            "sensitivity_mode": parameters.xpansion.sensitivity,
+            "adequacy_criterion": parameters.xpansion.adequacy_criterion,
+        }
+    if parameters.solver != Solver.SIRIUS:
+        body["other_options"] += parameters.solver.value
 
-    # Fill other options for the API model
-    if self.other_options:
-        data["other_options"] = self.other_options
-    data.pop("solver", None)
-    data.pop("presolve", None)
-
-    # Removes optional options if not filled
-    for key in ["nb_cpu", "output_suffix"]:
-        if data[key] is None:
-            data.pop(key)
-
-    return data
-    """
-    pass
+    return url, body
 
 
 class RunApiService(BaseRunService):
@@ -68,8 +80,9 @@ class RunApiService(BaseRunService):
         if not isinstance(parameters, AntaresSimulationParametersAPI):
             raise AntaresSimulationRunningError(self.study_id, "You used local parameters to run an API study")
 
+        url, payload = _convert_parameters_to_api_query(parameters, url)
+
         try:
-            payload = parameters.to_api()
             response = self._wrapper.post(url, json=payload)
             job_id = response.json()["job_id"]
             return self._get_job_from_id(job_id, parameters)
