@@ -36,15 +36,16 @@ from antares.craft.service.api_services.utils import wait_task_completion
 from antares.craft.service.base_services import BaseRunService
 
 
-def _convert_parameters_to_api_query(
-    parameters: AntaresSimulationParametersAPI, url: str
-) -> tuple[str, dict[str, Any]]:
+def convert_parameters_to_api_query(parameters: AntaresSimulationParametersAPI, url: str) -> tuple[str, dict[str, Any]]:
+    sign = "?"
     if parameters.launcher is not None:
-        url += f"?launcher={parameters.launcher}"
+        url += f"{sign}launcher={parameters.launcher}"
+        sign = "&"
     if parameters.preset is not None:
-        url += f"?solver_presets_id={parameters.preset}"
+        url += f"{sign}solver_presets_id={parameters.preset}"
+        sign = "&"
     if parameters.solver_version is not None:
-        url += f"?version={parameters.solver_version}"
+        url += f"{sign}version={parameters.solver_version}"
 
     body: dict[str, Any] = {}
     if parameters.unzip_output:
@@ -52,11 +53,11 @@ def _convert_parameters_to_api_query(
     if parameters.output_suffix is not None:
         body["output_suffix"] = parameters.output_suffix
     if parameters.other_options:
-        body["other_options"] = parameters.other_options
+        body["other_options"] = parameters.other_options or ""
     if parameters.nb_cpu:
         body["nb_cpu"] = parameters.nb_cpu
     if parameters.solver is not None and parameters.solver != Solver.SIRIUS:
-        body["other_options"] += parameters.solver.value
+        body["other_options"] = body.get("other_options", "") + parameters.solver.value
 
     return url, body
 
@@ -76,7 +77,7 @@ class RunApiService(BaseRunService):
         if not isinstance(parameters, AntaresSimulationParametersAPI):
             raise AntaresSimulationRunningError(self.study_id, "You used local parameters to run an API study")
 
-        url, payload = _convert_parameters_to_api_query(parameters, url)
+        url, payload = convert_parameters_to_api_query(parameters, url)
 
         try:
             response = self._wrapper.post(url, json=payload)
