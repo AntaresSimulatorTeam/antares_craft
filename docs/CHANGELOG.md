@@ -6,7 +6,7 @@ v0.11.0 (2026-02-24)
 We changed the way the user runs a simulation due to [`#367`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/367)
 
 #### Before
-- **Local**: The user had to set a `solver_path` inside the `read_study_local` or `create_study_local` to be able to run a simulation.
+- **Local**: The user had to set a `solver_path` inside `read_study_local` or `create_study_local` to be able to run a simulation.
 - **API and Local**: To give specific solver parameters we used the `AntaresSimulationParameters` class.
 
 #### Now
