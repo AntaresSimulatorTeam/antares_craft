@@ -166,9 +166,14 @@ class StudyApiService(BaseStudyService):
     @override
     def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
         url = f"{self._base_url}/studies/{self.study_id}/config/scenariobuilder"
+        api_model = ScenarioBuilderAPI.from_user_model(scenario_builder)
+        body = api_model.to_api()
         try:
-            api_model = ScenarioBuilderAPI.from_user_model(scenario_builder)
-            body = api_model.to_api()
             self._wrapper.put(url, json=body)
-        except APIError as e:
-            raise ScenarioBuilderEditionError(self.study_id, e.message)
+        except APIError:
+            # todo: to remove in next AntaresWeb go-to-prod
+            try:
+                body = body["Default Ruleset"]
+                self._wrapper.put(url, json=body)
+            except APIError as e:
+                raise ScenarioBuilderEditionError(self.study_id, e.message)
