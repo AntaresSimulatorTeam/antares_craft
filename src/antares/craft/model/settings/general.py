@@ -19,6 +19,7 @@ from antares.craft.tools.contents_tool import EnumIgnoreCase
 class Mode(EnumIgnoreCase):
     ECONOMY = "Economy"
     ADEQUACY = "Adequacy"
+    EXPANSION = "Expansion"
 
 
 class Month(EnumIgnoreCase):
