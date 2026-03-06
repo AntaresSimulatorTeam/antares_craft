@@ -1,5 +1,3 @@
-from antares.craft import MCAllAreasDataType
-
 # Antares Craft
 
 [![CI](https://github.com/AntaresSimulatorTeam/antares_craft/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AntaresSimulatorTeam/antares_craft/actions?query=workflow%3ACI)
