@@ -1,3 +1,5 @@
+from antares.craft import MCAllAreasDataType
+
 # Antares Craft
 
 [![CI](https://github.com/AntaresSimulatorTeam/antares_craft/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AntaresSimulatorTeam/antares_craft/actions?query=workflow%3ACI)
@@ -43,8 +45,7 @@ cluster of 5 power plants of 30 MW each. We then run the simulation and print so
 For more information and examples please refer to the documentation.
 
 ```python
-conf = APIconf(api_host="https://antares-web.mydomain",
-               token="my-token")
+conf = APIconf(api_host="https://antares-web.mydomain", token="my-token")
 
 # create a study named "my-study" on the antares-web server
 study = create_study_api(study_name="my-study", version="8.8", api_config=conf)
@@ -68,7 +69,7 @@ study.wait_job_completion(job)
 output = study.get_output(job.output_id)
 
 # read some output data as a pandas dataframe:
-res = output.aggregate_mc_all_areas(data_type="details", frequency="hourly")
+res = output.aggregate_mc_all_areas(data_type=MCAllAreasDataType.DETAILS, frequency=Frequency.HOURLY)
 print(res)
 ```
 
