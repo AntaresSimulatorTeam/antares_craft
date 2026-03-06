@@ -21,6 +21,7 @@ from antares.craft import (
     OptimizationTransmissionCapacities,
     PlaylistParameters,
     SheddingPolicy,
+    Study,
     StudySettingsUpdate,
     UnitCommitmentMode,
     create_study_local,
@@ -204,3 +205,15 @@ def test_settings_with_refreshtimeseries(tmp_path: Path) -> None:
 
     # Reading should not fail
     read_study_local(study_path)
+
+
+def test_support_the_three_modes(local_study: Study) -> None:
+    study_path = Path(local_study.path)
+    ini_path = study_path / "settings" / "generaldata.ini"
+    ini_content = IniReader().read(ini_path)
+    for mode in ["Economy", "Expansion", "Adequacy"]:
+        ini_content["general"]["mode"] = mode
+        IniWriter().write(ini_content, ini_path)
+
+        # Asserts we're still able to read the study for the 3 supported modes
+        read_study_local(study_path)
