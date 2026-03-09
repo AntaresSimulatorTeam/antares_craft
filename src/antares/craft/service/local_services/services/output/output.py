@@ -16,7 +16,13 @@ from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import XpansionOutputParsingError
-from antares.craft.model.output import AggregationEntry, Frequency, XpansionResult, XpansionSensitivityResult
+from antares.craft.model.output import (
+    AggregationEntry,
+    AggregationObjectType,
+    Frequency,
+    XpansionResult,
+    XpansionSensitivityResult,
+)
 from antares.craft.service.base_services import BaseOutputService
 from antares.craft.service.local_services.services.output.output_aggregation import AggregatorManager, export_df_chunks
 from antares.craft.service.utils import read_output_matrix
@@ -35,7 +41,7 @@ class OutputLocalService(BaseOutputService):
 
     @override
     def aggregate_values(
-        self, output_id: str, aggregation_entry: AggregationEntry, object_type: str, mc_type: str
+        self, output_id: str, aggregation_entry: AggregationEntry, object_type: AggregationObjectType, mc_type: str
     ) -> pd.DataFrame:
         type_ids = aggregation_entry.type_ids or []
         columns_names = aggregation_entry.columns_names or []

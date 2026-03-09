@@ -48,6 +48,7 @@ if TYPE_CHECKING:
     from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
     from antares.craft.model.output import (
         AggregationEntry,
+        AggregationObjectType,
         Frequency,
         Output,
         XpansionResult,
@@ -755,7 +756,7 @@ class BaseOutputService(ABC):
 
     @abstractmethod
     def aggregate_values(
-        self, output_id: str, aggregation_entry: "AggregationEntry", object_type: str, mc_type: str
+        self, output_id: str, aggregation_entry: "AggregationEntry", object_type: "AggregationObjectType", mc_type: str
     ) -> pd.DataFrame:
         """
         Creates a matrix of aggregated raw data

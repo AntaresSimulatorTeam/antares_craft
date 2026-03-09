@@ -12,7 +12,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Optional, TypeAlias
 
 import pandas as pd
 
@@ -146,6 +146,14 @@ class XpansionSensitivityResult:
     solution_min: XpansionOutputSensitivitySolution
 
 
+DataType: TypeAlias = MCAllAreasDataType | MCIndAreasDataType | MCAllLinksDataType | MCIndLinksDataType
+
+
+class AggregationObjectType(Enum):
+    AREAS = "areas"
+    LINKS = "links"
+
+
 @dataclass
 class AggregationEntry:
     """
@@ -158,18 +166,22 @@ class AggregationEntry:
         columns_names: names or regexes (if data_type is of type details) to select columns
     """
 
-    data_type: MCAllAreasDataType | MCIndAreasDataType | MCAllLinksDataType | MCIndLinksDataType
+    data_type: DataType
     frequency: Frequency
     mc_years: Optional[list[int]] = None
     type_ids: Optional[list[str]] = None
     columns_names: Optional[list[str]] = None
 
-    def to_api_query(self, object_type: str) -> str:
+    def to_api_query(self, object_type: AggregationObjectType) -> str:
         mc_years = f"&mc_years={','.join(str(year) for year in self.mc_years)}" if self.mc_years else ""
         type_ids = f"&{object_type}_ids={','.join(self.type_ids)}" if self.type_ids else ""
         columns_names = f"&columns_names={','.join(self.columns_names)}" if self.columns_names else ""
 
         return f"query_file={self.data_type.value}&frequency={self.frequency.value}{mc_years}{type_ids}{columns_names}&format=parquet"
+
+
+def _check_arguments_coherence(data_type: DataType) -> None:
+    pass
 
 
 class Output:
@@ -273,6 +285,8 @@ class Output:
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
+        object_type = AggregationObjectType.AREAS
+
         aggregation_entry = AggregationEntry(
             data_type=data_type,
             frequency=frequency,
@@ -281,7 +295,7 @@ class Output:
             columns_names=columns_names,
         )
 
-        return self._output_service.aggregate_values(self.name, aggregation_entry, "areas", "ind")
+        return self._output_service.aggregate_values(self.name, aggregation_entry, object_type, "ind")
 
     def aggregate_mc_ind_links(
         self,
@@ -300,6 +314,8 @@ class Output:
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
+        object_type = AggregationObjectType.LINKS
+
         type_ids = (
             [f"{area_from} - {area_to}" for link_id in links_ids for area_from, area_to in [sorted(link_id)]]
             if links_ids
@@ -314,7 +330,7 @@ class Output:
             columns_names=columns_names,
         )
 
-        return self._output_service.aggregate_values(self.name, aggregation_entry, "links", "ind")
+        return self._output_service.aggregate_values(self.name, aggregation_entry, object_type, "ind")
 
     def aggregate_mc_all_areas(
         self,
@@ -333,6 +349,8 @@ class Output:
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
+        object_type = AggregationObjectType.AREAS
+
         aggregation_entry = AggregationEntry(
             data_type=data_type,
             frequency=frequency,
@@ -341,7 +359,7 @@ class Output:
             columns_names=columns_names,
         )
 
-        return self._output_service.aggregate_values(self.name, aggregation_entry, "areas", "all")
+        return self._output_service.aggregate_values(self.name, aggregation_entry, object_type, "all")
 
     def aggregate_mc_all_links(
         self,
@@ -360,6 +378,8 @@ class Output:
 
         Returns: Pandas DataFrame corresponding to the aggregated raw data
         """
+        object_type = AggregationObjectType.LINKS
+
         type_ids = (
             [f"{area_from} - {area_to}" for link_id in links_ids for area_from, area_to in [sorted(link_id)]]
             if links_ids
@@ -374,7 +394,7 @@ class Output:
             columns_names=columns_names,
         )
 
-        return self._output_service.aggregate_values(self.name, aggregation_entry, "links", "all")
+        return self._output_service.aggregate_values(self.name, aggregation_entry, object_type, "all")
 
     def get_xpansion_result(self) -> XpansionResult:
         return self._output_service.get_xpansion_result(self.name)

@@ -30,9 +30,9 @@ from antares.craft.exceptions.exceptions import (
     OutputSubFolderNotFound,
 )
 from antares.craft.model.output import (
+    DataType,
     Frequency,
     MCAllAreasDataType,
-    MCAllLinksDataType,
     MCIndAreasDataType,
     MCIndLinksDataType,
 )
@@ -108,7 +108,7 @@ class AggregatorManager:
     def __init__(
         self,
         output_path: Path,
-        query_file: MCAllAreasDataType | MCIndAreasDataType | MCAllLinksDataType | MCIndLinksDataType,
+        query_file: DataType,
         frequency: Frequency,
         ids_to_consider: Sequence[str],
         columns_names: Sequence[str],
