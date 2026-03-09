@@ -24,12 +24,11 @@ from antares.craft.exceptions.exceptions import AggregateCreationError, APIError
 from antares.craft.model.output import (
     AggregationEntry,
     AggregationObjectType,
-    Frequency,
     XpansionResult,
     XpansionSensitivityResult,
 )
 from antares.craft.service.base_services import BaseOutputService
-from antares.craft.service.local_services.services.output.utils import MCRoot
+from antares.craft.service.local_services.services.output.utils import Frequency, MCRoot
 from antares.craft.service.utils import read_output_matrix
 from antares.craft.service.xpansion_output_parsing import parse_xpansion_out_json, parse_xpansion_sensitivity_out_json
 

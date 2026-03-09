@@ -34,7 +34,6 @@ from antares.craft.model.link import (
     TransmissionCapacities,
 )
 from antares.craft.model.output import (
-    Frequency,
     MCAllAreasDataType,
     MCAllLinksDataType,
     MCIndAreasDataType,
@@ -222,3 +221,5 @@ __all__ = [
     "STStorageAdditionalConstraint",
     "STStorageAdditionalConstraintUpdate",
 ]
+
+from antares.craft.service.local_services.services.output.utils import Frequency

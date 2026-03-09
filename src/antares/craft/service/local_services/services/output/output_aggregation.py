@@ -31,7 +31,6 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.output import (
     DataType,
-    Frequency,
     MCAllAreasDataType,
     MCIndAreasDataType,
     MCIndLinksDataType,
@@ -41,6 +40,7 @@ from antares.craft.service.local_services.services.output.parquet_writer import 
     yield_dataframes_from_parquet,
 )
 from antares.craft.service.local_services.services.output.utils import (
+    Frequency,
     MCRoot,
     get_start_column,
     normalize_df_column_names,

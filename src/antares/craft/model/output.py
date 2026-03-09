@@ -18,7 +18,7 @@ import pandas as pd
 
 from antares.craft.exceptions.exceptions import OutputDataRetrievalError
 from antares.craft.service.base_services import BaseOutputService
-from antares.craft.service.local_services.services.output.utils import MCRoot
+from antares.craft.service.local_services.services.output.utils import Frequency, MCRoot
 
 
 class MCIndAreasDataType(Enum):
@@ -43,14 +43,6 @@ class MCIndLinksDataType(Enum):
 class MCAllLinksDataType(Enum):
     VALUES = "values"
     ID = "id"
-
-
-class Frequency(Enum):
-    HOURLY = "hourly"
-    DAILY = "daily"
-    WEEKLY = "weekly"
-    MONTHLY = "monthly"
-    ANNUAL = "annual"
 
 
 @dataclass(frozen=True)

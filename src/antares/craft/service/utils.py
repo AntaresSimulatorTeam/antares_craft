@@ -15,8 +15,8 @@ from typing import Any
 
 import pandas as pd
 
-from antares.craft.model.output import Frequency
 from antares.craft.service.local_services.services.output.date_serializer import FactoryDateSerializer, rename_unnamed
+from antares.craft.service.local_services.services.output.utils import Frequency
 
 
 def read_output_matrix(data: Path | StringIO, frequency: Frequency) -> pd.DataFrame:

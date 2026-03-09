@@ -23,7 +23,6 @@ from antares.craft import LocalConfiguration, Study
 from antares.craft.exceptions.exceptions import OutputDataRetrievalError
 from antares.craft.model.commons import STUDY_VERSION_8_8
 from antares.craft.model.output import (
-    Frequency,
     MCAllAreasDataType,
     MCAllLinksDataType,
     MCIndAreasDataType,
@@ -31,6 +30,7 @@ from antares.craft.model.output import (
     Output,
 )
 from antares.craft.service.local_services.factory import create_local_services
+from antares.craft.service.local_services.services.output.utils import Frequency
 from antares.craft.service.utils import read_output_matrix
 
 ASSETS_DIR = Path(__file__).parent / "assets"

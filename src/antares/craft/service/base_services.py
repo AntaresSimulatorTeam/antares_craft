@@ -49,7 +49,6 @@ if TYPE_CHECKING:
     from antares.craft.model.output import (
         AggregationEntry,
         AggregationObjectType,
-        Frequency,
         Output,
         XpansionResult,
         XpansionSensitivityResult,
@@ -75,7 +74,7 @@ if TYPE_CHECKING:
         ThermalClusterPropertiesUpdate,
     )
     from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
-    from antares.craft.service.local_services.services.output.utils import MCRoot
+    from antares.craft.service.local_services.services.output.utils import Frequency, MCRoot
 
 
 class BaseAreaService(ABC):

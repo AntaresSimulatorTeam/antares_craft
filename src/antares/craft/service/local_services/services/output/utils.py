@@ -11,12 +11,18 @@
 # This file is part of the Antares project.
 from enum import Enum
 
-from antares.craft import Frequency
-
 
 class MCRoot(Enum):
     MC_IND = "mc-ind"
     MC_ALL = "mc-all"
+
+
+class Frequency(Enum):
+    HOURLY = "hourly"
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+    ANNUAL = "annual"
 
 
 def normalize_df_column_names(mc_root: MCRoot, output_headers: list[list[str]]) -> list[str]:
