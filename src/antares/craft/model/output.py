@@ -18,6 +18,7 @@ import pandas as pd
 
 from antares.craft.exceptions.exceptions import OutputDataRetrievalError
 from antares.craft.service.base_services import BaseOutputService
+from antares.craft.service.local_services.services.output.utils import MCRoot
 
 
 class MCIndAreasDataType(Enum):
@@ -180,7 +181,7 @@ class AggregationEntry:
         return f"query_file={self.data_type.value}&frequency={self.frequency.value}{mc_years}{type_ids}{columns_names}&format=parquet"
 
 
-def _check_arguments_coherence(data_type: DataType) -> None:
+def _check_arguments_coherence(data_type: DataType, object_type: AggregationObjectType) -> None:
     pass
 
 
@@ -295,7 +296,7 @@ class Output:
             columns_names=columns_names,
         )
 
-        return self._output_service.aggregate_values(self.name, aggregation_entry, object_type, "ind")
+        return self._output_service.aggregate_values(self.name, aggregation_entry, object_type, MCRoot.MC_IND)
 
     def aggregate_mc_ind_links(
         self,
@@ -330,7 +331,7 @@ class Output:
             columns_names=columns_names,
         )
 
-        return self._output_service.aggregate_values(self.name, aggregation_entry, object_type, "ind")
+        return self._output_service.aggregate_values(self.name, aggregation_entry, object_type, MCRoot.MC_IND)
 
     def aggregate_mc_all_areas(
         self,
@@ -359,7 +360,7 @@ class Output:
             columns_names=columns_names,
         )
 
-        return self._output_service.aggregate_values(self.name, aggregation_entry, object_type, "all")
+        return self._output_service.aggregate_values(self.name, aggregation_entry, object_type, MCRoot.MC_ALL)
 
     def aggregate_mc_all_links(
         self,
@@ -394,7 +395,7 @@ class Output:
             columns_names=columns_names,
         )
 
-        return self._output_service.aggregate_values(self.name, aggregation_entry, object_type, "all")
+        return self._output_service.aggregate_values(self.name, aggregation_entry, object_type, MCRoot.MC_ALL)
 
     def get_xpansion_result(self) -> XpansionResult:
         return self._output_service.get_xpansion_result(self.name)

@@ -75,6 +75,7 @@ if TYPE_CHECKING:
         ThermalClusterPropertiesUpdate,
     )
     from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
+    from antares.craft.service.local_services.services.output.utils import MCRoot
 
 
 class BaseAreaService(ABC):
@@ -756,7 +757,11 @@ class BaseOutputService(ABC):
 
     @abstractmethod
     def aggregate_values(
-        self, output_id: str, aggregation_entry: "AggregationEntry", object_type: "AggregationObjectType", mc_type: str
+        self,
+        output_id: str,
+        aggregation_entry: "AggregationEntry",
+        object_type: "AggregationObjectType",
+        mc_type: "MCRoot",
     ) -> pd.DataFrame:
         """
         Creates a matrix of aggregated raw data

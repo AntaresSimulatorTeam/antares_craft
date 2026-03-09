@@ -29,6 +29,7 @@ from antares.craft.model.output import (
     XpansionSensitivityResult,
 )
 from antares.craft.service.base_services import BaseOutputService
+from antares.craft.service.local_services.services.output.utils import MCRoot
 from antares.craft.service.utils import read_output_matrix
 from antares.craft.service.xpansion_output_parsing import parse_xpansion_out_json, parse_xpansion_sensitivity_out_json
 
@@ -71,10 +72,10 @@ class OutputApiService(BaseOutputService):
 
     @override
     def aggregate_values(
-        self, output_id: str, aggregation_entry: AggregationEntry, object_type: AggregationObjectType, mc_type: str
+        self, output_id: str, aggregation_entry: AggregationEntry, object_type: AggregationObjectType, mc_type: MCRoot
     ) -> pd.DataFrame:
         object_type_str = object_type.value
-        url = f"{self._base_url}/studies/{self.study_id}/outputs/{output_id}/aggregate/{object_type_str}/mc-{mc_type}?{aggregation_entry.to_api_query(object_type)}"
+        url = f"{self._base_url}/studies/{self.study_id}/outputs/{output_id}/aggregate/{object_type_str}/{mc_type.value}?{aggregation_entry.to_api_query(object_type)}"
         try:
             download_id = self._wrapper.get(url).json()
             metadata_url = f"{self._base_url}/downloads/{download_id}/metadata?wait_for_availability=True"
@@ -88,7 +89,7 @@ class OutputApiService(BaseOutputService):
             return pd.read_parquet(content)
 
         except APIError as e:
-            raise AggregateCreationError(self.study_id, output_id, mc_type, object_type_str, e.message)
+            raise AggregateCreationError(self.study_id, output_id, mc_type.value, object_type_str, e.message)
 
     @override
     def get_xpansion_result(self, output_id: str) -> XpansionResult:

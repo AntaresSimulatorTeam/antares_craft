@@ -25,6 +25,7 @@ from antares.craft.model.output import (
 )
 from antares.craft.service.base_services import BaseOutputService
 from antares.craft.service.local_services.services.output.output_aggregation import AggregatorManager, export_df_chunks
+from antares.craft.service.local_services.services.output.utils import MCRoot
 from antares.craft.service.utils import read_output_matrix
 from antares.craft.service.xpansion_output_parsing import parse_xpansion_out_json, parse_xpansion_sensitivity_out_json
 
@@ -41,7 +42,7 @@ class OutputLocalService(BaseOutputService):
 
     @override
     def aggregate_values(
-        self, output_id: str, aggregation_entry: AggregationEntry, object_type: AggregationObjectType, mc_type: str
+        self, output_id: str, aggregation_entry: AggregationEntry, object_type: AggregationObjectType, mc_type: MCRoot
     ) -> pd.DataFrame:
         type_ids = aggregation_entry.type_ids or []
         columns_names = aggregation_entry.columns_names or []
