@@ -27,6 +27,22 @@ from antares.craft.service.utils import read_output_matrix
 from antares.craft.service.xpansion_output_parsing import parse_xpansion_out_json, parse_xpansion_sensitivity_out_json
 
 
+def _convert_aggregation_entry_to_api_query(aggregation_entry: AggregationEntry, object_type: str) -> str:
+    mc_years = ""
+    if aggregation_entry.mc_years:
+        mc_years = f"&mc_years={','.join(str(year) for year in aggregation_entry.mc_years)}"
+
+    type_ids = ""
+    if aggregation_entry.type_ids:
+        type_ids = f"&{object_type}_ids={','.join(aggregation_entry.type_ids)}"
+
+    columns_names = ""
+    if aggregation_entry.columns_names:
+        columns_names = f"&columns_names={','.join(aggregation_entry.columns_names)}"
+
+    return f"query_file={aggregation_entry.data_type.value}&frequency={aggregation_entry.frequency.value}{mc_years}{type_ids}{columns_names}&format=parquet"
+
+
 class OutputApiService(BaseOutputService):
     def __init__(self, config: APIconf, study_id: str):
         super().__init__()
@@ -67,7 +83,8 @@ class OutputApiService(BaseOutputService):
     def aggregate_values(
         self, output_id: str, aggregation_entry: AggregationEntry, object_type: str, mc_type: str
     ) -> pd.DataFrame:
-        url = f"{self._base_url}/studies/{self.study_id}/outputs/{output_id}/aggregate/{object_type}/mc-{mc_type}?{aggregation_entry.to_api_query(object_type)}"
+        url = f"{self._base_url}/studies/{self.study_id}/outputs/{output_id}/aggregate/{object_type}/mc-{mc_type}"
+        url += f"?{_convert_aggregation_entry_to_api_query(aggregation_entry, object_type)}"
         try:
             download_id = self._wrapper.get(url).json()
             metadata_url = f"{self._base_url}/downloads/{download_id}/metadata?wait_for_availability=True"

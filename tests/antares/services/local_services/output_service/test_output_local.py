@@ -419,7 +419,6 @@ class TestOutput:
             params.frequency,
             areas_ids=params.type_ids,
             columns_names=params.columns_names,
-            mc_years=params.mc_years,
         )
 
         resource_file = Path(ASSETS_DIR) / "aggregate_areas_raw_data" / expected_result_filename
@@ -463,7 +462,6 @@ class TestOutput:
             params.frequency,
             links_ids=params.type_ids,
             columns_names=params.columns_names,
-            mc_years=params.mc_years,
         )
 
         resource_file = Path(ASSETS_DIR) / "aggregate_links_raw_data" / expected_result_filename
