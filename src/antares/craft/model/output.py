@@ -164,13 +164,6 @@ class AggregationEntry:
     type_ids: Optional[list[str]] = None
     columns_names: Optional[list[str]] = None
 
-    def to_api_query(self, object_type: str) -> str:
-        mc_years = f"&mc_years={','.join(str(year) for year in self.mc_years)}" if self.mc_years else ""
-        type_ids = f"&{object_type}_ids={','.join(self.type_ids)}" if self.type_ids else ""
-        columns_names = f"&columns_names={','.join(self.columns_names)}" if self.columns_names else ""
-
-        return f"query_file={self.data_type.value}&frequency={self.frequency.value}{mc_years}{type_ids}{columns_names}&format=parquet"
-
 
 class Output:
     def __init__(self, name: str, archived: bool, output_service: BaseOutputService):
@@ -320,7 +313,6 @@ class Output:
         self,
         data_type: MCAllAreasDataType,
         frequency: Frequency,
-        mc_years: Optional[list[int]] = None,
         areas_ids: Optional[list[str]] = None,
         columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
@@ -336,7 +328,6 @@ class Output:
         aggregation_entry = AggregationEntry(
             data_type=data_type,
             frequency=frequency,
-            mc_years=mc_years,
             type_ids=areas_ids,
             columns_names=columns_names,
         )
@@ -347,7 +338,6 @@ class Output:
         self,
         data_type: MCAllLinksDataType,
         frequency: Frequency,
-        mc_years: Optional[list[int]] = None,
         links_ids: Optional[list[tuple[str, str]]] = None,
         columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
@@ -369,7 +359,6 @@ class Output:
         aggregation_entry = AggregationEntry(
             data_type=data_type,
             frequency=frequency,
-            mc_years=mc_years,
             type_ids=type_ids,
             columns_names=columns_names,
         )
