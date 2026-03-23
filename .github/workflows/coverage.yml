@@ -17,11 +17,11 @@ jobs:
         include:
           - os: windows-latest
             tox_env: windows
-            run_sonar: false
+            is_ubuntu: false
 
           - os: ubuntu-22.04
             tox_env: coverage
-            run_sonar: true
+            is_ubuntu: true
 
     steps:
       - name: Checkout
@@ -48,8 +48,8 @@ jobs:
           pip install tox~=4.21.2
           pip install tox-uv~=1.11.3
 
-      - name: Apt install for CI
-        if: matrix.run_sonar
+      - name: Install GUI dependencies needed to start the Desktop app on Ubuntu
+        if: matrix.is_ubuntu
         run: |
           sudo apt-get update
           sudo apt-get install -y libegl1 libgl1-mesa-glx
@@ -58,7 +58,7 @@ jobs:
         run: tox -e ${{ matrix.tox_env }}
 
       - name: SonarCloud Scan
-        if: matrix.run_sonar
+        if: matrix.is_ubuntu
         uses: sonarsource/sonarcloud-github-action@v2.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
