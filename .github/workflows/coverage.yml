@@ -48,6 +48,9 @@ jobs:
           pip install tox~=4.21.2
           pip install tox-uv~=1.11.3
 
+      - name: Apt install for CI
+        if: matrix.run_sonar
+        run: apt-get update && apt-get install libgl1
 
       - name: Run all tests (with coverage on Ubuntu)
         run: tox -e ${{ matrix.tox_env }}
