@@ -48,10 +48,7 @@ class ScenarioBuilderAPI(APIBaseModel):
 
     @staticmethod
     def from_api(data: dict[str, Any]) -> "ScenarioBuilderAPI":
-        # todo: to remove in next AntaresWeb go-to-prod
-        scenario_api = data.pop("Default Ruleset", data)
-
-        return ScenarioBuilderAPI.model_validate(scenario_api)
+        return ScenarioBuilderAPI.model_validate(data)
 
     def to_api(self) -> dict[str, Any]:
         return {"Default Ruleset": self.model_dump(by_alias=True, exclude_none=True)}
