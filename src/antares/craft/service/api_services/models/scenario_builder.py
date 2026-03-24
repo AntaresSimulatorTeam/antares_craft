@@ -51,7 +51,7 @@ class ScenarioBuilderAPI(APIBaseModel):
         return ScenarioBuilderAPI.model_validate(data)
 
     def to_api(self) -> dict[str, Any]:
-        return {"Default Ruleset": self.model_dump(by_alias=True, exclude_none=True)}
+        return self.model_dump(by_alias=True, exclude_none=True)
 
     def to_user_model(self, nb_years: int, study_version: StudyVersion) -> ScenarioBuilder:
         scenario_builder = ScenarioBuilder(
