@@ -170,10 +170,5 @@ class StudyApiService(BaseStudyService):
         body = api_model.to_api()
         try:
             self._wrapper.put(url, json=body)
-        except APIError:
-            # todo: to remove in next AntaresWeb go-to-prod
-            try:
-                body = body["Default Ruleset"]
-                self._wrapper.put(url, json=body)
-            except APIError as e:
-                raise ScenarioBuilderEditionError(self.study_id, e.message)
+        except APIError as e:
+            raise ScenarioBuilderEditionError(self.study_id, e.message)

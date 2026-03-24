@@ -1,3 +1,21 @@
+v0.12.0 (2026-03-24)
+-------------------
+
+
+## Compatibility
+* This version is compatible with AntaresWeb v2.30.0. The previous is not for scenario-builder related features, due to a breaking change inside Web API ([`#370`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/370))
+
+* We removed the argument `mc_years` inside mc-all aggregation as it did not make sense [`#377`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/377)
+
+
+### Bug fixes
+* **settings**: support `expansion` as a simulation mode [`#374`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/374)
+
+### Miscellaneous
+* **tests**: use AntaresWeb v2.30 inside CI [`#378`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/378)
+* **sc-builder**: simplify API code [`#379`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/379)
+* **doc**: fix README example [`#375`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/375)
+
 v0.11.0 (2026-02-24)
 -------------------
 
