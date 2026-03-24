@@ -114,14 +114,14 @@ class ThermalClusterProperties(ClusterProperties):
         fixed_cost: 
         startup_cost: Start up cost of a unit.
         market_bid_cost: Market bid cost.
-        co2: Emission rate of $\ce{CO2}$ in t/MWh.
-        nh3: Emission rate of $\ce{NH3}$ in t/MWh.
-        so2: Emission rate of $\ce{SO2}$ in t/MWh.
-        nox: Emission rate of $\ce{NOx}$ in t/MWh.
-        pm2_5: Emission rate of $\ce{PM{2.5}}$ in t/MWh.
-        pm5: Emission rate of $\ce{PM5}$ in t/MWh.
-        pm10: Emission rate of $\ce{PM10}$ in t/MWh.
-        nmvoc: Emission rate of $\ce{NMVOC}$ in t/MWh.
+        co2: Emission rate of $\\ce{CO2}$ in t/MWh.
+        nh3: Emission rate of $\\ce{NH3}$ in t/MWh.
+        so2: Emission rate of $\\ce{SO2}$ in t/MWh.
+        nox: Emission rate of $\\ce{NOx}$ in t/MWh.
+        pm2_5: Emission rate of $\\ce{PM_{2.5}}$ in t/MWh.
+        pm5: Emission rate of $\\ce{PM5}$ in t/MWh.
+        pm10: Emission rate of $\\ce{PM10}$ in t/MWh.
+        nmvoc: Emission rate of $\\ce{NMVOC}$ in t/MWh.
         op1: Emission rate of other polluant 1 in t/MWh.
         op2: Emission rate of other polluant 2 in t/MWh.
         op3: Emission rate of other polluant 3 in t/MWh.
@@ -187,14 +187,14 @@ class ThermalClusterPropertiesUpdate(ClusterPropertiesUpdate):
         fixed_cost: 
         startup_cost: Start up cost of a unit.
         market_bid_cost: Market bid cost.
-        co2: Emission rate of $\ce{CO2}$ in t/MWh.
-        nh3: Emission rate of $\ce{NH3}$ in t/MWh.
-        so2: Emission rate of $\ce{SO2}$ in t/MWh.
-        nox: Emission rate of $\ce{NOx}$ in t/MWh.
-        pm2_5: Emission rate of $\ce{PM{2.5}}$ in t/MWh.
-        pm5: Emission rate of $\ce{PM5}$ in t/MWh.
-        pm10: Emission rate of $\ce{PM10}$ in t/MWh.
-        nmvoc: Emission rate of $\ce{NMVOC}$ in t/MWh.
+        co2: Emission rate of $\\ce{CO2}$ in t/MWh.
+        nh3: Emission rate of $\\ce{NH3}$ in t/MWh.
+        so2: Emission rate of $\\ce{SO2}$ in t/MWh.
+        nox: Emission rate of $\\ce{NOx}$ in t/MWh.
+        pm2_5: Emission rate of $\\ce{PM{2.5}}$ in t/MWh.
+        pm5: Emission rate of $\\ce{PM5}$ in t/MWh.
+        pm10: Emission rate of $\\ce{PM10}$ in t/MWh.
+        nmvoc: Emission rate of $\\ce{NMVOC}$ in t/MWh.
         op1: Emission rate of other polluant 1 in t/MWh.
         op2: Emission rate of other polluant 2 in t/MWh.
         op3: Emission rate of other polluant 3 in t/MWh.
@@ -317,10 +317,10 @@ class ThermalCluster:
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES)
 
     def get_co2_cost_matrix(self) -> pd.DataFrame:
-        """Get $\ce{CO2}$ cost matrix.
+        """Get $\\ce{CO2}$ cost matrix.
 
         Returns:
-            The $\ce{CO2}$ cost matrix
+            The $\\ce{CO2}$ cost matrix
         """
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_CO2_COST)
 
@@ -357,10 +357,10 @@ class ThermalCluster:
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES)
 
     def set_co2_cost(self, matrix: pd.DataFrame) -> None:
-        """Set $\ce{CO2}$ cost matrix.
+        """Set $\\ce{CO2}$ cost matrix.
 
         Args:
-            The $\ce{CO2}$ cost matrix
+            The $\\ce{CO2}$ cost matrix
         """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES_CO2_COST)
 
