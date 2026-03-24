@@ -21,6 +21,8 @@ from antares.craft.service.base_services import BaseOutputService
 
 
 class MCIndAreasDataType(Enum):
+    """TODO
+    """
     VALUES = "values"
     DETAILS = "details"
     DETAILS_ST_STORAGE = "details-STstorage"
@@ -28,6 +30,8 @@ class MCIndAreasDataType(Enum):
 
 
 class MCAllAreasDataType(Enum):
+    """TODO
+    """
     VALUES = "values"
     DETAILS = "details"
     DETAILS_ST_STORAGE = "details-STstorage"
@@ -36,6 +40,8 @@ class MCAllAreasDataType(Enum):
 
 
 class MCIndLinksDataType(Enum):
+    """TODO
+    """
     VALUES = "values"
 
 
@@ -54,11 +60,24 @@ class Frequency(Enum):
 
 @dataclass(frozen=True)
 class XpansionOutputAntares:
+    """Output of Xpansion investment module.
+    
+    Attributes:
+        version: The version of the module used in the simulation.
+    """
     version: str
 
 
 @dataclass(frozen=True)
 class XpansionOutputOptions:
+    """Options of Xpansion output.
+
+    Attributes:
+        log_level:
+        master_name:
+        problem_format:
+        solver_name: Solver used for the resolution of the optimization problem.
+    """
     log_level: int
     master_name: str
     problem_format: str
@@ -67,6 +86,22 @@ class XpansionOutputOptions:
 
 @dataclass(frozen=True)
 class XpansionOutputIteration:
+    """Xpansion output for a given iteration.
+    TODO: check and amend the definitions.
+    
+    Attributes:
+        best_ub: Best upper bound
+        cumulative_number_of_subproblem_resolutions: 
+        investment_cost: Investment cost chosen by the algorithm for this iteration.
+        lb: Lower bound 
+        master_duration: Duration of the master problem resolution.
+        operational_cost: 
+        optimality_gap: Absolute gap between the underestimator and the Antares simulation (`(up - lb) / lb`).
+        overall_cost: 
+        relative_gap: Relative gap 
+        subproblem_duration:
+        ub: Upper bound
+    """
     best_ub: float
     cumulative_number_of_subproblem_resolutions: int
     investment_cost: float
@@ -82,6 +117,18 @@ class XpansionOutputIteration:
 
 @dataclass(frozen=True)
 class XpansionOutputSolution:
+    """Xpansion output solution.
+    
+    Attributes:
+        investment_cost: optimal investment cost found by the algorithm.
+        iteration: Corresponding iteration for the best solution
+        operational_cost: Operational cost TODO: what's inside ?
+        optimality_gap: 
+        overall_cost: Overall cost TODO: what's inside ?
+        problem_status: Problem status.
+        relative_gap: Relative gap between the underestimator and the Antares simulation (`(up - lb) / lb`).
+        stopping_criterion: Stopping criterion for the optimization problem.
+    """
     investment_cost: float
     iteration: int
     operational_cost: float
@@ -94,11 +141,24 @@ class XpansionOutputSolution:
 
 @dataclass(frozen=True)
 class XpansionOutputCandidateInvest:
+    """Xpansion output candidate investment.
+    
+    Attributes:
+        invest: 
+    """
     invest: float
 
 
 @dataclass(frozen=True)
 class XpansionOutputCandidate:
+    """Xpansion output candidate.
+    
+    Attributes:
+        solution:
+        max:
+        min:
+        iterations: List of the output candidate investment for each iteration.
+    """
     solution: float
     max: float
     min: float
@@ -107,7 +167,21 @@ class XpansionOutputCandidate:
 
 @dataclass(frozen=True)
 class XpansionResult:
-    antares: XpansionOutputAntares
+    """Xpansion results.
+    
+    Attributes:
+        antares: XpansionOutputAntares
+        antares_xpansion: XpansionOutputAntares
+        begin: Timestamp of the start of the problem resolution.
+        end: Timestamp of the end of the problem resolution.
+        iterations: Dictionnary of all the iterations of the problem and the corresponding pieces of information.
+        nb_weeks:
+        options: Options for Xpansion module.
+        run_duration: Duration of the problem resolution.
+        solution: Final optimal solution.
+        candidates: Dictionnary of all candidates.
+    """
+    antares: XpansionOutputAntares # strange that it is the same version ?
     antares_xpansion: XpansionOutputAntares
     begin: datetime
     end: datetime
@@ -121,6 +195,14 @@ class XpansionResult:
 
 @dataclass(frozen=True)
 class XpansionOutputCandidateSensitivity:
+    """Xpansion output candidate sensitivity study.
+    
+    Attributes:
+        lb:
+        ub:
+        solution_max:
+        solution_min:
+    """
     lb: float
     ub: float
     solution_max: XpansionOutputCandidateInvest
@@ -129,6 +211,14 @@ class XpansionOutputCandidateSensitivity:
 
 @dataclass(frozen=True)
 class XpansionOutputSensitivitySolution:
+    """Xpansion output sensibility solution.
+    
+    Attributes:
+        objective:
+        problem_type:
+        status:
+        system_cost:
+    """
     objective: float
     problem_type: str
     status: int
@@ -137,6 +227,17 @@ class XpansionOutputSensitivitySolution:
 
 @dataclass(frozen=True)
 class XpansionSensitivityResult:
+    """Xpansion sensitivity results.
+    
+    Attributes:
+        antares:
+        antares_xpansion:
+        best_benders_cost:
+        epsilon:
+        candidates:
+        solution_max:
+        solution_min:    
+    """
     antares: XpansionOutputAntares
     antares_xpansion: XpansionOutputAntares
     best_benders_cost: float
@@ -148,10 +249,10 @@ class XpansionSensitivityResult:
 
 @dataclass
 class AggregationEntry:
-    """
-    Represents an entry for aggregation queries
+    """Represents an entry for aggregation queries
 
     Attributes:
+        data_type:
         frequency: "hourly", "daily", "weekly", "monthly", "annual"
         mc_years: Monte Carlo years to include in the query. If left empty, all years are included.
         type_ids: which links/areas to be selected (ex: "be - fr"). If empty, all are selected
@@ -166,6 +267,8 @@ class AggregationEntry:
 
 
 class Output:
+    """Output of an Antares simulation with/without Xpansion."""
+
     def __init__(self, name: str, archived: bool, output_service: BaseOutputService):
         self._name = name
         self._archived = archived
@@ -173,10 +276,12 @@ class Output:
 
     @property
     def name(self) -> str:
+        """Name of the output."""
         return self._name
 
     @property
     def archived(self) -> bool:
+        """Whether the output is archived or not."""
         return self._archived
 
     def get_mc_all_area(self, frequency: Frequency, data_type: MCAllAreasDataType, area: str) -> pd.DataFrame:
@@ -257,14 +362,14 @@ class Output:
         areas_ids: Optional[list[str]] = None,
         columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
-        """
-        Creates a matrix of aggregated raw data for areas with mc-ind
+        """Creates a matrix of aggregated raw data for areas with mc-ind
 
         Args:
-            data_type: values from McIndAreasDataType
-            frequency: values from Frequency
+            data_type: values from McIndAreasDataType.
+            frequency: values from Frequency.
 
-        Returns: Pandas DataFrame corresponding to the aggregated raw data
+        Returns: 
+            Aggregated raw data.
         """
         aggregation_entry = AggregationEntry(
             data_type=data_type,
@@ -284,14 +389,14 @@ class Output:
         links_ids: Optional[list[tuple[str, str]]] = None,
         columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
-        """
-        Creates a matrix of aggregated raw data for links with mc-ind
+        """Creates a matrix of aggregated raw data for links with mc-ind
 
         Args:
             data_type: values from McIndLinks
             frequency: values from Frequency
 
-        Returns: Pandas DataFrame corresponding to the aggregated raw data
+        Returns:
+            Aggregated raw data
         """
         type_ids = (
             [f"{area_from} - {area_to}" for link_id in links_ids for area_from, area_to in [sorted(link_id)]]
@@ -316,14 +421,14 @@ class Output:
         areas_ids: Optional[list[str]] = None,
         columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
-        """
-        Creates a matrix of aggregated raw data for areas with mc-all
+        """Creates a matrix of aggregated raw data for areas with mc-all
 
         Args:
             data_type: values from McAllAreas
             frequency: values from Frequency
 
-        Returns: Pandas DataFrame corresponding to the aggregated raw data
+        Returns:
+            Aggregated raw data
         """
         aggregation_entry = AggregationEntry(
             data_type=data_type,
@@ -341,14 +446,14 @@ class Output:
         links_ids: Optional[list[tuple[str, str]]] = None,
         columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
-        """
-        Creates a matrix of aggregated raw data for links with mc-all
+        """Creates a matrix of aggregated raw data for links with mc-all
 
         Args:
             data_type: values from McAllLinks
             frequency: values from Frequency
 
-        Returns: Pandas DataFrame corresponding to the aggregated raw data
+        Returns: 
+            Aggregated raw data.
         """
         type_ids = (
             [f"{area_from} - {area_to}" for link_id in links_ids for area_from, area_to in [sorted(link_id)]]
@@ -366,7 +471,17 @@ class Output:
         return self._output_service.aggregate_values(self.name, aggregation_entry, "links", "all")
 
     def get_xpansion_result(self) -> XpansionResult:
+        """
+
+        Returns:
+
+        """
         return self._output_service.get_xpansion_result(self.name)
 
     def get_xpansion_sensitivity_result(self) -> XpansionSensitivityResult:
+        """
+        
+        Returns:
+
+        """
         return self._output_service.get_xpansion_sensitivity_result(self.name)

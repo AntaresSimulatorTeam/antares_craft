@@ -23,13 +23,19 @@ from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_
 
 
 class RenewableClusterGroup(EnumIgnoreCase):
-    """
-    Renewable cluster groups.
+    """Renewable cluster groups.
+    These groups are case insensitive.
 
-    The group can be any one of the following:
-    "Wind Onshore", "Wind Offshore", "Solar Thermal", "Solar PV", "Solar Rooftop",
-    "Other RES 1", "Other RES 2", "Other RES 3", or "Other RES 4".
-    If not specified, the renewable cluster will be part of the group "Other RES 1".
+    Attributes:
+        THERMAL_SOLAR: Thermal solar generation.
+        PV_SOLAR: Photovoltaic solar generation.
+        ROOFTOP_SOLAR: Rooftop solar generation.
+        WIND_ON_SHORE: On shore wind generation.
+        WIND_OFF_SHORE: Off-shore wind generation.
+        OTHER1: Other 1
+        OTHER2: Other 2
+        OTHER3: Other 3
+        OTHER4: Other 4
     """
 
     THERMAL_SOLAR = "solar thermal"
@@ -56,12 +62,12 @@ class RenewableClusterGroup(EnumIgnoreCase):
 
 
 class TimeSeriesInterpretation(Enum):
-    """
-    Timeseries mode:
+    """Timeseries mode.
 
-    - Power generation means that the unit of the timeseries is in MW,
-    - Production factor means that the unit of the timeseries is in p.u.
-      (between 0 and 1, 1 meaning the full installed capacity)
+    Attributes:
+        POWER_GENERATION: Power generation means that the unit of the timeseries is in MW
+        PRODUCTION_FACTOR: Production factor means that the unit of the timeseries is in p.u. 
+            (between 0 and 1, 1 meaning the full installed capacity).
     """
 
     POWER_GENERATION = "power-generation"
@@ -70,17 +76,31 @@ class TimeSeriesInterpretation(Enum):
 
 @dataclass(frozen=True)
 class RenewableClusterProperties(ClusterProperties):
+    """Renewable cluster properties.
+    
+    Attributes:
+        group: 
+        ts_interpretation: Either `power_generation` or `production_factor`.
+    """
     group: str = RenewableClusterGroup.OTHER1.value
     ts_interpretation: TimeSeriesInterpretation = TimeSeriesInterpretation.POWER_GENERATION
 
 
 @dataclass
 class RenewableClusterPropertiesUpdate(ClusterPropertiesUpdate):
+    """Update the renewable cluster properties.
+
+    Attributes:
+        group: 
+        ts_interpretation: Either `power_generation` or `production_factor`.    
+    """
     group: Optional[str] = None
     ts_interpretation: Optional[TimeSeriesInterpretation] = None
 
 
 class RenewableCluster:
+    """Renewable clusters (solar, wind and other types of generation)."""
+
     def __init__(
         self,
         renewable_service: BaseRenewableService,
@@ -96,27 +116,46 @@ class RenewableCluster:
 
     @property
     def area_id(self) -> str:
+        """Area ID."""
         return self._area_id
 
     @property
     def name(self) -> str:
+        """Renewable cluster's name."""
         return self._name
 
     @property
     def id(self) -> str:
+        """Renewable cluster's ID."""
         return self._id
 
     @property
     def properties(self) -> RenewableClusterProperties:
+        """Renewable cluster's properties."""
         return self._properties
 
     def update_properties(self, properties: RenewableClusterPropertiesUpdate) -> RenewableClusterProperties:
+        """Update renewable cluster's properties.
+        
+        Args:
+            properties: Renewable cluster properties to update.
+        """
         new_properties = self._renewable_service.update_renewable_clusters_properties({self: properties})
         self._properties = new_properties[self]
         return self._properties
 
     def get_timeseries(self) -> pd.DataFrame:
+        """Get renewable time-series. TODO
+        
+        Returns:
+            Renewable time-series.
+        """
         return self._renewable_service.get_renewable_matrix(self.id, self.area_id)
 
     def set_series(self, matrix: pd.DataFrame) -> None:
+        """Set renewable time-series. TODO
+        
+        Args:
+            Renewable time-series.
+        """
         self._renewable_service.set_series(self, matrix)

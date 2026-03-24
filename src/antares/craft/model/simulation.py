@@ -16,6 +16,13 @@ from typing import Optional
 
 
 class Solver(Enum):
+    """Name of possible solvers.
+    
+    Attributes:
+        COIN: [Coin](https://github.com/coin-or/Clp) solver .
+        XPRESS: [FICO(r) Xpress Optimization](https://www.fico.com/en/products/fico-xpress-optimization) solver.
+        SIRIUS: [Sirius](https://github.com/AntaresSimulatorTeam/sirius-solver) solver, RTE original solver.
+    """
     COIN = "coin"
     XPRESS = "xpress"
     SIRIUS = "sirius"
