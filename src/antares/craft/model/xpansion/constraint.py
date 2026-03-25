@@ -18,6 +18,13 @@ from antares.craft.tools.contents_tool import EnumIgnoreCase
 
 
 class ConstraintSign(EnumIgnoreCase):
+    """Constraint available signs.
+    
+    Attributes:
+        LESS_OR_EQUAL: "<="
+        GREATER_OR_EQUAL: ">="
+        EQUAL: "=="
+    """
     LESS_OR_EQUAL = "less_or_equal"
     GREATER_OR_EQUAL = "greater_or_equal"
     EQUAL = "equal"
@@ -25,6 +32,14 @@ class ConstraintSign(EnumIgnoreCase):
 
 @dataclass(frozen=True)
 class XpansionConstraint:
+    """Xpansion constraint.
+    
+    Attributes:
+        name: Name of the constraint.
+        sign: Sign of the constraint (`LESS_OR_EQUAL`, `GREATER_OR_EQUAL` or `EQUAL`)
+        right_hand_side: Right hand side of the constraint corresponding to the bound.
+        candidates_coefficients: TODO:
+    """
     name: str
     sign: ConstraintSign
     right_hand_side: float
@@ -33,6 +48,10 @@ class XpansionConstraint:
 
 @dataclass
 class XpansionConstraintUpdate:
+    """Xpansion constraint update.
+    
+    See class [`XpansionConstraint`][antares.craft.model.xpansion.XpansionConstraint] for details about the parameters.
+    """
     name: Optional[str] = None
     sign: Optional[ConstraintSign] = None
     right_hand_side: Optional[float] = None
@@ -42,6 +61,15 @@ class XpansionConstraintUpdate:
 def update_constraint(
     constraint: XpansionConstraint, constraint_update: XpansionConstraintUpdate
 ) -> XpansionConstraint:
+    """Update a Xpansion constraint.
+    
+    Args:
+        constraint: The original constraint.
+        constraint_update: The updated fields to apply on `constraint`.
+
+    Returns:
+        The updated constraint.
+    """
     constraint_dict = asdict(constraint)
     update_dict = {k: v for k, v in asdict(constraint_update).items() if v is not None}
 

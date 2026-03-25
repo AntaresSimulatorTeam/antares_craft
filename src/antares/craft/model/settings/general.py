@@ -17,12 +17,22 @@ from antares.craft.tools.contents_tool import EnumIgnoreCase
 
 
 class Mode(EnumIgnoreCase):
+    """Modes to run the simulation.
+
+    TODO: check if Xpansion is not better as it is the UI name of the mode.
+    
+    Attributes:
+        ECONOMY:
+        ADEQUACY:
+        EXPANSION:
+    """
     ECONOMY = "Economy"
     ADEQUACY = "Adequacy"
     EXPANSION = "Expansion"
 
 
 class Month(EnumIgnoreCase):
+    """Months of the year."""
     JANUARY = "January"
     FEBRUARY = "February"
     MARCH = "March"
@@ -38,6 +48,7 @@ class Month(EnumIgnoreCase):
 
 
 class WeekDay(EnumIgnoreCase):
+    """Week days."""
     MONDAY = "Monday"
     TUESDAY = "Tuesday"
     WEDNESDAY = "Wednesday"
@@ -48,12 +59,17 @@ class WeekDay(EnumIgnoreCase):
 
 
 class BuildingMode(EnumIgnoreCase):
+    """Building modes.
+    
+    TODO: Check what it allows to do. Choose the MC year time-series ?
+    """
     AUTOMATIC = "automatic"
     CUSTOM = "custom"
     DERATED = "derated"
 
 
 class OutputChoices(Enum):
+    """Output choices."""
     LOAD = "load"
     WIND = "wind"
     HYDRO = "hydro"
@@ -66,6 +82,27 @@ class OutputChoices(Enum):
 
 @dataclass(frozen=True)
 class GeneralParameters:
+    """General parameters for the simulation.
+    
+    Attributes:
+        mode: Choice of the simulation mode (economy, adequacy or expansion).
+        horizon: Horizon of the study (static tag, not used in the calculations).
+        nb_years: Number of Monte-Carlo scenarios/years.
+        simulation_start: First day of the simulation in 1, 2, ..., 366.
+        simulation_end: Last day of the simulation in 1, 2, ..., 366.
+        january_first: Choice of the weekday of the year.
+        first_month_in_year: Choice of the first month in the year depending on the type of study.
+        first_week_day: Choice of the first day of the week.
+        leap_year: Whether to decide that the year is a leap year.
+        year_by_year: Whether to enable year-by-year the output profile.
+        simulation_synthesis: Whether there is a simulation synthesis in the output profile.
+        building_mode: Choice of the building mode (`AUTOMATIC`, `CUSTOM` or `DERATED`).
+        user_playlist: 
+        thematic_trimming: Whether to enable thematic trimming.
+        geographic_trimming: Whether to enable geographic trimming.
+        store_new_set: 
+        nb_timeseries_thermal: Number of time-series to be generated stochastically.
+    """
     mode: Mode = Mode.ECONOMY
     horizon: str = ""
     nb_years: int = 1
@@ -87,6 +124,10 @@ class GeneralParameters:
 
 @dataclass
 class GeneralParametersUpdate:
+    """Update general parameters.
+    
+    See field details in [`GeneralParameters`][antares.craft.model.settings.general.GeneralParameters].
+    """
     mode: Optional[Mode] = None
     horizon: Optional[str] = None
     nb_years: Optional[int] = None
