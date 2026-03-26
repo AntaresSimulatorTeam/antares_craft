@@ -1,18 +1,29 @@
-# Antares Craft python library
+# Antares Craft
 
-Antares Craft is an open source python library meant at reading and
-editing [antares-simulator](https://antares-simulator.readthedocs.io/en/stable/) studies
-programmatically.
+**Antares Craft** is an open source python library licensed under [MPL 2.0](https://www.mozilla.org/en-US/MPL/2.0/) 
+meant at reading and editing [Antares](https://antares-simulator.readthedocs.io/en/stable/) studies programmatically. 
 
-## Getting started
+<div class="grid cards" markdown>
 
-To install antares-craft using your usual python package manager, and start using it, please refer to
-the [Getting started](getting-started.md) section.
+-   :material-lightning-bolt:{ .lg .middle } __Easy to Learn__
 
-## User guide
+    ---
+    Leverage the power of Python scripting with intuitive, easy-to-learn functions.
 
-For more in-depth examples, please refer to the [User guide](user-guide.md).
+    [:octicons-arrow-right-24: Getting started](getting-started.md)
 
-## API reference
+-   :material-puzzle:{ .lg .middle } __Seamless Integration__
 
-For detailed documentation of main classes and methods, please refer to the [API reference](api-reference.md).
+    ---
+    Work natively with the Antares Suite for a smooth workflow.
+
+    [:octicons-arrow-right-24: User guide](user-guide.md)
+
+-   :material-robot:{ .lg .middle } __Automate Everything__
+
+    ---
+    Perfect for mass modifications, creating multiple variants, and displaying aggregated data at will.
+
+    [:octicons-arrow-right-24: API reference](api-reference.md)
+
+</div>

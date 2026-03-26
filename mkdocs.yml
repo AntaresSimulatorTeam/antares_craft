@@ -1,5 +1,6 @@
 site_name: Antares Craft
 repo_url: https://github.com/AntaresSimulatorTeam/antares_craft
+edit_uri: edit/main/docs/
 nav:
   - Home: index.md
   - Getting started: getting-started.md
@@ -48,6 +49,7 @@ theme:
     - navigation.top
     - content.tabs.link
     - content.code.copy
+    - content.action.edit
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: antares
@@ -59,6 +61,9 @@ theme:
       toggle:
         icon: material/toggle-switch
         name: Switch to light mode
+  icon:
+    edit: material/pencil 
+    view: material/eye
 
 plugins:
   - search
@@ -97,6 +102,7 @@ markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
   - attr_list
+  - md_in_html
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
