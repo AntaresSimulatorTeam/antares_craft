@@ -73,9 +73,9 @@ class XpansionOutputOptions:
     """Options of Xpansion output.
 
     Attributes:
-        log_level:
-        master_name:
-        problem_format:
+        log_level: Solver's log severity in {0, 1, 2}. TODO: put link to details
+        master_name: TODO: is it a user defined name of the master problem ? 
+        problem_format: TODO: ?
         solver_name: Solver used for the resolution of the optimization problem.
     """
     log_level: int
@@ -87,20 +87,23 @@ class XpansionOutputOptions:
 @dataclass(frozen=True)
 class XpansionOutputIteration:
     """Xpansion output for a given iteration.
-    TODO: check and amend the definitions.
     
     Attributes:
-        best_ub: Best upper bound
-        cumulative_number_of_subproblem_resolutions: 
+        best_ub: Best upper bound on the optimal cost. 
+        cumulative_number_of_subproblem_resolutions: TODO:
         investment_cost: Investment cost chosen by the algorithm for this iteration.
-        lb: Lower bound 
+        lb: The lower bound of the optimal cost which is the solution of the master problem as it is a relaxation of the investment problem.
         master_duration: Duration of the master problem resolution.
-        operational_cost: 
+        operational_cost: TODO: is it ? The yearly output cost of an Antares Simulation for the system with a given investment level. 
         optimality_gap: Absolute gap between the underestimator and the Antares simulation (`(up - lb) / lb`).
-        overall_cost: 
-        relative_gap: Relative gap 
-        subproblem_duration:
-        ub: Upper bound
+        overall_cost: TODO: is it ? The yearly overall cost corresponds to the sum of the operational cost.
+            and the product of the annualized cost per MW and the investment in MW.
+        relative_gap: At each iteration, the algorithm computes upper and lower bounds on the optimal cost. 
+            The algorithm stops as soon as the quantity `(best_upper_bound - best_lower_bound) / max(|best_upper_bound|, |best_lower_bound|)`
+            falls below relative_gap. For a relative gap $\alpha$, the cost of the solution returned by the algorithm satisfies:
+            $$\frac{{\scriptstyle\texttt{xpansion solution cost}} - {\scriptstyle\texttt{optimal cost}}}{{\scriptstyle\texttt{optimal cost}}} < \alpha$$.
+        subproblem_duration: TODO: is it ? Subproblem duration corresponding to the weekly Antares problem.
+        ub: TODO: difference with best upper bound ?
     """
     best_ub: float
     cumulative_number_of_subproblem_resolutions: int
@@ -123,10 +126,13 @@ class XpansionOutputSolution:
         investment_cost: optimal investment cost found by the algorithm.
         iteration: Corresponding iteration for the best solution
         operational_cost: Operational cost TODO: what's inside ?
-        optimality_gap: 
-        overall_cost: Overall cost TODO: what's inside ?
+        optimality_gap: Absolute gap between the underestimator and the Antares simulation (`(up - lb) / lb`).
+        overall_cost: TODO: is it ? The yearly overall cost corresponds to the sum of the operational cost.
         problem_status: Problem status.
-        relative_gap: Relative gap between the underestimator and the Antares simulation (`(up - lb) / lb`).
+        relative_gap: At each iteration, the algorithm computes upper and lower bounds on the optimal cost. 
+            The algorithm stops as soon as the quantity `(best_upper_bound - best_lower_bound) / max(|best_upper_bound|, |best_lower_bound|)`
+            falls below relative_gap. For a relative gap $\alpha$, the cost of the solution returned by the algorithm satisfies:
+            $$\frac{{\scriptstyle\texttt{xpansion solution cost}} - {\scriptstyle\texttt{optimal cost}}}{{\scriptstyle\texttt{optimal cost}}} < \alpha$$.
         stopping_criterion: Stopping criterion for the optimization problem.
     """
     investment_cost: float
@@ -144,7 +150,7 @@ class XpansionOutputCandidateInvest:
     """Xpansion output candidate investment.
     
     Attributes:
-        invest: 
+        invest: Amount of investment for a given candidate.
     """
     invest: float
 
@@ -154,9 +160,9 @@ class XpansionOutputCandidate:
     """Xpansion output candidate.
     
     Attributes:
-        solution:
-        max:
-        min:
+        solution: TODO:
+        max: TODO:
+        min: TODO:
         iterations: List of the output candidate investment for each iteration.
     """
     solution: float
@@ -175,7 +181,7 @@ class XpansionResult:
         begin: Timestamp of the start of the problem resolution.
         end: Timestamp of the end of the problem resolution.
         iterations: Dictionnary of all the iterations of the problem and the corresponding pieces of information.
-        nb_weeks:
+        nb_weeks: TODO:
         options: Options for Xpansion module.
         run_duration: Duration of the problem resolution.
         solution: Final optimal solution.
@@ -198,10 +204,10 @@ class XpansionOutputCandidateSensitivity:
     """Xpansion output candidate sensitivity study.
     
     Attributes:
-        lb:
-        ub:
-        solution_max:
-        solution_min:
+        lb: TODO:
+        ub: TODO:
+        solution_max: TODO:
+        solution_min: TODO:
     """
     lb: float
     ub: float
@@ -214,10 +220,10 @@ class XpansionOutputSensitivitySolution:
     """Xpansion output sensibility solution.
     
     Attributes:
-        objective:
-        problem_type:
-        status:
-        system_cost:
+        objective: TODO:
+        problem_type: TODO:
+        status: TODO:
+        system_cost: TODO:
     """
     objective: float
     problem_type: str
@@ -230,13 +236,13 @@ class XpansionSensitivityResult:
     """Xpansion sensitivity results.
     
     Attributes:
-        antares:
-        antares_xpansion:
-        best_benders_cost:
-        epsilon:
-        candidates:
-        solution_max:
-        solution_min:    
+        antares:TODO:
+        antares_xpansion:TODO:
+        best_benders_cost:TODO:
+        epsilon:TODO:
+        candidates:TODO:
+        solution_max:TODO:
+        solution_min:TODO:
     """
     antares: XpansionOutputAntares
     antares_xpansion: XpansionOutputAntares
@@ -249,14 +255,14 @@ class XpansionSensitivityResult:
 
 @dataclass
 class AggregationEntry:
-    """Represents an entry for aggregation queries
+    """Represent an entry for aggregation queries
 
     Attributes:
-        data_type:
-        frequency: "hourly", "daily", "weekly", "monthly", "annual"
+        data_type: TODO:
+        frequency: "hourly", "daily", "weekly", "monthly", "annual".
         mc_years: Monte Carlo years to include in the query. If left empty, all years are included.
-        type_ids: which links/areas to be selected (ex: "be - fr"). If empty, all are selected
-        columns_names: names or regexes (if data_type is of type details) to select columns
+        type_ids: which links/areas to be selected (ex: "be - fr"). If empty, all are selected.
+        columns_names: names or regexes (if data_type is of type details) to select columns.
     """
 
     data_type: MCAllAreasDataType | MCIndAreasDataType | MCAllLinksDataType | MCIndLinksDataType
@@ -288,9 +294,9 @@ class Output:
         """
 
         Args:
-            frequency: "hourly", "daily", "weekly", "monthly", "annual"
-            data_type: the data-type of mc-all areas
-            area: the area name
+            frequency: "hourly", "daily", "weekly", "monthly", "annual".
+            data_type: the data-type of mc-all areas.
+            area: the area name.
 
         Returns:
 
@@ -304,10 +310,10 @@ class Output:
         """
 
         Args:
-            frequency: "hourly", "daily", "weekly", "monthly", "annual"
-            data_type: the data-type of mc-all links
-            area_from: area_from id
-            area_to: area_to id
+            frequency: "hourly", "daily", "weekly", "monthly", "annual".
+            data_type: the data-type of mc-all links.
+            area_from: area_from id.
+            area_to: area_to id.
 
         Returns:
 
@@ -324,9 +330,9 @@ class Output:
 
         Args:
             mc_year:
-            frequency: "hourly", "daily", "weekly", "monthly", "annual"
-            data_type: the data-type of mc-ind areas
-            area: the area name
+            frequency: "hourly", "daily", "weekly", "monthly", "annual".
+            data_type: the data-type of mc-ind areas.
+            area: the area name.
 
         Returns:
 
@@ -341,10 +347,10 @@ class Output:
 
         Args:
             mc_year:
-            frequency: "hourly", "daily", "weekly", "monthly", "annual"
-            data_type: the data-type of mc-ind links
-            area_from: area_from id
-            area_to: area_to id
+            frequency: "hourly", "daily", "weekly", "monthly", "annual".
+            data_type: the data-type of mc-ind links.
+            area_from: area_from id.
+            area_to: area_to id.
 
         Returns:
 
