@@ -5,6 +5,36 @@ nav:
   - Getting started: getting-started.md
   - User guide: user-guide.md
   - Reference: api-reference.md
+  - API Reference:
+    - api_conf: api-reference/api_conf.md
+    - Model:
+      - area: api-reference/model/area.md
+      - binding_constraint: api-reference/model/binding_constraint.md
+      - cluster: api-reference/model/cluster.md
+      - commons: api-reference/model/commons.md
+      - hydro: api-reference/model/hydro.md
+      - link: api-reference/model/link.md
+      - output: api-reference/model/output.md
+      - renewable: api-reference/model/renewable.md
+      - scenario_builder: api-reference/model/scenario_builder.md
+      - simulation: api-reference/model/simulation.md
+      - st_storage: api-reference/model/st_storage.md
+      - study: api-reference/model/study.md
+      - thermal: api-reference/model/thermal.md
+      - Settings:
+          - adequacy_patch: api-reference/model/settings/adequacy_patch.md
+          - advanced_parameters: api-reference/model/settings/advanced_parameters.md
+          - general: api-reference/model/settings/general.md
+          - optimization: api-reference/model/settings/optimization.md
+          - playlist_parameters: api-reference/model/settings/playlist_parameters.md
+          - study_settings: api-reference/model/settings/study_settings.md
+          - thematic_trimming: api-reference/model/settings/thematic_trimming.md
+      - Xpansion:
+          - candidate: api-reference/model/xpansion/candidate.md
+          - constraint: api-reference/model/xpansion/constraint.md
+          - sensitivity: api-reference/model/xpansion/sensitivity.md
+          - settings: api-reference/model/xpansion/settings.md
+          - xpansion configuration: api-reference/model/xpansion/xpansion_configuration.md
   - Developers: developer.md
   - Changelog: CHANGELOG.md
 
