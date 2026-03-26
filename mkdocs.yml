@@ -44,6 +44,7 @@ theme:
   logo: assets/logo.png
   favicon: assets/Icone.png
   prev_next_buttons_location: none
+  pygments_style: "monokai"
   features:
     - navigation.instant
     - navigation.top
@@ -98,7 +99,11 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.inlinehilite
   - pymdownx.snippets
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.arithmatex:
       generic: true
   - attr_list
