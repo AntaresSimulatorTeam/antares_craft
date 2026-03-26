@@ -31,13 +31,6 @@ class APIconf(BaseConfiguration):
     """
 
     def __init__(self, api_host: str, token: str, verify: bool = True) -> None:
-        """Initialize APIconf with host, token and TLS verification flag.
-
-        Args:
-            api_host: Base URL of the Antares Web API.
-            token: Bearer token for API authentication.
-            verify: Whether to verify the server's TLS certificate. Defaults to `True`.
-        """
         self._api_host: str = api_host
         self._token: str = token
         self._verify: bool = verify
