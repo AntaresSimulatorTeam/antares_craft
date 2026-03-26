@@ -144,7 +144,7 @@ class XpansionOutputOptions:
 
 @dataclass(frozen=True)
 class XpansionOutputIteration:
-    """Xpansion output for a given iteration.
+    r"""Xpansion output for a given iteration.
     
     Attributes:
         best_ub: Best upper bound on the optimal cost. 
@@ -178,7 +178,7 @@ class XpansionOutputIteration:
 
 @dataclass(frozen=True)
 class XpansionOutputSolution:
-    """Xpansion output solution.
+    r"""Xpansion output solution.
     
     Attributes:
         investment_cost: optimal investment cost found by the algorithm.

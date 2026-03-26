@@ -6,3 +6,9 @@ window.MathJax = {
     displayMath: [["\\[", "\\]"], ["$$", "$$"]],
   },
 };
+
+document$.subscribe(() => {
+  MathJax.startup.promise.then(() => {
+    MathJax.typesetPromise();
+  });
+});
