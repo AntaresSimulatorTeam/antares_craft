@@ -3,7 +3,7 @@
 On this page you will find information for getting started quickly with `antares_craft`, together with a brief
 introduction to main features.
 
-## Install it
+## Installing Antares Craft
 
 You can install `antares_craft` using your usual python package manager:
 
@@ -22,12 +22,12 @@ stored in an antares-web application.
 
     Only study versions above 8.8 are currently supported.
 
-### antares-web studies
+### Antares-Web studies
 
 In order to create a study on your antares-web server, you can use the the [
 `create_study_api`][antares.craft.create_study_api] method.
-In order to use it, you will need to define the URL of your server, and provide a token generated in the application in
-order to authenticate:
+You will need to define the URL of your server, and provide a token generated in the application in
+order to authenticate.
 
 ```python
 from antares.craft import APIconf, create_study_api
@@ -38,6 +38,12 @@ study = create_study_api(study_name="my-study",
                          version="8.8",
                          api_config=api_config)
 ```
+
+!!! question "How to generate your personal token?"
+
+    To generate a token, go to :material-cog: **Settings** >  **TOKENS** tab
+    and then click on **CREATE**. Copy the token and store it on your own computer. 
+    Note that you cannot access again an already generated token. 
 
 If you prefer to refer to an existing study, you may use its sibling method, [
 `read_study_api`][antares.craft.read_study_api]:
@@ -50,6 +56,11 @@ api_config = APIconf(api_host="https://antares-web.mydomain",
 study = read_study_api(api_config=api_config,
                        study_id="my-study-id")
 ```
+!!! question "How to get your study ID?"
+
+    In your folder listing all your study, you can copy the study ID from the copy :material-content-copy: icon
+    on the upper right of the study preview. Equivalently, if your study is already open, you can copy the ID by clicking the same icon 
+    on the upper right of the window.
 
 ### Filesystem studies
 
