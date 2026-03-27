@@ -1,10 +1,41 @@
 site_name: Antares Craft
 repo_url: https://github.com/AntaresSimulatorTeam/antares_craft
+edit_uri: edit/main/docs/
 nav:
   - Home: index.md
   - Getting started: getting-started.md
   - User guide: user-guide.md
   - Reference: api-reference.md
+  - API Reference:
+    - api_conf: api-reference/api_conf.md
+    - Model:
+      - area: api-reference/model/area.md
+      - binding_constraint: api-reference/model/binding_constraint.md
+      - cluster: api-reference/model/cluster.md
+      - commons: api-reference/model/commons.md
+      - hydro: api-reference/model/hydro.md
+      - link: api-reference/model/link.md
+      - output: api-reference/model/output.md
+      - renewable: api-reference/model/renewable.md
+      - scenario_builder: api-reference/model/scenario_builder.md
+      - simulation: api-reference/model/simulation.md
+      - st_storage: api-reference/model/st_storage.md
+      - study: api-reference/model/study.md
+      - thermal: api-reference/model/thermal.md
+      - Settings:
+          - adequacy_patch: api-reference/model/settings/adequacy_patch.md
+          - advanced_parameters: api-reference/model/settings/advanced_parameters.md
+          - general: api-reference/model/settings/general.md
+          - optimization: api-reference/model/settings/optimization.md
+          - playlist_parameters: api-reference/model/settings/playlist_parameters.md
+          - study_settings: api-reference/model/settings/study_settings.md
+          - thematic_trimming: api-reference/model/settings/thematic_trimming.md
+      - Xpansion:
+          - candidate: api-reference/model/xpansion/candidate.md
+          - constraint: api-reference/model/xpansion/constraint.md
+          - sensitivity: api-reference/model/xpansion/sensitivity.md
+          - settings: api-reference/model/xpansion/settings.md
+          - xpansion configuration: api-reference/model/xpansion/xpansion_configuration.md
   - Developers: developer.md
   - Changelog: CHANGELOG.md
 
@@ -13,11 +44,13 @@ theme:
   logo: assets/logo.png
   favicon: assets/Icone.png
   prev_next_buttons_location: none
+  # pygments_style: "monokai"
   features:
     - navigation.instant
     - navigation.top
     - content.tabs.link
     - content.code.copy
+    - content.action.edit
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: antares
@@ -29,6 +62,9 @@ theme:
       toggle:
         icon: material/toggle-switch
         name: Switch to light mode
+  icon:
+    edit: material/pencil 
+    view: material/eye
 
 plugins:
   - search
@@ -48,13 +84,26 @@ plugins:
 extra_css:
   - stylesheets/extra.css
 
+extra_javascript:
+  - path: javascripts/mathjax.js
+    defer: true
+  - path: https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+    defer: true
+
 markdown_extensions:
   - admonition
+  - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
-  - pymdownx.details
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
+  - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg

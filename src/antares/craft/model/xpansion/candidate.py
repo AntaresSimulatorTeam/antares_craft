@@ -19,6 +19,14 @@ from antares.craft.tools.contents_tool import EnumIgnoreCase
 
 
 class XpansionLinkProfile(EnumIgnoreCase):
+    """Xpansion link profile types.
+    
+    Attributes:
+        DIRECT_LINK:
+        INDIRECT_LINK:
+        ALREADY_INSTALLED_DIRECT_LINK:
+        ALREADY_INSTALLED_INDIRECT_LINK:
+    """
     DIRECT_LINK = "direct-link-profile"
     INDIRECT_LINK = "indirect-link-profile"
     ALREADY_INSTALLED_DIRECT_LINK = "already-installed-direct-link-profile"
@@ -27,6 +35,26 @@ class XpansionLinkProfile(EnumIgnoreCase):
 
 @dataclass(frozen=True)
 class XpansionCandidate:
+    """Investment candidate in the Xpansion module.
+    
+    Attributes:
+        name: Name of the candidate.
+        area_from: Area from where the link is begins.
+        area_to: Area where the link ends.
+        annual_cost_per_mw: Annual cost of investment in €/MW.
+        already_installed_capacity: Already installed capacity in MW.
+        unit_size: Size of a unit of investment in MW.
+            None if `max_investment` is filled.
+        max_units: Maximum number invesment units.
+            None if `max_investment` is filled.
+        max_investment: Maximum investment possible on this candidate 
+            None if `unit_size` and `max_units` are filled.
+        direct_link_profile: Time-series' filename of the direct link profile.
+        indirect_link_profile: Time-series' filename of the indirect link profile.
+        already_installed_direct_link_profile: Time-series' filename of the already installed direct link profile.
+        already_installed_indirect_link_profile: Time-series' filename of the already installed indirect link profile.
+
+    """
     name: str
     area_from: str
     area_to: str
@@ -47,6 +75,10 @@ class XpansionCandidate:
 
 @dataclass
 class XpansionCandidateUpdate:
+    """Update of a Xpansion candidate.
+    
+    See the class [`XpansionCandidate`][antares.model.xpansion.XpansionCandidate] for details on the parameters.
+    """
     name: Optional[str] = None
     area_from: Optional[str] = None
     area_to: Optional[str] = None
@@ -62,6 +94,7 @@ class XpansionCandidateUpdate:
 
 
 def update_candidate(candidate: XpansionCandidate, candidate_update: XpansionCandidateUpdate) -> XpansionCandidate:
+    """Update a Xpansion candidate (partially or completely)."""
     candidate_dict = asdict(candidate)
     candidate_dict.update({k: v for k, v in asdict(candidate_update).items() if v is not None})
     return XpansionCandidate(**candidate_dict)

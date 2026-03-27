@@ -1,0 +1,1 @@
+::: antares.craft.model.binding_constraint

@@ -24,6 +24,17 @@ STUDY_VERSION_9_3 = StudyVersion.parse("9.3")
 
 
 class FilterOption(Enum):
+    """Enumeration of the available filter options for the output or the synthesis for example.
+
+    This is case sensitive.
+    
+    Attributes:
+        HOURLY: hourly filter
+        DAILY: daily filter
+        WEEKLY: weekly filter
+        MONTHLY: monthly filter
+        ANNUAL: annual filter
+    """
     HOURLY = "hourly"
     DAILY = "daily"
     WEEKLY = "weekly"
@@ -32,6 +43,25 @@ class FilterOption(Enum):
 
 
 def validate_filters(filter_value: list[FilterOption] | str | None) -> list[FilterOption]:
+    """
+    Validates and normalizes a set of filter options.
+
+    This function accepts a list of `FilterOption` enums, a comma-separated string of filter values,
+    or `None`. It validates the input, removes duplicates, and returns a list of valid `FilterOption` enums.
+
+    Args:
+        filter_value: The filter value(s) to validate. Can be:
+            - A list of `FilterOption` enums.
+            - A comma-separated string of filter values (e.g., "hourly, daily").
+            - `None` or an empty string, which will return an empty list.
+
+    Returns:
+        list[FilterOption]: A list of unique, valid `FilterOption` enums. If the input is empty or invalid,
+                            an empty list is returned.
+
+    Raises:
+        FilteringValueError: If any of the provided filter values are not valid `FilterOption` values.
+    """
     if not filter_value:
         return []
     if isinstance(filter_value, str):
@@ -53,6 +83,15 @@ def validate_filters(filter_value: list[FilterOption] | str | None) -> list[Filt
 
 
 def join_with_comma(values: Optional[set[Any]] = None) -> str:
+    """
+    Joins the string values of a set of enums (or other objects with a `value` attribute) into a comma-separated string.
+
+    Args:
+        values: A set of objects with a `value` attribute (e.g., enums). Defaults to `None`.
+
+    Returns:
+        str: A comma-separated string of the sorted values, or an empty string if the input is `None` or empty.
+    """
     if values:
         return ", ".join(sorted(enum.value for enum in values))
     return ""

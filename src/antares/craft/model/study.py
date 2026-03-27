@@ -386,7 +386,7 @@ class Study:
             Output with the output_id
 
         Raises:
-            KeyError if it doesn't exist
+            KeyError: if it doesn't exist
         """
         return self._outputs[output_id]
 

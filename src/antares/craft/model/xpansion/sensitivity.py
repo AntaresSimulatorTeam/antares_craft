@@ -16,6 +16,13 @@ from typing import Optional
 
 @dataclass(frozen=True)
 class XpansionSensitivity:
+    """Xpansion sensitivity parameters.
+    
+    Attributes:
+        epsilon: TODO:
+        projection: TODO:
+        capex: TODO:
+    """
     epsilon: float = 0
     projection: list[str] = field(default_factory=list)
     capex: bool = False
@@ -23,6 +30,10 @@ class XpansionSensitivity:
 
 @dataclass
 class XpansionSensitivityUpdate:
+    """Xpansion sensitivity parameters update.
+    
+    See the class [`XpansionSensitivity`][antares.model.xpansion.XpansionSensitivity] for details about the parameters.
+    """
     epsilon: Optional[float] = None
     projection: Optional[list[str]] = None
     capex: Optional[bool] = None
@@ -31,6 +42,15 @@ class XpansionSensitivityUpdate:
 def update_xpansion_sensitivity(
     sensitivity: XpansionSensitivity, sensitivity_update: XpansionSensitivityUpdate
 ) -> XpansionSensitivity:
+    """Update Xpansion sensitivity parameters.
+    
+    Args:
+        sensitivity: The Xpansion sensitivity parameters.
+        sensitivity_update: The parameters to update and their values.
+
+    Returns:
+        The updated Xpansion sensivity parameters.
+    """
     sensitivity_dict = asdict(sensitivity)
     update_dict = {k: v for k, v in asdict(sensitivity_update).items() if v is not None}
     sensitivity_dict.update(update_dict)
