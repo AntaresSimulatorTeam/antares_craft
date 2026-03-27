@@ -360,7 +360,7 @@ class ThermalCluster:
         """Set $\\ce{CO2}$ cost matrix.
 
         Args:
-            The $\\ce{CO2}$ cost matrix
+            matrix: The $\\ce{CO2}$ cost matrix
         """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES_CO2_COST)
 
@@ -368,6 +368,6 @@ class ThermalCluster:
         """Set fuel cost matrix.
 
         Args:
-            The fuel cost matrix
+            matrix: The fuel cost matrix
         """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES_FUEL_COST)

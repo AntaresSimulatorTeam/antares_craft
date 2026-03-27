@@ -156,6 +156,6 @@ class RenewableCluster:
         """Set renewable time-series. TODO
         
         Args:
-            Renewable time-series.
+            matrix: Renewable time-series.
         """
         self._renewable_service.set_series(self, matrix)

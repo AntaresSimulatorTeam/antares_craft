@@ -64,11 +64,7 @@ class APIconf(BaseConfiguration):
         self._api_host = value
 
     def get_host(self) -> str:
-        """Set the API host URL.
-
-        Args:
-            value: New API host URL.
-        """
+        """Get the API host URL."""
         return self._api_host
 
     def get_token(self) -> str:
