@@ -69,7 +69,7 @@ class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
 def validate_against_version(parameters: AdequacyPatchParametersLocal, version: StudyVersion) -> None:
     if version >= STUDY_VERSION_9_2:
         check_min_version(parameters, "set_to_null_ntc_between_physical_out_for_first_step", version)
-    if version >= STUDY_VERSION_9_3:
+    if version < STUDY_VERSION_9_3:
         check_min_version(parameters, "redispatch", version)
 
 
