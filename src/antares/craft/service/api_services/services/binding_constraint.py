@@ -101,7 +101,8 @@ class BindingConstraintApiService(BaseBindingConstraintService):
             response = self._wrapper.post(base_url, json=body)
             created_properties = response.json()
 
-            for key in ["terms", "id", "name"]:
+            bc_id = created_properties.pop("id")
+            for key in ["terms", "name"]:
                 del created_properties[key]
             api_properties = BindingConstraintPropertiesAPI.model_validate(created_properties)
             bc_properties = api_properties.to_user_model()
@@ -109,7 +110,7 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         except APIError as e:
             raise BindingConstraintCreationError(name, e.message) from e
 
-        constraint = BindingConstraint(name, self, bc_properties, terms)
+        constraint = BindingConstraint(bc_id, name, self, bc_properties, terms)
 
         return constraint
 
