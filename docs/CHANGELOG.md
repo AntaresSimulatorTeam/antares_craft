@@ -1,3 +1,13 @@
+v0.12.1 (2026-03-31)
+-------------------
+
+### Bug fixes
+* **local, link**: remove empty capacities folder inside deletion [`#383`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/383)
+* **local, constraints**: read ids instead of infering based on their names [`#384`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/384)
+
+### Miscellaneous
+* **ci**: add ubuntu GUI for daily ci [`#382`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/382)
+
 v0.12.0 (2026-03-24)
 -------------------
 
