@@ -1531,6 +1531,13 @@ class TestWebClient:
         assert new_trimming.dispatch_gen is True
         assert new_trimming.ov_cost is False
 
+        ####### Other settings #######
+
+        assert study.get_settings().advanced_parameters.accurate_shave_peaks_include_short_term_storage is False
+        updated_settings = AdvancedParametersUpdate(accurate_shave_peaks_include_short_term_storage=True)
+        study.update_settings(StudySettingsUpdate(advanced_parameters=updated_settings))
+        assert study.get_settings().advanced_parameters.accurate_shave_peaks_include_short_term_storage is True
+
         ####### Scenario Builder #######
 
         # Set the nb_years to 4

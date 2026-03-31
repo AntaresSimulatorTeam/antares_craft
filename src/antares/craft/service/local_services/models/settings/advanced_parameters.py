@@ -15,7 +15,7 @@ from typing import Any, Optional
 from pydantic import Field, field_serializer, field_validator
 
 from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
-from antares.craft.model.commons import STUDY_VERSION_9_2, join_with_comma
+from antares.craft.model.commons import STUDY_VERSION_9_2, STUDY_VERSION_9_3, join_with_comma
 from antares.craft.model.settings.advanced_parameters import (
     AdvancedParameters,
     AdvancedParametersUpdate,
@@ -52,8 +52,10 @@ class OtherPreferencesLocal(LocalBaseModel, alias_generator=to_kebab):
     number_of_cores_mode: SimulationCore = SimulationCore.MEDIUM
     renewable_generation_modelling: RenewableGenerationModeling = RenewableGenerationModeling.CLUSTERS
     day_ahead_reserve_management: Any = "global"
-    # Parameters removed since v9.2
+    # Parameter removed since v9.2
     initial_reservoir_levels: Optional[InitialReservoirLevel] = None
+    # Parameter introduced since v9.3
+    accurate_shave_peaks_include_short_term_storage: bool | None = None
 
 
 class AdvancedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
@@ -125,10 +127,6 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
             current_content.update(content)
         return current_content
 
-    @staticmethod
-    def get_9_2_removed_fields_and_default_value() -> dict[str, dict[str, Any]]:
-        return {"other_preferences": {"initial_reservoir_levels": InitialReservoirLevel.COLD_START}}
-
     def to_seed_parameters_model(self) -> SeedParameters:
         return SeedParameters(
             seed_tsgen_thermal=self.seeds.seed_tsgen_thermal,
@@ -151,14 +149,15 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
             number_of_cores_mode=self.other_preferences.number_of_cores_mode,
             renewable_generation_modelling=self.other_preferences.renewable_generation_modelling,
             accuracy_on_correlation=self.advanced_parameters.accuracy_on_correlation,
+            accurate_shave_peaks_include_short_term_storage=self.other_preferences.accurate_shave_peaks_include_short_term_storage,
         )
 
 
 def validate_against_version(parameters: AdvancedAndSeedParametersLocal, version: StudyVersion) -> None:
     if version >= STUDY_VERSION_9_2:
-        for class_field, value in AdvancedAndSeedParametersLocal.get_9_2_removed_fields_and_default_value().items():
-            for field in value:
-                check_min_version(getattr(parameters, class_field), field, version)
+        check_min_version(parameters.other_preferences, "initial_reservoir_levels", version)
+        if version >= STUDY_VERSION_9_3:
+            check_min_version(parameters.other_preferences, "accurate_shave_peaks_include_short_term_storage", version)
     else:
         # We have to check if the used `shedding_policy` was available in the old version
         if parameters.other_preferences.shedding_policy == SheddingPolicy.ACCURATE_SHAVE_PEAKS:
@@ -171,9 +170,11 @@ def initialize_with_version(
     parameters: AdvancedAndSeedParametersLocal, version: StudyVersion
 ) -> AdvancedAndSeedParametersLocal:
     if version < STUDY_VERSION_9_2:
-        for class_field, values in AdvancedAndSeedParametersLocal.get_9_2_removed_fields_and_default_value().items():
-            for field, value in values.items():
-                initialize_field_default(getattr(parameters, class_field), field, value)
+        initialize_field_default(
+            parameters.other_preferences, "initial_reservoir_levels", InitialReservoirLevel.COLD_START
+        )
+    if version >= STUDY_VERSION_9_3:
+        initialize_field_default(parameters.other_preferences, "accurate_shave_peaks_include_short_term_storage", False)
     return parameters
 
 

@@ -28,6 +28,7 @@ from antares.craft import (
     read_study_local,
 )
 from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
+from antares.craft.model.commons import STUDY_VERSION_9_3
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 
@@ -217,3 +218,12 @@ def test_support_the_three_modes(local_study: Study) -> None:
 
         # Asserts we're still able to read the study for the 3 supported modes
         read_study_local(study_path)
+
+
+def test_accurate_shave_peaks_include_sts(local_study: Study, local_study_93: Study) -> None:
+    for study in (local_study, local_study_93):
+        version = study._version
+        if version < STUDY_VERSION_9_3:
+            assert study.get_settings().advanced_parameters.accurate_shave_peaks_include_short_term_storage is None
+        else:
+            assert study.get_settings().advanced_parameters.accurate_shave_peaks_include_short_term_storage is False
