@@ -3,8 +3,8 @@ repo_url: https://github.com/AntaresSimulatorTeam/antares_craft
 edit_uri: edit/main/docs/
 nav:
   - Home: index.md
-  - Getting started: getting-started.md
-  - User guide: user-guide.md
+  - Getting Started: getting-started.md
+  - Antares Craft by Example: antares-craft-examples.md
   - Reference: api-reference.md
   - API Reference:
     - api_conf: api-reference/api_conf.md

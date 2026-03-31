@@ -17,7 +17,7 @@ meant at reading and editing [Antares](https://antares-simulator.readthedocs.io/
     ---
     Work natively with the Antares Suite for a smooth workflow.
 
-    [:octicons-arrow-right-24: User guide](user-guide.md)
+    [:octicons-arrow-right-24: Antares Craft by Example](antares-craft-examples.md)
 
 -   :material-robot:{ .lg .middle } __Automate Everything__
 

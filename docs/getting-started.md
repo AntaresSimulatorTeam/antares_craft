@@ -103,33 +103,3 @@ area_properties = AreaProperties(energy_cost_unsupplied=10)
 study.create_area("fr", area_properties)
 ```
 
-## Add areas
-
-Let's add for example 3 areas "fr", "de" and "be" with various positions on the map. 
-You can also decide deterministically the node position on the map.
-
-``` py 
-fr_properties = craft.AreaProperties(energy_cost_unsupplied=3000, spread_spilled_energy_cost=43.2)
-ui_fr = craft.AreaUi(x=10, y=-30, color_rgb=[11, 0, 255])
-area_fr = study.create_area("FR", properties=fr_properties, ui=ui_fr)
-
-other_properties = craft.AreaProperties(energy_cost_unsupplied=3000, filter_by_year={craft.FilterOption.ANNUAL}, filter_synthesis={craft.FilterOption.HOURLY})
-generator = np.random.default_rng(1000)
-for area_name in ["be", "de"]:
-    x = generator.integers(-100, 100)
-    y = generator.integers(-100, 100)
-    color= generator.integers(0, 255)
-    ui = craft.AreaUi(x=x, y=y, color_rgb=[color, color // 2, color // 3])
-    area = study.create_area(area_name, properties=other_properties, ui=ui)
-    print(f"Area {area.id} successfully created")
-```
-
-## Create a binding constraint between two links
-
-Let's assume that the flow between Belgium -> France should be equal to the flow Belgium -> Germany. You can create a binding constraint like this:
-
-```python
-term1 = craft.ConstraintTerm(weight=1, data=craft.LinkData(area1="be", area2="fr"))
-term2 = craft.ConstraintTerm(weight=-1, data=craft.LinkData(area1="be", area2="de"))
-study.create_binding_constraint(name="bc1", terms=[term1, term2])
-```
