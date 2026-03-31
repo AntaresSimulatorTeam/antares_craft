@@ -52,8 +52,10 @@ class OtherPreferencesLocal(LocalBaseModel, alias_generator=to_kebab):
     number_of_cores_mode: SimulationCore = SimulationCore.MEDIUM
     renewable_generation_modelling: RenewableGenerationModeling = RenewableGenerationModeling.CLUSTERS
     day_ahead_reserve_management: Any = "global"
-    # Parameters removed since v9.2
+    # Parameter removed since v9.2
     initial_reservoir_levels: Optional[InitialReservoirLevel] = None
+    # Parameter introduced since v9.3
+    accurate_shave_peaks_include_short_term_storage: bool | None = None
 
 
 class AdvancedParametersLocal(LocalBaseModel, alias_generator=to_kebab):
@@ -151,6 +153,7 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
             number_of_cores_mode=self.other_preferences.number_of_cores_mode,
             renewable_generation_modelling=self.other_preferences.renewable_generation_modelling,
             accuracy_on_correlation=self.advanced_parameters.accuracy_on_correlation,
+            accurate_shave_peaks_include_short_term_storage=self.other_preferences.accurate_shave_peaks_include_short_term_storage,
         )
 
 

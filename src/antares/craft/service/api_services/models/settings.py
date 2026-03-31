@@ -141,6 +141,7 @@ class AdvancedAndSeedParametersAPI(APIBaseModel):
     seed_thermal_costs: int | None = None
     seed_hydro_costs: int | None = None
     seed_initial_reservoir_levels: int | None = None
+    accurate_shave_peaks_include_short_term_storage: bool | None = None
 
     @field_validator("accuracy_on_correlation", mode="before")
     def validate_accuracy_on_correlation(cls, v: Any) -> Sequence[str] | set[str]:
@@ -171,6 +172,7 @@ class AdvancedAndSeedParametersAPI(APIBaseModel):
             renewable_generation_modelling=check_field_is_not_null(self.renewable_generation_modelling),
             accuracy_on_correlation=check_field_is_not_null(self.accuracy_on_correlation),
             initial_reservoir_levels=self.initial_reservoir_levels,
+            accurate_shave_peaks_include_short_term_storage=self.accurate_shave_peaks_include_short_term_storage,
         )
 
     def to_user_seed_parameters_model(self) -> SeedParameters:
