@@ -54,7 +54,7 @@ class OtherPreferencesLocal(LocalBaseModel, alias_generator=to_kebab):
     day_ahead_reserve_management: Any = "global"
     # Parameter removed since v9.2
     initial_reservoir_levels: Optional[InitialReservoirLevel] = None
-    # Parameter introduced since v9.3
+    # Parameter introduced in v9.3
     accurate_shave_peaks_include_short_term_storage: bool | None = None
 
 

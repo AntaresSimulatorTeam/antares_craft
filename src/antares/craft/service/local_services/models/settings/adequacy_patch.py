@@ -12,7 +12,7 @@
 from dataclasses import asdict
 from typing import Any, Optional
 
-from antares.craft.model.commons import STUDY_VERSION_9_2
+from antares.craft.model.commons import STUDY_VERSION_9_2, STUDY_VERSION_9_3
 from antares.craft.model.settings.adequacy_patch import (
     AdequacyPatchParameters,
     AdequacyPatchParametersUpdate,
@@ -38,10 +38,7 @@ class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     enable_first_step: bool = False
     # Parameters removed since v9.2
     set_to_null_ntc_between_physical_out_for_first_step: Optional[bool] = None
-
-    @staticmethod
-    def get_9_2_removed_fields_and_default_value() -> dict[str, Any]:
-        return {"set_to_null_ntc_between_physical_out_for_first_step": True}
+    redispatch: Optional[bool] = None
 
     @staticmethod
     def from_user_model(user_class: AdequacyPatchParametersType) -> "AdequacyPatchParametersLocal":
@@ -69,16 +66,18 @@ class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
 
 def validate_against_version(parameters: AdequacyPatchParametersLocal, version: StudyVersion) -> None:
     if version >= STUDY_VERSION_9_2:
-        for field in AdequacyPatchParametersLocal.get_9_2_removed_fields_and_default_value():
-            check_min_version(parameters, field, version)
+        check_min_version(parameters, "set_to_null_ntc_between_physical_out_for_first_step", version)
+    if version >= STUDY_VERSION_9_3:
+        check_min_version(parameters, "redispatch", version)
 
 
 def initialize_with_version(
     parameters: AdequacyPatchParametersLocal, version: StudyVersion
 ) -> AdequacyPatchParametersLocal:
     if version < STUDY_VERSION_9_2:
-        for field, value in AdequacyPatchParametersLocal.get_9_2_removed_fields_and_default_value().items():
-            initialize_field_default(parameters, field, value)
+        initialize_field_default(parameters, "set_to_null_ntc_between_physical_out_for_first_step", True)
+    if version >= STUDY_VERSION_9_3:
+        initialize_field_default(parameters, "redispatch", False)
     return parameters
 
 
