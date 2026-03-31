@@ -36,8 +36,9 @@ class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
     threshold_display_local_matching_rule_violations: int = 0
     threshold_csr_variable_bounds_relaxation: int = 7
     enable_first_step: bool = False
-    # Parameters removed since v9.2
+    # Parameter removed since v9.2
     set_to_null_ntc_between_physical_out_for_first_step: Optional[bool] = None
+    # Parameter introduced in v9.3
     redispatch: Optional[bool] = None
 
     @staticmethod
@@ -61,6 +62,7 @@ class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
             threshold_initiate_curtailment_sharing_rule=self.threshold_initiate_curtailment_sharing_rule,
             threshold_display_local_matching_rule_violations=self.threshold_display_local_matching_rule_violations,
             threshold_csr_variable_bounds_relaxation=self.threshold_csr_variable_bounds_relaxation,
+            redispatch=self.redispatch,
         )
 
 

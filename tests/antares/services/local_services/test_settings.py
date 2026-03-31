@@ -220,10 +220,12 @@ def test_support_the_three_modes(local_study: Study) -> None:
         read_study_local(study_path)
 
 
-def test_accurate_shave_peaks_include_sts(local_study: Study, local_study_93: Study) -> None:
+def test_version_93_fields(local_study: Study, local_study_93: Study) -> None:
     for study in (local_study, local_study_93):
         version = study._version
         if version < STUDY_VERSION_9_3:
             assert study.get_settings().advanced_parameters.accurate_shave_peaks_include_short_term_storage is None
+            assert study.get_settings().adequacy_patch_parameters.redispatch is None
         else:
             assert study.get_settings().advanced_parameters.accurate_shave_peaks_include_short_term_storage is False
+            assert study.get_settings().adequacy_patch_parameters.redispatch is False
