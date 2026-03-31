@@ -1538,6 +1538,11 @@ class TestWebClient:
         study.update_settings(StudySettingsUpdate(advanced_parameters=updated_settings))
         assert study.get_settings().advanced_parameters.accurate_shave_peaks_include_short_term_storage is True
 
+        assert study.get_settings().adequacy_patch_parameters.redispatch is False
+        updated_settings = AdequacyPatchParametersUpdate(redispatch=True)
+        study.update_settings(StudySettingsUpdate(adequacy_patch_parameters=updated_settings))
+        assert study.get_settings().adequacy_patch_parameters.redispatch is True
+
         ####### Scenario Builder #######
 
         # Set the nb_years to 4

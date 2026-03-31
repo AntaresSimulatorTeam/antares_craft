@@ -71,6 +71,7 @@ class AdequacyPatchParametersAPI(APIBaseModel):
     threshold_initiate_curtailment_sharing_rule: int | None = None
     threshold_display_local_matching_rule_violations: int | None = None
     threshold_csr_variable_bounds_relaxation: int | None = None
+    redispatch: bool | None = None
 
     @staticmethod
     def from_user_model(user_class: AdequacyPatchParametersType) -> "AdequacyPatchParametersAPI":
@@ -103,6 +104,7 @@ class AdequacyPatchParametersAPI(APIBaseModel):
                 self.threshold_csr_variable_bounds_relaxation
             ),
             set_to_null_ntc_between_physical_out_for_first_step=self.ntc_between_physical_areas_out_adequacy_patch,
+            redispatch=self.redispatch,
         )
 
 

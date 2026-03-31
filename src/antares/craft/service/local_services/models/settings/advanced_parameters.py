@@ -54,7 +54,7 @@ class OtherPreferencesLocal(LocalBaseModel, alias_generator=to_kebab):
     day_ahead_reserve_management: Any = "global"
     # Parameter removed since v9.2
     initial_reservoir_levels: Optional[InitialReservoirLevel] = None
-    # Parameter introduced since v9.3
+    # Parameter introduced in v9.3
     accurate_shave_peaks_include_short_term_storage: bool | None = None
 
 
@@ -156,14 +156,14 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
 def validate_against_version(parameters: AdvancedAndSeedParametersLocal, version: StudyVersion) -> None:
     if version >= STUDY_VERSION_9_2:
         check_min_version(parameters.other_preferences, "initial_reservoir_levels", version)
-        if version >= STUDY_VERSION_9_3:
-            check_min_version(parameters.other_preferences, "accurate_shave_peaks_include_short_term_storage", version)
     else:
         # We have to check if the used `shedding_policy` was available in the old version
         if parameters.other_preferences.shedding_policy == SheddingPolicy.ACCURATE_SHAVE_PEAKS:
             raise InvalidFieldForVersionError(
                 f"Shedding policy should be `shave peaks` or `minimize duration` and was '{parameters.other_preferences.shedding_policy.value}'"
             )
+    if version < STUDY_VERSION_9_3:
+        check_min_version(parameters.other_preferences, "accurate_shave_peaks_include_short_term_storage", version)
 
 
 def initialize_with_version(
