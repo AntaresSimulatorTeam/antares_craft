@@ -238,7 +238,7 @@ def _read_binding_constraints(
     bcs_api = body["bindingConstraints"]
     for bc_api in bcs_api:
         constraint_name = bc_api.pop("name")
-        del bc_api["id"]
+        bc_id = bc_api.pop("id")
 
         api_terms = bc_api.pop("terms")
         api_properties = BindingConstraintPropertiesAPI.model_validate(bc_api)
@@ -249,7 +249,7 @@ def _read_binding_constraints(
             term_data = ConstraintTermData.from_dict(api_term["data"])
             terms.append(ConstraintTerm(weight=api_term["weight"], offset=api_term.get("offset", 0), data=term_data))
 
-        bc = BindingConstraint(constraint_name, bc_service, bc_properties, terms)
+        bc = BindingConstraint(bc_id, constraint_name, bc_service, bc_properties, terms)
         constraints[bc.id] = bc
 
     return constraints

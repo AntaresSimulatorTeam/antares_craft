@@ -202,7 +202,7 @@ class TestBindingConstraints:
         # end replacing
 
     def test_set_constraint_terms_fail_existing_constraint(self, local_study_w_constraints: Study) -> None:
-        bc = BindingConstraint("bc", local_study_w_constraints._binding_constraints_service)
+        bc = BindingConstraint("bc", "bc", local_study_w_constraints._binding_constraints_service)
         study_name = local_study_w_constraints.name
 
         with pytest.raises(

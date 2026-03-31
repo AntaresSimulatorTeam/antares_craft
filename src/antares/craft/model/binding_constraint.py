@@ -17,7 +17,7 @@ import pandas as pd
 
 from antares.craft.model.commons import FILTER_VALUES, FilterOption
 from antares.craft.service.base_services import BaseBindingConstraintService
-from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
+from antares.craft.tools.contents_tool import EnumIgnoreCase
 
 
 class BindingConstraintFrequency(EnumIgnoreCase):
@@ -122,6 +122,7 @@ class BindingConstraintProperties:
 class BindingConstraint:
     def __init__(
         self,
+        bc_id: str,
         name: str,
         binding_constraint_service: BaseBindingConstraintService,
         properties: Optional[BindingConstraintProperties] = None,
@@ -129,7 +130,7 @@ class BindingConstraint:
     ):
         self._name = name
         self._binding_constraint_service = binding_constraint_service
-        self._id = transform_name_to_id(name)
+        self._id = bc_id
         self._properties = properties or BindingConstraintProperties()
         self._terms = {term.id: term for term in terms} if terms else {}
 

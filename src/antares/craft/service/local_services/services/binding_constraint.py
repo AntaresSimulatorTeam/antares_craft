@@ -121,6 +121,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
     ) -> BindingConstraint:
         properties = properties or BindingConstraintProperties()
         constraint = BindingConstraint(
+            bc_id=transform_name_to_id(name),
             name=name,
             binding_constraint_service=self,
             properties=properties,
@@ -283,7 +284,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         current_ini_content = self.read_ini()
         for constraint in current_ini_content.values():
             name = constraint.pop("name")
-            del constraint["id"]
+            bc_id = constraint.pop("id")
 
             # Separate properties from terms
             properties_fields = BindingConstraintPropertiesLocal().model_dump(by_alias=True)  # type: ignore
@@ -311,7 +312,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
                 term = ConstraintTerm(weight=float(weight), offset=int(offset), data=term_data)
                 terms.append(term)
 
-            bc = BindingConstraint(name=name, binding_constraint_service=self, properties=properties, terms=terms)
+            bc = BindingConstraint(bc_id, name, binding_constraint_service=self, properties=properties, terms=terms)
             constraints[bc.id] = bc
 
         return constraints
