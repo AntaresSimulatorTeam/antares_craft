@@ -116,8 +116,12 @@ class LinkLocalService(BaseLinkService):
         # Remove the matrices
         folder_path = self.config.study_path / "input" / "links" / link.area_from_id
         (folder_path / f"{link.area_to_id}_parameters.txt").unlink()
-        (folder_path / "capacities" / f"{link.area_to_id}_direct.txt").unlink()
-        (folder_path / "capacities" / f"{link.area_to_id}_indirect.txt").unlink()
+        capacities_folder = folder_path / "capacities"
+        (capacities_folder / f"{link.area_to_id}_direct.txt").unlink()
+        (capacities_folder / f"{link.area_to_id}_indirect.txt").unlink()
+        # If the capacities folder is empty, remove it
+        if not any(capacities_folder.iterdir()):
+            capacities_folder.rmdir()
 
         # Clean the scenario-builder
         def clean_link(symbol: str, parts: list[str]) -> bool:
