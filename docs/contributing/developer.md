@@ -29,13 +29,10 @@ Then, unzip it at the root of this repository and rename the folder `AntaresWebD
 To use [tox](https://tox.wiki/) to run unit tests in multiple python versions at the same time as linting and formatting
 with ruff and typing with mypy:
 
-1) As the dev requirements include [uv](https://docs.astral.sh/uv/) and `tox-uv` there is no need to install python
+1. As the dev requirements include [uv](https://docs.astral.sh/uv/) and `tox-uv` there is no need to install python
    versions, `uv` will do this for you.
-2) Use `tox -p` to run the environments in parallel to save time, this will create virtual environment with the
+
+2. Use `tox -p` to run the environments in parallel to save time, this will create virtual environment with the
    necessary python versions the first time you run tox.
 
-## Documentation
 
-1) To preview the docs on your local machine run `mkdocs serve`.
-2) To build the static site for publishing for example on [Read the Docs](https://readthedocs.io) use `mkdocs build`.
-3) To flesh out the documentation see [mkdoc guides](https://www.mkdocs.org/user-guide/).
