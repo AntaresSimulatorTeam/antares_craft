@@ -153,8 +153,10 @@ class TestLink:
 
         # Asserts the matrices do not exist anymore
         assert not (link_folder_path / f"{link.area_to_id}_parameters.txt").exists()
-        assert not (link_folder_path / "capacities" / f"{link.area_to_id}_direct.txt").exists()
-        assert not (link_folder_path / "capacities" / f"{link.area_to_id}_indirect.txt").exists()
+        capacities_folder = link_folder_path / "capacities"
+        assert not (capacities_folder / f"{link.area_to_id}_direct.txt").exists()
+        assert not (capacities_folder / f"{link.area_to_id}_indirect.txt").exists()
+        assert capacities_folder.exists()  # As there are other links for area `at`
 
         with pytest.raises(LinkDeletionError, match=re.escape("Could not delete the link 'at / fr': it doesn't exist")):
             local_study_w_links.delete_link(link)
@@ -175,3 +177,15 @@ class TestLink:
             match="Link 'at / fr' is not allowed to be deleted, because it is referenced in the following binding constraints:\n1- 'bc 1'",
         ):
             local_study_w_links.delete_link(link)
+
+    def test_deletion_capacities_folder(self, local_study_w_areas: Study) -> None:
+        area_from, area_to = "fr", "it"
+        link = local_study_w_areas.create_link(area_from=area_from, area_to=area_to)
+        local_study_w_areas.delete_link(link)
+        # Asserts the link folder only contains an empty .ini file
+        link_folder_path = Path(local_study_w_areas.path) / "input" / "links" / area_from
+        assert link_folder_path.exists()
+        files = list(link_folder_path.iterdir())
+        assert len(files) == 1
+        assert files[0].name == "properties.ini"
+        assert (link_folder_path / "properties.ini").read_text().splitlines() == []

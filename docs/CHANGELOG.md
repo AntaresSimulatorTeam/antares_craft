@@ -1,3 +1,20 @@
+v0.12.2 (2026-03-31)
+-------------------
+
+### Bug fixes
+* **settings**: support v9.3 adequacy patch field `redispatch` [`#387`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/387)
+* **settings**: support v9.3 field `accurate_shave_peaks_include_short_term_storage` [`#388`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/388)
+
+v0.12.1 (2026-03-31)
+-------------------
+
+### Bug fixes
+* **local, link**: remove empty capacities folder inside deletion [`#383`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/383)
+* **local, constraints**: read ids instead of infering based on their names [`#384`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/384)
+
+### Miscellaneous
+* **ci**: add ubuntu GUI for daily ci [`#382`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/382)
+
 v0.12.0 (2026-03-24)
 -------------------
 

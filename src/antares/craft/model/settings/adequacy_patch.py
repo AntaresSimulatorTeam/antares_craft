@@ -55,8 +55,10 @@ class AdequacyPatchParameters:
     threshold_initiate_curtailment_sharing_rule: int = 1
     threshold_display_local_matching_rule_violations: int = 0
     threshold_csr_variable_bounds_relaxation: int = 7
-    # Parameters removed since v9.2
-    set_to_null_ntc_between_physical_out_for_first_step: Optional[bool] = None  # was True in v8.8
+    # Parameter removed since v9.2
+    set_to_null_ntc_between_physical_out_for_first_step: bool | None = None  # was True in v8.8
+    # Parameter introduced in v9.3
+    redispatch: bool | None = None
 
 
 @dataclass
@@ -74,3 +76,4 @@ class AdequacyPatchParametersUpdate:
     threshold_initiate_curtailment_sharing_rule: Optional[int] = None
     threshold_display_local_matching_rule_violations: Optional[int] = None
     threshold_csr_variable_bounds_relaxation: Optional[int] = None
+    redispatch: Optional[bool] = None

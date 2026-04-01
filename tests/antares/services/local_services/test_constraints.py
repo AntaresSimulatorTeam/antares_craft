@@ -33,6 +33,7 @@ from antares.craft.model.binding_constraint import (
 )
 from antares.craft.service.local_services.factory import read_study_local
 from antares.craft.tools.serde_local.ini_reader import IniReader
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 
 
 class TestBindingConstraints:
@@ -202,7 +203,7 @@ class TestBindingConstraints:
         # end replacing
 
     def test_set_constraint_terms_fail_existing_constraint(self, local_study_w_constraints: Study) -> None:
-        bc = BindingConstraint("bc", local_study_w_constraints._binding_constraints_service)
+        bc = BindingConstraint("bc", "bc", local_study_w_constraints._binding_constraints_service)
         study_name = local_study_w_constraints.name
 
         with pytest.raises(
@@ -297,5 +298,12 @@ class TestBindingConstraints:
         bc.update_properties(new_properties)
         # Check the matrices were swapped accordingly
         assert bc.get_less_term_matrix().equals(default_matrix)
-        assert bc.get_less_term_matrix().equals(default_matrix)
+        assert bc.get_greater_term_matrix().equals(default_matrix)
         assert bc.get_equal_term_matrix().equals(matrix)
+
+    def test_read_constraint_ids(self, local_study: Study) -> None:
+        study_path = Path(local_study.path)
+        ini_path = study_path / "input" / "bindingconstraints" / "bindingconstraints.ini"
+        IniWriter().write({"0": {"id": "myId", "name": "bcName"}}, ini_path)
+        study = read_study_local(study_path)
+        assert list(study.get_binding_constraints().keys()) == ["myId"]
