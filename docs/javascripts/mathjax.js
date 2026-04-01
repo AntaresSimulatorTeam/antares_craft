@@ -4,11 +4,18 @@ window.MathJax = {
     packages: {'[+]': ['mhchem']},
     inlineMath: [["\\(", "\\)"], ["$", "$"]],
     displayMath: [["\\[", "\\]"], ["$$", "$$"]],
+    processEscapes: true,
+    processEnvironments: true
   },
+  options: {
+    ignoreHtmlClass: ".*|",
+    processHtmlClass: "arithmatex"
+  }
 };
 
-document$.subscribe(() => {
-  MathJax.startup.promise.then(() => {
-    MathJax.typesetPromise();
-  });
-});
+document$.subscribe(() => { 
+  MathJax.startup.output.clearCache()
+  MathJax.typesetClear()
+  MathJax.texReset()
+  MathJax.typesetPromise()
+})

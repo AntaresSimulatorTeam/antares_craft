@@ -9,7 +9,7 @@ nav:
   - Getting started: getting-started.md
   - Examples: antares-craft-examples.md
   - Reference: api-reference.md
-  - API reference:
+  - Reference:
     - Configuration: api-reference/api_conf.md
     - Study: api-reference/model/study.md
     - Objects of modelling:
@@ -17,8 +17,8 @@ nav:
       - Link: api-reference/model/link.md
       - Clusters: api-reference/model/cluster.md
       - Thermal: api-reference/model/thermal.md
-      - Hydro: api-reference/model/hydro.md
       - Renewables: api-reference/model/renewable.md
+      - Hydro: api-reference/model/hydro.md
       - Short-Term Storage: api-reference/model/st_storage.md
       - Binding constraints: api-reference/model/binding_constraint.md
       - Commons: api-reference/model/commons.md
@@ -39,7 +39,9 @@ nav:
       - Settings: api-reference/model/xpansion/settings.md
       - Xpansion configuration: api-reference/model/xpansion/xpansion_configuration.md
     - Output: api-reference/model/output.md
-  - Developers: developer.md
+  - Contributing:
+    - To the documentation: contributing/doc.md
+    - To the code: contributing/developer.md
   - Changelog: CHANGELOG.md
 
 theme:
@@ -54,6 +56,7 @@ theme:
     - content.tabs.link
     - content.code.copy
     - content.action.edit
+    - content.action.view
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: antares
@@ -65,9 +68,9 @@ theme:
       toggle:
         icon: material/toggle-switch
         name: Switch to light mode
-  icon:
-    edit: material/pencil 
-    view: material/eye
+  # icon:
+  #   edit: material/pencil 
+  #   view: material/eye
 
 plugins:
   - search
@@ -124,10 +127,9 @@ extra_css:
   - stylesheets/extra.css
 
 extra_javascript:
-  - path: javascripts/mathjax.js
-    defer: true
-  - path: https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
-    defer: true
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
   - https://viewer.diagrams.net/js/viewer-static.min.js
   - javascripts/drawio-reload.js
 
