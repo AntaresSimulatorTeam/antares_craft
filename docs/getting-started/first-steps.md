@@ -85,35 +85,6 @@ from antares.craft import read_study_local
 study = read_study_local(study_path="/path/to/my/study")
 ```
 
-## Notes on using `antares_craft` package
+## More examples
 
-The Antares Craft package closely relates to Antares-Web interface allowing not to guess how things are named.
-
-The package follows a an Object-Oriented Programming (OOP) architecture. Information is grouped by classes 
-(named in the `CamelCase` convention) that are composed by:
-
-- attributes to store values, parameter strings, paths to files or even other classes
-- methods to perform actions on these attributes
-
-However, there are a handful of functions that can be used by the user: 
-
-- [create_study_api][antares.craft.create_study_api]
-- [read_study_api][antares.craft.read_study_api]
-- [import_study_api][antares.craft.import_study_api]
-- [create_study_local][antares.craft.create_study_local]
-- [read_study_local][antares.craft.read_study_local]
-
-When you have in the UI some dropdown menus with multiple choices, there is generally a corresponding class
-called an enumeration (`Enum`). You can access either option by using `.` and the name of the option in uppercase 
-such as `Enum.OPTION1`.
-
-Generally, to aggregate some parameters, there are some classes `XxxxProperties` and `XxxxPropertiesUpdate`. 
-The second one differs only because all parameters field are optional. 
-Moreover, all classes are not meant to be modified by the user. As some provides only default parameters. 
-
-The architecture of the software is schematized in the following diagram with all the classes and enums 
-accessible by the user when using `from antares.craft import *`.
-
-INSERT DIAGRAM
-
-
+To see more examples check the page [Antares Craft by Example](../antares-craft-examples.md)

@@ -1,0 +1,36 @@
+<mxfile host="65bd71144e">
+    <diagram id="X_gec4wPsvqEWsBGBUiC" name="Page-1">
+        <mxGraphModel dx="-1108" dy="-2362" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="340" value="Simulation Parameters" style="swimlane;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" parent="1" vertex="1">
+                    <mxGeometry x="2120" y="3240" width="440" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="348" style="edgeStyle=none;shape=connector;curved=0;rounded=0;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="340" source="82" target="81" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="340" y="55"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="82" value="AntaresSimulationParametersLocal" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="340" vertex="1">
+                    <mxGeometry x="40" y="40" width="210" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="349" style="edgeStyle=none;shape=connector;curved=0;rounded=0;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;" parent="340" source="83" target="81" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="340" y="135"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="83" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;AntaresSimulationParametersAPI&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="340" vertex="1">
+                    <mxGeometry x="40" y="120" width="210" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="81" value="Solver" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="340" vertex="1">
+                    <mxGeometry x="280" y="80" width="120" height="30" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

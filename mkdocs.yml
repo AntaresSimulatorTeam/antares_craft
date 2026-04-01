@@ -3,6 +3,9 @@ repo_url: https://github.com/AntaresSimulatorTeam/antares_craft
 edit_uri: edit/main/docs/
 nav:
   - Home: index.md
+  - Getting Started:
+    - First Steps: getting-started/first-steps.md
+    - Package Architecture: getting-started/architecture.md
   - Getting Started: getting-started.md
   - Antares Craft by Example: antares-craft-examples.md
   - Reference: api-reference.md
@@ -80,6 +83,7 @@ plugins:
             show_signature: true
             show_signature_annotations: false
             separate_signature: true
+  - drawio
 
 extra_css:
   - stylesheets/extra.css
@@ -89,6 +93,8 @@ extra_javascript:
     defer: true
   - path: https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
     defer: true
+  - https://viewer.diagrams.net/js/viewer-static.min.js
+  - javascripts/drawio-reload.js
 
 markdown_extensions:
   - admonition
