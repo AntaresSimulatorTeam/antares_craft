@@ -65,7 +65,7 @@ class XpansionSolver(EnumIgnoreCase):
 
 @dataclass(frozen=True)
 class XpansionSettings:
-    r"""Xpansion settings
+    r"""Xpansion settings.
     
     Attributes:
         master: Master problem parameter for the treatment of integers (`INTEGER` or `RELAXED`)
@@ -118,9 +118,39 @@ class XpansionSettings:
 
 @dataclass
 class XpansionSettingsUpdate:
-    """Xpansion settings update.
+    r"""Xpansion settings update.
     
-    See the class [`XpansionSettings`][antares.model.xpansion.XpansionSettings] for details on the parameters.
+    Attributes:
+        master: Master problem parameter for the treatment of integers (`INTEGER` or `RELAXED`)
+        uc_type: Unit-commitment type (`EXPANSION_FAST` or `EXPANSION_ACCURATE`)
+        optimality_gap: Optimality gap, tolerance on the absolute gap for the Antares-Xpansion algorithm in €.  
+            At each iteration, the algorithm computes upper and lower bounds on the optimal cost.
+            The algorithm stops as soon as the quantity `best_upper_bound - best_lower_bound` falls below `optimality_gap`.
+            Note that if `optimality_gap = 0`, Antares-Xpansion will continue its search until the 
+            optimal solution of the investment problem is found.
+        relative_gap: At each iteration, the algorithm computes upper and lower bounds on the optimal cost. 
+            The algorithm stops as soon as the quantity `(best_upper_bound - best_lower_bound) / max(|best_upper_bound|, |best_lower_bound|)`
+            falls below relative_gap. For a relative gap $\alpha$, the cost of the solution returned by the algorithm satisfies:
+            $$\frac{{\scriptstyle\texttt{xpansion solution cost}} - {\scriptstyle\texttt{optimal cost}}}{{\scriptstyle\texttt{optimal cost}}} < \alpha$$.
+        relaxed_optimality_gap: The relaxed_optimality_gap parameter only has effect when master = integer. 
+            In this case, the master problem is relaxed in the first iterations. 
+            The relaxed_optimality_gap is the threshold from which to switch back from the relaxed to the integer master formulation.
+        max_iteration: Maximum number of iterations for the Benders decomposition algorithm.
+        solver: Solver used by the Bender decomposition (`CBC`, `COIN` or `XPRESS`).
+        log_level: Solver's log severity. Possible values:
+            - `log_level = 0` displays progress information for the investment on candidates and costs (see `reportbenders.txt`).
+            - `log_level >= 1` displays information on the progress of the Benders algorithm (see `benders_solver.log`)
+            - `log_level >= 1` display logs of the solver called for the resolution of each master or subproblem (see `solver_log_proc_<proc_num>.txt`). 
+        separation_parameter: Define the step size for the in-out separation.
+        batch_size: Number of subproblems per batch. If set to `0`, then all subproblems are in the same batch, 
+            hence a classical Benders problem.
+        yearly_weights: Filename of the array of weights. 
+            It allows to assume that the Monte Carlo years simulated in the Antares study are not equally probable
+        additional_constraints: Filename located in the `user/expansion/constraints` folder of the Antares study.
+            TODO: link to model of the file
+        timelimit: Maximum allowed time in seconds for the execution of a Benders step of Antares-Xpansion.
+        master_solution_tolerance: Control the tolerance used when rounding the solution variables of the master problem.
+        cut_coefficient_tolerance: Define the tolerance under which cuts coefficients and right-hand sides are considered to be zero.
     """
     master: Optional[Master] = None
     uc_type: Optional[UcType] = None

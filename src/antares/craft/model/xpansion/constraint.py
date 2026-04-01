@@ -50,7 +50,11 @@ class XpansionConstraint:
 class XpansionConstraintUpdate:
     """Xpansion constraint update.
     
-    See class [`XpansionConstraint`][antares.craft.model.xpansion.XpansionConstraint] for details about the parameters.
+    Attributes:
+        name: Name of the constraint.
+        sign: Sign of the constraint (`LESS_OR_EQUAL`, `GREATER_OR_EQUAL` or `EQUAL`)
+        right_hand_side: Right hand side of the constraint corresponding to the bound.
+        candidates_coefficients: TODO:
     """
     name: Optional[str] = None
     sign: Optional[ConstraintSign] = None

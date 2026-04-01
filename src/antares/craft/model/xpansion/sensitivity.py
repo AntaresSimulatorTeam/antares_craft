@@ -30,9 +30,12 @@ class XpansionSensitivity:
 
 @dataclass
 class XpansionSensitivityUpdate:
-    """Xpansion sensitivity parameters update.
+    """Xpansion sensitivity parameter update.
     
-    See the class [`XpansionSensitivity`][antares.model.xpansion.XpansionSensitivity] for details about the parameters.
+    Attributes:
+        epsilon: TODO:
+        projection: TODO:
+        capex: TODO:
     """
     epsilon: Optional[float] = None
     projection: Optional[list[str]] = None

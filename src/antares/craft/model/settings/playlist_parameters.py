@@ -14,8 +14,12 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class PlaylistParameters:
-    """
-    TODO:
+    """Possibility to add a weigth for each 
+    Monte-Carlo year in the synthesis results.
+
+    Attributes:
+        status: Whether take into account the associated year.
+        weight: Weigth to apply to the associated MC year.
     """
     status: bool = True
     weight: float = 1

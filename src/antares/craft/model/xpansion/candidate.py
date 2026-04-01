@@ -51,9 +51,10 @@ class XpansionCandidate:
             None if `unit_size` and `max_units` are filled.
         direct_link_profile: Time-series' filename of the direct link profile.
         indirect_link_profile: Time-series' filename of the indirect link profile.
-        already_installed_direct_link_profile: Time-series' filename of the already installed direct link profile.
-        already_installed_indirect_link_profile: Time-series' filename of the already installed indirect link profile.
-
+        already_installed_direct_link_profile: 
+            Time-series' filename of the already installed direct link profile.
+        already_installed_indirect_link_profile: 
+            Time-series' filename of the already installed indirect link profile.
     """
     name: str
     area_from: str
@@ -75,9 +76,26 @@ class XpansionCandidate:
 
 @dataclass
 class XpansionCandidateUpdate:
-    """Update of a Xpansion candidate.
+    """Update an investment candidate in the Xpansion module.
     
-    See the class [`XpansionCandidate`][antares.model.xpansion.XpansionCandidate] for details on the parameters.
+    Attributes:
+        name: Name of the candidate.
+        area_from: Area from where the link is begins.
+        area_to: Area where the link ends.
+        annual_cost_per_mw: Annual cost of investment in €/MW.
+        already_installed_capacity: Already installed capacity in MW.
+        unit_size: Size of a unit of investment in MW.
+            None if `max_investment` is filled.
+        max_units: Maximum number invesment units.
+            None if `max_investment` is filled.
+        max_investment: Maximum investment possible on this candidate 
+            None if `unit_size` and `max_units` are filled.
+        direct_link_profile: Time-series' filename of the direct link profile.
+        indirect_link_profile: Time-series' filename of the indirect link profile.
+        already_installed_direct_link_profile: 
+            Time-series' filename of the already installed direct link profile.
+        already_installed_indirect_link_profile: 
+            Time-series' filename of the already installed indirect link profile.
     """
     name: Optional[str] = None
     area_from: Optional[str] = None

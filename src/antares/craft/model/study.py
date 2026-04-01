@@ -63,8 +63,7 @@ SUPPORTED_STUDY_VERSIONS: set[StudyVersion] = {STUDY_VERSION_8_8, STUDY_VERSION_
 
 
 class Study:
-    """
-    Represents an antares study.
+    """Represents an antares study.
 
     That interface allows to inspect a study data and to edit it,
     including study settings, areas, thermal clusters, hydro modeling,
@@ -109,70 +108,91 @@ class Study:
         return self._study_service
 
     def update_settings(self, settings: StudySettingsUpdate) -> None:
-        """
-        Updates the study settings.
+        """Updates the study settings.
 
-        Parameters:
+        Args:
             settings: StudySettingsUpdate: New settings to be applied to the study configuration.
         """
         new_settings = self._settings_service.edit_study_settings(settings, self._settings, self._version)
         self._settings = new_settings
 
     def set_playlist(self, playlist: dict[int, PlaylistParameters]) -> None:
+        """Set the playlist to give relative weights to each Monte Carlo year.
+        
+        Args:
+            playlist: A mapping corresponding to the index of the MC year,
+                and the `PlaylistParameters` that includes the weight of that year.
+        """
         self._settings_service.set_playlist(playlist)
         self._settings.playlist_parameters = playlist
 
     def set_thematic_trimming(self, thematic_trimming: ThematicTrimmingParameters) -> None:
+        """Set a thematic trimming to select the outputs of the simulation.
+        
+        Args:
+            thematic_trimming: Selection of the outputs.
+        """
         trimming = self._settings_service.set_thematic_trimming(thematic_trimming)
         self._settings.thematic_trimming_parameters = trimming
 
     def get_areas(self) -> MappingProxyType[str, Area]:
-        """
-        Retrieve a dictionary of the study areas.
+        """Retrieve a dictionary of the study areas.
+
+        Returns:
+            A read-only mapping where keys are area names (str) 
+            and values are `Area` objects.
         """
         return MappingProxyType(dict(sorted(self._areas.items())))
 
     def get_links(self) -> MappingProxyType[str, Link]:
-        """
-        Retrieve a dictionary of the study links.
+        """Retrieve a dictionary of the study links.
+
+        Returns:
+            A read-only mapping where keys are link names (str) 
+            and values are `Link` objects.
         """
         return MappingProxyType(self._links)
 
     def get_settings(self) -> StudySettings:
-        """
-        Retrieve the study settings.
+        """Retrieve the study settings.
+
+        Returns: Study settings.
         """
         return self._settings
 
     def get_binding_constraints(self) -> MappingProxyType[str, BindingConstraint]:
-        """
-        Retrieve a dictionary of the binding constraints.
+        """Retrieve a dictionary of the binding constraints.
+
+        Returns:
+            A read-only mapping where keys are binding constraints names (str) 
+            and values are `BindingConstraint` objects.        
         """
         return MappingProxyType(self._binding_constraints)
 
     def create_area(
         self, area_name: str, *, properties: Optional[AreaProperties] = None, ui: Optional[AreaUi] = None
     ) -> Area:
-        """
-        Adds a new area to the study.
+        """Adds a new area to the study.
 
-        Parameters:
-            area_name: the name of the new area
-            properties: optional values for the properties of the area. If none are provided,
+        Args:
+            area_name: The name of the new area
+            properties: Optional values for the properties of the area. If none are provided,
                         the default values are used.
-            ui: optional values for the UI properties of the area. If none are provided,
+            ui: Optional values for the UI properties of the area. If none are provided,
                 the default values are used.
 
         Returns:
-            the newly created area.
+            The newly created area.
         """
         area = self._area_service.create_area(area_name, properties, ui)
         self._areas[area.id] = area
         return area
 
     def delete_area(self, area: Area) -> None:
-        """
-        Deletes the specified area.
+        """Deletes the specified area.
+
+        Args:
+            area: Name of the area.
         """
         # Check area is not referenced in any binding constraint
         referencing_binding_constraints = []
@@ -206,19 +226,18 @@ class Study:
         properties: Optional[LinkProperties] = None,
         ui: Optional[LinkUi] = None,
     ) -> Link:
-        """
-        Adds a new link to the study.
+        """Adds a new link to the study.
 
-        Parameters:
-            area_from: the id of the area from which the link starts
-            area_to: the id of the area to which the link connects
-            properties: optional values for the properties of the link. If none are provided,
+        Args:
+            area_from: The id of the area from which the link starts
+            area_to: The id of the area to which the link connects
+            properties: Optional values for the properties of the link. If none are provided,
                         the default values are used.
-            ui: optional values for the UI properties of the link. If none are provided,
+            ui: Optional values for the UI properties of the link. If none are provided,
                 the default values are used.
 
         Returns:
-            the newly created link.
+            The newly created link.
         """
 
         temp_link = Link(area_from, area_to, link_service=cast(BaseLinkService, None))
@@ -241,8 +260,10 @@ class Study:
         return link
 
     def delete_link(self, link: Link) -> None:
-        """
-        Deletes the specified link.
+        """Deletes the specified link.
+
+        Args:
+            link: The link object to delete.
         """
         # Check link is not referenced in any binding constraint
         referencing_binding_constraints = []
@@ -269,10 +290,9 @@ class Study:
         equal_term_matrix: Optional[pd.DataFrame] = None,
         greater_term_matrix: Optional[pd.DataFrame] = None,
     ) -> BindingConstraint:
-        """
-        Create a new binding constraint.
+        """Create a new binding constraint.
 
-        Parameters:
+        Args:
             name: The name of the binding constraint.
             properties: Optional properties for the constraint.
             terms: Optional list of terms for the constraint.
@@ -290,48 +310,51 @@ class Study:
         return binding_constraint
 
     def delete_binding_constraints(self, constraints: list[BindingConstraint]) -> None:
-        """
-        Deletes the specified binding constraint.
+        """Deletes the specified binding constraint.
+
+        Args:
+            constraints: A list of binding constraints to delete.
         """
         self._study_service.delete_binding_constraints(constraints)
         for constraint in constraints:
             self._binding_constraints.pop(constraint.id)
 
     def delete(self, children: bool = False) -> None:
-        """
-        Deletes this study.
+        """Deletes this study.
 
-        Parameters:
+        Args:
             children: If True, also delete all children studies. That parameter only makes sense for
                       variant studies on antares-web.
         """
         self._study_service.delete(children)
 
     def create_variant(self, variant_name: str) -> "Study":
-        """
-        Creates a new variant for the study
+        """Creates a new variant for the study
 
         Args:
             variant_name: the name of the new variant
+
         Returns:
-            The variant in the form of a Study object
+            The variant in the form of a `Study` object
         """
         return self._study_service.create_variant(variant_name)
 
     def run_antares_simulation(self, parameters: Optional[AntaresSimulationParameters] = None) -> Job:
-        """
-        Runs the Antares simulation.
+        """Runs the Antares simulation.
 
-        This method starts an antares simulation with the given parameters
+        This method starts an antares simulation with the given parameters.
+
+        Args:
+            parameters: The simulation parameters (solver, number of CPU...).
 
         Returns:
-            A job representing the simulation task
+            A job representing the simulation task.
         """
         return self._run_service.run_antares_simulation(parameters)
 
     def wait_job_completion(self, job: Job, time_out: int = 172800) -> None:
         """
-        Waits for the completion of a job
+        Waits for the completion of a job.
 
         Args:
             job: The job to wait for
@@ -344,8 +367,7 @@ class Study:
         self._read_outputs()
 
     def _read_outputs(self) -> None:
-        """
-        Load outputs into current study.
+        """Load outputs into current study.
         We're not just replacing existing outputs by new ones as this method is also used outside the factory.
         Instead, we're updating the current ones with new values to avoid any user issue.
         """
@@ -367,23 +389,21 @@ class Study:
                 del self._outputs[output_name]
 
     def get_outputs(self) -> MappingProxyType[str, Output]:
-        """
-        Get outputs of current study
+        """Get outputs of current study.
 
         Returns:
-            read-only proxy of the (output_id, Output) mapping
+            Read-only proxy of the (output_id, Output) mapping.
         """
         return MappingProxyType(self._outputs)
 
     def get_output(self, output_id: str) -> Output:
-        """
-        Get a specific output
+        """Get a specific output
 
         Args:
-            output_id: id of the output to get
+            output_id: ID of the output to get.
 
         Returns:
-            Output with the output_id
+            Output with the output_id.
 
         Raises:
             KeyError: if it doesn't exist
@@ -391,33 +411,31 @@ class Study:
         return self._outputs[output_id]
 
     def delete_outputs(self) -> None:
-        """
-        Deletes all simulation outputs.
-        """
+        """Deletes all simulation outputs."""
         self._study_service.delete_outputs()
         self._outputs.clear()
 
     def delete_output(self, output_name: str) -> None:
-        """
-        Deletes the specified output.
+        """Deletes the specified output.
 
-        Parameters:
+        Args:
             output_name: the name of the output to delete
         """
         self._study_service.delete_output(output_name)
         self._outputs.pop(output_name)
 
     def move(self, parent_path: Path) -> None:
-        """
-        Moves the study to another directory.
+        """Moves the study to another directory.
+
+        Args:
+            parent_path: New path to move the study to.
         """
         self.path = self._study_service.move_study(parent_path)
 
     def generate_thermal_timeseries(self, nb_years: int) -> None:
-        """
-        Generates timeseries for thermal clusters availability, based on timeseries generation parameters.
+        """Generates timeseries for thermal clusters availability, based on timeseries generation parameters.
 
-        Parameters:
+        Args:
             nb_years: number of scenarios (years) to generate timeseries for.
         """
         seed = self._settings.seed_parameters.seed_tsgen_thermal
@@ -426,22 +444,20 @@ class Study:
         self._settings.general_parameters = replace(self._settings.general_parameters, nb_timeseries_thermal=nb_years)
 
     def update_areas(self, new_properties: Dict[Area, AreaPropertiesUpdate]) -> None:
-        """
-        Update existing areas properties.
+        """Update existing areas properties.
 
-        Parameters:
-            new_properties: a mapping from area its new properties
+        Args:
+            new_properties: a mapping of the area to its new properties.
         """
         new_areas_props = self._area_service.update_areas_properties(new_properties)
         for area_prop in new_areas_props:
             self._areas[area_prop]._properties = new_areas_props[area_prop]
 
     def update_thermal_clusters(self, new_properties: dict[ThermalCluster, ThermalClusterPropertiesUpdate]) -> None:
-        """
-        Update existing thermal cluster properties.
+        """Update existing thermal cluster properties.
 
-        Parameters:
-            new_properties: a dictionary of cluster to cluster update data
+        Args:
+            new_properties: a dictionary of cluster to cluster update data.
         """
         new_thermal_clusters_props = self._area_service.thermal_service.update_thermal_clusters_properties(
             new_properties
@@ -452,11 +468,10 @@ class Study:
     def update_renewable_clusters(
         self, new_properties: dict[RenewableCluster, RenewableClusterPropertiesUpdate]
     ) -> None:
-        """
-        Update existing renewable cluster properties.
+        """Update existing renewable cluster properties.
 
-        Parameters:
-            new_properties: a dictionary of cluster to cluster update data
+        Args:
+            new_properties: A dictionary of cluster to cluster update data.
         """
         new_renewable_clusters_props = self._area_service.renewable_service.update_renewable_clusters_properties(
             new_properties
@@ -467,19 +482,17 @@ class Study:
             ]
 
     def update_links(self, new_properties: Dict[str, LinkPropertiesUpdate]) -> None:
-        """
-        Update existing links.
+        """Update existing links.
 
         Args:
-            new_properties: a dictionary of link ID to link update data
+            new_properties: A dictionary of link ID to link update data
         """
         new_links_props = self._link_service.update_links_properties(new_properties)
         for link_props in new_links_props:
             self._links[link_props]._properties = new_links_props[link_props]
 
     def update_binding_constraints(self, new_properties: Dict[str, BindingConstraintPropertiesUpdate]) -> None:
-        """
-        Update existing binding constraints.
+        """Update existing binding constraints.
 
         Args:
             new_properties: a dictionary of binding constraint ID to binding constraint update data
@@ -489,6 +502,12 @@ class Study:
             self._binding_constraints[bc_props]._properties = new_bc_props[bc_props]
 
     def update_st_storages(self, new_properties: dict[STStorage, STStoragePropertiesUpdate]) -> None:
+        """Update existing short-term storage.
+
+        Args:
+            new_properties: a dictionary of short-term storage ID 
+                to short-term storage update data.
+        """
         new_st_props = self._area_service.storage_service.update_st_storages_properties(new_properties)
 
         for storage in new_st_props:
@@ -497,6 +516,13 @@ class Study:
     def update_st_storages_constraints(
         self, new_constraints: dict[STStorage, dict[str, STStorageAdditionalConstraintUpdate]]
     ) -> None:
+        """Update existing short-term storage constraints.
+
+        Args:
+            new_constraints: a dictionary of short-term storage objects 
+                to a dictionary of ST storage ID to some additional constraint update 
+                on the ST storage.
+        """
         new_st_constraints = self._area_service.storage_service.update_st_storages_constraints(new_constraints)
         for area_id, value in new_st_constraints.items():
             for storage_id, values in value.items():
@@ -504,31 +530,49 @@ class Study:
                     self._areas[area_id]._st_storages[storage_id]._constraints[constraint_id] = constraint
 
     def get_scenario_builder(self) -> ScenarioBuilder:
+        """Get scenario builder.
+        
+        Returns:
+            The current scenario builder used.
+        """
         sc_builder = self._study_service.get_scenario_builder(self._settings.general_parameters.nb_years, self._version)
         sc_builder.validate_against_version(self._version)
         sc_builder._set_study(self)
         return sc_builder
 
     def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
+        """Set scenario builder.
+        
+        Args:
+            scenario_builder: The scenario builder to apply.
+        """
         scenario_builder.validate_against_version(self._version)
         self._study_service.set_scenario_builder(scenario_builder)
 
     @property
     def xpansion(self) -> XpansionConfiguration:
+        """Xpansion configuration."""
         if self._xpansion_configuration is None:
             raise XpansionConfigurationMissingError(self._study_service.study_id)
         return self._xpansion_configuration
 
     @property
     def has_an_xpansion_configuration(self) -> bool:
+        """Whether there is an xpansion configuration."""
         return self._xpansion_configuration is not None
 
     def create_xpansion_configuration(self) -> XpansionConfiguration:
+        """Create an xpansion configuration.
+        
+        Returns:
+            Default xpansion configuration.
+        """
         configuration = self._xpansion_service.create_xpansion_configuration()
         self._xpansion_configuration = configuration
         return configuration
 
     def delete_xpansion_configuration(self) -> None:
+        """Delete current xpansion configuration."""
         self._xpansion_service.delete()
         self._xpansion_configuration = None
 
