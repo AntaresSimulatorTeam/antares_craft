@@ -10,7 +10,9 @@ nav:
   - Examples: antares-craft-examples.md
   - Reference: api-reference.md
   - Reference:
-    - Configuration: api-reference/api_conf.md
+    - Configuration: 
+      - API configuration: api-reference/config/api_conf.md
+      - Local configuration: api-reference/config/local_config.md
     - Study: api-reference/model/study.md
     - Objects of modelling:
       - Area: api-reference/model/area.md
