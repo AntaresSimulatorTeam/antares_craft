@@ -132,8 +132,10 @@ class XpansionOutputOptions:
 
     Attributes:
         log_level: Solver's log severity in {0, 1, 2}. TODO: put link to details
-        master_name: TODO: is it a user defined name of the master problem ? 
-        problem_format: TODO: ?
+        master_name: Name of the master problem file (automatically generated).
+        problem_format:
+            - MPS: Problems in MPS text format.
+            - OPTIMIZED: Problems in binary SVF format.
         solver_name: Solver used for the resolution of the optimization problem.
     """
     log_level: int
@@ -147,21 +149,20 @@ class XpansionOutputIteration:
     r"""Xpansion output for a given iteration.
     
     Attributes:
-        best_ub: Best upper bound on the optimal cost. 
-        cumulative_number_of_subproblem_resolutions: TODO:
-        investment_cost: Investment cost chosen by the algorithm for this iteration.
-        lb: The lower bound of the optimal cost which is the solution of the master problem as it is a relaxation of the investment problem.
+        best_ub: Best upper bound on the optimal cost.
+        cumulative_number_of_subproblem_resolutions: Cumulative number of subproblems solved from the beginning of the Benders algorithm.
+        investment_cost: Investment cost of the solution at the current iteration.
+        lb: Lower bound on the optimal cost: this is the solution of the master problem as it is a relaxation of the investment problem.
         master_duration: Duration of the master problem resolution.
-        operational_cost: TODO: is it ? The yearly output cost of an Antares Simulation for the system with a given investment level. 
-        optimality_gap: Absolute gap between the underestimator and the Antares simulation (`(up - lb) / lb`).
-        overall_cost: TODO: is it ? The yearly overall cost corresponds to the sum of the operational cost.
-            and the product of the annualized cost per MW and the investment in MW.
-        relative_gap: At each iteration, the algorithm computes upper and lower bounds on the optimal cost. 
-            The algorithm stops as soon as the quantity `(best_upper_bound - best_lower_bound) / max(|best_upper_bound|, |best_lower_bound|)`
+        operational_cost: Expectation of the yearly operational cost over all MC years of the linear relaxation of an Antares simulation for the system with the current iteration investment level.
+        optimality_gap: Absolute gap between the lb and the best_ub (`(best_ub - lb)`).
+        overall_cost: Sum of `investment cost` and `operational_cost`.
+        relative_gap: At each iteration, the algorithm computes upper and lower bounds on the optimal cost.
+            The algorithm stops as soon as the quantity `(best_ub - lb) / max(|best_ub|, |lb|)`
             falls below relative_gap. For a relative gap $\alpha$, the cost of the solution returned by the algorithm satisfies:
             $$\frac{{\scriptstyle\texttt{xpansion solution cost}} - {\scriptstyle\texttt{optimal cost}}}{{\scriptstyle\texttt{optimal cost}}} < \alpha$$.
-        subproblem_duration: TODO: is it ? Subproblem duration corresponding to the weekly Antares problem.
-        ub: TODO: difference with best upper bound ?
+        subproblem_duration: Wall time for the resolution of all weekly Antares subproblems at the current iteration.
+        ub: Overall cost of the solution of the current iteration. This may be greater than `best_ub` if a previous iteration led to a better solution.
     """
     best_ub: float
     cumulative_number_of_subproblem_resolutions: int
@@ -181,14 +182,14 @@ class XpansionOutputSolution:
     r"""Xpansion output solution.
     
     Attributes:
-        investment_cost: optimal investment cost found by the algorithm.
-        iteration: Corresponding iteration for the best solution
-        operational_cost: Operational cost TODO: what's inside ?
-        optimality_gap: Absolute gap between the underestimator and the Antares simulation (`(up - lb) / lb`).
-        overall_cost: TODO: is it ? The yearly overall cost corresponds to the sum of the operational cost.
+        investment_cost: Optimal investment cost found by the algorithm.
+        iteration: Corresponding iteration for the best solution.
+        operational_cost: Expectation of the yearly operational cost over all MC years of the linear relaxation of an Antares simulation for the system with the best investment.
+        optimality_gap: Absolute gap between the lb and the best_ub (`(best_ub - lb)`).
+        overall_cost: Sum of investment cost and `operational_cost`.
         problem_status: Problem status.
-        relative_gap: At each iteration, the algorithm computes upper and lower bounds on the optimal cost. 
-            The algorithm stops as soon as the quantity `(best_upper_bound - best_lower_bound) / max(|best_upper_bound|, |best_lower_bound|)`
+        relative_gap: At each iteration, the algorithm computes upper and lower bounds on the optimal cost.
+            The algorithm stops as soon as the quantity `(best_ub - lb) / max(|best_ub|, |lb|)`
             falls below relative_gap. For a relative gap $\alpha$, the cost of the solution returned by the algorithm satisfies:
             $$\frac{{\scriptstyle\texttt{xpansion solution cost}} - {\scriptstyle\texttt{optimal cost}}}{{\scriptstyle\texttt{optimal cost}}} < \alpha$$.
         stopping_criterion: Stopping criterion for the optimization problem.
@@ -218,9 +219,9 @@ class XpansionOutputCandidate:
     """Xpansion output candidate.
     
     Attributes:
-        solution: TODO:
-        max: TODO:
-        min: TODO:
+        solution: Invested capacity at the end of the algorithm.
+        max: Maximum possible investment (in MW).
+        min: Minimum possible investment (in MW).
         iterations: List of the output candidate investment for each iteration.
     """
     solution: float
@@ -234,18 +235,18 @@ class XpansionResult:
     """Xpansion results.
     
     Attributes:
-        antares: XpansionOutputAntares
-        antares_xpansion: XpansionOutputAntares
+        antares: Antares version information.
+        antares_xpansion: Antares-Xpansion version information.
         begin: Timestamp of the start of the problem resolution.
         end: Timestamp of the end of the problem resolution.
-        iterations: Dictionnary of all the iterations of the problem and the corresponding pieces of information.
-        nb_weeks: TODO:
+        iterations: Dictionary of all Benders iteration outputs.
+        nb_weeks: Number of subproblems (= number of MC years × number of weeks solved per year).
         options: Options for Xpansion module.
         run_duration: Duration of the problem resolution.
         solution: Final optimal solution.
-        candidates: Dictionnary of all candidates.
+        candidates: Dictionary of all candidates.
     """
-    antares: XpansionOutputAntares # strange that it is the same version ?
+    antares: XpansionOutputAntares
     antares_xpansion: XpansionOutputAntares
     begin: datetime
     end: datetime
@@ -262,10 +263,10 @@ class XpansionOutputCandidateSensitivity:
     """Xpansion output candidate sensitivity study.
     
     Attributes:
-        lb: TODO:
-        ub: TODO:
-        solution_max: TODO:
-        solution_min: TODO:
+        lb: Minimum possible invested capacity.
+        ub: Maximum possible invested capacity.
+        solution_max: Maximum invested capacity in a near-optimal solution.
+        solution_min: Minimum invested capacity in a near-optimal solution.
     """
     lb: float
     ub: float
@@ -275,13 +276,15 @@ class XpansionOutputCandidateSensitivity:
 
 @dataclass(frozen=True)
 class XpansionOutputSensitivitySolution:
-    """Xpansion output sensibility solution.
-    
+    """Xpansion output sensitivity solution.
+
     Attributes:
-        objective: TODO:
-        problem_type: TODO:
-        status: TODO:
-        system_cost: TODO:
+        objective: Objective value of the solution of the sensitivity analysis.
+        problem_type:
+            - "capex": Find a near-optimal solution with min or max capex.
+            - "investment <asset name>": Find a near-optimal solution that minimizes or maximizes the investment for a given asset.
+        status: Problem status.
+        system_cost: System cost with the solution of the sensitivity analysis.
     """
     objective: float
     problem_type: str
@@ -294,13 +297,13 @@ class XpansionSensitivityResult:
     """Xpansion sensitivity results.
     
     Attributes:
-        antares:TODO:
-        antares_xpansion:TODO:
-        best_benders_cost:TODO:
-        epsilon:TODO:
-        candidates:TODO:
-        solution_max:TODO:
-        solution_min:TODO:
+        antares: Antares version information.
+        antares_xpansion: Antares-Xpansion version information.
+        best_benders_cost: Optimal objective value of the investment problem before the sensitivity analysis.
+        epsilon: Allowed gap with `best_benders_cost` to consider that a solution is near-optimal (i.e. will be considered in the sensitivity analysis).
+        candidates: Dictionary of candidate solutions for the sensitivity analysis.
+        solution_max: Solution of the sensitivity analysis that maximises the objective.
+        solution_min: Solution of the sensitivity analysis that minimises the objective.
     """
     antares: XpansionOutputAntares
     antares_xpansion: XpansionOutputAntares
