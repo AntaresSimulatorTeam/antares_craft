@@ -19,9 +19,9 @@ class XpansionSensitivity:
     """Xpansion sensitivity parameters.
     
     Attributes:
-        epsilon: TODO:
-        projection: TODO:
-        capex: TODO:
+        epsilon: Maximum allowed gap with the optimal solution.
+        projection: List of candidate names for which min/max investment in near-optimal solutions is computed.
+        capex: Whether or not to look for solutions with min/max CAPEX.
     """
     epsilon: float = 0
     projection: list[str] = field(default_factory=list)
@@ -33,9 +33,9 @@ class XpansionSensitivityUpdate:
     """Xpansion sensitivity parameter update.
     
     Attributes:
-        epsilon: TODO:
-        projection: TODO:
-        capex: TODO:
+        epsilon: Maximum allowed gap with the optimal solution.
+        projection: List of candidate names for which min/max investment in near-optimal solutions is computed.
+        capex: Whether or not to look for solutions with min/max CAPEX.
     """
     epsilon: Optional[float] = None
     projection: Optional[list[str]] = None
@@ -52,7 +52,7 @@ def update_xpansion_sensitivity(
         sensitivity_update: The parameters to update and their values.
 
     Returns:
-        The updated Xpansion sensivity parameters.
+        The updated Xpansion sensitivity parameters.
     """
     sensitivity_dict = asdict(sensitivity)
     update_dict = {k: v for k, v in asdict(sensitivity_update).items() if v is not None}
