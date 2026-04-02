@@ -121,7 +121,8 @@ plugins:
             # backlinks: tree 
             show_bases: false
             show_inheritance_diagram: false 
-  - drawio
+  - drawio:
+      darkmode: true
 
 extra_css:
   - stylesheets/extra.css

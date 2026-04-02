@@ -4,13 +4,13 @@
 
 The Antares Craft package closely relates to Antares-Web interface allowing not to guess how things are named.
 
-The package follows a an Object-Oriented Programming (OOP) architecture. Information is grouped by classes 
+The package follows an Object-Oriented Programming (OOP) architecture. Information is grouped by classes 
 (named in the `CamelCase` convention) that are composed by:
 
 - attributes to store values, parameter strings, paths to files or even other classes
-- methods to perform actions on these attributes
+- methods to perform actions on the class or its attributes
 
-However, there are a handful of functions that can be used by the user: 
+However, there are a handful of standalone functions that can be used by the user: 
 
 - [create_study_api][antares.craft.create_study_api]
 - [read_study_api][antares.craft.read_study_api]
@@ -40,7 +40,8 @@ The entry points of Antares are the configuration classes for either local or AP
 Then you want to create the most import class : a `Study`. 
 
 !!! note
-    Please use the standalone functions and not the built in constructor of the class. 
+    To create a study, please use the standalone functions and not the built in constructor of the `Study` class. 
+    Then, to apply changes on the newly made study you can use `Study`'s methods. 
 
 ![starting](../assets/architecture-start.drawio)
 
@@ -71,7 +72,8 @@ And the settings for the study:
 
 ### Outputs
 
-To analyze outputs from an Antares simulation, you need to 
+To analyze outputs from an Antares simulation, you need to use the `get_output`
+method of the study you are working on. It will return an `Output` object.
 
 ![outputs](../assets/architecture-outputs.drawio)
 

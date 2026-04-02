@@ -31,6 +31,8 @@ pip install -r requirements-dev.txt
 ```
 And now you are ready to edit pages !
 
-1. To preview the docs on your local machine run `mkdocs serve`.
+1. To preview the docs on your local machine run `mkdocs serve`. 
+    You will be able to open a preview of the doc in your browser. 
+    It will reload automatically when you change and save a file.
 2. To build the static site for publishing for example on [Read the Docs](https://readthedocs.io) use `mkdocs build`.
 3. To flesh out the documentation see [mkdocs guides](https://www.mkdocs.org/user-guide/).
