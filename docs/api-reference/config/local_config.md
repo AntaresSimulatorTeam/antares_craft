@@ -1,0 +1,1 @@
+::: antares.craft.config.local_configuration
