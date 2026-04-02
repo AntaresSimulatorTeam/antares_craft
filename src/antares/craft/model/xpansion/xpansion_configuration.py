@@ -32,8 +32,8 @@ class XpansionMatrix(EnumIgnoreCase):
     """Xpansion matrix types.
     
     Attributes: 
-        CAPACITIES: Link profile matrix type
-        WEIGHTS: Yearly weight matrix type
+        CAPACITIES: Link profile matrix type.
+        WEIGHTS: Yearly weight matrix type.
     """
     CAPACITIES = "capacities"
     WEIGHTS = "weights"

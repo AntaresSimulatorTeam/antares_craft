@@ -36,8 +36,8 @@ class XpansionConstraint:
     
     Attributes:
         name: Name of the constraint.
-        sign: Sign of the constraint (`LESS_OR_EQUAL`, `GREATER_OR_EQUAL` or `EQUAL`)
-        right_hand_side: Right hand side of the constraint.
+        sign: Sign of the constraint (`LESS_OR_EQUAL`, `GREATER_OR_EQUAL` or `EQUAL`).
+        right_hand_side: Right-hand side of the constraint.
         candidates_coefficients: Coefficients of candidate investments in the constraint.
     """
     name: str
@@ -49,11 +49,11 @@ class XpansionConstraint:
 @dataclass
 class XpansionConstraintUpdate:
     """Update of a linear constraint between invested capacities of Xpansion candidates.
-    
+
     Attributes:
         name: Name of the constraint.
-        sign: Sign of the constraint (`LESS_OR_EQUAL`, `GREATER_OR_EQUAL` or `EQUAL`)
-        right_hand_side: Right hand side of the constraint.
+        sign: Sign of the constraint (`LESS_OR_EQUAL`, `GREATER_OR_EQUAL` or `EQUAL`).
+        right_hand_side: Right-hand side of the constraint.
         candidates_coefficients: Coefficients of candidate investments in the constraint.
     """
     name: Optional[str] = None
