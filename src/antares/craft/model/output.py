@@ -279,9 +279,9 @@ class XpansionOutputSensitivitySolution:
     
     Attributes:
         objective: Objective value of the solution of the sensitivity analysis
-        problem_type: 
-            - CAPEX: Analysis to find solutions with min/max capex
-            - PROJECTIONS: Analysis to find the min/max investment for a given candidate
+        problem_type:
+            - "capex": Find a near optimal solution with min or max capex
+            - "investment <asset name>": Find a near optimal solution that minimize / maximize the investment for a given asset
         status: Problem status
         system_cost: System cost with the solution of the sensitivity analysis
     """
@@ -302,7 +302,7 @@ class XpansionSensitivityResult:
         epsilon: Allowed gap with the benders_benders_cost to consider that a solution is near optimal (i.e. will be considered in the sensitivity analysis)
         candidates: Dictionary of candidates solutions for sensitivity analysis
         solution_max: 
-        solution_min:TODO:
+        solution_min:
     """
     antares: XpansionOutputAntares
     antares_xpansion: XpansionOutputAntares
