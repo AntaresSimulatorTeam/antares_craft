@@ -32,8 +32,8 @@ class XpansionMatrix(EnumIgnoreCase):
     """Xpansion matrix types.
     
     Attributes: 
-        CAPACITIES: TODO:
-        WEIGHTS: TODO:
+        CAPACITIES: Link profile matrix type
+        WEIGHTS: Yearly weight matrix type
     """
     CAPACITIES = "capacities"
     WEIGHTS = "weights"
@@ -120,7 +120,7 @@ class XpansionConfiguration:
         """Delete a weight file if not referenced in the settings.
         
         Args:
-            file_name: weigth filename
+            file_name: weight filename
         """
         if self._settings.yearly_weights == file_name:
             raise XpansionResourceDeletionError("weight", file_name, "It is referenced in the settings")
@@ -216,8 +216,8 @@ class XpansionConfiguration:
         """Create a constraint in the current configuration.
         
         Args:
-            constraint: Xpansion constraint.
-            file_name: The `.ini` constraint file. TODO: check format .ini
+            constraint: Xpansion constraint between invested capacities.
+            file_name: The `.ini` constraint file. See https://antares-xpansion.readthedocs.io/en/stable/user-guide/get-started/settings-definition/#additional-constraints for an example of the constraint file format
         
         Returns:
             The constraint. 

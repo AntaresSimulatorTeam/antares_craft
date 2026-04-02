@@ -22,10 +22,10 @@ class XpansionLinkProfile(EnumIgnoreCase):
     """Xpansion link profile types.
     
     Attributes:
-        DIRECT_LINK:
-        INDIRECT_LINK:
-        ALREADY_INSTALLED_DIRECT_LINK:
-        ALREADY_INSTALLED_INDIRECT_LINK:
+        DIRECT_LINK: Link profile of a candidate in the direct sense
+        INDIRECT_LINK: Link profile of a candidate in the indirect sense
+        ALREADY_INSTALLED_DIRECT_LINK: Already installed link profile in the direct sense
+        ALREADY_INSTALLED_INDIRECT_LINK: Already installed link profile in the indirect sense
     """
     DIRECT_LINK = "direct-link-profile"
     INDIRECT_LINK = "indirect-link-profile"
@@ -39,8 +39,8 @@ class XpansionCandidate:
     
     Attributes:
         name: Name of the candidate.
-        area_from: Area from where the link is begins.
-        area_to: Area where the link ends.
+        area_from: Origin area of the invested link.
+        area_to: Destination area of the invested link.
         annual_cost_per_mw: Annual cost of investment in €/MW.
         already_installed_capacity: Already installed capacity in MW.
         unit_size: Size of a unit of investment in MW.
@@ -80,8 +80,8 @@ class XpansionCandidateUpdate:
     
     Attributes:
         name: Name of the candidate.
-        area_from: Area from where the link is begins.
-        area_to: Area where the link ends.
+        area_from: Origin area of the invested link.
+        area_to: Destination area of the invested link.
         annual_cost_per_mw: Annual cost of investment in €/MW.
         already_installed_capacity: Already installed capacity in MW.
         unit_size: Size of a unit of investment in MW.
