@@ -10,7 +10,7 @@ meant at reading and editing [Antares](https://antares-simulator.readthedocs.io/
     ---
     Leverage the power of Python scripting with intuitive, easy-to-learn functions.
 
-    [:octicons-arrow-right-24: Getting started](getting-started.md)
+    [:octicons-arrow-right-24: Getting started](getting-started/first-steps.md)
 
 -   :material-puzzle:{ .lg .middle } __Seamless Integration__
 
@@ -24,7 +24,7 @@ meant at reading and editing [Antares](https://antares-simulator.readthedocs.io/
     ---
     Perfect for mass modifications, creating multiple variants, and displaying aggregated data at will.
 
-    [:octicons-arrow-right-24: API reference](api-reference.md)
+    [:octicons-arrow-right-24: API reference](api-reference/config/api_conf.md)
 
 </div>
 

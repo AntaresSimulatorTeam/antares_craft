@@ -7,7 +7,10 @@ You might feel that there are some documentation not up to date or other problem
 ## Writing documentation
 
 This documentation is built using [MkDocs](https://www.mkdocs.org) a static site generator from Markdown pages.
-The API reference is generated automatically with the docstrings of the python code.
+The API reference is generated automatically with the docstrings of the python code. The diagrams are made using 
+[draw.io](https://www.drawio.com/){:target="_blank"} an open source flowchart format. If you use VS Code, there is a
+plugin for modifying these diagrams inside the editor. Otherwise, you can download the app on their
+[website](https://www.drawio.com/){:target="_blank"}.
 
 ### Editing on GitHub
 

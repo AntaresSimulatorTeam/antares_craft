@@ -6,9 +6,7 @@ nav:
   - Getting started:
     - First steps: getting-started/first-steps.md
     - Package architecture: getting-started/architecture.md
-  - Getting started: getting-started.md
   - Examples: antares-craft-examples.md
-  - Reference: api-reference.md
   - Reference:
     - Configuration: 
       - API configuration: api-reference/config/api_conf.md
@@ -54,6 +52,7 @@ theme:
   # pygments_style: "monokai"
   features:
     - navigation.instant
+    - navigation.instant.preview
     - navigation.top
     - content.tabs.link
     - content.code.copy
@@ -77,6 +76,7 @@ theme:
 plugins:
   - search
   - autorefs
+  - autolinks
   - mkdocstrings: # recommended settings https://mkdocstrings.github.io/python/usage/#recommended-settings
       handlers:
         python:

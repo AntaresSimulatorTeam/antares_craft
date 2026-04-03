@@ -1,7 +1,7 @@
 # Antares Craft by Example
 
 Here are some examples of the use of `antares_craft` to set, launch and retrieve data from a study.
-It assumes you are already familiar with connection to the API (see [Getting Started](getting-started.md)).
+It assumes you are already familiar with connection to the API (see [Getting Started](getting-started/first-steps.md)).
 
 !!! note "Local study"
 
