@@ -20,12 +20,13 @@ class Mode(EnumIgnoreCase):
     """Modes to run the simulation.
 
     TODO: check if Xpansion is not better as it is the UI name of the mode.
-    
+
     Attributes:
         ECONOMY:
         ADEQUACY:
         EXPANSION:
     """
+
     ECONOMY = "Economy"
     ADEQUACY = "Adequacy"
     EXPANSION = "Expansion"
@@ -33,6 +34,7 @@ class Mode(EnumIgnoreCase):
 
 class Month(EnumIgnoreCase):
     """Months of the year."""
+
     JANUARY = "January"
     FEBRUARY = "February"
     MARCH = "March"
@@ -49,6 +51,7 @@ class Month(EnumIgnoreCase):
 
 class WeekDay(EnumIgnoreCase):
     """Week days."""
+
     MONDAY = "Monday"
     TUESDAY = "Tuesday"
     WEDNESDAY = "Wednesday"
@@ -60,9 +63,10 @@ class WeekDay(EnumIgnoreCase):
 
 class BuildingMode(EnumIgnoreCase):
     """Building modes.
-    
+
     TODO: Check what it allows to do. Choose the MC year time-series ?
     """
+
     AUTOMATIC = "automatic"
     CUSTOM = "custom"
     DERATED = "derated"
@@ -70,6 +74,7 @@ class BuildingMode(EnumIgnoreCase):
 
 class OutputChoices(Enum):
     """Output choices."""
+
     LOAD = "load"
     WIND = "wind"
     HYDRO = "hydro"
@@ -83,7 +88,7 @@ class OutputChoices(Enum):
 @dataclass(frozen=True)
 class GeneralParameters:
     """General parameters for the simulation.
-    
+
     Attributes:
         mode: Choice of the simulation mode (economy, adequacy or expansion).
         horizon: Horizon of the study (static tag, not used in the calculations).
@@ -97,12 +102,13 @@ class GeneralParameters:
         year_by_year: Whether to enable year-by-year the output profile.
         simulation_synthesis: Whether there is a simulation synthesis in the output profile.
         building_mode: Choice of the building mode (`AUTOMATIC`, `CUSTOM` or `DERATED`).
-        user_playlist: 
+        user_playlist:
         thematic_trimming: Whether to enable thematic trimming.
         geographic_trimming: Whether to enable geographic trimming.
-        store_new_set: 
+        store_new_set:
         nb_timeseries_thermal: Number of time-series to be generated stochastically.
     """
+
     mode: Mode = Mode.ECONOMY
     horizon: str = ""
     nb_years: int = 1
@@ -125,9 +131,10 @@ class GeneralParameters:
 @dataclass
 class GeneralParametersUpdate:
     """Update general parameters.
-    
+
     See field details in [`GeneralParameters`][antares.craft.model.settings.general.GeneralParameters].
     """
+
     mode: Optional[Mode] = None
     horizon: Optional[str] = None
     nb_years: Optional[int] = None

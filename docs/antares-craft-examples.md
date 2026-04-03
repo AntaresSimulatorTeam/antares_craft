@@ -17,11 +17,18 @@ Let's add for example 3 areas `fr`, `de` and `be` with various positions on the 
 You can also decide deterministically the node position on the map.
 
 ``` py 
-fr_properties = craft.AreaProperties(energy_cost_unsupplied=3000, spread_spilled_energy_cost=43.2)
+fr_properties = craft.AreaProperties(
+    energy_cost_unsupplied=3000, 
+    spread_spilled_energy_cost=43.2
+)
 ui_fr = craft.AreaUi(x=10, y=-30, color_rgb=[11, 0, 255])
 area_fr = study.create_area("FR", properties=fr_properties, ui=ui_fr)
 
-other_properties = craft.AreaProperties(energy_cost_unsupplied=3000, filter_by_year={craft.FilterOption.ANNUAL}, filter_synthesis={craft.FilterOption.HOURLY})
+other_properties = craft.AreaProperties(
+    energy_cost_unsupplied=3000, 
+    filter_by_year={craft.FilterOption.ANNUAL}, 
+    filter_synthesis={craft.FilterOption.HOURLY}
+)
 generator = np.random.default_rng(1000)
 for area_name in ["be", "de"]:
     x = generator.integers(-100, 100)
@@ -66,7 +73,9 @@ You can fill also other areas with some random load:
 
 ```py
 for area_name in ["be", "de"]:
-    random_matrix = pd.DataFrame(generator.integers(low=1000, high=2000, size=(8760, 5)))
+    random_matrix = pd.DataFrame(
+        generator.integers(low=1000, high=2000, size=(8760, 5))
+    )
     study.get_areas()[area_name].set_load(random_matrix)
     print(f"Load series generated (random values) for area {area_name}")
 ```
@@ -155,7 +164,11 @@ It applies the difference on the main input only when launching the simulation a
 To create a variant using you `api_configuration` from the initialization of `APIconf`:
 
 ```py
-variant_study = craft.create_variant_api(api_configuration, "study_id", "variant_1")
+variant_study = craft.create_variant_api(
+    api_configuration, 
+    "study_id", 
+    "variant_name"
+)
 ```
 
 Then you can apply changes on this variant study. For example, you can edit the unsupplied energy cost for all areas 

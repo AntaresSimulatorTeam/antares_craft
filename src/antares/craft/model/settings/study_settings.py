@@ -28,9 +28,10 @@ from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParam
 @dataclass
 class StudySettingsUpdate:
     """Update study settings.
-    
+
     See the class [`StudySettings`][antares.craft.model.settings.study_settings.StudySettings] for details about the parameters.
     """
+
     general_parameters: Optional[GeneralParametersUpdate] = None
     optimization_parameters: Optional[OptimizationParametersUpdate] = None
     advanced_parameters: Optional[AdvancedParametersUpdate] = None
@@ -43,16 +44,17 @@ class StudySettings:
     """Study settings.
 
     Group the settings of the different tab inside the **CONFIGURATION** tab of Antares UI.
-    
-    Attributes: 
+
+    Attributes:
         general_parameters: General parameters.
         optimization_parameters: Optimization parameters.
         advanced_parameters: Advanced parameters.
-        seed_parameters: Seed parameters. 
+        seed_parameters: Seed parameters.
         adequacy_patch_parameters: Adequacy patch parameters.
         thematic_trimming_parameters: Thematic_trimming_parameters.
         playlist_parameters: Playlist parameters.
     """
+
     general_parameters: GeneralParameters = field(default_factory=GeneralParameters)
     optimization_parameters: OptimizationParameters = field(default_factory=OptimizationParameters)
     advanced_parameters: AdvancedParameters = field(default_factory=AdvancedParameters)

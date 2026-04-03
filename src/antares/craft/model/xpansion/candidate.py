@@ -20,13 +20,14 @@ from antares.craft.tools.contents_tool import EnumIgnoreCase
 
 class XpansionLinkProfile(EnumIgnoreCase):
     """Xpansion link profile types.
-    
+
     Attributes:
         DIRECT_LINK: Link profile of a candidate in the direct sense
         INDIRECT_LINK: Link profile of a candidate in the indirect sense
         ALREADY_INSTALLED_DIRECT_LINK: Already installed link profile in the direct sense
         ALREADY_INSTALLED_INDIRECT_LINK: Already installed link profile in the indirect sense
     """
+
     DIRECT_LINK = "direct-link-profile"
     INDIRECT_LINK = "indirect-link-profile"
     ALREADY_INSTALLED_DIRECT_LINK = "already-installed-direct-link-profile"
@@ -36,7 +37,7 @@ class XpansionLinkProfile(EnumIgnoreCase):
 @dataclass(frozen=True)
 class XpansionCandidate:
     """Investment candidate in the Xpansion module.
-    
+
     Attributes:
         name: Name of the candidate.
         area_from: Origin area of the invested link.
@@ -47,15 +48,16 @@ class XpansionCandidate:
             None if `max_investment` is filled.
         max_units: Maximum number invesment units.
             None if `max_investment` is filled.
-        max_investment: Maximum investment possible on this candidate 
+        max_investment: Maximum investment possible on this candidate
             None if `unit_size` and `max_units` are filled.
         direct_link_profile: Time-series' filename of the direct link profile.
         indirect_link_profile: Time-series' filename of the indirect link profile.
-        already_installed_direct_link_profile: 
+        already_installed_direct_link_profile:
             Time-series' filename of the already installed direct link profile.
-        already_installed_indirect_link_profile: 
+        already_installed_indirect_link_profile:
             Time-series' filename of the already installed indirect link profile.
     """
+
     name: str
     area_from: str
     area_to: str
@@ -77,7 +79,7 @@ class XpansionCandidate:
 @dataclass
 class XpansionCandidateUpdate:
     """Update an investment candidate in the Xpansion module.
-    
+
     Attributes:
         name: Name of the candidate.
         area_from: Origin area of the invested link.
@@ -88,15 +90,16 @@ class XpansionCandidateUpdate:
             None if `max_investment` is filled.
         max_units: Maximum number invesment units.
             None if `max_investment` is filled.
-        max_investment: Maximum investment possible on this candidate 
+        max_investment: Maximum investment possible on this candidate
             None if `unit_size` and `max_units` are filled.
         direct_link_profile: Time-series' filename of the direct link profile.
         indirect_link_profile: Time-series' filename of the indirect link profile.
-        already_installed_direct_link_profile: 
+        already_installed_direct_link_profile:
             Time-series' filename of the already installed direct link profile.
-        already_installed_indirect_link_profile: 
+        already_installed_indirect_link_profile:
             Time-series' filename of the already installed indirect link profile.
     """
+
     name: Optional[str] = None
     area_from: Optional[str] = None
     area_to: Optional[str] = None

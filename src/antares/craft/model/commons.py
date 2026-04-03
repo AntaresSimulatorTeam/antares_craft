@@ -27,7 +27,7 @@ class FilterOption(Enum):
     """Enumeration of the available filter options for the output or the synthesis for example.
 
     This is case sensitive.
-    
+
     Attributes:
         HOURLY: hourly filter
         DAILY: daily filter
@@ -35,6 +35,7 @@ class FilterOption(Enum):
         MONTHLY: monthly filter
         ANNUAL: annual filter
     """
+
     HOURLY = "hourly"
     DAILY = "daily"
     WEEKLY = "weekly"

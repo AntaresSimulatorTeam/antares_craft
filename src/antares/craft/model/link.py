@@ -22,12 +22,13 @@ from antares.craft.tools.contents_tool import transform_name_to_id
 
 class TransmissionCapacities(Enum):
     """Enumeration of the transmission capacities.
-    
+
     Attributes:
         ENABLED: The link is enabled.
         DISABLED: The link is disabled.
         INFINITE: Infinite transmission capacity.
     """
+
     ENABLED = "enabled"
     DISABLED = "ignore"
     INFINITE = "infinite"
@@ -36,13 +37,14 @@ class TransmissionCapacities(Enum):
 class AssetType(Enum):
     """Enumeration of the different types of link.
 
-    Attributes: 
+    Attributes:
         AC: Alternative current link.
         DC: Continuous current link.
         GAZ: Gaz link.
         VIRTUAL: Virtual link.
         OTHER: Other type of link.
     """
+
     AC = "ac"
     DC = "dc"
     GAZ = "gaz"
@@ -57,8 +59,9 @@ class LinkStyle(Enum):
         DOT: dotted line between areas.
         PLAIN: plain line between areas.
         DASH: dashed line between areas.
-        DOT_DASH: dottes-dash line between areas.    
+        DOT_DASH: dottes-dash line between areas.
     """
+
     DOT = "dot"
     PLAIN = "plain"
     DASH = "dash"
@@ -80,6 +83,7 @@ class LinkPropertiesUpdate:
         filter_synthesis: Synthesis output filter (hourly, daily, weekly, monthly, annual).
         filter_year_by_year: Output year-by-year filter (hourly, daily, weekly, monthly, annual).
     """
+
     hurdles_cost: Optional[bool] = None
     loop_flow: Optional[bool] = None
     use_phase_shifter: Optional[bool] = None
@@ -106,6 +110,7 @@ class LinkProperties:
         filter_synthesis: Synthesis output filter (hourly, daily, weekly, monthly, annual).
         filter_year_by_year: Output year-by-year filter (hourly, daily, weekly, monthly, annual).
     """
+
     hurdles_cost: bool = False
     loop_flow: bool = False
     use_phase_shifter: bool = False
@@ -120,7 +125,7 @@ class LinkProperties:
 @dataclass(frozen=True)
 class LinkUi:
     """Visual appearance of the link in the UI.
-    
+
     Attributes:
         link_style: Style of the line.
         link_width: Width of the line.
@@ -128,6 +133,7 @@ class LinkUi:
         colorg: Green component of a RGB color in [0, 255].
         colorb: Blue component of a RGB color in [0, 255].
     """
+
     link_style: LinkStyle = LinkStyle.PLAIN
     link_width: float = 1
     colorr: int = 112
@@ -138,7 +144,7 @@ class LinkUi:
 @dataclass
 class LinkUiUpdate:
     """Update the visual appearance of the link in the UI.
-    
+
     Attributes:
         link_style: Style of the line.
         link_width: Width of the line.
@@ -146,6 +152,7 @@ class LinkUiUpdate:
         colorg: Green component of a RGB color in [0, 255].
         colorb: Blue component of a RGB color in [0, 255].
     """
+
     link_style: Optional[LinkStyle] = None
     link_width: Optional[float] = None
     colorr: Optional[int] = None
@@ -155,6 +162,7 @@ class LinkUiUpdate:
 
 class Link:
     """A link between two areas."""
+
     def __init__(
         self,
         area_from: str,
@@ -198,7 +206,7 @@ class Link:
 
         Args:
             properties: Link properties to update and its associated new values.
-        
+
         Returns:
             The updates properties.
         """
@@ -211,7 +219,7 @@ class Link:
 
         Args:
             ui: Link UI properties to update and its associated new values.
-        
+
         Returns:
             The updates properties.
         """
@@ -236,7 +244,7 @@ class Link:
 
     def set_capacity_direct(self, series: pd.DataFrame) -> None:
         """Set direct transmission capacities of the link.
-        
+
         Args:
             series: The hourly time-series of direct capacities.
         """
@@ -244,7 +252,7 @@ class Link:
 
     def set_capacity_indirect(self, series: pd.DataFrame) -> None:
         """Set indirect transmission capacities of the link.
-        
+
         Args:
             series: The hourly time-series of indirect capacities.
         """
@@ -252,7 +260,7 @@ class Link:
 
     def get_capacity_direct(self) -> pd.DataFrame:
         """Get direct transmission capacities of the link.
-        
+
         Returns:
             The hourly time-series of direct capacities.
         """
@@ -260,7 +268,7 @@ class Link:
 
     def get_capacity_indirect(self) -> pd.DataFrame:
         """Get indirect transmission capacities of the link.
-        
+
         Returns:
             The hourly time-series of indirect capacities.
         """

@@ -29,7 +29,7 @@ class ClusterProperties:
 
     @property
     def installed_capacity(self) -> float:
-        """Installed capacity corresponding to the product of 
+        """Installed capacity corresponding to the product of
         the nominal capacity times the number of units.
         """
         return self.unit_count * self.nominal_capacity
@@ -45,12 +45,13 @@ class ClusterProperties:
 @dataclass
 class ClusterPropertiesUpdate:
     """Update of cluster properties
-    
+
     Attributes:
         enabled: Whether the cluster is enabled in the simulation.
         unit_count: Number of generation units in the cluster.
-        nominal_capacity: Nominal capacity of a single unit in MW.        
+        nominal_capacity: Nominal capacity of a single unit in MW.
     """
+
     enabled: Optional[bool] = None
     unit_count: Optional[int] = None
     nominal_capacity: Optional[float] = None

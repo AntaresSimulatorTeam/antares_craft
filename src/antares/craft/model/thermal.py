@@ -34,7 +34,7 @@ class LawOption(Enum):
 
 class ThermalClusterGroup(EnumIgnoreCase):
     """Enumeration of the different possibilities of thermal cluster group.
-    
+
     Attributes:
         NUCLEAR: Nuclear.
         LIGNITE: Lignite.
@@ -47,6 +47,7 @@ class ThermalClusterGroup(EnumIgnoreCase):
         OTHER3: Other 3.
         OTHER4: Other 4.
     """
+
     NUCLEAR = "nuclear"
     LIGNITE = "lignite"
     HARD_COAL = "hard coal"
@@ -98,20 +99,20 @@ class ThermalClusterProperties(ClusterProperties):
 
     Attributes:
         group: Type of thermal generation to organize clusters.
-        gen_ts: 
-        min_stable_power: 
-        min_up_time: Duration needed for the cluster to reach its nominal capacity 
+        gen_ts:
+        min_stable_power:
+        min_up_time: Duration needed for the cluster to reach its nominal capacity
             from an initial off state.
         min_down_time: Duration needed for the cluster to shutdown from its nominal capacity.
         must_run: Whether the cluster must run or not.
-        spinning: 
-        volatility_forced: 
-        volatility_planned: 
-        law_forced: 
-        law_planned: 
+        spinning:
+        volatility_forced:
+        volatility_planned:
+        law_forced:
+        law_planned:
         marginal_cost: Marginal cost.
         spread_cost: Spread cost.
-        fixed_cost: 
+        fixed_cost:
         startup_cost: Start up cost of a unit.
         market_bid_cost: Market bid cost.
         co2: Emission rate of $\\ce{CO2}$ in t/MWh.
@@ -131,6 +132,7 @@ class ThermalClusterProperties(ClusterProperties):
         efficiency: Efficiency of the cluster.
         variable_o_m_cost: Variable O&M costs.
     """
+
     group: str = ThermalClusterGroup.OTHER1.value
     gen_ts: LocalTSGenerationBehavior = LocalTSGenerationBehavior.USE_GLOBAL
     min_stable_power: float = 0
@@ -171,20 +173,20 @@ class ThermalClusterPropertiesUpdate(ClusterPropertiesUpdate):
 
     Attributes:
         group: Type of thermal generation to organize clusters.
-        gen_ts: 
-        min_stable_power: 
-        min_up_time: Duration needed for the cluster to reach its nominal capacity 
+        gen_ts:
+        min_stable_power:
+        min_up_time: Duration needed for the cluster to reach its nominal capacity
             from an initial off state.
         min_down_time: Duration needed for the cluster to shutdown from its nominal capacity.
         must_run: Whether the cluster must run or not.
-        spinning: 
-        volatility_forced: 
-        volatility_planned: 
-        law_forced: 
-        law_planned: 
+        spinning:
+        volatility_forced:
+        volatility_planned:
+        law_forced:
+        law_planned:
         marginal_cost: Marginal cost.
         spread_cost: Spread cost.
-        fixed_cost: 
+        fixed_cost:
         startup_cost: Start up cost of a unit.
         market_bid_cost: Market bid cost.
         co2: Emission rate of $\\ce{CO2}$ in t/MWh.
@@ -204,6 +206,7 @@ class ThermalClusterPropertiesUpdate(ClusterPropertiesUpdate):
         efficiency: Efficiency of the cluster.
         variable_o_m_cost: Variable O&M costs.
     """
+
     group: Optional[str] = None
     gen_ts: Optional[LocalTSGenerationBehavior] = None
     min_stable_power: Optional[float] = None
@@ -244,13 +247,14 @@ class ThermalClusterMatrixName(Enum):
 
     Attributes:
         PREPRO_DATA: Hourly availability data generation.
-        PREPRO_MODULATION: Hourly modulation of the marginal cost, the market bid, 
+        PREPRO_MODULATION: Hourly modulation of the marginal cost, the market bid,
             the capacity modulation and the minimal generation.
-        SERIES: Daily time-series of FO duration, PO duration, FO rate, PO rate, 
+        SERIES: Daily time-series of FO duration, PO duration, FO rate, PO rate,
             NPO min and NPO max necessary for time-series generation.
         SERIES_CO2_COST: Hourly CO2 cost time-series.
         SERIES_FUEL_COST: Hourly fuel cost time-series.
     """
+
     PREPRO_DATA = "data"
     PREPRO_MODULATION = "modulation"
     SERIES = "series"
@@ -296,7 +300,7 @@ class ThermalCluster:
 
     def update_properties(self, properties: ThermalClusterPropertiesUpdate) -> ThermalClusterProperties:
         """Update properties of the thermal cluster.
-        
+
         Args:
             properties: Properties to update.
         """
@@ -344,7 +348,7 @@ class ThermalCluster:
         """TODO
 
         Args:
-            
+
         """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.PREPRO_MODULATION)
 
@@ -352,7 +356,7 @@ class ThermalCluster:
         """Set TODO
 
         Args:
-            
+
         """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES)
 

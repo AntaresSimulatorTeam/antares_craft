@@ -30,6 +30,7 @@ class BindingConstraintFrequency(EnumIgnoreCase):
         DAILY: Constraints are applied every day.
         WEEKLY: Constraints are applied every week.
     """
+
     HOURLY = "hourly"
     DAILY = "daily"
     WEEKLY = "weekly"
@@ -37,7 +38,7 @@ class BindingConstraintFrequency(EnumIgnoreCase):
 
 class BindingConstraintOperator(EnumIgnoreCase):
     """An enumeration representing the possible operators for binding constraints.
-    
+
     The values are case-insensitive, so "LESS", "less", or "Less" are all valid.
 
     Attributes:
@@ -46,6 +47,7 @@ class BindingConstraintOperator(EnumIgnoreCase):
         BOTH: Represents a "both less than and greater than" constraint.
         EQUAL: Represents an "equal to" (==) constraint.
     """
+
     LESS = "less"
     GREATER = "greater"
     BOTH = "both"
@@ -60,6 +62,7 @@ class ConstraintMatrixName(Enum):
         EQUAL_TERM: Represents the "equal to" (==) constraint term, abbreviated as "eq".
         GREATER_TERM: Represents the "greater than" (>) constraint term, abbreviated as "gt".
     """
+
     LESS_TERM = "lt"
     EQUAL_TERM = "eq"
     GREATER_TERM = "gt"
@@ -94,10 +97,11 @@ class ClusterData:
 @dataclass(frozen=True)
 class ConstraintTermData:
     """Constraint term in the left hand side of a binding constraint.
-    
+
     Attributes:
         data: The underlying data, which can be either a `LinkData` or `ClusterData` object.
     """
+
     data: LinkData | ClusterData
 
     @property
@@ -113,7 +117,7 @@ class ConstraintTermData:
     @staticmethod
     def from_dict(input: dict[str, str]) -> LinkData | ClusterData:
         """Create a `LinkData` or `ClusterData` object from a dictionary.
-        
+
         Args:
             input: A dictionary containing either "area1" and "area2" keys (for `LinkData`)
                    or "area" and "cluster" keys (for `ClusterData`).
@@ -157,12 +161,13 @@ class ConstraintTerm(ConstraintTermData):
     """Constraint terms
 
     Attributes:
-        weigth: 
+        weigth:
             The coefficient multiplying the link or cluster
-        offset: 
+        offset:
             The time offset of flow on the given link or output of the cluster.
             For example, it allows to make a constraint on a previous time-step.
     """
+
     weight: float = 1
     offset: int = 0
 
@@ -180,10 +185,11 @@ class BindingConstraintPropertiesUpdate:
         time_step: Frequency at which the binding constraint is applied.
         operator: Bound of the bounding constraint (<, >, == or < and >).
         comments: User comments on the constraint.
-        filter_year_by_year: Set of filter options for output (hourly, daily, weekly, monthly, annual). 
-        filter_synthesis: Set of filter options for synthesis (hourly, daily, weekly, monthly, annual). 
+        filter_year_by_year: Set of filter options for output (hourly, daily, weekly, monthly, annual).
+        filter_synthesis: Set of filter options for synthesis (hourly, daily, weekly, monthly, annual).
         group: User defined group to organize binding constraints
     """
+
     enabled: Optional[bool] = None
     time_step: Optional[BindingConstraintFrequency] = None
     operator: Optional[BindingConstraintOperator] = None
@@ -202,10 +208,11 @@ class BindingConstraintProperties:
         time_step: Frequency at which the binding constraint is applied.
         operator: Bound of the bounding constraint (<, >, == or < and >).
         comments: User comments on the constraint.
-        filter_year_by_year: Set of filter options for output (hourly, daily, weekly, monthly, annual). 
-        filter_synthesis: Set of filter options for synthesis (hourly, daily, weekly, monthly, annual). 
+        filter_year_by_year: Set of filter options for output (hourly, daily, weekly, monthly, annual).
+        filter_synthesis: Set of filter options for synthesis (hourly, daily, weekly, monthly, annual).
         group: User defined group to organize binding constraints
     """
+
     enabled: bool = True
     time_step: BindingConstraintFrequency = BindingConstraintFrequency.HOURLY
     operator: BindingConstraintOperator = BindingConstraintOperator.LESS
@@ -216,9 +223,10 @@ class BindingConstraintProperties:
 
 
 class BindingConstraint:
-    """Define generic constraints (binding constraints) between transmission flows 
+    """Define generic constraints (binding constraints) between transmission flows
     and/or power generated from thermal clusters.
     """
+
     def __init__(
         self,
         bc_id: str,
@@ -286,7 +294,7 @@ class BindingConstraint:
 
     def set_less_term(self, matrix: pd.DataFrame) -> None:
         """Set the "less than" (<) term matrix
-        
+
         Args:
             matrix: the matrix to upload.
         """
@@ -294,7 +302,7 @@ class BindingConstraint:
 
     def set_equal_term(self, matrix: pd.DataFrame) -> None:
         """Set the "equal" (==) term matrix
-        
+
         Args:
             matrix: the matrix to upload.
         """
@@ -302,7 +310,7 @@ class BindingConstraint:
 
     def set_greater_term(self, matrix: pd.DataFrame) -> None:
         """Set the "greater than" (>) term matrix
-        
+
         Args:
             matrix: the matrix to upload.
         """

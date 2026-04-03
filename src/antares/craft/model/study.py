@@ -118,7 +118,7 @@ class Study:
 
     def set_playlist(self, playlist: dict[int, PlaylistParameters]) -> None:
         """Set the playlist to give relative weights to each Monte Carlo year.
-        
+
         Args:
             playlist: A mapping corresponding to the index of the MC year,
                 and the `PlaylistParameters` that includes the weight of that year.
@@ -128,7 +128,7 @@ class Study:
 
     def set_thematic_trimming(self, thematic_trimming: ThematicTrimmingParameters) -> None:
         """Set a thematic trimming to select the outputs of the simulation.
-        
+
         Args:
             thematic_trimming: Selection of the outputs.
         """
@@ -139,7 +139,7 @@ class Study:
         """Retrieve a dictionary of the study areas.
 
         Returns:
-            A read-only mapping where keys are area names (str) 
+            A read-only mapping where keys are area names (str)
             and values are `Area` objects.
         """
         return MappingProxyType(dict(sorted(self._areas.items())))
@@ -148,7 +148,7 @@ class Study:
         """Retrieve a dictionary of the study links.
 
         Returns:
-            A read-only mapping where keys are link names (str) 
+            A read-only mapping where keys are link names (str)
             and values are `Link` objects.
         """
         return MappingProxyType(self._links)
@@ -164,8 +164,8 @@ class Study:
         """Retrieve a dictionary of the binding constraints.
 
         Returns:
-            A read-only mapping where keys are binding constraints names (str) 
-            and values are `BindingConstraint` objects.        
+            A read-only mapping where keys are binding constraints names (str)
+            and values are `BindingConstraint` objects.
         """
         return MappingProxyType(self._binding_constraints)
 
@@ -505,7 +505,7 @@ class Study:
         """Update existing short-term storage.
 
         Args:
-            new_properties: a dictionary of short-term storage ID 
+            new_properties: a dictionary of short-term storage ID
                 to short-term storage update data.
         """
         new_st_props = self._area_service.storage_service.update_st_storages_properties(new_properties)
@@ -519,8 +519,8 @@ class Study:
         """Update existing short-term storage constraints.
 
         Args:
-            new_constraints: a dictionary of short-term storage objects 
-                to a dictionary of ST storage ID to some additional constraint update 
+            new_constraints: a dictionary of short-term storage objects
+                to a dictionary of ST storage ID to some additional constraint update
                 on the ST storage.
         """
         new_st_constraints = self._area_service.storage_service.update_st_storages_constraints(new_constraints)
@@ -531,7 +531,7 @@ class Study:
 
     def get_scenario_builder(self) -> ScenarioBuilder:
         """Get scenario builder.
-        
+
         Returns:
             The current scenario builder used.
         """
@@ -542,7 +542,7 @@ class Study:
 
     def set_scenario_builder(self, scenario_builder: ScenarioBuilder) -> None:
         """Set scenario builder.
-        
+
         Args:
             scenario_builder: The scenario builder to apply.
         """
@@ -563,7 +563,7 @@ class Study:
 
     def create_xpansion_configuration(self) -> XpansionConfiguration:
         """Create an xpansion configuration.
-        
+
         Returns:
             Default xpansion configuration.
         """

@@ -34,8 +34,8 @@ class HydroPropertiesUpdate:
         use_water: Whether or not use water values.
             TODO: add link to water values doc
         hard_bounds: Whether or not use hard bounds on rule curves.
-        initialize_reservoir_date: The number of the month (0 to 11). 
-        use_heuristic: Whether or not use the hydro heuristic in the simulation. 
+        initialize_reservoir_date: The number of the month (0 to 11).
+        use_heuristic: Whether or not use the hydro heuristic in the simulation.
             TODO: add link to heurisitic doc
         power_to_level: Whether or not use power to level modulations.
         use_leeway: Whether or not use leeway.
@@ -44,6 +44,7 @@ class HydroPropertiesUpdate:
         pumping_efficiency: Pumping efficiency ratio.
         overflow_spilled_cost_difference: (Introduced in v9.2)
     """
+
     inter_daily_breakdown: Optional[float] = None
     intra_daily_modulation: Optional[float] = None
     inter_monthly_breakdown: Optional[float] = None
@@ -80,8 +81,8 @@ class HydroProperties:
         use_water: Whether or not use water values.
             TODO: add link to water values doc
         hard_bounds: Whether or not use hard bounds on rule curves.
-        initialize_reservoir_date: The number of the month (0 to 11). 
-        use_heuristic: Whether or not use the hydro heuristic in the simulation. 
+        initialize_reservoir_date: The number of the month (0 to 11).
+        use_heuristic: Whether or not use the hydro heuristic in the simulation.
             TODO: add link to heurisitic doc
         power_to_level: Whether or not use power to level modulations.
         use_leeway: Whether or not use leeway.
@@ -90,6 +91,7 @@ class HydroProperties:
         pumping_efficiency: Pumping efficiency ratio.
         overflow_spilled_cost_difference: (Introduced in v9.2)
     """
+
     inter_daily_breakdown: float = 1
     intra_daily_modulation: float = 24
     inter_monthly_breakdown: float = 1
@@ -152,38 +154,42 @@ class HydroProperties:
 @dataclass(frozen=True)
 class InflowStructure:
     """The inflow structure.
-    
+
     Attributes:
         intermonthly_correlation: Inter-monthly correlation.
     """
+
     intermonthly_correlation: float = 0.5
 
 
 @dataclass
 class InflowStructureUpdate:
     """Update the inflow structure.
-    
+
     Attributes:
         intermonthly_correlation: Inter-monthly correlation.
     """
+
     intermonthly_correlation: float
 
 
 @dataclass(frozen=True)
 class HydroAllocation:
     """Diagonal term of the hydro allocations matrix used during a heuristic pre-allocation process,
-    regardless of whether the stochastic time-series generator is used or not. 
+    regardless of whether the stochastic time-series generator is used or not.
 
     Attributes:
         area_id: ID of the area.
         coefficient: Coefficient.
     """
+
     area_id: str
     coefficient: float = 1
 
 
 class Hydro:
     """Hydro object of modelling."""
+
     def __init__(
         self,
         service: BaseHydroService,
@@ -220,7 +226,7 @@ class Hydro:
 
     def update_properties(self, properties: HydroPropertiesUpdate) -> None:
         """Update hydro properties.
-        
+
         Args:
             properties: Hydro properties to update.
         """
@@ -241,7 +247,7 @@ class Hydro:
 
     def set_allocation(self, allocation: list[HydroAllocation]) -> None:
         """Set allocation.
-        
+
         Args:
             allocation: list of the hydro allocation
         """
@@ -250,7 +256,7 @@ class Hydro:
 
     def get_maxpower(self) -> pd.DataFrame:
         """Get maximum power.
-        
+
         Returns:
             The maximum power time-series.
         """
@@ -258,7 +264,7 @@ class Hydro:
 
     def get_reservoir(self) -> pd.DataFrame:
         """Get reservoir levels.
-        
+
         Returns:
             The reservoir level time-series.
         """
@@ -266,7 +272,7 @@ class Hydro:
 
     def get_inflow_pattern(self) -> pd.DataFrame:
         """Get inflow pattern.
-        
+
         Returns:
             Inflow pattern time-series.
         """
@@ -274,7 +280,7 @@ class Hydro:
 
     def get_credit_modulations(self) -> pd.DataFrame:
         """Get credit modulation.
-        
+
         Returns:
             Credit modulation
         """
@@ -282,7 +288,7 @@ class Hydro:
 
     def get_water_values(self) -> pd.DataFrame:
         """Get water values.
-        
+
         Returns:
             Water values time-series which depend on the date (365 days) and the reservoir fill percentage.
         """
@@ -290,7 +296,7 @@ class Hydro:
 
     def get_ror_series(self) -> pd.DataFrame:
         """Get run-of-river generation time-series.
-        
+
         Returns:
             Run-of-river time-series.
         """
@@ -302,7 +308,7 @@ class Hydro:
 
     def get_mingen(self) -> pd.DataFrame:
         """Get minimum generation time-series.
-        
+
         Returns:
             Minimum generation time-series.
         """
@@ -310,15 +316,15 @@ class Hydro:
 
     def get_energy(self) -> pd.DataFrame:
         """Get energy.
-        
-        Returns: 
+
+        Returns:
             Energy time-series.
         """
         return self._service.get_energy(self.area_id)
 
     def set_maxpower(self, series: pd.DataFrame) -> None:
         """Set maximum power.
-        
+
         Args:
             series: The time-series.
         """
@@ -326,7 +332,7 @@ class Hydro:
 
     def set_reservoir(self, series: pd.DataFrame) -> None:
         """Set reservoir.
-        
+
         Args:
             series: The time-series.
         """
@@ -334,7 +340,7 @@ class Hydro:
 
     def set_inflow_pattern(self, series: pd.DataFrame) -> None:
         """Set inflow pattern.
-        
+
         Args:
             series: The time-series.
         """
@@ -342,7 +348,7 @@ class Hydro:
 
     def set_credits_modulation(self, series: pd.DataFrame) -> None:
         """Set credit_modulation.
-        
+
         Args:
             series: A matrix of the generating power and the pumping power depending on the reservoir fill level.
         """
@@ -350,7 +356,7 @@ class Hydro:
 
     def set_water_values(self, series: pd.DataFrame) -> None:
         """Set water values.
-        
+
         Args:
             series: The time-series.
         """
@@ -358,7 +364,7 @@ class Hydro:
 
     def set_mod_series(self, series: pd.DataFrame) -> None:
         """Set modulation series.
-        
+
         Args:
             series: The time-series.
         """
@@ -366,7 +372,7 @@ class Hydro:
 
     def set_ror_series(self, series: pd.DataFrame) -> None:
         """Set run-of-river generation series.
-        
+
         Args:
             series: The time-series.
         """
@@ -374,14 +380,14 @@ class Hydro:
 
     def set_mingen(self, series: pd.DataFrame) -> None:
         """Set minimum generation series.
-        
+
         Args:
             series: The time-series."""
         return self._service.set_mingen(self.area_id, series)
 
     def set_energy(self, series: pd.DataFrame) -> None:
-        """Set energy. 
-        
+        """Set energy.
+
         Args:
             series: The time-series."""
         return self._service.set_energy(self.area_id, series)

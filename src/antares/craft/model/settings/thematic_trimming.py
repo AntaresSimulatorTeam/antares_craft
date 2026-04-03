@@ -22,7 +22,7 @@ class ThematicTrimmingParameters:
     This class contains all the possible output column names and whether to enable it or not.
 
     By default all outputs common to versions < 9.1 and >= 9.1 are enabled.
-    
+
     Attributes:
         ov_cost: Overall cost = operating cost + unsupplied cost + spilled cost + hydro cost.
         op_cost: Operating cost = proportional costs + non-proportional costs.
@@ -47,52 +47,52 @@ class ThematicTrimmingParameters:
         unsp_enrg: Unsupplied energy: adequacy indicator (Expected Energy Not ServedEENS).
         spil_enrg: Unsupplied enery after curtailment sharing rule (CSR) namely demand that cannot be satisfied.
         lold: Loss of load duration: adequacy indicator (length of shortfalls).
-        lolp: Loss of Load probability: adequacy indicator. 
-            Probability of at least one hour of shortfall within the considered period, 
+        lolp: Loss of Load probability: adequacy indicator.
+            Probability of at least one hour of shortfall within the considered period,
             without normalization by the duration of the considered period.
         avl_dtg: Available dispatchable thermal generation: sum of available power over all plants.
         dtg_mrg: Dispatchable thermal generation : avl_dtg - sum of all dispatched thermal generation.
-        max_mrg: Maximum margin: operational margin obtained if the hydro storage energy 
+        max_mrg: Maximum margin: operational margin obtained if the hydro storage energy
             of the week were used to maximise margins instead of minimizing costs.
         np_cost: Non-proportional costs of the dispatchable plants (start-up and fixed costs).
-        np_cost_by_plant: Non-proportional costs of the dispatchable plants (start-up and fixed costs), 
+        np_cost_by_plant: Non-proportional costs of the dispatchable plants (start-up and fixed costs),
             but by dispatchable plant.
         nodu: Number of dispatched units.
         nodu_by_plant: Number of dispatched units by plant.
-        flow_lin: Flow (signed + from upstream to downstream) assessed by the linear optimization. 
-            These flows follow Kirchhoff's law only if these laws have been explicitly enforced 
+        flow_lin: Flow (signed + from upstream to downstream) assessed by the linear optimization.
+            These flows follow Kirchhoff's law only if these laws have been explicitly enforced
             by the means of suitable binding constraints.
-        ucap_lin: Used capacity: absolute value of `flow_lin`. 
-            This indicator may be of interest to differentiate the behavior of interconnectors showing low average flows: 
+        ucap_lin: Used capacity: absolute value of `flow_lin`.
+            This indicator may be of interest to differentiate the behavior of interconnectors showing low average flows:
             in some cases this may indicate that the line is little used, while in others this may be the outcome of high symmetric flows.
-        loop_flow: Flow circulating through the grid when all areas have a zero import/export balance. 
-            This flow, to be put down to the simplification of the real grid, 
+        loop_flow: Flow circulating through the grid when all areas have a zero import/export balance.
+            This flow, to be put down to the simplification of the real grid,
             is not subject to hurdle costs in the course of the optimization.
-        flow_quad: Flow computed anew, starting from the linear optimum, by minimizing a quadratic function equivalent to an amount of Joule losses, 
-            while staying within the transmission capacity limits. This calculation uses for this purpose the impedances found in 
+        flow_quad: Flow computed anew, starting from the linear optimum, by minimizing a quadratic function equivalent to an amount of Joule losses,
+            while staying within the transmission capacity limits. This calculation uses for this purpose the impedances found in
             the "Links" Input data. If congestions occur on the grid, these results are not equivalent to those of a DC load flow.
         cong_fee_alg: Algebraic congestion rent = linear flow x (downstream price - upstream price).
         cong_fee_abs: Absolute congestion rent = linear flow x abs(downstream price - upstream price).
-        marg_cost: Decrease of the system's overall cost that would be brought by the optimal use 
+        marg_cost: Decrease of the system's overall cost that would be brought by the optimal use
             of an additional 1 MW transmission capacity (in both directions).
         cong_prob_plus: Up>Dwn Congestion probability = (NC+) / (total number of MC years) with:
-            NC+ = number of years during which the interconnection was congested in the Up>Dwn way 
+            NC+ = number of years during which the interconnection was congested in the Up>Dwn way
             for **any** length of time within the time frame relevant with the file.
         cong_prob_minus: Dwn>Up Congestion probability = (NC-) / (total number of MC years) with:
             NC- = number of years during which the interconnection was congested in the Dwn>Up way
             for **any** length of time within the time frame relevant with the file.
-        hurdle_cost: Contribution of the flows to the overall economic function through the "hurdle costs" component. 
+        hurdle_cost: Contribution of the flows to the overall economic function through the "hurdle costs" component.
             For each hour:
             ```
             if (flow_lin - loop_flow) > 0:
                 hurdle_cost = (hourly direct hurdle cost) * (flow_lin)
-            else: 
+            else:
                 hurdle_cost = (hourly indirect hurdle cost) * (-1) * (flow_lin)
             ```
-        res_generation_by_plant: For any active renewable cluster, its production (necessarily must-run). 
+        res_generation_by_plant: For any active renewable cluster, its production (necessarily must-run).
             Only when using clustered *Renewable generation modeling*.
         dens: Domestic energy not supplied: the difference between the local production capabilities of an area and its local load.
-            Please note that this output variable is only available in the economy mode, 
+            Please note that this output variable is only available in the economy mode,
             if adequacy patch is activated and the area the output variable belongs to is inside the adequacy patch domain
         profit_by_plant: Net profit of the cluster in euros:
             (`mrg_price` - marginal cost of the cluster) * (dispatchable production of the cluster).
@@ -103,9 +103,9 @@ class ThematicTrimmingParameters:
         npcap_hours: TODO:
         bc_marg_cost: Binding constraint marginal cost.
         lmr_viol: Local matching rule violation after the Antares Simulation as defined by the adequacy patch.
-            Please note that this output variable is only available in the economy mode, 
+            Please note that this output variable is only available in the economy mode,
             if adequacy patch is activated and the area the output variable belongs to is inside the adequacy patch domain.
-        dtg_mrg_csr: `dtg_mrg` after curtailment sharing rule. 
+        dtg_mrg_csr: `dtg_mrg` after curtailment sharing rule.
         nh3_emis: Amount of $\\ce{NH3}$ emitted by all dispatchable thermal plants.
         nox_emis: Amount of $\\ce{NOx}$ emitted by all dispatchable thermal plants.
         pm2_5_emis: Amount of $\\ce{PM_{2.5}}$ emitted by all dispatchable thermal plants.
@@ -147,27 +147,27 @@ class ThematicTrimmingParameters:
         other4_level: **Removed since v9.1**
         other5_injection: **Removed since v9.1**
         other5_withdrawal: **Removed since v9.1**
-        other5_level: **Removed since v9.1** 
+        other5_level: **Removed since v9.1**
         misc_dtg_2: **Removed since v9.3** Overall gen. of disp. thermal clusters using other fuels.
         misc_dtg_3: **Removed since v9.3** Overall gen. of disp. thermal clusters using other fuels.
         misc_dtg_4: **Removed since v9.3** Overall gen. of disp. thermal clusters using other fuels.
-        wind_offshore: **Removed since v9.3** Wind onshore generation 
+        wind_offshore: **Removed since v9.3** Wind onshore generation
             (only when using clustered Renewable generation modeling).
-        wind_onshore: **Removed since v9.3** Wind onshore generation 
+        wind_onshore: **Removed since v9.3** Wind onshore generation
             (only when using clustered Renewable generation modeling).
-        solar_concrt: **Removed since v9.3** Concentrated Solar Thermal generation 
+        solar_concrt: **Removed since v9.3** Concentrated Solar Thermal generation
             (only when using clustered Renewable generation modeling).
-        solar_pv: **Removed since v9.3** Solar Photovoltaic generation 
+        solar_pv: **Removed since v9.3** Solar Photovoltaic generation
             (only when using clustered Renewable generation modeling).
-        solar_rooft: **Removed since v9.3** Rooftop Solar generation 
+        solar_rooft: **Removed since v9.3** Rooftop Solar generation
             (only when using clustered Renewable generation modeling).
-        renw_1: **Removed since v9.3** Overall generation of other Renewable clusters 
+        renw_1: **Removed since v9.3** Overall generation of other Renewable clusters
             (only when using clustered Renewable generation modeling).
-        renw_2: **Removed since v9.3** Overall generation of other Renewable clusters 
+        renw_2: **Removed since v9.3** Overall generation of other Renewable clusters
             (only when using clustered Renewable generation modeling).
-        renw_3: **Removed since v9.3** Overall generation of other Renewable clusters 
+        renw_3: **Removed since v9.3** Overall generation of other Renewable clusters
             (only when using clustered Renewable generation modeling).
-        renw_4: **Removed since v9.3** Overall generation of other Renewable clusters 
+        renw_4: **Removed since v9.3** Overall generation of other Renewable clusters
             (only when using clustered Renewable generation modeling).
         solar: **Removed since v9.3** Solar generation thermal and PV
             (only when using aggregated Renewable generation modeling).
@@ -179,6 +179,7 @@ class ThematicTrimmingParameters:
         mix_fuel: **Removed since v9.3** Overall generation of dispatchable thermal clusters using a mix of the previous fuels.
         misc_dtg: **Removed since v9.3**Overall generation of dispatchable thermal clusters using other fuels
     """
+
     ov_cost: bool = True
     op_cost: bool = True
     mrg_price: bool = True
@@ -299,7 +300,7 @@ class ThematicTrimmingParameters:
 
     def all_enabled(self) -> "ThematicTrimmingParameters":
         """Enable all outputs.
-        
+
         Returns:
             All parameters are set to `True` so all outputs will be generated.
         """
@@ -309,7 +310,7 @@ class ThematicTrimmingParameters:
 
     def all_disabled(self) -> "ThematicTrimmingParameters":
         """Disable all outputs.
-        
+
         Returns:
             All parameters are set to `False`.
         """
@@ -319,7 +320,7 @@ class ThematicTrimmingParameters:
 
     def all_reversed(self) -> "ThematicTrimmingParameters":
         """Reverse all current settings.
-        
+
         Returns:
             All parameters are reversed.
         """

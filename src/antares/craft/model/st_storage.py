@@ -22,11 +22,11 @@ from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_
 
 class STStorageGroup(EnumIgnoreCase):
     """Short-term storage group possibilities.
-    
-    Attributes: 
+
+    Attributes:
         PSP_OPEN: Open cycle Pump-Storage Plants.
         PSP_CLOSED: Closed cycle Pump-Storage Plants.
-        PONDAGE: Small water storage behind the weir of a 
+        PONDAGE: Small water storage behind the weir of a
             run-of-the-river hydroelectric power plant
         BATTERY: Battery.
         OTHER1: Other 1.
@@ -35,6 +35,7 @@ class STStorageGroup(EnumIgnoreCase):
         OTHER4: Other 4.
         OTHER5: Other 5.
     """
+
     PSP_OPEN = "psp_open"
     PSP_CLOSED = "psp_closed"
     PONDAGE = "pondage"
@@ -48,32 +49,33 @@ class STStorageGroup(EnumIgnoreCase):
 
 class STStorageMatrixName(Enum):
     """Short-term storage matrix column headers.
-    
+
     Attributes:
-        PMAX_INJECTION: Maximum power injection involving modulation of the 
-            injection capacity each hour, reflecting lower availability of 
+        PMAX_INJECTION: Maximum power injection involving modulation of the
+            injection capacity each hour, reflecting lower availability of
             the storage at certain times (planned or forced outages).
-        PMAX_WITHDRAWAL: Maximum power withdrawal involving modulation of the 
-            injection capacity each hour, reflecting lower availability of 
+        PMAX_WITHDRAWAL: Maximum power withdrawal involving modulation of the
+            injection capacity each hour, reflecting lower availability of
             the storage at certain times (planned or forced outages).
-        LOWER_CURVE_RULE: Lower limit for filling the stock, 
+        LOWER_CURVE_RULE: Lower limit for filling the stock,
             expressed as a filling rate, imposed each hour.
-        UPPER_RULE_CURVE: Upper limit for filling the stock, 
+        UPPER_RULE_CURVE: Upper limit for filling the stock,
             expressed as a filling rate, imposed each hour.
         INFLOWS: Natural inflows in MW that enters into the storage. The values
-            for this file can be negative, corresponding to withdrawals imposed on the stock for other uses 
+            for this file can be negative, corresponding to withdrawals imposed on the stock for other uses
         COST_INJECTION: **Introduced in v9.2.** Penalization of the injection flowrate at each hour in €/MW.
         COST_WITHDRAWAL: **Introduced in v9.2.** Penalization of the withdrawal flowrate at each hour in €/MW.
-        COST_LEVEL: **Introduced in v9.2.** Penalization of the volume of stored energy at each hour in €/MWh. 
-            A negative penalty is allowed for this cost. If the penalty is positive, 
+        COST_LEVEL: **Introduced in v9.2.** Penalization of the volume of stored energy at each hour in €/MWh.
+            A negative penalty is allowed for this cost. If the penalty is positive,
             it will favor lower-level trajectories. If the penalty is negative, it will favor higher-level trajectories.
-        COST_VARIATION_INJECTION: **Introduced in v9.2.** Penalizes the injection flowrate variation every hour in €/MW/h. 
-            This penalty must be positive. This penalty is only enabled if the boolean parameter `penalize-variation-injection` 
+        COST_VARIATION_INJECTION: **Introduced in v9.2.** Penalizes the injection flowrate variation every hour in €/MW/h.
+            This penalty must be positive. This penalty is only enabled if the boolean parameter `penalize-variation-injection`
             is set to `True`. This penalty will penalize proportionally any injection flowrate variation between 2 hours.
         COST_VARIATION_WITHDRAWAL: **Introduced in v9.2.** Penalizes the withdrawal flowrate variation every hour in €/MW/h.
             This penalty must be positive. This penalty is only enabled if the boolean parameter `penalize_variation_withdrawal`
             is set to `True`. This penalty will penalize proportionally any withdrawal flowrate variation between 2 hours.
     """
+
     PMAX_INJECTION = "pmax_injection"
     PMAX_WITHDRAWAL = "pmax_withdrawal"
     LOWER_CURVE_RULE = "lower_rule_curve"
@@ -90,26 +92,27 @@ class STStorageMatrixName(Enum):
 @dataclass
 class STStoragePropertiesUpdate:
     """Short-term storage properties update.
-    
+
     Attributes:
         group: Group of short term storage (`PSP_OPEN`, `PSP_CLOSED`, `PONDAGE`, `BATTERY` or `OTHER`).
         injection_nominal_capacity: The maximal flow in MW that can be injected into the storage.
         withdrawal_nominal_capacity: The maximal flow in MW that can be withdraw from the storage.
         reservoir_capacity: The maximal capacity in MWh of the storage.
-        efficiency: The injection energy efficiency which is the ratio between 
+        efficiency: The injection energy efficiency which is the ratio between
             the stored energy and the energy taken from the system.
-        initial_level: To be considered only if `initial_level_optim = False`, 
+        initial_level: To be considered only if `initial_level_optim = False`,
             in this case corresponds to the ratio of the storage level between empty `0` and full `1`.
-        initial_level_optim: Whether to allow reoptimization of the initial storage level each week. 
-            In this case the level is discontinuous between weeks. 
+        initial_level_optim: Whether to allow reoptimization of the initial storage level each week.
+            In this case the level is discontinuous between weeks.
             Otherwise, the initial level is imposed by the user and is identical each week.
         enabled: Whether the storage is included in the model.
-        efficiency_withdrawal: The withdrawal energy efficiency which is the ratio between 
+        efficiency_withdrawal: The withdrawal energy efficiency which is the ratio between
             the stored energy and the energy returned to the system.
         penalize_variation_injection: Whether to create new variables to penalize the variation in the injection flowrate.
         penalize_variation_withdrawal: Whether to create new variables to penalize the variation in the withdrawal flowrate.
         allow_overflow: Whether to allow overflow of the storage.
     """
+
     group: Optional[str] = None
     injection_nominal_capacity: Optional[float] = None
     withdrawal_nominal_capacity: Optional[float] = None
@@ -129,26 +132,27 @@ class STStoragePropertiesUpdate:
 @dataclass(frozen=True)
 class STStorageProperties:
     """Short-term storage properties.
-    
+
     Attributes:
         group: Group of short term storage (`PSP_OPEN`, `PSP_CLOSED`, `PONDAGE`, `BATTERY` or `OTHER`).
         injection_nominal_capacity: The maximal flow in MW that can be injected into the storage.
         withdrawal_nominal_capacity: The maximal flow in MW that can be withdraw from the storage.
         reservoir_capacity: The maximal capacity in MWh of the storage.
-        efficiency: The injection energy efficiency which is the ratio between 
+        efficiency: The injection energy efficiency which is the ratio between
             the stored energy and the energy taken from the system.
-        initial_level: To be considered only if `initial_level_optim = False`, 
+        initial_level: To be considered only if `initial_level_optim = False`,
             in this case corresponds to the ratio of the storage level between empty `0` and full `1`.
-        initial_level_optim: Whether to allow reoptimization of the initial storage level each week. 
-            In this case the level is discontinuous between weeks. 
+        initial_level_optim: Whether to allow reoptimization of the initial storage level each week.
+            In this case the level is discontinuous between weeks.
             Otherwise, the initial level is imposed by the user and is identical each week.
         enabled: Whether the storage is included in the model.
-        efficiency_withdrawal: The withdrawal energy efficiency which is the ratio between 
+        efficiency_withdrawal: The withdrawal energy efficiency which is the ratio between
             the stored energy and the energy returned to the system.
         penalize_variation_injection: Whether to create new variables to penalize the variation in the injection flowrate.
         penalize_variation_withdrawal: Whether to create new variables to penalize the variation in the withdrawal flowrate.
         allow_overflow: Whether to allow overflow of the storage.
     """
+
     group: str = STStorageGroup.OTHER1.value
     injection_nominal_capacity: float = 0
     withdrawal_nominal_capacity: float = 0
@@ -167,13 +171,14 @@ class STStorageProperties:
 
 class AdditionalConstraintVariable(EnumIgnoreCase):
     """Variables considered for the constraint.
-    
+
     Attributes:
         WITHDRAWAL: The constraint considers a set of withdrawal values.
         INJECTION: The constraint considers a set of injection values.
-        NETTING: The constraint consider a set of hybrid variables equivalent to 
+        NETTING: The constraint consider a set of hybrid variables equivalent to
             the variation of the level when there are no inflows.
     """
+
     WITHDRAWAL = "withdrawal"
     INJECTION = "injection"
     NETTING = "netting"
@@ -187,6 +192,7 @@ class AdditionalConstraintOperator(EnumIgnoreCase):
         GREATER: greater than (>).
         EQUAL: equal to (=).
     """
+
     LESS = "less"
     GREATER = "greater"
     EQUAL = "equal"
@@ -195,28 +201,30 @@ class AdditionalConstraintOperator(EnumIgnoreCase):
 @dataclass(frozen=True)
 class Occurrence:
     """Occurence of the additional constraint.
-    
+
     Attributes:
-        hours: List of the index of the hours in the week where 
+        hours: List of the index of the hours in the week where
             a constraint is applied.
     """
+
     hours: list[int]
 
 
 @dataclass(frozen=True)
 class STStorageAdditionalConstraint:
     """Short-term storage additional constraint.
-    
+
     Attributes:
         id: ID of the additional constraint.
         name: Name of the additional constraint.
-        variable: Variable considered for the constraint 
+        variable: Variable considered for the constraint
             (`WITHDRAWAL`, `INJECTION` or `NETTING`).
         operator: Mathematical operator defining the constraint
             (`LESS`, `GREATER` or `EQUAL`).
         occurrences: List of list of hours where the constraint is applied.
         enabled: Whether the constraint is considered.
     """
+
     id: str = field(init=False)
     name: str
     variable: AdditionalConstraintVariable = AdditionalConstraintVariable.NETTING
@@ -231,10 +239,11 @@ class STStorageAdditionalConstraint:
 @dataclass(frozen=True)
 class STStorageAdditionalConstraintUpdate:
     """Short-term storage additional constraint update.
-    
-    See the class [`STStorageAdditionalConstraint`][antares.craft.model.st_storage.STStorageAdditionalConstraint] 
+
+    See the class [`STStorageAdditionalConstraint`][antares.craft.model.st_storage.STStorageAdditionalConstraint]
     for more details on the parameters.
     """
+
     variable: Optional[AdditionalConstraintVariable] = None
     operator: Optional[AdditionalConstraintOperator] = None
     occurrences: Optional[list[Occurrence]] = None
@@ -243,15 +252,16 @@ class STStorageAdditionalConstraintUpdate:
 
 class STStorage:
     """Short-term storage object of modelling.
-    
+
     This object allows to represent the management of any short-term storage with the following main characteristics :
 
-    - Storages managed on cycles that are sub-multiples of the Antares optimization window (week or day). 
+    - Storages managed on cycles that are sub-multiples of the Antares optimization window (week or day).
         By cycle we mean that at the end of the cycle the stock must return to the level at the start of the cycle
     - Rule curves that frame the admissible levels hour by hour - the authorized range is a subset of the 0-100 range hourly.
     - PMAX chronicles for storage and destocking.
     - Natural inflows (case of open cycle Pump-Storage Plants).
     """
+
     def __init__(
         self,
         storage_service: BaseShortTermStorageService,
@@ -289,7 +299,7 @@ class STStorage:
 
     def get_constraints(self) -> MappingProxyType[str, STStorageAdditionalConstraint]:
         """Get the associated constraints.
-        
+
         Returns:
             A mapping of the additional constraint ID and the object `STStorageAdditionalConstraint`.
         """
@@ -297,10 +307,10 @@ class STStorage:
 
     def update_properties(self, properties: STStoragePropertiesUpdate) -> STStorageProperties:
         """Update short-term storage properties.
-        
-        Args:   
+
+        Args:
             properties: The properties to update.
-        
+
         Returns:
             The updated properties.
         """
@@ -310,7 +320,7 @@ class STStorage:
 
     def get_pmax_injection(self) -> pd.DataFrame:
         """Get the maximum injection power time series.
-        
+
         Returns:
             The maximum injection power dataframe.
         """
@@ -318,7 +328,7 @@ class STStorage:
 
     def get_pmax_withdrawal(self) -> pd.DataFrame:
         """Get the maximum withdrawal power time series.
-        
+
         Returns:
             The maximum withdrawal power dataframe.
         """
@@ -326,7 +336,7 @@ class STStorage:
 
     def get_lower_rule_curve(self) -> pd.DataFrame:
         """Get the lower rule curve time series.
-        
+
         Returns:
             The lower rule curve dataframe.
         """
@@ -334,7 +344,7 @@ class STStorage:
 
     def get_upper_rule_curve(self) -> pd.DataFrame:
         """Get the upper rule curve time series.
-        
+
         Returns:
             The upper rule curve dataframe.
         """
@@ -342,7 +352,7 @@ class STStorage:
 
     def get_storage_inflows(self) -> pd.DataFrame:
         """Get the natural inflow time series.
-        
+
         Returns:
             The natural inflow dataframe.
         """
@@ -350,7 +360,7 @@ class STStorage:
 
     def get_cost_injection(self) -> pd.DataFrame:
         """Get the injection cost time series.
-        
+
         Returns:
             The injection cost dataframe.
         """
@@ -358,7 +368,7 @@ class STStorage:
 
     def get_cost_withdrawal(self) -> pd.DataFrame:
         """Get the withdrawal cost time series.
-        
+
         Returns:
             The withdrawal cost dataframe.
         """
@@ -366,7 +376,7 @@ class STStorage:
 
     def get_cost_level(self) -> pd.DataFrame:
         """Get the level cost time series.
-        
+
         Returns:
             The level cost dataframe.
         """
@@ -374,7 +384,7 @@ class STStorage:
 
     def get_cost_variation_injection(self) -> pd.DataFrame:
         """Get the variation injection cost time series.
-        
+
         Returns:
             The variation injection cost dataframe.
         """
@@ -382,7 +392,7 @@ class STStorage:
 
     def get_cost_variation_withdrawal(self) -> pd.DataFrame:
         """Get the variation withdrawal cost time series.
-        
+
         Returns:
             The variation withdrawal cost dataframe.
         """
@@ -474,7 +484,7 @@ class STStorage:
 
     def create_constraints(self, constraints: list[STStorageAdditionalConstraint]) -> None:
         """Create a new additional constraints.
-        
+
         Args:
             constraints: The list of new additional constraints.
         """
@@ -486,7 +496,7 @@ class STStorage:
         self, constraint_id: str, constraint: STStorageAdditionalConstraintUpdate
     ) -> STStorageAdditionalConstraint:
         """Update an additional constraint.
-        
+
         Args:
             constraint_id: The constraint ID.
             constraint: The new constraint update.
@@ -501,7 +511,7 @@ class STStorage:
 
     def delete_constraints(self, constraint_ids: list[str]) -> None:
         """Delete additional constraints.
-        
+
         Args:
             constraint_ids: The list of the constraint IDs to delete.
         """
@@ -511,7 +521,7 @@ class STStorage:
 
     def get_constraint_term(self, constraint_id: str) -> pd.DataFrame:
         """Get constraint term.
-        
+
         Args:
             constraint_id: The constraint ID.
 
@@ -522,7 +532,7 @@ class STStorage:
 
     def set_constraint_term(self, constraint_id: str, matrix: pd.DataFrame) -> None:
         """Set constraint term.
-        
+
         Args:
             constraint_id: The constraint ID.
             matrix: The new constraint dataframe.

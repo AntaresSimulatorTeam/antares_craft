@@ -66,7 +66,7 @@ class TimeSeriesInterpretation(Enum):
 
     Attributes:
         POWER_GENERATION: Power generation means that the unit of the timeseries is in MW
-        PRODUCTION_FACTOR: Production factor means that the unit of the timeseries is in p.u. 
+        PRODUCTION_FACTOR: Production factor means that the unit of the timeseries is in p.u.
             (between 0 and 1, 1 meaning the full installed capacity).
     """
 
@@ -77,11 +77,12 @@ class TimeSeriesInterpretation(Enum):
 @dataclass(frozen=True)
 class RenewableClusterProperties(ClusterProperties):
     """Renewable cluster properties.
-    
+
     Attributes:
-        group: 
+        group:
         ts_interpretation: Either `power_generation` or `production_factor`.
     """
+
     group: str = RenewableClusterGroup.OTHER1.value
     ts_interpretation: TimeSeriesInterpretation = TimeSeriesInterpretation.POWER_GENERATION
 
@@ -91,9 +92,10 @@ class RenewableClusterPropertiesUpdate(ClusterPropertiesUpdate):
     """Update the renewable cluster properties.
 
     Attributes:
-        group: 
-        ts_interpretation: Either `power_generation` or `production_factor`.    
+        group:
+        ts_interpretation: Either `power_generation` or `production_factor`.
     """
+
     group: Optional[str] = None
     ts_interpretation: Optional[TimeSeriesInterpretation] = None
 
@@ -136,7 +138,7 @@ class RenewableCluster:
 
     def update_properties(self, properties: RenewableClusterPropertiesUpdate) -> RenewableClusterProperties:
         """Update renewable cluster's properties.
-        
+
         Args:
             properties: Renewable cluster properties to update.
         """
@@ -146,7 +148,7 @@ class RenewableCluster:
 
     def get_timeseries(self) -> pd.DataFrame:
         """Get renewable time-series. TODO
-        
+
         Returns:
             Renewable time-series.
         """
@@ -154,7 +156,7 @@ class RenewableCluster:
 
     def set_series(self, matrix: pd.DataFrame) -> None:
         """Set renewable time-series. TODO
-        
+
         Args:
             matrix: Renewable time-series.
         """

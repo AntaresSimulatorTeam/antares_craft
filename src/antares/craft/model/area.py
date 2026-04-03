@@ -63,24 +63,25 @@ class AreaPropertiesUpdate:
         energy_cost_unsupplied:
             Cost of unsupplied energy, in €/MWh.
         energy_cost_spilled:
-            Cost of spilled energy, in €/MWh. 
+            Cost of spilled energy, in €/MWh.
         non_dispatch_power:
             Whether non-dispatchable power sources are enabled.
         dispatch_hydro_power:
             Whether dispatchable hydro power is enabled.
         other_dispatch_power:
-            Whether other dispatchable power sources are enabled. 
+            Whether other dispatchable power sources are enabled.
         filter_synthesis:
-            Set of filter options for synthesis (hourly, daily, weekly, monthly, annual). 
+            Set of filter options for synthesis (hourly, daily, weekly, monthly, annual).
         filter_by_year:
-            Set of filter options for output (hourly, daily, weekly, monthly, annual). 
+            Set of filter options for output (hourly, daily, weekly, monthly, annual).
         adequacy_patch_mode:
-            Mode for adequacy patching. 
+            Mode for adequacy patching.
         spread_unsupplied_energy_cost:
             Cost spread for unsupplied energy in €/MWh.
         spread_spilled_energy_cost:
             Cost spread for spilled energy in €/MWh.
     """
+
     energy_cost_unsupplied: Optional[float] = None
     energy_cost_spilled: Optional[float] = None
     non_dispatch_power: Optional[bool] = None
@@ -101,24 +102,25 @@ class AreaProperties:
         energy_cost_unsupplied:
             Cost of unsupplied energy, in €/MWh.
         energy_cost_spilled:
-            Cost of spilled energy, in €/MWh. 
+            Cost of spilled energy, in €/MWh.
         non_dispatch_power:
             Whether non-dispatchable power sources are enabled.
         dispatch_hydro_power:
             Whether dispatchable hydro power is enabled.
         other_dispatch_power:
-            Whether other dispatchable power sources are enabled. 
+            Whether other dispatchable power sources are enabled.
         filter_synthesis:
-            Set of filter options for synthesis (hourly, daily, weekly, monthly, annual). 
+            Set of filter options for synthesis (hourly, daily, weekly, monthly, annual).
         filter_by_year:
-            Set of filter options for output (hourly, daily, weekly, monthly, annual). 
+            Set of filter options for output (hourly, daily, weekly, monthly, annual).
         adequacy_patch_mode:
-            Mode to include or not the area in adequacy patching. 
+            Mode to include or not the area in adequacy patching.
         spread_unsupplied_energy_cost:
             Cost spread for unsupplied energy in €/MWh.
         spread_spilled_energy_cost:
             Cost spread for spilled energy in €/MWh.
     """
+
     energy_cost_unsupplied: float = 0.0
     energy_cost_spilled: float = 0.0
     non_dispatch_power: bool = True
@@ -134,12 +136,13 @@ class AreaProperties:
 @dataclass
 class AreaUiUpdate:
     """Update for area UI properties
-    
+
     Attributes:
         x: X position of the node
         y: Y position of the node
-        color_rgb: Color of the node in RGB format 
+        color_rgb: Color of the node in RGB format
     """
+
     x: Optional[int] = None
     y: Optional[int] = None
     color_rgb: Optional[list[int]] = None
@@ -152,12 +155,13 @@ class AreaUiUpdate:
 @dataclass(frozen=True)
 class AreaUi:
     """Area UI properties for a specific layer
-    
+
     Attributes:
         x: X position of the node
         y: Y position of the node
-        color_rgb: Color of the node in RGB format 
+        color_rgb: Color of the node in RGB format
     """
+
     x: int = 0
     y: int = 0
     color_rgb: list[int] = field(default_factory=lambda: [230, 108, 44])
@@ -430,7 +434,7 @@ class Area:
 
     def set_load(self, series: pd.DataFrame) -> None:
         """Set the load time-series for this area
-        
+
         Args:
             series: The time-series
         """
@@ -438,7 +442,7 @@ class Area:
 
     def set_wind(self, series: pd.DataFrame) -> None:
         """Set the wind time-series for this area
-        
+
         Args:
             series: The time-series
         """
@@ -446,7 +450,7 @@ class Area:
 
     def set_reserves(self, series: pd.DataFrame) -> None:
         """Set the reserves time-series for this area
-        
+
         Args:
             series: The time-series
         """
@@ -454,7 +458,7 @@ class Area:
 
     def set_solar(self, series: pd.DataFrame) -> None:
         """Set the solar time-series for this area
-        
+
         Args:
             series: The time-series
         """
@@ -462,7 +466,7 @@ class Area:
 
     def set_misc_gen(self, series: pd.DataFrame) -> None:
         """Set the miscellaneous generation time-series for this area
-        
+
         Args:
             series: The time-series
         """

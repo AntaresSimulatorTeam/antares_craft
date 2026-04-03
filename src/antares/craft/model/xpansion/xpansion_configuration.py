@@ -30,11 +30,12 @@ from antares.craft.tools.contents_tool import EnumIgnoreCase
 
 class XpansionMatrix(EnumIgnoreCase):
     """Xpansion matrix types.
-    
-    Attributes: 
+
+    Attributes:
         CAPACITIES: Link profile matrix type.
         WEIGHTS: Yearly weight matrix type.
     """
+
     CAPACITIES = "capacities"
     WEIGHTS = "weights"
 
@@ -66,7 +67,7 @@ class XpansionConfiguration:
 
     def get_candidates(self) -> MappingProxyType[str, XpansionCandidate]:
         """Get investments candidates.
-        
+
         Returns:
             Read-only dictionnary of the investments candidates.
         """
@@ -74,7 +75,7 @@ class XpansionConfiguration:
 
     def get_constraints(self) -> MappingProxyType[str, XpansionConstraint]:
         """Get constraints.
-        
+
         Returns:
             Read-only dictionnary of Xpansion constraints.
         """
@@ -82,7 +83,7 @@ class XpansionConfiguration:
 
     def get_capacity(self, file_name: str) -> pd.DataFrame:
         """Get capacities.
-        
+
         Returns:
             Xpansion capacity matrix.
         """
@@ -90,7 +91,7 @@ class XpansionConfiguration:
 
     def get_weight(self, file_name: str) -> pd.DataFrame:
         """Get weigths.
-        
+
         Returns:
             Xpansion weight matrix.
         """
@@ -98,7 +99,7 @@ class XpansionConfiguration:
 
     def delete_capacity(self, file_name: str) -> None:
         """Delete a capacity file if not referenced in a candidate.
-        
+
         Args:
             file_name: capacity filename
         """
@@ -118,7 +119,7 @@ class XpansionConfiguration:
 
     def delete_weight(self, file_name: str) -> None:
         """Delete a weight file if not referenced in the settings.
-        
+
         Args:
             file_name: weight filename
         """
@@ -129,7 +130,7 @@ class XpansionConfiguration:
 
     def set_capacity(self, file_name: str, series: pd.DataFrame) -> None:
         """Set capacity.
-        
+
         Args:
             file_name: Filename of the file to create.
             series: Capacities to put in the file.
@@ -138,7 +139,7 @@ class XpansionConfiguration:
 
     def set_weight(self, file_name: str, series: pd.DataFrame) -> None:
         """Set weigths.
-        
+
         Args:
             file_name: Filename of the file to create.
             series: Weights to put in the file.
@@ -147,8 +148,8 @@ class XpansionConfiguration:
 
     def create_candidate(self, candidate: XpansionCandidate) -> XpansionCandidate:
         """Create a candidate in the current configuration.
-        
-        Args:   
+
+        Args:
             candidate: The Xpansion candidate.
         """
         cdt = self._xpansion_service.create_candidate(candidate)
@@ -157,11 +158,11 @@ class XpansionConfiguration:
 
     def update_candidate(self, candidate_name: str, candidate: XpansionCandidateUpdate) -> XpansionCandidate:
         """Update a candidate in the current configuration.
-        
-        Args:   
+
+        Args:
             candidate_name: The Xpansion candidate name to update.
             candidate: The updates parameters and field.
-        
+
         Returns:
             The updates Xpansion candidate.
         """
@@ -183,8 +184,8 @@ class XpansionConfiguration:
 
     def delete_candidates(self, names: list[str]) -> None:
         """Delete candidates if not referenced inside the sensitivity config.
-        
-        Args:   
+
+        Args:
             names: List of the candidates' name.
         """
         problematic_candidates = set()
@@ -202,10 +203,10 @@ class XpansionConfiguration:
 
     def remove_links_profile_from_candidate(self, name: str, profiles: list[XpansionLinkProfile]) -> None:
         """Remove link profile from candidate.
-        
+
         Args:
             name: Name of the candidate.
-            profiles: List of link profiles (`DIRECT_LINK`, `INDIRECT_LINK`, `ALREADY_INSTALLED_DIRECT_LINK` 
+            profiles: List of link profiles (`DIRECT_LINK`, `INDIRECT_LINK`, `ALREADY_INSTALLED_DIRECT_LINK`
                 or `ALREADY_INSTALLED_INDIRECT_LINK`)
         """
         current_candidate = self._candidates[name]
@@ -214,13 +215,13 @@ class XpansionConfiguration:
 
     def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
         """Create a constraint in the current configuration.
-        
+
         Args:
             constraint: Xpansion constraint between invested capacities.
             file_name: The `.ini` constraint file. See https://antares-xpansion.readthedocs.io/en/stable/user-guide/get-started/settings-definition/#additional-constraints for an example of the constraint file format
-        
+
         Returns:
-            The constraint. 
+            The constraint.
         """
         constraint = self._xpansion_service.create_constraint(constraint, file_name)
         self._constraints[constraint.name] = constraint
@@ -228,14 +229,14 @@ class XpansionConfiguration:
 
     def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
         """Update a constraint in the current configuration.
-        
+
         Args:
             name: The name of the constraint.
             constraint: The (partially) updated constraint.
             file_name: The `.ini` constraint file. TODO: check format .ini
-        
+
         Returns:
-            The new constraint. 
+            The new constraint.
         """
         new_constraint = self._xpansion_service.update_constraint(name, constraint, file_name)
         if new_constraint.name != name:
@@ -246,7 +247,7 @@ class XpansionConfiguration:
 
     def delete_constraints(self, names: list[str], file_name: str) -> None:
         """Delete constraints in the current configuration.
-        
+
         Args:
             names: A list of constraint names.
             file_name: The associated `.ini` constraint file. TODO: check format .ini
@@ -257,7 +258,7 @@ class XpansionConfiguration:
 
     def delete_constraints_file(self, file_name: str) -> None:
         """Delete constraint file.
-        
+
         Args:
             file_name: Name of the constraint file.
         """
@@ -268,10 +269,10 @@ class XpansionConfiguration:
 
     def update_settings(self, settings: XpansionSettingsUpdate) -> XpansionSettings:
         """Update Xpansion settings in this configuration.
-        
-        Args:   
+
+        Args:
             settings: The settings to update.
-        
+
         Returns:
             The updated settings.
         """
@@ -281,7 +282,7 @@ class XpansionConfiguration:
 
     def remove_constraints_and_or_weights_from_settings(self, constraint: bool, weight: bool) -> None:
         """Remove constraints or weights from settings.
-        
+
         Args:
             constraint: Whether to remove the constraints.
             weight: Whether to remove the constraints.
@@ -295,10 +296,10 @@ class XpansionConfiguration:
 
     def update_sensitivity(self, sensitivity: XpansionSensitivityUpdate) -> XpansionSensitivity:
         """Update sensitivity.
-        
+
         Args:
             sensitivity: Sensitivity (partial) update.
-        
+
         Returns:
             The updated sensitivity parameters.
         """

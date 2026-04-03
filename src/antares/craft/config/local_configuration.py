@@ -20,7 +20,7 @@ class LocalConfiguration(BaseConfiguration):
 
     def __init__(self, local_path: Path, study_name: str):
         """Initialize your local configuration.
-        
+
         Args:
             local_path: Path to the parent folder of your study.
             study_name: Name of your study.
