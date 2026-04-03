@@ -19,6 +19,8 @@ from antares.study.version import StudyVersion
 if TYPE_CHECKING:
     from antares.craft.model.study import Study
 
+# TODO: docstrings to explain all these classes and how it works the mapping.
+
 
 @dataclass
 class ScenarioMatrix:

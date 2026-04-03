@@ -28,5 +28,5 @@ meant at reading and editing [Antares](https://antares-simulator.readthedocs.io/
 
 </div>
 
-If you want to contribute either to the code you can check the [Developer](contributing/developer.md) section. 
+If you want to contribute either to the code or the doc you can check the [Contributing to the code](contributing/developer.md) and [Contributing to the doc](contributing/doc.md) sections. 
 Feel free to raise any issue you encounter in the Antares Craft [GitHub](https://github.com/AntaresSimulatorTeam/antares_craft/issues){:target="_blank"} !
