@@ -12,8 +12,8 @@
 
 """
 The Area model defines the description of the
-electrical demand (load), generation fleet (clusters),
-//TO_DO to be completed as implementation progress
+electrical demand (load), generation fleet (clusters).
+TODO: to be completed as implementation progress
 """
 
 from dataclasses import dataclass, field
@@ -41,8 +41,8 @@ DELETION_ERROR_MSG = "it doesn't exist"
 
 
 class AdequacyPatchMode(EnumIgnoreCase):
-    """
-    Adequacy patch mode to fix to sharing of the Energy not Served (ENS) between the market areas when there is any.
+    """Adequacy patch mode to fix the sharing of Energy not Served (ENS) between market areas.
+    
     - outside: The area is a physical area not included in the adequacy patch domain
     - inside: The area is a physical area included in the adequacy patch domain
     - virtual: The area is a virtual area
@@ -75,7 +75,7 @@ class AreaPropertiesUpdate:
         filter_by_year:
             Set of filter options for output (hourly, daily, weekly, monthly, annual).
         adequacy_patch_mode:
-            Mode for adequacy patching.
+            Mode to include or not the area in adequacy patching.
         spread_unsupplied_energy_cost:
             Cost spread for unsupplied energy in €/MWh.
         spread_spilled_energy_cost:
@@ -154,7 +154,7 @@ class AreaUiUpdate:
 
 @dataclass(frozen=True)
 class AreaUi:
-    """Area UI properties for a specific layer
+    """Area UI properties.
 
     Attributes:
         x: X position of the node
@@ -174,7 +174,7 @@ class AreaUi:
 class Area:
     """Represents an area of the study.
 
-    Provides access to data associated to that area, and to objects that are connected to it,
+    Provides access to data associated with that area, and to objects that are connected to it,
     for example thermal clusters, renewable clusters, binding constraints, etc.
     """
 

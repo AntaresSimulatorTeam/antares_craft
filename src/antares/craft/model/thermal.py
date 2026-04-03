@@ -23,9 +23,8 @@ from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_
 
 
 class LawOption(Enum):
-    """
-    Law options used for series generation.
-    The UNIFORM `law` is used by default.
+    """Law options used for series generation.
+    The uniform law is used by default.
     """
 
     UNIFORM = "uniform"

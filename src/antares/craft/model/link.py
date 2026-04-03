@@ -39,8 +39,8 @@ class AssetType(Enum):
 
     Attributes:
         AC: Alternative current link.
-        DC: Continuous current link.
-        GAZ: Gaz link.
+        DC: Direct current link.
+        GAZ: Gas link.
         VIRTUAL: Virtual link.
         OTHER: Other type of link.
     """

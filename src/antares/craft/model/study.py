@@ -52,26 +52,26 @@ from antares.craft.service.base_services import BaseLinkService, BaseStudyServic
 from antares.study.version import StudyVersion
 
 """
-The study module defines the data model for antares study.
+The study module defines the data model for Antares studies.
 It represents a power system involving areas and power flows
 between these areas.
-Optional attribute _api_id defined for studies being stored in web
-_study_path if stored in a disk
+Optional attribute _api_id defined for studies being stored in web.
+_study_path if stored on disk.
 """
 
 SUPPORTED_STUDY_VERSIONS: set[StudyVersion] = {STUDY_VERSION_8_8, STUDY_VERSION_9_2, STUDY_VERSION_9_3}
 
 
 class Study:
-    """Represents an antares study.
+    """Represents an Antares study.
 
-    That interface allows to inspect a study data and to edit it,
+    This interface allows inspection and editing of study data,
     including study settings, areas, thermal clusters, hydro modeling,
     short-term storages, and generic binding constraints.
 
-    It also allows to launch antares-simulations.
+    It also allows launching Antares simulations.
 
-    A study should not be created through its constructor, please use
+    A study should not be created through its constructor. Please use
     one of the factory methods instead:
 
      - [create_study_api][antares.craft.create_study_api]

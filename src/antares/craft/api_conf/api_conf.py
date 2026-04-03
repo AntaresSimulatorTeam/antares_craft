@@ -20,7 +20,7 @@ class APIconf(BaseConfiguration):
     """Configuration for connecting to the Antares Web API.
 
     Attributes:
-        api_host: Base URL of the Antares Web API (e.g. `https://antares-web.mydomain`).
+        api_host: Base URL of the Antares Web API (e.g., `https://antares-web.mydomain`).
         token: Bearer token used for authentication.
         verify: Whether to verify the server's TLS certificate. Defaults to `True`.
 
