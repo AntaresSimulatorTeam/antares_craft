@@ -40,12 +40,8 @@ from antares.craft.service.local_services.services.output.parquet_writer import 
     write_dataframes_in_parquet_format_by_column_sets,
     yield_dataframes_from_parquet,
 )
-from antares.craft.service.local_services.services.output.utils import (
-    MCRoot,
-    get_start_column,
-    normalize_df_column_names,
-    parse_headers,
-)
+from antares.craft.service.local_services.services.output.utils import MCRoot, normalize_df_column_names
+from antares.craft.service.output_matrix_parsing import get_start_column, parse_headers
 
 # We use pandas.DataFrame.stack() without the `future_stack` keyword as its 2 times faster
 # But it logs a FutureWarning every time so we silence it here.
