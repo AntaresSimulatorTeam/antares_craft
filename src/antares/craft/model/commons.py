@@ -11,11 +11,7 @@
 # This file is part of the Antares project.
 
 from enum import Enum
-from typing import Annotated, Any, Optional
 
-from pydantic import BeforeValidator, PlainSerializer
-
-from antares.craft.exceptions.exceptions import FilteringValueError
 from antares.study.version import StudyVersion
 
 STUDY_VERSION_8_8 = StudyVersion.parse("8.8")
@@ -29,45 +25,3 @@ class FilterOption(Enum):
     WEEKLY = "weekly"
     MONTHLY = "monthly"
     ANNUAL = "annual"
-
-
-def validate_filters(filter_value: list[FilterOption] | str | None) -> list[FilterOption]:
-    if not filter_value:
-        return []
-    if isinstance(filter_value, str):
-        filter_value = filter_value.strip()
-        if not filter_value:
-            return []
-
-        valid_values = {str(e.value) for e in FilterOption}
-
-        options = filter_value.replace(" ", "").split(",")
-
-        invalid_options = [opt for opt in options if opt not in valid_values]
-        if invalid_options:
-            raise FilteringValueError(invalid_options, valid_values)
-        options_enum: list[FilterOption] = list(dict.fromkeys(FilterOption(opt) for opt in options))
-        return options_enum
-
-    return filter_value
-
-
-def join_with_comma(values: Optional[set[Any]] = None) -> str:
-    if values:
-        return ", ".join(sorted(enum.value for enum in values))
-    return ""
-
-
-filtering_option = Annotated[
-    set[FilterOption],
-    BeforeValidator(lambda x: validate_filters(x)),
-    PlainSerializer(lambda x: join_with_comma(x)),
-]
-
-FILTER_VALUES: set[FilterOption] = {
-    FilterOption.HOURLY,
-    FilterOption.DAILY,
-    FilterOption.WEEKLY,
-    FilterOption.MONTHLY,
-    FilterOption.ANNUAL,
-}

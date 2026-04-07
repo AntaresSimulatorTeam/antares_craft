@@ -20,8 +20,9 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
 )
-from antares.craft.model.commons import FilterOption, filtering_option
+from antares.craft.model.commons import FilterOption
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
+from antares.craft.tools.utils import filtering_option
 
 BindingConstraintPropertiesType = BindingConstraintProperties | BindingConstraintPropertiesUpdate
 

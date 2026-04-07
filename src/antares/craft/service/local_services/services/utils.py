@@ -17,10 +17,9 @@ import pandas as pd
 from typing_extensions import override
 
 from antares.craft.exceptions.exceptions import MatrixFormatError
-from antares.craft.model.st_storage import STStorageMatrixName
-from antares.craft.model.thermal import ThermalClusterMatrixName
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
+from antares.craft.tools.utils import STStorageMatrixName, ThermalClusterMatrixName
 
 
 class AlwaysEqual:

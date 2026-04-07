@@ -20,6 +20,7 @@ import pandas as pd
 from antares.craft.model.settings.study_settings import StudySettings, StudySettingsUpdate
 from antares.craft.model.simulation import AntaresSimulationParameters, Job
 from antares.craft.model.xpansion.candidate import XpansionLinkProfile
+from antares.craft.tools.utils import ConstraintMatrixName, STStorageMatrixName, ThermalClusterMatrixName
 from antares.study.version import StudyVersion
 
 if TYPE_CHECKING:
@@ -41,7 +42,6 @@ if TYPE_CHECKING:
         BindingConstraint,
         BindingConstraintProperties,
         BindingConstraintPropertiesUpdate,
-        ConstraintMatrixName,
         ConstraintTerm,
     )
     from antares.craft.model.hydro import HydroAllocation, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
@@ -62,14 +62,12 @@ if TYPE_CHECKING:
         STStorage,
         STStorageAdditionalConstraint,
         STStorageAdditionalConstraintUpdate,
-        STStorageMatrixName,
         STStorageProperties,
         STStoragePropertiesUpdate,
     )
     from antares.craft.model.study import Study
     from antares.craft.model.thermal import (
         ThermalCluster,
-        ThermalClusterMatrixName,
         ThermalClusterProperties,
         ThermalClusterPropertiesUpdate,
     )

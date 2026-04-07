@@ -40,10 +40,8 @@ from antares.craft.exceptions.exceptions import (
     XpansionMatrixReadingError,
     XpansionSettingsEditionError,
 )
-from antares.craft.model.xpansion.candidate import XpansionLinkProfile, update_candidate
-from antares.craft.model.xpansion.constraint import update_constraint
-from antares.craft.model.xpansion.sensitivity import update_xpansion_sensitivity
-from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate, update_xpansion_settings
+from antares.craft.model.xpansion.candidate import XpansionLinkProfile
+from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.base_services import BaseXpansionService
 from antares.craft.service.local_services.models.xpansion import (
@@ -55,6 +53,12 @@ from antares.craft.service.local_services.models.xpansion import (
     serialize_xpansion_constraints_local,
     serialize_xpansion_sensitivity_local,
     serialize_xpansion_settings_local,
+)
+from antares.craft.service.utils import (
+    update_candidate,
+    update_constraint,
+    update_sensitivity,
+    update_xpansion_settings,
 )
 from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -263,7 +267,7 @@ class XpansionLocalService(BaseXpansionService):
         current_settings: XpansionSettings,
         current_sensitivity: XpansionSensitivity,
     ) -> XpansionSensitivity:
-        new_sensitivity = update_xpansion_sensitivity(current_sensitivity, sensitivity)
+        new_sensitivity = update_sensitivity(current_sensitivity, sensitivity)
         self._write_sensitivity(new_sensitivity)
         return new_sensitivity
 

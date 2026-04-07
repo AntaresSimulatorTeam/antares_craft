@@ -31,7 +31,6 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintOperator,
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
-    ConstraintMatrixName,
     ConstraintTerm,
     ConstraintTermData,
 )
@@ -46,6 +45,7 @@ from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from antares.craft.tools.utils import ConstraintMatrixName
 
 MAPPING = {
     ConstraintMatrixName.LESS_TERM: TimeSeriesFileType.BINDING_CONSTRAINT_LESS,

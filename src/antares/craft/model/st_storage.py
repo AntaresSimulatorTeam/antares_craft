@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 from dataclasses import dataclass, field
-from enum import Enum
 from types import MappingProxyType
 from typing import Optional
 
@@ -18,6 +17,7 @@ import pandas as pd
 
 from antares.craft.service.base_services import BaseShortTermStorageService
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
+from antares.craft.tools.utils import STStorageMatrixName
 
 
 class STStorageGroup(EnumIgnoreCase):
@@ -30,20 +30,6 @@ class STStorageGroup(EnumIgnoreCase):
     OTHER3 = "other3"
     OTHER4 = "other4"
     OTHER5 = "other5"
-
-
-class STStorageMatrixName(Enum):
-    PMAX_INJECTION = "pmax_injection"
-    PMAX_WITHDRAWAL = "pmax_withdrawal"
-    LOWER_CURVE_RULE = "lower_rule_curve"
-    UPPER_RULE_CURVE = "upper_rule_curve"
-    INFLOWS = "inflows"
-    # NEW TS name v9.2
-    COST_INJECTION = "cost_injection"
-    COST_WITHDRAWAL = "cost_withdrawal"
-    COST_LEVEL = "cost_level"
-    COST_VARIATION_INJECTION = "cost_variation_injection"
-    COST_VARIATION_WITHDRAWAL = "cost_variation_withdrawal"
 
 
 @dataclass
