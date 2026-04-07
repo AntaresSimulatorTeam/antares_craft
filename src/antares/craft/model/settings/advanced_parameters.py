@@ -198,7 +198,7 @@ class SeedParameters:
     """Random seeds used for the random number generation by the simulator.
 
     TODO: Explain what is a seed and why it is important for reproducible simulations.
-    TODO: Check number of seeds and coherence with UI.
+    TODO: Check number of seeds and coherence with UI and defaults values?
 
     Attributes:
         seed_tsgen_thermal: Seed for the generation of thermal time-series.
@@ -210,8 +210,8 @@ class SeedParameters:
         seed_initial_reservoir_levels: Seed for initial reservoir levels.
     """
 
-    seed_tsgen_thermal: int = 3005489
-    seed_tsnumbers: int = 5005489
+    seed_tsgen_thermal: int = 3005489  # TODO: default 5489 in UI?
+    seed_tsnumbers: int = 5005489  # TODO: default 5489 in UI?
     seed_unsupplied_energy_costs: int = 6005489
     seed_spilled_energy_costs: int = 7005489
     seed_thermal_costs: int = 8005489

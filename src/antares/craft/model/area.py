@@ -42,7 +42,7 @@ DELETION_ERROR_MSG = "it doesn't exist"
 
 class AdequacyPatchMode(EnumIgnoreCase):
     """Adequacy patch mode to fix the sharing of Energy not Served (ENS) between market areas.
-    
+
     - outside: The area is a physical area not included in the adequacy patch domain
     - inside: The area is a physical area included in the adequacy patch domain
     - virtual: The area is a virtual area

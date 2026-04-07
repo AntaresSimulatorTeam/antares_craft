@@ -19,7 +19,7 @@ from antares.craft.tools.contents_tool import EnumIgnoreCase
 class Mode(EnumIgnoreCase):
     """Modes to run the simulation.
 
-    TODO: check if Xpansion is not better as it is the UI name of the mode.
+    TODO: in UI no Expansion mode --> "Economy (linear relaxation)"
 
     Attributes:
         ECONOMY:
@@ -73,7 +73,20 @@ class BuildingMode(EnumIgnoreCase):
 
 
 class OutputChoices(Enum):
-    """Output choices."""
+    """Output choices.
+
+    TODO: what is it?
+
+    Attributes:
+        LOAD:
+        WIND:
+        HYDRO:
+        THERMAL:
+        SOLAR:
+        RENEWABLES:
+        NTC:
+        MAX_POWER:
+    """
 
     LOAD = "load"
     WIND = "wind"

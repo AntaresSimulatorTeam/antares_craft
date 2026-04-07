@@ -334,7 +334,7 @@ class AggregationEntry:
     """Represent an entry for aggregation queries
 
     Attributes:
-        data_type: TODO:
+        data_type: Whether it's `All` / `Ind` and `Area` / `Link`.
         frequency: "hourly", "daily", "weekly", "monthly", "annual".
         mc_years: Monte Carlo years to include in the query. If left empty, all years are included.
         type_ids: which links/areas to be selected (ex: "be - fr"). If empty, all are selected.

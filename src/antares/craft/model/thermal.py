@@ -323,7 +323,7 @@ class ThermalCluster:
         """Get $\\ce{CO2}$ cost matrix.
 
         Returns:
-            The $\\ce{CO2}$ cost matrix
+            The $\\ce{CO2}$ cost matrix.
         """
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_CO2_COST)
 
@@ -331,15 +331,15 @@ class ThermalCluster:
         """Get fuel cost matrix.
 
         Returns:
-            The fuel cost matrix
+            The fuel cost matrix.
         """
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_FUEL_COST)
 
     def set_prepro_data(self, matrix: pd.DataFrame) -> None:
-        """TODO.
+        """TODO: what is prepo? didn't see in the UI.
 
         Args:
-
+            matrix:
         """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.PREPRO_DATA)
 
@@ -347,7 +347,7 @@ class ThermalCluster:
         """TODO
 
         Args:
-
+            matrix:
         """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.PREPRO_MODULATION)
 
@@ -355,7 +355,7 @@ class ThermalCluster:
         """Set TODO
 
         Args:
-
+            matrix:
         """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES)
 
@@ -363,7 +363,7 @@ class ThermalCluster:
         """Set $\\ce{CO2}$ cost matrix.
 
         Args:
-            matrix: The $\\ce{CO2}$ cost matrix
+            matrix: The $\\ce{CO2}$ cost matrix.
         """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES_CO2_COST)
 
@@ -371,6 +371,6 @@ class ThermalCluster:
         """Set fuel cost matrix.
 
         Args:
-            matrix: The fuel cost matrix
+            matrix: The fuel cost matrix.
         """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES_FUEL_COST)

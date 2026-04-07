@@ -147,7 +147,7 @@ class RenewableCluster:
         return self._properties
 
     def get_timeseries(self) -> pd.DataFrame:
-        """Get renewable time-series. TODO
+        """Get renewable time-series. TODO: which time-series?
 
         Returns:
             Renewable time-series.
@@ -155,7 +155,7 @@ class RenewableCluster:
         return self._renewable_service.get_renewable_matrix(self.id, self.area_id)
 
     def set_series(self, matrix: pd.DataFrame) -> None:
-        """Set renewable time-series. TODO
+        """Set renewable time-series. TODO: which time-series?
 
         Args:
             matrix: Renewable time-series.
