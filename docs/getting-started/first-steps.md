@@ -15,7 +15,7 @@ pip install antares_craft
 
 First, you will want to create a `Study` object to interact with, either by creating a new study or by referencing
 an existing study.
-For those operations, the syntax slightly depends on whether you want to work on studies on you filesystem, or studies
+For those operations, the syntax slightly depends on whether you want to work on studies on your filesystem, or studies
 stored in an antares-web application.
 
 !!! warning
@@ -41,7 +41,7 @@ study = create_study_api(study_name="my-study",
 
 !!! question "How to generate your personal token?"
 
-    To generate a token, go to :material-cog: **Settings** >  **TOKENS** tab
+    **In the Antares Web app,** go to :material-cog: **Settings** >  **TOKENS** tab
     and then click on **CREATE**. Copy the token and store it on your own computer. 
     Note that you cannot access again an already generated token. 
 

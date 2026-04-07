@@ -83,9 +83,10 @@ for area_name in ["be", "de"]:
 ## Add clusters
 
 Let's say that in our study, we want to add clusters to each area:
+
 - A nuclear cluster inside area France with 8 units of 1400 MW nominal capacity and some custom time-series.
-- A lignite power plant in Germany with 4 units of 500 MW of capacity that emit 0,846 tCO2/MWh.
-- Some gas units in Belgium with 3 units of 200 MW of capacity and emit 0,354 tCO2/MWh.
+- A lignite power plant in Germany with 4 units of 500 MW of capacity that emit 0.846 t$\ce{CO2}$/MWh.
+- Some gas units in Belgium with 3 units of 200 MW of capacity and emit 0.354 t$\ce{CO2}$/MWh.
 
 ```py
 # France
@@ -179,12 +180,6 @@ areas = variant_study.get_areas()
 new_cost = craft.AreaPropertiesUpdate(energy_cost_unsupplied=new_val)
 mapping = {area: new_cost for area in areas.values() if area.id != "fr"}
 variant_study.update_areas(mapping)
-```
-
-Eventually, you can delete the variant if you don't use it:
-
-```py
-variant_study.delete()
 ```
 
 ## Preparing to launch

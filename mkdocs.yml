@@ -8,9 +8,7 @@ nav:
     - Package architecture: getting-started/architecture.md
   - Examples: antares-craft-examples.md
   - Reference:
-    - Configuration: 
-      - API configuration: api-reference/config/api_conf.md
-      - Local configuration: api-reference/config/local_config.md
+    - API configuration: api-reference/api_conf.md
     - Study: api-reference/model/study.md
     - Objects of modelling:
       - Area: api-reference/model/area.md
@@ -153,3 +151,5 @@ markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - toc:
+      toc_depth: 3

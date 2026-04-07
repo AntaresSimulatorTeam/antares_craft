@@ -24,7 +24,7 @@ meant at reading and editing [Antares](https://antares-simulator.readthedocs.io/
     ---
     Perfect for mass modifications, creating multiple variants, and displaying aggregated data at will.
 
-    [:octicons-arrow-right-24: API reference](api-reference/config/api_conf.md)
+    [:octicons-arrow-right-24: API reference](api-reference/api_conf.md)
 
 </div>
 

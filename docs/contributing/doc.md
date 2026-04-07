@@ -30,7 +30,7 @@ After cloning the repository on your machine, you can install the documentation
 requirements by running in your terminal:
 
 ```
-pip install -r requirements-dev.txt
+pip install -r requirements-doc.txt
 ```
 And now you are ready to edit pages !
 
