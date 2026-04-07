@@ -20,6 +20,7 @@ from typing_extensions import override
 from antares.craft.model.cluster import ClusterProperties, ClusterPropertiesUpdate
 from antares.craft.service.base_services import BaseThermalService
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
+from antares.craft.tools.utils import ThermalClusterMatrixName
 
 
 class LawOption(Enum):
@@ -238,27 +239,6 @@ class ThermalClusterPropertiesUpdate(ClusterPropertiesUpdate):
     cost_generation: Optional[ThermalCostGeneration] = None
     efficiency: Optional[float] = None
     variable_o_m_cost: Optional[float] = None
-
-
-class ThermalClusterMatrixName(Enum):
-    """
-    TODO check if it's okay
-
-    Attributes:
-        PREPRO_DATA: Hourly availability data generation.
-        PREPRO_MODULATION: Hourly modulation of the marginal cost, the market bid,
-            the capacity modulation and the minimal generation.
-        SERIES: Daily time-series of FO duration, PO duration, FO rate, PO rate,
-            NPO min and NPO max necessary for time-series generation.
-        SERIES_CO2_COST: Hourly CO2 cost time-series.
-        SERIES_FUEL_COST: Hourly fuel cost time-series.
-    """
-
-    PREPRO_DATA = "data"
-    PREPRO_MODULATION = "modulation"
-    SERIES = "series"
-    SERIES_CO2_COST = "CO2Cost"
-    SERIES_FUEL_COST = "fuelCost"
 
 
 class ThermalCluster:

@@ -15,9 +15,10 @@ from typing import Optional
 
 import pandas as pd
 
-from antares.craft.model.commons import FILTER_VALUES, FilterOption
+from antares.craft.model.commons import FilterOption
 from antares.craft.service.base_services import BaseLinkService
 from antares.craft.tools.contents_tool import transform_name_to_id
+from antares.craft.tools.utils import FILTER_VALUES
 
 
 class TransmissionCapacities(Enum):

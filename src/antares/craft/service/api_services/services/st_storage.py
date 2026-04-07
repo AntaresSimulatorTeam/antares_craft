@@ -29,7 +29,6 @@ from antares.craft.model.st_storage import (
     STStorage,
     STStorageAdditionalConstraint,
     STStorageAdditionalConstraintUpdate,
-    STStorageMatrixName,
     STStorageProperties,
     STStoragePropertiesUpdate,
 )
@@ -41,6 +40,7 @@ from antares.craft.service.api_services.models.st_storage import (
 )
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseShortTermStorageService
+from antares.craft.tools.utils import STStorageMatrixName
 
 
 class ShortTermStorageApiService(BaseShortTermStorageService):

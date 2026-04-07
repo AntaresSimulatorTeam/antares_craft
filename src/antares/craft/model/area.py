@@ -23,7 +23,7 @@ from typing import Optional
 import pandas as pd
 
 from antares.craft.exceptions.exceptions import RenewableDeletionError, STStorageDeletionError, ThermalDeletionError
-from antares.craft.model.commons import FILTER_VALUES, FilterOption
+from antares.craft.model.commons import FilterOption
 from antares.craft.model.hydro import Hydro, HydroProperties, InflowStructure
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterProperties
 from antares.craft.model.st_storage import STStorage, STStorageProperties
@@ -36,6 +36,7 @@ from antares.craft.service.base_services import (
     BaseThermalService,
 )
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
+from antares.craft.tools.utils import FILTER_VALUES
 
 DELETION_ERROR_MSG = "it doesn't exist"
 

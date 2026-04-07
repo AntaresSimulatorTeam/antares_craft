@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 from dataclasses import dataclass, field
-from enum import Enum
 from types import MappingProxyType
 from typing import Optional
 
@@ -18,6 +17,7 @@ import pandas as pd
 
 from antares.craft.service.base_services import BaseShortTermStorageService
 from antares.craft.tools.contents_tool import EnumIgnoreCase, transform_name_to_id
+from antares.craft.tools.utils import STStorageMatrixName
 
 
 class STStorageGroup(EnumIgnoreCase):
@@ -45,48 +45,6 @@ class STStorageGroup(EnumIgnoreCase):
     OTHER3 = "other3"
     OTHER4 = "other4"
     OTHER5 = "other5"
-
-
-class STStorageMatrixName(Enum):
-    """Short-term storage matrix column headers.
-
-    Attributes:
-        PMAX_INJECTION: Maximum power injection involving modulation of the
-            injection capacity each hour, reflecting lower availability of
-            the storage at certain times (planned or forced outages).
-        PMAX_WITHDRAWAL: Maximum power withdrawal involving modulation of the
-            injection capacity each hour, reflecting lower availability of
-            the storage at certain times (planned or forced outages).
-        LOWER_CURVE_RULE: Lower limit for filling the stock,
-            expressed as a filling rate, imposed each hour.
-        UPPER_RULE_CURVE: Upper limit for filling the stock,
-            expressed as a filling rate, imposed each hour.
-        INFLOWS: Natural inflows in MW that enters into the storage. The values
-            for this file can be negative, corresponding to withdrawals imposed on the stock for other uses
-        COST_INJECTION: **Introduced in v9.2.** Penalization of the injection flowrate at each hour in €/MW.
-        COST_WITHDRAWAL: **Introduced in v9.2.** Penalization of the withdrawal flowrate at each hour in €/MW.
-        COST_LEVEL: **Introduced in v9.2.** Penalization of the volume of stored energy at each hour in €/MWh.
-            A negative penalty is allowed for this cost. If the penalty is positive,
-            it will favor lower-level trajectories. If the penalty is negative, it will favor higher-level trajectories.
-        COST_VARIATION_INJECTION: **Introduced in v9.2.** Penalizes the injection flowrate variation every hour in €/MW/h.
-            This penalty must be positive. This penalty is only enabled if the boolean parameter `penalize-variation-injection`
-            is set to `True`. This penalty will penalize proportionally any injection flowrate variation between 2 hours.
-        COST_VARIATION_WITHDRAWAL: **Introduced in v9.2.** Penalizes the withdrawal flowrate variation every hour in €/MW/h.
-            This penalty must be positive. This penalty is only enabled if the boolean parameter `penalize_variation_withdrawal`
-            is set to `True`. This penalty will penalize proportionally any withdrawal flowrate variation between 2 hours.
-    """
-
-    PMAX_INJECTION = "pmax_injection"
-    PMAX_WITHDRAWAL = "pmax_withdrawal"
-    LOWER_CURVE_RULE = "lower_rule_curve"
-    UPPER_RULE_CURVE = "upper_rule_curve"
-    INFLOWS = "inflows"
-    # NEW TS name v9.2
-    COST_INJECTION = "cost_injection"
-    COST_WITHDRAWAL = "cost_withdrawal"
-    COST_LEVEL = "cost_level"
-    COST_VARIATION_INJECTION = "cost_variation_injection"
-    COST_VARIATION_WITHDRAWAL = "cost_variation_withdrawal"
 
 
 @dataclass
