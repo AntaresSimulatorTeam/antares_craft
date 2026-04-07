@@ -31,7 +31,7 @@ from antares.craft.model.output import (
     Output,
 )
 from antares.craft.service.local_services.factory import create_local_services
-from antares.craft.service.utils import read_output_matrix
+from antares.craft.service.output_matrix_parsing import read_output_matrix
 
 ASSETS_DIR = Path(__file__).parent / "assets"
 

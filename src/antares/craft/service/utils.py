@@ -10,11 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
-from io import StringIO
-from pathlib import Path
 from typing import Any
-
-import pandas as pd
 
 from antares.craft import (
     XpansionCandidate,
@@ -26,18 +22,6 @@ from antares.craft import (
     XpansionSettings,
     XpansionSettingsUpdate,
 )
-from antares.craft.model.output import Frequency
-from antares.craft.service.local_services.services.output.date_serializer import FactoryDateSerializer, rename_unnamed
-
-
-def read_output_matrix(data: Path | StringIO, frequency: Frequency) -> pd.DataFrame:
-    df = pd.read_csv(data, sep="\t", skiprows=4, header=[0, 1, 2], na_values="N/A", float_precision="legacy")
-
-    date_serializer = FactoryDateSerializer.create(frequency.value, "")
-    _, body = date_serializer.extract_date(df)
-    rename_unnamed(body)
-
-    return body.astype(float)
 
 
 def check_field_is_not_null(data: Any) -> Any:
