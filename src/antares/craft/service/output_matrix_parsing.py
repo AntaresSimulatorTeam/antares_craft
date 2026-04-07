@@ -90,6 +90,7 @@ def parse_output_file(source: Path | StringIO, first_column: int) -> OutputDataF
         content = source.read_text(encoding="utf-8")
     else:
         content = source.read()
+        source.seek(0)
 
     output_headers = parse_headers(content, first_column)
     polars_df = _parse_output_dataframe(source)
