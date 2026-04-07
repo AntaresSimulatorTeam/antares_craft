@@ -98,6 +98,9 @@ class ThermalClusterProperties(ClusterProperties):
     """Thermal cluster properties.
 
     Attributes:
+        enabled: Whether the cluster is enabled in the simulation.
+        unit_count: Number of generation units in the cluster.
+        nominal_capacity: Nominal capacity of a single unit in MW.
         group: Type of thermal generation to organize clusters.
         gen_ts:
         min_stable_power:
@@ -282,21 +285,36 @@ class ThermalCluster:
 
         Args:
             properties: Properties to update.
+
+        Returns:
+            The updated thermal properties.
         """
         new_properties = self._thermal_service.update_thermal_clusters_properties({self: properties})
         self._properties = new_properties[self]
         return self._properties
 
     def get_prepro_data_matrix(self) -> pd.DataFrame:
-        """TODO"""
+        """Get matrix corresponding to the TS-GENERATOR matrix in AntaresWeb.
+
+        Returns:
+            matrix: Matrix with outage probabilities and durations to use inside the timeseries generation.
+        """
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.PREPRO_DATA)
 
     def get_prepro_modulation_matrix(self) -> pd.DataFrame:
-        """TODO"""
+        """Get matrix corresponding to the COMMON matrix in AntaresWeb.
+
+        Returns:
+            matrix: Matrix for the "Marginal cost modulation", "Market bid modulation", "Capacity modulation" and "Min gen modulation".
+        """
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.PREPRO_MODULATION)
 
     def get_series_matrix(self) -> pd.DataFrame:
-        """TODO"""
+        """Get availibility matrix.
+        
+        Returns:
+            The availibility time-series of the thermal cluster.
+        """
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES)
 
     def get_co2_cost_matrix(self) -> pd.DataFrame:
@@ -316,26 +334,26 @@ class ThermalCluster:
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_FUEL_COST)
 
     def set_prepro_data(self, matrix: pd.DataFrame) -> None:
-        """TODO: what is prepo? didn't see in the UI.
+        """Set matrix corresponding to the TS-GENERATOR matrix in AntaresWeb.
 
         Args:
-            matrix:
+            matrix: Matrix with outage probabilities and durations to use inside the timeseries generation.
         """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.PREPRO_DATA)
 
     def set_prepro_modulation(self, matrix: pd.DataFrame) -> None:
-        """TODO
+        """Set matrix corresponding to the COMMON matrix in AntaresWeb.
 
         Args:
-            matrix:
+            matrix: Matrix for the "Marginal cost modulation", "Market bid modulation", "Capacity modulation" and "Min gen modulation".
         """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.PREPRO_MODULATION)
 
     def set_series(self, matrix: pd.DataFrame) -> None:
-        """Set TODO
+        """Set availibility time-series.
 
         Args:
-            matrix:
+            matrix: Availibity time-series.
         """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES)
 

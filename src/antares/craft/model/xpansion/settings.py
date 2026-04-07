@@ -97,7 +97,7 @@ class XpansionSettings:
         yearly_weights: Filename of the array of weights.
             It allows to assume that the Monte Carlo years simulated in the Antares study are not equally probable
         additional_constraints: Filename located in the `user/expansion/constraints` folder of the Antares study.
-            TODO: link to model of the file
+            See the format of the file [here](https://antares-xpansion.readthedocs.io/en/stable/user-guide/get-started/settings-definition/#additional-constraints).
         timelimit: Maximum allowed time in seconds for the execution of a Benders step of Antares-Xpansion.
         master_solution_tolerance: Control the tolerance used when rounding the solution variables of the master problem.
         cut_coefficient_tolerance: Define the tolerance under which cuts coefficients and right-hand sides are considered to be zero.
@@ -151,7 +151,7 @@ class XpansionSettingsUpdate:
         yearly_weights: Filename of the array of weights.
             It allows to assume that the Monte Carlo years simulated in the Antares study are not equally probable
         additional_constraints: Filename located in the `user/expansion/constraints` folder of the Antares study.
-            TODO: link to model of the file
+            See the format of the file [here](https://antares-xpansion.readthedocs.io/en/stable/user-guide/get-started/settings-definition/#additional-constraints).
         timelimit: Maximum allowed time in seconds for the execution of a Benders step of Antares-Xpansion.
         master_solution_tolerance: Control the tolerance used when rounding the solution variables of the master problem.
         cut_coefficient_tolerance: Define the tolerance under which cuts coefficients and right-hand sides are considered to be zero.

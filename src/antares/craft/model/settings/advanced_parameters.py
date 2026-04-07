@@ -20,7 +20,7 @@ class InitialReservoirLevel(Enum):
     """Initial reservoir level.
 
     Note that the reservoir level is now always determined with cold start behaviour since v9.2.
-    TODO: put link to future doc, currently https://antares-simulator.readthedocs.io/en/stable/user-guide/solver/09-appendix/#details-on-the-initial-reservoir-levels-parameter-deprecated-since-92
+    See more [here](https://antares-simulator.readthedocs.io/en/stable/user-guide/solver/09-appendix/#details-on-the-initial-reservoir-levels-parameter-deprecated-since-92)
 
     Attributes:
         COLD_START: On starting the simulation of a new Monte-Carlo year,
@@ -114,8 +114,7 @@ class SheddingPolicy(Enum):
 class UnitCommitmentMode(Enum):
     """Unit commitment mode.
 
-    TODO: link to a diagram of the different modes
-    TODO: link to https://antares-simulator.readthedocs.io/en/stable/user-guide/solver/09-appendix/#details-on-the-unit-commitment-mode-parameter
+    See more [here](https://antares-simulator.readthedocs.io/en/stable/user-guide/solver/09-appendix/#details-on-the-unit-commitment-mode-parameter).
 
     Attributes:
         FAST: Heuristic in which 2 LP (Linear Programming) problems are solved. No explicit modelling for the number of ON/OFF units.
@@ -132,7 +131,7 @@ class SimulationCore(Enum):
     """Simulation core.
 
     Useful to select multi-threading option.
-    TODO: link to future doc https://antares-simulator.readthedocs.io/en/stable/user-guide/solver/optional-features/multi-threading/
+    See more [here](https://antares-simulator.readthedocs.io/en/stable/user-guide/solver/optional-features/multi-threading/).
 
     Attributes:
         MINIMUM:
@@ -196,9 +195,6 @@ class AdvancedParameters:
 @dataclass(frozen=True)
 class SeedParameters:
     """Random seeds used for the random number generation by the simulator.
-
-    TODO: Explain what is a seed and why it is important for reproducible simulations.
-    TODO: Check number of seeds and coherence with UI and defaults values?
 
     Attributes:
         seed_tsgen_thermal: Seed for the generation of thermal time-series.

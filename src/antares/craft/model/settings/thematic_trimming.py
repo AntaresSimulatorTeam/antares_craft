@@ -100,7 +100,7 @@ class ThematicTrimmingParameters:
         sts_withdrawal_by_plant: Short-term storage withdrawal by plant.
         sts_lvl_by_plant: Short-term storage level by plant.
         sts_cashflow_by_cluster: Short-term storage cashflow by cluster.
-        npcap_hours: TODO:
+        npcap_hours: Near price cap hours.
         bc_marg_cost: Binding constraint marginal cost.
         lmr_viol: Local matching rule violation after the Antares Simulation as defined by the adequacy patch.
             Please note that this output variable is only available in the economy mode,

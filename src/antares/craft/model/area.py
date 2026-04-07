@@ -13,7 +13,6 @@
 """
 The Area model defines the description of the
 electrical demand (load), generation fleet (clusters).
-TODO: to be completed as implementation progress
 """
 
 from dataclasses import dataclass, field

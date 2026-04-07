@@ -233,7 +233,7 @@ class XpansionConfiguration:
         Args:
             name: The name of the constraint.
             constraint: The (partially) updated constraint.
-            file_name: The `.ini` constraint file. TODO: check format .ini
+            file_name: The constraint file.
 
         Returns:
             The new constraint.
@@ -250,7 +250,7 @@ class XpansionConfiguration:
 
         Args:
             names: A list of constraint names.
-            file_name: The associated `.ini` constraint file. TODO: check format .ini
+            file_name: The associated constraint file.
         """
         self._xpansion_service.delete_constraints(names, file_name)
         for name in names:

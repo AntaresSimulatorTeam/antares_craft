@@ -137,7 +137,7 @@ class XpansionOutputOptions:
     """Options of Xpansion output.
 
     Attributes:
-        log_level: Solver's log severity in {0, 1, 2}. TODO: put link to details
+        log_level: Solver's log severity in {0, 1, 2}.
         master_name: Name of the master problem file (automatically generated).
         problem_format:
             - MPS: Problems in MPS text format.
