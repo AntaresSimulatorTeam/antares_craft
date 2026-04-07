@@ -38,15 +38,13 @@ from antares.craft.model.xpansion.candidate import (
     XpansionCandidate,
     XpansionCandidateUpdate,
     XpansionLinkProfile,
-    update_candidate,
 )
-from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate, update_constraint
+from antares.craft.model.xpansion.constraint import XpansionConstraint, XpansionConstraintUpdate
 from antares.craft.model.xpansion.sensitivity import (
     XpansionSensitivity,
     XpansionSensitivityUpdate,
-    update_xpansion_sensitivity,
 )
-from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate, update_xpansion_settings
+from antares.craft.model.xpansion.settings import XpansionSettings, XpansionSettingsUpdate
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration, XpansionMatrix
 from antares.craft.service.api_services.models.xpansion import (
     parse_xpansion_candidate_api,
@@ -60,6 +58,12 @@ from antares.craft.service.api_services.models.xpansion import (
 )
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseXpansionService
+from antares.craft.service.utils import (
+    update_candidate,
+    update_constraint,
+    update_sensitivity,
+    update_xpansion_settings,
+)
 
 FILE_MAPPING: dict[XpansionMatrix, str] = {XpansionMatrix.WEIGHTS: "weights", XpansionMatrix.CAPACITIES: "capa"}
 
@@ -260,7 +264,7 @@ class XpansionAPIService(BaseXpansionService):
     ) -> XpansionSensitivity:
         # We have to send `yearly-weights` and `additional-constraints` fields to the Web API otherwise it deletes them.
         # We also have to re-send the sensitivity as a whole
-        new_sensitivity = update_xpansion_sensitivity(current_sensitivity, sensitivity)
+        new_sensitivity = update_sensitivity(current_sensitivity, sensitivity)
         return self._update_settings(current_settings, new_sensitivity)[1]
 
     def _update_settings(

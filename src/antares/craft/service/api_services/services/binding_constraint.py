@@ -32,12 +32,12 @@ from antares.craft.model.binding_constraint import (
     BindingConstraint,
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
-    ConstraintMatrixName,
     ConstraintTerm,
 )
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix
 from antares.craft.service.base_services import BaseBindingConstraintService
+from antares.craft.tools.utils import ConstraintMatrixName
 
 
 class BindingConstraintApiService(BaseBindingConstraintService):

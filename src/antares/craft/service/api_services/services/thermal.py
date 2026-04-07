@@ -26,13 +26,13 @@ from antares.craft.exceptions.exceptions import (
 )
 from antares.craft.model.thermal import (
     ThermalCluster,
-    ThermalClusterMatrixName,
     ThermalClusterProperties,
     ThermalClusterPropertiesUpdate,
 )
 from antares.craft.service.api_services.models.thermal import ThermalClusterPropertiesAPI
 from antares.craft.service.api_services.utils import get_matrix, update_series
 from antares.craft.service.base_services import BaseThermalService
+from antares.craft.tools.utils import ThermalClusterMatrixName
 
 
 class ThermalApiService(BaseThermalService):

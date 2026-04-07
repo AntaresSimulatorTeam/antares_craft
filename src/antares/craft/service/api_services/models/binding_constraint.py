@@ -18,9 +18,9 @@ from antares.craft.model.binding_constraint import (
     BindingConstraintProperties,
     BindingConstraintPropertiesUpdate,
 )
-from antares.craft.model.commons import filtering_option
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.service.utils import check_field_is_not_null
+from antares.craft.tools.utils import filtering_option
 
 BindingConstraintPropertiesType = BindingConstraintProperties | BindingConstraintPropertiesUpdate
 

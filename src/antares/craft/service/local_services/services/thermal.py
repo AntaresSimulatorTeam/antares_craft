@@ -22,7 +22,6 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import ThermalPropertiesUpdateError
 from antares.craft.model.thermal import (
     ThermalCluster,
-    ThermalClusterMatrixName,
     ThermalClusterProperties,
     ThermalClusterPropertiesUpdate,
 )
@@ -36,6 +35,7 @@ from antares.craft.tools.matrix_tool import read_timeseries, write_timeseries
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.craft.tools.time_series_tool import TimeSeriesFileType
+from antares.craft.tools.utils import ThermalClusterMatrixName
 from antares.study.version import StudyVersion
 
 MAPPING = {

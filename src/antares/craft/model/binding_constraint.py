@@ -10,14 +10,14 @@
 #
 # This file is part of the Antares project.
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Optional
 
 import pandas as pd
 
-from antares.craft.model.commons import FILTER_VALUES, FilterOption
+from antares.craft.model.commons import FilterOption
 from antares.craft.service.base_services import BaseBindingConstraintService
 from antares.craft.tools.contents_tool import EnumIgnoreCase
+from antares.craft.tools.utils import FILTER_VALUES, ConstraintMatrixName
 
 
 class BindingConstraintFrequency(EnumIgnoreCase):
@@ -31,12 +31,6 @@ class BindingConstraintOperator(EnumIgnoreCase):
     GREATER = "greater"
     BOTH = "both"
     EQUAL = "equal"
-
-
-class ConstraintMatrixName(Enum):
-    LESS_TERM = "lt"
-    EQUAL_TERM = "eq"
-    GREATER_TERM = "gt"
 
 
 @dataclass(frozen=True)

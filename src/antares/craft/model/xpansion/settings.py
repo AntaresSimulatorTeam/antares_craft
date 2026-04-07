@@ -9,7 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Optional
 
 from antares.craft.tools.contents_tool import EnumIgnoreCase
@@ -67,11 +67,3 @@ class XpansionSettingsUpdate:
     timelimit: Optional[int] = None
     master_solution_tolerance: Optional[float] = None
     cut_coefficient_tolerance: Optional[float] = None
-
-
-def update_xpansion_settings(settings: XpansionSettings, settings_update: XpansionSettingsUpdate) -> XpansionSettings:
-    settings_dict = asdict(settings)
-    update_dict = {k: v for k, v in asdict(settings_update).items() if v is not None}
-    settings_dict.update(update_dict)
-
-    return XpansionSettings(**settings_dict)

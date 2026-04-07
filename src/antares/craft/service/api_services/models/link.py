@@ -13,7 +13,6 @@
 from dataclasses import asdict
 from typing import Optional
 
-from antares.craft.model.commons import filtering_option
 from antares.craft.model.link import (
     AssetType,
     LinkProperties,
@@ -25,6 +24,7 @@ from antares.craft.model.link import (
 )
 from antares.craft.service.api_services.models.base_model import APIBaseModel
 from antares.craft.service.utils import check_field_is_not_null
+from antares.craft.tools.utils import filtering_option
 
 LinkPropertiesType = LinkProperties | LinkPropertiesUpdate
 LinkUiType = LinkUi | LinkUiUpdate
