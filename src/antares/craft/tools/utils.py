@@ -9,6 +9,12 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+
+"""
+This file contains some utilities functions that we do not want to expose in the project documentation.
+So they were moved outside the `model` package to keep it clean.
+"""
+
 from enum import Enum
 from typing import Annotated, Any
 
