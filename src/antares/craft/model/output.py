@@ -421,7 +421,7 @@ class Output:
     def get_mc_ind_link(
         self, mc_year: int, frequency: Frequency, data_type: MCIndLinksDataType, area_from: str, area_to: str
     ) -> pd.DataFrame:
-        """TODO: 
+        """TODO:
 
         Args:
             mc_year:
