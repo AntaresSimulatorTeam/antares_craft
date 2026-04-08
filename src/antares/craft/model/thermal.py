@@ -311,7 +311,7 @@ class ThermalCluster:
 
     def get_series_matrix(self) -> pd.DataFrame:
         """Get availibility matrix.
-        
+
         Returns:
             The availibility time-series of the thermal cluster.
         """

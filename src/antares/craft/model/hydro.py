@@ -65,20 +65,16 @@ class HydroProperties:
 
     Attributes:
         inter_daily_breakdown: Inter daily brekdown.
-            TODO: add link to how it's calculated
         intra_daily_modulation: Intra daily modulation.
-            TODO: add link to how it's calculated
         inter_monthly_breakdown: Inter monthly breakdown.
-            TODO: add link to how it's calculated
         reservoir: Whether or not use reservoir management.
         reservoir_capacity: Reservoir capacity in MWh.
         follow_load: Whether or not follow load modulations.
         use_water: Whether or not use water values.
-            TODO: add link to water values doc
         hard_bounds: Whether or not use hard bounds on rule curves.
         initialize_reservoir_date: The number of the month (0 to 11).
         use_heuristic: Whether or not use the hydro heuristic in the simulation.
-            TODO: add link to heurisitic doc
+            See more on the hydro heuristic [here](https://antares-simulator.readthedocs.io/en/latest/user-guide/solver/06-hydro-heuristics/).
         power_to_level: Whether or not use power to level modulations.
         use_leeway: Whether or not use leeway.
         leeway_low: Leeway low bound.

@@ -82,7 +82,7 @@ class RenewableClusterProperties(ClusterProperties):
         enabled: Whether the cluster is enabled in the simulation.
         unit_count: Number of generation units in the cluster.
         nominal_capacity: Nominal capacity of a single unit in MW.
-        group:
+        group: Group of the renewables.
         ts_interpretation: Either `power_generation` or `production_factor`.
     """
 
@@ -159,7 +159,7 @@ class RenewableCluster:
 
     def set_series(self, matrix: pd.DataFrame) -> None:
         """Set renewable availability time-series.
-        
+
         Args:
             matrix: Renewable time-series.
         """

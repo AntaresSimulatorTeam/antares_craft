@@ -369,15 +369,15 @@ class Output:
         return self._archived
 
     def get_mc_all_area(self, frequency: Frequency, data_type: MCAllAreasDataType, area: str) -> pd.DataFrame:
-        """TODO:
+        """Get data for an area with mc-all.
 
         Args:
-            frequency: "hourly", "daily", "weekly", "monthly", "annual".
-            data_type: the data-type of mc-all areas.
-            area: the area name.
+            frequency: Whether "hourly", "daily", "weekly", "monthly", "annual".
+            data_type: The data-type of mc-all areas.
+            area: The area name.
 
         Returns:
-
+            A dataframe of mc-all data.
         """
         file_path = f"mc-all/areas/{area}/{data_type.value}-{frequency.value}"
         return self._output_service.get_matrix(self.name, file_path, frequency)
@@ -385,16 +385,16 @@ class Output:
     def get_mc_all_link(
         self, frequency: Frequency, data_type: MCAllLinksDataType, area_from: str, area_to: str
     ) -> pd.DataFrame:
-        """TODO:
+        """Get data for a link with mc-all.
 
         Args:
-            frequency: "hourly", "daily", "weekly", "monthly", "annual".
-            data_type: the data-type of mc-all links.
-            area_from: area_from id.
-            area_to: area_to id.
+            frequency: Whether "hourly", "daily", "weekly", "monthly", "annual".
+            data_type: The data-type of mc-all links.
+            area_from: `area_from` ID.
+            area_to: `area_to` ID.
 
         Returns:
-
+            A dataframe of mc-all data.
         """
         if [area_from, area_to] != sorted([area_from, area_to]):
             raise OutputDataRetrievalError(self.name, "Areas should be sorted alphabetically")
@@ -404,16 +404,16 @@ class Output:
     def get_mc_ind_area(
         self, mc_year: int, frequency: Frequency, data_type: MCIndAreasDataType, area: str
     ) -> pd.DataFrame:
-        """TODO:
+        """Get data for an area with mc-ind.
 
         Args:
-            mc_year:
-            frequency: "hourly", "daily", "weekly", "monthly", "annual".
-            data_type: the data-type of mc-ind areas.
-            area: the area name.
+            mc_year: Monte-Carlo year index.
+            frequency: Whether "hourly", "daily", "weekly", "monthly", "annual".
+            data_type: The data-type of mc-all areas.
+            area: The area name.
 
         Returns:
-
+            A dataframe of mc-ind data.
         """
         file_path = f"mc-ind/{mc_year:05}/areas/{area}/{data_type.value}-{frequency.value}"
         return self._output_service.get_matrix(self.name, file_path, frequency)
@@ -421,17 +421,17 @@ class Output:
     def get_mc_ind_link(
         self, mc_year: int, frequency: Frequency, data_type: MCIndLinksDataType, area_from: str, area_to: str
     ) -> pd.DataFrame:
-        """TODO:
+        """Get data for a link with mc-ind.
 
         Args:
-            mc_year:
+            mc_year: Monte-Carlo year index.
             frequency: "hourly", "daily", "weekly", "monthly", "annual".
-            data_type: the data-type of mc-ind links.
-            area_from: area_from id.
-            area_to: area_to id.
+            data_type: The data-type of mc-ind links.
+            area_from: `area_from` ID.
+            area_to: `area_to` ID.
 
         Returns:
-
+            A dataframe of mc-ind data.
         """
         if [area_from, area_to] != sorted([area_from, area_to]):
             raise OutputDataRetrievalError(self.name, "Areas should be sorted alphabetically")
@@ -530,7 +530,7 @@ class Output:
         links_ids: Optional[list[tuple[str, str]]] = None,
         columns_names: Optional[list[str]] = None,
     ) -> pd.DataFrame:
-        """Return a matrix of aggregated raw data for links with mc-all
+        """Return a matrix of aggregated raw data for links with mc-all.
 
         Args:
             data_type: values from McAllLinks
@@ -555,17 +555,17 @@ class Output:
         return self._output_service.aggregate_values(self.name, aggregation_entry, "links", "all")
 
     def get_xpansion_result(self) -> XpansionResult:
-        """TODO:
+        """Get xpansion result.
 
         Returns:
-
+            Xpansion results.
         """
         return self._output_service.get_xpansion_result(self.name)
 
     def get_xpansion_sensitivity_result(self) -> XpansionSensitivityResult:
-        """TODO:
+        """Get xpansion sensitivity results.
 
         Returns:
-
+            Xpansion sensitivity results.
         """
         return self._output_service.get_xpansion_sensitivity_result(self.name)

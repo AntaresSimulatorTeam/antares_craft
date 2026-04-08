@@ -19,16 +19,14 @@ from antares.craft.tools.contents_tool import EnumIgnoreCase
 class Mode(EnumIgnoreCase):
     """Modes to run the simulation.
 
-    TODO: in UI no Expansion mode --> "Economy (linear relaxation)"
-
     Attributes:
-        ECONOMY: Antares simulator will try to ensure balance between load and generation, 
-            while minimizing the economical cost of the grid's operation (more on this here). 
-            Economy simulations make a full use of Antares optimization capabilities. 
+        ECONOMY: Antares simulator will try to ensure balance between load and generation,
+            while minimizing the economical cost of the grid's operation (more on this here).
+            Economy simulations make a full use of Antares optimization capabilities.
             They require economic as well as technical input data and may demand a lot of computer resources.
-        ADEQUACY: All power plant operational costs are considered zero. 
-            Antares only objective is to ensure balance between load and generation. 
-            Adequacy simulations are faster and require only technical input data. 
+        ADEQUACY: All power plant operational costs are considered zero.
+            Antares only objective is to ensure balance between load and generation.
+            Adequacy simulations are faster and require only technical input data.
             Their results are limited to adequacy indicators.
         EXPANSION: Antares simulator will optimize the investments on the grid, minimizing both investments and operational costs.
     """
@@ -71,15 +69,15 @@ class BuildingMode(EnumIgnoreCase):
     """Building modes.
 
     Attributes:
-        AUTOMATIC: Time-series are randomly drawn. 
-        CUSTOM: The simulation will be carried out on a mix of deterministic and probabilistic conditions, 
-            with some time-series randomly drawn and others set to user-defined values. 
-            This option allows setting up detailed "what if" simulations that may help to understand the phenomena at work and quantify various kinds of risk indicators. 
+        AUTOMATIC: Time-series are randomly drawn.
+        CUSTOM: The simulation will be carried out on a mix of deterministic and probabilistic conditions,
+            with some time-series randomly drawn and others set to user-defined values.
+            This option allows setting up detailed "what if" simulations that may help to understand the phenomena at work and quantify various kinds of risk indicators.
             To set up the simulation profile, use the scenario builder.
         DERATED: All time-series will be replaced by their general average and the number of MC years set to 1.
-            If the TS are ready-made or Antares-generated but are not to be stored in the INPUT folder, 
-            no time-series will be written over the original ones (if any). 
-            If the time-series are built by Antares and if it is specified that they should be stored in the INPUT, 
+            If the TS are ready-made or Antares-generated but are not to be stored in the INPUT folder,
+            no time-series will be written over the original ones (if any).
+            If the time-series are built by Antares and if it is specified that they should be stored in the INPUT,
             a single average-out time series will be stored instead of the whole set.
     """
 

@@ -1,1 +1,0 @@
-::: antares.craft.model.cluster

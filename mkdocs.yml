@@ -13,7 +13,6 @@ nav:
     - Objects of modelling:
       - Area: api-reference/model/area.md
       - Link: api-reference/model/link.md
-      - Clusters: api-reference/model/cluster.md
       - Thermal: api-reference/model/thermal.md
       - Renewables: api-reference/model/renewable.md
       - Hydro: api-reference/model/hydro.md

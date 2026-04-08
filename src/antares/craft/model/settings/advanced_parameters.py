@@ -206,8 +206,8 @@ class SeedParameters:
         seed_initial_reservoir_levels: Seed for initial reservoir levels.
     """
 
-    seed_tsgen_thermal: int = 3005489  # TODO: default 5489 in UI?
-    seed_tsnumbers: int = 5005489  # TODO: default 5489 in UI?
+    seed_tsgen_thermal: int = 3005489
+    seed_tsnumbers: int = 5005489
     seed_unsupplied_energy_costs: int = 6005489
     seed_spilled_energy_costs: int = 7005489
     seed_thermal_costs: int = 8005489
