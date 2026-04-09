@@ -1,0 +1,1 @@
+::: antares.craft.model.settings.study_settings

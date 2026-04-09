@@ -16,9 +16,18 @@ from antares.craft.config.base_configuration import BaseConfiguration
 
 
 class LocalConfiguration(BaseConfiguration):
+    """Configuration for accessing and modifying studies on your machine."""
+
     def __init__(self, local_path: Path, study_name: str):
+        """Initialize your local configuration.
+
+        Args:
+            local_path: Path to the parent folder of your study.
+            study_name: Name of your study.
+        """
         self._study_path = local_path / study_name
 
     @property
     def study_path(self) -> Path:
+        """Path to the study on your disc."""
         return self._study_path

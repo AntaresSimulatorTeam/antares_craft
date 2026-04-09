@@ -1,0 +1,1 @@
+::: antares.craft.model.st_storage

@@ -27,6 +27,11 @@ from antares.craft.model.settings.thematic_trimming import ThematicTrimmingParam
 
 @dataclass
 class StudySettingsUpdate:
+    """Update study settings.
+
+    See the class [`StudySettings`][antares.craft.model.settings.study_settings.StudySettings] for details about the parameters.
+    """
+
     general_parameters: Optional[GeneralParametersUpdate] = None
     optimization_parameters: Optional[OptimizationParametersUpdate] = None
     advanced_parameters: Optional[AdvancedParametersUpdate] = None
@@ -36,6 +41,20 @@ class StudySettingsUpdate:
 
 @dataclass
 class StudySettings:
+    """Study settings.
+
+    Group the settings of the different tab inside the **CONFIGURATION** tab of Antares UI.
+
+    Attributes:
+        general_parameters: General parameters.
+        optimization_parameters: Optimization parameters.
+        advanced_parameters: Advanced parameters.
+        seed_parameters: Seed parameters.
+        adequacy_patch_parameters: Adequacy patch parameters.
+        thematic_trimming_parameters: Thematic_trimming_parameters.
+        playlist_parameters: Playlist parameters.
+    """
+
     general_parameters: GeneralParameters = field(default_factory=GeneralParameters)
     optimization_parameters: OptimizationParameters = field(default_factory=OptimizationParameters)
     advanced_parameters: AdvancedParameters = field(default_factory=AdvancedParameters)
@@ -45,6 +64,15 @@ class StudySettings:
     playlist_parameters: dict[int, PlaylistParameters] = field(default_factory=dict)
 
     def from_update_settings(self, update_settings: StudySettingsUpdate) -> "StudySettings":
+        """Creates a new `StudySettings` instance by applying partial updates.
+
+        Args:
+            update_settings: Object containing the parameters to update.
+                Only non-`None` fields will be applied.
+
+        Returns:
+            A new `StudySettings` instance with the merged parameters.
+        """
         current_settings = asdict(self)
         for key, values in asdict(update_settings).items():
             if values is not None:
@@ -73,6 +101,11 @@ class StudySettings:
         )
 
     def to_update_settings(self) -> StudySettingsUpdate:
+        """Converts the current `StudySettings` instance into a `StudySettingsUpdate` object.
+
+        Returns:
+            Object containing only modifiable parameters, initialized with current values.
+        """
         current_settings = asdict(self)
         general_parameters = GeneralParametersUpdate(**current_settings["general_parameters"])
         optimization_parameters = OptimizationParametersUpdate(**current_settings["optimization_parameters"])

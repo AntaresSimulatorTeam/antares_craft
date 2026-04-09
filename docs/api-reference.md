@@ -1,5 +1,0 @@
-# API reference
-
-::: antares.craft
-
-

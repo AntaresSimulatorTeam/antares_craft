@@ -24,9 +24,8 @@ from antares.craft.tools.utils import ThermalClusterMatrixName
 
 
 class LawOption(Enum):
-    """
-    Law options used for series generation.
-    The UNIFORM `law` is used by default.
+    """Law options used for series generation.
+    The uniform law is used by default.
     """
 
     UNIFORM = "uniform"
@@ -34,6 +33,21 @@ class LawOption(Enum):
 
 
 class ThermalClusterGroup(EnumIgnoreCase):
+    """Enumeration of the different possibilities of thermal cluster group.
+
+    Attributes:
+        NUCLEAR: Nuclear.
+        LIGNITE: Lignite.
+        HARD_COAL: Hard coal.
+        GAS: Gas.
+        OIL: Oil.
+        MIXED_FUEL: Mixed fuel.
+        OTHER1: Other 1.
+        OTHER2: Other 2.
+        OTHER3: Other 3.
+        OTHER4: Other 4.
+    """
+
     NUCLEAR = "nuclear"
     LIGNITE = "lignite"
     HARD_COAL = "hard coal"
@@ -81,6 +95,47 @@ class ThermalCostGeneration(Enum):
 
 @dataclass(frozen=True)
 class ThermalClusterProperties(ClusterProperties):
+    """Thermal cluster properties.
+
+    Attributes:
+        enabled: Whether the cluster is enabled in the simulation.
+        unit_count: Number of generation units in the cluster.
+        nominal_capacity: Nominal capacity of a single unit in MW.
+        group: Type of thermal generation to organize clusters.
+        gen_ts:
+        min_stable_power:
+        min_up_time: Duration needed for the cluster to reach its nominal capacity
+            from an initial off state.
+        min_down_time: Duration needed for the cluster to shutdown from its nominal capacity.
+        must_run: Whether the cluster must run or not.
+        spinning:
+        volatility_forced:
+        volatility_planned:
+        law_forced:
+        law_planned:
+        marginal_cost: Marginal cost.
+        spread_cost: Spread cost.
+        fixed_cost:
+        startup_cost: Start up cost of a unit.
+        market_bid_cost: Market bid cost.
+        co2: Emission rate of $\\ce{CO2}$ in t/MWh.
+        nh3: Emission rate of $\\ce{NH3}$ in t/MWh.
+        so2: Emission rate of $\\ce{SO2}$ in t/MWh.
+        nox: Emission rate of $\\ce{NOx}$ in t/MWh.
+        pm2_5: Emission rate of $\\ce{PM_{2.5}}$ in t/MWh.
+        pm5: Emission rate of $\\ce{PM5}$ in t/MWh.
+        pm10: Emission rate of $\\ce{PM10}$ in t/MWh.
+        nmvoc: Emission rate of $\\ce{NMVOC}$ in t/MWh.
+        op1: Emission rate of other polluant 1 in t/MWh.
+        op2: Emission rate of other polluant 2 in t/MWh.
+        op3: Emission rate of other polluant 3 in t/MWh.
+        op4: Emission rate of other polluant 4 in t/MWh.
+        op5: Emission rate of other polluant 5 in t/MWh.
+        cost_generation: Generation cost.
+        efficiency: Efficiency of the cluster.
+        variable_o_m_cost: Variable O&M costs.
+    """
+
     group: str = ThermalClusterGroup.OTHER1.value
     gen_ts: LocalTSGenerationBehavior = LocalTSGenerationBehavior.USE_GLOBAL
     min_stable_power: float = 0
@@ -117,6 +172,44 @@ class ThermalClusterProperties(ClusterProperties):
 
 @dataclass
 class ThermalClusterPropertiesUpdate(ClusterPropertiesUpdate):
+    """Update thermal cluster properties.
+
+    Attributes:
+        group: Type of thermal generation to organize clusters.
+        gen_ts:
+        min_stable_power:
+        min_up_time: Duration needed for the cluster to reach its nominal capacity
+            from an initial off state.
+        min_down_time: Duration needed for the cluster to shutdown from its nominal capacity.
+        must_run: Whether the cluster must run or not.
+        spinning:
+        volatility_forced:
+        volatility_planned:
+        law_forced:
+        law_planned:
+        marginal_cost: Marginal cost.
+        spread_cost: Spread cost.
+        fixed_cost:
+        startup_cost: Start up cost of a unit.
+        market_bid_cost: Market bid cost.
+        co2: Emission rate of $\\ce{CO2}$ in t/MWh.
+        nh3: Emission rate of $\\ce{NH3}$ in t/MWh.
+        so2: Emission rate of $\\ce{SO2}$ in t/MWh.
+        nox: Emission rate of $\\ce{NOx}$ in t/MWh.
+        pm2_5: Emission rate of $\\ce{PM{2.5}}$ in t/MWh.
+        pm5: Emission rate of $\\ce{PM5}$ in t/MWh.
+        pm10: Emission rate of $\\ce{PM10}$ in t/MWh.
+        nmvoc: Emission rate of $\\ce{NMVOC}$ in t/MWh.
+        op1: Emission rate of other polluant 1 in t/MWh.
+        op2: Emission rate of other polluant 2 in t/MWh.
+        op3: Emission rate of other polluant 3 in t/MWh.
+        op4: Emission rate of other polluant 4 in t/MWh.
+        op5: Emission rate of other polluant 5 in t/MWh.
+        cost_generation: Generation cost.
+        efficiency: Efficiency of the cluster.
+        variable_o_m_cost: Variable O&M costs.
+    """
+
     group: Optional[str] = None
     gen_ts: Optional[LocalTSGenerationBehavior] = None
     min_stable_power: Optional[float] = None
@@ -152,6 +245,8 @@ class ThermalClusterPropertiesUpdate(ClusterPropertiesUpdate):
 
 
 class ThermalCluster:
+    """Thermal cluster modelling object"""
+
     def __init__(
         self,
         thermal_service: BaseThermalService,
@@ -167,51 +262,113 @@ class ThermalCluster:
 
     @property
     def area_id(self) -> str:
+        """Area ID."""
         return self._area_id
 
     @property
     def name(self) -> str:
+        """Name of the thermal cluster."""
         return self._name
 
     @property
     def id(self) -> str:
+        """ID of the thermal cluster."""
         return self._id
 
     @property
     def properties(self) -> ThermalClusterProperties:
+        """Properties of the thermal cluster."""
         return self._properties
 
     def update_properties(self, properties: ThermalClusterPropertiesUpdate) -> ThermalClusterProperties:
+        """Update properties of the thermal cluster.
+
+        Args:
+            properties: Properties to update.
+
+        Returns:
+            The updated thermal properties.
+        """
         new_properties = self._thermal_service.update_thermal_clusters_properties({self: properties})
         self._properties = new_properties[self]
         return self._properties
 
     def get_prepro_data_matrix(self) -> pd.DataFrame:
+        """Get matrix corresponding to the TS-GENERATOR matrix in AntaresWeb.
+
+        Returns:
+            matrix: Matrix with outage probabilities and durations to use inside the timeseries generation.
+        """
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.PREPRO_DATA)
 
     def get_prepro_modulation_matrix(self) -> pd.DataFrame:
+        """Get matrix corresponding to the COMMON matrix in AntaresWeb.
+
+        Returns:
+            matrix: Matrix for the "Marginal cost modulation", "Market bid modulation", "Capacity modulation" and "Min gen modulation".
+        """
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.PREPRO_MODULATION)
 
     def get_series_matrix(self) -> pd.DataFrame:
+        """Get availibility matrix.
+
+        Returns:
+            The availibility time-series of the thermal cluster.
+        """
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES)
 
     def get_co2_cost_matrix(self) -> pd.DataFrame:
+        """Get $\\ce{CO2}$ cost matrix.
+
+        Returns:
+            The $\\ce{CO2}$ cost matrix.
+        """
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_CO2_COST)
 
     def get_fuel_cost_matrix(self) -> pd.DataFrame:
+        """Get fuel cost matrix.
+
+        Returns:
+            The fuel cost matrix.
+        """
         return self._thermal_service.get_thermal_matrix(self, ThermalClusterMatrixName.SERIES_FUEL_COST)
 
     def set_prepro_data(self, matrix: pd.DataFrame) -> None:
+        """Set matrix corresponding to the TS-GENERATOR matrix in AntaresWeb.
+
+        Args:
+            matrix: Matrix with outage probabilities and durations to use inside the timeseries generation.
+        """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.PREPRO_DATA)
 
     def set_prepro_modulation(self, matrix: pd.DataFrame) -> None:
+        """Set matrix corresponding to the COMMON matrix in AntaresWeb.
+
+        Args:
+            matrix: Matrix for the "Marginal cost modulation", "Market bid modulation", "Capacity modulation" and "Min gen modulation".
+        """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.PREPRO_MODULATION)
 
     def set_series(self, matrix: pd.DataFrame) -> None:
+        """Set availibility time-series.
+
+        Args:
+            matrix: Availibity time-series.
+        """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES)
 
     def set_co2_cost(self, matrix: pd.DataFrame) -> None:
+        """Set $\\ce{CO2}$ cost matrix.
+
+        Args:
+            matrix: The $\\ce{CO2}$ cost matrix.
+        """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES_CO2_COST)
 
     def set_fuel_cost(self, matrix: pd.DataFrame) -> None:
+        """Set fuel cost matrix.
+
+        Args:
+            matrix: The fuel cost matrix.
+        """
         self._thermal_service.set_thermal_matrix(self, matrix, ThermalClusterMatrixName.SERIES_FUEL_COST)

@@ -20,6 +20,18 @@ STUDY_VERSION_9_3 = StudyVersion.parse("9.3")
 
 
 class FilterOption(Enum):
+    """Enumeration of the available filter options for the output or the synthesis for example.
+
+    This is case sensitive.
+
+    Attributes:
+        HOURLY: hourly filter
+        DAILY: daily filter
+        WEEKLY: weekly filter
+        MONTHLY: monthly filter
+        ANNUAL: annual filter
+    """
+
     HOURLY = "hourly"
     DAILY = "daily"
     WEEKLY = "weekly"

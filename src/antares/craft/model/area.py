@@ -12,8 +12,7 @@
 
 """
 The Area model defines the description of the
-electrical demand (load), generation fleet (clusters),
-//TO_DO to be completed as implementation progress
+electrical demand (load), generation fleet (clusters).
 """
 
 from dataclasses import dataclass, field
@@ -42,8 +41,11 @@ DELETION_ERROR_MSG = "it doesn't exist"
 
 
 class AdequacyPatchMode(EnumIgnoreCase):
-    """
-    Adequacy patch mode.
+    """Adequacy patch mode to fix the sharing of Energy not Served (ENS) between market areas.
+
+    - outside: The area is a physical area not included in the adequacy patch domain
+    - inside: The area is a physical area included in the adequacy patch domain
+    - virtual: The area is a virtual area
 
     Only available if study version >= 830.
     """
@@ -55,6 +57,31 @@ class AdequacyPatchMode(EnumIgnoreCase):
 
 @dataclass
 class AreaPropertiesUpdate:
+    """Represents all the properties for an area.
+
+    Attributes:
+        energy_cost_unsupplied:
+            Cost of unsupplied energy, in €/MWh.
+        energy_cost_spilled:
+            Cost of spilled energy, in €/MWh.
+        non_dispatch_power:
+            Whether non-dispatchable power sources are enabled.
+        dispatch_hydro_power:
+            Whether dispatchable hydro power is enabled.
+        other_dispatch_power:
+            Whether other dispatchable power sources are enabled.
+        filter_synthesis:
+            Set of filter options for synthesis (hourly, daily, weekly, monthly, annual).
+        filter_by_year:
+            Set of filter options for output (hourly, daily, weekly, monthly, annual).
+        adequacy_patch_mode:
+            Mode to include or not the area in adequacy patching.
+        spread_unsupplied_energy_cost:
+            Cost spread for unsupplied energy in €/MWh.
+        spread_spilled_energy_cost:
+            Cost spread for spilled energy in €/MWh.
+    """
+
     energy_cost_unsupplied: Optional[float] = None
     energy_cost_spilled: Optional[float] = None
     non_dispatch_power: Optional[bool] = None
@@ -69,6 +96,31 @@ class AreaPropertiesUpdate:
 
 @dataclass(frozen=True)
 class AreaProperties:
+    """Represents all the properties for an area.
+
+    Attributes:
+        energy_cost_unsupplied:
+            Cost of unsupplied energy, in €/MWh.
+        energy_cost_spilled:
+            Cost of spilled energy, in €/MWh.
+        non_dispatch_power:
+            Whether non-dispatchable power sources are enabled.
+        dispatch_hydro_power:
+            Whether dispatchable hydro power is enabled.
+        other_dispatch_power:
+            Whether other dispatchable power sources are enabled.
+        filter_synthesis:
+            Set of filter options for synthesis (hourly, daily, weekly, monthly, annual).
+        filter_by_year:
+            Set of filter options for output (hourly, daily, weekly, monthly, annual).
+        adequacy_patch_mode:
+            Mode to include or not the area in adequacy patching.
+        spread_unsupplied_energy_cost:
+            Cost spread for unsupplied energy in €/MWh.
+        spread_spilled_energy_cost:
+            Cost spread for spilled energy in €/MWh.
+    """
+
     energy_cost_unsupplied: float = 0.0
     energy_cost_spilled: float = 0.0
     non_dispatch_power: bool = True
@@ -83,6 +135,14 @@ class AreaProperties:
 
 @dataclass
 class AreaUiUpdate:
+    """Update for area UI properties
+
+    Attributes:
+        x: X position of the node
+        y: Y position of the node
+        color_rgb: Color of the node in RGB format
+    """
+
     x: Optional[int] = None
     y: Optional[int] = None
     color_rgb: Optional[list[int]] = None
@@ -94,6 +154,14 @@ class AreaUiUpdate:
 
 @dataclass(frozen=True)
 class AreaUi:
+    """Area UI properties.
+
+    Attributes:
+        x: X position of the node
+        y: Y position of the node
+        color_rgb: Color of the node in RGB format
+    """
+
     x: int = 0
     y: int = 0
     color_rgb: list[int] = field(default_factory=lambda: [230, 108, 44])
@@ -104,10 +172,9 @@ class AreaUi:
 
 
 class Area:
-    """
-    Represents an area of the study.
+    """Represents an area of the study.
 
-    Provides access to data associated to that area, and to objects that are connected to it,
+    Provides access to data associated with that area, and to objects that are connected to it,
     for example thermal clusters, renewable clusters, binding constraints, etc.
     """
 
@@ -143,21 +210,16 @@ class Area:
 
     @property
     def name(self) -> str:
-        """
-        The name of this area.
-        """
+        """The name of this area."""
         return self._name
 
     @property
     def id(self) -> str:
-        """
-        The ID of this area.
-        """
+        """The ID of this area."""
         return self._id
 
     def get_thermals(self) -> MappingProxyType[str, ThermalCluster]:
-        """
-        Thermal clusters connected to this area.
+        """Thermal clusters connected to this area.
 
         Returns:
             Thermal clusters connected to this area, as a mapping of cluster ID to cluster.
@@ -165,8 +227,7 @@ class Area:
         return MappingProxyType(self._thermals)
 
     def get_renewables(self) -> MappingProxyType[str, RenewableCluster]:
-        """
-        Renewable clusters connected to this area.
+        """Renewable clusters connected to this area.
 
         Returns:
             Renewable clusters connected to this area, as a mapping of cluster ID to cluster.
@@ -174,8 +235,7 @@ class Area:
         return MappingProxyType(self._renewables)
 
     def get_st_storages(self) -> MappingProxyType[str, STStorage]:
-        """
-        Short term storages connected to this area.
+        """Short term storages connected to this area.
 
         Returns:
             Short term storages connected to this area, as a mapping of storage ID to storage.
@@ -184,32 +244,25 @@ class Area:
 
     @property
     def hydro(self) -> Hydro:
-        """
-        Hydro properties of this area.
-        """
+        """Hydro properties of this area."""
         return self._hydro
 
     @property
     def properties(self) -> AreaProperties:
-        """
-        Properties of this area.
-        """
+        """Properties of this area."""
         return self._properties
 
     @property
     def ui(self) -> AreaUi:
-        """
-        UI (display) properties of this area.
-        """
+        """UI (display) properties of this area."""
         return self._ui
 
     def create_thermal_cluster(
         self, thermal_name: str, properties: Optional[ThermalClusterProperties] = None
     ) -> ThermalCluster:
-        """
-        Creates a new thermal cluster in the current area.
+        """Creates a new thermal cluster in the current area.
 
-        Parameters:
+        Args:
             thermal_name: The name of the new thermal cluster.
             properties: The properties of the new thermal cluster.
 
@@ -223,10 +276,9 @@ class Area:
     def create_renewable_cluster(
         self, renewable_name: str, properties: Optional[RenewableClusterProperties] = None
     ) -> RenewableCluster:
-        """
-        Creates a new renewable cluster in the current area.
+        """Creates a new renewable cluster in the current area.
 
-        Parameters:
+        Args:
             renewable_name: The name of the new renewable cluster.
             properties: The properties of the new renewable cluster.
 
@@ -238,10 +290,9 @@ class Area:
         return renewable
 
     def create_st_storage(self, st_storage_name: str, properties: Optional[STStorageProperties] = None) -> STStorage:
-        """
-        Creates a new short term storage in this area.
+        """Creates a new short term storage in this area.
 
-        Parameters:
+        Args:
             st_storage_name: The name of the new short term storage.
             properties: The properties of the new short term storage.
 
@@ -254,21 +305,51 @@ class Area:
         return storage
 
     def get_load_matrix(self) -> pd.DataFrame:
+        """Get the load time-series for the area.
+
+        Returns:
+            The load time-series.
+        """
         return self._area_service.get_load_matrix(self.id)
 
     def get_wind_matrix(self) -> pd.DataFrame:
+        """Get the wind time-series for the area.
+
+        Returns:
+            The wind time-series.
+        """
         return self._area_service.get_wind_matrix(self.id)
 
     def get_solar_matrix(self) -> pd.DataFrame:
+        """Get the solar time-series for the area.
+
+        Returns:
+            The solar time-series.
+        """
         return self._area_service.get_solar_matrix(self.id)
 
     def get_reserves_matrix(self) -> pd.DataFrame:
+        """Get the reserves time-series for the area.
+
+        Returns:
+            The reserves time-series.
+        """
         return self._area_service.get_reserves_matrix(self.id)
 
     def get_misc_gen_matrix(self) -> pd.DataFrame:
+        """Get the miscellaneous generation time-series for the area.
+
+        Returns:
+            The miscellaneous generation time-series.
+        """
         return self._area_service.get_misc_gen_matrix(self.id)
 
     def delete_thermal_clusters(self, thermal_clusters: list[ThermalCluster]) -> None:
+        """Delete a list of thermal clusters in this area.
+
+        Args:
+            thermal_clusters: The list of thermal clusters to delete
+        """
         # Checks deletion is possible
         bad_cluster_ids = []
         for cluster in thermal_clusters:
@@ -282,9 +363,19 @@ class Area:
             self._thermals.pop(cluster.id)
 
     def delete_thermal_cluster(self, thermal_cluster: ThermalCluster) -> None:
+        """Delete a single thermal cluster in this area.
+
+        Args:
+            thermal_cluster: A thermal cluster
+        """
         self.delete_thermal_clusters([thermal_cluster])
 
     def delete_renewable_clusters(self, renewable_clusters: list[RenewableCluster]) -> None:
+        """Delete a list of renewable clusters in this area.
+
+        Args:
+            renewable_clusters: The list of renewable clusters to delete
+        """
         # Checks deletion is possible
         bad_cluster_ids = []
         for cluster in renewable_clusters:
@@ -298,9 +389,19 @@ class Area:
             self._renewables.pop(cluster.id)
 
     def delete_renewable_cluster(self, renewable_cluster: RenewableCluster) -> None:
+        """Delete a single renewable cluster in this area.
+
+        Args:
+            renewable_cluster: The renewable cluster to delete
+        """
         self.delete_renewable_clusters([renewable_cluster])
 
     def delete_st_storages(self, storages: list[STStorage]) -> None:
+        """Delete a list of short-term storages in this area.
+
+        Args:
+            storages: The list of short-term storage to delete
+        """
         # Checks deletion is possible
         bad_cluster_ids = []
         for cluster in storages:
@@ -314,6 +415,11 @@ class Area:
             self._st_storages.pop(storage.id)
 
     def delete_st_storage(self, storage: STStorage) -> None:
+        """Delete a short-term storage in this area.
+
+        Args:
+            storage: The short-term storage to delete
+        """
         self.delete_st_storages([storage])
 
     def update_properties(self, properties: AreaPropertiesUpdate) -> AreaProperties:
@@ -327,16 +433,41 @@ class Area:
         return new_ui
 
     def set_load(self, series: pd.DataFrame) -> None:
+        """Set the load time-series for this area
+
+        Args:
+            series: The time-series
+        """
         self._area_service.set_load(self.id, series)
 
     def set_wind(self, series: pd.DataFrame) -> None:
+        """Set the wind time-series for this area
+
+        Args:
+            series: The time-series
+        """
         self._area_service.set_wind(self.id, series)
 
     def set_reserves(self, series: pd.DataFrame) -> None:
+        """Set the reserves time-series for this area
+
+        Args:
+            series: The time-series
+        """
         self._area_service.set_reserves(self.id, series)
 
     def set_solar(self, series: pd.DataFrame) -> None:
+        """Set the solar time-series for this area
+
+        Args:
+            series: The time-series
+        """
         self._area_service.set_solar(self.id, series)
 
     def set_misc_gen(self, series: pd.DataFrame) -> None:
+        """Set the miscellaneous generation time-series for this area
+
+        Args:
+            series: The time-series
+        """
         self._area_service.set_misc_gen(self.id, series)

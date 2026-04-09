@@ -16,6 +16,14 @@ from typing import Optional
 
 @dataclass(frozen=True)
 class XpansionSensitivity:
+    """Xpansion sensitivity parameters.
+
+    Attributes:
+        epsilon: Maximum allowed gap with the optimal solution.
+        projection: List of candidate names for which min/max investment in near-optimal solutions is computed.
+        capex: Whether or not to look for solutions with min/max CAPEX.
+    """
+
     epsilon: float = 0
     projection: list[str] = field(default_factory=list)
     capex: bool = False
@@ -23,6 +31,14 @@ class XpansionSensitivity:
 
 @dataclass
 class XpansionSensitivityUpdate:
+    """Xpansion sensitivity parameter update.
+
+    Attributes:
+        epsilon: Maximum allowed gap with the optimal solution.
+        projection: List of candidate names for which min/max investment in near-optimal solutions is computed.
+        capex: Whether or not to look for solutions with min/max CAPEX.
+    """
+
     epsilon: Optional[float] = None
     projection: Optional[list[str]] = None
     capex: Optional[bool] = None

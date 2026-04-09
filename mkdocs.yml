@@ -1,11 +1,44 @@
 site_name: Antares Craft
 repo_url: https://github.com/AntaresSimulatorTeam/antares_craft
+edit_uri: edit/main/docs/
 nav:
   - Home: index.md
-  - Getting started: getting-started.md
-  - User guide: user-guide.md
-  - Reference: api-reference.md
-  - Developers: developer.md
+  - Getting started:
+    - First steps: getting-started/first-steps.md
+    - Package architecture: getting-started/architecture.md
+  - Examples: antares-craft-examples.md
+  - Reference:
+    - API configuration: api-reference/api_conf.md
+    - Study: api-reference/model/study.md
+    - Objects of modelling:
+      - Area: api-reference/model/area.md
+      - Link: api-reference/model/link.md
+      - Thermal: api-reference/model/thermal.md
+      - Renewables: api-reference/model/renewable.md
+      - Hydro: api-reference/model/hydro.md
+      - Short-Term Storage: api-reference/model/st_storage.md
+      - Binding constraints: api-reference/model/binding_constraint.md
+      - Commons: api-reference/model/commons.md
+    - Settings:
+      - Study settings: api-reference/model/settings/study_settings.md
+      - General: api-reference/model/settings/general.md
+      - Adequacy patch: api-reference/model/settings/adequacy_patch.md
+      - Advanced parameters: api-reference/model/settings/advanced_parameters.md
+      - Optimization: api-reference/model/settings/optimization.md
+      - Simulation: api-reference/model/simulation.md
+      - Thematic trimming: api-reference/model/settings/thematic_trimming.md
+      - Playlist parameters: api-reference/model/settings/playlist_parameters.md
+      - Scenario Builder: api-reference/model/scenario_builder.md
+    - Xpansion:
+      - Candidate: api-reference/model/xpansion/candidate.md
+      - Constraint: api-reference/model/xpansion/constraint.md
+      - Sensitivity: api-reference/model/xpansion/sensitivity.md
+      - Settings: api-reference/model/xpansion/settings.md
+      - Xpansion configuration: api-reference/model/xpansion/xpansion_configuration.md
+    - Output: api-reference/model/output.md
+  - Contributing:
+    - To the documentation: contributing/doc.md
+    - To the code: contributing/developer.md
   - Changelog: CHANGELOG.md
 
 theme:
@@ -13,11 +46,15 @@ theme:
   logo: assets/logo.png
   favicon: assets/Icone.png
   prev_next_buttons_location: none
+  # pygments_style: "monokai"
   features:
     - navigation.instant
+    - navigation.instant.preview
     - navigation.top
     - content.tabs.link
     - content.code.copy
+    - content.action.edit
+    - content.action.view
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: antares
@@ -29,32 +66,89 @@ theme:
       toggle:
         icon: material/toggle-switch
         name: Switch to light mode
+  # icon:
+  #   edit: material/pencil 
+  #   view: material/eye
 
 plugins:
   - search
   - autorefs
-  - mkdocstrings:
-      default_handler: python
+  - autolinks
+  - mkdocstrings: # recommended settings https://mkdocstrings.github.io/python/usage/#recommended-settings
       handlers:
         python:
-          paths: [ src ]
+          paths: [src]
+
+          inventories:
+          - https://docs.python.org/3/objects.inv
+
           options:
-            show_bases: false
-            show_source: false
-            show_signature: true
-            show_signature_annotations: false
+
+            # DOCSTRINGS -------------------------------------------------------------
+            docstring_options:
+              ignore_init_summary: true
+            docstring_section_style: list
+
+            # CROSS-REFERENCES -------------------------------------------------------
+            relative_crossrefs: true  
+            scoped_crossrefs: true  
+            signature_crossrefs: true
+            unwrap_annotated: true
+
+            # MEMBERS ----------------------------------------------------------------
+            filters: public  
+            inherited_members: true
+            summary: true
+
+            # HEADINGS ---------------------------------------------------------------
+            heading_level: 1
+            parameter_headings: true
+            type_parameter_headings: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+
+            # SIGNATURES -------------------------------------------------------------
+            line_length: 88
+            merge_init_into_class: true
             separate_signature: true
+            show_signature_annotations: true
+            show_signature_type_parameters: true
+
+            # OTHER ------------------------------------------------------------------
+            # backlinks: tree 
+            show_bases: false
+            show_inheritance_diagram: false 
+  - drawio:
+      darkmode: true
 
 extra_css:
   - stylesheets/extra.css
 
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - https://viewer.diagrams.net/js/viewer-static.min.js
+  - javascripts/drawio-reload.js
+
 markdown_extensions:
   - admonition
+  - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
-  - pymdownx.details
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
+  - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - toc:
+      toc_depth: 3
