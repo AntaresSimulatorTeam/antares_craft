@@ -251,11 +251,12 @@ class TestLocalLauncher:
         output = next(iter(study.get_outputs().values()))
 
         # Check the ts-numbers
-        assert output.get_solar_ts_numbers("fr") == {1: 1, 2: 1, 3: 1}
+        default_values = {1: 1, 2: 1, 3: 1}
+        assert output.get_solar_ts_numbers("fr") == default_values
         assert output.get_load_ts_numbers("fr") == {1: 2, 2: 1, 3: 2}  # Not default values as we set them
-        assert output.get_wind_ts_numbers("fr") == {1: 1, 2: 1, 3: 1}
-        assert output.get_hydro_ts_numbers("fr") == {1: 1, 2: 1, 3: 1}
-        assert output.get_binding_constraint_ts_numbers("my_group") == {1: 1, 2: 1, 3: 1}
-        assert output.get_thermal_ts_numbers("fr", "nuclear_fr") == {1: 1, 2: 1, 3: 1}
-        assert output.get_st_storage_inflows_numbers("fr", "battery fr") == {1: 1, 2: 1, 3: 1}
-        assert output.get_st_storage_additional_constraints_numbers("fr", "battery fr", "c1") == {1: 1, 2: 1, 3: 1}
+        assert output.get_wind_ts_numbers("fr") == default_values
+        assert output.get_hydro_ts_numbers("fr") == default_values
+        assert output.get_binding_constraint_ts_numbers("my_group") == default_values
+        assert output.get_thermal_ts_numbers("fr", "nuclear_fr") == default_values
+        assert output.get_st_storage_inflows_numbers("fr", "battery fr") == default_values
+        assert output.get_st_storage_additional_constraints_numbers("fr", "battery fr", "c1") == default_values
