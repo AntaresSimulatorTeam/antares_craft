@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+from pathlib import Path
 
 import pandas as pd
 
@@ -68,3 +69,38 @@ class OutputLocalService(BaseOutputService):
             return parse_xpansion_sensitivity_out_json(file_path.read_text())
         except Exception as e:
             raise XpansionOutputParsingError(self.study_name, output_id, "sensitivity_out.json", e.args[0])
+
+    def _get_ts_numbers_path(self, output_id: str) -> Path:
+        return self.config.study_path / "output" / output_id / "ts-numbers"
+
+    @override
+    def get_solar_ts_numbers(self, area_id: str, output_id: str) -> dict[int, int]:
+        file_path = self._get_ts_numbers_path(output_id) / "solar" / f"{area_id}.txt"
+
+    @override
+    def get_wind_ts_numbers(self, area_id: str, output_id: str) -> dict[int, int]:
+        file_path = self._get_ts_numbers_path(output_id) / "wind" / f"{area_id}.txt"
+
+    @override
+    def get_load_ts_numbers(self, area_id: str, output_id: str) -> dict[int, int]:
+        file_path = self._get_ts_numbers_path(output_id) / "load" / f"{area_id}.txt"
+
+    @override
+    def get_hydro_ts_numbers(self, area_id: str, output_id: str) -> dict[int, int]:
+        file_path = self._get_ts_numbers_path(output_id) / "hydro" / f"{area_id}.txt"
+
+    @override
+    def get_binding_constraint_ts_numbers(self, group_id: str, output_id: str) -> dict[int, int]:
+        file_path = self._get_ts_numbers_path(output_id) / "bindingconstraints" / f"{group_id}.txt"
+
+    @override
+    def get_thermal_ts_numbers(self, area_id: str, thermal_id: str, output_id: str) -> dict[int, int]:
+        file_path = self._get_ts_numbers_path(output_id) / "thermal" / area_id / f"{thermal_id}.txt"
+
+    @override
+    def get_st_storage_inflows_numbers(self, area_id: str, st_storage_id: str, output_id: str) -> dict[int, int]:
+        file_path = self._get_ts_numbers_path(output_id) / "st-storage" / area_id / st_storage_id / "inflows.txt"
+
+    @override
+    def get_st_storage_additional_constraints_numbers(self, area_id: str, st_storage_id: str, constraint_id: str, output_id: str) -> dict[int, int]:
+        file_path = self._get_ts_numbers_path(output_id) / "st-storage" / area_id / st_storage_id / f"{constraint_id}.txt"
