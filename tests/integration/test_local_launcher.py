@@ -46,7 +46,7 @@ from antares.craft import (
     create_study_local,
     read_study_local,
 )
-from antares.craft.exceptions.exceptions import AntaresSimulationRunningError
+from antares.craft.exceptions.exceptions import AntaresSimulationRunningError, OutputDataRetrievalError
 from antares.craft.model.commons import STUDY_VERSION_8_8, STUDY_VERSION_9_3
 from antares.craft.model.simulation import AntaresSimulationParametersLocal, JobStatus
 from antares.study.version import StudyVersion
@@ -260,3 +260,20 @@ class TestLocalLauncher:
         assert output.get_thermal_ts_numbers("fr", "nuclear_fr") == default_values
         assert output.get_st_storage_inflows_numbers("fr", "battery fr") == default_values
         assert output.get_st_storage_additional_constraints_numbers("fr", "battery fr", "c1") == default_values
+
+        # Ask for a fake area
+        with pytest.raises(OutputDataRetrievalError):
+            output.get_solar_ts_numbers("fake_area")
+
+        study.delete_outputs()
+
+        # Set `store_new_set` to False to not have the `ts-numbers` folder and check the issue
+        new_params = GeneralParametersUpdate(store_new_set=False)
+        study.update_settings(StudySettingsUpdate(general_parameters=new_params))
+        job = study.run_antares_simulation(default_parameters)
+        study.wait_job_completion(job)
+        assert job.status == JobStatus.SUCCESS
+
+        output = next(iter(study.get_outputs().values()))
+        with pytest.raises(OutputDataRetrievalError, match="The `ts-numbers` folder does not exist"):
+            output.get_solar_ts_numbers("fr")
