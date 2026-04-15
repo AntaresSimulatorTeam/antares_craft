@@ -811,7 +811,9 @@ class BaseOutputService(ABC):
         pass
 
     @abstractmethod
-    def get_st_storage_additional_constraints_numbers(self, area_id: str, st_storage_id: str, constraint_id: str, output_id: str) -> dict[int, int]:
+    def get_st_storage_additional_constraints_numbers(
+        self, area_id: str, st_storage_id: str, constraint_id: str, output_id: str
+    ) -> dict[int, int]:
         pass
 
 

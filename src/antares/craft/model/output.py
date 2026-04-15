@@ -626,12 +626,17 @@ class Output:
         """
         return self._output_service.get_st_storage_inflows_numbers(area_id, st_storage_id, self._name)
 
-    def get_st_storage_additional_constraints_numbers(self, area_id: str, st_storage_id: str, constraint_id: str) -> dict[int, int]:
+    def get_st_storage_additional_constraints_numbers(
+        self, area_id: str, st_storage_id: str, constraint_id: str
+    ) -> dict[int, int]:
         """Get short-term storage additional constraints time series numbers for a given constraint.
 
         Returns:
             A mapping from the Monte-Carlo year to its selected time series
         """
-        return self._output_service.get_st_storage_additional_constraints_numbers(area_id, st_storage_id, constraint_id, self._name)
+        return self._output_service.get_st_storage_additional_constraints_numbers(
+            area_id, st_storage_id, constraint_id, self._name
+        )
+
 
 # todo: add links

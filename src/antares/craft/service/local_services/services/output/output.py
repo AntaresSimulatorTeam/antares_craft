@@ -16,7 +16,7 @@ import pandas as pd
 from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import XpansionOutputParsingError, OutputDataRetrievalError
+from antares.craft.exceptions.exceptions import OutputDataRetrievalError, XpansionOutputParsingError
 from antares.craft.model.output import AggregationEntry, Frequency, XpansionResult, XpansionSensitivityResult
 from antares.craft.service.base_services import BaseOutputService
 from antares.craft.service.local_services.services.output.output_aggregation import AggregatorManager, export_df_chunks
@@ -71,7 +71,7 @@ class OutputLocalService(BaseOutputService):
             raise XpansionOutputParsingError(self.study_name, output_id, "sensitivity_out.json", e.args[0])
 
     def _get_ts_numbers_path(self, output_id: str) -> Path:
-        ts_numbers_path =  self.config.study_path / "output" / output_id / "ts-numbers"
+        ts_numbers_path = self.config.study_path / "output" / output_id / "ts-numbers"
         if not ts_numbers_path.exists():
             raise OutputDataRetrievalError(output_id, "The `ts-numbers` folder does not exist")
         return ts_numbers_path
@@ -81,7 +81,7 @@ class OutputLocalService(BaseOutputService):
         if not file_path.exists():
             raise OutputDataRetrievalError(output_id, f"The file {file_path} does not exist")
         data = file_path.read_text().splitlines()[1:]
-        return {k + 1 : int(data[k]) for k in range(len(data))}
+        return {k + 1: int(data[k]) for k in range(len(data))}
 
     @override
     def get_solar_ts_numbers(self, area_id: str, output_id: str) -> dict[int, int]:
@@ -119,6 +119,10 @@ class OutputLocalService(BaseOutputService):
         return self._read_ts_numbers_file(file_path, output_id)
 
     @override
-    def get_st_storage_additional_constraints_numbers(self, area_id: str, st_storage_id: str, constraint_id: str, output_id: str) -> dict[int, int]:
-        file_path = self._get_ts_numbers_path(output_id) / "st-storage" / area_id / st_storage_id / f"{constraint_id}.txt"
+    def get_st_storage_additional_constraints_numbers(
+        self, area_id: str, st_storage_id: str, constraint_id: str, output_id: str
+    ) -> dict[int, int]:
+        file_path = (
+            self._get_ts_numbers_path(output_id) / "st-storage" / area_id / st_storage_id / f"{constraint_id}.txt"
+        )
         return self._read_ts_numbers_file(file_path, output_id)
