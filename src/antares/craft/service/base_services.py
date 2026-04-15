@@ -799,6 +799,10 @@ class BaseOutputService(ABC):
         pass
 
     @abstractmethod
+    def get_link_ts_numbers(self, area_from: str, area_to: str, output_id: str) -> dict[int, int]:
+        pass
+
+    @abstractmethod
     def get_binding_constraint_ts_numbers(self, group_id: str, output_id: str) -> dict[int, int]:
         pass
 

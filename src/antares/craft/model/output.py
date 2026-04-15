@@ -602,6 +602,14 @@ class Output:
         """
         return self._output_service.get_hydro_ts_numbers(area_id, self._name)
 
+    def get_link_ts_numbers(self, area_from: str, area_to: str) -> dict[int, int]:
+        """Get wind time series numbers for a given link.
+
+        Returns:
+            A mapping from the Monte-Carlo year to its selected time series
+        """
+        return self._output_service.get_link_ts_numbers(area_from, area_to, self._name)
+
     def get_binding_constraint_ts_numbers(self, group_id: str) -> dict[int, int]:
         """Get binding constraint time series numbers for a given constraint group.
 
@@ -637,6 +645,3 @@ class Output:
         return self._output_service.get_st_storage_additional_constraints_numbers(
             area_id, st_storage_id, constraint_id, self._name
         )
-
-
-# todo: add links

@@ -256,6 +256,7 @@ class TestLocalLauncher:
         assert output.get_load_ts_numbers("fr") == {1: 2, 2: 1, 3: 2}  # Not default values as we set them
         assert output.get_wind_ts_numbers("fr") == default_values
         assert output.get_hydro_ts_numbers("fr") == default_values
+        assert output.get_link_ts_numbers("be", "fr") == default_values
         assert output.get_binding_constraint_ts_numbers("my_group") == default_values
         assert output.get_thermal_ts_numbers("fr", "nuclear_fr") == default_values
         assert output.get_st_storage_inflows_numbers("fr", "battery fr") == default_values

@@ -104,6 +104,11 @@ class OutputLocalService(BaseOutputService):
         return self._read_ts_numbers_file(file_path, output_id)
 
     @override
+    def get_link_ts_numbers(self, area_from: str, area_to: str, output_id: str) -> dict[int, int]:
+        file_path = self._get_ts_numbers_path(output_id) / "ntc" / area_from / f"{area_to}.txt"
+        return self._read_ts_numbers_file(file_path, output_id)
+
+    @override
     def get_binding_constraint_ts_numbers(self, group_id: str, output_id: str) -> dict[int, int]:
         file_path = self._get_ts_numbers_path(output_id) / "bindingconstraints" / f"{group_id}.txt"
         return self._read_ts_numbers_file(file_path, output_id)
