@@ -634,3 +634,4 @@ class Output:
         """
         return self._output_service.get_st_storage_additional_constraints_numbers(area_id, st_storage_id, constraint_id, self._name)
 
+# todo: add links

@@ -685,3 +685,4 @@ class OutputDataRetrievalError(Exception):
     def __init__(self, output_name: str, message: str) -> None:
         self.message = f"Could not retrieve data for output '{output_name}': " + message
         super().__init__(self.message)
+

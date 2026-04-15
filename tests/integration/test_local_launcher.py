@@ -15,6 +15,8 @@ import re
 
 from pathlib import Path
 
+from antares.study.version import StudyVersion
+
 from antares.craft import (
     AdequacyPatchMode,
     AreaProperties,
@@ -35,9 +37,12 @@ from antares.craft import (
     STStorageProperties,
     ThermalClusterProperties,
     create_study_local,
-    read_study_local,
+    read_study_local, Study, StudySettingsUpdate, GeneralParametersUpdate, STStorageAdditionalConstraint, Occurrence,
+    BuildingMode,
 )
 from antares.craft.exceptions.exceptions import AntaresSimulationRunningError
+from antares.craft.model.commons import STUDY_VERSION_8_8, STUDY_VERSION_9_3
+from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.simulation import AntaresSimulationParametersLocal, JobStatus
 
 
@@ -150,9 +155,8 @@ class TestLocalLauncher:
         study.wait_job_completion(job)
         assert job.status == JobStatus.SUCCESS
 
-    def test_simulation_succeeds_with_real_study(self, tmp_path: Path) -> None:
-        solver_path = find_executable_path("8_8")
-        study = create_study_local("test study", "880", tmp_path)
+    def _set_up_real_case_study(self, path: Path, version: StudyVersion) -> Study:
+        study = create_study_local("test study", str(version), path)
 
         # Create 2 areas
         area_fr_properties = AreaProperties(
@@ -195,9 +199,52 @@ class TestLocalLauncher:
             group="my_group", operator=BindingConstraintOperator.LESS, time_step=BindingConstraintFrequency.WEEKLY
         )
         study.create_binding_constraint(name="BC_1", properties=bc_properties, terms=[term])
+        return study
+
+    def test_simulation_succeeds_with_real_study(self, tmp_path: Path) -> None:
+        solver_path = find_executable_path("8_8")
+        study = self._set_up_real_case_study(tmp_path, STUDY_VERSION_8_8)
 
         # Run the simulation
         default_parameters = AntaresSimulationParametersLocal(solver_path=solver_path)
         job = study.run_antares_simulation(default_parameters)
         study.wait_job_completion(job)
         assert job.status == JobStatus.SUCCESS
+
+    def test_ts_numbers(self, tmp_path: Path) -> None:
+        solver_path = find_executable_path("9_3")
+        study = self._set_up_real_case_study(tmp_path, STUDY_VERSION_9_3)
+
+        # Create a short-term storage constraint
+        study.get_areas()["fr"].get_st_storages()["battery fr"].create_constraints([
+            STStorageAdditionalConstraint(name="c1", occurrences=[Occurrence(hours=[1, 2])])
+        ])
+
+        # Write some data in the scenario builder to see different result than just 1, 1, 1 everywhere
+        sc_builder = study.get_scenario_builder()
+        sc_builder.load.get_area('fr').set_new_scenario([2, 3, None])
+        study.set_scenario_builder(sc_builder)
+
+        # Use `store_new_set` and 3 years to generate `ts-numbers` files
+        new_params = GeneralParametersUpdate(store_new_set=True, nb_years=3, building_mode=BuildingMode.CUSTOM)
+        study.update_settings(StudySettingsUpdate(general_parameters=new_params))
+
+        # Run the Simulation
+        default_parameters = AntaresSimulationParametersLocal(solver_path=solver_path)
+        job = study.run_antares_simulation(default_parameters)
+        study.wait_job_completion(job)
+        assert job.status == JobStatus.SUCCESS
+
+        output = next(iter(study.get_outputs().values()))
+
+        #     "active-rules-scenario": "default ruleset",
+
+        # Check the ts-numbers
+        assert output.get_solar_ts_numbers("fr") == {1: 1, 2: 1, 3: 1}
+        assert output.get_load_ts_numbers("fr") == {1: 1, 2: 1, 3: 1}
+        assert output.get_wind_ts_numbers("fr") == {1: 1, 2: 1, 3: 1}
+        assert output.get_hydro_ts_numbers("fr") == {1: 1, 2: 1, 3: 1}
+        assert output.get_binding_constraint_ts_numbers("my_group") == {1: 1, 2: 1, 3: 1}
+        assert output.get_thermal_ts_numbers("fr", "nuclear_fr") == {1: 1, 2: 1, 3: 1}
+        assert output.get_st_storage_inflows_numbers("fr", "battery fr") == {1: 1, 2: 1, 3: 1}
+        assert output.get_st_storage_additional_constraints_numbers("fr", "battery fr", "c1") == {1: 1, 2: 1, 3: 1}
