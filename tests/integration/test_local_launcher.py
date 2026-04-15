@@ -252,7 +252,7 @@ class TestLocalLauncher:
 
         # Check the ts-numbers
         assert output.get_solar_ts_numbers("fr") == {1: 1, 2: 1, 3: 1}
-        assert output.get_load_ts_numbers("fr") == {1: 2, 2: 1, 3: 2} # Not default values as we set them in the scenario builder
+        assert output.get_load_ts_numbers("fr") == {1: 2, 2: 1, 3: 2}  # Not default values as we set them
         assert output.get_wind_ts_numbers("fr") == {1: 1, 2: 1, 3: 1}
         assert output.get_hydro_ts_numbers("fr") == {1: 1, 2: 1, 3: 1}
         assert output.get_binding_constraint_ts_numbers("my_group") == {1: 1, 2: 1, 3: 1}
