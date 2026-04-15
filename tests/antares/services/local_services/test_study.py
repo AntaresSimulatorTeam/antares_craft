@@ -319,6 +319,7 @@ geographic-trimming = False
 nbtimeseriesthermal = 1
 derated = False
 custom-scenario = False
+active-rules-scenario = default ruleset
 
 [input]
 import = 
