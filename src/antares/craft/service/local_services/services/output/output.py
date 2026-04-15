@@ -21,6 +21,7 @@ from antares.craft.model.output import AggregationEntry, Frequency, XpansionResu
 from antares.craft.service.base_services import BaseOutputService
 from antares.craft.service.local_services.services.output.output_aggregation import AggregatorManager, export_df_chunks
 from antares.craft.service.output_matrix_parsing import read_output_matrix
+from antares.craft.service.utils import read_ts_numbers_file
 from antares.craft.service.xpansion_output_parsing import parse_xpansion_out_json, parse_xpansion_sensitivity_out_json
 
 
@@ -80,8 +81,7 @@ class OutputLocalService(BaseOutputService):
     def _read_ts_numbers_file(file_path: Path, output_id: str) -> dict[int, int]:
         if not file_path.exists():
             raise OutputDataRetrievalError(output_id, f"The file {file_path} does not exist")
-        data = file_path.read_text().splitlines()[1:]
-        return {k + 1: int(data[k]) for k in range(len(data))}
+        return read_ts_numbers_file(file_path)
 
     @override
     def get_solar_ts_numbers(self, area_id: str, output_id: str) -> dict[int, int]:

@@ -20,10 +20,16 @@ from typing_extensions import override
 
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
-from antares.craft.exceptions.exceptions import AggregateCreationError, APIError, XpansionOutputParsingError
+from antares.craft.exceptions.exceptions import (
+    AggregateCreationError,
+    APIError,
+    TsNumbersOutputParsingError,
+    XpansionOutputParsingError,
+)
 from antares.craft.model.output import AggregationEntry, Frequency, XpansionResult, XpansionSensitivityResult
 from antares.craft.service.base_services import BaseOutputService
 from antares.craft.service.output_matrix_parsing import read_output_matrix
+from antares.craft.service.utils import read_ts_numbers_file
 from antares.craft.service.xpansion_output_parsing import parse_xpansion_out_json, parse_xpansion_sensitivity_out_json
 
 
@@ -119,3 +125,62 @@ class OutputApiService(BaseOutputService):
             return parse_xpansion_sensitivity_out_json(response.text)
         except APIError as e:
             raise XpansionOutputParsingError(self.study_id, output_id, "sensitivity_out.json", e.message)
+
+    @staticmethod
+    def _get_ts_numbers_path(output_id: str) -> str:
+        return f"output/{output_id}/ts-numbers"
+
+    def _get_ts_numbers(self, output_id: str, path: str, file_type: str) -> dict[int, int]:
+        raw_url = f"{self._base_url}/studies/{self.study_id}/raw/original-file?path={path}"
+        try:
+            response = self._wrapper.get(raw_url)
+            return read_ts_numbers_file(response.text)
+        except APIError as e:
+            raise TsNumbersOutputParsingError(self.study_id, output_id, file_type, e.message)
+
+    @override
+    def get_solar_ts_numbers(self, area_id: str, output_id: str) -> dict[int, int]:
+        full_path = f"{self._get_ts_numbers_path(output_id)}/solar/{area_id}"
+        return self._get_ts_numbers(output_id, full_path, "solar")
+
+    @override
+    def get_wind_ts_numbers(self, area_id: str, output_id: str) -> dict[int, int]:
+        full_path = f"{self._get_ts_numbers_path(output_id)}/wind/{area_id}"
+        return self._get_ts_numbers(output_id, full_path, "wind")
+
+    @override
+    def get_load_ts_numbers(self, area_id: str, output_id: str) -> dict[int, int]:
+        full_path = f"{self._get_ts_numbers_path(output_id)}/load/{area_id}"
+        return self._get_ts_numbers(output_id, full_path, "load")
+
+    @override
+    def get_hydro_ts_numbers(self, area_id: str, output_id: str) -> dict[int, int]:
+        full_path = f"{self._get_ts_numbers_path(output_id)}/hydro/{area_id}"
+        return self._get_ts_numbers(output_id, full_path, "hydro")
+
+    @override
+    def get_link_ts_numbers(self, area_from: str, area_to: str, output_id: str) -> dict[int, int]:
+        full_path = f"{self._get_ts_numbers_path(output_id)}/ntc/{area_from}/{area_to}"
+        return self._get_ts_numbers(output_id, full_path, "link")
+
+    @override
+    def get_binding_constraint_ts_numbers(self, group_id: str, output_id: str) -> dict[int, int]:
+        full_path = f"{self._get_ts_numbers_path(output_id)}/bindingconstraints/{group_id}"
+        return self._get_ts_numbers(output_id, full_path, "binding constraint")
+
+    @override
+    def get_thermal_ts_numbers(self, area_id: str, thermal_id: str, output_id: str) -> dict[int, int]:
+        full_path = f"{self._get_ts_numbers_path(output_id)}/thermal/{area_id}/{thermal_id}"
+        return self._get_ts_numbers(output_id, full_path, "thermals")
+
+    @override
+    def get_st_storage_inflows_numbers(self, area_id: str, st_storage_id: str, output_id: str) -> dict[int, int]:
+        full_path = f"{self._get_ts_numbers_path(output_id)}/st-storage/{area_id}/{st_storage_id}/inflows"
+        return self._get_ts_numbers(output_id, full_path, "st-storages")
+
+    @override
+    def get_st_storage_additional_constraints_numbers(
+        self, area_id: str, st_storage_id: str, constraint_id: str, output_id: str
+    ) -> dict[int, int]:
+        full_path = f"{self._get_ts_numbers_path(output_id)}/st-storage/{area_id}/{st_storage_id}/{constraint_id}"
+        return self._get_ts_numbers(output_id, full_path, "st-storages constraints")
