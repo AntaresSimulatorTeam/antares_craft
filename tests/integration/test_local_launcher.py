@@ -15,6 +15,9 @@ import re
 
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
+
 from antares.craft import (
     AdequacyPatchMode,
     AreaProperties,
@@ -107,8 +110,9 @@ def _set_up_real_case_study(path: Path, version: StudyVersion) -> Study:
 
     # Set up scenario builder and use it
     sc_builder = study.get_scenario_builder()
-    sc_builder.load.get_area("fr").set_new_scenario([2, 3, None])
+    sc_builder.load.get_area("fr").set_new_scenario([2, 1, None])
     study.set_scenario_builder(sc_builder)
+    study.get_areas()["fr"].set_load(pd.DataFrame(np.zeros((8760, 4))))  # Add columns for the ScBuilder for find them.
 
     new_parameters = StudySettingsUpdate(
         general_parameters=GeneralParametersUpdate(building_mode=BuildingMode.CUSTOM, nb_years=3)
@@ -227,20 +231,15 @@ class TestLocalLauncher:
 
     def test_ts_numbers(self, tmp_path: Path) -> None:
         solver_path = find_executable_path("9_3")
-        study = self._set_up_real_case_study(tmp_path, STUDY_VERSION_9_3)
+        study = _set_up_real_case_study(tmp_path, STUDY_VERSION_9_3)
 
         # Create a short-term storage constraint
         study.get_areas()["fr"].get_st_storages()["battery fr"].create_constraints(
             [STStorageAdditionalConstraint(name="c1", occurrences=[Occurrence(hours=[1, 2])])]
         )
 
-        # Write some data in the scenario builder to see different result than just 1, 1, 1 everywhere
-        sc_builder = study.get_scenario_builder()
-        sc_builder.load.get_area("fr").set_new_scenario([2, 3, None])
-        study.set_scenario_builder(sc_builder)
-
-        # Use `store_new_set` and 3 years to generate `ts-numbers` files
-        new_params = GeneralParametersUpdate(store_new_set=True, nb_years=3, building_mode=BuildingMode.CUSTOM)
+        # Use `store_new_set` to generate `ts-numbers` files
+        new_params = GeneralParametersUpdate(store_new_set=True)
         study.update_settings(StudySettingsUpdate(general_parameters=new_params))
 
         # Run the Simulation
@@ -251,11 +250,9 @@ class TestLocalLauncher:
 
         output = next(iter(study.get_outputs().values()))
 
-        #     "active-rules-scenario": "default ruleset",
-
         # Check the ts-numbers
         assert output.get_solar_ts_numbers("fr") == {1: 1, 2: 1, 3: 1}
-        assert output.get_load_ts_numbers("fr") == {1: 1, 2: 1, 3: 1}
+        assert output.get_load_ts_numbers("fr") == {1: 2, 2: 1, 3: 2} # Not default values as we set them in the scenario builder
         assert output.get_wind_ts_numbers("fr") == {1: 1, 2: 1, 3: 1}
         assert output.get_hydro_ts_numbers("fr") == {1: 1, 2: 1, 3: 1}
         assert output.get_binding_constraint_ts_numbers("my_group") == {1: 1, 2: 1, 3: 1}
