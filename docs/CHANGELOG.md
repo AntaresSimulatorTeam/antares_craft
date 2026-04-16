@@ -1,3 +1,20 @@
+v0.13.0 (2026-04-16)
+-------------------
+
+### Features
+* **output**: allow reading `ts-numbers` results [`#393`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/393)
+
+### Bug fixes
+* **local, run**: allow the study to run with sc builder set [`#395`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/395)
+
+
+### Miscellaneous
+* **doc**: move non user-related enums and functions [`#391`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/391)
+* **output**: harmonize code with web [`#392`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/392)
+* **doc**: added doc [`#381`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/381)
+* **chore**: remove unwanted local general parameters [`#394`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/394)
+
+
 v0.12.2 (2026-03-31)
 -------------------
 
