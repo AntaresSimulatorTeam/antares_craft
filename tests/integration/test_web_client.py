@@ -1498,7 +1498,15 @@ class TestWebClient:
         study = create_study_api("Study_9.3", "9.3", api_config)
         area_fr = study.create_area("FR")
         study.create_area("be")
-        study.create_link(area_from="be", area_to="fr")
+        link = study.create_link(area_from="be", area_to="fr")
+
+        # Set solar, load and link matrices with 4 columns for the Scenario Builder
+        area_fr.set_solar(pd.DataFrame(np.ones((8760, 4))))
+        area_fr.set_load(pd.DataFrame(np.ones((8760, 4))))
+        link.set_parameters(pd.DataFrame(np.ones((8760, 4))))
+
+        # Create a binding constraint with a group for ts-numbers tests
+        study.create_binding_constraint(name="c1", properties=BindingConstraintProperties(group="my_group"))
 
         ####### Clusters #######
 
@@ -1590,25 +1598,22 @@ class TestWebClient:
         assert job.status == JobStatus.SUCCESS
 
         # Check the `ts-numbers` files
-
-        # todo: we should adapt the TS matrices so the sc builder is not ignored
         output = next(iter(study.get_outputs().values()))
-        default_values = {1: 1, 2: 1, 3: 1, 4: 1}
-        assert output.get_solar_ts_numbers("fr") == default_values
-        assert output.get_load_ts_numbers("fr") == default_values  # Should be False
-        assert output.get_wind_ts_numbers("fr") == default_values
-        assert output.get_hydro_ts_numbers("fr") == default_values
-        """
-        assert output.get_load_ts_numbers("fr") == {1: 2, 2: 1, 3: 2}  # Not default values as we set them
-        assert output.get_wind_ts_numbers("fr") == default_values
-        assert output.get_hydro_ts_numbers("fr") == default_values
-        assert output.get_link_ts_numbers("be", "fr") == default_values
-        assert output.get_binding_constraint_ts_numbers("my_group") == default_values
-        assert output.get_thermal_ts_numbers("fr", "nuclear_fr") == default_values
-        """
 
-        # todo: With new Web release we should be able to uncomment STS tests
+        # Modified ts-numbers
+        assert output.get_solar_ts_numbers("fr") == {1: 4, 2: 2, 3: 1, 4: 3}
+        assert output.get_load_ts_numbers("fr") == {1: 2, 2: 4, 3: 1, 4: 1}
+
+        # Default ts-numbers
+        default_ts_numbers_values = {1: 1, 2: 1, 3: 1, 4: 1}
+        assert output.get_wind_ts_numbers("fr") == default_ts_numbers_values
+        assert output.get_hydro_ts_numbers("fr") == default_ts_numbers_values
+        assert output.get_binding_constraint_ts_numbers("my_group") == default_ts_numbers_values
+        assert output.get_thermal_ts_numbers("fr", "thermal") == default_ts_numbers_values
+
+        # todo: With new Web release we should be able to uncomment STS tests and links
         """
         assert output.get_st_storage_inflows_numbers("fr", "battery fr") == default_values
         assert output.get_st_storage_additional_constraints_numbers("fr", "battery fr", "c1") == default_values
+        assert output.get_link_ts_numbers("be", "fr") == {1: 2, 2: 4, 3: 1, 4: 1}
         """
