@@ -569,3 +569,79 @@ class Output:
             Xpansion sensitivity results.
         """
         return self._output_service.get_xpansion_sensitivity_result(self.name)
+
+    def get_solar_ts_numbers(self, area_id: str) -> dict[int, int]:
+        """Get solar time series numbers.
+
+        Returns:
+            A mapping from the Monte-Carlo year to its selected time series
+        """
+        return self._output_service.get_solar_ts_numbers(area_id, self._name)
+
+    def get_wind_ts_numbers(self, area_id: str) -> dict[int, int]:
+        """Get wind time series numbers for a given area.
+
+        Returns:
+            A mapping from the Monte-Carlo year to its selected time series
+        """
+        return self._output_service.get_wind_ts_numbers(area_id, self._name)
+
+    def get_load_ts_numbers(self, area_id: str) -> dict[int, int]:
+        """Get load time series numbers for a given area.
+
+        Returns:
+            A mapping from the Monte-Carlo year to its selected time series
+        """
+        return self._output_service.get_load_ts_numbers(area_id, self._name)
+
+    def get_hydro_ts_numbers(self, area_id: str) -> dict[int, int]:
+        """Get hydro time series numbers for a given area.
+
+        Returns:
+            A mapping from the Monte-Carlo year to its selected time series
+        """
+        return self._output_service.get_hydro_ts_numbers(area_id, self._name)
+
+    def get_link_ts_numbers(self, area_from: str, area_to: str) -> dict[int, int]:
+        """Get wind time series numbers for a given link.
+
+        Returns:
+            A mapping from the Monte-Carlo year to its selected time series
+        """
+        return self._output_service.get_link_ts_numbers(area_from, area_to, self._name)
+
+    def get_binding_constraint_ts_numbers(self, group_id: str) -> dict[int, int]:
+        """Get binding constraint time series numbers for a given constraint group.
+
+        Returns:
+            A mapping from the Monte-Carlo year to its selected time series
+        """
+        return self._output_service.get_binding_constraint_ts_numbers(group_id, self._name)
+
+    def get_thermal_ts_numbers(self, area_id: str, thermal_id: str) -> dict[int, int]:
+        """Get thermal time series numbers for a given thermal cluster.
+
+        Returns:
+            A mapping from the Monte-Carlo year to its selected time series
+        """
+        return self._output_service.get_thermal_ts_numbers(area_id, thermal_id, self._name)
+
+    def get_st_storage_inflows_numbers(self, area_id: str, st_storage_id: str) -> dict[int, int]:
+        """Get short-term storage inflows time series numbers for a given st-storage.
+
+        Returns:
+            A mapping from the Monte-Carlo year to its selected time series
+        """
+        return self._output_service.get_st_storage_inflows_numbers(area_id, st_storage_id, self._name)
+
+    def get_st_storage_additional_constraints_numbers(
+        self, area_id: str, st_storage_id: str, constraint_id: str
+    ) -> dict[int, int]:
+        """Get short-term storage additional constraints time series numbers for a given constraint.
+
+        Returns:
+            A mapping from the Monte-Carlo year to its selected time series
+        """
+        return self._output_service.get_st_storage_additional_constraints_numbers(
+            area_id, st_storage_id, constraint_id, self._name
+        )

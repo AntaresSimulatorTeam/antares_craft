@@ -15,6 +15,9 @@ import re
 
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
+
 from antares.craft import (
     AdequacyPatchMode,
     AreaProperties,
@@ -32,7 +35,9 @@ from antares.craft import (
     LinkProperties,
     LinkStyle,
     LinkUi,
+    Occurrence,
     RenewableClusterProperties,
+    STStorageAdditionalConstraint,
     STStorageGroup,
     STStorageProperties,
     Study,
@@ -41,8 +46,8 @@ from antares.craft import (
     create_study_local,
     read_study_local,
 )
-from antares.craft.exceptions.exceptions import AntaresSimulationRunningError
-from antares.craft.model.commons import STUDY_VERSION_8_8
+from antares.craft.exceptions.exceptions import AntaresSimulationRunningError, OutputDataRetrievalError
+from antares.craft.model.commons import STUDY_VERSION_8_8, STUDY_VERSION_9_3
 from antares.craft.model.simulation import AntaresSimulationParametersLocal, JobStatus
 from antares.study.version import StudyVersion
 
@@ -105,8 +110,9 @@ def _set_up_real_case_study(path: Path, version: StudyVersion) -> Study:
 
     # Set up scenario builder and use it
     sc_builder = study.get_scenario_builder()
-    sc_builder.load.get_area("fr").set_new_scenario([2, 3, None])
+    sc_builder.load.get_area("fr").set_new_scenario([2, 1, None])
     study.set_scenario_builder(sc_builder)
+    study.get_areas()["fr"].set_load(pd.DataFrame(np.zeros((8760, 4))))  # Add columns for the ScBuilder for find them.
 
     new_parameters = StudySettingsUpdate(
         general_parameters=GeneralParametersUpdate(building_mode=BuildingMode.CUSTOM, nb_years=3)
@@ -222,3 +228,53 @@ class TestLocalLauncher:
         job = study.run_antares_simulation(default_parameters)
         study.wait_job_completion(job)
         assert job.status == JobStatus.SUCCESS
+
+    def test_ts_numbers(self, tmp_path: Path) -> None:
+        solver_path = find_executable_path("9_3")
+        study = _set_up_real_case_study(tmp_path, STUDY_VERSION_9_3)
+
+        # Create a short-term storage constraint
+        study.get_areas()["fr"].get_st_storages()["battery fr"].create_constraints(
+            [STStorageAdditionalConstraint(name="c1", occurrences=[Occurrence(hours=[1, 2])])]
+        )
+
+        # Use `store_new_set` to generate `ts-numbers` files
+        new_params = GeneralParametersUpdate(store_new_set=True)
+        study.update_settings(StudySettingsUpdate(general_parameters=new_params))
+
+        # Run the Simulation
+        default_parameters = AntaresSimulationParametersLocal(solver_path=solver_path)
+        job = study.run_antares_simulation(default_parameters)
+        study.wait_job_completion(job)
+        assert job.status == JobStatus.SUCCESS
+
+        output = next(iter(study.get_outputs().values()))
+
+        # Check the ts-numbers
+        default_values = {1: 1, 2: 1, 3: 1}
+        assert output.get_solar_ts_numbers("fr") == default_values
+        assert output.get_load_ts_numbers("fr") == {1: 2, 2: 1, 3: 2}  # Not default values as we set them
+        assert output.get_wind_ts_numbers("fr") == default_values
+        assert output.get_hydro_ts_numbers("fr") == default_values
+        assert output.get_link_ts_numbers("be", "fr") == default_values
+        assert output.get_binding_constraint_ts_numbers("my_group") == default_values
+        assert output.get_thermal_ts_numbers("fr", "nuclear_fr") == default_values
+        assert output.get_st_storage_inflows_numbers("fr", "battery fr") == default_values
+        assert output.get_st_storage_additional_constraints_numbers("fr", "battery fr", "c1") == default_values
+
+        # Ask for a fake area
+        with pytest.raises(OutputDataRetrievalError):
+            output.get_solar_ts_numbers("fake_area")
+
+        study.delete_outputs()
+
+        # Set `store_new_set` to False to not have the `ts-numbers` folder and check the issue
+        new_params = GeneralParametersUpdate(store_new_set=False)
+        study.update_settings(StudySettingsUpdate(general_parameters=new_params))
+        job = study.run_antares_simulation(default_parameters)
+        study.wait_job_completion(job)
+        assert job.status == JobStatus.SUCCESS
+
+        output = next(iter(study.get_outputs().values()))
+        with pytest.raises(OutputDataRetrievalError, match="The `ts-numbers` folder does not exist"):
+            output.get_solar_ts_numbers("fr")
