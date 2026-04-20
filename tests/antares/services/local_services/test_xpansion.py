@@ -582,7 +582,8 @@ class TestXpansion:
 
     def test_sensitivity(self, local_study_w_links: Study, xpansion_input_path: Path) -> None:
         # Set up
-        xpansion = self._set_up(local_study_w_links, xpansion_input_path)
+        study = local_study_w_links
+        xpansion = self._set_up(study, xpansion_input_path)
 
         # Checks values before update
         assert xpansion.sensitivity == XpansionSensitivity(epsilon=10000, projection=["battery", "pv"], capex=True)
@@ -606,3 +607,8 @@ class TestXpansion:
         # Checks the ini content
         file_path = Path(local_study_w_links.path) / "user" / "expansion" / "sensitivity" / "sensitivity_in.json"
         assert file_path.read_text() == '{"epsilon":2.0,"projection":["pv","semibase"],"capex":true}'
+
+        # Ensures we're able to read the sensitivity with an empty file
+        file_path.write_text("{}")
+        study = read_study_local(Path(study.path))
+        assert study.xpansion.sensitivity == XpansionSensitivity(epsilon=0, projection=[], capex=False)

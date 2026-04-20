@@ -199,9 +199,9 @@ def serialize_xpansion_constraints_local(constraints: dict[str, XpansionConstrai
 
 
 class XpansionSensitivityLocal(LocalBaseModel):
-    epsilon: float = Field(ge=0)
-    projection: list[str]
-    capex: bool
+    epsilon: float = Field(default=0, ge=0)
+    projection: list[str] = Field(default_factory=list)
+    capex: bool = Field(default=False)
 
     @staticmethod
     def from_user_model(user_class: XpansionSensitivity) -> "XpansionSensitivityLocal":
