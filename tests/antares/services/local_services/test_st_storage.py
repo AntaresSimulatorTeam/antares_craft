@@ -336,14 +336,12 @@ def test_nominal_case_additional_constraints(local_study_92: Study) -> None:
         "Constraint2??": {
             "enabled": True,
             "hours": "[167, 168]",
-            "name": "Constraint2??",
             "operator": "greater",
             "variable": "netting",
         },
         "constraint_1": {
             "enabled": False,
             "hours": "[]",
-            "name": "constraint_1",
             "operator": "less",
             "variable": "netting",
         },
@@ -362,7 +360,6 @@ def test_nominal_case_additional_constraints(local_study_92: Study) -> None:
         "Constraint2??": {
             "enabled": True,
             "hours": "[167, 168]",
-            "name": "Constraint2??",
             "operator": "greater",
             "variable": "netting",
         }
