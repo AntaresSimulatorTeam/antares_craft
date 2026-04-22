@@ -208,9 +208,11 @@ class ShortTermStorageLocalService(BaseShortTermStorageService):
         ini_content = {}
         for constraint in constraints.values():
             content = serialize_st_storage_constraint_local(constraint)
-            ini_content[constraint.name] = content
             # Round trip for validation
             saved_constraints[constraint.id] = parse_st_storage_constraint_local(content)
+
+            content.pop("name", None) # AW doesn't take name in the INI file
+            ini_content[constraint.name] = content
 
         # Save the data in the ini file
         self._save_ini_constraints(ini_content, area_id, storage_id)
