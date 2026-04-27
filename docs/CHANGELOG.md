@@ -1,3 +1,13 @@
+v0.13.1 (2026-04-27)
+-------------------
+
+### Bug fixes
+* **local, sts**: additional constraints were saved in a wrong format [`#398`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/398)
+* **local, xpansion**: sensitivity reading failed when empty [`#397`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/397)
+
+### Miscellaneous
+* **chore**: use AntaresWeb version 2.31 inside tests [`#399`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/399)
+
 v0.13.0 (2026-04-16)
 -------------------
 
