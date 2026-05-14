@@ -97,6 +97,7 @@ from antares.craft.model.study import (
     import_study_api,
     read_study_api,
     read_study_local,
+    validate_study_local,
 )
 from antares.craft.model.thermal import (
     LawOption,
@@ -127,6 +128,7 @@ __all__ = [
     "read_study_api",
     "create_variant_api",
     "read_study_local",
+    "validate_study_local",
     "create_study_local",
     # Enums
     "PriceTakingOrder",
