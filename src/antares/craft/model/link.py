@@ -279,20 +279,14 @@ class Link:
 
     def get_parameters(self) -> pd.DataFrame:
         """Get parameters of the link
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/main
         - hurdle costs direct
         - hurdle costs indirect
         - impedances
         - loop flows
         - phase-shift min
         - phase-shift max
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/main
         hourly time series.
 
         Returns:

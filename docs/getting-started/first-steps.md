@@ -29,11 +29,17 @@ In order to create a study on your antares-web server, you can use the the [
 You will need to define the URL of your server, and provide a token generated in the application in
 order to authenticate.
 
+!!! question "How to generate your personal token?"
+
+    **In the Antares Web app,** go to :material-cog: **Settings** >  **TOKENS** tab
+    and then click on **CREATE**. Copy the token and store it on your own computer. 
+    Note that you cannot access again an already generated token. 
+
 ```python
 from antares.craft import APIconf, create_study_api
 
 api_config = APIconf(api_host="https://antares-web.mydomain",
-                     token="my-token", verify=False)
+                     token="my-token", verify=True)
 study = create_study_api(study_name="my-study",
                          version="8.8",
                          api_config=api_config)
@@ -50,14 +56,8 @@ study = create_study_api(study_name="my-study",
     Disabling this verification means you assume responsibility for the security implications.
 
 
-!!! question "How to generate your personal token?"
-
-    **In the Antares Web app,** go to :material-cog: **Settings** >  **TOKENS** tab
-    and then click on **CREATE**. Copy the token and store it on your own computer. 
-    Note that you cannot access again an already generated token. 
-
-If you prefer to refer to an existing study, you may use its sibling method, [
-`read_study_api`][antares.craft.read_study_api]:
+If you prefer to refer to an existing study, you may use its sibling method, 
+[`read_study_api`][antares.craft.read_study_api]:
 
 ```python
 study = read_study_api(api_config=api_config,
