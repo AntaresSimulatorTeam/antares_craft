@@ -43,7 +43,7 @@ cluster of 5 power plants of 30 MW each. We then run the simulation and print so
 For more information and examples please refer to the documentation.
 
 ```python
-conf = APIconf(api_host="https://antares-web.mydomain", token="my-token")
+conf = APIconf(api_host="https://antares-web.mydomain", token="my-token", verify=True)
 
 # create a study named "my-study" on the antares-web server
 study = create_study_api(study_name="my-study", version="8.8", api_config=conf)
