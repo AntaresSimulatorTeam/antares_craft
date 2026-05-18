@@ -230,12 +230,14 @@ class Link:
 
     def set_parameters(self, series: pd.DataFrame) -> None:
         """Set parameters of the link:
+
         - hurdle costs direct
         - hurdle costs indirect
         - impedances
         - loop flows
         - phase-shift min
         - phase-shift max
+
         hourly time-series.
 
         Args:
@@ -277,12 +279,14 @@ class Link:
 
     def get_parameters(self) -> pd.DataFrame:
         """Get parameters of the link
+
         - hurdle costs direct
         - hurdle costs indirect
         - impedances
         - loop flows
         - phase-shift min
         - phase-shift max
+
         hourly time series.
 
         Returns:

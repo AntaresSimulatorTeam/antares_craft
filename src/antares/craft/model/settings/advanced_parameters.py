@@ -198,7 +198,7 @@ class SeedParameters:
 
     Attributes:
         seed_tsgen_thermal: Seed for the generation of thermal time-series.
-        seed_tsnumbers: Seed for the generation of time-series (wind, load, hydro, solar, draws) (?)
+        seed_tsnumbers: Seed for the generation of time-series (wind, load, hydro, solar, draws).
         seed_unsupplied_energy_costs: Seed for the noise on unsupplied energy cost.
         seed_spilled_energy_costs: Seed for the noise on spilled energy costs.
         seed_thermal_costs: Seed for the noise on thermal plants costs.

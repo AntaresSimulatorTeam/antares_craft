@@ -41,6 +41,8 @@ class XpansionMatrix(EnumIgnoreCase):
 
 
 class XpansionConfiguration:
+    """Xpansion configuration."""
+
     def __init__(
         self,
         xpansion_service: BaseXpansionService,
