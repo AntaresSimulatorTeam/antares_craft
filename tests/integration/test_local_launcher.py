@@ -15,6 +15,9 @@ import re
 
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
+
 from antares.craft import (
     AdequacyPatchMode,
     AreaProperties,
@@ -23,22 +26,30 @@ from antares.craft import (
     BindingConstraintFrequency,
     BindingConstraintOperator,
     BindingConstraintProperties,
+    BuildingMode,
     ConstraintTerm,
     FilterOption,
+    GeneralParametersUpdate,
     HydroPropertiesUpdate,
     LinkData,
     LinkProperties,
     LinkStyle,
     LinkUi,
+    Occurrence,
     RenewableClusterProperties,
+    STStorageAdditionalConstraint,
     STStorageGroup,
     STStorageProperties,
+    Study,
+    StudySettingsUpdate,
     ThermalClusterProperties,
     create_study_local,
     read_study_local,
 )
-from antares.craft.exceptions.exceptions import AntaresSimulationRunningError
+from antares.craft.exceptions.exceptions import AntaresSimulationRunningError, OutputDataRetrievalError
+from antares.craft.model.commons import STUDY_VERSION_8_8, STUDY_VERSION_9_3
 from antares.craft.model.simulation import AntaresSimulationParametersLocal, JobStatus
+from antares.study.version import StudyVersion
 
 
 def find_executable_path(version: str) -> Path:
@@ -50,6 +61,65 @@ def find_executable_path(version: str) -> Path:
         / version
     )
     return list(solver_parent_path.glob("antares-*"))[0]
+
+
+def _set_up_real_case_study(path: Path, version: StudyVersion) -> Study:
+    study = create_study_local("test study", str(version), path)
+
+    # Create 2 areas
+    area_fr_properties = AreaProperties(
+        adequacy_patch_mode=AdequacyPatchMode.INSIDE, energy_cost_spilled=42, filter_synthesis={FilterOption.DAILY}
+    )
+    area_fr_ui = AreaUi(x=27, color_rgb=[43, 27, 61])
+    area_fr = study.create_area("FR", properties=area_fr_properties, ui=area_fr_ui)
+    # needed for the simulation to succeed
+    area_fr.hydro.update_properties(HydroPropertiesUpdate(reservoir_capacity=1))
+
+    area_be_properties = AreaProperties(
+        other_dispatch_power=False,
+        energy_cost_unsupplied=1000,
+        filter_by_year={FilterOption.MONTHLY, FilterOption.ANNUAL},
+    )
+    area_be_ui = AreaUi(y=4)
+    area_be = study.create_area("be", properties=area_be_properties, ui=area_be_ui)
+    area_be.hydro.update_properties(HydroPropertiesUpdate(reservoir_capacity=1))
+
+    # Create a link
+    link_properties = LinkProperties(asset_type=AssetType.DC, display_comments=False)
+    link_ui = LinkUi(link_style=LinkStyle.DOT, colorr=3)
+    study.create_link(area_from=area_fr.id, area_to=area_be.id, properties=link_properties, ui=link_ui)
+
+    # Create thermal cluster
+    th_properties = ThermalClusterProperties(group="nuclear", unit_count=12, nominal_capacity=43)
+    area_fr.create_thermal_cluster("Nuclear_fr", th_properties)
+
+    # Create renewable cluster
+    renewable_properties = RenewableClusterProperties(group="wind onshore", enabled=False)
+    area_fr.create_renewable_cluster("Wind onshore fr", renewable_properties)
+
+    # Create short term storage
+    sts_properties = STStorageProperties(group=STStorageGroup.BATTERY.value, efficiency=0.4)
+    area_fr.create_st_storage("Battery fr", sts_properties)
+
+    # Create binding constraint
+    term = ConstraintTerm(weight=12, offset=3, data=LinkData(area_be.id, area_fr.id))
+    bc_properties = BindingConstraintProperties(
+        group="my_group", operator=BindingConstraintOperator.LESS, time_step=BindingConstraintFrequency.WEEKLY
+    )
+    study.create_binding_constraint(name="BC_1", properties=bc_properties, terms=[term])
+
+    # Set up scenario builder and use it
+    sc_builder = study.get_scenario_builder()
+    sc_builder.load.get_area("fr").set_new_scenario([2, 1, None])
+    study.set_scenario_builder(sc_builder)
+    study.get_areas()["fr"].set_load(pd.DataFrame(np.zeros((8760, 4))))  # Add columns for the ScBuilder for find them.
+
+    new_parameters = StudySettingsUpdate(
+        general_parameters=GeneralParametersUpdate(building_mode=BuildingMode.CUSTOM, nb_years=3)
+    )
+    study.update_settings(new_parameters)
+
+    return study
 
 
 class TestLocalLauncher:
@@ -152,52 +222,59 @@ class TestLocalLauncher:
 
     def test_simulation_succeeds_with_real_study(self, tmp_path: Path) -> None:
         solver_path = find_executable_path("8_8")
-        study = create_study_local("test study", "880", tmp_path)
-
-        # Create 2 areas
-        area_fr_properties = AreaProperties(
-            adequacy_patch_mode=AdequacyPatchMode.INSIDE, energy_cost_spilled=42, filter_synthesis={FilterOption.DAILY}
-        )
-        area_fr_ui = AreaUi(x=27, color_rgb=[43, 27, 61])
-        area_fr = study.create_area("FR", properties=area_fr_properties, ui=area_fr_ui)
-        # needed for the simulation to succeed
-        area_fr.hydro.update_properties(HydroPropertiesUpdate(reservoir_capacity=1))
-
-        area_be_properties = AreaProperties(
-            other_dispatch_power=False,
-            energy_cost_unsupplied=1000,
-            filter_by_year={FilterOption.MONTHLY, FilterOption.ANNUAL},
-        )
-        area_be_ui = AreaUi(y=4)
-        area_be = study.create_area("be", properties=area_be_properties, ui=area_be_ui)
-        area_be.hydro.update_properties(HydroPropertiesUpdate(reservoir_capacity=1))
-
-        # Create a link
-        link_properties = LinkProperties(asset_type=AssetType.DC, display_comments=False)
-        link_ui = LinkUi(link_style=LinkStyle.DOT, colorr=3)
-        study.create_link(area_from=area_fr.id, area_to=area_be.id, properties=link_properties, ui=link_ui)
-
-        # Create thermal cluster
-        th_properties = ThermalClusterProperties(group="nuclear", unit_count=12, nominal_capacity=43)
-        area_fr.create_thermal_cluster("Nuclear_fr", th_properties)
-
-        # Create renewable cluster
-        renewable_properties = RenewableClusterProperties(group="wind onshore", enabled=False)
-        area_fr.create_renewable_cluster("Wind onshore fr", renewable_properties)
-
-        # Create short term storage
-        sts_properties = STStorageProperties(group=STStorageGroup.BATTERY.value, efficiency=0.4)
-        area_fr.create_st_storage("Battery fr", sts_properties)
-
-        # Create binding constraint
-        term = ConstraintTerm(weight=12, offset=3, data=LinkData(area_be.id, area_fr.id))
-        bc_properties = BindingConstraintProperties(
-            group="my_group", operator=BindingConstraintOperator.LESS, time_step=BindingConstraintFrequency.WEEKLY
-        )
-        study.create_binding_constraint(name="BC_1", properties=bc_properties, terms=[term])
-
+        study = _set_up_real_case_study(tmp_path, STUDY_VERSION_8_8)
         # Run the simulation
         default_parameters = AntaresSimulationParametersLocal(solver_path=solver_path)
         job = study.run_antares_simulation(default_parameters)
         study.wait_job_completion(job)
         assert job.status == JobStatus.SUCCESS
+
+    def test_ts_numbers(self, tmp_path: Path) -> None:
+        solver_path = find_executable_path("9_3")
+        study = _set_up_real_case_study(tmp_path, STUDY_VERSION_9_3)
+
+        # Create a short-term storage constraint
+        study.get_areas()["fr"].get_st_storages()["battery fr"].create_constraints(
+            [STStorageAdditionalConstraint(name="c1", occurrences=[Occurrence(hours=[1, 2])])]
+        )
+
+        # Use `store_new_set` to generate `ts-numbers` files
+        new_params = GeneralParametersUpdate(store_new_set=True)
+        study.update_settings(StudySettingsUpdate(general_parameters=new_params))
+
+        # Run the Simulation
+        default_parameters = AntaresSimulationParametersLocal(solver_path=solver_path)
+        job = study.run_antares_simulation(default_parameters)
+        study.wait_job_completion(job)
+        assert job.status == JobStatus.SUCCESS
+
+        output = next(iter(study.get_outputs().values()))
+
+        # Check the ts-numbers
+        default_values = {1: 1, 2: 1, 3: 1}
+        assert output.get_solar_ts_numbers("fr") == default_values
+        assert output.get_load_ts_numbers("fr") == {1: 2, 2: 1, 3: 2}  # Not default values as we set them
+        assert output.get_wind_ts_numbers("fr") == default_values
+        assert output.get_hydro_ts_numbers("fr") == default_values
+        assert output.get_link_ts_numbers("be", "fr") == default_values
+        assert output.get_binding_constraint_ts_numbers("my_group") == default_values
+        assert output.get_thermal_ts_numbers("fr", "nuclear_fr") == default_values
+        assert output.get_st_storage_inflows_numbers("fr", "battery fr") == default_values
+        assert output.get_st_storage_additional_constraints_numbers("fr", "battery fr", "c1") == default_values
+
+        # Ask for a fake area
+        with pytest.raises(OutputDataRetrievalError):
+            output.get_solar_ts_numbers("fake_area")
+
+        study.delete_outputs()
+
+        # Set `store_new_set` to False to not have the `ts-numbers` folder and check the issue
+        new_params = GeneralParametersUpdate(store_new_set=False)
+        study.update_settings(StudySettingsUpdate(general_parameters=new_params))
+        job = study.run_antares_simulation(default_parameters)
+        study.wait_job_completion(job)
+        assert job.status == JobStatus.SUCCESS
+
+        output = next(iter(study.get_outputs().values()))
+        with pytest.raises(OutputDataRetrievalError, match="The `ts-numbers` folder does not exist"):
+            output.get_solar_ts_numbers("fr")

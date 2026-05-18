@@ -10,6 +10,7 @@
 #
 # This file is part of the Antares project.
 from dataclasses import asdict
+from pathlib import Path
 from typing import Any
 
 from antares.craft import (
@@ -63,3 +64,12 @@ def update_sensitivity(
     sensitivity_dict.update(update_dict)
 
     return XpansionSensitivity(**sensitivity_dict)
+
+
+def read_ts_numbers_file(source: Path | str) -> dict[int, int]:
+    if isinstance(source, Path):
+        char = source.read_text()
+    else:
+        char = source
+    data = char.splitlines()[1:]
+    return {k + 1: int(data[k]) for k in range(len(data))}

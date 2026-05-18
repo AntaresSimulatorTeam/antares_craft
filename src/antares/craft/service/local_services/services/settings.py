@@ -108,6 +108,10 @@ def edit_study_settings(
         general_local_parameters = GeneralParametersLocal.from_user_model(settings.general_parameters)
         ini_content = general_local_parameters.to_ini_file(update=update, current_content=ini_content)
 
+        # If the user wants to use automatic building mode, we should set the default ruleset
+        if settings.general_parameters.building_mode == BuildingMode.AUTOMATIC:
+            ini_content["general"]["active-rules-scenario"] = "default ruleset"
+
     # optimization
     if settings.optimization_parameters:
         optimization_local_parameters = OptimizationParametersLocal.from_user_model(settings.optimization_parameters)

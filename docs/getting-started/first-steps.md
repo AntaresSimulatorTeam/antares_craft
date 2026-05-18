@@ -47,7 +47,7 @@ study = create_study_api(study_name="my-study",
     ```
 
     You might want to disable the TLS certification in the `APIconf` so that `verify=False`.
-    Thus, you take the responsibility of unabling this certification.
+    Disabling this verification means you assume responsibility for the security implications.
 
 
 !!! question "How to generate your personal token?"
@@ -63,8 +63,6 @@ If you prefer to refer to an existing study, you may use its sibling method, [
 study = read_study_api(api_config=api_config,
                        study_id="my-study-id")
 ```
-
-
 
 !!! question "How to get your study ID?"
 

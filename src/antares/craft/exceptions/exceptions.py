@@ -524,6 +524,12 @@ class XpansionOutputParsingError(Exception):
         super().__init__(self.message)
 
 
+class TsNumbersOutputParsingError(Exception):
+    def __init__(self, study_id: str, output_id: str, file_type: str, message: str) -> None:
+        self.message = f"Could not parse {file_type} ts-numbers for study {study_id}, output {output_id}: " + message
+        super().__init__(self.message)
+
+
 class InvalidFieldForVersionError(ValueError):
     def __init__(self, message: str) -> None:
         super().__init__(self, message)

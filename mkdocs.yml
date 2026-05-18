@@ -64,6 +64,9 @@ theme:
       toggle:
         icon: material/toggle-switch
         name: Switch to light mode
+  # icon:
+  #   edit: material/pencil 
+  #   view: material/eye
 
 plugins:
   - search

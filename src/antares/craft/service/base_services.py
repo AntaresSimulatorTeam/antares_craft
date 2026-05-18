@@ -782,6 +782,44 @@ class BaseOutputService(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_solar_ts_numbers(self, area_id: str, output_id: str) -> dict[int, int]:
+        pass
+
+    @abstractmethod
+    def get_wind_ts_numbers(self, area_id: str, output_id: str) -> dict[int, int]:
+        pass
+
+    @abstractmethod
+    def get_load_ts_numbers(self, area_id: str, output_id: str) -> dict[int, int]:
+        pass
+
+    @abstractmethod
+    def get_hydro_ts_numbers(self, area_id: str, output_id: str) -> dict[int, int]:
+        pass
+
+    @abstractmethod
+    def get_link_ts_numbers(self, area_from: str, area_to: str, output_id: str) -> dict[int, int]:
+        pass
+
+    @abstractmethod
+    def get_binding_constraint_ts_numbers(self, group_id: str, output_id: str) -> dict[int, int]:
+        pass
+
+    @abstractmethod
+    def get_thermal_ts_numbers(self, area_id: str, thermal_id: str, output_id: str) -> dict[int, int]:
+        pass
+
+    @abstractmethod
+    def get_st_storage_inflows_numbers(self, area_id: str, st_storage_id: str, output_id: str) -> dict[int, int]:
+        pass
+
+    @abstractmethod
+    def get_st_storage_additional_constraints_numbers(
+        self, area_id: str, st_storage_id: str, constraint_id: str, output_id: str
+    ) -> dict[int, int]:
+        pass
+
 
 class BaseStudySettingsService(ABC):
     @abstractmethod

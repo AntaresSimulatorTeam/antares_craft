@@ -42,18 +42,7 @@ class GeneralSectionLocal(LocalBaseModelAllowExtraValues):
     user_playlist: bool = Field(default=False, alias="user-playlist")
     thematic_trimming: bool = Field(default=False, alias="thematic-trimming")
     geographic_trimming: bool = Field(default=False, alias="geographic-trimming")
-    generate: bool = False
-    nb_timeseries_load: int = Field(default=1, alias="nbtimeseriesload")
-    nb_timeseries_hydro: int = Field(default=1, alias="nbtimeserieshydro")
-    nb_timeseries_wind: int = Field(default=1, alias="nbtimeserieswind")
     nb_timeseries_thermal: int = Field(default=1, alias="nbtimeseriesthermal")
-    nb_timeseries_solar: int = Field(default=1, alias="nbtimeseriessolar")
-    refresh_interval_load: int = Field(default=100, alias="refreshintervalload")
-    refresh_interval_hydro: int = Field(default=100, alias="refreshintervalhydro")
-    refresh_interval_wind: int = Field(default=100, alias="refreshintervalwind")
-    refresh_interval_thermal: int = Field(default=100, alias="refreshintervalthermal")
-    refresh_interval_solar: int = Field(default=100, alias="refreshintervalsolar")
-    read_only: bool = Field(default=False, alias="readonly")
 
 
 class OutputSectionLocal(LocalBaseModelAllowExtraValues):
