@@ -45,8 +45,6 @@ theme:
   name: material
   logo: assets/logo.png
   favicon: assets/Icone.png
-  prev_next_buttons_location: none
-  # pygments_style: "monokai"
   features:
     - navigation.instant
     - navigation.instant.preview
@@ -66,9 +64,6 @@ theme:
       toggle:
         icon: material/toggle-switch
         name: Switch to light mode
-  # icon:
-  #   edit: material/pencil 
-  #   view: material/eye
 
 plugins:
   - search
