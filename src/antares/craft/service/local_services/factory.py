@@ -14,6 +14,9 @@ import getpass
 from pathlib import Path
 from typing import Any, cast
 
+from antares.study.version import StudyVersion
+from antares.study.version.create_app import CreateApp
+
 from antares.craft import HydroProperties
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.area import Area
@@ -60,8 +63,6 @@ from antares.craft.service.local_services.services.thermal import ThermalLocalSe
 from antares.craft.service.local_services.services.xpansion import XpansionLocalService
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.serde_local.ini_reader import IniReader
-from antares.study.version import StudyVersion
-from antares.study.version.create_app import CreateApp
 
 
 def create_local_services(config: LocalConfiguration, study_name: str, study_version: StudyVersion) -> StudyServices:
@@ -151,6 +152,21 @@ def create_study_local(study_name: str, version: str, parent_directory: Path | s
     study._settings.adequacy_patch_parameters = parse_adequacy_parameters_local(study_version, {})
 
     return study
+
+
+def validate_study_local(study_directory: Path | str) -> bool:
+    """Return whether the provided path points to a readable local study."""
+    try:
+        if isinstance(study_directory, str):
+            study_directory = Path(study_directory)
+        if not study_directory.is_dir():
+            return False
+        study_antares_path = study_directory / "study.antares"
+        study_params = IniReader().read(study_antares_path)["antares"]
+        StudyVersion.parse(str(study_params["version"]))
+    except Exception:
+        return False
+    return True
 
 
 def read_study_local(study_directory: Path | str) -> "Study":

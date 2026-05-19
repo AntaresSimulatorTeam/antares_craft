@@ -16,6 +16,8 @@ from typing import Dict, List, Optional, cast
 
 import pandas as pd
 
+from antares.study.version import StudyVersion
+
 from antares.craft import (
     APIconf,
     PlaylistParameters,
@@ -49,7 +51,6 @@ from antares.craft.model.st_storage import STStorage
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterPropertiesUpdate
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import BaseLinkService, BaseStudyService, StudyServices
-from antares.study.version import StudyVersion
 
 """
 The study module defines the data model for Antares studies.
@@ -622,6 +623,21 @@ def read_study_local(study_path: Path | str) -> "Study":
     from antares.craft.service.local_services.factory import read_study_local
 
     return read_study_local(study_path)
+
+
+def validate_study_local(study_path: Path | str) -> bool:
+    """
+    Checks whether an existing study on your filesystem can be read.
+
+    Parameters:
+        study_path: the path to the existing study on your filesystem
+
+    Returns:
+        True if the study can be read, False otherwise
+    """
+    from antares.craft.service.local_services.factory import validate_study_local
+
+    return validate_study_local(study_path)
 
 
 def create_study_api(study_name: str, version: str, api_config: APIconf, parent_path: Path | None = None) -> "Study":
