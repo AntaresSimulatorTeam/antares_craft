@@ -356,8 +356,8 @@ class STStorage:
         """
         return self._storage_service.get_storage_matrix(self, STStorageMatrixName.COST_VARIATION_WITHDRAWAL)
 
-    def update_pmax_injection(self, p_max_injection_matrix: pd.DataFrame) -> None:
-        """Update the maximum injection power time series.
+    def set_pmax_injection(self, p_max_injection_matrix: pd.DataFrame) -> None:
+        """Set the maximum injection power time series.
 
         Args:
             p_max_injection_matrix: The new maximum injection power dataframe.
