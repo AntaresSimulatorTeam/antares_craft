@@ -46,7 +46,7 @@ EXPECTED_SHAPE_MAPPING = {
     STStorageMatrixName.PMAX_WITHDRAWAL.value: (8760, 1),
     STStorageMatrixName.LOWER_CURVE_RULE.value: (8760, 1),
     STStorageMatrixName.UPPER_RULE_CURVE.value: (8760, 1),
-    STStorageMatrixName.INFLOWS.value: (8760, 1),
+    STStorageMatrixName.INFLOWS.value: (8760, AlwaysEqual()),
     STStorageMatrixName.COST_INJECTION.value: (8760, 1),
     STStorageMatrixName.COST_WITHDRAWAL.value: (8760, 1),
     STStorageMatrixName.COST_LEVEL.value: (8760, 1),
