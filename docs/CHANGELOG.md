@@ -1,3 +1,17 @@
+v0.14.0 (2026-05-20)
+-------------------
+
+## Breaking changes
+
+* Short-term storage method `update_pmax_injection` was renamed `set_pmax_injection` to stay coherent with the rest of the code [`#405`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/405)
+
+### Bug fixes
+* **local, sts**: remove wrong check on inflow matrix size [`#404`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/404)
+
+### Miscellaneous
+* **chore**: improve APIConf documentation [`#403`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/403)
+
+
 v0.13.1 (2026-04-27)
 -------------------
 
