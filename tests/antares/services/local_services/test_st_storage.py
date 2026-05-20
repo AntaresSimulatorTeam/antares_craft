@@ -269,6 +269,16 @@ class TestSTStorage:
         ):
             storage.update_properties(STStoragePropertiesUpdate(efficiency=4))
 
+    def test_update_inflows_with_scenarized_matrix(self, local_study_93: Study) -> None:
+        area = local_study_93.get_areas()["fr"]
+
+        storage = area.create_st_storage("sts")
+
+        inflows = pd.DataFrame(data=np.ones((8760, 4)))
+        storage.set_storage_inflows(inflows)  # Should succeed
+
+        pd.testing.assert_frame_equal(storage.get_storage_inflows(), inflows, check_dtype=False)
+
 
 ##########################
 # Additional constraints part
