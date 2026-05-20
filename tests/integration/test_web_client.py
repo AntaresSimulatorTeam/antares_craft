@@ -330,7 +330,7 @@ class TestWebClient:
 
         # tests upload matrix for short term storage.
         injection_matrix = pd.DataFrame(data=np.zeros((8760, 1)))
-        battery_fr.update_pmax_injection(injection_matrix)
+        battery_fr.set_pmax_injection(injection_matrix)
 
         # tests get pmax_injection matrix
         pd.testing.assert_frame_equal(battery_fr.get_pmax_injection(), injection_matrix, check_dtype=False)

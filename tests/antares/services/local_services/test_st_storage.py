@@ -109,7 +109,7 @@ class TestSTStorage:
         # Replace matrices
         matrix = pd.DataFrame(data=8760 * [[3]])
 
-        storage.update_pmax_injection(matrix)
+        storage.set_pmax_injection(matrix)
         assert storage.get_pmax_injection().equals(matrix)
 
         storage.set_pmax_withdrawal(matrix)
@@ -132,7 +132,7 @@ class TestSTStorage:
                 "Wrong format for storage/fr/sts_1/pmax_injection matrix, expected shape is (8760, 1) and was : (2, 3)"
             ),
         ):
-            storage.update_pmax_injection(matrix)
+            storage.set_pmax_injection(matrix)
 
     def test_deletion(self, local_study_w_storage: Study) -> None:
         area_fr = local_study_w_storage.get_areas()["fr"]
