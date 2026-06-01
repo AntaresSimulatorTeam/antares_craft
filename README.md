@@ -33,7 +33,8 @@ pip install antares_craft
 
 ## Documentation
 
-You may find further information and documentation on [readthedocs](https://antares-craft.readthedocs.io/en/stable/).
+- Antares Craft documentation: [antares-craft.readthedocs.io](https://antares-craft.readthedocs.io/en/stable/)
+- Antares general user documentation: [antares-doc.readthedocs.io](https://antares-doc.readthedocs.io/en/latest/)
 
 ## Example
 
