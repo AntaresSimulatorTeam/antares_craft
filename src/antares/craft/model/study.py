@@ -690,6 +690,10 @@ def read_outputs_api(api_config: APIconf, study_id: str) -> dict[str, Output]:
     """
     Reads all outputs for a given study from antares-web server.
 
+    Why use this method instead of `read_study_api`:
+    - It is more performant as it only retrieves output data
+    - It allows you to read outputs for wrongly formatted studies or old studies prior to Simulator v8.8
+
     Parameters:
         api_config: configuration to connect to antares-web server
         study_id: the ID of the study on antares-web
@@ -705,6 +709,10 @@ def read_outputs_api(api_config: APIconf, study_id: str) -> dict[str, Output]:
 def read_outputs_local(study_path: Path | str) -> dict[str, Output]:
     """
     Reads all outputs of an existing study on your filesystem.
+
+    Why use this method instead of `read_study_local`:
+    - It is more performant as it only retrieves output data
+    - It allows you to read outputs for wrongly formatted studies or old studies prior to Simulator v8.8
 
     Parameters:
         study_path: the path to the existing study on your filesystem
