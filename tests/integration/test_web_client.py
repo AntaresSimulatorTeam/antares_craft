@@ -17,6 +17,7 @@ import zipfile
 
 from pathlib import Path, PurePath
 from typing import Generator
+from unittest.mock import ANY
 
 import numpy as np
 import pandas as pd
@@ -1500,10 +1501,10 @@ class TestWebClient:
         study.create_area("be")
         link = study.create_link(area_from="be", area_to="fr")
 
-        # Set solar, load and link matrices with 4 columns for the Scenario Builder
-        area_fr.set_solar(pd.DataFrame(np.ones((8760, 4))))
+        # Set load and link matrices with 4 columns for the Scenario Builder
         area_fr.set_load(pd.DataFrame(np.ones((8760, 4))))
-        link.set_parameters(pd.DataFrame(np.ones((8760, 4))))
+        link.set_capacity_direct(pd.DataFrame(np.ones((8760, 4))))
+        link.set_capacity_indirect(pd.DataFrame(np.ones((8760, 4))))
 
         # Create a binding constraint with a group for ts-numbers tests
         study.create_binding_constraint(name="c1", properties=BindingConstraintProperties(group="my_group"))
@@ -1513,6 +1514,9 @@ class TestWebClient:
         thermal_properties = ThermalClusterProperties(group="free group")
         thermal = area_fr.create_thermal_cluster("thermal", thermal_properties)
         assert thermal.properties.group == "free group"
+
+        # Add a thermal series matrix for ts-numbers tests
+        thermal.set_series(pd.DataFrame(np.zeros((8760, 4))))
 
         renewable_properties = RenewableClusterProperties(group="free group")
         renewable = area_fr.create_renewable_cluster("renewable", renewable_properties)
@@ -1527,6 +1531,9 @@ class TestWebClient:
         sts_properties_upd = STStoragePropertiesUpdate(allow_overflow=False)
         new_sts_properties = storage.update_properties(sts_properties_upd)
         assert new_sts_properties.allow_overflow is False
+
+        # Add an inflows matrix for ts-numbers tests
+        storage.set_storage_inflows(pd.DataFrame(np.zeros((8760, 4))))
 
         ####### Thematic trimming #######
 
@@ -1563,6 +1570,9 @@ class TestWebClient:
         sts = study.get_areas()["fr"].get_st_storages()["sts"]
         sts.create_constraints(sts_constraint)
 
+        # Add columns to the matrix for ts-numbers tests
+        sts.set_constraint_term("c1", pd.DataFrame(np.zeros((8760, 4))))
+
         # Reads the scenario builder
         sc_builder = study.get_scenario_builder()
         assert sc_builder.storage_constraints is not None
@@ -1587,7 +1597,7 @@ class TestWebClient:
         assert new_sc_builder.storage_constraints.get_constraint("fr", "sts", "c1").get_scenario() == [4, 3, 2, 1]
 
         # Set `store_new_set` to True, in order to generate `ts-numbers` files
-        new_params = GeneralParametersUpdate(store_new_set=True)
+        new_params = GeneralParametersUpdate(store_new_set=True, building_mode=BuildingMode.CUSTOM)
         study.update_settings(StudySettingsUpdate(general_parameters=new_params))
 
         # Run the simulation
@@ -1601,19 +1611,15 @@ class TestWebClient:
         output = next(iter(study.get_outputs().values()))
 
         # Modified ts-numbers
-        assert output.get_solar_ts_numbers("fr") == {1: 4, 2: 2, 3: 1, 4: 3}
-        assert output.get_load_ts_numbers("fr") == {1: 2, 2: 4, 3: 1, 4: 1}
+        assert output.get_link_ts_numbers("be", "fr")[1] == 3  # Only year we've set
+        assert output.get_thermal_ts_numbers("fr", "thermal") == {1: 3, 2: 1, 3: 2, 4: ANY}
+        assert output.get_load_ts_numbers("fr") == {1: 2, 2: 1, 3: ANY, 4: ANY}
+        assert output.get_st_storage_inflows_numbers("fr", "sts") == {1: 1, 2: ANY, 3: 3, 4: ANY}
+        assert output.get_st_storage_additional_constraints_numbers("fr", "sts", "c1") == {1: 4, 2: 3, 3: 2, 4: 1}
 
         # Default ts-numbers
-        default_ts_numbers_values = {1: 1, 2: 1, 3: 1, 4: 1}
-        assert output.get_wind_ts_numbers("fr") == default_ts_numbers_values
-        assert output.get_hydro_ts_numbers("fr") == default_ts_numbers_values
-        assert output.get_binding_constraint_ts_numbers("my_group") == default_ts_numbers_values
-        assert output.get_thermal_ts_numbers("fr", "thermal") == default_ts_numbers_values
-
-        # todo: With new Web release we should be able to uncomment STS tests and links
-        """
-        assert output.get_st_storage_inflows_numbers("fr", "battery fr") == default_values
-        assert output.get_st_storage_additional_constraints_numbers("fr", "battery fr", "c1") == default_values
-        assert output.get_link_ts_numbers("be", "fr") == {1: 2, 2: 4, 3: 1, 4: 1}
-        """
+        default_ts_values = {1: 1, 2: 1, 3: 1, 4: 1}
+        assert output.get_solar_ts_numbers("fr") == default_ts_values
+        assert output.get_wind_ts_numbers("fr") == default_ts_values
+        assert output.get_hydro_ts_numbers("fr") == default_ts_values
+        assert output.get_binding_constraint_ts_numbers("my_group") == default_ts_values
