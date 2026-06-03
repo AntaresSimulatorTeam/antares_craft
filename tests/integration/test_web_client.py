@@ -814,6 +814,7 @@ class TestWebClient:
         # ===== Test outputs (Part 1 - before simulation) =====
 
         assert study.get_outputs() == {}
+        assert read_outputs_api(api_config, study.service.study_id) == {}
 
         # ===== Test run study simulation and wait job completion ======
 
@@ -843,6 +844,12 @@ class TestWebClient:
         new_output = list(outputs.values())[0]
         assert not new_output.archived
         assert new_output.name == output_name
+        # Ensures we have the same information when using the `read_outputs_api` method
+        read_outputs = read_outputs_api(api_config, study.service.study_id)
+        assert len(read_outputs) == 1
+        read_output = list(read_outputs.values())[0]
+        assert not read_output.archived
+        assert read_output.name == output_name
 
         frequency = Frequency.DAILY
 
