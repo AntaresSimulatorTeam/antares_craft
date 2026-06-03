@@ -590,9 +590,6 @@ def create_study_local(study_name: str, version: str, parent_directory: Path | s
     """
     Creates a new study on your filesystem.
 
-    You may define a path to an antares-solver executable, if you want to run
-    simulations on this study.
-
     Parameters:
         study_name: the name of the created study
         version: the study version, for example "8.8"
@@ -609,9 +606,6 @@ def create_study_local(study_name: str, version: str, parent_directory: Path | s
 def read_study_local(study_path: Path | str) -> "Study":
     """
     Reads an existing study on your filesystem.
-
-    You may define a path to an antares-solver executable, if you want to run
-    simulations on this study.
 
     Parameters:
         study_path: the path to the existing study on your filesystem
@@ -690,3 +684,19 @@ def create_variant_api(api_config: APIconf, study_id: str, variant_name: str) ->
     from antares.craft.service.api_services.factory import create_variant_api
 
     return create_variant_api(api_config, study_id, variant_name)
+
+
+def read_outputs_api(api_config: APIconf, study_id: str) -> dict[str, Output]:
+    """
+    Reads all outputs for a given study from antares-web server.
+
+    Parameters:
+        api_config: configuration to connect to antares-web server
+        study_id: the ID of the study on antares-web
+
+    Returns:
+        An (output_id, Output) mapping.
+    """
+    from antares.craft.service.api_services.factory import read_outputs_api
+
+    return read_outputs_api(api_config, study_id)

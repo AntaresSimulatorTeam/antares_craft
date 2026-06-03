@@ -29,6 +29,7 @@ from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import BindingConstraint, ConstraintTermData
 from antares.craft.model.hydro import Hydro
 from antares.craft.model.link import Link
+from antares.craft.model.output import Output
 from antares.craft.model.renewable import RenewableCluster
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.st_storage import STStorage
@@ -212,6 +213,11 @@ def read_study_api(api_config: APIconf, study_id: str) -> Study:
     study._read_outputs()
 
     return study
+
+
+def read_outputs_api(api_config: APIconf, study_id: str) -> dict[str, Output]:
+    services = create_api_services(api_config, study_id)
+    return services.study_service.read_outputs()
 
 
 def _read_links(body: dict[str, Any], link_service: BaseLinkService) -> dict[str, Link]:

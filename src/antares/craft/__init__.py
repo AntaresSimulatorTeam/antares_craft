@@ -95,6 +95,7 @@ from antares.craft.model.study import (
     create_study_local,
     create_variant_api,
     import_study_api,
+    read_outputs_api,
     read_study_api,
     read_study_local,
 )
@@ -126,6 +127,7 @@ __all__ = [
     "import_study_api",
     "read_study_api",
     "create_variant_api",
+    "read_outputs_api",
     "read_study_local",
     "create_study_local",
     # Enums
