@@ -44,6 +44,7 @@ from antares.craft import (
     StudySettingsUpdate,
     ThermalClusterProperties,
     create_study_local,
+    read_outputs_local,
     read_study_local,
 )
 from antares.craft.exceptions.exceptions import AntaresSimulationRunningError, OutputDataRetrievalError
@@ -162,10 +163,14 @@ class TestLocalLauncher:
         output_id = outputs[0].name
         assert job.output_id == output_id
         assert not output_id.endswith(".zip")
-        # Ensures the `get_outputs` method returns the generated output
+        # Ensures the `get_outputs` method returns the same output
         study_outputs = study.get_outputs()
         assert len(study_outputs) == 1
         assert list(study_outputs.keys())[0] == output_id
+        # Ensures the `read_outputs_local` method returns the same output
+        read_outputs = read_outputs_local(Path(study.path))
+        assert len(read_outputs) == 1
+        assert list(read_outputs.keys())[0] == output_id
 
         # Runs simulation with parameters
         simulation_parameters = AntaresSimulationParametersLocal(
@@ -196,6 +201,10 @@ class TestLocalLauncher:
         # Asserts read_study_local reads the outputs
         second_study = read_study_local(tmp_path / "test study")
         assert sorted(list((second_study.get_outputs()).keys())) == expected_outputs
+
+        # Asserts read_outputs_local reads the outputs
+        read_outputs = read_outputs_local(Path(study.path))
+        assert sorted(list(read_outputs.keys())) == expected_outputs
 
         # Deletes the first output
         study.delete_output(output_id)
