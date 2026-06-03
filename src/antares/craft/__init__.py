@@ -96,6 +96,7 @@ from antares.craft.model.study import (
     create_variant_api,
     import_study_api,
     read_outputs_api,
+    read_outputs_local,
     read_study_api,
     read_study_local,
 )
@@ -130,6 +131,7 @@ __all__ = [
     "read_outputs_api",
     "read_study_local",
     "create_study_local",
+    "read_outputs_local",
     # Enums
     "PriceTakingOrder",
     "InitialReservoirLevel",

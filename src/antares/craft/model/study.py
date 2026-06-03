@@ -700,3 +700,18 @@ def read_outputs_api(api_config: APIconf, study_id: str) -> dict[str, Output]:
     from antares.craft.service.api_services.factory import read_outputs_api
 
     return read_outputs_api(api_config, study_id)
+
+
+def read_outputs_local(study_path: Path | str) -> dict[str, Output]:
+    """
+    Reads all outputs of an existing study on your filesystem.
+
+    Parameters:
+        study_path: the path to the existing study on your filesystem
+
+    Returns:
+        An (output_id, Output) mapping.
+    """
+    from antares.craft.service.local_services.factory import read_outputs_local
+
+    return read_outputs_local(study_path)

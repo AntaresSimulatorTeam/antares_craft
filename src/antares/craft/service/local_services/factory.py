@@ -19,6 +19,7 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.model.area import Area
 from antares.craft.model.commons import STUDY_VERSION_9_2
 from antares.craft.model.link import Link
+from antares.craft.model.output import Output
 from antares.craft.model.renewable import RenewableCluster
 from antares.craft.model.settings.study_settings import StudySettings
 from antares.craft.model.st_storage import STStorage
@@ -165,21 +166,9 @@ def read_study_local(study_directory: Path | str) -> "Study":
     if isinstance(study_directory, str):
         study_directory = Path(study_directory)
 
-    if not study_directory.is_dir():
-        raise FileNotFoundError(f"The given path {study_directory} doesn't exist or isn't a folder.")
+    local_services, version, study_name = _build_local_services_and_metadata(study_directory)
 
-    study_antares_path = study_directory / "study.antares"
-    study_params = IniReader().read(study_antares_path)["antares"]
-
-    local_config = LocalConfiguration(study_directory.parent, study_directory.name)
-    version = StudyVersion.parse(str(study_params["version"]))
-    local_services = create_local_services(
-        config=local_config,
-        study_name=study_params["caption"],
-        study_version=version,
-    )
-
-    study = Study(name=study_params["caption"], version=f"{version:2d}", services=local_services, path=study_directory)
+    study = Study(name=study_name, version=f"{version:2d}", services=local_services, path=study_directory)
 
     study._settings = read_study_settings(version, study_directory)
     study._read_outputs()
@@ -197,6 +186,27 @@ def read_study_local(study_directory: Path | str) -> "Study":
     study._binding_constraints = bc_service.read_binding_constraints()
 
     return study
+
+
+def _build_local_services_and_metadata(study_directory: Path) -> tuple[StudyServices, StudyVersion, str]:
+    if not study_directory.is_dir():
+        raise FileNotFoundError(f"The given path {study_directory} doesn't exist or isn't a folder.")
+
+    study_antares_path = study_directory / "study.antares"
+    study_params = IniReader().read(study_antares_path)["antares"]
+
+    local_config = LocalConfiguration(study_directory.parent, study_directory.name)
+    version = StudyVersion.parse(str(study_params["version"]))
+    name = study_params["caption"]
+    return create_local_services(config=local_config, study_name=name, study_version=version), version, name
+
+
+def read_outputs_local(study_directory: Path | str) -> dict[str, Output]:
+    if isinstance(study_directory, str):
+        study_directory = Path(study_directory)
+
+    services, _, _ = _build_local_services_and_metadata(study_directory)
+    return services.study_service.read_outputs()
 
 
 def _read_xpansion_configuration(xpansion_service: XpansionLocalService) -> XpansionConfiguration | None:
