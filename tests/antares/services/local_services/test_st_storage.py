@@ -25,6 +25,7 @@ from antares.craft import STStorageAdditionalConstraintUpdate, STStorageGroup, S
 from antares.craft.exceptions.exceptions import (
     InvalidFieldForVersionError,
     MatrixFormatError,
+    STStorageCreationError,
     STStoragePropertiesUpdateError,
 )
 from antares.craft.model.commons import STUDY_VERSION_8_8, STUDY_VERSION_9_2
@@ -278,6 +279,14 @@ class TestSTStorage:
         storage.set_storage_inflows(inflows)  # Should succeed
 
         pd.testing.assert_frame_equal(storage.get_storage_inflows(), inflows, check_dtype=False)
+
+    def test_create_storage_that_already_exists(self, local_study_92: Study) -> None:
+        area = local_study_92.get_areas()["fr"]
+
+        area.create_st_storage("sts")
+
+        with pytest.raises(STStorageCreationError, match=re.escape("St-storage 'sts' already exists in area")):
+            area.create_st_storage("sts")
 
 
 ##########################

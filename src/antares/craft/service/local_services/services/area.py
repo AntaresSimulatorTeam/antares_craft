@@ -27,6 +27,7 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     ReferencedObjectDeletionNotAllowed,
+    STStorageCreationError,
     ThermalCreationError,
 )
 from antares.craft.model.area import (
@@ -234,6 +235,14 @@ class AreaLocalService(BaseAreaService):
 
         local_storage_service = cast(ShortTermStorageLocalService, self.storage_service)
         ini_content = local_storage_service.read_ini(area_id)
+
+        # Checks for duplication
+        sts_id = transform_name_to_id(st_storage_name)
+        existing_ids = {transform_name_to_id(key) for key in ini_content}
+        if sts_id in existing_ids:
+            raise STStorageCreationError(
+                st_storage_name, area_id, f"St-storage '{st_storage_name}' already exists in area '{area_id}'."
+            )
 
         ini_content[st_storage_name] = {
             "name": st_storage_name,
