@@ -27,6 +27,8 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import (
     AreaCreationError,
     ReferencedObjectDeletionNotAllowed,
+    RenewableCreationError,
+    STStorageCreationError,
     ThermalCreationError,
 )
 from antares.craft.model.area import (
@@ -203,6 +205,15 @@ class AreaLocalService(BaseAreaService):
         local_renewable_service = cast(RenewableLocalService, self.renewable_service)
         local_renewable_service.read_ini(area_id)
         ini_content = local_renewable_service.read_ini(area_id)
+
+        # Checks for duplication
+        renewable_id = transform_name_to_id(renewable_name)
+        existing_ids = {transform_name_to_id(key) for key in ini_content}
+        if renewable_id in existing_ids:
+            raise RenewableCreationError(
+                renewable_name, area_id, f"Renewable cluster '{renewable_name}' already exists in area '{area_id}'."
+            )
+
         content = serialize_renewable_cluster_local(self.study_version, properties or RenewableClusterProperties())
         ini_content[renewable_name] = {"name": renewable_name, **content}
         local_renewable_service.save_ini(ini_content, area_id)
@@ -234,6 +245,14 @@ class AreaLocalService(BaseAreaService):
 
         local_storage_service = cast(ShortTermStorageLocalService, self.storage_service)
         ini_content = local_storage_service.read_ini(area_id)
+
+        # Checks for duplication
+        sts_id = transform_name_to_id(st_storage_name)
+        existing_ids = {transform_name_to_id(key) for key in ini_content}
+        if sts_id in existing_ids:
+            raise STStorageCreationError(
+                st_storage_name, area_id, f"St-storage '{st_storage_name}' already exists in area '{area_id}'."
+            )
 
         ini_content[st_storage_name] = {
             "name": st_storage_name,
