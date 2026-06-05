@@ -28,6 +28,7 @@ from antares.craft.exceptions.exceptions import (
     LinkCreationError,
     ReferencedObjectDeletionNotAllowed,
     UnsupportedStudyVersion,
+    XpansionConfigurationCreationError,
     XpansionConfigurationMissingError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
@@ -567,6 +568,11 @@ class Study:
         Returns:
             Default xpansion configuration.
         """
+        if self.has_an_xpansion_configuration:
+            raise XpansionConfigurationCreationError(
+                self._study_service.study_id, "Xpansion configuration already exists"
+            )
+
         configuration = self._xpansion_service.create_xpansion_configuration()
         self._xpansion_configuration = configuration
         return configuration

@@ -32,6 +32,7 @@ from antares.craft.exceptions.exceptions import (
     XpansionCandidateCoherenceError,
     XpansionCandidateDeletionError,
     XpansionCandidateEditionError,
+    XpansionConfigurationCreationError,
     XpansionConstraintsDeletionError,
     XpansionConstraintsEditionError,
     XpansionFileDeletionError,
@@ -612,3 +613,9 @@ class TestXpansion:
         file_path.write_text("{}")
         study = read_study_local(Path(study.path))
         assert study.xpansion.sensitivity == XpansionSensitivity(epsilon=0, projection=[], capex=False)
+
+    def test_forbid_configuration_creation_when_already_present(self, local_study: Study) -> None:
+        local_study.create_xpansion_configuration()
+
+        with pytest.raises(XpansionConfigurationCreationError, match="Xpansion configuration already exists"):
+            local_study.create_xpansion_configuration()
