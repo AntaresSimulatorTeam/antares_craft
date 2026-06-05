@@ -21,7 +21,11 @@ import pandas as pd
 from checksumdir import dirhash
 
 from antares.craft import RenewableClusterGroup, Study, TimeSeriesInterpretation, read_study_local
-from antares.craft.exceptions.exceptions import MatrixFormatError, RenewablePropertiesUpdateError
+from antares.craft.exceptions.exceptions import (
+    MatrixFormatError,
+    RenewableCreationError,
+    RenewablePropertiesUpdateError,
+)
 from antares.craft.model.renewable import RenewableClusterProperties, RenewableClusterPropertiesUpdate
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
@@ -160,3 +164,14 @@ class TestRenewable:
         # Ensures before version 9.3, using a free group is possible but it will be considered as `OTHER 1`.
         renewable = local_study_92.get_areas()["fr"].create_renewable_cluster("ren2", properties=props)
         assert renewable.properties.group == "other res 1"
+
+    def test_create_renewable_cluster_that_already_exists(self, local_study_92: Study) -> None:
+        area = local_study_92.get_areas()["fr"]
+
+        cluster_name = "Renew test"
+        area.create_renewable_cluster(cluster_name)
+
+        with pytest.raises(
+            RenewableCreationError, match=re.escape(f"Renewable cluster '{cluster_name}' already exists in area")
+        ):
+            area.create_renewable_cluster(cluster_name)
