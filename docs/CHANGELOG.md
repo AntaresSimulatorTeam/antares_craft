@@ -1,3 +1,20 @@
+v0.15.0 (2026-06-17)
+-------------------
+
+### Features
+* **output**: introduce direct reading methods: `read_outputs_api` and `read_outputs_local` [`#414`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/414).
+Using these methods will:
+  * Give better performance than the usual `read_study_xxx` methods as we don't have to read the study inputs
+  * Allows users with wrongly formatted studies or studies prior to v8.8 to still be able to read the outputs
+
+### Bug fixes
+* **local**: add check to forbid duplication on various objects [`#416`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/416)
+* **api**: `create_xpansion_configuration` method used to fail [`#417`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/417)
+
+### Miscellaneous
+* **chore**: use AntaresWeb v2.32.0 inside tests [`#408`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/408)
+* **chore**: update links in the README.md
+
 v0.14.0 (2026-05-20)
 -------------------
 
@@ -10,7 +27,6 @@ v0.14.0 (2026-05-20)
 
 ### Miscellaneous
 * **chore**: improve APIConf documentation [`#403`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/403)
-
 
 v0.13.1 (2026-04-27)
 -------------------
