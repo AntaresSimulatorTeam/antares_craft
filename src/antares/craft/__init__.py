@@ -39,6 +39,7 @@ from antares.craft.model.output import (
     MCAllLinksDataType,
     MCIndAreasDataType,
     MCIndLinksDataType,
+    Output,
 )
 from antares.craft.model.renewable import (
     RenewableClusterGroup,
@@ -225,4 +226,5 @@ __all__ = [
     "Occurrence",
     "STStorageAdditionalConstraint",
     "STStorageAdditionalConstraintUpdate",
+    "Output",
 ]

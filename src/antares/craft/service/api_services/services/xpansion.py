@@ -85,7 +85,7 @@ class XpansionAPIService(BaseXpansionService):
     @override
     def create_xpansion_configuration(self) -> XpansionConfiguration:
         try:
-            self._wrapper.post(f"{self._expansion_url}/settings")
+            self._wrapper.post(f"{self._expansion_url}")
             settings, sensitivity = self._read_settings_and_sensitivity()
             return XpansionConfiguration(xpansion_service=self, settings=settings, sensitivity=sensitivity)
         except APIError as e:

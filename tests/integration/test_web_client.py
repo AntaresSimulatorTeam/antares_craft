@@ -29,6 +29,7 @@ from antares.craft.exceptions.exceptions import (
     InvalidRequestForScenarioBuilder,
     MatrixUploadError,
     ReferencedObjectDeletionNotAllowed,
+    XpansionConfigurationCreationError,
     XpansionFileDeletionError,
     XpansionMatrixReadingError,
 )
@@ -974,6 +975,16 @@ class TestWebClient:
         ######################
         # Specific tests for Xpansion
         ######################
+
+        # Checks Xpansion configuration creation
+        study = create_study_api("Xpansion test", "880", api_config)
+        study.create_xpansion_configuration()
+        assert study.has_an_xpansion_configuration
+        assert study.xpansion.settings == XpansionSettings(timelimit=172800)  # API default value
+
+        # Ensures we cannot create a configuration when one already exists
+        with pytest.raises(XpansionConfigurationCreationError):
+            study.create_xpansion_configuration()
 
         # Asserts a random study doesn't contain any Xpansion configuration
         assert not imported_study.has_an_xpansion_configuration
