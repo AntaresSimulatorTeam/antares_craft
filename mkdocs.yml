@@ -1,4 +1,5 @@
 site_name: Antares Craft
+repo_name: antares_craft
 repo_url: https://github.com/AntaresSimulatorTeam/antares_craft
 edit_uri: edit/main/docs/
 nav:
@@ -6,6 +7,7 @@ nav:
   - Getting started:
     - First steps: getting-started/first-steps.md
     - Package architecture: getting-started/architecture.md
+    - Glossary: getting-started/glossary.md
   - Examples: antares-craft-examples.md
   - Reference:
     - API configuration: api-reference/api_conf.md
@@ -83,6 +85,7 @@ plugins:
           options:
 
             # DOCSTRINGS -------------------------------------------------------------
+            docstring_style: google
             docstring_options:
               ignore_init_summary: true
             docstring_section_style: list
@@ -150,3 +153,9 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - toc:
       toc_depth: 3
+
+validation:
+  omitted_files: warn
+  absolute_links: warn  
+  unrecognized_links: warn
+  anchors: warn 

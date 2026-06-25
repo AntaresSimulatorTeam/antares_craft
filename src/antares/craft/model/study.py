@@ -717,6 +717,7 @@ def read_outputs_local(study_path: Path | str) -> dict[str, Output]:
     Reads all outputs of an existing study on your filesystem.
 
     Why use this method instead of `read_study_local`:
+
     - It is more performant as it only retrieves output data
     - It allows you to read outputs for wrongly formatted studies or old studies prior to Simulator v8.8
 
