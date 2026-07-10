@@ -1,3 +1,9 @@
+v0.15.1 (2026-07-10)
+-------------------
+
+### Bug fixes
+* **local, area**: districts issue inside area deletion method [`#423`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/423)
+
 v0.15.0 (2026-06-17)
 -------------------
 
