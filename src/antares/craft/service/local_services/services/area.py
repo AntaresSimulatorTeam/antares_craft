@@ -703,8 +703,9 @@ class AreaLocalService(BaseAreaService):
                 hydro_service.set_allocation(other_area_id, new_allocations)
 
     def _remove_area_from_districts(self, area_id: str) -> None:
+        districts_special_keys = ["+", "-"]
         file_path = self.config.study_path / "input" / "areas" / "sets.ini"
-        districts = IniReader().read(file_path)
+        districts = IniReader(districts_special_keys).read(file_path)
         for district in districts.values():
             if district.get("+", None):
                 with contextlib.suppress(ValueError):
@@ -713,4 +714,4 @@ class AreaLocalService(BaseAreaService):
                 with contextlib.suppress(ValueError):
                     district["-"].remove(area_id)
 
-        IniWriter().write(districts, file_path)
+        IniWriter(districts_special_keys).write(districts, file_path)

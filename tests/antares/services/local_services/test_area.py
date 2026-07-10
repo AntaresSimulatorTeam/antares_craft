@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-
 import pytest
 
 import re
@@ -1030,3 +1029,39 @@ def test_remove_area_with_different_name_and_id(local_study_w_areas: Study) -> N
     # Verify list.txt was properly updated
     list_content_after = list_path.read_text()
     assert area_display_name not in list_content_after
+
+
+def test_remove_area_issue_with_districts(local_study_w_areas: Study) -> None:
+    study_path = Path(local_study_w_areas.path)
+    districts_path = study_path / "input" / "areas" / "sets.ini"
+    districts_path.write_text("""[all areas]
+caption = All areas
+comments = Spatial aggregates on all areas
+output = false
+apply-filter = add-all
+
+[EU27]
+caption = eu27
+apply-filter = remove-all
+output = true
++ = at
++ = be
++ = fr
+
+[IT]
+caption = it
+apply-filter = remove-all
+output = true
++ = itca
++ = itcn
+    
+""")
+
+    # Delete the area: should succeed
+    local_study_w_areas.delete_area(local_study_w_areas.get_areas()["fr"])
+
+    # Checks the new file content
+    content = IniReader(["+", "-"]).read(districts_path)
+    assert len(content) == 3
+    assert sorted(content["EU27"]["+"]) == ["at", "be"]  # "fr" is removed
+    assert sorted(content["IT"]["+"]) == ["itca", "itcn"]  # Nothing is remove
