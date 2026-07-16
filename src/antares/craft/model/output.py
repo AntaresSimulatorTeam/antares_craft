@@ -713,7 +713,7 @@ class Output:
         return self._output_service.get_hydro_ts_numbers(area_id, self._name)
 
     def get_link_ts_numbers(self, area_from: str, area_to: str) -> dict[int, int]:
-        """Get wind time series numbers for a given link.
+        """Get link time series numbers for a given link.
 
         Returns:
             A mapping from the Monte-Carlo year to its selected time series
