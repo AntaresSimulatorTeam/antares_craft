@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download AntaresWeb asset from last release and unzip it
         shell: bash
@@ -38,7 +38,7 @@ jobs:
           unzip -o $FILENAME -d ./AntaresWebDesktop
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: 3.11
 
@@ -59,7 +59,7 @@ jobs:
 
       - name: SonarCloud Scan
         if: matrix.is_ubuntu
-        uses: sonarsource/sonarcloud-github-action@v2.3.0
+        uses: sonarsource/sonarcloud-github-action@v5.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
