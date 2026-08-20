@@ -1,3 +1,16 @@
+v0.16.0 (2026-08-20)
+-------------------
+
+### Features
+* **output**: introduce 2 new methods to read binding constraints results [`#428`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/428):
+  * `get_mc_ind_binding_constraints`
+  * `get_mc_all_binding_constraints`
+
+### Miscellaneous
+* **tests**: use AntaresWeb v2.34.0 inside CI [`#427`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/427)
+* **docs**: fix typo inside `get_link_ts_numbers` method [`#425`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/425)
+* **ci**: bump github actions [`#426`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/426)
+
 v0.15.1 (2026-07-10)
 -------------------
 
