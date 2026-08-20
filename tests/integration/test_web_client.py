@@ -1525,7 +1525,13 @@ class TestWebClient:
         link.set_capacity_indirect(pd.DataFrame(np.ones((8760, 4))))
 
         # Create a binding constraint with a group for ts-numbers tests
-        study.create_binding_constraint(name="c1", properties=BindingConstraintProperties(group="my_group"))
+        # Also adds a term with a matrix to generate output files
+        study.create_binding_constraint(
+            name="c1",
+            properties=BindingConstraintProperties(group="my_group"),
+            terms=[ConstraintTerm(data=LinkData("be", area_fr.id))],
+            less_term_matrix=pd.DataFrame(data=8784 * [[1]]),
+        )
 
         ####### Clusters #######
 
@@ -1581,7 +1587,9 @@ class TestWebClient:
         ####### Scenario Builder #######
 
         # Set the nb_years to 4
-        study.update_settings(StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4)))
+        study.update_settings(
+            StudySettingsUpdate(general_parameters=GeneralParametersUpdate(nb_years=4, year_by_year=True))
+        )
 
         # Creates a short-term storage constraint
         sts_constraint = [STStorageAdditionalConstraint(name="c1", occurrences=[Occurrence([1, 3])])]
@@ -1641,3 +1649,17 @@ class TestWebClient:
         assert output.get_wind_ts_numbers("fr") == default_ts_values
         assert output.get_hydro_ts_numbers("fr") == default_ts_values
         assert output.get_binding_constraint_ts_numbers("my_group") == default_ts_values
+
+        # Check the binding constraints results
+        mc_all_results = output.get_mc_all_binding_constraints(Frequency.MONTHLY)
+        assert mc_all_results.columns.to_list() == [
+            ("c1 (<)", "Euro", "EXP"),
+            ("c1 (<)", "Euro", "std"),
+            ("c1 (<)", "Euro", "min"),
+            ("c1 (<)", "Euro", "max"),
+        ]
+        assert mc_all_results.to_numpy().tolist() == 12 * [4 * [0.0]]
+
+        mc_ind_results = output.get_mc_ind_binding_constraints(1, Frequency.ANNUAL)
+        assert mc_ind_results.columns.to_list() == [("c1 (<)", "Euro", "")]
+        assert mc_ind_results.to_numpy().tolist() == [[0.0]]

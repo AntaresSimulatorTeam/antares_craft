@@ -450,7 +450,7 @@ class Output:
                 - output name
                 - unit
 
-                For homogeneity with `get_mc_all_<area/link>` methods,
+                For homogeneity with `get_mc_all_<area/link/binding_constraints>` methods,
                 there is actually a last index that is an empty string
                 as there is no statistical metric applied on the column.
         """
@@ -482,13 +482,55 @@ class Output:
                 - output name
                 - unit
 
-                For homogeneity with `get_mc_all_<area/link>` methods,
+                For homogeneity with `get_mc_all_<area/link/binding_constraints>` methods,
                 there is actually a last index that is an empty string
                 as there is no statistical metric applied on the column.
         """
         if [area_from, area_to] != sorted([area_from, area_to]):
             raise OutputDataRetrievalError(self.name, "Areas should be sorted alphabetically")
         file_path = f"mc-ind/{mc_year:05}/links/{area_from} - {area_to}/{data_type.value}-{frequency.value}"
+        return self._output_service.get_matrix(self.name, file_path, frequency)
+
+    def get_mc_ind_binding_constraints(self, mc_year: int, frequency: Frequency) -> pd.DataFrame:
+        """Get output data for a single Monte-Carlo year and all binding constraints.
+
+        Args:
+            mc_year: Monte-Carlo year index.
+            frequency: Whether "HOURLY", "DAILY", "WEEKLY", "MONTHLY" or "ANNUAL",
+                corresponding to the time step between each values in the output.
+
+        Returns:
+            A dataframe with all the results for an individual Monte-Carlo year.
+
+                The columns are multi-indexed with:
+
+                - constraint name (its sign), e.g. "BC_1 (<)"
+                - unit
+
+                For homogeneity with `get_mc_all_<area/link/binding_constraints>` methods,
+                there is actually a last index that is an empty string
+                as there is no statistical metric applied on the column.
+        """
+        file_path = f"mc-ind/{mc_year:05}/binding_constraints/binding-constraints-{frequency.value}"
+        return self._output_service.get_matrix(self.name, file_path, frequency)
+
+    def get_mc_all_binding_constraints(self, frequency: Frequency) -> pd.DataFrame:
+        """Get synthetic output data from a simulation for all binding constraints.
+
+        Args:
+            frequency: Whether "HOURLY", "DAILY", "WEEKLY", "MONTHLY" or "ANNUAL",
+                corresponding to the time step between each values in the output.
+
+        Returns:
+            A dataframe with all the synthetic results for all binding constraints.
+
+                The columns are multi-indexed with:
+
+                - constraint name (its sign), e.g. "BC_1 (<)"
+                - unit
+                - statistical metric ("EXP", "std", "min" or "max")
+        """
+        file_path = f"mc-all/binding_constraints/binding-constraints-{frequency.value}"
         return self._output_service.get_matrix(self.name, file_path, frequency)
 
     def aggregate_mc_ind_areas(

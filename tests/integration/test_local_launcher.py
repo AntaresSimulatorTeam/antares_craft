@@ -29,6 +29,7 @@ from antares.craft import (
     BuildingMode,
     ConstraintTerm,
     FilterOption,
+    Frequency,
     GeneralParametersUpdate,
     HydroPropertiesUpdate,
     LinkData,
@@ -116,7 +117,7 @@ def _set_up_real_case_study(path: Path, version: StudyVersion) -> Study:
     study.get_areas()["fr"].set_load(pd.DataFrame(np.zeros((8760, 4))))  # Add columns for the ScBuilder for find them.
 
     new_parameters = StudySettingsUpdate(
-        general_parameters=GeneralParametersUpdate(building_mode=BuildingMode.CUSTOM, nb_years=3)
+        general_parameters=GeneralParametersUpdate(building_mode=BuildingMode.CUSTOM, nb_years=3, year_by_year=True)
     )
     study.update_settings(new_parameters)
 
@@ -237,6 +238,22 @@ class TestLocalLauncher:
         job = study.run_antares_simulation(default_parameters)
         study.wait_job_completion(job)
         assert job.status == JobStatus.SUCCESS
+
+        # Ensure we're able to read the binding constraints results
+        output = next(iter(study.get_outputs().values()))
+
+        mc_all_res = output.get_mc_all_binding_constraints(frequency=Frequency.ANNUAL)
+        assert mc_all_res.to_numpy().tolist() == [[0.0, 0.0, 0.0, 0.0]]
+        assert mc_all_res.columns.tolist() == [
+            ("BC_1 (<)", "Euro", "EXP"),
+            ("BC_1 (<)", "Euro", "std"),
+            ("BC_1 (<)", "Euro", "min"),
+            ("BC_1 (<)", "Euro", "max"),
+        ]  # type: ignore
+
+        mc_ind_res = output.get_mc_ind_binding_constraints(mc_year=2, frequency=Frequency.MONTHLY)
+        assert mc_ind_res.columns.tolist() == [("BC_1 (<)", "Euro", "")]  # type: ignore
+        assert mc_ind_res.to_numpy().tolist() == 12 * [[0.0]]
 
     def test_ts_numbers(self, tmp_path: Path) -> None:
         solver_path = find_executable_path("9_3")
