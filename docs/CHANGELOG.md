@@ -1,3 +1,9 @@
+v0.17.0 (2026-08-25)
+-------------------
+
+### Features
+* **binding-constraints**: introduce new method `create_multiple_binding_constraints` [`#430`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/430)
+
 v0.16.0 (2026-08-20)
 -------------------
 
