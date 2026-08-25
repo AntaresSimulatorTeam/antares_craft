@@ -151,6 +151,12 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
         return constraint
 
+    @override
+    def create_multiple_binding_constraints(
+        self, data: dict[str, tuple[BindingConstraintProperties, list[ConstraintTerm]]]
+    ) -> list[BindingConstraint]:
+        raise NotImplementedError("This method is not implemented yet")
+
     def read_ini(self) -> dict[str, Any]:
         return IniReader().read(self._ini_path)
 

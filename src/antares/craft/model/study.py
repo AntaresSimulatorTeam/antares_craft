@@ -310,6 +310,23 @@ class Study:
         self._binding_constraints[binding_constraint.id] = binding_constraint
         return binding_constraint
 
+    def create_multiple_binding_constraints(
+        self, data: dict[str, tuple[BindingConstraintProperties, list[ConstraintTerm]]]
+    ) -> None:
+        """
+        Create several binding constraints at once.
+
+        Note:
+            For a local usage, this method is way faster than using `create_binding_constraint` in a `for` loop.
+            For an API usage, for now it's actually faster to use `create_binding_constraint` in a `for` loop as you can give matrices.
+
+        Args:
+            data: A dictionary mapping constraint names to tuples of properties and terms.
+        """
+        binding_constraints = self._binding_constraints_service.create_multiple_binding_constraints(data)
+        for constraint in binding_constraints:
+            self._binding_constraints[constraint.id] = constraint
+
     def delete_binding_constraints(self, constraints: list[BindingConstraint]) -> None:
         """Deletes the specified binding constraint.
 
