@@ -12,6 +12,7 @@
 import pytest
 
 import re
+import time
 
 from pathlib import Path
 
@@ -307,3 +308,17 @@ class TestBindingConstraints:
         IniWriter().write({"0": {"id": "myId", "name": "bcName"}}, ini_path)
         study = read_study_local(study_path)
         assert list(study.get_binding_constraints().keys()) == ["myId"]
+
+    def test_create_multiple_binding_constraints(self, local_study: Study) -> None:
+        data: dict[str, tuple[BindingConstraintProperties, list[ConstraintTerm]]] = {}
+        properties = BindingConstraintProperties()
+        for k in range(3000):
+            name = f"bc{k}"
+            data[name] = (properties, [])
+        start = time.time()
+        local_study.create_multiple_binding_constraints(data)
+        end = time.time()
+        if end - start > 3:
+            raise Exception(f"Creating 3000 constraints took {end - start} seconds. It's too long.")
+
+        assert len(local_study.get_binding_constraints()) == 3000
