@@ -131,9 +131,7 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
         _check_matrices_coherence(constraint, less_term_matrix, greater_term_matrix, equal_term_matrix)
 
         # Save the ini content
-        local_properties = BindingConstraintPropertiesLocal.from_user_model(properties)
-
-        self._create_constraint_inside_ini(name, local_properties, terms or [])
+        self.create_multiple_binding_constraints({name: (properties, terms or [])})
 
         # Save matrices
         operator = properties.operator
@@ -151,37 +149,51 @@ class BindingConstraintLocalService(BaseBindingConstraintService):
 
         return constraint
 
+    @override
+    def create_multiple_binding_constraints(
+        self, data: dict[str, tuple[BindingConstraintProperties, list[ConstraintTerm]]]
+    ) -> list[BindingConstraint]:
+        current_ini_content = self.read_ini()
+        new_ids = {transform_name_to_id(name) for name in data.keys()}
+        # Ensures the given constraints do not already exist
+        for existing_constraint in current_ini_content.values():
+            if existing_constraint["id"] in new_ids:
+                constraint_name = existing_constraint["name"]
+                raise BindingConstraintCreationError(
+                    constraint_name=constraint_name,
+                    message=f"A binding constraint with the name {constraint_name} already exists.",
+                )
+        # Saves the new constraints
+        result = []
+        new_key = str(len(current_ini_content))
+        for constraint_name, (properties, terms) in data.items():
+            constraint_id = transform_name_to_id(constraint_name)
+            props_content = {
+                "id": constraint_id,
+                "name": constraint_name,
+                **BindingConstraintPropertiesLocal.from_user_model(properties).model_dump(mode="json", by_alias=True),
+            }
+            term_content = {term.id: term.weight_offset() for term in terms}
+            whole_content = props_content | term_content
+            current_ini_content[new_key] = whole_content
+            new_key = str(int(new_key) + 1)
+            constraint = BindingConstraint(
+                name=constraint_name,
+                bc_id=constraint_id,
+                binding_constraint_service=self,
+                properties=properties,
+                terms=terms,
+            )
+            result.append(constraint)
+
+        self._save_ini(current_ini_content)
+        return result
+
     def read_ini(self) -> dict[str, Any]:
         return IniReader().read(self._ini_path)
 
     def _save_ini(self, content: dict[str, Any]) -> None:
         IniWriter().write(content, self._ini_path)
-
-    def _create_constraint_inside_ini(
-        self,
-        constraint_name: str,
-        properties: BindingConstraintPropertiesLocal,
-        terms: list[ConstraintTerm],
-    ) -> None:
-        current_ini_content = self.read_ini()
-        constraint_id = transform_name_to_id(constraint_name)
-        # Ensures the constraint doesn't already exist
-        for existing_constraint in current_ini_content.values():
-            if existing_constraint["id"] == constraint_id:
-                raise BindingConstraintCreationError(
-                    constraint_name=constraint_name,
-                    message=f"A binding constraint with the name {constraint_name} already exists.",
-                )
-        new_key = str(len(current_ini_content.keys()))
-        props_content = {
-            "id": constraint_id,
-            "name": constraint_name,
-            **properties.model_dump(mode="json", by_alias=True),
-        }
-        term_content = {term.id: term.weight_offset() for term in terms}
-        whole_content = props_content | term_content
-        current_ini_content[new_key] = whole_content
-        self._save_ini(current_ini_content)
 
     @override
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:

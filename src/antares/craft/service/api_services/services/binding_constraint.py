@@ -115,6 +115,16 @@ class BindingConstraintApiService(BaseBindingConstraintService):
         return constraint
 
     @override
+    def create_multiple_binding_constraints(
+        self, data: dict[str, tuple[BindingConstraintProperties, list[ConstraintTerm]]]
+    ) -> list[BindingConstraint]:
+        constraints = []
+        for name, (properties, terms) in data.items():
+            constraint = self.create_binding_constraint(name, properties, terms)
+            constraints.append(constraint)
+        return constraints
+
+    @override
     def get_constraint_matrix(self, constraint: BindingConstraint, matrix_name: ConstraintMatrixName) -> pd.DataFrame:
         try:
             path = PurePosixPath("input") / "bindingconstraints" / f"{constraint.id}_{matrix_name.value}"

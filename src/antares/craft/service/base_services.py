@@ -519,6 +519,12 @@ class BaseBindingConstraintService(ABC):
         pass
 
     @abstractmethod
+    def create_multiple_binding_constraints(
+        self, data: dict[str, tuple["BindingConstraintProperties", list["ConstraintTerm"]]]
+    ) -> list["BindingConstraint"]:
+        pass
+
+    @abstractmethod
     def set_constraint_terms(self, constraint: "BindingConstraint", terms: list["ConstraintTerm"]) -> None:
         """
         Args:
