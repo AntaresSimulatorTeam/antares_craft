@@ -384,7 +384,11 @@ class TestWebClient:
         cluster_data = ClusterData(area=area_fr.id, cluster=thermal_fr.id)
         cluster_term = ConstraintTerm(data=cluster_data, weight=4.5, offset=3)
         terms = [link_term_2, cluster_term]
-        constraint_2 = study.create_binding_constraint(name="bc_2", terms=terms)
+        # We also test the `create_multiple_binding_constraints` method.
+        # Note: We have to give `operator.EQUAL` to fit with the Web default.
+        bc_props = BindingConstraintProperties(operator=BindingConstraintOperator.EQUAL)
+        study.create_multiple_binding_constraints({"bc_2": (bc_props, terms)})
+        constraint_2 = study.get_binding_constraints()["bc_2"]
         assert constraint_2.name == "bc_2"
         assert constraint_2.get_terms() == {link_term_2.id: link_term_2, cluster_term.id: cluster_term}
 
