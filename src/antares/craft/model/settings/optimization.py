@@ -91,6 +91,7 @@ class ExportMPS(Enum):
     Attributes:
         TRUE: Export MPS for both steps of the optimization.
         FALSE: Do not export any MPS.
+        NONE: Do not export any MPS.
         OPTIM1: Export MPS only for the first step of the optimization.
         OPTIM2: Export MPS only for the second step of the optimization.
         BOTH_OPTIMS: Export MPS for both steps of the optimization.
@@ -98,8 +99,9 @@ class ExportMPS(Enum):
 
     TRUE = True
     FALSE = False
-    OPTIM1 = "optim1"
-    OPTIM2 = "optim2"
+    NONE = "none"
+    OPTIM1 = "optim-1"
+    OPTIM2 = "optim-2"
     BOTH_OPTIMS = "both-optims"
 
 
@@ -119,7 +121,7 @@ class OptimizationParameters:
         include_strategicreserve: Whether to activate
         include_spinningreserve: Whether to activate
         include_primaryreserve: Whether to activate
-        include_exportmps: Choices to export MPS files (`TRUE`, `FALSE`, `OPTIM1`, `OPTIM2`, or `BOTH_OPTIMS`).
+        include_exportmps: Choices to export MPS files (`TRUE`, `FALSE`, `NONE`, `OPTIM1`, `OPTIM2`, or `BOTH_OPTIMS`).
         include_unfeasible_problem_behavior: Choices to export MPS files in case of an unfeasible problem
             (`WARNING_DRY`, `WARNING_VERBOSE`, `ERROR_DRY`, `ERROR_VERBOSE`).
     """
