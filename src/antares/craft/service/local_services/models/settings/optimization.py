@@ -12,8 +12,6 @@
 from dataclasses import asdict
 from typing import Any
 
-from pydantic import field_validator
-
 from antares.craft.model.settings.optimization import (
     ExportMPS,
     OptimizationParameters,
