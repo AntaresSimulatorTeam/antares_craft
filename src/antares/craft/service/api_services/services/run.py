@@ -62,6 +62,16 @@ def convert_parameters_to_api_query(parameters: AntaresSimulationParametersAPI, 
     return url, body
 
 
+def _get_unarchiving_task_id(job: Job, tasks: list[dict[str, Any]]) -> str | None:
+    for task in tasks:
+        task_name = task["name"]
+        output_id = task_name.split("/")[-1].split(" ")[0]
+        if output_id == job.output_id:
+            return cast(str, task["id"])
+    # Since AntaresWeb v2.35.0, unarchiving task is not created anymore for managed studies.
+    return None
+
+
 class RunApiService(BaseRunService):
     def __init__(self, config: APIconf, study_id: str):
         super().__init__()
@@ -129,15 +139,7 @@ class RunApiService(BaseRunService):
         try:
             response = self._wrapper.post(url, json=payload)
             tasks = response.json()
-            task_id = self._get_unarchiving_task_id(job, tasks)
-            wait_task_completion(self._base_url, self._wrapper, task_id, time_out=time_out)
+            if task_id := _get_unarchiving_task_id(job, tasks):
+                wait_task_completion(self._base_url, self._wrapper, task_id, time_out=time_out)
         except (APIError, TaskFailedError) as e:
             raise AntaresSimulationUnzipError(self.study_id, job.job_id, e.message) from e
-
-    def _get_unarchiving_task_id(self, job: Job, tasks: list[dict[str, Any]]) -> str:
-        for task in tasks:
-            task_name = task["name"]
-            output_id = task_name.split("/")[-1].split(" ")[0]
-            if output_id == job.output_id:
-                return cast(str, task["id"])
-        raise AntaresSimulationUnzipError(self.study_id, job.job_id, "Could not find task for unarchiving job")
