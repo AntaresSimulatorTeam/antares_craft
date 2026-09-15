@@ -1,3 +1,13 @@
+v0.17.1 (2026-09-15)
+-------------------
+
+### Bug fixes
+* **settings**: align export-mps values with the simulator [`#434`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/434)
+
+### Miscellaneous
+* **dependencies**: relax pandas version inside pyproject.toml [`#435`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/435)
+* **api**: adapt code to future AntaresWeb version [`#433`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/433)
+
 v0.17.0 (2026-08-25)
 -------------------
 
