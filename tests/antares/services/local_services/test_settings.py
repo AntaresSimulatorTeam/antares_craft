@@ -123,7 +123,13 @@ def test_wrongly_formatted_fields_that_we_do_not_care_about(tmp_path: Path) -> N
 
 
 @pytest.mark.parametrize(
-    "mps_value, expected_result", [("None", ExportMPS.FALSE), ("both-optims", ExportMPS.BOTH_OPTIMS)]
+    "mps_value, expected_result",
+    [
+        ("none", ExportMPS.NONE),
+        ("both-optims", ExportMPS.BOTH_OPTIMS),
+        ("optim-1", ExportMPS.OPTIM1),
+        ("optim-2", ExportMPS.OPTIM2),
+    ],
 )
 def test_export_mps(tmp_path: Path, mps_value: str, expected_result: ExportMPS) -> None:
     study = create_study_local("second_study", "880", tmp_path)

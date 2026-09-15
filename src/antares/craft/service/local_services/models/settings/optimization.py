@@ -12,8 +12,6 @@
 from dataclasses import asdict
 from typing import Any
 
-from pydantic import field_validator
-
 from antares.craft.model.settings.optimization import (
     ExportMPS,
     OptimizationParameters,
@@ -42,13 +40,6 @@ class OptimizationParametersLocal(LocalBaseModelAllowExtraValues, alias_generato
     include_exportmps: ExportMPS = ExportMPS.FALSE
     include_exportstructure: bool = False
     include_unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
-
-    @field_validator("include_exportmps", mode="before")
-    def validate_export_mps(cls, v: Any) -> Any:
-        # `False` and `None` are the same for the simulator
-        if isinstance(v, str) and v.lower() == "none":
-            v = False
-        return v
 
     @staticmethod
     def from_user_model(user_class: OptimizationParametersType) -> "OptimizationParametersLocal":
