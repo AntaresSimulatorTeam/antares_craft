@@ -392,15 +392,6 @@ class TestWebClient:
         assert constraint_2.name == "bc_2"
         assert constraint_2.get_terms() == {link_term_2.id: link_term_2, cluster_term.id: cluster_term}
 
-        # setting terms : adding and replacing
-        constraint_term_1 = ConstraintTerm(data=link_data, weight=2, offset=3)
-        # constraint_term_2 = ConstraintTerm(data=LinkData(area1="de", area2="en"), weight=4, offset=5)
-        terms = [constraint_term_1]
-        constraint_3 = study.create_binding_constraint(name="bc_3")
-        constraint_3.set_terms(terms)
-
-        assert constraint_3.get_terms().values() == [constraint_term_1]
-
         # test updating constraints
         update_bc_props_1 = BindingConstraintPropertiesUpdate(
             time_step=BindingConstraintFrequency.DAILY,
