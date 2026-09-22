@@ -29,7 +29,7 @@ from antares.craft.exceptions.exceptions import (
     ReferencedObjectDeletionNotAllowed,
     UnsupportedStudyVersion,
     XpansionConfigurationCreationError,
-    XpansionConfigurationMissingError,
+    XpansionConfigurationMissingError, AreaCreationError, ThermalCreationError, BindingConstraintCreationError,
 )
 from antares.craft.model.area import Area, AreaProperties, AreaPropertiesUpdate, AreaUi
 from antares.craft.model.binding_constraint import (
@@ -323,6 +323,24 @@ class Study:
         Args:
             data: A dictionary mapping constraint names to tuples of properties and terms.
         """
+
+        #Checking the constraints before creating them, and return an exception if the link / cluster does not exist
+        for constraint_name, (properties, terms) in data.items():
+            for term in terms:
+                if isinstance(term.data, LinkData):
+                    link_id = term.data.area1 + " / " + term.data.area2
+                    if link_id not in self._links:
+                        raise BindingConstraintCreationError(constraint_name=constraint_name, message=f"Link '{link_id}' does not exist")
+
+                if isinstance(term.data, ClusterData):
+                    area_id = term.data.area
+                    cluster_id = term.data.cluster
+                    if area_id not in self._areas:
+                        raise BindingConstraintCreationError(constraint_name=constraint_name, message=f"Area '{area_id}' does not exist")
+                    else:
+                        if cluster_id not in self._areas[area_id]._thermals:
+                            raise BindingConstraintCreationError(constraint_name=constraint_name, message=f"Cluster '{cluster_id}' does not exist")
+
         binding_constraints = self._binding_constraints_service.create_multiple_binding_constraints(data)
         for constraint in binding_constraints:
             self._binding_constraints[constraint.id] = constraint
