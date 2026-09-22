@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from antares.craft import BindingConstraintFrequency, Study, ClusterData
+from antares.craft import BindingConstraintFrequency, ClusterData, Study
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
     ConstraintsDoNotExistError,
@@ -32,7 +32,6 @@ from antares.craft.model.binding_constraint import (
     ConstraintTerm,
     LinkData,
 )
-from antares.craft.model.thermal import ThermalCluster
 from antares.craft.service.local_services.factory import read_study_local
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
@@ -332,15 +331,14 @@ class TestBindingConstraints:
         non_existing_area_id_1 = "ne_area_1"
         non_existing_area_id_2 = "ne_area_2"
 
+        data[bc_name_link_1] = (
+            properties,
+            [ConstraintTerm(data=LinkData(area1=non_existing_area_id_1, area2=non_existing_area_id_2), weight=2)],
+        )
 
-        data[bc_name_link_1] = (properties, [ConstraintTerm(data=LinkData(area1=non_existing_area_id_1, area2=non_existing_area_id_2), weight=2)])
+        error_message = "Could not create the binding constraint 'bc_1': Link 'ne_area_1 / ne_area_2' does not exist"
 
-        error_message = f"Could not create the binding constraint 'bc_1': Link 'ne_area_1 / ne_area_2' does not exist"
-
-        with pytest.raises(
-            BindingConstraintCreationError,
-            match=error_message
-        ):
+        with pytest.raises(BindingConstraintCreationError, match=error_message):
             local_study.create_multiple_binding_constraints(data)
 
     def test_create_multiple_binding_constraints_error_cluster_area_not_existing(self, local_study: Study) -> None:
@@ -351,14 +349,14 @@ class TestBindingConstraints:
         non_existing_area_id = "ne_area_id"
         non_existing_cluster_id = "ne_cluster_id"
 
-        data[non_existing_bc_name] = (properties, [ConstraintTerm(data=ClusterData(area=non_existing_area_id, cluster=non_existing_cluster_id), weight=2)])
+        data[non_existing_bc_name] = (
+            properties,
+            [ConstraintTerm(data=ClusterData(area=non_existing_area_id, cluster=non_existing_cluster_id), weight=2)],
+        )
 
-        error_message = f"Could not create the binding constraint '{non_existing_bc_name}': Area 'ne_area_id' does not exist"
+        error_message = "Could not create the binding constraint 'ne_bc_name': Area 'ne_area_id' does not exist"
 
-        with pytest.raises(
-            BindingConstraintCreationError,
-            match=error_message
-        ):
+        with pytest.raises(BindingConstraintCreationError, match=error_message):
             local_study.create_multiple_binding_constraints(data)
 
     def test_create_multiple_binding_constraints_error_cluster_not_existing(self, local_study: Study) -> None:
@@ -372,8 +370,5 @@ class TestBindingConstraints:
 
         error_message = "Could not create the binding constraint 'bc_name': Cluster 'ne_cluster_id' does not exist"
 
-        with pytest.raises(
-            BindingConstraintCreationError,
-            match=error_message
-        ):
+        with pytest.raises(BindingConstraintCreationError, match=error_message):
             local_study.create_multiple_binding_constraints(data)

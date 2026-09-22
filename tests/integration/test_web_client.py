@@ -394,7 +394,7 @@ class TestWebClient:
 
         # setting terms : adding and replacing
         constraint_term_1 = ConstraintTerm(data=link_data, weight=2, offset=3)
-        #constraint_term_2 = ConstraintTerm(data=LinkData(area1="de", area2="en"), weight=4, offset=5)
+        # constraint_term_2 = ConstraintTerm(data=LinkData(area1="de", area2="en"), weight=4, offset=5)
         terms = [constraint_term_1]
         constraint_3 = study.create_binding_constraint(name="bc_3")
         constraint_3.set_terms(terms)
