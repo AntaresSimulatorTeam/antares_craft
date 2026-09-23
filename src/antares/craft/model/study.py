@@ -309,30 +309,29 @@ class Study:
         # check if the terms, and the link / cluster they refer to, exist
         if terms is not None:
             for term in terms:
-                if term.data is not None and isinstance(term.data, LinkData):
-                    if not self.link_exists(term.data.area1, term.data.area2):
-                        link_id = " / ".join(sorted((term.data.area1, term.data.area2)))
-                        raise BindingConstraintCreationError(
-                            constraint_name=name, message=f"Link '{link_id}' does not exist"
-                        )
-                if term.data is not None and isinstance(term.data, ClusterData):
-                    area_id = term.data.area
-                    cluster_id = term.data.cluster
-                    if not self.area_exists(area_id):
-                        raise BindingConstraintCreationError(
-                            constraint_name=name, message=f"Area '{area_id}' does not exist"
-                        )
-                    else:
-                        if not self.cluster_exists(area_id, cluster_id):
-                            raise BindingConstraintCreationError(
-                                constraint_name=name, message=f"Cluster '{cluster_id}' does not exist"
-                            )
+                self.validate_constraint_term(name, term)
 
         binding_constraint = self._binding_constraints_service.create_binding_constraint(
             name, properties, terms, less_term_matrix, equal_term_matrix, greater_term_matrix
         )
         self._binding_constraints[binding_constraint.id] = binding_constraint
         return binding_constraint
+
+    def validate_constraint_term(self, name: str, term: ConstraintTerm):
+        if isinstance(term.data, LinkData):
+            if not self.link_exists(term.data.area1, term.data.area2):
+                link_id = " / ".join(sorted((term.data.area1, term.data.area2)))
+                raise BindingConstraintCreationError(constraint_name=name, message=f"Link '{link_id}' does not exist")
+        if isinstance(term.data, ClusterData):
+            area_id = term.data.area
+            cluster_id = term.data.cluster
+            if not self.area_exists(area_id):
+                raise BindingConstraintCreationError(constraint_name=name, message=f"Area '{area_id}' does not exist")
+
+            if not self.cluster_exists(area_id, cluster_id):
+                raise BindingConstraintCreationError(
+                    constraint_name=name, message=f"Cluster '{cluster_id}' does not exist"
+                )
 
     def create_multiple_binding_constraints(
         self, data: dict[str, tuple[BindingConstraintProperties, list[ConstraintTerm]]]
@@ -351,25 +350,7 @@ class Study:
         # Checking the constraints before creating them, and return an exception if the link / cluster does not exist
         for constraint_name, (properties, terms) in data.items():
             for term in terms:
-                if isinstance(term.data, LinkData):
-                    if not self.link_exists(term.data.area1, term.data.area2):
-                        link_id = " / ".join(sorted((term.data.area1, term.data.area2)))
-                        raise BindingConstraintCreationError(
-                            constraint_name=constraint_name, message=f"Link '{link_id}' does not exist"
-                        )
-
-                if isinstance(term.data, ClusterData):
-                    area_id = term.data.area
-                    cluster_id = term.data.cluster
-                    if not self.area_exists(area_id):
-                        raise BindingConstraintCreationError(
-                            constraint_name=constraint_name, message=f"Area '{area_id}' does not exist"
-                        )
-                    else:
-                        if not self.cluster_exists(area_id, cluster_id):
-                            raise BindingConstraintCreationError(
-                                constraint_name=constraint_name, message=f"Cluster '{cluster_id}' does not exist"
-                            )
+                self.validate_constraint_term(constraint_name, term)
 
         binding_constraints = self._binding_constraints_service.create_multiple_binding_constraints(data)
         for constraint in binding_constraints:
@@ -661,6 +642,8 @@ class Study:
         Returns:
             True if the link exists, False otherwise.
         """
+        if not self.area_exists(area1) or not self.area_exists(area2):
+            return False
         ids = sorted((area1, area2))
         link_id = " / ".join(ids)
 
