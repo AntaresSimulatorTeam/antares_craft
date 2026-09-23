@@ -487,7 +487,7 @@ class TestWebClient:
         invalid_area_id_cluster_data = ClusterData(area="ne_area_id", cluster="cluster_test")
         invalid_cluster_data = ClusterData(area=area_fr.id, cluster="non_existing_cluster_test")
 
-        #non existing area
+        # non existing area
         with pytest.raises(
             BindingConstraintCreationError,
             match="Could not create the binding constraint 'bc_4'",
@@ -496,7 +496,7 @@ class TestWebClient:
                 {"bc_4": (BindingConstraintProperties(), [ConstraintTerm(data=invalid_area_id_cluster_data, weight=1)])}
             )
 
-        #non existing cluster
+        # non existing cluster
         with pytest.raises(
             BindingConstraintCreationError,
             match="Could not create the binding constraint 'bc_4'",
