@@ -25,6 +25,7 @@ from antares.craft import (
     ThematicTrimmingParameters,
 )
 from antares.craft.exceptions.exceptions import (
+    BindingConstraintCreationError,
     LinkCreationError,
     ReferencedObjectDeletionNotAllowed,
     UnsupportedStudyVersion,
@@ -304,11 +305,33 @@ class Study:
         Returns:
             The newly created binding constraint.
         """
+
+        # check if the terms, and the link / cluster they refer to, exist
+        if terms is not None:
+            for term in terms:
+                self.validate_constraint_term(name, term)
+
         binding_constraint = self._binding_constraints_service.create_binding_constraint(
             name, properties, terms, less_term_matrix, equal_term_matrix, greater_term_matrix
         )
         self._binding_constraints[binding_constraint.id] = binding_constraint
         return binding_constraint
+
+    def validate_constraint_term(self, name: str, term: ConstraintTerm) -> None:
+        if isinstance(term.data, LinkData):
+            if not self.link_exists(term.data.area1, term.data.area2):
+                link_id = " / ".join(sorted((term.data.area1, term.data.area2)))
+                raise BindingConstraintCreationError(constraint_name=name, message=f"Link '{link_id}' does not exist")
+        if isinstance(term.data, ClusterData):
+            area_id = term.data.area
+            cluster_id = term.data.cluster
+            if not self.area_exists(area_id):
+                raise BindingConstraintCreationError(constraint_name=name, message=f"Area '{area_id}' does not exist")
+
+            if not self.cluster_exists(area_id, cluster_id):
+                raise BindingConstraintCreationError(
+                    constraint_name=name, message=f"Cluster '{cluster_id}' does not exist"
+                )
 
     def create_multiple_binding_constraints(
         self, data: dict[str, tuple[BindingConstraintProperties, list[ConstraintTerm]]]
@@ -323,6 +346,12 @@ class Study:
         Args:
             data: A dictionary mapping constraint names to tuples of properties and terms.
         """
+
+        # Checking the constraints before creating them, and return an exception if the link / cluster does not exist
+        for constraint_name, (properties, terms) in data.items():
+            for term in terms:
+                self.validate_constraint_term(constraint_name, term)
+
         binding_constraints = self._binding_constraints_service.create_multiple_binding_constraints(data)
         for constraint in binding_constraints:
             self._binding_constraints[constraint.id] = constraint
@@ -598,6 +627,41 @@ class Study:
         """Delete current xpansion configuration."""
         self._xpansion_service.delete()
         self._xpansion_configuration = None
+
+    def area_exists(self, area_id: str) -> bool:
+        """Check if an area exists."""
+        return area_id in self._areas
+
+    def link_exists(self, area1: str, area2: str) -> bool:
+        """
+        Check if a link exists between two areas.
+        Args:
+            area1: the id of the first selected area
+            area2: the id of the second selected area
+
+        Returns:
+            True if the link exists, False otherwise.
+        """
+        if not self.area_exists(area1) or not self.area_exists(area2):
+            return False
+        ids = sorted((area1, area2))
+        link_id = " / ".join(ids)
+
+        return link_id in self._links
+
+    def cluster_exists(self, area_id: str, cluster_id: str) -> bool:
+        """
+        Checking if an area and a cluster exist
+        Args:
+            area_id: the id of the selected area
+            cluster_id: the id of the selected cluster
+
+        Returns:
+            True if the area and the cluster exist, False otherwise.
+        """
+        if not self.area_exists(area_id):
+            return False
+        return cluster_id in self.get_areas()[area_id].get_thermals()
 
 
 # Design note:
