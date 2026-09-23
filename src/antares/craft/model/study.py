@@ -305,6 +305,27 @@ class Study:
         Returns:
             The newly created binding constraint.
         """
+        if terms is not None:
+            for term in terms:
+                if term.data is not None and isinstance(term.data, LinkData):
+                    if not self.link_exists(term.data.area1, term.data.area2):
+                        link_id = " / ".join(sorted((term.data.area1, term.data.area2)))
+                        raise BindingConstraintCreationError(
+                            constraint_name=name, message=f"Link '{link_id}' does not exist"
+                        )
+                if term.data is not None and isinstance(term.data, ClusterData):
+                    area_id = term.data.area
+                    cluster_id = term.data.cluster
+                    if not self.area_exists(area_id):
+                        raise BindingConstraintCreationError(
+                            constraint_name=name, message=f"Area '{area_id}' does not exist"
+                        )
+                    else:
+                        if not self.cluster_exists(area_id, cluster_id):
+                            raise BindingConstraintCreationError(
+                                constraint_name=name, message=f"Cluster '{cluster_id}' does not exist"
+                            )
+
         binding_constraint = self._binding_constraints_service.create_binding_constraint(
             name, properties, terms, less_term_matrix, equal_term_matrix, greater_term_matrix
         )
@@ -329,8 +350,8 @@ class Study:
         for constraint_name, (properties, terms) in data.items():
             for term in terms:
                 if isinstance(term.data, LinkData):
-                    link_id = term.data.area1 + " / " + term.data.area2
-                    if link_id not in self._links:
+                    if not self.link_exists(term.data.area1, term.data.area2):
+                        link_id = " / ".join(sorted((term.data.area1, term.data.area2)))
                         raise BindingConstraintCreationError(
                             constraint_name=constraint_name, message=f"Link '{link_id}' does not exist"
                         )
@@ -338,12 +359,12 @@ class Study:
                 if isinstance(term.data, ClusterData):
                     area_id = term.data.area
                     cluster_id = term.data.cluster
-                    if area_id not in self._areas:
+                    if not self.area_exists(area_id):
                         raise BindingConstraintCreationError(
                             constraint_name=constraint_name, message=f"Area '{area_id}' does not exist"
                         )
                     else:
-                        if cluster_id not in self._areas[area_id]._thermals:
+                        if not self.cluster_exists(area_id, cluster_id):
                             raise BindingConstraintCreationError(
                                 constraint_name=constraint_name, message=f"Cluster '{cluster_id}' does not exist"
                             )
@@ -623,6 +644,22 @@ class Study:
         """Delete current xpansion configuration."""
         self._xpansion_service.delete()
         self._xpansion_configuration = None
+
+    def area_exists(self, area_id: str) -> bool:
+        """Check if an area exists."""
+        return area_id in self._areas
+
+    def link_exists(self, area1: str, area2: str) -> bool:
+        """Check if a link exists between two areas."""
+        ids = sorted((area1, area2))
+        link_id = " / ".join(ids)
+
+        return link_id in self._links
+
+    def cluster_exists(self, area_id: str, cluster_id: str) -> bool:
+        if not self.area_exists(area_id):
+            return False
+        return cluster_id in self.get_areas()[area_id].get_thermals()
 
 
 # Design note:
