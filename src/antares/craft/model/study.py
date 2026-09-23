@@ -305,6 +305,8 @@ class Study:
         Returns:
             The newly created binding constraint.
         """
+
+        # check if the terms, and the link / cluster they refer to, exist
         if terms is not None:
             for term in terms:
                 if term.data is not None and isinstance(term.data, LinkData):
@@ -650,13 +652,30 @@ class Study:
         return area_id in self._areas
 
     def link_exists(self, area1: str, area2: str) -> bool:
-        """Check if a link exists between two areas."""
+        """
+        Check if a link exists between two areas.
+        Args:
+            area1: the id of the first selected area
+            area2: the id of the second selected area
+
+        Returns:
+            True if the link exists, False otherwise.
+        """
         ids = sorted((area1, area2))
         link_id = " / ".join(ids)
 
         return link_id in self._links
 
     def cluster_exists(self, area_id: str, cluster_id: str) -> bool:
+        """
+        Checking if an area and a cluster exist
+        Args:
+            area_id: the id of the selected area
+            cluster_id: the id of the selected cluster
+
+        Returns:
+            True if the area and the cluster exist, False otherwise.
+        """
         if not self.area_exists(area_id):
             return False
         return cluster_id in self.get_areas()[area_id].get_thermals()
