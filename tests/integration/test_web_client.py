@@ -469,6 +469,42 @@ class TestWebClient:
             constraint_3.id: constraint_3,
         }
 
+        # testing that invalid link or cluster datas aren't accepted in binding constraints
+
+        # creating an area not linked with any other area
+        area_it = study.create_area("it")
+        invalid_link_data = LinkData(area1=area_it.id, area2=area_fr.id)
+
+        with pytest.raises(
+            BindingConstraintCreationError,
+            match="Could not create the binding constraint 'bc_4'",
+        ):
+            study.create_multiple_binding_constraints(
+                {"bc_4": (BindingConstraintProperties(), [ConstraintTerm(data=invalid_link_data, weight=1)])}
+            )
+
+        # checking an area doesn't exists, and then checking a cluster doesn't exists
+        invalid_area_id_cluster_data = ClusterData(area="ne_area_id", cluster="cluster_test")
+        invalid_cluster_data = ClusterData(area=area_fr.id, cluster="non_existing_cluster_test")
+
+        #non existing area
+        with pytest.raises(
+            BindingConstraintCreationError,
+            match="Could not create the binding constraint 'bc_4'",
+        ):
+            study.create_multiple_binding_constraints(
+                {"bc_4": (BindingConstraintProperties(), [ConstraintTerm(data=invalid_area_id_cluster_data, weight=1)])}
+            )
+
+        #non existing cluster
+        with pytest.raises(
+            BindingConstraintCreationError,
+            match="Could not create the binding constraint 'bc_4'",
+        ):
+            study.create_multiple_binding_constraints(
+                {"bc_4": (BindingConstraintProperties(), [ConstraintTerm(data=invalid_cluster_data, weight=1)])}
+            )
+
         # test area property edition
         new_props = AreaPropertiesUpdate(adequacy_patch_mode=AdequacyPatchMode.VIRTUAL)
         area_fr.update_properties(new_props)
