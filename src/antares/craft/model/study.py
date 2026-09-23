@@ -317,7 +317,7 @@ class Study:
         self._binding_constraints[binding_constraint.id] = binding_constraint
         return binding_constraint
 
-    def validate_constraint_term(self, name: str, term: ConstraintTerm):
+    def validate_constraint_term(self, name: str, term: ConstraintTerm) -> None:
         if isinstance(term.data, LinkData):
             if not self.link_exists(term.data.area1, term.data.area2):
                 link_id = " / ".join(sorted((term.data.area1, term.data.area2)))
