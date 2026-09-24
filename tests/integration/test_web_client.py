@@ -505,6 +505,9 @@ class TestWebClient:
                 {"bc_4": (BindingConstraintProperties(), [ConstraintTerm(data=invalid_cluster_data, weight=1)])}
             )
 
+        # deleting area created for the terms test
+        study.delete_area(area_it)
+
         # test area property edition
         new_props = AreaPropertiesUpdate(adequacy_patch_mode=AdequacyPatchMode.VIRTUAL)
         area_fr.update_properties(new_props)
