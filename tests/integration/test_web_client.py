@@ -501,8 +501,8 @@ class TestWebClient:
             BindingConstraintCreationError,
             match="Could not create the binding constraint 'bc_4'",
         ):
-            study.create_multiple_binding_constraints(
-                {"bc_4": (BindingConstraintProperties(), [ConstraintTerm(data=invalid_cluster_data, weight=1)])}
+            study.create_binding_constraint(
+                name="bc_4", less_term_matrix=pd.DataFrame(data=np.zeros((8760, 1))), properties=BindingConstraintProperties(), terms=[ConstraintTerm(data=invalid_cluster_data, weight=1)]
             )
 
         # deleting area created for the terms test
