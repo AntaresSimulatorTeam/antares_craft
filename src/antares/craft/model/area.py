@@ -471,3 +471,11 @@ class Area:
             series: The time-series
         """
         self._area_service.set_misc_gen(self.id, series)
+
+    def thermal_cluster_exists(self, thermal_id: str) -> bool:
+        """
+        Checking if a thermal exist
+        Args:
+            thermal_id: the id of the selected cluster
+        """
+        return thermal_id in self._thermals

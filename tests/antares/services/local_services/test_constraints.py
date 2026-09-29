@@ -368,7 +368,9 @@ class TestBindingConstraints:
 
         data["bc_name"] = (properties, [cluster_constraint])
 
-        error_message = "Could not create the binding constraint 'bc_name': Cluster 'ne_cluster_id' does not exist"
+        error_message = (
+            "Could not create the binding constraint 'bc_name': Thermal cluster 'ne_cluster_id' does not exist"
+        )
 
         with pytest.raises(BindingConstraintCreationError, match=error_message):
             local_study.create_multiple_binding_constraints(data)
