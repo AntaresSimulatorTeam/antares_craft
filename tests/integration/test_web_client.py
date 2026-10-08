@@ -995,23 +995,26 @@ class TestWebClient:
         read_study_api(api_config, study_aggregated.service.study_id)
 
         # testing import study
-        # creating a test path to not affect the internal studies created
-        test_path = antares_web.desktop_path / "internal_studies" / study.service.study_id
-        copy_dir = tmp_path / test_path.name
-
-        tmp_path_zip = tmp_path / copy_dir.name
-        shutil.copytree(test_path, copy_dir)
-
-        zip_study = Path(shutil.make_archive(str(tmp_path_zip), "zip", copy_dir))
+        # We export the study to try to re-import it
+        session = api_config.set_up_api_conf()
+        res = session.get(f"{antares_web.url}/api/v1/studies/{study.service.study_id}/export")
+        task_id = res.json()["task"]
+        download_id = res.json()["file"]["id"]
+        task_res = session.get(f"{antares_web.url}/api/v1/tasks/{task_id}?wait_for_completion=True")
+        assert task_res.json()["status"] == 3  # Means the export ended successfully
+        download_res = session.get(f"{antares_web.url}/api/v1/downloads/{download_id}")
+        zip_study_path = tmp_path / "output.zip"
+        with open(zip_study_path, "wb") as f:
+            f.write(download_res.content)
 
         # importing without moving the study
-        imported_study = import_study_api(api_config, zip_study, None)
+        imported_study = import_study_api(api_config, zip_study_path, None)
 
         assert imported_study.path == PurePath(".")
 
         # importing with moving the study
         path_test = Path("/new/test/studies")
-        imported_study = import_study_api(api_config, zip_study, path_test)
+        imported_study = import_study_api(api_config, zip_study_path, path_test)
 
         assert imported_study.path == PurePath(f"new/test/studies/{imported_study.service.study_id}")
         assert list(imported_study.get_areas()) == list(study.get_areas())

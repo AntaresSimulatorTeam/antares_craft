@@ -554,7 +554,7 @@ class TestXpansion:
             "relaxed_optimality_gap": 1e-05,
             "separation_parameter": 0.5,
             "solver": "Cbc",
-            "timelimit": 1000000000000,
+            "timelimit": 172800,
             "uc_type": "expansion_fast",
             "master_solution_tolerance": 1e-4,
             "cut_coefficient_tolerance": 0.72,
