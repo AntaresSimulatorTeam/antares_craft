@@ -932,7 +932,9 @@ class BaseXpansionService(ABC):
         pass
 
     @abstractmethod
-    def create_constraint(self, constraint: "XpansionConstraint", file_name: str) -> "XpansionConstraint":
+    def create_constraint(
+        self, constraint: "XpansionConstraint", file_name: str, existing_constraints: dict[str, "XpansionConstraint"]
+    ) -> "XpansionConstraint":
         """
         Creates an xpansion additional-constraint for a given study
         """
@@ -940,7 +942,11 @@ class BaseXpansionService(ABC):
 
     @abstractmethod
     def update_constraint(
-        self, name: str, constraint: "XpansionConstraintUpdate", file_name: str
+        self,
+        name: str,
+        constraint: "XpansionConstraintUpdate",
+        file_name: str,
+        existing_constraints: dict[str, "XpansionConstraint"],
     ) -> "XpansionConstraint":
         """
         Updates an xpansion additional-constraint for a given study

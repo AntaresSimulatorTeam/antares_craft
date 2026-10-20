@@ -185,44 +185,41 @@ class XpansionAPIService(BaseXpansionService):
             raise XpansionCandidateEditionError(self._study_id, candidate.name, e.message) from e
 
     @override
-    def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
+    def create_constraint(
+        self, constraint: XpansionConstraint, file_name: str, existing_constraints: dict[str, XpansionConstraint]
+    ) -> XpansionConstraint:
         # Round-trip to validate the data
         user_class = parse_xpansion_constraint_api(serialize_xpansion_constraint_api(constraint))
 
-        try:
-            existing_constraints = self._read_constraints(file_name)
-            existing_constraints[constraint.name] = constraint
-        except APIError:
-            # Happens if the file doesn't exist.
-            existing_constraints = {constraint.name: constraint}
+        existing_constraints[constraint.name] = constraint
 
         try:
-            self._serialize_constraints(file_name, existing_constraints)
-        except APIError:
-            # Happens if the file doesn't exist. We should create it
-            try:
-                url = f"{self._expansion_url}/resources/constraints"
-                api_content = serialize_xpansion_constraints_api({"": constraint})
-                self._wrapper.post(url, files={"file": (file_name, api_content)})
-            except APIError as e:
-                raise XpansionConstraintCreationError(self._study_id, constraint.name, file_name, e.message) from e
+            self._update_constraints(existing_constraints, file_name)
+        except APIError as e:
+            raise XpansionConstraintCreationError(self._study_id, constraint.name, file_name, e.message) from e
 
         return user_class
 
     @override
-    def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
-        existing_constraints = self._read_constraints(file_name)
+    def update_constraint(
+        self,
+        name: str,
+        constraint: XpansionConstraintUpdate,
+        file_name: str,
+        existing_constraints: dict[str, XpansionConstraint],
+    ) -> XpansionConstraint:
         new_constraint = update_constraint(existing_constraints[name], constraint)
         if new_constraint.name != name:
             # We're renaming the constraint
             del existing_constraints[name]
         existing_constraints[new_constraint.name] = new_constraint
-        try:
-            self._serialize_constraints(file_name, existing_constraints)
-            return new_constraint
 
+        try:
+            self._update_constraints(existing_constraints, file_name)
         except APIError as e:
             raise XpansionConstraintsEditionError(self._study_id, name, file_name, e.message) from e
+
+        return new_constraint
 
     @override
     def delete_constraints(self, names: list[str], file_name: str) -> None:
@@ -288,6 +285,11 @@ class XpansionAPIService(BaseXpansionService):
         url = f"{self._base_url}/studies/{self._study_id}/raw?path=user/expansion/constraints/{file_name}"
         api_content = serialize_xpansion_constraints_api(constraints)
         self._wrapper.put(url, files={"file": (file_name, api_content)})
+
+    def _update_constraints(self, constraints: dict[str, XpansionConstraint], file_name: str) -> None:
+        url = f"{self._expansion_url}/resources/constraints"
+        api_content = serialize_xpansion_constraints_api(constraints)
+        self._wrapper.post(url, files={"file": (file_name, api_content)})
 
     def _read_settings_and_sensitivity(self) -> tuple[XpansionSettings, XpansionSensitivity]:
         api_settings = self._wrapper.get(f"{self._expansion_url}/settings").json()

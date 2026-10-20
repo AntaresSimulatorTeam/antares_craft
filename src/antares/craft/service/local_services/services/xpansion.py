@@ -198,8 +198,9 @@ class XpansionLocalService(BaseXpansionService):
         raise XpansionCandidateEditionError(self._study_name, candidate.name, "Candidate does not exist")
 
     @override
-    def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
-        existing_constraints = self.read_constraints(file_name)
+    def create_constraint(
+        self, constraint: XpansionConstraint, file_name: str, existing_constraints: dict[str, XpansionConstraint]
+    ) -> XpansionConstraint:
         if constraint.name in existing_constraints:
             raise XpansionConstraintCreationError(
                 self._study_name, constraint.name, file_name, "Constraint already exists"
@@ -211,8 +212,13 @@ class XpansionLocalService(BaseXpansionService):
         return parse_xpansion_constraints_local(serialize_xpansion_constraints_local({"": constraint}))[constraint.name]
 
     @override
-    def update_constraint(self, name: str, constraint: XpansionConstraintUpdate, file_name: str) -> XpansionConstraint:
-        existing_constraints = self.read_constraints(file_name)
+    def update_constraint(
+        self,
+        name: str,
+        constraint: XpansionConstraintUpdate,
+        file_name: str,
+        existing_constraints: dict[str, XpansionConstraint],
+    ) -> XpansionConstraint:
         if name not in existing_constraints:
             raise XpansionConstraintsEditionError(self._study_name, name, file_name, "Constraint does not exist")
         new_constraint = update_constraint(existing_constraints[name], constraint)

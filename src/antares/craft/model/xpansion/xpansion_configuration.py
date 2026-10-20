@@ -225,7 +225,7 @@ class XpansionConfiguration:
         Returns:
             The constraint.
         """
-        constraint = self._xpansion_service.create_constraint(constraint, file_name)
+        constraint = self._xpansion_service.create_constraint(constraint, file_name, self._constraints)
         self._constraints[constraint.name] = constraint
         return constraint
 
@@ -240,7 +240,7 @@ class XpansionConfiguration:
         Returns:
             The new constraint.
         """
-        new_constraint = self._xpansion_service.update_constraint(name, constraint, file_name)
+        new_constraint = self._xpansion_service.update_constraint(name, constraint, file_name, self._constraints)
         if new_constraint.name != name:
             # We're renaming a constraint
             del self._constraints[name]
