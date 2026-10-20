@@ -227,7 +227,7 @@ class XpansionAPIService(BaseXpansionService):
         for name in names:
             del existing_constraints[name]
         try:
-            self._serialize_constraints(file_name, existing_constraints)
+            self._update_constraints(existing_constraints, file_name)
 
         except APIError as e:
             raise XpansionConstraintsDeletionError(self._study_id, names, file_name, e.message) from e
@@ -280,11 +280,6 @@ class XpansionAPIService(BaseXpansionService):
             self._wrapper.delete(url)
         except APIError as e:
             raise XpansionFileDeletionError(self._study_id, file_name, e.message) from e
-
-    def _serialize_constraints(self, file_name: str, constraints: dict[str, XpansionConstraint]) -> None:
-        url = f"{self._base_url}/studies/{self._study_id}/raw?path=user/expansion/constraints/{file_name}"
-        api_content = serialize_xpansion_constraints_api(constraints)
-        self._wrapper.put(url, files={"file": (file_name, api_content)})
 
     def _update_constraints(self, constraints: dict[str, XpansionConstraint], file_name: str) -> None:
         url = f"{self._expansion_url}/resources/constraints"
