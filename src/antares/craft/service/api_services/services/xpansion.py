@@ -186,6 +186,9 @@ class XpansionAPIService(BaseXpansionService):
 
     @override
     def create_constraint(self, constraint: XpansionConstraint, file_name: str) -> XpansionConstraint:
+        # Round-trip to validate the data
+        user_class = parse_xpansion_constraint_api(serialize_xpansion_constraint_api(constraint))
+
         try:
             existing_constraints = self._read_constraints(file_name)
             existing_constraints[constraint.name] = constraint
@@ -204,8 +207,6 @@ class XpansionAPIService(BaseXpansionService):
             except APIError as e:
                 raise XpansionConstraintCreationError(self._study_id, constraint.name, file_name, e.message) from e
 
-        # Round-trip to validate the data
-        user_class = parse_xpansion_constraint_api(serialize_xpansion_constraint_api(constraint))
         return user_class
 
     @override
