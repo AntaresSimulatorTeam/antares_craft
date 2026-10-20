@@ -1038,6 +1038,15 @@ class TestWebClient:
 
         # Imports a study with a real case Xpansion configuration and a real xpansion output
         study = create_study_local("Xpansion study", "8.8", tmp_path)
+        # Create the links to avoid FK issues with xpansion candidates
+        for area_name in ["area1", "semibase", "peak", "area2", "pv", "flex"]:
+            study.create_area(area_name)
+        study.create_link(area_from="area1", area_to="semibase")
+        study.create_link(area_from="area1", area_to="peak")
+        study.create_link(area_from="area2", area_to="pv")
+        study.create_link(area_from="area2", area_to="flex")
+        study.create_link(area_from="area1", area_to="area2")
+        # Put the xpansion data inside the study manually
         study_path = Path(study.path)
         with zipfile.ZipFile(xpansion_input_path, "r") as zf:
             zf.extractall(study_path / "user" / "expansion")
@@ -1053,7 +1062,7 @@ class TestWebClient:
         )
         assert xpansion.get_candidates() == {
             "battery": XpansionCandidate(
-                name="battery", area_from="Area2", area_to="flex", annual_cost_per_mw=60000, max_investment=1000
+                name="battery", area_from="area2", area_to="flex", annual_cost_per_mw=60000, max_investment=1000
             ),
             "peak": XpansionCandidate(
                 name="peak", area_from="area1", area_to="peak", annual_cost_per_mw=60000, unit_size=100, max_units=20
@@ -1164,20 +1173,6 @@ class TestWebClient:
             xpansion.delete_capacity("fake_capacity")
 
         ############# Candidates ##############
-        # Creates areas and links corresponding to Xpansion candidates
-        areas_to_create = ["area1", "area2", "flex", "peak", "pv", "semibase"]
-        links_to_create = [
-            ("area1", "area2"),
-            ("area2", "flex"),
-            ("area1", "peak"),
-            ("area2", "pv"),
-            ("area1", "semibase"),
-        ]
-        for area in areas_to_create:
-            imported_study.create_area(area)
-        for link in links_to_create:
-            imported_study.create_link(area_from=link[0], area_to=link[1])
-
         # Creates a candidate
         my_cdt = XpansionCandidate(
             name="my_cdt",
