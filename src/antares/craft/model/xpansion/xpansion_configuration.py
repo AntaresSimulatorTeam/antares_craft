@@ -9,6 +9,8 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
+import copy
+
 from types import MappingProxyType
 from typing import Optional
 
@@ -225,7 +227,8 @@ class XpansionConfiguration:
         Returns:
             The constraint.
         """
-        constraint = self._xpansion_service.create_constraint(constraint, file_name, self._constraints)
+        existing_constraints = copy.deepcopy(self._constraints)  # To not modify the `_constraints` attribute
+        constraint = self._xpansion_service.create_constraint(constraint, file_name, existing_constraints)
         self._constraints[constraint.name] = constraint
         return constraint
 
@@ -240,7 +243,8 @@ class XpansionConfiguration:
         Returns:
             The new constraint.
         """
-        new_constraint = self._xpansion_service.update_constraint(name, constraint, file_name, self._constraints)
+        existing_constraints = copy.deepcopy(self._constraints)  # To not modify the `_constraints` attribute
+        new_constraint = self._xpansion_service.update_constraint(name, constraint, file_name, existing_constraints)
         if new_constraint.name != name:
             # We're renaming a constraint
             del self._constraints[name]
