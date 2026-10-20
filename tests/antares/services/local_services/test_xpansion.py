@@ -97,7 +97,7 @@ class TestXpansion:
         )
         assert xpansion.get_candidates() == {
             "battery": XpansionCandidate(
-                name="battery", area_from="Area2", area_to="flex", annual_cost_per_mw=60000, max_investment=1000
+                name="battery", area_from="area2", area_to="flex", annual_cost_per_mw=60000, max_investment=1000
             ),
             "peak": XpansionCandidate(
                 name="peak", area_from="area1", area_to="peak", annual_cost_per_mw=60000, unit_size=100, max_units=20
