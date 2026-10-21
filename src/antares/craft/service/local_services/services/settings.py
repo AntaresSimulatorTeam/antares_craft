@@ -128,10 +128,15 @@ def edit_study_settings(
     # seed and advanced
     seed_parameters = settings.seed_parameters or SeedParametersUpdate()
     advanced_parameters = settings.advanced_parameters or AdvancedParametersUpdate()
-    local_parameters = serialize_advanced_and_seed_parameters_local(
-        (advanced_parameters, seed_parameters), study_version
+    new_content = serialize_advanced_and_seed_parameters_local(
+        (advanced_parameters, seed_parameters), study_version, update
     )
-    ini_content = local_parameters.to_ini_file(update=update, current_content=ini_content)
+    if update:
+        for key in ["other preferences", "advanced parameters", "seeds - Mersenne Twister"]:
+            if ini_content[key]:
+                ini_content[key].update(new_content[key])
+    else:
+        ini_content.update(new_content)
 
     # writing
     _save_ini(study_directory, ini_content)
