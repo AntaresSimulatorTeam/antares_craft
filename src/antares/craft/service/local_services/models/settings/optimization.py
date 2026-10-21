@@ -94,4 +94,4 @@ def serialize_optimization_parameters_local(
 ) -> dict[str, Any]:
     local_parameters = OptimizationParametersLocal.from_user_model(parameters)
     validate_against_version(local_parameters, study_version)
-    return local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)
+    return local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update, exclude_none=True)

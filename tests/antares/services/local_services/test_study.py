@@ -354,6 +354,7 @@ threshold-initiate-curtailment-sharing-rule = 1
 threshold-display-local-matching-rule-violations = 0
 threshold-csr-variable-bounds-relaxation = 7
 enable-first-step = False
+set-to-null-ntc-between-physical-out-for-first-step = True
 
 [other preferences]
 hydro-heuristic-policy = accommodate rule curves
@@ -365,6 +366,7 @@ unit-commitment-mode = fast
 number-of-cores-mode = medium
 renewable-generation-modelling = clusters
 day-ahead-reserve-management = global
+initial-reservoir-levels = cold start
 
 [advanced parameters]
 accuracy-on-correlation = 
