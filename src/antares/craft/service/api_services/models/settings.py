@@ -331,7 +331,7 @@ class OptimizationParametersAPI(APIBaseModel):
             include_primaryreserve=check_field_is_not_null(self.primary_reserve),
             include_exportmps=check_field_is_not_null(self.export_mps),
             include_unfeasible_problem_behavior=check_field_is_not_null(self.unfeasible_problem_behavior),
-            include_reserves=self.include_reserves
+            include_reserves=self.include_reserves,
         )
 
 
