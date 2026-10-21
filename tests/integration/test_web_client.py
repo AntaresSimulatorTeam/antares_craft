@@ -1707,3 +1707,29 @@ class TestWebClient:
         mc_ind_results = output.get_mc_ind_binding_constraints(1, Frequency.ANNUAL)
         assert mc_ind_results.columns.to_list() == [("c1 (<)", "Euro", "")]
         assert mc_ind_results.to_numpy().tolist() == [[0.0]]
+
+        ######################
+        # Specific tests for study version 10.2
+        ######################
+
+        # Create a study with 2 areas and a link
+        study = create_study_api("Study_10.2", "10.2", api_config)
+        area_fr = study.create_area("FR")
+        study.create_area("be")
+        link = study.create_link(area_from="be", area_to="fr")
+
+        # Checks the `include-reserves` attribute and modify it
+        assert study.get_settings().optimization_parameters.include_reserves is False
+
+        new_settings = StudySettingsUpdate(
+            optimization_parameters=OptimizationParametersUpdate(include_reserves=True),
+        )
+        study.update_settings(new_settings)
+        assert study.get_settings().optimization_parameters.include_reserves is True
+
+        # todo: Add tests on districts and reserves here once they will be implemented
+
+        # Run the Simulation to ensure it works
+        job = study.run_antares_simulation()
+        study.wait_job_completion(job)
+        assert job.status == JobStatus.SUCCESS
