@@ -1,5 +1,5 @@
 antares-timeseries-generation==0.1.9
-antares-study-version==1.0.20
+antares-study-version==1.0.21
 
 configparser~=5.0.2
 numpy~=2.2.6; python_version == "3.10"
