@@ -162,7 +162,6 @@ def read_study_settings(study_version: StudyVersion, study_directory: Path) -> S
 
     # optimization
     optimization_ini = ini_content.get("optimization", {})
-    optimization_ini.pop("link-type", None)
     optimization_parameters_local = OptimizationParametersLocal.model_validate(optimization_ini)
     optimization_parameters = optimization_parameters_local.to_user_model()
 
