@@ -192,4 +192,18 @@ def local_study_93(tmp_path: Path) -> Study:
     return local_study
 
 
+@pytest.fixture
+def local_study_10_2(tmp_path: Path) -> Study:
+    study_name = "study_10.2"
+    study_version = "10.2"
+
+    local_study = create_study_local(study_name, study_version, tmp_path)
+
+    areas_to_create = ["fr", "it"]
+    for area in areas_to_create:
+        local_study.create_area(area)
+
+    return local_study
+
+
 RUN_ON_WINDOWS = os.name == "nt"
