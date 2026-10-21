@@ -37,6 +37,7 @@ from antares.craft.service.local_services.models.settings.adequacy_patch import 
 from antares.craft.service.local_services.models.settings.advanced_parameters import (
     parse_advanced_and_seed_parameters_local,
 )
+from antares.craft.service.local_services.models.settings.optimization import parse_optimization_parameters_local
 from antares.craft.service.local_services.models.settings.thematic_trimming import parse_thematic_trimming_local
 from antares.craft.service.local_services.models.st_storage import parse_st_storage_local
 from antares.craft.service.local_services.models.thermal import (
@@ -141,16 +142,21 @@ def create_study_local(study_name: str, version: str, parent_directory: Path | s
         path=study_directory,
     )
     # We need to create the file with default values
-    default_settings = StudySettings()
+    default_thematic_trimming = parse_thematic_trimming_local(study_version, {})
+    default_advanced_params, default_seed_params = parse_advanced_and_seed_parameters_local(study_version, {})
+    default_adequacy_patch_params = parse_adequacy_parameters_local(study_version, {})
+    default_optimization_params = parse_optimization_parameters_local(study_version, {})
+    default_settings = StudySettings(
+        advanced_parameters=default_advanced_params,
+        seed_parameters=default_seed_params,
+        adequacy_patch_parameters=default_adequacy_patch_params,
+        optimization_parameters=default_optimization_params,
+        thematic_trimming_parameters=default_thematic_trimming,
+    )
     update_settings = default_settings.to_update_settings()
     edit_study_settings(study_directory, update_settings, True, study_version)
     # Initialize settings with the default values
-    study._settings.thematic_trimming_parameters = parse_thematic_trimming_local(study_version, {})
-    advanced_parameters, seed_parameters = parse_advanced_and_seed_parameters_local(study_version, {})
-    study._settings.advanced_parameters = advanced_parameters
-    study._settings.seed_parameters = seed_parameters
-    study._settings.adequacy_patch_parameters = parse_adequacy_parameters_local(study_version, {})
-
+    study._settings = default_settings
     return study
 
 

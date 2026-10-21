@@ -34,7 +34,10 @@ from antares.craft.service.local_services.models.settings.advanced_parameters im
     serialize_advanced_and_seed_parameters_local,
 )
 from antares.craft.service.local_services.models.settings.general import GeneralParametersLocal
-from antares.craft.service.local_services.models.settings.optimization import OptimizationParametersLocal
+from antares.craft.service.local_services.models.settings.optimization import (
+    OptimizationParametersLocal,
+    serialize_optimization_parameters_local,
+)
 from antares.craft.service.local_services.models.settings.playlist_parameters import PlaylistParametersLocal
 from antares.craft.service.local_services.models.settings.thematic_trimming import (
     parse_thematic_trimming_local,
@@ -114,23 +117,26 @@ def edit_study_settings(
 
     # optimization
     if settings.optimization_parameters:
-        optimization_local_parameters = OptimizationParametersLocal.from_user_model(settings.optimization_parameters)
-        ini_content = optimization_local_parameters.to_ini_file(update=update, current_content=ini_content)
+        new_content = serialize_optimization_parameters_local(settings.optimization_parameters, study_version, update)
+        ini_content.setdefault("optimization", {}).update(new_content)
 
     # adequacy_patch
     if settings.adequacy_patch_parameters:
-        adequacy_local_parameters = serialize_adequacy_parameters_local(
-            settings.adequacy_patch_parameters, study_version
-        )
-        ini_content = adequacy_local_parameters.to_ini_file(update=update, current_content=ini_content)
+        new_content = serialize_adequacy_parameters_local(settings.adequacy_patch_parameters, study_version, update)
+        ini_content.setdefault("adequacy patch", {}).update(new_content)
 
     # seed and advanced
     seed_parameters = settings.seed_parameters or SeedParametersUpdate()
     advanced_parameters = settings.advanced_parameters or AdvancedParametersUpdate()
-    local_parameters = serialize_advanced_and_seed_parameters_local(
-        (advanced_parameters, seed_parameters), study_version
+    new_content = serialize_advanced_and_seed_parameters_local(
+        (advanced_parameters, seed_parameters), study_version, update
     )
-    ini_content = local_parameters.to_ini_file(update=update, current_content=ini_content)
+    if update:
+        for key in ["other preferences", "advanced parameters", "seeds - Mersenne Twister"]:
+            if ini_content[key]:
+                ini_content[key].update(new_content[key])
+    else:
+        ini_content.update(new_content)
 
     # writing
     _save_ini(study_directory, ini_content)
@@ -156,7 +162,6 @@ def read_study_settings(study_version: StudyVersion, study_directory: Path) -> S
 
     # optimization
     optimization_ini = ini_content.get("optimization", {})
-    optimization_ini.pop("link-type", None)
     optimization_parameters_local = OptimizationParametersLocal.model_validate(optimization_ini)
     optimization_parameters = optimization_parameters_local.to_user_model()
 

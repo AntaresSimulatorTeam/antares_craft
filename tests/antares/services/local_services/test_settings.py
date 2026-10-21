@@ -19,6 +19,7 @@ from antares.craft import (
     ExportMPS,
     GeneralParametersUpdate,
     HydroPricingMode,
+    OptimizationParametersUpdate,
     OptimizationTransmissionCapacities,
     PlaylistParameters,
     SheddingPolicy,
@@ -29,7 +30,7 @@ from antares.craft import (
     read_study_local,
 )
 from antares.craft.exceptions.exceptions import InvalidFieldForVersionError
-from antares.craft.model.commons import STUDY_VERSION_9_3
+from antares.craft.model.commons import STUDY_VERSION_9_3, STUDY_VERSION_10_2
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 
@@ -227,17 +228,23 @@ def test_support_the_three_modes(local_study: Study) -> None:
         read_study_local(study_path)
 
 
-def test_version_93_fields_default_values(local_study: Study, local_study_93: Study) -> None:
-    for study in (local_study, local_study_93):
+def test_version_fields_default_values(local_study: Study, local_study_93: Study, local_study_10_2: Study) -> None:
+    for study in (local_study, local_study_93, local_study_10_2):
         version = study._version
         settings = study.get_settings()
         if version < STUDY_VERSION_9_3:
             assert settings.advanced_parameters.accurate_shave_peaks_include_short_term_storage is None
             assert settings.adequacy_patch_parameters.redispatch is None
-        else:
+            assert settings.optimization_parameters.include_reserves is None
+        elif version >= STUDY_VERSION_9_3:
             assert settings.advanced_parameters.accurate_shave_peaks_include_short_term_storage is False
             assert settings.adequacy_patch_parameters.redispatch is False
+            if version < STUDY_VERSION_10_2:
+                assert settings.optimization_parameters.include_reserves is None
+            else:
+                assert settings.optimization_parameters.include_reserves is False
 
+        # v9.3 test
         new_settings = StudySettingsUpdate(
             advanced_parameters=AdvancedParametersUpdate(accurate_shave_peaks_include_short_term_storage=True),
             adequacy_patch_parameters=AdequacyPatchParametersUpdate(redispatch=True),
@@ -247,6 +254,16 @@ def test_version_93_fields_default_values(local_study: Study, local_study_93: St
             settings = study.get_settings()
             assert settings.advanced_parameters.accurate_shave_peaks_include_short_term_storage is True
             assert settings.adequacy_patch_parameters.redispatch is True
+        else:
+            with pytest.raises(InvalidFieldForVersionError, match="is not a valid field for study version"):
+                study.update_settings(new_settings)
+
+        # v10.2 test
+        new_settings = StudySettingsUpdate(optimization_parameters=OptimizationParametersUpdate(include_reserves=True))
+        if version >= STUDY_VERSION_10_2:
+            study.update_settings(new_settings)
+            settings = study.get_settings()
+            assert settings.optimization_parameters.include_reserves is True
         else:
             with pytest.raises(InvalidFieldForVersionError, match="is not a valid field for study version"):
                 study.update_settings(new_settings)

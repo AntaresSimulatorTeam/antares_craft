@@ -108,7 +108,7 @@ class TestCreateStudy:
 
     def test_creation_with_wrong_version(self, tmp_path: Path) -> None:
         with pytest.raises(
-            UnsupportedStudyVersion, match="Unsupported study version: '830', supported ones are '9.3, 9.2, 8.8'"
+            UnsupportedStudyVersion, match="Unsupported study version: '830', supported ones are '10.2, 9.3, 9.2, 8.8'"
         ):
             create_study_local("Study_Test", "830", tmp_path)
 
@@ -119,7 +119,7 @@ class TestCreateStudy:
         ini_content["antares"]["version"] = 820
         IniWriter().write(ini_content, ini_path)
         with pytest.raises(
-            UnsupportedStudyVersion, match="Unsupported study version: '8.2', supported ones are '9.3, 9.2, 8.8'"
+            UnsupportedStudyVersion, match="Unsupported study version: '8.2', supported ones are '10.2, 9.3, 9.2, 8.8'"
         ):
             read_study_local(tmp_path / "Study_Test")
 
@@ -354,6 +354,7 @@ threshold-initiate-curtailment-sharing-rule = 1
 threshold-display-local-matching-rule-violations = 0
 threshold-csr-variable-bounds-relaxation = 7
 enable-first-step = False
+set-to-null-ntc-between-physical-out-for-first-step = True
 
 [other preferences]
 hydro-heuristic-policy = accommodate rule curves
@@ -365,6 +366,7 @@ unit-commitment-mode = fast
 number-of-cores-mode = medium
 renewable-generation-modelling = clusters
 day-ahead-reserve-management = global
+initial-reservoir-levels = cold start
 
 [advanced parameters]
 accuracy-on-correlation = 

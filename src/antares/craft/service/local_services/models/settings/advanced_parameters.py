@@ -118,16 +118,6 @@ class AdvancedAndSeedParametersLocal(LocalBaseModel):
         local_dict = {"other_preferences": other_preferences_local_dict} | advanced_local_dict | seed_local_dict
         return AdvancedAndSeedParametersLocal.model_validate(local_dict)
 
-    def to_ini_file(self, update: bool, current_content: dict[str, Any]) -> dict[str, Any]:
-        content = self.model_dump(mode="json", by_alias=True, exclude_unset=update, exclude_none=True)
-        if update:
-            for key in ["other preferences", "advanced parameters", "seeds - Mersenne Twister"]:
-                if content[key]:
-                    current_content[key].update(content[key])
-        else:
-            current_content.update(content)
-        return current_content
-
     def to_seed_parameters_model(self) -> SeedParameters:
         return SeedParameters(
             seed_tsgen_thermal=self.seeds.seed_tsgen_thermal,
@@ -197,8 +187,8 @@ def parse_advanced_and_seed_parameters_local(
 
 
 def serialize_advanced_and_seed_parameters_local(
-    parameters: tuple[AdvancedParametersType, SeedParametersType], study_version: StudyVersion
-) -> AdvancedAndSeedParametersLocal:
+    parameters: tuple[AdvancedParametersType, SeedParametersType], study_version: StudyVersion, update: bool
+) -> dict[str, Any]:
     local_parameters = AdvancedAndSeedParametersLocal.from_user_model(parameters[0], parameters[1])
     validate_against_version(local_parameters, study_version)
-    return local_parameters
+    return local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update, exclude_none=True)
