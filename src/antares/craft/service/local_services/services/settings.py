@@ -34,7 +34,10 @@ from antares.craft.service.local_services.models.settings.advanced_parameters im
     serialize_advanced_and_seed_parameters_local,
 )
 from antares.craft.service.local_services.models.settings.general import GeneralParametersLocal
-from antares.craft.service.local_services.models.settings.optimization import OptimizationParametersLocal
+from antares.craft.service.local_services.models.settings.optimization import (
+    OptimizationParametersLocal,
+    serialize_optimization_parameters_local,
+)
 from antares.craft.service.local_services.models.settings.playlist_parameters import PlaylistParametersLocal
 from antares.craft.service.local_services.models.settings.thematic_trimming import (
     parse_thematic_trimming_local,
@@ -114,15 +117,13 @@ def edit_study_settings(
 
     # optimization
     if settings.optimization_parameters:
-        optimization_local_parameters = OptimizationParametersLocal.from_user_model(settings.optimization_parameters)
-        ini_content = optimization_local_parameters.to_ini_file(update=update, current_content=ini_content)
+        new_content = serialize_optimization_parameters_local(settings.optimization_parameters, study_version, update)
+        ini_content.setdefault("optimization", {}).update(new_content)
 
     # adequacy_patch
     if settings.adequacy_patch_parameters:
-        adequacy_local_parameters = serialize_adequacy_parameters_local(
-            settings.adequacy_patch_parameters, study_version
-        )
-        ini_content = adequacy_local_parameters.to_ini_file(update=update, current_content=ini_content)
+        new_content = serialize_adequacy_parameters_local(settings.adequacy_patch_parameters, study_version, update)
+        ini_content.setdefault("adequacy patch", {}).update(new_content)
 
     # seed and advanced
     seed_parameters = settings.seed_parameters or SeedParametersUpdate()

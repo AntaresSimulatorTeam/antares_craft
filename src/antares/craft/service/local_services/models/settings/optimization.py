@@ -51,11 +51,6 @@ class OptimizationParametersLocal(LocalBaseModelAllowExtraValues, alias_generato
         user_dict = {k: v for k, v in asdict(user_class).items() if v is not None}
         return OptimizationParametersLocal.model_validate(user_dict)
 
-    def to_ini_file(self, update: bool, current_content: dict[str, Any]) -> dict[str, Any]:
-        content = self.model_dump(mode="json", by_alias=True, exclude_unset=update)
-        current_content.setdefault("optimization", {}).update(content)
-        return current_content
-
     def to_user_model(self) -> OptimizationParameters:
         return OptimizationParameters(
             simplex_range=self.simplex_range,
@@ -95,8 +90,8 @@ def parse_optimization_parameters_local(study_version: StudyVersion, data: Any) 
 
 
 def serialize_optimization_parameters_local(
-    parameters: OptimizationParametersType, study_version: StudyVersion
-) -> OptimizationParametersLocal:
+    parameters: OptimizationParametersType, study_version: StudyVersion, update: bool
+) -> dict[str, Any]:
     local_parameters = OptimizationParametersLocal.from_user_model(parameters)
     validate_against_version(local_parameters, study_version)
-    return local_parameters
+    return local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update)
