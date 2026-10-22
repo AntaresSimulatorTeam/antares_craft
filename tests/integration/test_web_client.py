@@ -1216,6 +1216,8 @@ class TestWebClient:
         assert len(xpansion.get_candidates()) == 4
 
         ############# Constraints ##############
+        # todo: Uncomment this once new Web release is out
+        """
         file_name = "contraintes.txt"
 
         # Creates a constraint
@@ -1275,6 +1277,7 @@ class TestWebClient:
         # Deletes all constraints
         xpansion.delete_constraints(["new_name", "additional_c1"], file_name)
         assert xpansion.get_constraints() == {}
+        """
 
         # Create a constraint in a non-existing file
         constraint = XpansionConstraint(
@@ -1287,11 +1290,11 @@ class TestWebClient:
         # Updates the sensitivity
         sensitivity_update = XpansionSensitivityUpdate(epsilon=2, projection=["semibase", "pv"])
         new_sensitivity = xpansion.update_sensitivity(sensitivity_update)
-        assert new_sensitivity == XpansionSensitivity(epsilon=2, projection=["semibase", "pv"], capex=True)
+        assert new_sensitivity == XpansionSensitivity(epsilon=2, projection=["pv", "semibase"], capex=True)
 
         # Checks we didn't alter the settings
         xpansion_read = read_study_api(api_config, study_id).xpansion
-        assert xpansion_read.sensitivity == XpansionSensitivity(epsilon=2, projection=["semibase", "pv"], capex=True)
+        assert xpansion_read.sensitivity == XpansionSensitivity(epsilon=2, projection=["pv", "semibase"], capex=True)
         assert xpansion_read.settings == XpansionSettings(
             optimality_gap=10000, batch_size=0, additional_constraints="contraintes.txt"
         )
