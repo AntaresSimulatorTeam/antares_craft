@@ -1482,7 +1482,8 @@ class TestWebClient:
 
         ########## Hydro ##########
 
-        assert area_fr.hydro.properties.overflow_spilled_cost_difference == 1
+        # todo: there is an issue with `overflow_spilled_cost_difference` in Antares Web. Uncomment this with 2.37
+        # assert area_fr.hydro.properties.overflow_spilled_cost_difference == 1
         assert area_fr.hydro.properties.reservoir is False
         assert area_fr.hydro.properties.reservoir_capacity == 0
 
