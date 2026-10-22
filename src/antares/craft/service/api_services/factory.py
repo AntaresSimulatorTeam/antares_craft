@@ -130,7 +130,7 @@ def create_study_api(
     base_url = f"{api_config.get_host()}/api/v1"
 
     try:
-        url = f"{base_url}/studies?name={study_name}&version={version}"
+        url = f"{base_url}/studies?name={study_name}&version={version}&storage_mode=database"
         response = wrapper.post(url)
         study_id = response.json()
         study = read_study_api(api_config, study_id)
@@ -158,7 +158,7 @@ def import_study_api(api_config: APIconf, study_path: Path, destination_path: Op
 
     try:
         files = {"study": io.BytesIO(study_path.read_bytes())}
-        url = f"{base_url}/studies/_import"
+        url = f"{base_url}/studies/_import?storage_mode=database"
         study_id = wrapper.post(url, files=files).json()
 
         study = read_study_api(api_config, study_id)
