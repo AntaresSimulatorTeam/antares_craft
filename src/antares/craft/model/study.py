@@ -41,7 +41,7 @@ from antares.craft.model.binding_constraint import (
     ConstraintTerm,
     LinkData,
 )
-from antares.craft.model.commons import STUDY_VERSION_8_8, STUDY_VERSION_9_2, STUDY_VERSION_9_3
+from antares.craft.model.commons import STUDY_VERSION_8_8, STUDY_VERSION_9_2, STUDY_VERSION_9_3, STUDY_VERSION_10_2
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterPropertiesUpdate
@@ -61,7 +61,12 @@ Optional attribute _api_id defined for studies being stored in web.
 _study_path if stored on disk.
 """
 
-SUPPORTED_STUDY_VERSIONS: set[StudyVersion] = {STUDY_VERSION_8_8, STUDY_VERSION_9_2, STUDY_VERSION_9_3}
+SUPPORTED_STUDY_VERSIONS: set[StudyVersion] = {
+    STUDY_VERSION_8_8,
+    STUDY_VERSION_9_2,
+    STUDY_VERSION_9_3,
+    STUDY_VERSION_10_2,
+}
 
 
 class Study:

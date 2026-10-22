@@ -138,6 +138,8 @@ class OptimizationParameters:
     include_primaryreserve: bool = True
     include_exportmps: ExportMPS = ExportMPS.FALSE
     include_unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
+    # Since v10.2
+    include_reserves: bool | None = None
 
 
 @dataclass
@@ -147,15 +149,17 @@ class OptimizationParametersUpdate:
     See the class [`OptimizationParameters`][antares.craft.model.settings.optimization.OptimizationParameters] for details of the parameters.
     """
 
-    simplex_range: Optional[SimplexOptimizationRange] = None
-    transmission_capacities: Optional[OptimizationTransmissionCapacities] = None
-    include_constraints: Optional[bool] = None
-    include_hurdlecosts: Optional[bool] = None
-    include_tc_minstablepower: Optional[bool] = None
-    include_tc_min_ud_time: Optional[bool] = None
-    include_dayahead: Optional[bool] = None
-    include_strategicreserve: Optional[bool] = None
-    include_spinningreserve: Optional[bool] = None
-    include_primaryreserve: Optional[bool] = None
-    include_exportmps: Optional[ExportMPS] = None
-    include_unfeasible_problem_behavior: Optional[UnfeasibleProblemBehavior] = None
+    simplex_range: SimplexOptimizationRange | None = None
+    transmission_capacities: OptimizationTransmissionCapacities | None = None
+    include_constraints: bool | None = None
+    include_hurdlecosts: bool | None = None
+    include_tc_minstablepower: bool | None = None
+    include_tc_min_ud_time: bool | None = None
+    include_dayahead: bool | None = None
+    include_strategicreserve: bool | None = None
+    include_spinningreserve: bool | None = None
+    include_primaryreserve: bool | None = None
+    include_exportmps: ExportMPS | None = None
+    include_unfeasible_problem_behavior: UnfeasibleProblemBehavior | None = None
+    # Since v10.2
+    include_reserves: bool | None = None

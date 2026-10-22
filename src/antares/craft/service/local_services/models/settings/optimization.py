@@ -12,6 +12,7 @@
 from dataclasses import asdict
 from typing import Any
 
+from antares.craft.model.commons import STUDY_VERSION_10_2
 from antares.craft.model.settings.optimization import (
     ExportMPS,
     OptimizationParameters,
@@ -21,7 +22,9 @@ from antares.craft.model.settings.optimization import (
     UnfeasibleProblemBehavior,
 )
 from antares.craft.service.local_services.models.base_model import LocalBaseModelAllowExtraValues
+from antares.craft.service.local_services.models.utils import check_min_version, initialize_field_default
 from antares.craft.tools.alias_generators import to_kebab
+from antares.study.version import StudyVersion
 
 OptimizationParametersType = OptimizationParameters | OptimizationParametersUpdate
 
@@ -40,16 +43,13 @@ class OptimizationParametersLocal(LocalBaseModelAllowExtraValues, alias_generato
     include_exportmps: ExportMPS = ExportMPS.FALSE
     include_exportstructure: bool = False
     include_unfeasible_problem_behavior: UnfeasibleProblemBehavior = UnfeasibleProblemBehavior.ERROR_VERBOSE
+    # Since v10.2
+    include_reserves: bool | None = None
 
     @staticmethod
     def from_user_model(user_class: OptimizationParametersType) -> "OptimizationParametersLocal":
         user_dict = {k: v for k, v in asdict(user_class).items() if v is not None}
         return OptimizationParametersLocal.model_validate(user_dict)
-
-    def to_ini_file(self, update: bool, current_content: dict[str, Any]) -> dict[str, Any]:
-        content = self.model_dump(mode="json", by_alias=True, exclude_unset=update)
-        current_content.setdefault("optimization", {}).update(content)
-        return current_content
 
     def to_user_model(self) -> OptimizationParameters:
         return OptimizationParameters(
@@ -65,4 +65,33 @@ class OptimizationParametersLocal(LocalBaseModelAllowExtraValues, alias_generato
             include_primaryreserve=self.include_primaryreserve,
             include_exportmps=self.include_exportmps,
             include_unfeasible_problem_behavior=self.include_unfeasible_problem_behavior,
+            include_reserves=self.include_reserves,
         )
+
+
+def validate_against_version(parameters: OptimizationParametersLocal, version: StudyVersion) -> None:
+    if version < STUDY_VERSION_10_2:
+        check_min_version(parameters, "include_reserves", version)
+
+
+def initialize_with_version(
+    parameters: OptimizationParametersLocal, version: StudyVersion
+) -> OptimizationParametersLocal:
+    if version >= STUDY_VERSION_10_2:
+        initialize_field_default(parameters, "include_reserves", False)
+    return parameters
+
+
+def parse_optimization_parameters_local(study_version: StudyVersion, data: Any) -> OptimizationParameters:
+    local_parameters = OptimizationParametersLocal.model_validate(data.get("optimization", {}))
+    validate_against_version(local_parameters, study_version)
+    initialize_with_version(local_parameters, study_version)
+    return local_parameters.to_user_model()
+
+
+def serialize_optimization_parameters_local(
+    parameters: OptimizationParametersType, study_version: StudyVersion, update: bool
+) -> dict[str, Any]:
+    local_parameters = OptimizationParametersLocal.from_user_model(parameters)
+    validate_against_version(local_parameters, study_version)
+    return local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update, exclude_none=True)

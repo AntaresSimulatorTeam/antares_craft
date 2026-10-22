@@ -219,10 +219,11 @@ class TestLocalLauncher:
         assert len(outputs) == 0
         assert study.get_outputs() == {}
 
-    def test_version_92(self, tmp_path: Path) -> None:
-        solver_path = find_executable_path("9_2")
+    @pytest.mark.parametrize("version", ["8.8", "9.2", "9.3", "10.2"])
+    def test_versions(self, tmp_path: Path, version: str) -> None:
+        solver_path = find_executable_path("_".join(version.split(".")))
         default_parameters = AntaresSimulationParametersLocal(solver_path=solver_path)
-        study = create_study_local("test study", "920", tmp_path)
+        study = create_study_local("test study", version, tmp_path)
 
         # Simulation succeeds
         study.create_area("area_1")

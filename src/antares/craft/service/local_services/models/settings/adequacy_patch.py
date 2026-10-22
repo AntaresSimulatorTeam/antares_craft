@@ -46,11 +46,6 @@ class AdequacyPatchParametersLocal(LocalBaseModel, alias_generator=to_kebab):
         user_dict = {k: v for k, v in asdict(user_class).items() if v is not None}
         return AdequacyPatchParametersLocal.model_validate(user_dict)
 
-    def to_ini_file(self, update: bool, current_content: dict[str, Any]) -> dict[str, Any]:
-        content = self.model_dump(mode="json", by_alias=True, exclude_unset=update, exclude_none=True)
-        current_content.setdefault("adequacy patch", {}).update(content)
-        return current_content
-
     def to_user_model(self) -> AdequacyPatchParameters:
         return AdequacyPatchParameters(
             include_adq_patch=self.include_adq_patch,
@@ -91,8 +86,8 @@ def parse_adequacy_parameters_local(study_version: StudyVersion, data: Any) -> A
 
 
 def serialize_adequacy_parameters_local(
-    parameters: AdequacyPatchParametersType, study_version: StudyVersion
-) -> AdequacyPatchParametersLocal:
+    parameters: AdequacyPatchParametersType, study_version: StudyVersion, update: bool
+) -> dict[str, Any]:
     local_parameters = AdequacyPatchParametersLocal.from_user_model(parameters)
     validate_against_version(local_parameters, study_version)
-    return local_parameters
+    return local_parameters.model_dump(mode="json", by_alias=True, exclude_unset=update, exclude_none=True)

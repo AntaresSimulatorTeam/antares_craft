@@ -299,6 +299,7 @@ class OptimizationParametersAPI(APIBaseModel):
     primary_reserve: bool | None = None
     export_mps: ExportMPS | None = None
     unfeasible_problem_behavior: UnfeasibleProblemBehavior | None = None
+    include_reserves: bool | None = None
 
     @staticmethod
     def from_user_model(user_class: OptimizationParametersType) -> "OptimizationParametersAPI":
@@ -330,6 +331,7 @@ class OptimizationParametersAPI(APIBaseModel):
             include_primaryreserve=check_field_is_not_null(self.primary_reserve),
             include_exportmps=check_field_is_not_null(self.export_mps),
             include_unfeasible_problem_behavior=check_field_is_not_null(self.unfeasible_problem_behavior),
+            include_reserves=self.include_reserves,
         )
 
 
