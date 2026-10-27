@@ -15,9 +15,10 @@ from typing import Literal
 
 from pydantic import Field
 
-from antares.craft.model.commons import STUDY_VERSION_10_2, FilterOption
+from antares.craft.model.commons import STUDY_VERSION_10_2
 from antares.craft.model.district import District
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
+from antares.craft.tools.utils import FILTER_VALUES, join_with_comma
 from antares.study.version import StudyVersion
 
 
@@ -40,7 +41,7 @@ class DistrictLocal(LocalBaseModel, extra="allow"):
         values = asdict(district)
         values["add_areas"] = sorted(set(values.pop("areas")))
         if study_version >= STUDY_VERSION_10_2:
-            filters = ", ".join(option.value for option in FilterOption)
+            filters = join_with_comma(FILTER_VALUES)
             values.update({"filter-synthesis": filters, "filter-year-by-year": filters})
         return DistrictLocal.model_validate(values)
 

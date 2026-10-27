@@ -101,7 +101,7 @@ def test_create_districts(request: pytest.FixtureRequest, study_fixture: str) ->
     assert content["europe"]["+"] == ["fr", "it"]
     for key in ["filter-synthesis", "filter-year-by-year"]:
         if study_fixture == "local_study_10_2":
-            assert content["europe"][key] == "hourly, daily, weekly, monthly, annual"
+            assert set(content["europe"][key].split(", ")) == {"hourly", "daily", "weekly", "monthly", "annual"}
         else:
             assert key not in content["europe"]
     before = sets_path.read_bytes()
@@ -178,3 +178,23 @@ def test_delete_unknown_district(local_study_w_areas: Study) -> None:
 
     assert sets_path.read_bytes() == before
     assert study.get_districts() == initial_districts
+
+
+def test_districts_follow_area_changes(local_study_w_areas: Study) -> None:
+    study = local_study_w_areas
+    study.create_area("001")
+    assert study.get_districts()["all areas"].areas == ["001", "fr", "it"]
+    sets_path = Path(study.path) / "input" / "areas" / "sets.ini"
+    with sets_path.open("a") as stream:
+        stream.write("\n[legacy]\ncaption = 001\n+ = 001\n+ = 001\n+ = fr\n- = 001\ncomments = true\n")
+    study = read_study_local(Path(study.path))
+
+    study.create_area("de")
+    assert study.get_districts()["all areas"].areas == ["001", "de", "fr", "it"]
+    assert study.get_districts()["legacy"].areas == ["001", "fr"]
+    study.delete_area(study.get_areas()["001"])
+
+    assert study.get_districts()["all areas"].areas == ["de", "fr", "it"]
+    assert study.get_districts()["legacy"] == District("001", comments="true", areas=["fr"])
+    assert read_study_local(Path(study.path)).get_districts() == study.get_districts()
+    assert "001" not in IniReader(["+", "-"]).read(sets_path)["legacy"].get("-", [])

@@ -10,9 +10,12 @@
 #
 # This file is part of the Antares project.
 
-from typing import Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from antares.study.version import StudyVersion
+
+if TYPE_CHECKING:
+    from antares.craft.model.district import District
 
 
 class APIError(Exception):
@@ -93,7 +96,10 @@ class LinksPropertiesUpdateError(Exception):
 
 
 class DistrictCreationError(Exception):
-    def __init__(self, district_name: str, message: str) -> None:
+    def __init__(
+        self, district_name: str, message: str, *, created_districts: Optional[List["District"]] = None
+    ) -> None:
+        self.created_districts = created_districts or []
         self.message = f"Could not create the district '{district_name}': " + message
         super().__init__(self.message)
 

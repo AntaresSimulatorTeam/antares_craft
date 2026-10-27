@@ -166,11 +166,11 @@ class Study:
         return MappingProxyType(self._links)
 
     def get_districts(self) -> MappingProxyType[str, District]:
-        """Retrieve the districts loaded with the study.
+        """Retrieve the districts currently loaded in the study.
 
         Returns:
             A read-only mapping from district identifiers to `District` objects.
-            Each district contains its effective area identifiers at load time.
+            Area identifiers are refreshed when an area is created or deleted.
         """
         return MappingProxyType(self._districts)
 
@@ -180,6 +180,8 @@ class Study:
         Area identifiers must exist in the study. District names must follow
         Antares Web naming rules and produce distinct identifiers, including
         against existing districts. The whole batch is validated before writing.
+        API requests are sequential: if one fails, previously created districts
+        remain in the study and are available in the exception's `created_districts`.
 
         Returns:
             The created districts, with sorted, unique area identifiers.
@@ -189,8 +191,6 @@ class Study:
         """
         if not districts:
             return []
-        if self._district_service is None:
-            raise NotImplementedError("District creation is currently implemented only for local studies in Craft")
 
         district_ids = set(self._districts)
         for district in districts:
@@ -208,7 +208,11 @@ class Study:
                 )
             district_ids.add(district_id)
 
-        created = self._district_service.create_districts(districts)
+        try:
+            created = self._district_service.create_districts(districts)
+        except DistrictCreationError as e:
+            self._districts.update({transform_name_to_id(district.name): district for district in e.created_districts})
+            raise
         self._districts.update({transform_name_to_id(district.name): district for district in created})
         return created
 
@@ -221,11 +225,11 @@ class Study:
         Raises:
             DistrictDeletionError: If the district does not exist.
         """
-        if self._district_service is None:
-            raise NotImplementedError("District deletion is currently implemented only for local studies in Craft")
-
         self._district_service.delete_district(district_id)
         self._districts.pop(district_id, None)
+
+    def _read_districts(self) -> None:
+        self._districts = self._district_service.read_districts(list(self._areas))
 
     def get_settings(self) -> StudySettings:
         """Retrieve the study settings.
@@ -260,6 +264,7 @@ class Study:
         """
         area = self._area_service.create_area(area_name, properties, ui)
         self._areas[area.id] = area
+        self._read_districts()
         return area
 
     def delete_area(self, area: Area) -> None:
@@ -291,6 +296,7 @@ class Study:
                 links_to_remove.append(link_id)
         for link_id in links_to_remove:
             self._links.pop(link_id)
+        self._read_districts()
 
     def create_link(
         self,

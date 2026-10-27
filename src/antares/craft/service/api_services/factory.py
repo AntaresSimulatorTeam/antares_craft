@@ -24,9 +24,16 @@ from antares.craft import (
 )
 from antares.craft.api_conf.api_conf import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
-from antares.craft.exceptions.exceptions import APIError, StudyCreationError, StudyImportError, StudyMoveError
+from antares.craft.exceptions.exceptions import (
+    APIError,
+    DistrictsRetrievalError,
+    StudyCreationError,
+    StudyImportError,
+    StudyMoveError,
+)
 from antares.craft.model.area import Area
 from antares.craft.model.binding_constraint import BindingConstraint, ConstraintTermData
+from antares.craft.model.district import District
 from antares.craft.model.hydro import Hydro
 from antares.craft.model.link import Link
 from antares.craft.model.output import Output
@@ -38,6 +45,7 @@ from antares.craft.model.thermal import ThermalCluster
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.api_services.models.area import AreaPropertiesAPI
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
+from antares.craft.service.api_services.models.district import parse_districts_api
 from antares.craft.service.api_services.models.hydro import (
     HydroInflowStructureAPI,
     HydroPropertiesAPI,
@@ -60,6 +68,7 @@ from antares.craft.service.api_services.models.xpansion import (
 )
 from antares.craft.service.api_services.services.area import AreaApiService
 from antares.craft.service.api_services.services.binding_constraint import BindingConstraintApiService
+from antares.craft.service.api_services.services.district import DistrictApiService
 from antares.craft.service.api_services.services.hydro import HydroApiService
 from antares.craft.service.api_services.services.link import LinkApiService
 from antares.craft.service.api_services.services.output import OutputApiService
@@ -92,6 +101,7 @@ def create_api_services(config: APIconf, study_id: str = "") -> StudyServices:
     run_service = RunApiService(config, study_id)
     settings_service = StudySettingsAPIService(config, study_id)
     xpansion_service = XpansionAPIService(config, study_id)
+    district_service = DistrictApiService(config, study_id)
     return StudyServices(
         area_service=area_service,
         bc_service=bc_service,
@@ -105,6 +115,7 @@ def create_api_services(config: APIconf, study_id: str = "") -> StudyServices:
         settings_service=settings_service,
         short_term_storage_service=storage_service,
         xpansion_service=xpansion_service,
+        district_service=district_service,
     )
 
 
@@ -209,6 +220,9 @@ def read_study_api(api_config: APIconf, study_id: str) -> Study:
     # Areas
     study._areas = _read_areas(json_api, services.area_service)
 
+    # Districts
+    study._districts = _read_districts(json_api, study_id)
+
     # Outputs
     study._read_outputs()
 
@@ -218,6 +232,13 @@ def read_study_api(api_config: APIconf, study_id: str) -> Study:
 def read_outputs_api(api_config: APIconf, study_id: str) -> dict[str, Output]:
     services = create_api_services(api_config, study_id)
     return services.study_service.read_outputs()
+
+
+def _read_districts(body: dict[str, Any], study_id: str) -> dict[str, District]:
+    try:
+        return parse_districts_api(body["districts"])
+    except (ValueError, KeyError) as e:
+        raise DistrictsRetrievalError(study_id, str(e)) from e
 
 
 def _read_links(body: dict[str, Any], link_service: BaseLinkService) -> dict[str, Link]:

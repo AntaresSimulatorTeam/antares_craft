@@ -15,7 +15,7 @@ from typing import Any
 from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import DistrictCreationError, DistrictDeletionError
+from antares.craft.exceptions.exceptions import DistrictCreationError, DistrictDeletionError, DistrictsRetrievalError
 from antares.craft.model.district import District
 from antares.craft.service.base_services import BaseDistrictService
 from antares.craft.service.local_services.models.district import DistrictLocal
@@ -28,6 +28,7 @@ from antares.study.version import StudyVersion
 
 class DistrictLocalService(BaseDistrictService):
     def __init__(self, config: LocalConfiguration, study_name: str, study_version: StudyVersion) -> None:
+        super().__init__()
         self.config = config
         self.study_name = study_name
         self.study_version = study_version
@@ -42,6 +43,16 @@ class DistrictLocalService(BaseDistrictService):
 
     def _save_ini(self, content: dict[str, Any]) -> None:
         IniWriter(["+", "-"]).write(content, self.config.study_path / "input" / "areas" / "sets.ini")
+
+    @override
+    def read_districts(self, all_areas: list[str]) -> dict[str, District]:
+        try:
+            return {
+                district_id: DistrictLocal.model_validate({"caption": district_id, **values}).to_user_model(all_areas)
+                for district_id, values in self.read_ini().items()
+            }
+        except (OSError, ValueError) as e:
+            raise DistrictsRetrievalError(self.study_name, str(e)) from e
 
     @override
     def create_districts(self, districts: list[District]) -> list[District]:
@@ -65,4 +76,13 @@ class DistrictLocalService(BaseDistrictService):
             raise DistrictDeletionError(district_id, "The district does not exist")
 
         current_content.pop(district_id)
+        self._save_ini(current_content)
+
+    def remove_area(self, area_id: str) -> None:
+        """Remove every reference to a deleted area, preserving selection rules."""
+        current_content = self.read_ini()
+        for district in current_content.values():
+            for key in ["+", "-"]:
+                if key in district:
+                    district[key] = [area for area in district[key] if area != area_id]
         self._save_ini(current_content)
