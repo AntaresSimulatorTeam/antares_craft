@@ -10,12 +10,11 @@
 #
 # This file is part of the Antares project.
 
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import Any, List, Optional
 
 from antares.study.version import StudyVersion
 
-if TYPE_CHECKING:
-    from antares.craft.model.district import District
+from antares.craft.model.district import District
 
 
 class APIError(Exception):
