@@ -26,6 +26,7 @@ from antares.craft import (
 )
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
+    DistrictCreationError,
     LinkCreationError,
     ReferencedObjectDeletionNotAllowed,
     UnsupportedStudyVersion,
@@ -52,6 +53,7 @@ from antares.craft.model.st_storage import STStorage
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterPropertiesUpdate
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import BaseLinkService, BaseStudyService, StudyServices
+from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.study.version import StudyVersion
 
 """
@@ -97,6 +99,7 @@ class Study:
         self._link_service = services.link_service
         self._run_service = services.run_service
         self._binding_constraints_service = services.bc_service
+        self._district_service = services.district_service
         self._settings_service = services.settings_service
         self._xpansion_service = services.xpansion_service
         self._xpansion_configuration: XpansionConfiguration | None = None
@@ -170,6 +173,59 @@ class Study:
             Each district contains its effective area identifiers at load time.
         """
         return MappingProxyType(self._districts)
+
+    def create_districts(self, districts: list[District]) -> list[District]:
+        """Create several districts in the study.
+
+        Area identifiers must exist in the study. District names must follow
+        Antares Web naming rules and produce distinct identifiers, including
+        against existing districts. The whole batch is validated before writing.
+
+        Returns:
+            The created districts, with sorted, unique area identifiers.
+
+        Raises:
+            DistrictCreationError: If a name, duplicate or area is invalid.
+        """
+        if not districts:
+            return []
+        if self._district_service is None:
+            raise NotImplementedError("District creation is currently implemented only for local studies in Craft")
+
+        district_ids = set(self._districts)
+        for district in districts:
+            district_id = transform_name_to_id(district.name)
+            if district_id in district_ids:
+                raise DistrictCreationError(district.name, f"District '{district_id}' already exists")
+            missing_areas = sorted(set(district.areas).difference(self._areas))
+            if missing_areas:
+                raise DistrictCreationError(district.name, f"Areas do not exist: {', '.join(missing_areas)}")
+            if district_id != district.name.lower():
+                raise DistrictCreationError(
+                    district.name,
+                    "The name must contain only ASCII letters, digits, spaces and _(),&- "
+                    "and must not start or end with spaces",
+                )
+            district_ids.add(district_id)
+
+        created = self._district_service.create_districts(districts)
+        self._districts.update({transform_name_to_id(district.name): district for district in created})
+        return created
+
+    def delete_district(self, district_id: str) -> None:
+        """Delete a district from the study.
+
+        Args:
+            district_id: The exact identifier, as returned by `get_districts()`.
+
+        Raises:
+            DistrictDeletionError: If the district does not exist.
+        """
+        if self._district_service is None:
+            raise NotImplementedError("District deletion is currently implemented only for local studies in Craft")
+
+        self._district_service.delete_district(district_id)
+        self._districts.pop(district_id, None)
 
     def get_settings(self) -> StudySettings:
         """Retrieve the study settings.

@@ -10,12 +10,15 @@
 #
 # This file is part of the Antares project.
 
+from dataclasses import asdict
 from typing import Literal
 
 from pydantic import Field
 
+from antares.craft.model.commons import STUDY_VERSION_10_2, FilterOption
 from antares.craft.model.district import District
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
+from antares.study.version import StudyVersion
 
 
 class DistrictLocal(LocalBaseModel, extra="allow"):
@@ -31,6 +34,15 @@ class DistrictLocal(LocalBaseModel, extra="allow"):
     apply_filter: Literal["add-all", "remove-all"] = Field(default="remove-all", alias="apply-filter")
     add_areas: list[str] = Field(default_factory=list, alias="+")
     subtract_areas: list[str] = Field(default_factory=list, alias="-")
+
+    @staticmethod
+    def from_user_model(district: District, study_version: StudyVersion) -> "DistrictLocal":
+        values = asdict(district)
+        values["add_areas"] = sorted(set(values.pop("areas")))
+        if study_version >= STUDY_VERSION_10_2:
+            filters = ", ".join(option.value for option in FilterOption)
+            values.update({"filter-synthesis": filters, "filter-year-by-year": filters})
+        return DistrictLocal.model_validate(values)
 
     def to_user_model(self, all_areas: list[str]) -> District:
         # Match the effective areas returned by Antares Web's District.to_dto().

@@ -93,6 +93,7 @@ def create_local_services(config: LocalConfiguration, study_name: str, study_ver
     run_service = RunLocalService(config, study_name)
     settings_service = StudySettingsLocalService(config, study_name, study_version)
     xpansion_service = XpansionLocalService(config, study_name)
+    district_service = DistrictLocalService(config, study_name, study_version)
     return StudyServices(
         area_service=area_service,
         bc_service=bc_service,
@@ -106,6 +107,7 @@ def create_local_services(config: LocalConfiguration, study_name: str, study_ver
         settings_service=settings_service,
         short_term_storage_service=short_term_storage_service,
         xpansion_service=xpansion_service,
+        district_service=district_service,
     )
 
 
@@ -189,9 +191,7 @@ def read_study_local(study_directory: Path | str) -> "Study":
     area_service = cast(AreaLocalService, local_services.area_service)
     study._areas = _read_areas(area_service)
 
-    district_service = DistrictLocalService(
-        LocalConfiguration(study_directory.parent, study_directory.name), study_name
-    )
+    district_service = cast(DistrictLocalService, local_services.district_service)
     study._districts = _read_districts(district_service, list(study._areas))
 
     link_service = cast(LinkLocalService, local_services.link_service)
