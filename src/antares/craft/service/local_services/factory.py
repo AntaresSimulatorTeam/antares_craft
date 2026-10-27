@@ -16,8 +16,10 @@ from typing import Any, cast
 
 from antares.craft import HydroProperties
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.exceptions.exceptions import DistrictsRetrievalError
 from antares.craft.model.area import Area
 from antares.craft.model.commons import STUDY_VERSION_9_2
+from antares.craft.model.district import District
 from antares.craft.model.link import Link
 from antares.craft.model.output import Output
 from antares.craft.model.renewable import RenewableCluster
@@ -28,6 +30,7 @@ from antares.craft.model.thermal import ThermalCluster
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import StudyServices
 from antares.craft.service.local_services.models.area import AreaPropertiesLocal, AreaUiLocal
+from antares.craft.service.local_services.models.district import DistrictLocal
 from antares.craft.service.local_services.models.hydro import parse_hydro_properties_local
 from antares.craft.service.local_services.models.link import LinkPropertiesAndUiLocal
 from antares.craft.service.local_services.models.renewable import (
@@ -46,6 +49,7 @@ from antares.craft.service.local_services.models.thermal import (
 from antares.craft.service.local_services.models.xpansion import parse_xpansion_candidate_local
 from antares.craft.service.local_services.services.area import AreaLocalService
 from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
+from antares.craft.service.local_services.services.district import DistrictLocalService
 from antares.craft.service.local_services.services.hydro import HydroLocalService
 from antares.craft.service.local_services.services.link import LinkLocalService
 from antares.craft.service.local_services.services.output.output import OutputLocalService
@@ -185,6 +189,11 @@ def read_study_local(study_directory: Path | str) -> "Study":
     area_service = cast(AreaLocalService, local_services.area_service)
     study._areas = _read_areas(area_service)
 
+    district_service = DistrictLocalService(
+        LocalConfiguration(study_directory.parent, study_directory.name), study_name
+    )
+    study._districts = _read_districts(district_service, list(study._areas))
+
     link_service = cast(LinkLocalService, local_services.link_service)
     study._links = _read_links(link_service)
 
@@ -236,6 +245,17 @@ def _read_xpansion_configuration(xpansion_service: XpansionLocalService) -> Xpan
     return XpansionConfiguration(
         xpansion_service, settings=settings, candidates=candidates, constraints=constraints, sensitivity=sensitivity
     )
+
+
+def _read_districts(district_service: DistrictLocalService, all_areas: list[str]) -> dict[str, District]:
+    try:
+        content = district_service.read_ini()
+        return {
+            district_id: DistrictLocal.model_validate({"caption": district_id, **values}).to_user_model(all_areas)
+            for district_id, values in content.items()
+        }
+    except (OSError, ValueError) as e:
+        raise DistrictsRetrievalError(district_service.study_name, str(e)) from e
 
 
 def _read_links(link_service: LinkLocalService) -> dict[str, Link]:

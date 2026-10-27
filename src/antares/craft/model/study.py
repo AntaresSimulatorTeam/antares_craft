@@ -42,6 +42,7 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.commons import STUDY_VERSION_8_8, STUDY_VERSION_9_2, STUDY_VERSION_9_3, STUDY_VERSION_10_2
+from antares.craft.model.district import District
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterPropertiesUpdate
@@ -101,6 +102,7 @@ class Study:
         self._xpansion_configuration: XpansionConfiguration | None = None
         self._settings = StudySettings()
         self._areas: dict[str, Area] = {}
+        self._districts: dict[str, District] = {}
         self._links: dict[str, Link] = {}
         self._binding_constraints: dict[str, BindingConstraint] = {}
         self._outputs: dict[str, Output] = {}
@@ -159,6 +161,15 @@ class Study:
             and values are `Link` objects.
         """
         return MappingProxyType(self._links)
+
+    def get_districts(self) -> MappingProxyType[str, District]:
+        """Retrieve the districts loaded with the study.
+
+        Returns:
+            A read-only mapping from district identifiers to `District` objects.
+            Each district contains its effective area identifiers at load time.
+        """
+        return MappingProxyType(self._districts)
 
     def get_settings(self) -> StudySettings:
         """Retrieve the study settings.
