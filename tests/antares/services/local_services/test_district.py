@@ -117,6 +117,11 @@ def test_create_districts(request: pytest.FixtureRequest, study_fixture: str) ->
         ([District("Valid"), District("Bad/name")], "name must contain"),
         ([District("Valid"), District(" padded ")], "name must contain"),
         ([District("Valid"), District("EXISTING")], "already exists"),
+        ([District("Valid"), District("")], "identifier must not be empty"),
+        ([District("Valid"), District("   ")], "identifier must not be empty"),
+        ([District("Valid"), District("Europe", comments="Line 1\nLine 2")], "Multiline comments"),
+        ([District("Valid"), District("Europe", comments="Line 1\rLine 2")], "Multiline comments"),
+        ([District("Valid"), District("Europe", comments="Line 1\r\nLine 2")], "Multiline comments"),
     ],
 )
 def test_create_districts_rejects_invalid_batch(

@@ -195,6 +195,8 @@ class Study:
         district_ids = set(self._districts)
         for district in districts:
             district_id = transform_name_to_id(district.name)
+            if not district_id:
+                raise DistrictCreationError(district.name, "The district identifier must not be empty")
             if district_id in district_ids:
                 raise DistrictCreationError(district.name, f"District '{district_id}' already exists")
             missing_areas = sorted(set(district.areas).difference(self._areas))

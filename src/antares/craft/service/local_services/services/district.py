@@ -59,6 +59,8 @@ class DistrictLocalService(BaseDistrictService):
         current_content = self.read_ini()
         created = []
         for district in districts:
+            if "\n" in district.comments or "\r" in district.comments:
+                raise DistrictCreationError(district.name, "Multiline comments are not supported in local studies")
             district_id = transform_name_to_id(district.name)
             if district_id in current_content:
                 raise DistrictCreationError(district.name, f"District '{district_id}' already exists")
