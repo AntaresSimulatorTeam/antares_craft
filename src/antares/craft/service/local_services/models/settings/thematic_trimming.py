@@ -1,4 +1,4 @@
-# Copyright (c) 2024, RTE (https://www.rte-france.com)
+pourqu# Copyright (c) 2024, RTE (https://www.rte-france.com)
 #
 # See AUTHORS.txt
 #
@@ -368,7 +368,7 @@ def get_thematic_trimming_fields_according_to_version(version: StudyVersion) -> 
 
 
 def validate_against_version(parameters: ThematicTrimmingParametersLocal, version: StudyVersion) -> None:
-    forbidden_fields = set(parameters.model_fields) - get_thematic_trimming_fields_according_to_version(version)
+    forbidden_fields = set(type(parameters).model_fields) - get_thematic_trimming_fields_according_to_version(version)
     for field in forbidden_fields:
         check_min_version(parameters, field, version)
 

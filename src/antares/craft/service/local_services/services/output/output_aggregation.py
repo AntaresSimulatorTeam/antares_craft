@@ -43,10 +43,6 @@ from antares.craft.service.local_services.services.output.parquet_writer import 
 from antares.craft.service.local_services.services.output.utils import MCRoot, normalize_df_column_names
 from antares.craft.service.output_matrix_parsing import get_start_column, parse_headers
 
-# We use pandas.DataFrame.stack() without the `future_stack` keyword as its 2 times faster
-# But it logs a FutureWarning every time so we silence it here.
-warnings.simplefilter(action="ignore", category=FutureWarning)
-
 # noinspection SpellCheckingInspection
 MCYEAR_COL = "mcYear"
 """Column name for the Monte Carlo year."""
@@ -263,7 +259,9 @@ class AggregatorManager:
         actual_cols = sorted(df.columns.get_level_values(ACTUAL_COLUMN_COMPONENT).unique())
 
         # First perform the stack / unstack operation to have the final shape
-        final_df = df.stack(level=[CLUSTER_ID_COMPONENT, ACTUAL_COLUMN_COMPONENT]).unstack()
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message="The previous implementation of stack", category=FutureWarning)
+            final_df = df.stack(level=[CLUSTER_ID_COMPONENT, ACTUAL_COLUMN_COMPONENT]).unstack()
 
         # Reset the index, drop the first column and rename the columns accordingly
         final_df.reset_index(inplace=True)
