@@ -12,9 +12,8 @@
 
 from typing import Any, List, Optional
 
-from antares.study.version import StudyVersion
-
 from antares.craft.model.district import District
+from antares.study.version import StudyVersion
 
 
 class APIError(Exception):
