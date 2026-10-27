@@ -1,4 +1,4 @@
-# Copyright (c) 2024, RTE (https://www.rte-france.com)
+# Copyright (c) 2024-2026, RTE (https://www.rte-france.com)
 #
 # See AUTHORS.txt
 #
@@ -23,11 +23,7 @@ from antares.study.version import StudyVersion
 
 
 class DistrictLocal(LocalBaseModel, extra="allow"):
-    """District definition in sets.ini, including its area selection rules.
-
-    Additional fields, such as the output filters introduced in 10.2, are
-    accepted even though they are not exposed by the user model.
-    """
+    """District definition in sets.ini."""
 
     name: str = Field(default="", alias="caption")
     output: bool = True
@@ -46,7 +42,6 @@ class DistrictLocal(LocalBaseModel, extra="allow"):
         return DistrictLocal.model_validate(values)
 
     def to_user_model(self, all_areas: list[str]) -> District:
-        # Match the effective areas returned by Antares Web's District.to_dto().
         if self.apply_filter == "add-all":
             areas = set(all_areas).difference(self.subtract_areas)
         else:

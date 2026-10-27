@@ -175,20 +175,7 @@ class Study:
         return MappingProxyType(self._districts)
 
     def create_districts(self, districts: list[District]) -> list[District]:
-        """Create several districts in the study.
-
-        Area identifiers must exist in the study. District names must follow
-        Antares Web naming rules and produce distinct identifiers, including
-        against existing districts. The whole batch is validated before writing.
-        API requests are sequential: if one fails, previously created districts
-        remain in the study and are available in the exception's `created_districts`.
-
-        Returns:
-            The created districts, with sorted, unique area identifiers.
-
-        Raises:
-            DistrictCreationError: If a name, duplicate or area is invalid.
-        """
+        """Create several districts in the study."""
         if not districts:
             return []
 
