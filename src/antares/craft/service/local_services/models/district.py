@@ -35,6 +35,7 @@ class DistrictLocal(LocalBaseModel, extra="allow"):
     @staticmethod
     def from_user_model(district: District, study_version: StudyVersion) -> "DistrictLocal":
         values = asdict(district)
+        values["comments"] = district.comments.strip()
         values["add_areas"] = sorted(set(values.pop("areas")))
         if study_version >= STUDY_VERSION_10_2:
             filters = join_with_comma(FILTER_VALUES)

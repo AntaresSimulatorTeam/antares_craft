@@ -115,7 +115,7 @@ def test_create_districts(request: pytest.FixtureRequest, study_fixture: str) ->
     study = read_study_local(Path(local_study.path))
     initial_districts = dict(study.get_districts())
     districts = [
-        District(name="Europe", areas=["it", "fr", "fr"], comments="Test district"),
+        District(name="Europe", areas=["it", "fr", "fr"], comments="  Test district  "),
         District(name="France", output=False, areas=["fr"]),
         District(name="Empty"),
     ]
