@@ -58,7 +58,7 @@ class DistrictLocalService(BaseDistrictService):
         existing_sections = set()
         section = ""
         lines = []
-        for line in text.splitlines(keepends=True):
+        for line in StringIO(text, newline=""):
             stripped = line.strip()
             if stripped.startswith("["):
                 section = stripped[1:-1]

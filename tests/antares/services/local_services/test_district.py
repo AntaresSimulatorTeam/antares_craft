@@ -244,6 +244,19 @@ def test_district_changes_preserve_rule_order(local_study_w_areas: Study, operat
     assert read_study_local(Path(study.path)).get_districts()["legacy"].areas == ["fr"]
 
 
+@pytest.mark.parametrize("separator", ["\v", "\x85", "\u2028", "\u2029"])
+def test_district_changes_preserve_comment_separators(local_study_w_areas: Study, separator: str) -> None:
+    study = local_study_w_areas
+    district = District("Existing", areas=["fr"], comments=f"First{separator}[comment]")
+    study.create_districts([district])
+
+    study.create_districts([District("New")])
+    assert read_study_local(Path(study.path)).get_districts()["existing"] == district
+
+    study.delete_district("new")
+    assert read_study_local(Path(study.path)).get_districts()["existing"] == district
+
+
 def test_districts_follow_area_changes(local_study_w_areas: Study) -> None:
     study = local_study_w_areas
     study.create_area("001")
