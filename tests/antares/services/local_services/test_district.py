@@ -59,6 +59,33 @@ apply-filter = add-all
     assert sets_path.read_bytes() == original_content
 
 
+@pytest.mark.parametrize(
+    "rules, expected_areas",
+    [
+        ("apply-filter = remove-all\n+ = fr\n+ = it\n- = it\n", ["fr"]),
+        ("+ = fr\n- = fr\n", []),
+        ("+ = fr\r- = fr\r", []),
+        ("+ = fr\n- = fr\n+ = fr\n", ["fr"]),
+        ("apply-filter = add-all\n- = it\n+ = it\n", ["fr", "it"]),
+        ("+ = fr\napply-filter = remove-all\n+ = it\n", ["it"]),
+        ("apply-filter = add-all\n- = fr\napply-filter = add-all\n- = it\n", ["fr"]),
+        ("apply-filter = add-all\napply-filter = remove-all\n+ = fr\n", ["fr"]),
+        ("+ = fr\n; - = fr\n# apply-filter = remove-all\n- = it\n", ["fr"]),
+        ("+ = fr\n[legacy]\n- = fr\n+ = it\n", ["it"]),
+    ],
+)
+def test_read_district_rules_in_order(local_study_w_areas: Study, rules: str, expected_areas: list[str]) -> None:
+    study = local_study_w_areas
+    sets_path = Path(study.path) / "input" / "areas" / "sets.ini"
+    sets_path.write_text("[legacy]\n" + rules, encoding="utf-8")
+    original_content = sets_path.read_bytes()
+
+    districts = read_study_local(Path(study.path)).get_districts()
+
+    assert districts["legacy"].areas == expected_areas
+    assert sets_path.read_bytes() == original_content
+
+
 def test_read_no_districts(local_study_w_areas: Study) -> None:
     sets_path = Path(local_study_w_areas.path) / "input" / "areas" / "sets.ini"
     sets_path.unlink()
@@ -66,9 +93,13 @@ def test_read_no_districts(local_study_w_areas: Study) -> None:
     assert read_study_local(Path(local_study_w_areas.path)).get_districts() == {}
 
 
-def test_read_invalid_district_raises_domain_error(local_study_w_areas: Study) -> None:
+@pytest.mark.parametrize(
+    "rules",
+    ["output = invalid\n", "apply-filter = invalid\n", "apply-filter = invalid\napply-filter = add-all\n"],
+)
+def test_read_invalid_district_raises_domain_error(local_study_w_areas: Study, rules: str) -> None:
     sets_path = Path(local_study_w_areas.path) / "input" / "areas" / "sets.ini"
-    sets_path.write_text("[bad]\noutput = invalid\n", encoding="utf-8")
+    sets_path.write_text("[bad]\n" + rules, encoding="utf-8")
 
     with pytest.raises(DistrictsRetrievalError, match="Could not retrieve districts from study 'studyTest'"):
         read_study_local(Path(local_study_w_areas.path))
@@ -185,6 +216,34 @@ def test_delete_unknown_district(local_study_w_areas: Study) -> None:
     assert study.get_districts() == initial_districts
 
 
+@pytest.mark.parametrize("operation", ["create", "delete", "delete_area"])
+@pytest.mark.parametrize("encoding", ["utf-8", "cp1252"])
+def test_district_changes_preserve_rule_order(local_study_w_areas: Study, operation: str, encoding: str) -> None:
+    study = local_study_w_areas
+    sets_path = Path(study.path) / "input" / "areas" / "sets.ini"
+    legacy = "[legacy]\r\n; Région française\r\napply-filter = remove-all\r\n+ = fr\r\n- = fr\r\n+ = fr"
+    to_delete = "[to delete]\r\n+ = it\r\n\r\n"
+    sets_path.write_bytes((to_delete + legacy).encode(encoding))
+    study = read_study_local(Path(study.path))
+
+    if operation == "create":
+        study.create_districts([District("New", areas=["it"])])
+    elif operation == "delete":
+        study.delete_district("to delete")
+    else:
+        study.delete_area(study.get_areas()["it"])
+
+    saved = sets_path.read_bytes().decode("utf-8")
+    if operation == "create":
+        assert saved.startswith(to_delete + legacy + "\n[new]\n")
+        assert read_study_local(Path(study.path)).get_districts()["new"].areas == ["it"]
+    elif operation == "delete":
+        assert saved == legacy
+    else:
+        assert saved == "[to delete]\r\n\r\n" + legacy
+    assert read_study_local(Path(study.path)).get_districts()["legacy"].areas == ["fr"]
+
+
 def test_districts_follow_area_changes(local_study_w_areas: Study) -> None:
     study = local_study_w_areas
     study.create_area("001")
@@ -196,7 +255,7 @@ def test_districts_follow_area_changes(local_study_w_areas: Study) -> None:
 
     study.create_area("de")
     assert study.get_districts()["all areas"].areas == ["001", "de", "fr", "it"]
-    assert study.get_districts()["legacy"].areas == ["001", "fr"]
+    assert study.get_districts()["legacy"].areas == ["fr"]
     study.delete_area(study.get_areas()["001"])
 
     assert study.get_districts()["all areas"].areas == ["de", "fr", "it"]

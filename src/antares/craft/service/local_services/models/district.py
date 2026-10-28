@@ -41,9 +41,6 @@ class DistrictLocal(LocalBaseModel, extra="allow"):
             values.update({"filter-synthesis": filters, "filter-year-by-year": filters})
         return DistrictLocal.model_validate(values)
 
-    def to_user_model(self, all_areas: list[str]) -> District:
-        if self.apply_filter == "add-all":
-            areas = set(all_areas).difference(self.subtract_areas)
-        else:
-            areas = set(self.add_areas)
-        return District(name=self.name, output=self.output, comments=self.comments, areas=sorted(areas))
+    def to_user_model(self, areas: list[str]) -> District:
+        """Build the district with area identifiers resolved from the ordered selection rules."""
+        return District(name=self.name, output=self.output, comments=self.comments, areas=sorted(set(areas)))
