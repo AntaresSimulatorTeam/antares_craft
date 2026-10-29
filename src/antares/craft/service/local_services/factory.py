@@ -160,6 +160,7 @@ def create_study_local(study_name: str, version: str, parent_directory: Path | s
     )
     update_settings = default_settings.to_update_settings()
     edit_study_settings(study_directory, update_settings, True, study_version)
+    # Initialize settings with default values and load districts from the new study.
     study._settings = default_settings
     district_service = cast(DistrictLocalService, local_services.district_service)
     study._districts = district_service.read_districts([])
