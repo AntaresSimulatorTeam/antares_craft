@@ -17,13 +17,13 @@ from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import DistrictCreationError, DistrictDeletionError, DistrictsRetrievalError
-from antares.craft.model.district import District
+from antares.craft.model.district import District, DistrictProperties
 from antares.craft.service.base_services import BaseDistrictService
 from antares.craft.service.local_services.models.district import DistrictLocal
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.serde_local.ini_common import any_section_option_matcher
 from antares.craft.tools.serde_local.ini_reader import IniReader
-from antares.craft.tools.serde_local.ini_writer import IniConfigParser
+from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.study.version import StudyVersion
 
 
@@ -48,39 +48,12 @@ class DistrictLocalService(BaseDistrictService):
             ["+", "-"],
             value_parsers={any_section_option_matcher(key): str for key in ["caption", "comments", "+", "-"]},
         )
-        return reader.read(StringIO(self._read_ini_text() if text is None else text, newline=None))
+        path = self.config.study_path / "input" / "areas" / "sets.ini"
+        return reader.read(path if text is None else StringIO(text, newline=None))
 
     def _save_ini(self, content: dict[str, Any]) -> None:
-        # Keep existing rules in order: regrouping repeated +, - or apply-filter keys changes their meaning.
         path = self.config.study_path / "input" / "areas" / "sets.ini"
-        text = self._read_ini_text()
-
-        existing_sections = set()
-        section = ""
-        lines = []
-        for line in StringIO(text, newline=""):
-            stripped = line.strip()
-            if stripped.startswith("["):
-                section = stripped[1:-1]
-                existing_sections.add(section)
-            if section:
-                if section not in content:
-                    continue
-                key, separator, value = stripped.partition("=")
-                if separator and key.strip() in {"+", "-"}:
-                    if value.strip() not in content[section].get(key.strip(), []):
-                        continue
-            lines.append(line)
-
-        new_sections = {key: value for key, value in content.items() if key not in existing_sections}
-        writer = IniConfigParser(special_keys=["+", "-"])
-        writer.read_dict(new_sections)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("w", encoding="utf-8", newline="") as stream:
-            stream.writelines(lines)
-            if new_sections and lines and not lines[-1].endswith(("\n", "\r")):
-                stream.write("\n")
-            writer.write(stream)
+        IniWriter(special_keys=["+", "-"]).write(content, path)
 
     @override
     def read_districts(self, all_areas: list[str]) -> dict[str, District]:
@@ -111,8 +84,13 @@ class DistrictLocalService(BaseDistrictService):
                         raise ValueError(f"Invalid district filter: {value!r}")
 
             return {
-                district_id: DistrictLocal.model_validate({"caption": district_id, **values}).to_user_model(
-                    list(selected_areas[district_id])
+                district_id: District(
+                    values.get("caption", district_id),
+                    self,
+                    DistrictLocal.model_validate({"caption": district_id, **values}).to_properties_user_model(
+                        list(selected_areas[district_id]), self.study_version
+                    ),
+                    district_id=district_id,
                 )
                 for district_id, values in content.items()
             }
@@ -120,18 +98,20 @@ class DistrictLocalService(BaseDistrictService):
             raise DistrictsRetrievalError(self.study_name, str(e)) from e
 
     @override
-    def create_districts(self, districts: list[District]) -> list[District]:
+    def create_districts(self, districts: dict[str, DistrictProperties]) -> list[District]:
         current_content = self.read_ini()
         created = []
-        for district in districts:
-            if "\n" in district.comments or "\r" in district.comments:
-                raise DistrictCreationError(district.name, "Multiline comments are not supported in local studies")
-            district_id = transform_name_to_id(district.name)
+        for name, properties in districts.items():
+            if "\n" in properties.comments or "\r" in properties.comments:
+                raise DistrictCreationError(name, "Multiline comments are not supported in local studies")
+            district_id = transform_name_to_id(name)
             if district_id in current_content:
-                raise DistrictCreationError(district.name, f"District '{district_id}' already exists")
-            local_model = DistrictLocal.from_user_model(district, self.study_version)
-            current_content[district_id] = local_model.model_dump(mode="json", by_alias=True)
-            created.append(local_model.to_user_model(local_model.add_areas))
+                raise DistrictCreationError(name, f"District '{district_id}' already exists")
+            local_model = DistrictLocal.from_user_model(name, properties, self.study_version)
+            current_content[district_id] = local_model.model_dump(mode="json", by_alias=True, exclude_none=True)
+            created.append(
+                District(name, self, local_model.to_properties_user_model(local_model.add_areas, self.study_version))
+            )
 
         self._save_ini(current_content)
         return created

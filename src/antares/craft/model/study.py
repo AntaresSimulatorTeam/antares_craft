@@ -27,6 +27,8 @@ from antares.craft import (
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
     DistrictCreationError,
+    DistrictsRetrievalError,
+    InvalidFieldForVersionError,
     LinkCreationError,
     ReferencedObjectDeletionNotAllowed,
     UnsupportedStudyVersion,
@@ -43,7 +45,7 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.commons import STUDY_VERSION_8_8, STUDY_VERSION_9_2, STUDY_VERSION_9_3, STUDY_VERSION_10_2
-from antares.craft.model.district import District
+from antares.craft.model.district import District, DistrictProperties
 from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi
 from antares.craft.model.output import Output
 from antares.craft.model.renewable import RenewableCluster, RenewableClusterPropertiesUpdate
@@ -170,39 +172,48 @@ class Study:
 
         Returns:
             A read-only mapping from district identifiers to `District` objects.
-            Area identifiers are refreshed when an area is created or deleted.
+            Deleted areas are removed from districts in memory. Area filters are
+            evaluated when the study is loaded, not when an area is created.
         """
         return MappingProxyType(self._districts)
 
-    def create_districts(self, districts: list[District]) -> list[District]:
-        """Create several districts in the study."""
+    def create_districts(self, districts: dict[str, DistrictProperties]) -> list[District]:
+        """Create districts from a mapping of names to properties."""
         if not districts:
             return []
 
         district_ids = set(self._districts)
-        for district in districts:
-            district_id = transform_name_to_id(district.name)
+        for name, properties in districts.items():
+            if self._version < STUDY_VERSION_10_2:
+                for field in ("filter_synthesis", "filter_year_by_year"):
+                    if getattr(properties, field) is not None:
+                        raise InvalidFieldForVersionError(
+                            f"Field {field} is not a valid field for study version {self._version}"
+                        )
+            district_id = transform_name_to_id(name)
             if not district_id:
-                raise DistrictCreationError(district.name, "The district identifier must not be empty")
+                raise DistrictCreationError(name, "The district identifier must not be empty")
             if district_id in district_ids:
-                raise DistrictCreationError(district.name, f"District '{district_id}' already exists")
-            missing_areas = sorted(set(district.areas).difference(self._areas))
+                raise DistrictCreationError(name, f"District '{district_id}' already exists")
+            missing_areas = sorted(set(properties.areas).difference(self._areas))
             if missing_areas:
-                raise DistrictCreationError(district.name, f"Areas do not exist: {', '.join(missing_areas)}")
-            if district_id != district.name.lower():
-                raise DistrictCreationError(
-                    district.name,
-                    "The name must contain only ASCII letters, digits, spaces and _(),&- "
-                    "and must not start or end with spaces",
-                )
+                raise DistrictCreationError(name, f"Areas do not exist: {', '.join(missing_areas)}")
             district_ids.add(district_id)
 
         try:
             created = self._district_service.create_districts(districts)
         except DistrictCreationError as e:
-            self._districts.update({transform_name_to_id(district.name): district for district in e.created_districts})
+            if e.created_districts:
+                try:
+                    persisted = self._district_service.read_districts(list(self._areas))
+                    self._districts.update(
+                        {key: district for key, district in persisted.items() if district.name in e.created_districts}
+                    )
+                except DistrictsRetrievalError:
+                    # Preserve the creation error if refreshing the successful creations also fails.
+                    pass
             raise
-        self._districts.update({transform_name_to_id(district.name): district for district in created})
+        self._districts.update({district.id: district for district in created})
         return created
 
     def delete_district(self, district_id: str) -> None:
@@ -253,7 +264,6 @@ class Study:
         """
         area = self._area_service.create_area(area_name, properties, ui)
         self._areas[area.id] = area
-        self._read_districts()
         return area
 
     def delete_area(self, area: Area) -> None:
@@ -285,7 +295,8 @@ class Study:
                 links_to_remove.append(link_id)
         for link_id in links_to_remove:
             self._links.pop(link_id)
-        self._read_districts()
+        for district in self._districts.values():
+            district.properties.areas[:] = [area_id for area_id in district.properties.areas if area_id != area.id]
 
     def create_link(
         self,

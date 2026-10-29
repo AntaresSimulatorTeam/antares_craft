@@ -13,12 +13,13 @@
 from dataclasses import asdict
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from antares.craft.model.commons import STUDY_VERSION_10_2
-from antares.craft.model.district import District
+from antares.craft.model.district import DistrictProperties
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
-from antares.craft.tools.utils import FILTER_VALUES, join_with_comma
+from antares.craft.service.local_services.models.utils import check_min_version, initialize_field_default
+from antares.craft.tools.utils import FILTER_VALUES, filtering_option
 from antares.study.version import StudyVersion
 
 
@@ -31,17 +32,37 @@ class DistrictLocal(LocalBaseModel, extra="allow"):
     apply_filter: Literal["add-all", "remove-all"] = Field(default="remove-all", alias="apply-filter")
     add_areas: list[str] = Field(default_factory=list, alias="+")
     subtract_areas: list[str] = Field(default_factory=list, alias="-")
+    filter_synthesis: filtering_option | None = Field(default=None, alias="filter-synthesis")
+    filter_year_by_year: filtering_option | None = Field(default=None, alias="filter-year-by-year")
+
+    @field_validator("filter_synthesis", "filter_year_by_year", mode="before")
+    @classmethod
+    def preserve_empty_filters(cls, value: object) -> object:
+        return set() if value == "" else value
+
+    def initialize_with_version(self, study_version: StudyVersion) -> None:
+        for field in ("filter_synthesis", "filter_year_by_year"):
+            if study_version < STUDY_VERSION_10_2:
+                check_min_version(self, field, study_version)
+            else:
+                initialize_field_default(self, field, FILTER_VALUES.copy())
 
     @staticmethod
-    def from_user_model(district: District, study_version: StudyVersion) -> "DistrictLocal":
-        values = asdict(district)
-        values["comments"] = district.comments.strip()
+    def from_user_model(name: str, properties: DistrictProperties, study_version: StudyVersion) -> "DistrictLocal":
+        values = {"name": name, **asdict(properties)}
+        values["comments"] = properties.comments.strip()
         values["add_areas"] = sorted(set(values.pop("areas")))
-        if study_version >= STUDY_VERSION_10_2:
-            filters = join_with_comma(FILTER_VALUES)
-            values.update({"filter-synthesis": filters, "filter-year-by-year": filters})
-        return DistrictLocal.model_validate(values)
+        model = DistrictLocal.model_validate(values)
+        model.initialize_with_version(study_version)
+        return model
 
-    def to_user_model(self, areas: list[str]) -> District:
+    def to_properties_user_model(self, areas: list[str], study_version: StudyVersion) -> DistrictProperties:
         """Build the district with area identifiers resolved from the ordered selection rules."""
-        return District(name=self.name, output=self.output, comments=self.comments, areas=sorted(set(areas)))
+        self.initialize_with_version(study_version)
+        return DistrictProperties(
+            output=self.output,
+            comments=self.comments,
+            areas=sorted(set(areas)),
+            filter_synthesis=self.filter_synthesis,
+            filter_year_by_year=self.filter_year_by_year,
+        )

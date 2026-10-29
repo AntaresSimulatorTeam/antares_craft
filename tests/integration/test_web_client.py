@@ -138,43 +138,61 @@ class TestWebClient:
         assert study.get_links() == {link_be_fr.id: link_be_fr, link_de_fr.id: link_de_fr}
 
         # Tests district creation and reading
-        initial_districts = dict(study.get_districts())
-        districts = [
-            District(name="Europe", areas=["fr", "be", "fr"], comments="Test district"),
-            District(name="France", output=False, areas=["fr"]),
-            District(name="Empty", output=False),
-        ]
+        # Reload to evaluate district filters after creating areas.
+        study = read_study_api(api_config, study.service.study_id)
+        initial_districts = {key: district.properties for key, district in study.get_districts().items()}
+        districts = {
+            "Europe": DistrictProperties(areas=["fr", "be", "fr"], comments="Test district"),
+            "France": DistrictProperties(output=False, areas=["fr"]),
+            "Empty": DistrictProperties(output=False),
+        }
         created = study.create_districts(districts)
-        assert created == [District(name="Europe", areas=["be", "fr"], comments="Test district"), *districts[1:]]
-        expected_districts = initial_districts | dict(zip(["europe", "france", "empty"], created))
-        assert study.get_districts() == expected_districts
-        assert read_study_api(api_config, study.service.study_id).get_districts() == expected_districts
-        assert study.create_districts([]) == []
+        assert [district.properties for district in created] == [
+            DistrictProperties(areas=["be", "fr"], comments="Test district"),
+            *list(districts.values())[1:],
+        ]
+        expected_districts = initial_districts | dict(
+            zip(["europe", "france", "empty"], [district.properties for district in created])
+        )
+        assert {key: district.properties for key, district in study.get_districts().items()} == expected_districts
+        assert {
+            key: district.properties
+            for key, district in read_study_api(api_config, study.service.study_id).get_districts().items()
+        } == expected_districts
+        assert study.create_districts({}) == []
 
         # Tests a creation conflict after another client creates a district
         other_study = read_study_api(api_config, study.service.study_id)
-        other_study.create_districts([District(name="Existing", output=False)])
+        other_study.create_districts({"Existing": DistrictProperties(output=False)})
         with pytest.raises(DistrictCreationError) as error:
             study.create_districts(
-                [District(name="First district", output=False), District(name="Existing"), District(name="Third")]
+                {
+                    "First district": DistrictProperties(output=False),
+                    "Existing": DistrictProperties(),
+                    "Third": DistrictProperties(),
+                }
             )
-        assert error.value.created_districts == [District(name="First district", output=False)]
-        expected_districts["first district"] = District(name="First district", output=False)
-        assert study.get_districts() == expected_districts
-        assert read_study_api(api_config, study.service.study_id).get_districts() == expected_districts | {
-            "existing": District(name="Existing", output=False)
-        }
+        assert error.value.created_districts == ["First district"]
+        expected_districts["first district"] = DistrictProperties(output=False)
+        assert {key: district.properties for key, district in study.get_districts().items()} == expected_districts
+        assert {
+            key: district.properties
+            for key, district in read_study_api(api_config, study.service.study_id).get_districts().items()
+        } == expected_districts | {"existing": DistrictProperties(output=False)}
         other_study.delete_district("existing")
 
         # Tests district deletion
         for district_id in ["first district", "empty", "france", "europe"]:
             study.delete_district(district_id)
             expected_districts.pop(district_id)
-        assert study.get_districts() == expected_districts
-        assert read_study_api(api_config, study.service.study_id).get_districts() == expected_districts
+        assert {key: district.properties for key, district in study.get_districts().items()} == expected_districts
+        assert {
+            key: district.properties
+            for key, district in read_study_api(api_config, study.service.study_id).get_districts().items()
+        } == expected_districts
         with pytest.raises(DistrictDeletionError):
             study.delete_district("unknown")
-        assert study.get_districts() == expected_districts
+        assert {key: district.properties for key, district in study.get_districts().items()} == expected_districts
 
         # test thermal cluster creation with default values
         thermal_name = "Cluster_test %?"
@@ -1769,9 +1787,15 @@ class TestWebClient:
         assert study.get_settings().optimization_parameters.include_reserves is True
 
         # Tests district creation in 10.2
-        district = District(name="Europe", areas=["be", "fr"], comments="Test district")
-        assert study.create_districts([district]) == [district]
-        assert study.get_districts()["europe"] == district
+        district = DistrictProperties(
+            areas=["be", "fr"],
+            comments="Test district",
+            filter_synthesis={FilterOption.DAILY},
+            filter_year_by_year={FilterOption.MONTHLY},
+        )
+        assert study.create_districts({"Europe": district})[0].properties == district
+        assert study.get_districts()["europe"].properties == district
+        assert read_study_api(api_config, study.service.study_id).get_districts()["europe"].properties == district
 
         # todo: Add tests on reserves here once they will be implemented
 

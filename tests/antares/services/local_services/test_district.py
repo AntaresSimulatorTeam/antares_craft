@@ -12,10 +12,18 @@
 
 import pytest
 
+from dataclasses import replace
 from pathlib import Path
+from unittest.mock import patch
 
-from antares.craft import District, Study, read_study_local
-from antares.craft.exceptions.exceptions import DistrictCreationError, DistrictDeletionError, DistrictsRetrievalError
+from antares.craft import DistrictProperties, Study, read_study_local
+from antares.craft.exceptions.exceptions import (
+    DistrictCreationError,
+    DistrictDeletionError,
+    DistrictsRetrievalError,
+    InvalidFieldForVersionError,
+)
+from antares.craft.model.commons import FilterOption
 from antares.craft.tools.serde_local.ini_reader import IniReader
 
 
@@ -48,14 +56,14 @@ apply-filter = add-all
 
     districts = read_study_local(Path(study.path)).get_districts()
 
-    assert districts == {
-        "all areas": District(
-            name="All areas", output=False, comments="Spatial aggregates on all areas", areas=["fr", "it"]
-        ),
-        "group_one": District(name="Europe", comments="A custom district", areas=["fr", "it"]),
-        "group_two": District(name="Europe", areas=["fr"]),
-        "empty": District(name="empty"),
+    assert {key: district.properties for key, district in districts.items()} == {
+        "all areas": DistrictProperties(output=False, comments="Spatial aggregates on all areas", areas=["fr", "it"]),
+        "group_one": DistrictProperties(comments="A custom district", areas=["fr", "it"]),
+        "group_two": DistrictProperties(areas=["fr"]),
+        "empty": DistrictProperties(),
     }
+    assert {key: district.id for key, district in districts.items()} == {key: key for key in districts}
+    assert districts["group_one"].name == "Europe"
     assert sets_path.read_bytes() == original_content
 
 
@@ -82,7 +90,7 @@ def test_read_district_rules_in_order(local_study_w_areas: Study, rules: str, ex
 
     districts = read_study_local(Path(study.path)).get_districts()
 
-    assert districts["legacy"].areas == expected_areas
+    assert districts["legacy"].properties.areas == expected_areas
     assert sets_path.read_bytes() == original_content
 
 
@@ -113,19 +121,30 @@ def test_create_districts(request: pytest.FixtureRequest, study_fixture: str) ->
         stream.write("\n[existing]\ncaption = Existing\ncustom-field = preserved\n- = it\n")
     original = IniReader(["+", "-"]).read(sets_path)
     study = read_study_local(Path(local_study.path))
-    initial_districts = dict(study.get_districts())
-    districts = [
-        District(name="Europe", areas=["it", "fr", "fr"], comments="  Test district  "),
-        District(name="France", output=False, areas=["fr"]),
-        District(name="Empty"),
-    ]
+    initial_districts = {key: district.properties for key, district in study.get_districts().items()}
+    districts = {
+        "Europe": DistrictProperties(areas=["it", "fr", "fr"], comments="  Test district  "),
+        "France": DistrictProperties(output=False, areas=["fr"]),
+        "Empty": DistrictProperties(),
+        "Bad/name": DistrictProperties(),
+    }
 
     created = study.create_districts(districts)
 
-    assert created == [District(name="Europe", areas=["fr", "it"], comments="Test district"), *districts[1:]]
-    expected = initial_districts | dict(zip(["europe", "france", "empty"], created))
-    assert study.get_districts() == expected
-    assert read_study_local(Path(study.path)).get_districts() == expected
+    expected_created = [DistrictProperties(areas=["fr", "it"], comments="Test district"), *list(districts.values())[1:]]
+    if study_fixture == "local_study_10_2":
+        expected_created = [
+            replace(district, filter_synthesis=set(FilterOption), filter_year_by_year=set(FilterOption))
+            for district in expected_created
+        ]
+    assert [district.properties for district in created] == expected_created
+    assert [district.name for district in created] == list(districts)
+    assert [district.id for district in created] == ["europe", "france", "empty", "bad name"]
+    expected = initial_districts | dict(zip(["europe", "france", "empty", "bad name"], expected_created))
+    assert {key: district.properties for key, district in study.get_districts().items()} == expected
+    assert {
+        key: district.properties for key, district in read_study_local(Path(study.path)).get_districts().items()
+    } == expected
     content = IniReader(["+", "-"]).read(sets_path)
     assert {key: content[key] for key in original} == original
     assert content["europe"]["apply-filter"] == "remove-all"
@@ -136,68 +155,93 @@ def test_create_districts(request: pytest.FixtureRequest, study_fixture: str) ->
         else:
             assert key not in content["europe"]
     before = sets_path.read_bytes()
-    assert study.create_districts([]) == []
+    assert study.create_districts({}) == []
     assert sets_path.read_bytes() == before
+
+    padded = study.create_districts({" padded ": DistrictProperties()})[0]
+    assert study.get_districts()["padded"] == padded
+
+    filtered = DistrictProperties(filter_synthesis={FilterOption.DAILY}, filter_year_by_year=set())
+    if study_fixture == "local_study_10_2":
+        assert study.create_districts({"Filtered": filtered})[0].properties == filtered
+        assert read_study_local(Path(study.path)).get_districts()["filtered"].properties == filtered
+    else:
+        with pytest.raises(InvalidFieldForVersionError):
+            study.create_districts({"Filtered": filtered})
 
 
 @pytest.mark.parametrize(
     "districts, message",
     [
-        ([District("France"), District("FRANCE")], "already exists"),
-        ([District("Valid"), District("Missing", areas=["unknown"])], "Areas do not exist: unknown"),
-        ([District("Valid"), District("Bad/name")], "name must contain"),
-        ([District("Valid"), District(" padded ")], "name must contain"),
-        ([District("Valid"), District("EXISTING")], "already exists"),
-        ([District("Valid"), District("")], "identifier must not be empty"),
-        ([District("Valid"), District("   ")], "identifier must not be empty"),
-        ([District("Valid"), District("Europe", comments="Line 1\nLine 2")], "Multiline comments"),
-        ([District("Valid"), District("Europe", comments="Line 1\rLine 2")], "Multiline comments"),
-        ([District("Valid"), District("Europe", comments="Line 1\r\nLine 2")], "Multiline comments"),
+        ({"France": DistrictProperties(), "FRANCE": DistrictProperties()}, "already exists"),
+        (
+            {"Valid": DistrictProperties(), "Missing": DistrictProperties(areas=["unknown"])},
+            "Areas do not exist: unknown",
+        ),
+        ({"Valid": DistrictProperties(), "EXISTING": DistrictProperties()}, "already exists"),
+        ({"Valid": DistrictProperties(), "": DistrictProperties()}, "identifier must not be empty"),
+        ({"Valid": DistrictProperties(), "   ": DistrictProperties()}, "identifier must not be empty"),
+        (
+            {"Valid": DistrictProperties(), "Europe": DistrictProperties(comments="Line 1\nLine 2")},
+            "Multiline comments",
+        ),
+        (
+            {"Valid": DistrictProperties(), "Europe": DistrictProperties(comments="Line 1\rLine 2")},
+            "Multiline comments",
+        ),
+        (
+            {"Valid": DistrictProperties(), "Europe": DistrictProperties(comments="Line 1\r\nLine 2")},
+            "Multiline comments",
+        ),
     ],
 )
 def test_create_districts_rejects_invalid_batch(
-    local_study_w_areas: Study, districts: list[District], message: str
+    local_study_w_areas: Study, districts: dict[str, DistrictProperties], message: str
 ) -> None:
     study = local_study_w_areas
-    study.create_districts([District("Existing")])
+    study.create_districts({"Existing": DistrictProperties()})
     sets_path = Path(study.path) / "input" / "areas" / "sets.ini"
     before = sets_path.read_bytes()
-    initial_districts = dict(study.get_districts())
+    initial_districts = {key: district.properties for key, district in study.get_districts().items()}
 
     with pytest.raises(DistrictCreationError, match=message):
         study.create_districts(districts)
 
     assert sets_path.read_bytes() == before
-    assert study.get_districts() == initial_districts
+    assert {key: district.properties for key, district in study.get_districts().items()} == initial_districts
 
 
 def test_create_districts_checks_existing_file(local_study_w_areas: Study) -> None:
     study = local_study_w_areas
-    read_study_local(Path(study.path)).create_districts([District("Existing")])
+    read_study_local(Path(study.path)).create_districts({"Existing": DistrictProperties()})
     sets_path = Path(study.path) / "input" / "areas" / "sets.ini"
     before = sets_path.read_bytes()
-    initial_districts = dict(study.get_districts())
+    initial_districts = {key: district.properties for key, district in study.get_districts().items()}
 
     with pytest.raises(DistrictCreationError, match="already exists"):
-        study.create_districts([District("Valid"), District("Existing")])
+        study.create_districts({"Valid": DistrictProperties(), "Existing": DistrictProperties()})
 
     assert sets_path.read_bytes() == before
-    assert study.get_districts() == initial_districts
+    assert {key: district.properties for key, district in study.get_districts().items()} == initial_districts
 
 
 def test_delete_district(local_study_w_areas: Study) -> None:
     study = read_study_local(Path(local_study_w_areas.path))
-    study.create_districts([District("To delete", areas=["fr"]), District("Keep", output=False, areas=["it"])])
+    study.create_districts(
+        {"To delete": DistrictProperties(areas=["fr"]), "Keep": DistrictProperties(output=False, areas=["it"])}
+    )
     sets_path = Path(study.path) / "input" / "areas" / "sets.ini"
     expected_content = IniReader(["+", "-"]).read(sets_path)
     expected_content.pop("to delete")
-    expected_districts = dict(study.get_districts())
+    expected_districts = {key: district.properties for key, district in study.get_districts().items()}
     expected_districts.pop("to delete")
 
     study.delete_district("to delete")
 
-    assert study.get_districts() == expected_districts
-    assert read_study_local(Path(study.path)).get_districts() == expected_districts
+    assert {key: district.properties for key, district in study.get_districts().items()} == expected_districts
+    assert {
+        key: district.properties for key, district in read_study_local(Path(study.path)).get_districts().items()
+    } == expected_districts
     assert IniReader(["+", "-"]).read(sets_path) == expected_content
 
 
@@ -205,7 +249,7 @@ def test_delete_unknown_district(local_study_w_areas: Study) -> None:
     study = read_study_local(Path(local_study_w_areas.path))
     sets_path = Path(study.path) / "input" / "areas" / "sets.ini"
     before = sets_path.read_bytes()
-    initial_districts = dict(study.get_districts())
+    initial_districts = {key: district.properties for key, district in study.get_districts().items()}
 
     with pytest.raises(
         DistrictDeletionError, match="Could not delete the district 'unknown': The district does not exist"
@@ -213,12 +257,12 @@ def test_delete_unknown_district(local_study_w_areas: Study) -> None:
         study.delete_district("unknown")
 
     assert sets_path.read_bytes() == before
-    assert study.get_districts() == initial_districts
+    assert {key: district.properties for key, district in study.get_districts().items()} == initial_districts
 
 
 @pytest.mark.parametrize("operation", ["create", "delete", "delete_area"])
 @pytest.mark.parametrize("encoding", ["utf-8", "cp1252"])
-def test_district_changes_preserve_rule_order(local_study_w_areas: Study, operation: str, encoding: str) -> None:
+def test_district_changes_write_grouped_rules(local_study_w_areas: Study, operation: str, encoding: str) -> None:
     study = local_study_w_areas
     sets_path = Path(study.path) / "input" / "areas" / "sets.ini"
     legacy = "[legacy]\r\n; Région française\r\napply-filter = remove-all\r\n+ = fr\r\n- = fr\r\n+ = fr"
@@ -227,51 +271,61 @@ def test_district_changes_preserve_rule_order(local_study_w_areas: Study, operat
     study = read_study_local(Path(study.path))
 
     if operation == "create":
-        study.create_districts([District("New", areas=["it"])])
+        study.create_districts({"New": DistrictProperties(areas=["it"])})
     elif operation == "delete":
         study.delete_district("to delete")
     else:
         study.delete_area(study.get_areas()["it"])
 
-    saved = sets_path.read_bytes().decode("utf-8")
+    saved = IniReader(["+", "-"]).read(sets_path)
+    assert saved["legacy"] == {"apply-filter": "remove-all", "+": ["fr", "fr"], "-": ["fr"]}
     if operation == "create":
-        assert saved.startswith(to_delete + legacy + "\n[new]\n")
-        assert read_study_local(Path(study.path)).get_districts()["new"].areas == ["it"]
+        assert read_study_local(Path(study.path)).get_districts()["new"].properties.areas == ["it"]
     elif operation == "delete":
-        assert saved == legacy
+        assert "to delete" not in saved
     else:
-        assert saved == "[to delete]\r\n\r\n" + legacy
-    assert read_study_local(Path(study.path)).get_districts()["legacy"].areas == ["fr"]
+        assert saved["to delete"] == {}
+    assert read_study_local(Path(study.path)).get_districts()["legacy"].properties.areas == []
 
 
 @pytest.mark.parametrize("separator", ["\v", "\x85", "\u2028", "\u2029"])
 def test_district_changes_preserve_comment_separators(local_study_w_areas: Study, separator: str) -> None:
     study = local_study_w_areas
-    district = District("Existing", areas=["fr"], comments=f"First{separator}[comment]")
-    study.create_districts([district])
+    district = DistrictProperties(areas=["fr"], comments=f"First{separator}[comment]")
+    study.create_districts({"Existing": district})
 
-    study.create_districts([District("New")])
-    assert read_study_local(Path(study.path)).get_districts()["existing"] == district
+    study.create_districts({"New": DistrictProperties()})
+    assert read_study_local(Path(study.path)).get_districts()["existing"].properties == district
 
     study.delete_district("new")
-    assert read_study_local(Path(study.path)).get_districts()["existing"] == district
+    assert read_study_local(Path(study.path)).get_districts()["existing"].properties == district
 
 
 def test_districts_follow_area_changes(local_study_w_areas: Study) -> None:
     study = local_study_w_areas
     study.create_area("001")
-    assert study.get_districts()["all areas"].areas == ["001", "fr", "it"]
     sets_path = Path(study.path) / "input" / "areas" / "sets.ini"
     with sets_path.open("a") as stream:
         stream.write("\n[legacy]\ncaption = 001\n+ = 001\n+ = 001\n+ = fr\n- = 001\ncomments = true\n")
     study = read_study_local(Path(study.path))
+    study.create_districts({"Explicit": DistrictProperties(areas=["001", "fr"])})
+    districts = study.get_districts()
+    all_areas = districts["all areas"]
+    assert all_areas.properties.areas == ["001", "fr", "it"]
 
-    study.create_area("de")
-    assert study.get_districts()["all areas"].areas == ["001", "de", "fr", "it"]
-    assert study.get_districts()["legacy"].areas == ["fr"]
-    study.delete_area(study.get_areas()["001"])
+    with patch.object(study._district_service, "read_districts") as read_districts:
+        study.create_area("de")
+        assert all_areas.properties.areas == ["001", "fr", "it"]
+        assert districts["legacy"].properties.areas == ["fr"]
+        study.delete_area(study.get_areas()["001"])
+        read_districts.assert_not_called()
 
-    assert study.get_districts()["all areas"].areas == ["de", "fr", "it"]
-    assert study.get_districts()["legacy"] == District("001", comments="true", areas=["fr"])
-    assert read_study_local(Path(study.path)).get_districts() == study.get_districts()
+    assert study.get_districts()["all areas"] is all_areas
+    assert all_areas.properties.areas == ["fr", "it"]
+    assert districts["explicit"].properties.areas == ["fr"]
+    assert study.get_districts()["legacy"].properties == DistrictProperties(comments="true", areas=["fr"])
+    reloaded_districts = read_study_local(Path(study.path)).get_districts()
+    assert reloaded_districts["all areas"].properties.areas == ["de", "fr", "it"]
+    assert reloaded_districts["explicit"].properties == districts["explicit"].properties
+    assert reloaded_districts["legacy"].properties == districts["legacy"].properties
     assert "001" not in IniReader(["+", "-"]).read(sets_path)["legacy"].get("-", [])

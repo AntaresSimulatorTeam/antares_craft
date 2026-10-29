@@ -82,6 +82,7 @@ from antares.craft.service.api_services.services.xpansion import XpansionAPIServ
 from antares.craft.service.base_services import (
     BaseAreaService,
     BaseBindingConstraintService,
+    BaseDistrictService,
     BaseLinkService,
     BaseXpansionService,
     StudyServices,
@@ -221,7 +222,7 @@ def read_study_api(api_config: APIconf, study_id: str) -> Study:
     study._areas = _read_areas(json_api, services.area_service)
 
     # Districts
-    study._districts = _read_districts(json_api, study_id)
+    study._districts = _read_districts(json_api, study_id, services.district_service)
 
     # Outputs
     study._read_outputs()
@@ -234,9 +235,9 @@ def read_outputs_api(api_config: APIconf, study_id: str) -> dict[str, Output]:
     return services.study_service.read_outputs()
 
 
-def _read_districts(body: dict[str, Any], study_id: str) -> dict[str, District]:
+def _read_districts(body: dict[str, Any], study_id: str, service: BaseDistrictService) -> dict[str, District]:
     try:
-        return parse_districts_api(body["districts"])
+        return parse_districts_api(body["districts"], service)
     except (ValueError, KeyError) as e:
         raise DistrictsRetrievalError(study_id, str(e)) from e
 

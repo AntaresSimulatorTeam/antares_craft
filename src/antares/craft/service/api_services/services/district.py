@@ -23,7 +23,7 @@ from antares.craft.exceptions.exceptions import (
     DistrictDeletionError,
     DistrictsRetrievalError,
 )
-from antares.craft.model.district import District
+from antares.craft.model.district import District, DistrictProperties
 from antares.craft.service.api_services.models.district import DistrictAPI, parse_districts_api
 from antares.craft.service.base_services import BaseDistrictService
 
@@ -40,20 +40,24 @@ class DistrictApiService(BaseDistrictService):
     def read_districts(self, all_areas: list[str]) -> dict[str, District]:
         try:
             response = self._wrapper.get(f"{self._base_url}/studies/{self.study_id}/districts")
-            return parse_districts_api(response.json())
+            return parse_districts_api(response.json(), self)
         except (APIError, RequestException, ValueError, KeyError) as e:
             raise DistrictsRetrievalError(self.study_id, str(e)) from e
 
     @override
-    def create_districts(self, districts: list[District]) -> list[District]:
-        created = []
-        for district in districts:
+    def create_districts(self, districts: dict[str, DistrictProperties]) -> list[District]:
+        created: list[District] = []
+        for name, properties in districts.items():
             try:
-                body = DistrictAPI.from_user_model(district).model_dump(mode="json", by_alias=True)
+                body = DistrictAPI.from_user_model(name, properties).model_dump(
+                    mode="json", by_alias=True, exclude_none=True
+                )
                 response = self._wrapper.post(f"{self._base_url}/studies/{self.study_id}/districts", json=body)
-                created.append(DistrictAPI.model_validate(response.json()).to_user_model())
-            except (APIError, RequestException, ValueError) as e:
-                raise DistrictCreationError(district.name, str(e), created_districts=created) from e
+                created.extend(parse_districts_api([response.json()], self).values())
+            except (APIError, RequestException, ValueError, KeyError) as e:
+                raise DistrictCreationError(
+                    name, str(e), created_districts=[district.name for district in created]
+                ) from e
         return created
 
     @override
