@@ -1790,7 +1790,7 @@ class TestWebClient:
         )
         assert study.create_districts({"Europe": district})[0].properties == district
         assert study.get_districts()["europe"].properties == district
-        # AntaresWeb 2.36 cannot reload populated 10.2 studies through /data.
+        # Fetch the saved filters from the server; get_districts() only reads the in-memory state.
         with api_config.set_up_api_conf() as session:
             response = session.get(f"{api_config.get_host()}/api/v1/studies/{study.service.study_id}/districts")
             response.raise_for_status()

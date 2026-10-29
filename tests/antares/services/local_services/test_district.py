@@ -294,33 +294,33 @@ def test_district_changes_preserve_comment_separators(local_study_w_areas: Study
 
 def test_districts_follow_area_changes(local_study_w_areas: Study) -> None:
     study = local_study_w_areas
-    study.create_area("001")
+    study.create_area("es")
     sets_path = Path(study.path) / "input" / "areas" / "sets.ini"
     with sets_path.open("a") as stream:
         stream.write("""
-[numeric_area]
-caption = Numeric area district
-+ = 001
-+ = 001
+[custom_area]
+caption = Custom area district
++ = es
++ = es
 + = fr
-- = 001
-comments = true
+- = es
+comments = Custom comment
 """)
     study = read_study_local(Path(study.path))
-    study.create_districts({"Explicit": DistrictProperties(areas=["001", "fr"])})
+    study.create_districts({"Explicit": DistrictProperties(areas=["es", "fr"])})
     districts = study.get_districts()
     all_areas = districts["all areas"]
-    assert all_areas.properties.areas == ["001", "fr", "it"]
+    assert all_areas.properties.areas == ["es", "fr", "it"]
 
     study.create_area("de")
-    study.delete_area(study.get_areas()["001"])
+    study.delete_area(study.get_areas()["es"])
 
     assert study.get_districts()["all areas"] is all_areas
     assert all_areas.properties.areas == ["fr", "it"]
     assert districts["explicit"].properties.areas == ["fr"]
-    assert study.get_districts()["numeric_area"].properties == DistrictProperties(comments="true", areas=["fr"])
+    assert study.get_districts()["custom_area"].properties == DistrictProperties(comments="Custom comment", areas=["fr"])
     reloaded_districts = read_study_local(Path(study.path)).get_districts()
     assert reloaded_districts["all areas"].properties.areas == ["de", "fr", "it"]
     assert reloaded_districts["explicit"].properties == districts["explicit"].properties
-    assert reloaded_districts["numeric_area"].properties == districts["numeric_area"].properties
-    assert "001" not in IniReader(["+", "-"]).read(sets_path)["numeric_area"].get("-", [])
+    assert reloaded_districts["custom_area"].properties == districts["custom_area"].properties
+    assert "es" not in IniReader(["+", "-"]).read(sets_path)["custom_area"].get("-", [])

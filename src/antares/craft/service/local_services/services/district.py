@@ -20,7 +20,6 @@ from antares.craft.model.district import District, DistrictProperties
 from antares.craft.service.base_services import BaseDistrictService
 from antares.craft.service.local_services.models.district import parse_district_local, serialize_district_local
 from antares.craft.tools.contents_tool import transform_name_to_id
-from antares.craft.tools.serde_local.ini_common import any_section_option_matcher
 from antares.craft.tools.serde_local.ini_reader import IniReader
 from antares.craft.tools.serde_local.ini_writer import IniWriter
 from antares.study.version import StudyVersion
@@ -35,10 +34,7 @@ class DistrictLocalService(BaseDistrictService):
 
     def read_ini(self) -> dict[str, Any]:
         """Read the raw district definitions from sets.ini."""
-        reader = IniReader(
-            ["+", "-"],
-            value_parsers={any_section_option_matcher(key): str for key in ["caption", "comments", "+", "-"]},
-        )
+        reader = IniReader(["+", "-"])
         path = self.config.study_path / "input" / "areas" / "sets.ini"
         return reader.read(path)
 
