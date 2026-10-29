@@ -140,7 +140,14 @@ class TestWebClient:
         # Tests district creation and reading
         # Reload to evaluate district filters after creating areas.
         study = read_study_api(api_config, study.service.study_id)
+        area_fr, area_be, area_de = (study.get_areas()[area.id] for area in (area_fr, area_be, area_de))
+        link_be_fr, link_de_fr = (study.get_links()[link.id] for link in (link_be_fr, link_de_fr))
         initial_districts = {key: district.properties for key, district in study.get_districts().items()}
+        assert initial_districts == {
+            "all areas": DistrictProperties(
+                output=False, comments="Spatial aggregates on all areas", areas=["be", "de", "fr"]
+            )
+        }
         districts = {
             "Europe": DistrictProperties(areas=["fr", "be", "fr"], comments="Test district"),
             "France": DistrictProperties(output=False, areas=["fr"]),

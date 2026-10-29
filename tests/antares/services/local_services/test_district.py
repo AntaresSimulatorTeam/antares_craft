@@ -70,19 +70,19 @@ apply-filter = add-all
 @pytest.mark.parametrize(
     "rules, expected_areas",
     [
-        ("apply-filter = remove-all\n+ = fr\n+ = it\n- = it\n", ["fr"]),
-        ("+ = fr\n- = fr\n", []),
-        ("+ = fr\r- = fr\r", []),
+        ("apply-filter = remove-all\n+ = fr\n+ = it\n- = it\n", ["fr", "it"]),
+        ("+ = fr\n- = fr\n", ["fr"]),
+        ("+ = fr\r- = fr\r", ["fr"]),
         ("+ = fr\n- = fr\n+ = fr\n", ["fr"]),
-        ("apply-filter = add-all\n- = it\n+ = it\n", ["fr", "it"]),
-        ("+ = fr\napply-filter = remove-all\n+ = it\n", ["it"]),
-        ("apply-filter = add-all\n- = fr\napply-filter = add-all\n- = it\n", ["fr"]),
+        ("apply-filter = add-all\n- = it\n+ = it\n", ["fr"]),
+        ("+ = fr\napply-filter = remove-all\n+ = it\n", ["fr", "it"]),
+        ("apply-filter = add-all\n- = fr\napply-filter = add-all\n- = it\n", []),
         ("apply-filter = add-all\napply-filter = remove-all\n+ = fr\n", ["fr"]),
         ("+ = fr\n; - = fr\n# apply-filter = remove-all\n- = it\n", ["fr"]),
-        ("+ = fr\n[legacy]\n- = fr\n+ = it\n", ["it"]),
+        ("+ = fr\n[legacy]\n- = fr\n+ = it\n", ["fr", "it"]),
     ],
 )
-def test_read_district_rules_in_order(local_study_w_areas: Study, rules: str, expected_areas: list[str]) -> None:
+def test_read_district_filters(local_study_w_areas: Study, rules: str, expected_areas: list[str]) -> None:
     study = local_study_w_areas
     sets_path = Path(study.path) / "input" / "areas" / "sets.ini"
     sets_path.write_text("[legacy]\n" + rules, encoding="utf-8")
@@ -103,7 +103,7 @@ def test_read_no_districts(local_study_w_areas: Study) -> None:
 
 @pytest.mark.parametrize(
     "rules",
-    ["output = invalid\n", "apply-filter = invalid\n", "apply-filter = invalid\napply-filter = add-all\n"],
+    ["output = invalid\n", "apply-filter = invalid\n", "apply-filter = add-all\napply-filter = invalid\n"],
 )
 def test_read_invalid_district_raises_domain_error(local_study_w_areas: Study, rules: str) -> None:
     sets_path = Path(local_study_w_areas.path) / "input" / "areas" / "sets.ini"
@@ -285,7 +285,7 @@ def test_district_changes_write_grouped_rules(local_study_w_areas: Study, operat
         assert "to delete" not in saved
     else:
         assert saved["to delete"] == {}
-    assert read_study_local(Path(study.path)).get_districts()["legacy"].properties.areas == []
+    assert read_study_local(Path(study.path)).get_districts()["legacy"].properties.areas == ["fr"]
 
 
 @pytest.mark.parametrize("separator", ["\v", "\x85", "\u2028", "\u2029"])
@@ -316,7 +316,7 @@ def test_districts_follow_area_changes(local_study_w_areas: Study) -> None:
     with patch.object(study._district_service, "read_districts") as read_districts:
         study.create_area("de")
         assert all_areas.properties.areas == ["001", "fr", "it"]
-        assert districts["legacy"].properties.areas == ["fr"]
+        assert districts["legacy"].properties.areas == ["001", "fr"]
         study.delete_area(study.get_areas()["001"])
         read_districts.assert_not_called()
 

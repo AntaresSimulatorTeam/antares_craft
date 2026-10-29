@@ -56,13 +56,16 @@ class DistrictLocal(LocalBaseModel, extra="allow"):
         model.initialize_with_version(study_version)
         return model
 
-    def to_properties_user_model(self, areas: list[str], study_version: StudyVersion) -> DistrictProperties:
-        """Build the district with area identifiers resolved from the ordered selection rules."""
+    def to_properties_user_model(self, all_areas: list[str], study_version: StudyVersion) -> DistrictProperties:
+        """Resolve areas using the same filter semantics as AntaresWeb."""
+        areas = (
+            set(all_areas).difference(self.subtract_areas) if self.apply_filter == "add-all" else set(self.add_areas)
+        )
         self.initialize_with_version(study_version)
         return DistrictProperties(
             output=self.output,
             comments=self.comments,
-            areas=sorted(set(areas)),
+            areas=sorted(areas),
             filter_synthesis=self.filter_synthesis,
             filter_year_by_year=self.filter_year_by_year,
         )

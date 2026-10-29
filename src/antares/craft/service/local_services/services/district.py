@@ -10,7 +10,6 @@
 #
 # This file is part of the Antares project.
 
-from io import StringIO
 from typing import Any
 
 from typing_extensions import override
@@ -34,22 +33,14 @@ class DistrictLocalService(BaseDistrictService):
         self.study_name = study_name
         self.study_version = study_version
 
-    def _read_ini_text(self) -> str:
-        path = self.config.study_path / "input" / "areas" / "sets.ini"
-        raw_content = path.read_bytes() if path.exists() else b""
-        try:
-            return raw_content.decode("utf-8")
-        except UnicodeDecodeError:
-            return raw_content.decode("cp1252")
-
-    def read_ini(self, text: str | None = None) -> dict[str, Any]:
+    def read_ini(self) -> dict[str, Any]:
         """Read the raw district definitions from sets.ini."""
         reader = IniReader(
             ["+", "-"],
             value_parsers={any_section_option_matcher(key): str for key in ["caption", "comments", "+", "-"]},
         )
         path = self.config.study_path / "input" / "areas" / "sets.ini"
-        return reader.read(path if text is None else StringIO(text, newline=None))
+        return reader.read(path)
 
     def _save_ini(self, content: dict[str, Any]) -> None:
         path = self.config.study_path / "input" / "areas" / "sets.ini"
@@ -58,41 +49,16 @@ class DistrictLocalService(BaseDistrictService):
     @override
     def read_districts(self, all_areas: list[str]) -> dict[str, District]:
         try:
-            text = self._read_ini_text()
-            content = self.read_ini(text)
-            selected_areas: dict[str, set[str]] = {district_id: set() for district_id in content}
-            section = "settings"
-            for line in StringIO(text, newline=None):
-                stripped = line.strip()
-                if not stripped or stripped.startswith((";", "#")):
-                    continue
-                if stripped.startswith("["):
-                    section = stripped[1:-1]
-                    continue
-                key, value = map(str.strip, stripped.split("=", 1))
-                areas = selected_areas[section]
-                if key == "+":
-                    areas.add(value)
-                elif key == "-":
-                    areas.discard(value)
-                elif key == "apply-filter":
-                    if value == "add-all":
-                        areas.update(all_areas)
-                    elif value in {"remove-all", ""}:
-                        areas.clear()
-                    else:
-                        raise ValueError(f"Invalid district filter: {value!r}")
-
             return {
                 district_id: District(
                     values.get("caption", district_id),
                     self,
                     DistrictLocal.model_validate({"caption": district_id, **values}).to_properties_user_model(
-                        list(selected_areas[district_id]), self.study_version
+                        all_areas, self.study_version
                     ),
                     district_id=district_id,
                 )
-                for district_id, values in content.items()
+                for district_id, values in self.read_ini().items()
             }
         except (OSError, ValueError) as e:
             raise DistrictsRetrievalError(self.study_name, str(e)) from e
@@ -109,9 +75,7 @@ class DistrictLocalService(BaseDistrictService):
                 raise DistrictCreationError(name, f"District '{district_id}' already exists")
             local_model = DistrictLocal.from_user_model(name, properties, self.study_version)
             current_content[district_id] = local_model.model_dump(mode="json", by_alias=True, exclude_none=True)
-            created.append(
-                District(name, self, local_model.to_properties_user_model(local_model.add_areas, self.study_version))
-            )
+            created.append(District(name, self, local_model.to_properties_user_model([], self.study_version)))
 
         self._save_ini(current_content)
         return created
