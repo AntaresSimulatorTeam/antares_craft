@@ -1802,7 +1802,8 @@ class TestWebClient:
         )
         assert study.create_districts({"Europe": district})[0].properties == district
         assert study.get_districts()["europe"].properties == district
-        assert read_study_api(api_config, study.service.study_id).get_districts()["europe"].properties == district
+        study._read_districts()
+        assert study.get_districts()["europe"].properties == district
 
         # todo: Add tests on reserves here once they will be implemented
 
