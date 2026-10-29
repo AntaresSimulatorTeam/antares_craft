@@ -318,7 +318,9 @@ comments = Custom comment
     assert study.get_districts()["all areas"] is all_areas
     assert all_areas.properties.areas == ["fr", "it"]
     assert districts["explicit"].properties.areas == ["fr"]
-    assert study.get_districts()["custom_area"].properties == DistrictProperties(comments="Custom comment", areas=["fr"])
+    assert study.get_districts()["custom_area"].properties == DistrictProperties(
+        comments="Custom comment", areas=["fr"]
+    )
     reloaded_districts = read_study_local(Path(study.path)).get_districts()
     assert reloaded_districts["all areas"].properties.areas == ["de", "fr", "it"]
     assert reloaded_districts["explicit"].properties == districts["explicit"].properties
