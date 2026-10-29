@@ -139,10 +139,11 @@ def create_study_local(study_name: str, version: str, parent_directory: Path | s
     app = CreateApp(study_dir=study_directory, caption=study_name, version=study_version, author=_get_current_os_user())
     app()
 
+    local_services = create_local_services(config=local_config, study_name=study_name, study_version=study_version)
     study = Study(
         name=study_name,
         version=version,
-        services=create_local_services(config=local_config, study_name=study_name, study_version=study_version),
+        services=local_services,
         path=study_directory,
     )
     # We need to create the file with default values
@@ -159,9 +160,9 @@ def create_study_local(study_name: str, version: str, parent_directory: Path | s
     )
     update_settings = default_settings.to_update_settings()
     edit_study_settings(study_directory, update_settings, True, study_version)
-    # Initialize settings with the default values
     study._settings = default_settings
-    study._read_districts()
+    district_service = cast(DistrictLocalService, local_services.district_service)
+    study._districts = district_service.read_districts([])
     return study
 
 
@@ -190,7 +191,8 @@ def read_study_local(study_directory: Path | str) -> "Study":
     area_service = cast(AreaLocalService, local_services.area_service)
     study._areas = _read_areas(area_service)
 
-    study._read_districts()
+    district_service = cast(DistrictLocalService, local_services.district_service)
+    study._districts = district_service.read_districts(list(study._areas))
 
     link_service = cast(LinkLocalService, local_services.link_service)
     study._links = _read_links(link_service)

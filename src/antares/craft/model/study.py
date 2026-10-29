@@ -26,9 +26,6 @@ from antares.craft import (
 )
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
-    DistrictCreationError,
-    DistrictsRetrievalError,
-    InvalidFieldForVersionError,
     LinkCreationError,
     ReferencedObjectDeletionNotAllowed,
     UnsupportedStudyVersion,
@@ -55,7 +52,6 @@ from antares.craft.model.st_storage import STStorage
 from antares.craft.model.thermal import ThermalCluster, ThermalClusterPropertiesUpdate
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.base_services import BaseLinkService, BaseStudyService, StudyServices
-from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.study.version import StudyVersion
 
 """
@@ -182,37 +178,7 @@ class Study:
         if not districts:
             return []
 
-        district_ids = set(self._districts)
-        for name, properties in districts.items():
-            if self._version < STUDY_VERSION_10_2:
-                for field in ("filter_synthesis", "filter_year_by_year"):
-                    if getattr(properties, field) is not None:
-                        raise InvalidFieldForVersionError(
-                            f"Field {field} is not a valid field for study version {self._version}"
-                        )
-            district_id = transform_name_to_id(name)
-            if not district_id:
-                raise DistrictCreationError(name, "The district identifier must not be empty")
-            if district_id in district_ids:
-                raise DistrictCreationError(name, f"District '{district_id}' already exists")
-            missing_areas = sorted(set(properties.areas).difference(self._areas))
-            if missing_areas:
-                raise DistrictCreationError(name, f"Areas do not exist: {', '.join(missing_areas)}")
-            district_ids.add(district_id)
-
-        try:
-            created = self._district_service.create_districts(districts)
-        except DistrictCreationError as e:
-            if e.created_districts:
-                try:
-                    persisted = self._district_service.read_districts(list(self._areas))
-                    self._districts.update(
-                        {key: district for key, district in persisted.items() if district.name in e.created_districts}
-                    )
-                except DistrictsRetrievalError:
-                    # Preserve the creation error if refreshing the successful creations also fails.
-                    pass
-            raise
+        created = self._district_service.create_districts(districts)
         self._districts.update({district.id: district for district in created})
         return created
 
@@ -227,9 +193,6 @@ class Study:
         """
         self._district_service.delete_district(district_id)
         self._districts.pop(district_id, None)
-
-    def _read_districts(self) -> None:
-        self._districts = self._district_service.read_districts(list(self._areas))
 
     def get_settings(self) -> StudySettings:
         """Retrieve the study settings.

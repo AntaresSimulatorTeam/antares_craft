@@ -392,11 +392,6 @@ class BaseHydroService(ABC):
 
 class BaseDistrictService(ABC):
     @abstractmethod
-    def read_districts(self, all_areas: list[str]) -> dict[str, "District"]:
-        """Read districts with their effective area identifiers."""
-        pass
-
-    @abstractmethod
     def create_districts(self, districts: dict[str, "DistrictProperties"]) -> list["District"]:
         """Create districts and return their persisted values."""
         pass

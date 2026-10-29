@@ -40,6 +40,10 @@ class DistrictProperties:
     filter_synthesis: set[FilterOption] | None = None
     filter_year_by_year: set[FilterOption] | None = None
 
+    def __post_init__(self) -> None:
+        if "\n" in self.comments or "\r" in self.comments:
+            raise ValueError("Multiline district comments are not supported")
+
 
 class District:
     """A spatial aggregate of study areas."""

@@ -11,7 +11,7 @@
 # This file is part of the Antares project.
 
 from dataclasses import asdict
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import Field, field_validator
 
@@ -23,10 +23,9 @@ from antares.craft.tools.utils import FILTER_VALUES, filtering_option
 from antares.study.version import StudyVersion
 
 
-class DistrictLocal(LocalBaseModel, extra="allow"):
-    """District definition in sets.ini."""
+class DistrictPropertiesLocal(LocalBaseModel):
+    """District properties in sets.ini."""
 
-    name: str = Field(default="", alias="caption")
     output: bool = True
     comments: str = ""
     apply_filter: Literal["add-all", "remove-all"] = Field(default="remove-all", alias="apply-filter")
@@ -40,28 +39,22 @@ class DistrictLocal(LocalBaseModel, extra="allow"):
     def preserve_empty_filters(cls, value: object) -> object:
         return set() if value == "" else value
 
-    def initialize_with_version(self, study_version: StudyVersion) -> None:
-        for field in ("filter_synthesis", "filter_year_by_year"):
-            if study_version < STUDY_VERSION_10_2:
-                check_min_version(self, field, study_version)
-            else:
-                initialize_field_default(self, field, FILTER_VALUES.copy())
+    @staticmethod
+    def get_10_2_fields_and_default_value() -> dict[str, Any]:
+        return {"filter_synthesis": FILTER_VALUES.copy(), "filter_year_by_year": FILTER_VALUES.copy()}
 
     @staticmethod
-    def from_user_model(name: str, properties: DistrictProperties, study_version: StudyVersion) -> "DistrictLocal":
-        values = {"name": name, **asdict(properties)}
+    def from_user_model(properties: DistrictProperties) -> "DistrictPropertiesLocal":
+        values = asdict(properties)
         values["comments"] = properties.comments.strip()
         values["add_areas"] = sorted(set(values.pop("areas")))
-        model = DistrictLocal.model_validate(values)
-        model.initialize_with_version(study_version)
-        return model
+        return DistrictPropertiesLocal.model_validate(values)
 
-    def to_properties_user_model(self, all_areas: list[str], study_version: StudyVersion) -> DistrictProperties:
+    def to_user_model(self, all_areas: list[str]) -> DistrictProperties:
         """Resolve areas using the same filter semantics as AntaresWeb."""
         areas = (
             set(all_areas).difference(self.subtract_areas) if self.apply_filter == "add-all" else set(self.add_areas)
         )
-        self.initialize_with_version(study_version)
         return DistrictProperties(
             output=self.output,
             comments=self.comments,
@@ -69,3 +62,30 @@ class DistrictLocal(LocalBaseModel, extra="allow"):
             filter_synthesis=self.filter_synthesis,
             filter_year_by_year=self.filter_year_by_year,
         )
+
+
+def validate_district_against_version(properties: DistrictPropertiesLocal, version: StudyVersion) -> None:
+    if version < STUDY_VERSION_10_2:
+        for field in DistrictPropertiesLocal.get_10_2_fields_and_default_value():
+            check_min_version(properties, field, version)
+
+
+def initialize_with_version(properties: DistrictPropertiesLocal, version: StudyVersion) -> DistrictPropertiesLocal:
+    if version >= STUDY_VERSION_10_2:
+        for field, value in DistrictPropertiesLocal.get_10_2_fields_and_default_value().items():
+            initialize_field_default(properties, field, value)
+    return properties
+
+
+def parse_district_local(version: StudyVersion, data: Any, all_areas: list[str]) -> DistrictProperties:
+    properties = DistrictPropertiesLocal.model_validate(data)
+    validate_district_against_version(properties, version)
+    initialize_with_version(properties, version)
+    return properties.to_user_model(all_areas)
+
+
+def serialize_district_local(version: StudyVersion, properties: DistrictProperties) -> dict[str, Any]:
+    local_properties = DistrictPropertiesLocal.from_user_model(properties)
+    validate_district_against_version(local_properties, version)
+    initialize_with_version(local_properties, version)
+    return local_properties.model_dump(mode="json", by_alias=True, exclude_none=True)

@@ -18,7 +18,7 @@ from antares.craft.config.local_configuration import LocalConfiguration
 from antares.craft.exceptions.exceptions import DistrictCreationError, DistrictDeletionError, DistrictsRetrievalError
 from antares.craft.model.district import District, DistrictProperties
 from antares.craft.service.base_services import BaseDistrictService
-from antares.craft.service.local_services.models.district import DistrictLocal
+from antares.craft.service.local_services.models.district import parse_district_local, serialize_district_local
 from antares.craft.tools.contents_tool import transform_name_to_id
 from antares.craft.tools.serde_local.ini_common import any_section_option_matcher
 from antares.craft.tools.serde_local.ini_reader import IniReader
@@ -46,36 +46,35 @@ class DistrictLocalService(BaseDistrictService):
         path = self.config.study_path / "input" / "areas" / "sets.ini"
         IniWriter(special_keys=["+", "-"]).write(content, path)
 
-    @override
     def read_districts(self, all_areas: list[str]) -> dict[str, District]:
         try:
-            return {
-                district_id: District(
-                    values.get("caption", district_id),
-                    self,
-                    DistrictLocal.model_validate({"caption": district_id, **values}).to_properties_user_model(
-                        all_areas, self.study_version
-                    ),
-                    district_id=district_id,
-                )
-                for district_id, values in self.read_ini().items()
-            }
+            districts = {}
+            for district_id, values in self.read_ini().items():
+                name = values.pop("caption", district_id)
+                properties = parse_district_local(self.study_version, values, all_areas)
+                districts[district_id] = District(name, self, properties, district_id=district_id)
+            return districts
         except (OSError, ValueError) as e:
             raise DistrictsRetrievalError(self.study_name, str(e)) from e
 
     @override
     def create_districts(self, districts: dict[str, DistrictProperties]) -> list[District]:
         current_content = self.read_ini()
+        areas_path = self.config.study_path / "input" / "areas"
+        existing_area_ids = {path.name for path in areas_path.iterdir() if path.is_dir()}
         created = []
         for name, properties in districts.items():
-            if "\n" in properties.comments or "\r" in properties.comments:
-                raise DistrictCreationError(name, "Multiline comments are not supported in local studies")
             district_id = transform_name_to_id(name)
+            if not district_id:
+                raise DistrictCreationError(name, "The district identifier must not be empty")
             if district_id in current_content:
                 raise DistrictCreationError(name, f"District '{district_id}' already exists")
-            local_model = DistrictLocal.from_user_model(name, properties, self.study_version)
-            current_content[district_id] = local_model.model_dump(mode="json", by_alias=True, exclude_none=True)
-            created.append(District(name, self, local_model.to_properties_user_model([], self.study_version)))
+            missing_areas = sorted(set(properties.areas).difference(existing_area_ids))
+            if missing_areas:
+                raise DistrictCreationError(name, f"Areas do not exist: {', '.join(missing_areas)}")
+            values = serialize_district_local(self.study_version, properties)
+            current_content[district_id] = {"caption": name, **values}
+            created.append(District(name, self, parse_district_local(self.study_version, values, [])))
 
         self._save_ini(current_content)
         return created

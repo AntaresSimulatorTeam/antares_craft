@@ -10,7 +10,7 @@
 #
 # This file is part of the Antares project.
 
-from typing import Any, List, Optional, Sequence
+from typing import Any, List, Optional
 
 from antares.study.version import StudyVersion
 
@@ -93,8 +93,7 @@ class LinksPropertiesUpdateError(Exception):
 
 
 class DistrictCreationError(Exception):
-    def __init__(self, district_name: str, message: str, *, created_districts: Sequence[str] = ()) -> None:
-        self.created_districts = list(created_districts)
+    def __init__(self, district_name: str, message: str) -> None:
         self.message = f"Could not create the district '{district_name}': " + message
         super().__init__(self.message)
 

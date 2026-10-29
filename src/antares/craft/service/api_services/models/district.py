@@ -13,14 +13,12 @@
 from dataclasses import asdict
 from typing import Any
 
-from antares.craft.model.district import District, DistrictProperties
+from antares.craft.model.district import DistrictProperties
 from antares.craft.service.api_services.models.base_model import APIBaseModel
-from antares.craft.service.base_services import BaseDistrictService
 from antares.craft.tools.utils import filtering_option
 
 
-class DistrictAPI(APIBaseModel):
-    name: str
+class DistrictPropertiesAPI(APIBaseModel):
     output: bool
     comments: str
     areas: list[str]
@@ -28,10 +26,10 @@ class DistrictAPI(APIBaseModel):
     filter_year_by_year: filtering_option | None = None
 
     @staticmethod
-    def from_user_model(name: str, properties: DistrictProperties) -> "DistrictAPI":
-        return DistrictAPI.model_validate({"name": name, **asdict(properties)})
+    def from_user_model(properties: DistrictProperties) -> "DistrictPropertiesAPI":
+        return DistrictPropertiesAPI.model_validate(asdict(properties))
 
-    def to_properties_user_model(self) -> DistrictProperties:
+    def to_user_model(self) -> DistrictProperties:
         return DistrictProperties(
             output=self.output,
             comments=self.comments,
@@ -41,10 +39,9 @@ class DistrictAPI(APIBaseModel):
         )
 
 
-def parse_districts_api(data: list[dict[str, Any]], service: BaseDistrictService) -> dict[str, District]:
-    return {
-        item["id"]: District(
-            item["name"], service, DistrictAPI.model_validate(item).to_properties_user_model(), district_id=item["id"]
-        )
-        for item in data
-    }
+def parse_district_api(data: Any) -> DistrictProperties:
+    return DistrictPropertiesAPI.model_validate(data).to_user_model()
+
+
+def serialize_district_api(properties: DistrictProperties) -> dict[str, Any]:
+    return DistrictPropertiesAPI.from_user_model(properties).model_dump(mode="json", by_alias=True, exclude_none=True)

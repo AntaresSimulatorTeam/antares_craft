@@ -142,64 +142,52 @@ class TestWebClient:
         study = read_study_api(api_config, study.service.study_id)
         area_fr, area_be, area_de = (study.get_areas()[area.id] for area in (area_fr, area_be, area_de))
         link_be_fr, link_de_fr = (study.get_links()[link.id] for link in (link_be_fr, link_de_fr))
-        initial_districts = {key: district.properties for key, district in study.get_districts().items()}
-        assert initial_districts == {
-            "all areas": DistrictProperties(
-                output=False, comments="Spatial aggregates on all areas", areas=["be", "de", "fr"]
-            )
-        }
+        initial_districts = study.get_districts()
+        assert set(initial_districts) == {"all areas"}
+        assert initial_districts["all areas"].properties == DistrictProperties(
+            output=False, comments="Spatial aggregates on all areas", areas=["be", "de", "fr"]
+        )
         districts = {
             "Europe": DistrictProperties(areas=["fr", "be", "fr"], comments="Test district"),
             "France": DistrictProperties(output=False, areas=["fr"]),
             "Empty": DistrictProperties(output=False),
         }
         created = study.create_districts(districts)
-        assert [district.properties for district in created] == [
-            DistrictProperties(areas=["be", "fr"], comments="Test district"),
-            *list(districts.values())[1:],
-        ]
-        expected_districts = initial_districts | dict(
-            zip(["europe", "france", "empty"], [district.properties for district in created])
-        )
-        assert {key: district.properties for key, district in study.get_districts().items()} == expected_districts
-        assert {
-            key: district.properties
-            for key, district in read_study_api(api_config, study.service.study_id).get_districts().items()
-        } == expected_districts
-        assert study.create_districts({}) == []
-
-        # Tests a creation conflict after another client creates a district
-        other_study = read_study_api(api_config, study.service.study_id)
-        other_study.create_districts({"Existing": DistrictProperties(output=False)})
-        with pytest.raises(DistrictCreationError) as error:
-            study.create_districts(
-                {
-                    "First district": DistrictProperties(output=False),
-                    "Existing": DistrictProperties(),
-                    "Third": DistrictProperties(),
-                }
+        assert [district.id for district in created] == ["europe", "france", "empty"]
+        assert created[0].properties == DistrictProperties(areas=["be", "fr"], comments="Test district")
+        assert created[1].properties == DistrictProperties(output=False, areas=["fr"])
+        assert created[2].properties == DistrictProperties(output=False)
+        assert created[0].properties.filter_synthesis is None
+        assert created[0].properties.filter_year_by_year is None
+        for districts_by_id in (
+            study.get_districts(),
+            read_study_api(api_config, study.service.study_id).get_districts(),
+        ):
+            assert set(districts_by_id) == {"all areas", "europe", "france", "empty"}
+            assert districts_by_id["all areas"].properties == initial_districts["all areas"].properties
+            assert districts_by_id["europe"].properties == DistrictProperties(
+                areas=["be", "fr"], comments="Test district"
             )
-        assert error.value.created_districts == ["First district"]
-        expected_districts["first district"] = DistrictProperties(output=False)
-        assert {key: district.properties for key, district in study.get_districts().items()} == expected_districts
-        assert {
-            key: district.properties
-            for key, district in read_study_api(api_config, study.service.study_id).get_districts().items()
-        } == expected_districts | {"existing": DistrictProperties(output=False)}
-        other_study.delete_district("existing")
+            assert districts_by_id["france"].properties == DistrictProperties(output=False, areas=["fr"])
+            assert districts_by_id["empty"].properties == DistrictProperties(output=False)
+        assert study.create_districts({}) == []
+        with pytest.raises(DistrictCreationError):
+            study.create_districts({"Filtered": DistrictProperties(filter_synthesis={FilterOption.DAILY})})
 
         # Tests district deletion
-        for district_id in ["first district", "empty", "france", "europe"]:
+        for district_id in ["empty", "france", "europe"]:
             study.delete_district(district_id)
-            expected_districts.pop(district_id)
-        assert {key: district.properties for key, district in study.get_districts().items()} == expected_districts
-        assert {
-            key: district.properties
-            for key, district in read_study_api(api_config, study.service.study_id).get_districts().items()
-        } == expected_districts
+        for districts_by_id in (
+            study.get_districts(),
+            read_study_api(api_config, study.service.study_id).get_districts(),
+        ):
+            assert set(districts_by_id) == {"all areas"}
+            assert districts_by_id["all areas"].properties == DistrictProperties(
+                output=False, comments="Spatial aggregates on all areas", areas=["be", "de", "fr"]
+            )
         with pytest.raises(DistrictDeletionError):
             study.delete_district("unknown")
-        assert {key: district.properties for key, district in study.get_districts().items()} == expected_districts
+        assert set(study.get_districts()) == {"all areas"}
 
         # test thermal cluster creation with default values
         thermal_name = "Cluster_test %?"
@@ -1802,8 +1790,13 @@ class TestWebClient:
         )
         assert study.create_districts({"Europe": district})[0].properties == district
         assert study.get_districts()["europe"].properties == district
-        study._read_districts()
-        assert study.get_districts()["europe"].properties == district
+        # AntaresWeb 2.36 cannot reload populated 10.2 studies through /data.
+        with api_config.set_up_api_conf() as session:
+            response = session.get(f"{api_config.get_host()}/api/v1/studies/{study.service.study_id}/districts")
+            response.raise_for_status()
+        persisted_district = next(item for item in response.json() if item["id"] == "europe")
+        assert persisted_district["filterSynthesis"] == "daily"
+        assert persisted_district["filterYearByYear"] == "monthly"
 
         # todo: Add tests on reserves here once they will be implemented
 

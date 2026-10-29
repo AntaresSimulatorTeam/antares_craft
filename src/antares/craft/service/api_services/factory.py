@@ -45,7 +45,7 @@ from antares.craft.model.thermal import ThermalCluster
 from antares.craft.model.xpansion.xpansion_configuration import XpansionConfiguration
 from antares.craft.service.api_services.models.area import AreaPropertiesAPI
 from antares.craft.service.api_services.models.binding_constraint import BindingConstraintPropertiesAPI
-from antares.craft.service.api_services.models.district import parse_districts_api
+from antares.craft.service.api_services.models.district import parse_district_api
 from antares.craft.service.api_services.models.hydro import (
     HydroInflowStructureAPI,
     HydroPropertiesAPI,
@@ -237,7 +237,10 @@ def read_outputs_api(api_config: APIconf, study_id: str) -> dict[str, Output]:
 
 def _read_districts(body: dict[str, Any], study_id: str, service: BaseDistrictService) -> dict[str, District]:
     try:
-        return parse_districts_api(body["districts"], service)
+        return {
+            item["id"]: District(item["name"], service, parse_district_api(item), district_id=item["id"])
+            for item in body["districts"]
+        }
     except (ValueError, KeyError) as e:
         raise DistrictsRetrievalError(study_id, str(e)) from e
 

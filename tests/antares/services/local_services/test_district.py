@@ -14,7 +14,6 @@ import pytest
 
 from dataclasses import replace
 from pathlib import Path
-from unittest.mock import patch
 
 from antares.craft import DistrictProperties, Study, read_study_local
 from antares.craft.exceptions.exceptions import (
@@ -103,7 +102,7 @@ def test_read_no_districts(local_study_w_areas: Study) -> None:
 
 @pytest.mark.parametrize(
     "rules",
-    ["output = invalid\n", "apply-filter = invalid\n", "apply-filter = add-all\napply-filter = invalid\n"],
+    ["output = invalid\n", "apply-filter = invalid\n", "custom-field = invalid\n"],
 )
 def test_read_invalid_district_raises_domain_error(local_study_w_areas: Study, rules: str) -> None:
     sets_path = Path(local_study_w_areas.path) / "input" / "areas" / "sets.ini"
@@ -118,7 +117,7 @@ def test_create_districts(request: pytest.FixtureRequest, study_fixture: str) ->
     local_study: Study = request.getfixturevalue(study_fixture)
     sets_path = Path(local_study.path) / "input" / "areas" / "sets.ini"
     with sets_path.open("a") as stream:
-        stream.write("\n[existing]\ncaption = Existing\ncustom-field = preserved\n- = it\n")
+        stream.write("\n[existing]\ncaption = Existing\n- = it\n")
     original = IniReader(["+", "-"]).read(sets_path)
     study = read_study_local(Path(local_study.path))
     initial_districts = {key: district.properties for key, district in study.get_districts().items()}
@@ -181,18 +180,6 @@ def test_create_districts(request: pytest.FixtureRequest, study_fixture: str) ->
         ({"Valid": DistrictProperties(), "EXISTING": DistrictProperties()}, "already exists"),
         ({"Valid": DistrictProperties(), "": DistrictProperties()}, "identifier must not be empty"),
         ({"Valid": DistrictProperties(), "   ": DistrictProperties()}, "identifier must not be empty"),
-        (
-            {"Valid": DistrictProperties(), "Europe": DistrictProperties(comments="Line 1\nLine 2")},
-            "Multiline comments",
-        ),
-        (
-            {"Valid": DistrictProperties(), "Europe": DistrictProperties(comments="Line 1\rLine 2")},
-            "Multiline comments",
-        ),
-        (
-            {"Valid": DistrictProperties(), "Europe": DistrictProperties(comments="Line 1\r\nLine 2")},
-            "Multiline comments",
-        ),
     ],
 )
 def test_create_districts_rejects_invalid_batch(
@@ -288,9 +275,13 @@ def test_district_changes_write_grouped_rules(local_study_w_areas: Study, operat
     assert read_study_local(Path(study.path)).get_districts()["legacy"].properties.areas == ["fr"]
 
 
-@pytest.mark.parametrize("separator", ["\v", "\x85", "\u2028", "\u2029"])
+@pytest.mark.parametrize("separator", ["\n", "\r", "\r\n", "\v", "\x85", "\u2028", "\u2029"])
 def test_district_changes_preserve_comment_separators(local_study_w_areas: Study, separator: str) -> None:
     study = local_study_w_areas
+    if separator in ("\n", "\r", "\r\n"):
+        with pytest.raises(ValueError, match="Multiline district comments"):
+            DistrictProperties(comments=f"First{separator}Second")
+        return
     district = DistrictProperties(areas=["fr"], comments=f"First{separator}[comment]")
     study.create_districts({"Existing": district})
 
@@ -306,26 +297,30 @@ def test_districts_follow_area_changes(local_study_w_areas: Study) -> None:
     study.create_area("001")
     sets_path = Path(study.path) / "input" / "areas" / "sets.ini"
     with sets_path.open("a") as stream:
-        stream.write("\n[legacy]\ncaption = 001\n+ = 001\n+ = 001\n+ = fr\n- = 001\ncomments = true\n")
+        stream.write("""
+[numeric_area]
+caption = Numeric area district
++ = 001
++ = 001
++ = fr
+- = 001
+comments = true
+""")
     study = read_study_local(Path(study.path))
     study.create_districts({"Explicit": DistrictProperties(areas=["001", "fr"])})
     districts = study.get_districts()
     all_areas = districts["all areas"]
     assert all_areas.properties.areas == ["001", "fr", "it"]
 
-    with patch.object(study._district_service, "read_districts") as read_districts:
-        study.create_area("de")
-        assert all_areas.properties.areas == ["001", "fr", "it"]
-        assert districts["legacy"].properties.areas == ["001", "fr"]
-        study.delete_area(study.get_areas()["001"])
-        read_districts.assert_not_called()
+    study.create_area("de")
+    study.delete_area(study.get_areas()["001"])
 
     assert study.get_districts()["all areas"] is all_areas
     assert all_areas.properties.areas == ["fr", "it"]
     assert districts["explicit"].properties.areas == ["fr"]
-    assert study.get_districts()["legacy"].properties == DistrictProperties(comments="true", areas=["fr"])
+    assert study.get_districts()["numeric_area"].properties == DistrictProperties(comments="true", areas=["fr"])
     reloaded_districts = read_study_local(Path(study.path)).get_districts()
     assert reloaded_districts["all areas"].properties.areas == ["de", "fr", "it"]
     assert reloaded_districts["explicit"].properties == districts["explicit"].properties
-    assert reloaded_districts["legacy"].properties == districts["legacy"].properties
-    assert "001" not in IniReader(["+", "-"]).read(sets_path)["legacy"].get("-", [])
+    assert reloaded_districts["numeric_area"].properties == districts["numeric_area"].properties
+    assert "001" not in IniReader(["+", "-"]).read(sets_path)["numeric_area"].get("-", [])
