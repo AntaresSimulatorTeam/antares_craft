@@ -1781,22 +1781,19 @@ class TestWebClient:
         study.update_settings(new_settings)
         assert study.get_settings().optimization_parameters.include_reserves is True
 
-        # Tests district creation in 10.2
+        # Test district filters without areas: AntaresWeb 2.36 cannot reload 10.2 hydro data.
+        filter_study = create_study_api("District_filters_10.2", "10.2", api_config)
         district = DistrictProperties(
-            areas=["be", "fr"],
             comments="Test district",
             filter_synthesis={FilterOption.DAILY},
             filter_year_by_year={FilterOption.MONTHLY},
         )
-        assert study.create_districts({"Europe": district})[0].properties == district
-        assert study.get_districts()["europe"].properties == district
-        # Fetch the saved filters from the server; get_districts() only reads the in-memory state.
-        with api_config.set_up_api_conf() as session:
-            response = session.get(f"{api_config.get_host()}/api/v1/studies/{study.service.study_id}/districts")
-            response.raise_for_status()
-        persisted_district = next(item for item in response.json() if item["id"] == "europe")
-        assert persisted_district["filterSynthesis"] == "daily"
-        assert persisted_district["filterYearByYear"] == "monthly"
+        assert filter_study.create_districts({"Europe": district})[0].properties == district
+        assert filter_study.get_districts()["europe"].properties == district
+        # Reload the study to check the filters persisted on the server.
+        assert (
+            read_study_api(api_config, filter_study.service.study_id).get_districts()["europe"].properties == district
+        )
 
         # todo: Add tests on reserves here once they will be implemented
 

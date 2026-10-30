@@ -37,6 +37,7 @@ class DistrictPropertiesLocal(LocalBaseModel):
     @field_validator("filter_synthesis", "filter_year_by_year", mode="before")
     @classmethod
     def preserve_empty_filters(cls, value: object) -> object:
+        # Preserve an empty filter: LocalBaseModel would replace "" with None and restore all frequencies.
         return set() if value == "" else value
 
     @staticmethod
