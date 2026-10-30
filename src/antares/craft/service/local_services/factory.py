@@ -46,6 +46,7 @@ from antares.craft.service.local_services.models.thermal import (
 from antares.craft.service.local_services.models.xpansion import parse_xpansion_candidate_local
 from antares.craft.service.local_services.services.area import AreaLocalService
 from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
+from antares.craft.service.local_services.services.district import DistrictLocalService
 from antares.craft.service.local_services.services.hydro import HydroLocalService
 from antares.craft.service.local_services.services.link import LinkLocalService
 from antares.craft.service.local_services.services.output.output import OutputLocalService
@@ -73,6 +74,7 @@ def create_local_services(config: LocalConfiguration, study_name: str, study_ver
     hydro_service = HydroLocalService(config, study_name, study_version)
     bc_service = BindingConstraintLocalService(config, study_name)
     link_service = LinkLocalService(config, study_name)
+    district_service = DistrictLocalService(config, study_name, study_version)
     area_service = AreaLocalService(
         config,
         study_name,
@@ -83,6 +85,7 @@ def create_local_services(config: LocalConfiguration, study_name: str, study_ver
         hydro_service,
         bc_service,
         link_service,
+        district_service,
     )
     output_service = OutputLocalService(config, study_name)
     study_service = StudyLocalService(config, study_name, output_service)
@@ -102,6 +105,7 @@ def create_local_services(config: LocalConfiguration, study_name: str, study_ver
         settings_service=settings_service,
         short_term_storage_service=short_term_storage_service,
         xpansion_service=xpansion_service,
+        district_service=district_service,
     )
 
 
@@ -135,10 +139,11 @@ def create_study_local(study_name: str, version: str, parent_directory: Path | s
     app = CreateApp(study_dir=study_directory, caption=study_name, version=study_version, author=_get_current_os_user())
     app()
 
+    local_services = create_local_services(config=local_config, study_name=study_name, study_version=study_version)
     study = Study(
         name=study_name,
         version=version,
-        services=create_local_services(config=local_config, study_name=study_name, study_version=study_version),
+        services=local_services,
         path=study_directory,
     )
     # We need to create the file with default values
@@ -155,8 +160,10 @@ def create_study_local(study_name: str, version: str, parent_directory: Path | s
     )
     update_settings = default_settings.to_update_settings()
     edit_study_settings(study_directory, update_settings, True, study_version)
-    # Initialize settings with the default values
+    # Initialize settings with default values and load districts from the new study.
     study._settings = default_settings
+    district_service = cast(DistrictLocalService, local_services.district_service)
+    study._districts = district_service.read_districts([])
     return study
 
 
@@ -184,6 +191,9 @@ def read_study_local(study_directory: Path | str) -> "Study":
 
     area_service = cast(AreaLocalService, local_services.area_service)
     study._areas = _read_areas(area_service)
+
+    district_service = cast(DistrictLocalService, local_services.district_service)
+    study._districts = district_service.read_districts(list(study._areas))
 
     link_service = cast(LinkLocalService, local_services.link_service)
     study._links = _read_links(link_service)

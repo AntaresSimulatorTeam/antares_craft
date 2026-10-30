@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # This file is part of the Antares project.
-import contextlib
 import copy
 import os
 import shutil
@@ -67,6 +66,7 @@ from antares.craft.service.local_services.models.thermal import (
     serialize_thermal_cluster_local,
 )
 from antares.craft.service.local_services.services.binding_constraint import BindingConstraintLocalService
+from antares.craft.service.local_services.services.district import DistrictLocalService
 from antares.craft.service.local_services.services.hydro import HydroLocalService
 from antares.craft.service.local_services.services.link import LinkLocalService
 from antares.craft.service.local_services.services.renewable import RenewableLocalService
@@ -96,6 +96,7 @@ class AreaLocalService(BaseAreaService):
         hydro_service: BaseHydroService,
         binding_constraint_service: BaseBindingConstraintService,
         link_service: LinkLocalService,
+        district_service: DistrictLocalService,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -108,6 +109,7 @@ class AreaLocalService(BaseAreaService):
         self._hydro_service: BaseHydroService = hydro_service
         self._binding_constraint_service: BaseBindingConstraintService = binding_constraint_service
         self._link_service = link_service
+        self._district_service = district_service
 
     def read_adequacy_ini(self, area_id: str) -> dict[str, Any]:
         return IniReader().read(self.config.study_path / "input" / "areas" / area_id / "adequacy_patch.ini")
@@ -341,7 +343,6 @@ class AreaLocalService(BaseAreaService):
             with open(list_path, "w") as list_txt:
                 list_txt.write("".join(map(str, updated_list)))
 
-            # TODO: Handle districts in sets.ini later
             sets_ini_path = study_path / "input" / "areas" / "sets.ini"
             if not sets_ini_path.exists():
                 sets_ini_content = {
@@ -635,7 +636,7 @@ class AreaLocalService(BaseAreaService):
         self._remove_area_from_list_txt_file(area_id)
         self._remove_area_from_correlation_matrices(area_id)
         self._remove_area_from_hydro_allocation(area_id)
-        self._remove_area_from_districts(area_id)
+        self._district_service.remove_area(area_id)
 
         def clean_area(symbol: str, parts: list[str]) -> bool:
             area_keys = {"l", "h", "w", "s", "t", "r", "hl", "hfl", "hgp", "sts", "sta"}
@@ -701,17 +702,3 @@ class AreaLocalService(BaseAreaService):
                     new_allocations.remove(alloc)
             if len(new_allocations) != len(allocation):
                 hydro_service.set_allocation(other_area_id, new_allocations)
-
-    def _remove_area_from_districts(self, area_id: str) -> None:
-        districts_special_keys = ["+", "-"]
-        file_path = self.config.study_path / "input" / "areas" / "sets.ini"
-        districts = IniReader(districts_special_keys).read(file_path)
-        for district in districts.values():
-            if district.get("+", None):
-                with contextlib.suppress(ValueError):
-                    district["+"].remove(area_id)
-            elif district.get("-", None):
-                with contextlib.suppress(ValueError):
-                    district["-"].remove(area_id)
-
-        IniWriter(districts_special_keys).write(districts, file_path)

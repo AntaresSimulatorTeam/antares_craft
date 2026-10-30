@@ -26,6 +26,8 @@ from antares.craft import *  # noqa: F403
 from antares.craft.exceptions.exceptions import (
     BindingConstraintCreationError,
     ConstraintMatrixUpdateError,
+    DistrictCreationError,
+    DistrictDeletionError,
     InvalidRequestForScenarioBuilder,
     MatrixUploadError,
     ReferencedObjectDeletionNotAllowed,
@@ -134,6 +136,58 @@ class TestWebClient:
         # asserts study contains all links and areas
         assert study.get_areas() == {area_be.id: area_be, area_fr.id: area_fr, area_de.id: area_de}
         assert study.get_links() == {link_be_fr.id: link_be_fr, link_de_fr.id: link_de_fr}
+
+        # Tests district creation and reading
+        # Reload to evaluate district filters after creating areas.
+        study = read_study_api(api_config, study.service.study_id)
+        area_fr, area_be, area_de = (study.get_areas()[area.id] for area in (area_fr, area_be, area_de))
+        link_be_fr, link_de_fr = (study.get_links()[link.id] for link in (link_be_fr, link_de_fr))
+        initial_districts = study.get_districts()
+        assert set(initial_districts) == {"all areas"}
+        assert initial_districts["all areas"].properties == DistrictProperties(
+            output=False, comments="Spatial aggregates on all areas", areas=["be", "de", "fr"]
+        )
+        districts = {
+            "Europe": DistrictProperties(areas=["fr", "be", "fr"], comments="Test district"),
+            "France": DistrictProperties(output=False, areas=["fr"]),
+            "Empty": DistrictProperties(output=False),
+        }
+        created = study.create_districts(districts)
+        assert [district.id for district in created] == ["europe", "france", "empty"]
+        assert created[0].properties == DistrictProperties(areas=["be", "fr"], comments="Test district")
+        assert created[1].properties == DistrictProperties(output=False, areas=["fr"])
+        assert created[2].properties == DistrictProperties(output=False)
+        assert created[0].properties.filter_synthesis is None
+        assert created[0].properties.filter_year_by_year is None
+        for districts_by_id in (
+            study.get_districts(),
+            read_study_api(api_config, study.service.study_id).get_districts(),
+        ):
+            assert set(districts_by_id) == {"all areas", "europe", "france", "empty"}
+            assert districts_by_id["all areas"].properties == initial_districts["all areas"].properties
+            assert districts_by_id["europe"].properties == DistrictProperties(
+                areas=["be", "fr"], comments="Test district"
+            )
+            assert districts_by_id["france"].properties == DistrictProperties(output=False, areas=["fr"])
+            assert districts_by_id["empty"].properties == DistrictProperties(output=False)
+        assert study.create_districts({}) == []
+        with pytest.raises(DistrictCreationError):
+            study.create_districts({"Filtered": DistrictProperties(filter_synthesis={FilterOption.DAILY})})
+
+        # Tests district deletion
+        for district_id in ["empty", "france", "europe"]:
+            study.delete_district(district_id)
+        for districts_by_id in (
+            study.get_districts(),
+            read_study_api(api_config, study.service.study_id).get_districts(),
+        ):
+            assert set(districts_by_id) == {"all areas"}
+            assert districts_by_id["all areas"].properties == DistrictProperties(
+                output=False, comments="Spatial aggregates on all areas", areas=["be", "de", "fr"]
+            )
+        with pytest.raises(DistrictDeletionError):
+            study.delete_district("unknown")
+        assert set(study.get_districts()) == {"all areas"}
 
         # test thermal cluster creation with default values
         thermal_name = "Cluster_test %?"
@@ -1727,7 +1781,21 @@ class TestWebClient:
         study.update_settings(new_settings)
         assert study.get_settings().optimization_parameters.include_reserves is True
 
-        # todo: Add tests on districts and reserves here once they will be implemented
+        # Test district filters without areas: AntaresWeb 2.36 cannot reload 10.2 hydro data.
+        filter_study = create_study_api("District_filters_10.2", "10.2", api_config)
+        district = DistrictProperties(
+            comments="Test district",
+            filter_synthesis={FilterOption.DAILY},
+            filter_year_by_year={FilterOption.MONTHLY},
+        )
+        assert filter_study.create_districts({"Europe": district})[0].properties == district
+        assert filter_study.get_districts()["europe"].properties == district
+        # Reload the study to check the filters persisted on the server.
+        assert (
+            read_study_api(api_config, filter_study.service.study_id).get_districts()["europe"].properties == district
+        )
+
+        # todo: Add tests on reserves here once they will be implemented
 
         # Run the Simulation to ensure it works
         job = study.run_antares_simulation()

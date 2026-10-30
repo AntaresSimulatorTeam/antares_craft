@@ -126,7 +126,7 @@ class IniWriter:
             path.touch()
         config_parser = IniConfigParser(special_keys=self.special_keys, value_serializers=self._value_serializers)
         config_parser.read_dict(data)
-        with path.open("w") as fp:
+        with path.open("w", encoding="utf-8") as fp:
             config_parser.write(fp)
 
 

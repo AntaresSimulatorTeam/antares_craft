@@ -92,6 +92,24 @@ class LinksPropertiesUpdateError(Exception):
         super().__init__(self.message)
 
 
+class DistrictCreationError(Exception):
+    def __init__(self, district_name: str, message: str) -> None:
+        self.message = f"Could not create the district '{district_name}': " + message
+        super().__init__(self.message)
+
+
+class DistrictDeletionError(Exception):
+    def __init__(self, district_id: str, message: str) -> None:
+        self.message = f"Could not delete the district '{district_id}': " + message
+        super().__init__(self.message)
+
+
+class DistrictsRetrievalError(Exception):
+    def __init__(self, study_id: str, message: str) -> None:
+        self.message = f"Could not retrieve districts from study '{study_id}' : {message}"
+        super().__init__(self.message)
+
+
 class ThermalCreationError(Exception):
     def __init__(self, thermal_name: str, area_id: str, message: str) -> None:
         self.message = f"Could not create the thermal cluster '{thermal_name}' inside area '{area_id}': " + message

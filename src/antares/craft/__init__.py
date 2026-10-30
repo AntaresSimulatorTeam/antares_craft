@@ -23,6 +23,7 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.commons import FilterOption
+from antares.craft.model.district import District, DistrictProperties
 from antares.craft.model.hydro import HydroAllocation, HydroProperties, HydroPropertiesUpdate, InflowStructureUpdate
 from antares.craft.model.link import (
     AssetType,
@@ -187,6 +188,8 @@ __all__ = [
     "ThematicTrimmingParameters",
     "StudySettingsUpdate",
     "ScenarioBuilder",
+    "District",
+    "DistrictProperties",
     "Area",
     "AreaProperties",
     "AreaPropertiesUpdate",
