@@ -28,6 +28,7 @@ from antares.craft.exceptions.exceptions import (
     ConstraintMatrixUpdateError,
     DistrictCreationError,
     DistrictDeletionError,
+    DistrictPropertiesUpdateError,
     InvalidRequestForScenarioBuilder,
     MatrixUploadError,
     ReferencedObjectDeletionNotAllowed,
@@ -173,6 +174,16 @@ class TestWebClient:
         assert study.create_districts({}) == []
         with pytest.raises(DistrictCreationError):
             study.create_districts({"Filtered": DistrictProperties(filter_synthesis={FilterOption.DAILY})})
+
+        # Tests district properties update
+        district_europe = study.get_districts()["europe"]
+        new_district_properties = district_europe.update_properties(
+            DistrictPropertiesUpdate(output=False, areas=["be"])
+        )
+        assert new_district_properties == DistrictProperties(output=False, comments="Test district", areas=["be"])
+        assert district_europe.properties == new_district_properties
+        with pytest.raises(DistrictPropertiesUpdateError):
+            district_europe.update_properties(DistrictPropertiesUpdate(areas=["unknown"]))
 
         # Tests district deletion
         for district_id in ["empty", "france", "europe"]:
@@ -1793,6 +1804,14 @@ class TestWebClient:
         # Reload the study to check the filters persisted on the server.
         assert (
             read_study_api(api_config, filter_study.service.study_id).get_districts()["europe"].properties == district
+        )
+
+        # Test updating and clearing filters
+        filter_district = filter_study.get_districts()["europe"]
+        assert filter_district.update_properties(
+            DistrictPropertiesUpdate(filter_synthesis=set())
+        ) == DistrictProperties(
+            comments="Test district", filter_synthesis=set(), filter_year_by_year={FilterOption.MONTHLY}
         )
 
         # todo: Add tests on reserves here once they will be implemented

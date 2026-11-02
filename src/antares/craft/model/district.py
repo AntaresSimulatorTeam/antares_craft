@@ -20,6 +20,29 @@ if TYPE_CHECKING:
     from antares.craft.service.base_services import BaseDistrictService
 
 
+@dataclass
+class DistrictPropertiesUpdate:
+    """Update the properties of a district. A field set to None is left unchanged.
+
+    Attributes:
+        output: Whether to generate simulation outputs for the district.
+        comments: Description of the district.
+        areas: Identifiers of the areas belonging to the district. Replaces the current selection.
+        filter_synthesis: Output frequencies for synthesis results (since v10.2).
+        filter_year_by_year: Output frequencies for yearly results (since v10.2).
+    """
+
+    output: bool | None = None
+    comments: str | None = None
+    areas: list[str] | None = None
+    filter_synthesis: set[FilterOption] | None = None
+    filter_year_by_year: set[FilterOption] | None = None
+
+    def __post_init__(self) -> None:
+        if self.comments is not None and ("\n" in self.comments or "\r" in self.comments):
+            raise ValueError("Multiline district comments are not supported")
+
+
 @dataclass(frozen=True)
 class DistrictProperties:
     """Represents a spatial aggregate of study areas.
@@ -71,4 +94,16 @@ class District:
 
     @property
     def properties(self) -> DistrictProperties:
+        return self._properties
+
+    def update_properties(self, properties: DistrictPropertiesUpdate) -> DistrictProperties:
+        """Update district properties.
+
+        Args:
+            properties: District properties to update and its associated new values.
+
+        Returns:
+            The updated properties.
+        """
+        self._properties = self._district_service.update_district_properties(self.id, properties)
         return self._properties

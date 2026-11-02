@@ -15,10 +15,11 @@ import pytest
 from dataclasses import replace
 from pathlib import Path
 
-from antares.craft import DistrictProperties, Study, read_study_local
+from antares.craft import DistrictProperties, DistrictPropertiesUpdate, Study, read_study_local
 from antares.craft.exceptions.exceptions import (
     DistrictCreationError,
     DistrictDeletionError,
+    DistrictPropertiesUpdateError,
     DistrictsRetrievalError,
     InvalidFieldForVersionError,
 )
@@ -245,6 +246,39 @@ def test_delete_unknown_district(local_study_w_areas: Study) -> None:
 
     assert sets_path.read_bytes() == before
     assert {key: district.properties for key, district in study.get_districts().items()} == initial_districts
+
+
+def test_update_district_properties(local_study_10_2: Study) -> None:
+    study = local_study_10_2
+    district = study.create_districts({"Europe": DistrictProperties(areas=["fr"], comments="Original comment")})[0]
+    update_properties = DistrictPropertiesUpdate(output=False, comments="", filter_synthesis=set())
+    expected_properties = replace(district.properties, output=False, comments="", filter_synthesis=set())
+
+    assert district.update_properties(update_properties) == expected_properties
+    assert district.properties == expected_properties
+    assert read_study_local(Path(study.path)).get_districts()["europe"].properties == expected_properties
+
+
+def test_update_district_areas_replaces_area_rules(local_study_w_areas: Study) -> None:
+    study = read_study_local(Path(local_study_w_areas.path))
+    district = study.get_districts()["all areas"]
+
+    district.update_properties(DistrictPropertiesUpdate(areas=["fr"]))
+
+    assert district.properties.areas == ["fr"]
+    assert read_study_local(Path(study.path)).get_districts()["all areas"].properties.areas == ["fr"]
+
+
+def test_update_unknown_district_or_area(local_study_w_areas: Study) -> None:
+    study = local_study_w_areas
+    district = study.create_districts({"Europe": DistrictProperties()})[0]
+
+    with pytest.raises(DistrictPropertiesUpdateError, match="Areas do not exist: unknown"):
+        district.update_properties(DistrictPropertiesUpdate(areas=["unknown"]))
+
+    study.delete_district(district.id)
+    with pytest.raises(DistrictPropertiesUpdateError, match="The district does not exist"):
+        district.update_properties(DistrictPropertiesUpdate(output=False))
 
 
 @pytest.mark.parametrize("operation", ["create", "delete", "delete_area"])
