@@ -91,7 +91,11 @@ def parse_district_local(version: StudyVersion, data: Any, all_areas: list[str])
     return properties.to_user_model(all_areas)
 
 
-def serialize_district_local(version: StudyVersion, properties: DistrictPropertiesType) -> dict[str, Any]:
+def serialize_district_local(
+    version: StudyVersion, properties: DistrictPropertiesType, exclude_unset: bool
+) -> dict[str, Any]:
     local_properties = DistrictPropertiesLocal.from_user_model(properties)
     validate_district_against_version(local_properties, version)
-    return local_properties.model_dump(mode="json", by_alias=True, exclude_none=True, exclude_unset=True)
+    if not exclude_unset:
+        initialize_with_version(local_properties, version)
+    return local_properties.model_dump(mode="json", by_alias=True, exclude_none=True, exclude_unset=exclude_unset)

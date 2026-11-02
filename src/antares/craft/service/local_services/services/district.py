@@ -10,6 +10,8 @@
 #
 # This file is part of the Antares project.
 
+import copy
+
 from typing import Any
 
 from typing_extensions import override
@@ -73,14 +75,9 @@ class DistrictLocalService(BaseDistrictService):
             missing_areas = sorted(set(properties.areas).difference(existing_area_ids))
             if missing_areas:
                 raise DistrictCreationError(name, f"Areas do not exist: {', '.join(missing_areas)}")
-            values = serialize_district_local(self.study_version, properties)
-            # Parsing fills the version-specific default values, which must be written at creation.
-            created_properties = parse_district_local(self.study_version, values, [])
-            current_content[district_id] = {
-                "caption": name,
-                **serialize_district_local(self.study_version, created_properties),
-            }
-            created.append(District(name, self, created_properties))
+            values = serialize_district_local(self.study_version, properties, exclude_unset=False)
+            current_content[district_id] = {"caption": name, **values}
+            created.append(District(name, self, parse_district_local(self.study_version, values, [])))
 
         self._save_ini(current_content)
         return created
@@ -99,13 +96,14 @@ class DistrictLocalService(BaseDistrictService):
                 raise DistrictPropertiesUpdateError(
                     district_id, self.study_name, f"Areas do not exist: {', '.join(missing_areas)}"
                 )
-        values = current_content[district_id]
-        values.update(serialize_district_local(self.study_version, properties))
-        updated = parse_district_local(
-            self.study_version,
-            {key: value for key, value in values.items() if key != "caption"},
-            list(existing_area_ids),
-        )
+        # Update properties
+        district = current_content[district_id]
+        district.update(serialize_district_local(self.study_version, properties, exclude_unset=True))
+
+        # Prepare the object to return
+        local_dict = copy.deepcopy(district)
+        local_dict.pop("caption", None)
+        updated = parse_district_local(self.study_version, local_dict, list(existing_area_ids))
 
         self._save_ini(current_content)
         return updated
