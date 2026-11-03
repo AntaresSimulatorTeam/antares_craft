@@ -98,6 +98,12 @@ class DistrictCreationError(Exception):
         super().__init__(self.message)
 
 
+class DistrictPropertiesUpdateError(Exception):
+    def __init__(self, district_id: str, study_id: str, message: str) -> None:
+        self.message = f"Could not update properties for district '{district_id}' from study '{study_id}' : {message}"
+        super().__init__(self.message)
+
+
 class DistrictDeletionError(Exception):
     def __init__(self, district_id: str, message: str) -> None:
         self.message = f"Could not delete the district '{district_id}': " + message

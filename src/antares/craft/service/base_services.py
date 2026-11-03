@@ -44,7 +44,7 @@ if TYPE_CHECKING:
         BindingConstraintPropertiesUpdate,
         ConstraintTerm,
     )
-    from antares.craft.model.district import District, DistrictProperties
+    from antares.craft.model.district import District, DistrictProperties, DistrictPropertiesUpdate
     from antares.craft.model.hydro import HydroAllocation, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
     from antares.craft.model.output import (
@@ -394,6 +394,13 @@ class BaseDistrictService(ABC):
     @abstractmethod
     def create_districts(self, districts: dict[str, "DistrictProperties"]) -> list["District"]:
         """Create districts and return their persisted values."""
+        pass
+
+    @abstractmethod
+    def update_district_properties(
+        self, district_id: str, properties: "DistrictPropertiesUpdate"
+    ) -> "DistrictProperties":
+        """Update a district and return its persisted properties."""
         pass
 
     @abstractmethod

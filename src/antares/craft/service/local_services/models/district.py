@@ -16,11 +16,13 @@ from typing import Any, Literal
 from pydantic import Field, field_validator
 
 from antares.craft.model.commons import STUDY_VERSION_10_2
-from antares.craft.model.district import DistrictProperties
+from antares.craft.model.district import DistrictProperties, DistrictPropertiesUpdate
 from antares.craft.service.local_services.models.base_model import LocalBaseModel
 from antares.craft.service.local_services.models.utils import check_min_version, initialize_field_default
 from antares.craft.tools.utils import FILTER_VALUES, filtering_option
 from antares.study.version import StudyVersion
+
+DistrictPropertiesType = DistrictProperties | DistrictPropertiesUpdate
 
 
 class DistrictPropertiesLocal(LocalBaseModel):
@@ -45,10 +47,14 @@ class DistrictPropertiesLocal(LocalBaseModel):
         return {"filter_synthesis": FILTER_VALUES.copy(), "filter_year_by_year": FILTER_VALUES.copy()}
 
     @staticmethod
-    def from_user_model(properties: DistrictProperties) -> "DistrictPropertiesLocal":
-        values = asdict(properties)
-        values["comments"] = properties.comments.strip()
-        values["add_areas"] = sorted(set(values.pop("areas")))
+    def from_user_model(properties: DistrictPropertiesType) -> "DistrictPropertiesLocal":
+        values = {key: value for key, value in asdict(properties).items() if value is not None}
+        if "comments" in values:
+            values["comments"] = values["comments"].strip()
+        if "areas" in values:
+            values["add_areas"] = sorted(set(values.pop("areas")))
+            values["apply_filter"] = "remove-all"
+            values["subtract_areas"] = []
         return DistrictPropertiesLocal.model_validate(values)
 
     def to_user_model(self, all_areas: list[str]) -> DistrictProperties:
@@ -85,8 +91,11 @@ def parse_district_local(version: StudyVersion, data: Any, all_areas: list[str])
     return properties.to_user_model(all_areas)
 
 
-def serialize_district_local(version: StudyVersion, properties: DistrictProperties) -> dict[str, Any]:
+def serialize_district_local(
+    version: StudyVersion, properties: DistrictPropertiesType, exclude_unset: bool
+) -> dict[str, Any]:
     local_properties = DistrictPropertiesLocal.from_user_model(properties)
     validate_district_against_version(local_properties, version)
-    initialize_with_version(local_properties, version)
-    return local_properties.model_dump(mode="json", by_alias=True, exclude_none=True)
+    if not exclude_unset:
+        initialize_with_version(local_properties, version)
+    return local_properties.model_dump(mode="json", by_alias=True, exclude_none=True, exclude_unset=exclude_unset)

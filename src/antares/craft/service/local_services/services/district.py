@@ -10,13 +10,20 @@
 #
 # This file is part of the Antares project.
 
+import copy
+
 from typing import Any
 
 from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
-from antares.craft.exceptions.exceptions import DistrictCreationError, DistrictDeletionError, DistrictsRetrievalError
-from antares.craft.model.district import District, DistrictProperties
+from antares.craft.exceptions.exceptions import (
+    DistrictCreationError,
+    DistrictDeletionError,
+    DistrictPropertiesUpdateError,
+    DistrictsRetrievalError,
+)
+from antares.craft.model.district import District, DistrictProperties, DistrictPropertiesUpdate
 from antares.craft.service.base_services import BaseDistrictService
 from antares.craft.service.local_services.models.district import parse_district_local, serialize_district_local
 from antares.craft.tools.contents_tool import transform_name_to_id
@@ -68,12 +75,38 @@ class DistrictLocalService(BaseDistrictService):
             missing_areas = sorted(set(properties.areas).difference(existing_area_ids))
             if missing_areas:
                 raise DistrictCreationError(name, f"Areas do not exist: {', '.join(missing_areas)}")
-            values = serialize_district_local(self.study_version, properties)
+            values = serialize_district_local(self.study_version, properties, exclude_unset=False)
             current_content[district_id] = {"caption": name, **values}
             created.append(District(name, self, parse_district_local(self.study_version, values, [])))
 
         self._save_ini(current_content)
         return created
+
+    @override
+    def update_district_properties(self, district_id: str, properties: DistrictPropertiesUpdate) -> DistrictProperties:
+        current_content = self.read_ini()
+        if district_id not in current_content:
+            raise DistrictPropertiesUpdateError(district_id, self.study_name, "The district does not exist")
+
+        areas_path = self.config.study_path / "input" / "areas"
+        existing_area_ids = {path.name for path in areas_path.iterdir() if path.is_dir()}
+        if properties.areas is not None:
+            missing_areas = sorted(set(properties.areas).difference(existing_area_ids))
+            if missing_areas:
+                raise DistrictPropertiesUpdateError(
+                    district_id, self.study_name, f"Areas do not exist: {', '.join(missing_areas)}"
+                )
+        # Update properties
+        district = current_content[district_id]
+        district.update(serialize_district_local(self.study_version, properties, exclude_unset=True))
+
+        # Prepare the object to return
+        local_dict = copy.deepcopy(district)
+        local_dict.pop("caption", None)
+        updated = parse_district_local(self.study_version, local_dict, list(existing_area_ids))
+
+        self._save_ini(current_content)
+        return updated
 
     @override
     def delete_district(self, district_id: str) -> None:

@@ -12,7 +12,6 @@
 
 from urllib.parse import quote
 
-from requests import RequestException
 from typing_extensions import override
 
 from antares.craft.api_conf.api_conf import APIconf
@@ -21,8 +20,9 @@ from antares.craft.exceptions.exceptions import (
     APIError,
     DistrictCreationError,
     DistrictDeletionError,
+    DistrictPropertiesUpdateError,
 )
-from antares.craft.model.district import District, DistrictProperties
+from antares.craft.model.district import District, DistrictProperties, DistrictPropertiesUpdate
 from antares.craft.service.api_services.models.district import parse_district_api, serialize_district_api
 from antares.craft.service.base_services import BaseDistrictService
 
@@ -44,13 +44,25 @@ class DistrictApiService(BaseDistrictService):
                 response = self._wrapper.post(f"{self._base_url}/studies/{self.study_id}/districts", json=body)
                 item = response.json()
                 created.append(District(item["name"], self, parse_district_api(item), district_id=item["id"]))
-            except (APIError, RequestException, ValueError, KeyError) as e:
-                raise DistrictCreationError(name, str(e)) from e
+            except APIError as e:
+                raise DistrictCreationError(name, e.message) from e
         return created
+
+    @override
+    def update_district_properties(self, district_id: str, properties: DistrictPropertiesUpdate) -> DistrictProperties:
+        url = f"{self._base_url}/studies/{self.study_id}/districts"
+        body = serialize_district_api(properties)
+        try:
+            self._wrapper.put(f"{url}/{quote(district_id, safe='')}", json=body)
+
+            districts = {item["id"]: item for item in self._wrapper.get(url).json()}
+            return parse_district_api(districts[district_id])
+        except APIError as e:
+            raise DistrictPropertiesUpdateError(district_id, self.study_id, e.message) from e
 
     @override
     def delete_district(self, district_id: str) -> None:
         try:
             self._wrapper.delete(f"{self._base_url}/studies/{self.study_id}/districts/{quote(district_id, safe='')}")
-        except (APIError, RequestException) as e:
-            raise DistrictDeletionError(district_id, str(e)) from e
+        except APIError as e:
+            raise DistrictDeletionError(district_id, e.message) from e
