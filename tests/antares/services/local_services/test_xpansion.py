@@ -97,7 +97,7 @@ class TestXpansion:
         )
         assert xpansion.get_candidates() == {
             "battery": XpansionCandidate(
-                name="battery", area_from="Area2", area_to="flex", annual_cost_per_mw=60000, max_investment=1000
+                name="battery", area_from="area2", area_to="flex", annual_cost_per_mw=60000, max_investment=1000
             ),
             "peak": XpansionCandidate(
                 name="peak", area_from="area1", area_to="peak", annual_cost_per_mw=60000, unit_size=100, max_units=20
@@ -554,7 +554,7 @@ class TestXpansion:
             "relaxed_optimality_gap": 1e-05,
             "separation_parameter": 0.5,
             "solver": "Cbc",
-            "timelimit": 1000000000000,
+            "timelimit": 172800,
             "uc_type": "expansion_fast",
             "master_solution_tolerance": 1e-4,
             "cut_coefficient_tolerance": 0.72,
