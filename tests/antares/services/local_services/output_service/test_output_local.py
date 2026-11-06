@@ -115,17 +115,6 @@ AREAS_REQUESTS__ALL = [
     (
         TestParamsAreas(
             output_id="20201014-1427eco",
-            query_file=MCAllAreasDataType.ID,
-            frequency=Frequency.DAILY,
-            mc_years=[],
-            type_ids=[],
-            columns_names=[],
-        ),
-        "test-06-all.result.tsv",
-    ),
-    (
-        TestParamsAreas(
-            output_id="20201014-1427eco",
             query_file=MCAllAreasDataType.VALUES,
             frequency=Frequency.DAILY,
             mc_years=[],
@@ -191,17 +180,6 @@ LINKS_REQUESTS__ALL = [
             columns_names=[],
         ),
         "test-04-all.result.tsv",
-    ),
-    (
-        TestParamsLinks(
-            output_id="20241807-1540eco-extra-outputs",
-            query_file=MCAllLinksDataType.ID,
-            frequency=Frequency.DAILY,
-            mc_years=[],
-            type_ids=[],
-            columns_names=[],
-        ),
-        "test-05-all.result.tsv",
     ),
     (
         TestParamsLinks(

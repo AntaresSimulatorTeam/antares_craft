@@ -69,7 +69,6 @@ class MCAllAreasDataType(Enum):
     DETAILS = "details"
     DETAILS_ST_STORAGE = "details-STstorage"
     DETAILS_RES = "details-res"
-    ID = "id"
 
 
 class MCIndLinksDataType(Enum):
@@ -97,7 +96,6 @@ class MCAllLinksDataType(Enum):
     """
 
     VALUES = "values"
-    ID = "id"
 
 
 class Frequency(Enum):
