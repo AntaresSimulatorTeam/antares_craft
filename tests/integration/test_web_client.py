@@ -1812,8 +1812,6 @@ class TestWebClient:
             comments="Test district", filter_synthesis=set(), filter_year_by_year={FilterOption.MONTHLY}
         )
 
-        # todo: Add tests on reserves here once they will be implemented
-
         # Run the Simulation to ensure it works
         job = study.run_antares_simulation()
         study.wait_job_completion(job)
