@@ -1,3 +1,31 @@
+v0.18.0 (2026-11-25)
+-------------------
+
+## Compatibility
+* **api**: This version is only compatible with AntaresWeb v2.36+ due to districts. 
+* **api** Studies are now imported and created in database mode inside AntaresWeb [`#441`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/441).  
+This is seemless for the users but means R scripts won't perhaps be able to read / modify the studies. 
+
+### Features
+* **district**: support districts [`#444`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/444) and [`#447`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/447)
+* **binding constraint**: checking submitted links and clusters in terms [`#438`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/438)
+* **version**: support Simulator v10.2 except for reserves [`#443`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/443) and [`#444`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/444)
+
+### Bug fixes
+* **deps**: restrict polars under v2 as the api changed [`#446`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/446)
+
+### Miscellaneous
+* **ci**: use Web v2.37 release inside tests [`#449`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/449)
+* **output**: drop support of `id` files reading [`#448`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/448)
+* **ci**: bump Web version inside CI [`#442`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/442)
+* **license**: update copyright year [`#445`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/445)
+* **study**: make some methods private [`#440`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/440)
+* **tests**: add tests on binding-constraint terms validity [`#439`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/439)
+* **ci**: bump Web version inside CI [`#437`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/437)
+
+### New Contributors
+* @TheoPascoli made their first contribution in https://github.com/AntaresSimulatorTeam/antares_craft/pull/445
+
 v0.17.1 (2026-09-15)
 -------------------
 
