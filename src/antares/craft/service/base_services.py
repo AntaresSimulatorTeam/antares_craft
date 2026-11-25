@@ -1,4 +1,4 @@
-# Copyright (c) 2024, RTE (https://www.rte-france.com)
+# Copyright (c) 2024-2026, RTE (https://www.rte-france.com)
 #
 # See AUTHORS.txt
 #
@@ -44,6 +44,7 @@ if TYPE_CHECKING:
         BindingConstraintPropertiesUpdate,
         ConstraintTerm,
     )
+    from antares.craft.model.district import District, DistrictProperties, DistrictPropertiesUpdate
     from antares.craft.model.hydro import HydroAllocation, HydroPropertiesUpdate, InflowStructure, InflowStructureUpdate
     from antares.craft.model.link import Link, LinkProperties, LinkPropertiesUpdate, LinkUi, LinkUiUpdate
     from antares.craft.model.output import (
@@ -386,6 +387,25 @@ class BaseHydroService(ABC):
 
     @abstractmethod
     def set_energy(self, area_id: str, series: pd.DataFrame) -> None:
+        pass
+
+
+class BaseDistrictService(ABC):
+    @abstractmethod
+    def create_districts(self, districts: dict[str, "DistrictProperties"]) -> list["District"]:
+        """Create districts and return their persisted values."""
+        pass
+
+    @abstractmethod
+    def update_district_properties(
+        self, district_id: str, properties: "DistrictPropertiesUpdate"
+    ) -> "DistrictProperties":
+        """Update a district and return its persisted properties."""
+        pass
+
+    @abstractmethod
+    def delete_district(self, district_id: str) -> None:
+        """Delete a district by its identifier."""
         pass
 
 
@@ -1012,3 +1032,4 @@ class StudyServices:
     run_service: BaseRunService
     output_service: BaseOutputService
     xpansion_service: BaseXpansionService
+    district_service: BaseDistrictService

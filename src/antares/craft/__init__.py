@@ -1,4 +1,4 @@
-# Copyright (c) 2024, RTE (https://www.rte-france.com)
+# Copyright (c) 2024-2026, RTE (https://www.rte-france.com)
 #
 # See AUTHORS.txt
 #
@@ -23,6 +23,7 @@ from antares.craft.model.binding_constraint import (
     LinkData,
 )
 from antares.craft.model.commons import FilterOption
+from antares.craft.model.district import District, DistrictProperties, DistrictPropertiesUpdate
 from antares.craft.model.hydro import HydroAllocation, HydroProperties, HydroPropertiesUpdate, InflowStructureUpdate
 from antares.craft.model.link import (
     AssetType,
@@ -187,6 +188,9 @@ __all__ = [
     "ThematicTrimmingParameters",
     "StudySettingsUpdate",
     "ScenarioBuilder",
+    "District",
+    "DistrictProperties",
+    "DistrictPropertiesUpdate",
     "Area",
     "AreaProperties",
     "AreaPropertiesUpdate",

@@ -20,6 +20,7 @@ nav:
       - Hydro: api-reference/model/hydro.md
       - Short-Term Storage: api-reference/model/st_storage.md
       - Binding constraints: api-reference/model/binding_constraint.md
+      - District: api-reference/model/district.md
       - Commons: api-reference/model/commons.md
     - Settings:
       - Study settings: api-reference/model/settings/study_settings.md
