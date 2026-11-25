@@ -115,7 +115,7 @@ class XpansionSettings:
     batch_size: int = 96
     yearly_weights: Optional[str] = None
     additional_constraints: Optional[str] = None
-    timelimit: int = int(1e12)
+    timelimit: int = 172800  # 48 hours in seconds
     master_solution_tolerance: float = 1e-4
     cut_coefficient_tolerance: float = 5e-3
 
