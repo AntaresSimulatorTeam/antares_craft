@@ -1281,8 +1281,6 @@ class TestWebClient:
         assert len(xpansion.get_candidates()) == 4
 
         ############# Constraints ##############
-        # todo: Uncomment this once new Web release is out
-        """
         file_name = "contraintes.txt"
 
         # Creates a constraint
@@ -1342,7 +1340,6 @@ class TestWebClient:
         # Deletes all constraints
         xpansion.delete_constraints(["new_name", "additional_c1"], file_name)
         assert xpansion.get_constraints() == {}
-        """
 
         # Create a constraint in a non-existing file
         constraint = XpansionConstraint(
@@ -1547,8 +1544,7 @@ class TestWebClient:
 
         ########## Hydro ##########
 
-        # todo: there is an issue with `overflow_spilled_cost_difference` in Antares Web. Uncomment this with 2.37
-        # assert area_fr.hydro.properties.overflow_spilled_cost_difference == 1
+        assert area_fr.hydro.properties.overflow_spilled_cost_difference == 1
         assert area_fr.hydro.properties.reservoir is False
         assert area_fr.hydro.properties.reservoir_capacity == 0
 
@@ -1781,9 +1777,9 @@ class TestWebClient:
 
         # Create a study with 2 areas and a link
         study = create_study_api("Study_10.2", "10.2", api_config)
-        area_fr = study.create_area("FR")
+        study.create_area("FR")
         study.create_area("be")
-        link = study.create_link(area_from="be", area_to="fr")
+        study.create_link(area_from="be", area_to="fr")
 
         # Checks the `include-reserves` attribute and modify it
         assert study.get_settings().optimization_parameters.include_reserves is False
