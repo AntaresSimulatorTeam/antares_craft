@@ -48,9 +48,14 @@ if TYPE_CHECKING:
 
 
 def _replace_safely_original_files(study_path: Path, tmp_path: Path) -> None:
+    """
+    Replace the original thermal series files with the ones from the temporary path.
+    Replace the files one by one to keep the Windows permissions.
+    """
     original_path = study_path / "input" / "thermal" / "series"
-    shutil.rmtree(original_path)
-    tmp_path.rename(original_path)
+    for area_path in original_path.iterdir():
+        for thermal_path in area_path.iterdir():
+            shutil.copyfile(tmp_path / area_path.name / thermal_path.name / "series.txt", thermal_path / "series.txt")
 
 
 def _build_timeseries(number_of_years: int, areas_dict: dict[str, Area], seed: int, tmp_path: Path) -> None:
@@ -210,7 +215,13 @@ class StudyLocalService(BaseStudyService):
         study_path = self._config.study_path
         with tempfile.TemporaryDirectory(suffix=".thermal_ts_gen.tmp", prefix="~", dir=study_path.parent) as path:
             tmp_dir = Path(path)
-            shutil.copytree(study_path / "input" / "thermal" / "series", tmp_dir, dirs_exist_ok=True)
+
+            series_folder = study_path / "input" / "thermal" / "series"
+            if not series_folder.exists():
+                # Could happen on an empty study
+                return
+
+            shutil.copytree(series_folder, tmp_dir, dirs_exist_ok=True)
             _build_timeseries(number_of_years, areas, seed, tmp_dir)
             _replace_safely_original_files(study_path, tmp_dir)
 

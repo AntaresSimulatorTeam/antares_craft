@@ -11,6 +11,8 @@
 # This file is part of the Antares project.
 import pytest
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -34,6 +36,14 @@ class TestThermalTsGeneration:
             series = cluster.get_series_matrix()
             expected_series = pd.DataFrame(np.full((8760, 4), (k + 1) * 100), dtype=np.int64)
             assert series.equals(expected_series)
+
+    def test_empty_study_cases(self, local_study: Study) -> None:
+        # Ensures we do not raise when generating TS for a study without areas
+        local_study.generate_thermal_timeseries(4)
+
+        # Ensures we do not raise when generating TS for a study that does not have the thermal series folder
+        (Path(local_study.path) / "input" / "thermal" / "series").rmdir()
+        local_study.generate_thermal_timeseries(3)
 
     def test_error_case(self, local_study_w_thermals: Study) -> None:
         thermal = local_study_w_thermals.get_areas()["it"].get_thermals()["thermal_it"]
