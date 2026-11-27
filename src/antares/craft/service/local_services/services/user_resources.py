@@ -32,13 +32,13 @@ class UserResourcesLocalService(BaseUserResourcesService):
 
     @override
     def add_resource(self, relative_path: Path, content: bytes) -> None:
-        resource_path = self._user_path / relative_path
+        resource_path = (self._user_path / relative_path).resolve()
         # Ensures the path isn't transversal
         if not resource_path.is_relative_to(self._user_path):
             raise UserResourcesCreationError(f"Path {relative_path} is not located in the user directory")
         # Ensures the path isn't in the `expansion` folder
         if resource_path.is_relative_to(self._user_path / "expansion"):
-            raise UserResourcesCreationError(f"Path {relative_path} is not located in the user directory")
+            raise UserResourcesCreationError(f"Path {relative_path} is located inside the expansion directory")
         # Write the resource content
         resource_path.parent.mkdir(parents=True, exist_ok=True)
         resource_path.write_bytes(content)
