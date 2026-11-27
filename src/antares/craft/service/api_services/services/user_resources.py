@@ -16,6 +16,7 @@ from typing_extensions import override
 
 from antares.craft import APIconf
 from antares.craft.api_conf.request_wrapper import RequestWrapper
+from antares.craft.exceptions.exceptions import APIError, UserResourcesCreationError
 from antares.craft.service.base_services import BaseUserResourcesService
 
 
@@ -34,4 +35,8 @@ class UserResourcesAPIService(BaseUserResourcesService):
 
     @override
     def add_resource(self, relative_path: Path, content: bytes) -> None:
-        pass
+        url = f"{self._base_url}/studies/{self.study_id}/user-resources?resource_type=file"
+        try:
+            self._wrapper.put(url, files={"file": (relative_path.as_posix(), content)})
+        except APIError as e:
+            raise UserResourcesCreationError(e.message) from e
