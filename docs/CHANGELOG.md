@@ -1,3 +1,12 @@
+v0.19.0 (2026-11-27)
+-------------------
+
+### Features
+- **user-resources**: introduce `add_user_resource` method inside Study class [`#452`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/452)
+
+### Bug fixes
+- **local, windows**: keep files permissions inside thermal ts generation [`#451`](https://github.com/AntaresSimulatorTeam/antares_craft/pull/451)
+
 v0.18.0 (2026-11-25)
 -------------------
 
