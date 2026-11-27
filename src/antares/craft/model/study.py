@@ -100,6 +100,7 @@ class Study:
         self._district_service = services.district_service
         self._settings_service = services.settings_service
         self._xpansion_service = services.xpansion_service
+        self._user_resources_service = services.user_resources_service
         self._xpansion_configuration: XpansionConfiguration | None = None
         self._settings = StudySettings()
         self._areas: dict[str, Area] = {}
@@ -689,6 +690,19 @@ class Study:
         link_id = " / ".join(ids)
 
         return link_id in self._links
+
+    def add_user_resource(self, relative_path: Path | str, content: bytes) -> None:
+        """
+        Add a resource inside the `user` folder of the study.
+        It overrides existing resource if the file already existed
+        Args:
+            relative_path: the path of the resource, relative to the `user` folder.
+                If it contains several folders (i.e. `folder1/folder2/file.txt`), they will be created.
+            content: the content of the resource as bytes.
+        """
+        if isinstance(relative_path, str):
+            relative_path = Path(relative_path)
+        self._user_resources_service.add_resource(relative_path, content)
 
 
 # Design note:
