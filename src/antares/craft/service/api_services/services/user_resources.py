@@ -35,7 +35,7 @@ class UserResourcesAPIService(BaseUserResourcesService):
 
     @override
     def add_resource(self, relative_path: Path, content: bytes) -> None:
-        url = f"{self._base_url}/studies/{self.study_id}/user-resources?resource_type=file"
+        url = f"{self._base_url}/studies/{self.study_id}/user-resources?resource_type=file&path={relative_path.as_posix()}"
         try:
             self._wrapper.put(url, files={"file": (relative_path.as_posix(), content)})
         except APIError as e:
