@@ -1018,6 +1018,21 @@ class BaseXpansionService(ABC):
         pass
 
 
+class BaseUserResourcesService(ABC):
+    @property
+    @abstractmethod
+    def study_id(self) -> str:
+        """The ID for the study"""
+        pass
+
+    @abstractmethod
+    def add_resource(self, relative_path: Path, content: bytes) -> None:
+        """
+        Add a resource inside the `user` folder of the study
+        """
+        pass
+
+
 @dataclass(frozen=True)
 class StudyServices:
     settings_service: BaseStudySettingsService
@@ -1033,3 +1048,4 @@ class StudyServices:
     output_service: BaseOutputService
     xpansion_service: BaseXpansionService
     district_service: BaseDistrictService
+    user_resources_service: BaseUserResourcesService
