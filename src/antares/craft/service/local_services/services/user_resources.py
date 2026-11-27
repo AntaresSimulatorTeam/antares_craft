@@ -15,6 +15,7 @@ from pathlib import Path
 from typing_extensions import override
 
 from antares.craft.config.local_configuration import LocalConfiguration
+from antares.craft.exceptions.exceptions import UserResourcesCreationError
 from antares.craft.service.base_services import BaseUserResourcesService
 
 
@@ -31,5 +32,13 @@ class UserResourcesLocalService(BaseUserResourcesService):
 
     @override
     def add_resource(self, relative_path: Path, content: bytes) -> None:
-        # todo: ensures the path isn't traversal.
-        pass
+        resource_path = self._user_path / relative_path
+        # Ensures the path isn't transversal
+        if not resource_path.is_relative_to(self._user_path):
+            raise UserResourcesCreationError(f"Path {relative_path} is not located in the user directory")
+        # Ensures the path isn't in the `expansion` folder
+        if resource_path.is_relative_to(self._user_path / "expansion"):
+            raise UserResourcesCreationError(f"Path {relative_path} is not located in the user directory")
+        # Write the resource content
+        resource_path.parent.mkdir(parents=True, exist_ok=True)
+        resource_path.write_bytes(content)
