@@ -1084,6 +1084,11 @@ class TestWebClient:
         assert imported_study.path == PurePath(f"new/test/studies/{imported_study.service.study_id}")
         assert list(imported_study.get_areas()) == list(study.get_areas())
 
+        # User resources tests -> None of them should raise an error
+        imported_study.add_user_resource("test.txt", b"Hello, world!")
+        imported_study.add_user_resource("folder/test.txt", b"John Doe")
+        imported_study.add_user_resource("test.txt", b"Goodbye, world!")
+
         ######################
         # Specific tests for Xpansion
         ######################

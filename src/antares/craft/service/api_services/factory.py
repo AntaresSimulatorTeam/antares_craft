@@ -78,6 +78,7 @@ from antares.craft.service.api_services.services.settings import StudySettingsAP
 from antares.craft.service.api_services.services.st_storage import ShortTermStorageApiService
 from antares.craft.service.api_services.services.study import StudyApiService
 from antares.craft.service.api_services.services.thermal import ThermalApiService
+from antares.craft.service.api_services.services.user_resources import UserResourcesAPIService
 from antares.craft.service.api_services.services.xpansion import XpansionAPIService
 from antares.craft.service.base_services import (
     BaseAreaService,
@@ -103,6 +104,7 @@ def create_api_services(config: APIconf, study_id: str = "") -> StudyServices:
     settings_service = StudySettingsAPIService(config, study_id)
     xpansion_service = XpansionAPIService(config, study_id)
     district_service = DistrictApiService(config, study_id)
+    user_resources_service = UserResourcesAPIService(config, study_id)
     return StudyServices(
         area_service=area_service,
         bc_service=bc_service,
@@ -117,6 +119,7 @@ def create_api_services(config: APIconf, study_id: str = "") -> StudyServices:
         short_term_storage_service=storage_service,
         xpansion_service=xpansion_service,
         district_service=district_service,
+        user_resources_service=user_resources_service,
     )
 
 
